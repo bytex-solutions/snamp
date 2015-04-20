@@ -10,6 +10,7 @@ import javax.security.auth.login.AppConfigurationEntry;
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -22,7 +23,7 @@ import java.util.Set;
  * @since 1.0
  */
 public final class JsonConfiguration extends AdvancedConfiguration {
-    private static final Charset CONFIG_ENCODING = Charset.forName("UTF-8");
+    private static final Charset CONFIG_ENCODING = StandardCharsets.UTF_8;
     public static final String TYPE = "JsonLoginConfig";
 
     private final Multimap<String, AppConfigurationEntry> entries;

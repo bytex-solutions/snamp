@@ -127,7 +127,7 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
      * @throws IllegalArgumentException actions is {@literal null}.
      */
     protected AbstractMaintainable(final Class<T> actions){
-        this(actions != null ? EnumSet.allOf(actions) : null);
+        this(EnumSet.allOf(actions));
     }
 
     /**

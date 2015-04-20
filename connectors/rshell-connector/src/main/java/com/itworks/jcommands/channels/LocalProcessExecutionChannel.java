@@ -6,11 +6,13 @@ import com.itworks.jcommands.ChannelProcessor;
 import com.itworks.jcommands.CommandExecutionChannel;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.MethodStub;
+import com.itworks.snamp.io.IOUtils;
 import org.apache.commons.exec.ExecuteException;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -87,16 +89,6 @@ final class LocalProcessExecutionChannel extends HashMap<String, String> impleme
             throw new IllegalArgumentException(String.format("Unsupported processing mode %s", value));
     }
 
-    private static String toString(final Reader reader) throws IOException {
-        final StringBuilder result = new StringBuilder();
-        while (reader.ready()){
-            final char[] buffer = new char[10];
-            final int count = reader.read(buffer);
-            result.append(buffer, 0, count);
-        }
-        return result.toString();
-    }
-
     /**
      * Executes the specified action in the channel context.
      *
@@ -110,12 +102,12 @@ final class LocalProcessExecutionChannel extends HashMap<String, String> impleme
     public <I, O, E extends Exception> O exec(final ChannelProcessor<I, O, E> command,
                                            final I obj) throws IOException, E {
         final Process proc = rt.exec(command.renderCommand(obj, this));
-        try (final Reader input = new InputStreamReader(proc.getInputStream());
-             final Reader error = new InputStreamReader(proc.getErrorStream())) {
+        try (final Reader input = new InputStreamReader(proc.getInputStream(), StandardCharsets.UTF_8);
+             final Reader error = new InputStreamReader(proc.getErrorStream(), StandardCharsets.UTF_8)) {
             final int processExitCode = proc.waitFor();
-            final String result = toString(input);
-            final String err = toString(error);
-            return err != null && err.length() > 0 || processExitCode != getNormalExitCode() ?
+            final String result = IOUtils.toString(input);
+            final String err = IOUtils.toString(error);
+            return err.length() > 0 || processExitCode != getNormalExitCode() ?
                     command.process(result, new ExecuteException(err, processExitCode)) :
                     command.process(result, null);
         } catch (final InterruptedException e) {

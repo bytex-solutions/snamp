@@ -29,7 +29,7 @@ enum OctetStringConversionFormat implements SnmpObjectConverter<OctetString> {
         }
 
         @Override
-        public Object convert(final OctetString value) {
+        public String convert(final OctetString value) {
             return new String(value.toByteArray());
         }
     },

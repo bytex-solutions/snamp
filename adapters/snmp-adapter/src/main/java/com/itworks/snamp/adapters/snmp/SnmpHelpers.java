@@ -18,6 +18,7 @@ import javax.management.ReflectionException;
 import javax.management.openmbean.ArrayType;
 import java.io.*;
 import java.lang.reflect.Array;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -84,7 +85,7 @@ final class SnmpHelpers {
 
         @Override
         public final byte[] convert(final Date value) {
-            return format(value).getBytes();
+            return format(value).getBytes(StandardCharsets.UTF_8);
         }
 
         private Date convert(final String value) throws ParseException{
@@ -93,7 +94,7 @@ final class SnmpHelpers {
 
         @Override
         public final Date convert(final byte[] value) throws ParseException {
-            return convert(new String(value));
+            return convert(new String(value, StandardCharsets.UTF_8));
         }
     }
 
@@ -266,7 +267,7 @@ final class SnmpHelpers {
         public byte[] convert(final Date value) {
             final Calendar cal = createCalendar();
             cal.setTime(value);
-            return convert(cal).getBytes();
+            return convert(cal).getBytes(StandardCharsets.UTF_8);
         }
 
         private Date convert(final String value) throws ParseException{

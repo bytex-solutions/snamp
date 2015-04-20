@@ -19,6 +19,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 //https://svn.apache.org/repos/asf/felix/trunk/mishell/src/main/java/org/apache/felix/mishell/OSGiScriptEngineManager.java
@@ -299,7 +300,7 @@ public final class OSGiScriptEngineManager extends ScriptEngineManager{
                 continue;
             while (urls.hasMoreElements()) {
                 final URL u = (URL) urls.nextElement();
-                try (final BufferedReader reader = new BufferedReader(new InputStreamReader(u.openStream()))) {
+                try (final BufferedReader reader = new BufferedReader(new InputStreamReader(u.openStream(), StandardCharsets.UTF_8))) {
                     String line;
                     while ((line = reader.readLine()) != null) {
                         line = line.trim();
@@ -341,7 +342,7 @@ public final class OSGiScriptEngineManager extends ScriptEngineManager{
         final Enumeration<URL> resoures = ClassLoader.getSystemResources(META_INF_SERVICES + "/" + ScriptEngineFactory.class.getName());
         while (resoures.hasMoreElements()) {
             final URL url = resoures.nextElement();
-            try (final BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()))) {
+            try (final BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     final int ci = line.indexOf('#');

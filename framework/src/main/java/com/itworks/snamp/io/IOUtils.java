@@ -75,4 +75,14 @@ public final class IOUtils {
             return false;
         }
     }
+
+    public static String toString(final Reader reader) throws IOException {
+        final StringBuilder result = new StringBuilder();
+        while (reader.ready()){
+            final char[] buffer = new char[10];
+            final int count = reader.read(buffer);
+            result.append(buffer, 0, count);
+        }
+        return result.toString();
+    }
 }

@@ -88,8 +88,8 @@ final class RShellExecutionChannel extends HashMap<String, String> implements Co
                 containsKey(REMOTE_PORT_PROPERTY) ? Integer.parseInt(get(REMOTE_HOST_PROPERTY)) : DEFAULT_PORT);
         try {
             client.rcommand(get(LOCAL_USER_PROPERTY), get(REMOTE_USER_PROPERTY), command.renderCommand(input, this), true);
-            final String result = IOUtils.readFully(client.getInputStream()).toString();
-            final String err = IOUtils.readFully(client.getErrorStream()).toString();
+            final String result = IOUtils.readFully(client.getInputStream()).toString("UTF-8");
+            final String err = IOUtils.readFully(client.getErrorStream()).toString("UTF-8");
             return command.process(result, err == null || err.isEmpty() ? null : new IOException(err));
         }
         finally {

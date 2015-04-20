@@ -11,6 +11,7 @@ import javax.xml.crypto.MarshalException;
 import javax.xml.crypto.dsig.XMLSignatureException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author Roman Sakno
@@ -39,7 +40,7 @@ public final class XmlLicensingTest extends Assert {
         }
         assertFalse(licenseContent.isEmpty());
         try(final InputStream input = new FileInputStream(getLicenseFile());
-            final InputStreamReader reader = new InputStreamReader(input, "UTF-8")){
+            final InputStreamReader reader = new InputStreamReader(input, StandardCharsets.UTF_8)){
             license = XmlLicense.load(reader);
         }
         assertNotNull(license);

@@ -20,6 +20,7 @@
                 <version>3.0.3</version>
                 <extensions>true</extensions>
                 <configuration>
+                    <finalName>snamp</finalName>
                     <ignoreScopeProvided>true</ignoreScopeProvided>
                     <bootFeatures>
                         <feature>platform-feature</feature>

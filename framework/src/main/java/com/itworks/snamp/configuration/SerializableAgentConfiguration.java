@@ -992,13 +992,14 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
             return super.isModified() || attributes.isModified() || events.isModified();
         }
 
-        public boolean equals(final ManagedResourceConfiguration other){
+        private boolean equalsImpl(final ManagedResourceConfiguration other){
             return AbstractAgentConfiguration.equals(this, other);
         }
 
         @Override
         public boolean equals(final Object other) {
-            return other instanceof ManagedResourceConfiguration && equals(other);
+            return other instanceof ManagedResourceConfiguration &&
+                    equalsImpl((ManagedResourceConfiguration)other);
         }
 
         @Override
