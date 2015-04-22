@@ -19,9 +19,17 @@
                 <groupId>org.apache.karaf.tooling</groupId>
                 <artifactId>karaf-maven-plugin</artifactId>
                 <version>3.0.3</version>
-                <configuration>
-                    <featuresFile>${project.basedir}/src/main/resources/features.xml</featuresFile>
-                </configuration>
+                <executions>
+                    <execution>
+                        <id>add-features-to-repo</id>
+                        <goals>
+                            <goal>features-generate-descriptor</goal>
+                        </goals>
+                        <configuration>
+                            <inputFile>${project.basedir}/src/main/resources/features.xml</inputFile>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
