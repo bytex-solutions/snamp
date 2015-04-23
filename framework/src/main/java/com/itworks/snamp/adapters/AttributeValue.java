@@ -147,10 +147,9 @@ public class AttributeValue extends Attribute implements AttributeValueReader {
      * @param other The Attribute that the current Attribute is to be compared with.
      * @return True if the two Attribute objects are equal, otherwise false.
      */
-    public boolean equals(final AttributeValue other){
+    public boolean equals(final AttributeValue other) {
         return other != null &&
-                Objects.equals(getName(), other.getName()) &&
-                Objects.equals(getValue(), other.getValue()) &&
+                super.equals(other) &&
                 Objects.equals(type, other.type);
     }
 
@@ -162,7 +161,9 @@ public class AttributeValue extends Attribute implements AttributeValueReader {
      */
     @Override
     public final boolean equals(final Object other) {
-        return other instanceof AttributeValue && equals((AttributeValue)other);
+        return other instanceof AttributeValue ?
+                equals((AttributeValue) other) :
+                super.equals(other);
     }
 
     /**

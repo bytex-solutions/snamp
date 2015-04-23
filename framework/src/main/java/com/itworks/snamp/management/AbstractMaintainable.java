@@ -19,6 +19,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.UndeclaredThrowableException;
 import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -45,7 +46,7 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
      */
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
-    public static @interface Action{
+    public @interface Action{
         /**
          * Represents default value of {@link #localeSpecific()} parameter.
          */
@@ -98,7 +99,7 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
             } catch (final Exception | Error e) {
                 throw e;
             } catch (final Throwable e) {
-                throw new Exception(e);
+                throw new UndeclaredThrowableException(e);
             }
         }
     }
@@ -188,7 +189,7 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
 
     private static ActionHandle findActionImplementation(final Maintainable maintainable,
                                                    final MaintenanceActionInfo action,
-                                                   final MethodHandles.Lookup resolver) throws IllegalAccessException {
+                                                   final MethodHandles.Lookup resolver) throws IllegalAccessException, NoSuchElementException {
         for (final Method m : maintainable.getClass().getMethods())
             if (isPublicInstance(m.getModifiers()) &&
                     m.isAnnotationPresent(Action.class) &&
@@ -208,7 +209,6 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
         //find the action implemented through reflection
         try {
             final ActionHandle actionImpl = actionCache.get(action, new Callable<ActionHandle>() {
-
                 @Override
                 public ActionHandle call() throws IllegalAccessException {
                     return findActionImplementation(AbstractMaintainable.this, action, actionResolver);

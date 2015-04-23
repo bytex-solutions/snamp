@@ -48,7 +48,6 @@ final class SnampCoreMBean extends OpenMBean implements LogListener, FrameworkMB
                 new DiscoverManagementMetadataOperation(manager),
                 new JaasConfigAttribute(),
                 new SnampConfigurationAttribute());
-        counter.start();
         this.counter = counter;
     }
 

@@ -1,6 +1,9 @@
 package com.itworks.snamp.concurrent;
 
+import com.itworks.snamp.internal.annotations.SpecialUse;
+
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 /**
  * Represents standalone future which computation can be executed in the separated thread.
@@ -37,10 +40,13 @@ public class FutureThread<V> extends Thread implements Future<V> {
         COMPLETED
     }
 
+    private static final AtomicReferenceFieldUpdater<FutureThread, State> STATE_UPDATER =
+            AtomicReferenceFieldUpdater.newUpdater(FutureThread.class, State.class, "state");
     private final Callable<V> implementation;
     private volatile V result;
     private volatile Exception error;
-    private volatile State st;
+    @SpecialUse
+    private volatile State state;
 
     /**
      * Initializes a new standalone future.
@@ -60,7 +66,7 @@ public class FutureThread<V> extends Thread implements Future<V> {
         implementation = impl;
         result = null;
         error = null;
-        st = State.CREATED;
+        state = State.CREATED;
         setDaemon(true);
     }
 
@@ -81,18 +87,18 @@ public class FutureThread<V> extends Thread implements Future<V> {
      */
     @Override
     public final void run() {
-        st = State.RUNNING;
+        state = State.RUNNING;
         try {
             result = implementation.call();
         }
         catch (final InterruptedException e){
-            st = State.CANCELLED;
+            state = State.CANCELLED;
         }
         catch (final Exception e) {
             error = e;
         }
         finally {
-            st = isInterrupted() ? State.CANCELLED : State.COMPLETED;
+            state = isInterrupted() ? State.CANCELLED : State.COMPLETED;
         }
     }
 
@@ -119,14 +125,19 @@ public class FutureThread<V> extends Thread implements Future<V> {
      */
     @Override
     public final boolean cancel(final boolean mayInterruptIfRunning) {
-        if(!mayInterruptIfRunning) return false;
-        else if(isInterrupted()) return false;
-        else switch (st){
-                case RUNNING:
+        if (isInterrupted()) return false;
+        switch (STATE_UPDATER.getAndSet(this, State.CANCELLED)) {
+            case RUNNING:
+                if(mayInterruptIfRunning) {
                     interrupt();
                     return true;
-                default: return false;
-            }
+                }
+                else return false;
+            case CREATED:
+                return true;
+            default:
+                return false;
+        }
     }
 
     /**
@@ -137,7 +148,7 @@ public class FutureThread<V> extends Thread implements Future<V> {
      */
     @Override
     public final boolean isCancelled() {
-        return st == State.CANCELLED;
+        return state == State.CANCELLED;
     }
 
     /**
@@ -151,7 +162,7 @@ public class FutureThread<V> extends Thread implements Future<V> {
      */
     @Override
     public final boolean isDone() {
-        switch (st){
+        switch (state){
             case COMPLETED:
             case CANCELLED: return true;
             default: return false;

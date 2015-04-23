@@ -8,8 +8,6 @@ import com.itworks.snamp.core.LogicalOperation;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
-import static com.itworks.snamp.concurrent.AbstractConcurrentResourceAccessor.ConsistentAction;
-
 /**
  * Represents synchronization event that is used to synchronize with some
  * asynchronous event.
@@ -17,7 +15,7 @@ import static com.itworks.snamp.concurrent.AbstractConcurrentResourceAccessor.Co
  * @version 1.0
  * @since 1.0
  */
-public class SynchronizationEvent<T> {
+public class SynchronizationEvent<T> extends ThreadSafeObject {
     /**
      * Represents synchronization event awaitor.
      * @param <T> Type of the event.
@@ -109,7 +107,7 @@ public class SynchronizationEvent<T> {
         }
     }
 
-    private final ConcurrentResourceAccessor<EventState<T>> state;
+    private EventState<T> state;
     private final boolean autoReset;
     private static boolean DEFAULT_AUTO_RESET = false;
 
@@ -120,7 +118,7 @@ public class SynchronizationEvent<T> {
      *                  otherwise, {@literal false}.
      */
     public SynchronizationEvent(final boolean autoReset) {
-        state = new ConcurrentResourceAccessor<>(new EventState<T>());
+        state = new EventState<>();
         this.autoReset = autoReset;
     }
 
@@ -134,9 +132,10 @@ public class SynchronizationEvent<T> {
     /**
      * Resets state of this event to initial.
      */
-    @SuppressWarnings("UnusedDeclaration")
     public final void reset() {
-        state.changeResource(new EventState<T>());
+        try (final LockScope ignored = beginWrite()) {
+            state = new EventState<>();
+        }
     }
 
     /**
@@ -146,21 +145,12 @@ public class SynchronizationEvent<T> {
      * @return {@literal true}, if this event is not in signalled state; otherwise, {@literal false}.
      */
     public final boolean fire(final T eventObj) {
-        if (autoReset) {
-            state.changeResource(new ConsistentAction<EventState<T>, EventState<T>>() {
-                @Override
-                public EventState<T> invoke(final EventState<T> state) {
-                    state.set(eventObj);
-                    return new EventState<>();
-                }
-            });
-            return true;
-        } else return state.write(new ConsistentAction<EventState<T>, Boolean>() {
-            @Override
-            public Boolean invoke(final EventState<T> state) {
-                return state.set(eventObj);
-            }
-        });
+        try (final LockScope ignored = beginWrite()) {
+            final boolean result = state.set(eventObj);
+            if (autoReset)
+                state = new EventState<>();
+            return result;
+        }
     }
 
     /**
@@ -169,12 +159,9 @@ public class SynchronizationEvent<T> {
      * @return {@literal true}, if this event is in signalled state; otherwise, {@literal false}.
      */
     protected final boolean signalled() {
-        return state.read(new ConsistentAction<EventState<T>, Boolean>() {
-            @Override
-            public Boolean invoke(final EventState<T> resource) {
-                return resource.isSignalled();
-            }
-        });
+        try(final LockScope ignored = beginRead()){
+            return state.isSignalled();
+        }
     }
 
     /**
@@ -183,7 +170,9 @@ public class SynchronizationEvent<T> {
      * @return A new awaitor for this event.
      */
     public final EventAwaitor<T> getAwaitor() {
-        return state.getResource();
+        try(final LockScope ignored = beginRead()){
+            return state;
+        }
     }
 
     protected final <E extends Throwable> EventAwaitor<T> getAwaitor(final Consumer<? super SynchronizationEvent<T>, E> handler) throws E{

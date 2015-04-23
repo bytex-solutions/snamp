@@ -167,14 +167,7 @@ final class SSHExecutionChannel extends SSHClient implements CommandExecutionCha
      * @see #getSupportedProcessingModes()
      */
     @Override
-    public synchronized void setProcessingMode(final ChannelProcessingMode value) {
-        if (getSupportedProcessingModes().contains(value)) {
-            this.mode = value;
-            if (session != null) try {
-                session.close();
-            } catch (final IOException ignored) {
-            }
-        } else throw new IllegalArgumentException(String.format("Channel mode %s is not supported", value));
+    public void setProcessingMode(final ChannelProcessingMode value) {
     }
 
     private static <I, T, E extends Exception> T exec(final Session s,

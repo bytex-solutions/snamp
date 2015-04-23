@@ -9,6 +9,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
+ * Describes SNAMP component.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
@@ -63,6 +64,8 @@ public interface SnampComponentDescriptor extends Descriptive, Map<String, Strin
      * @return {@literal true}, if the requested service is invoked; otherwise, {@literal false}.
      * @throws E An exception raised by service invoker.
      * @see com.itworks.snamp.management.Maintainable
+     * @see com.itworks.snamp.connectors.discovery.DiscoveryService
+     * @see com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider
      */
     <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Consumer<S, E> serviceInvoker) throws E;
 }

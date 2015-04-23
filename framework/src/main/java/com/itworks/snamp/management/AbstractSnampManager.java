@@ -328,7 +328,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
             try {
                 ref = ManagedResourceConnectorClient.getServiceReference(getItselfContext(), getSystemName(), null, serviceType);
                 if (ref == null) return false;
-                serviceInvoker.accept(getItselfContext().getService(ref));
+                else serviceInvoker.accept(getItselfContext().getService(ref));
             } catch (final InvalidSyntaxException ignored) {
                 return false;
             } finally {
@@ -360,9 +360,9 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      * @return A read-only collection of installed resource connectors.
      */
     @Override
-    public final Collection<SnampComponentDescriptor> getInstalledResourceConnectors() {
+    public final Collection<? extends ResourceConnectorDescriptor> getInstalledResourceConnectors() {
         final Collection<String> systemNames = ManagedResourceActivator.getInstalledResourceConnectors(Utils.getBundleContextByObject(this));
-        final Collection<SnampComponentDescriptor> result = new ArrayList<>(systemNames.size());
+        final Collection<ResourceConnectorDescriptor> result = new ArrayList<>(systemNames.size());
         for(final String systemName: systemNames)
             result.add(createResourceConnectorDescriptor(systemName));
         return result;
@@ -381,9 +381,9 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      * @return A read-only collection of installed resource adapters.
      */
     @Override
-    public final Collection<SnampComponentDescriptor> getInstalledResourceAdapters() {
+    public final Collection<? extends ResourceAdapterDescriptor> getInstalledResourceAdapters() {
         final Collection<String> systemNames = ResourceAdapterActivator.getInstalledResourceAdapters(Utils.getBundleContextByObject(this));
-        final Collection<SnampComponentDescriptor> result = new ArrayList<>(systemNames.size());
+        final Collection<ResourceAdapterDescriptor> result = new ArrayList<>(systemNames.size());
         for(final String systemName: systemNames)
             result.add(createResourceAdapterDescriptor(systemName));
         return result;
@@ -409,16 +409,16 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      * @return A read-only collection of installed additional SNAMP components.
      */
     @Override
-    public final Collection<SnampComponentDescriptor> getInstalledComponents() {
+    public final Collection<InternalSnampComponentDescriptor> getInstalledComponents() {
         final BundleContext context = Utils.getBundleContextByObject(this);
-        final Collection<SnampComponentDescriptor> result = new ArrayList<>(10);
+        final Collection<InternalSnampComponentDescriptor> result = new ArrayList<>(10);
         for(final Bundle bnd: context.getBundles())
             if(isSnampComponent(bnd))
                 result.add(new InternalSnampComponentDescriptor(bnd.getBundleId()));
         return result;
     }
 
-    public final SnampComponentDescriptor getResourceConnector(final String connectorName) {
+    public final ResourceConnectorDescriptor getResourceConnector(final String connectorName) {
         return Iterables.find(getInstalledResourceConnectors(), new Predicate<SnampComponentDescriptor>() {
             @Override
             public boolean apply(final SnampComponentDescriptor connector) {
@@ -427,7 +427,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
         });
     }
 
-    public final SnampComponentDescriptor getResourceAdapter(final String adapterName) {
+    public final ResourceAdapterDescriptor getResourceAdapter(final String adapterName) {
         return Iterables.find(getInstalledResourceAdapters(), new Predicate<SnampComponentDescriptor>() {
             @Override
             public boolean apply(final SnampComponentDescriptor connector) {

@@ -19,12 +19,12 @@
 
 <!-- Definition of context menu -->
 <ul id="myMenu" class="contextMenu">
-    <li class="edit"><a href="#edit">Edit</a></li>
+    <li class="edit" ng-if="activeNode.data.editable != false"><a href="#edit">Edit</a></li>
     <li class="cut"><a href="#cut">Cut</a></li>
     <li class="copy"><a href="#copy">Copy</a></li>
     <li class="paste"><a href="#paste">Paste</a></li>
-    <li class="delete"><a href="#delete">Delete</a></li>
-    <li class="quit"><a href="#append">Add new</a></li>
+    <li class="delete" ng-if="activeNode.data.removable == true"><a href="#delete">Delete</a></li>
+    <li class="append"><a href="#append">Add new</a></li>
 </ul>
 
 <!-- Modal -->

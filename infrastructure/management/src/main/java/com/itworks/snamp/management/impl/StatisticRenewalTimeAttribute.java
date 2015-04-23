@@ -1,10 +1,8 @@
 package com.itworks.snamp.management.impl;
 
-import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.jmx.OpenMBean;
 
 import javax.management.openmbean.SimpleType;
-import java.util.concurrent.TimeUnit;
 
 /**
  * The type Statistic renewal time attribute.
@@ -38,11 +36,11 @@ final class StatisticRenewalTimeAttribute extends OpenMBean.OpenAttribute<Long, 
 
     @Override
     public Long getValue() {
-        return counter.getRenewalTime().convert(TimeUnit.MILLISECONDS).duration;
+        return counter.getRenewalTime();
     }
 
     @Override
     public void setValue(final Long value) {
-        counter.setRenewalTime(new TimeSpan(value));
+        counter.setRenewalTime(value);
     }
 }
