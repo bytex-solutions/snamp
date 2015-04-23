@@ -4,13 +4,13 @@ import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
 import com.google.gson.Gson;
+import com.itworks.snamp.io.IOUtils;
 import com.itworks.snamp.security.auth.login.AdvancedConfiguration;
 
 import javax.security.auth.login.AppConfigurationEntry;
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -23,7 +23,7 @@ import java.util.Set;
  * @since 1.0
  */
 public final class JsonConfiguration extends AdvancedConfiguration {
-    private static final Charset CONFIG_ENCODING = StandardCharsets.UTF_8;
+    private static final Charset CONFIG_ENCODING = IOUtils.DEFAULT_CHARSET;
     public static final String TYPE = "JsonLoginConfig";
 
     private final Multimap<String, AppConfigurationEntry> entries;

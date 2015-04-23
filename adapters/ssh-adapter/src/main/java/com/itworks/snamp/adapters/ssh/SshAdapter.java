@@ -583,7 +583,6 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
             server = null;
             threadPool = null;
         }
-        System.gc();
     }
 
     /**

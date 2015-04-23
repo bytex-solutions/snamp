@@ -6,6 +6,7 @@ import com.itworks.snamp.Consumer;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.Wrapper;
 import com.itworks.snamp.internal.annotations.Internal;
+import com.itworks.snamp.internal.annotations.MethodStub;
 import org.osgi.framework.*;
 import org.osgi.service.event.Event;
 
@@ -396,11 +397,12 @@ public final class Utils {
     }
 
     /**
-     * Interface static initialize.
+     * Used to initialize static fields in interfaces
+     * when initialization code may throw exception.
      *
      * @param <T>  the type parameter
      * @param initializer the initializer
-     * @return the t
+     * @return The value returned from initializer.
      * @throws ExceptionInInitializerError the exception in initializer error
      */
     public static <T> T interfaceStaticInitialize(final Callable<T> initializer){
@@ -409,5 +411,23 @@ public final class Utils {
         } catch (final Exception e) {
             throw new ExceptionInInitializerError(e);
         }
+    }
+
+    /**
+     * Used to ignore return value of the method invocation.
+     * @param retval Return value of the method invocation.
+     */
+    @MethodStub
+    public static void blackhole(@SuppressWarnings("UnusedParameters") final Object retval){
+
+    }
+
+    /**
+     * Used to ignore return value of the method invocation.
+     * @param retval Return value of the method invocation.
+     */
+    @MethodStub
+    public static void blackhole(@SuppressWarnings("UnusedParameters") final boolean retval){
+
     }
 }

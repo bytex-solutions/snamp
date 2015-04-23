@@ -6,6 +6,7 @@ import com.google.common.cache.CacheBuilder;
 import com.itworks.snamp.*;
 import com.itworks.snamp.internal.RecordReader;
 import com.itworks.snamp.internal.annotations.Internal;
+import com.itworks.snamp.internal.annotations.SpecialUse;
 
 import javax.script.*;
 import javax.xml.bind.DatatypeConverter;
@@ -461,21 +462,25 @@ public class XmlParserDefinition {
     }
 
     @XmlAttribute(name = "blobFormat", namespace = XmlConstants.NAMESPACE, required = false)
+    @SpecialUse
     public final void setBlobParsingFormat(final BLOBFormat value){
         blobFormatter = value;
     }
 
+    @SpecialUse
     public final BLOBFormat getBlobParsingFormat(){
         return blobFormatter;
     }
 
     @XmlAttribute(name = "dateTimeFormat", namespace = XmlConstants.NAMESPACE, required = false)
+    @SpecialUse
     public final void setDateTimeParsingFormat(final String value){
         if(value == null || value.isEmpty())
             dateFormatter = DEFAULT_DATE_TIME_FORMAT;
         else dateFormatter = new SimpleDateParser(value);
     }
 
+    @SpecialUse
     public final String getDateTimeParsingFormat(){
         return dateFormatter.toPattern();
     }
@@ -770,15 +775,15 @@ public class XmlParserDefinition {
                 new Converter<Boolean>() {
                     @Override
                     public Boolean apply(final String input) {
-                        switch (input.toLowerCase()) {
-                            case "1":
-                            case "true":
-                            case "yes":
-                            case "ok":
-                                return true;
-                            default:
-                                return false;
-                        }
+                        if (input != null)
+                            switch (input.toLowerCase()) {
+                                case "1":
+                                case "true":
+                                case "yes":
+                                case "ok":
+                                    return true;
+                            }
+                        return false;
                     }
                 },
                 Boolean.FALSE);
@@ -791,7 +796,7 @@ public class XmlParserDefinition {
                 new Converter<Character>() {
                     @Override
                     public Character apply(final String input) {
-                        return input.isEmpty() ? '\0' : input.charAt(0);
+                        return input == null || input.isEmpty() ? '\0' : input.charAt(0);
                     }
                 },
                 '\0');

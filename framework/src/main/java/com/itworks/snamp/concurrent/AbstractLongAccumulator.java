@@ -47,7 +47,7 @@ public abstract class AbstractLongAccumulator extends AbstractAccumulator {
         return current;
     }
 
-    private long setAndGetImpl(final long value) {
+    private long updateImpl(final long value) {
         while (true) {
             final long current = this.current;
             final long newValue = combine(current, value);
@@ -57,16 +57,16 @@ public abstract class AbstractLongAccumulator extends AbstractAccumulator {
     }
 
     /**
-     * Modifies this accumulator.
+     * Updates this accumulator.
      * @param value A new value to be combined with existing accumulator value.
      * @return Modified accumulator value.
      */
-    public final long setAndGet(final long value){
+    public final long update(final long value){
         final long startTime = timer;
         final long currentTime = System.currentTimeMillis();
         if(currentTime - startTime > timeToLive)
             return reset(value);
-        else return setAndGetImpl(value);
+        else return updateImpl(value);
     }
 
     /**
@@ -75,7 +75,7 @@ public abstract class AbstractLongAccumulator extends AbstractAccumulator {
      */
     @Override
     public final long longValue() {
-        return setAndGet(initialValue);
+        return update(initialValue);
     }
 
     /**

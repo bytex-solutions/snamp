@@ -274,7 +274,7 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
             return new OID(result.substring(0, result.length() - 2));
         else {
             final int lastDot = result.lastIndexOf('.');
-            final int num = Integer.valueOf(result.substring(lastDot + 1)) + 1;
+            final int num = Integer.parseInt(result.substring(lastDot + 1)) + 1;
             return new OID(result.substring(0, lastDot) + "." + num);
         }
     }
@@ -307,11 +307,10 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
 
     public final void set(final VariableBinding[] variables, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException {
         final PDU request = createPDU(PDU.SET);
-        for(final VariableBinding v: variables)
+        for (final VariableBinding v : variables)
             request.add(v);
         final ResponseEvent response = send(request, timeout);
-        if(response == null) throw new TimeoutException(String.format("Unable to set variables %s. Timeout reached.", Arrays.toString(variables)));
-        else if(response.getResponse().getErrorStatus() != SnmpConstants.SNMP_ERROR_SUCCESS)
+        if (response.getResponse().getErrorStatus() != SnmpConstants.SNMP_ERROR_SUCCESS)
             throw new IOException(String.format("Unable to set %s variables. Status is %s(%s).", Arrays.toString(variables), response.getResponse().getErrorStatusText(), response.getResponse().getErrorStatus()));
     }
 
@@ -338,8 +337,8 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
 
     public final void set(final Map<OID, Variable> variables, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException{
         final Collection<VariableBinding> bindings = new ArrayList<>(variables.size());
-        for(final OID key: variables.keySet())
-            bindings.add(new VariableBinding(key, variables.get(key)));
+        for(final Map.Entry<OID, Variable> entry: variables.entrySet())
+            bindings.add(new VariableBinding(entry.getKey(), entry.getValue()));
         set(ArrayUtils.toArray(bindings, VariableBinding.class), timeout);
     }
 }

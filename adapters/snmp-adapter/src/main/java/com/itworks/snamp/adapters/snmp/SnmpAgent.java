@@ -35,7 +35,7 @@ import java.util.logging.Level;
  * 
  */
 final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, ResourceAdapterUpdatedCallback {
-    private static final OctetString NOTIFICATION_SETTINGS_TAG = new OctetString("NOTIF_TAG");
+    private static final OctetString NOTIFICATION_SETTINGS_TAG = SnmpHelpers.toOctetString("NOTIF_TAG");
 
 	private final String hostName;
     private final int port;
@@ -124,15 +124,16 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, Res
 	@Override
 	protected final void addViews(final VacmMIB vacm) {
         if (security == null){
-            vacm.addGroup(SecurityModel.SECURITY_MODEL_SNMPv2c, new OctetString(
-                    "cpublic"), new OctetString("v1v2group"),
+            vacm.addGroup(SecurityModel.SECURITY_MODEL_SNMPv2c, SnmpHelpers.toOctetString(
+                            "cpublic"),
+                    SnmpHelpers.toOctetString("v1v2group"),
                     StorageType.nonVolatile);
 
-            vacm.addAccess(new OctetString("v1v2group"), new OctetString("public"),
+            vacm.addAccess(SnmpHelpers.toOctetString("v1v2group"), SnmpHelpers.toOctetString("public"),
                     SecurityModel.SECURITY_MODEL_ANY, SecurityLevel.NOAUTH_NOPRIV,
-                    MutableVACM.VACM_MATCH_EXACT, new OctetString("fullReadView"),
-                    new OctetString("fullWriteView"), new OctetString(
-                    "fullNotifyView"), StorageType.nonVolatile);
+                    MutableVACM.VACM_MATCH_EXACT, SnmpHelpers.toOctetString("fullReadView"),
+                    SnmpHelpers.toOctetString("fullWriteView"), SnmpHelpers.toOctetString(
+                            "fullNotifyView"), StorageType.nonVolatile);
         }
         else security.setupViewBasedAcm(vacm);
 	}
@@ -170,7 +171,7 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, Res
     @Override
     protected final void addNotificationTargets(final SnmpTargetMIB targetMIB, final SnmpNotificationMIB notificationMIB) {
         targetMIB.addDefaultTDomains();
-        vacmMIB.addViewTreeFamily(new OctetString("fullNotifyView"), new OID(prefix),
+        vacmMIB.addViewTreeFamily(SnmpHelpers.toOctetString("fullNotifyView"), new OID(prefix),
                 new OctetString(), VacmMIB.vacmViewIncluded,
                 StorageType.nonVolatile);
         //setup internal SNMP settings
@@ -183,18 +184,18 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, Res
                 targetMIB.addTargetParams(NOTIFICATION_SETTINGS_TAG,
                         MessageProcessingModel.MPv3,
                         SecurityModel.SECURITY_MODEL_USM,
-                        new OctetString(notifyUser),
+                        SnmpHelpers.toOctetString(notifyUser),
                         security.getUserSecurityLevel(notifyUser).getSnmpValue(),
                         StorageType.permanent);
         }
         else targetMIB.addTargetParams(NOTIFICATION_SETTINGS_TAG,
                 MessageProcessingModel.MPv2c,
                 SecurityModel.SECURITY_MODEL_SNMPv2c,
-                new OctetString("cpublic"),
+                SnmpHelpers.toOctetString("cpublic"),
                 SecurityLevel.AUTH_PRIV,
                 StorageType.permanent);
-        notificationMIB.addNotifyEntry(new OctetString("default"),
-                new OctetString("notify"),
+        notificationMIB.addNotifyEntry(SnmpHelpers.toOctetString("default"),
+                SnmpHelpers.toOctetString("notify"),
                 SnmpNotificationMIB.SnmpNotifyTypeEnum.trap,
                 StorageType.permanent);
     }
@@ -258,17 +259,17 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, Res
 	 */
 	@SuppressWarnings("unchecked")
     protected void addCommunities(final SnmpCommunityMIB communityMIB) {
-		final Variable[] com2sec = new Variable[] { new OctetString("public"), // community
+		final Variable[] com2sec = new Variable[] { SnmpHelpers.toOctetString("public"), // community
 																			// name
-				new OctetString("cpublic"), // security name
+				SnmpHelpers.toOctetString("cpublic"), // security name
 				agent.getContextEngineID(), // local engine ID
-				new OctetString("public"), // default context name
+				SnmpHelpers.toOctetString("public"), // default context name
 				new OctetString(), // transport tag
 				new Integer32(StorageType.nonVolatile), // storage type
 				new Integer32(RowStatus.active) // row status
 		};
 		final SnmpCommunityMIB.SnmpCommunityEntryRow row = communityMIB.getSnmpCommunityEntry().createRow(
-				new OctetString("public2public").toSubIndex(true), com2sec);
+				SnmpHelpers.toOctetString("public2public").toSubIndex(true), com2sec);
 		communityMIB.getSnmpCommunityEntry().addRow(row);
 	}
 
@@ -294,14 +295,17 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, Res
     @Override
     public void stop() {
         switch (agentState) {
-            case STATE_RUNNING:
+            case STATE_CREATED:
                 threadPool.shutdownNow();
+            case STATE_RUNNING:
+
                 suspend();
             case STATE_STOPPED:
-            case STATE_CREATED:
                 snmpTargetMIB.getSnmpTargetAddrEntry().removeAll();
                 snmpTargetMIB.getSnmpTargetParamsEntry().removeAll();
                 unregisterSnmpMIBs();
+            default:
+
         }
     }
 }

@@ -3,8 +3,8 @@ package com.itworks.snamp.adapters.snmp;
 import com.itworks.snamp.adapters.AttributeAccessor;
 import com.itworks.snamp.internal.annotations.SpecialUse;
 import com.itworks.snamp.jmx.WellKnownType;
+import org.snmp4j.smi.AssignableFromByteArray;
 import org.snmp4j.smi.OctetString;
-import org.snmp4j.smi.Variable;
 
 import javax.management.InvalidAttributeValueException;
 import javax.management.ReflectionException;
@@ -19,19 +19,19 @@ final class SnmpFloatObject extends SnmpScalarObject<OctetString>{
 
     @SpecialUse
     SnmpFloatObject(final AttributeAccessor connector){
-        super(connector, new OctetString(DEFAULT_VALUE.toString()));
+        super(connector, SnmpHelpers.toOctetString(DEFAULT_VALUE.toString()));
     }
 
     @SpecialUse
     static OctetString toSnmpObject(final Object value){
-        return new OctetString(Objects.toString(value, "0"));
+        return SnmpHelpers.toOctetString(Objects.toString(value, "0"));
     }
 
     @SpecialUse
-    static Number fromSnmpObject(final Variable value, final Type attributeTypeInfo) throws InvalidAttributeValueException {
+    static Number fromSnmpObject(final AssignableFromByteArray value, final Type attributeTypeInfo) throws InvalidAttributeValueException {
         switch (WellKnownType.getType(attributeTypeInfo)){
-            case FLOAT: return Float.valueOf(value.toString());
-            case DOUBLE: return Double.valueOf(value.toString());
+            case FLOAT: return Float.valueOf(SnmpHelpers.toString(value));
+            case DOUBLE: return Double.valueOf(SnmpHelpers.toString(value));
             default: throw unexpectedAttributeType(attributeTypeInfo);
         }
     }

@@ -3,8 +3,8 @@ package com.itworks.snamp.adapters.snmp;
 import com.itworks.snamp.adapters.AttributeAccessor;
 import com.itworks.snamp.internal.annotations.SpecialUse;
 import com.itworks.snamp.jmx.WellKnownType;
+import org.snmp4j.smi.AssignableFromByteArray;
 import org.snmp4j.smi.OctetString;
-import org.snmp4j.smi.Variable;
 
 import javax.management.InvalidAttributeValueException;
 import javax.management.ReflectionException;
@@ -21,7 +21,7 @@ final class SnmpBigNumberObject extends SnmpScalarObject<OctetString>{
 
     @SpecialUse
     SnmpBigNumberObject(final AttributeAccessor attribute){
-        super(attribute, new OctetString(DEFAULT_VALUE.toString()));
+        super(attribute, SnmpHelpers.toOctetString(DEFAULT_VALUE.toString()));
     }
 
     @SpecialUse
@@ -32,22 +32,22 @@ final class SnmpBigNumberObject extends SnmpScalarObject<OctetString>{
         else if(value instanceof BigInteger)
             result = value.toString();
         else result = Objects.toString(value, "0");
-        return new OctetString(result);
+        return SnmpHelpers.toOctetString(result);
     }
 
     @SpecialUse
-    static Number fromSnmpObject(final Variable value, final Type attributeTypeInfo) throws InvalidAttributeValueException {
+    static Number fromSnmpObject(final AssignableFromByteArray value, final Type attributeTypeInfo) throws InvalidAttributeValueException {
         switch (WellKnownType.getType(attributeTypeInfo)){
             case BIG_DECIMAL:
                 try {
-                    return new BigDecimal(value.toString());
+                    return new BigDecimal(SnmpHelpers.toString(value));
                 }
                 catch (final NumberFormatException e){
                     throw new InvalidAttributeValueException(e.getMessage());
                 }
             case BIG_INT:
                 try {
-                    return new BigInteger(value.toString());
+                    return new BigInteger(SnmpHelpers.toString(value));
                 }
                 catch (final NumberFormatException e){
                     throw new InvalidAttributeValueException(e.getMessage());

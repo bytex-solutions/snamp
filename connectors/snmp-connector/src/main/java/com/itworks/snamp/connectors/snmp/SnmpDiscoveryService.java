@@ -33,7 +33,7 @@ final class SnmpDiscoveryService {
     }
 
     private static TimeSpan getDiscoveryTimeout(){
-        return new TimeSpan(Long.valueOf(System.getProperty(DISCOVERY_TIMEOUT_PROPERTY, "5000")));
+        return new TimeSpan(Long.parseLong(System.getProperty(DISCOVERY_TIMEOUT_PROPERTY, "5000")));
     }
 
     private static void setupAttributeOptions(final Variable v, final Map<String, String> options){

@@ -303,7 +303,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
         //save additional fields
         _connector = connector;
         cacheManager = hasField(connector.getMetadata().getDescriptor(), TABLE_CACHE_TIME_PARAM) ?
-                new UpdateManager(new TimeSpan(Integer.valueOf(getField(connector.getMetadata().getDescriptor(), TABLE_CACHE_TIME_PARAM, String.class)))):
+                new UpdateManager(new TimeSpan(Integer.parseInt(getField(connector.getMetadata().getDescriptor(), TABLE_CACHE_TIME_PARAM, String.class)))):
                 new UpdateManager();
     }
 

@@ -5,6 +5,7 @@ import com.itworks.snamp.connectors.AbstractFeatureModeler;
 import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
 import com.itworks.snamp.internal.KeyedObjects;
+import com.itworks.snamp.io.IOUtils;
 
 import javax.management.*;
 import javax.management.openmbean.CompositeData;
@@ -52,7 +53,7 @@ public abstract class AbstractNotificationSupport<M extends MBeanNotificationInf
         private static BigInteger toBigInteger(final String value){
             return value == null || value.isEmpty() ?
                     BigInteger.ZERO:
-                    new BigInteger(value.getBytes());
+                    new BigInteger(value.getBytes(IOUtils.DEFAULT_CHARSET));
         }
     }
 
@@ -137,13 +138,14 @@ public abstract class AbstractNotificationSupport<M extends MBeanNotificationInf
     private Notification createNotification(final String listID,
                                                    final String message,
                                                    final Object userData){
-        final Notification result = new Notification(listID,
-                this,
-                sequenceCounter.getAndIncrement(),
-                message);
-        result.setUserData(userData);
-        result.setTimeStamp(System.currentTimeMillis());
-        return result;
+        return new NotificationBuilder()
+                .setTimeStamp()
+                .setSequenceNumber(sequenceCounter.getAndIncrement())
+                .setType(listID)
+                .setSource(this)
+                .setMessage(message)
+                .setUserData(userData)
+                .get();
     }
 
     /**

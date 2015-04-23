@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
+import static com.itworks.snamp.internal.Utils.blackhole;
+
 /**
  * @author Roman Sakno
  * @version 1.0
@@ -27,13 +29,13 @@ final class ConcurrentPassiveCheckSender extends NagiosPassiveCheckSender implem
 
     @Override
     public void send(final MessagePayload payload) {
-        executor.submit(new Callable<Void>() {
+        blackhole(executor.submit(new Callable<Void>() {
             @Override
             public Void call() throws IOException, NagiosException {
                 ConcurrentPassiveCheckSender.super.send(payload);
                 return null;
             }
-        });
+        }));
     }
 
     @Override

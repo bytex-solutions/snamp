@@ -1,6 +1,7 @@
 package com.itworks.snamp.licensing;
 
 import com.google.common.primitives.Ints;
+import com.google.common.primitives.Longs;
 
 /**
  * Represents mutable wrapper for {@literal int} data type.
@@ -81,5 +82,19 @@ final class MutableLong extends Number implements Comparable<MutableLong> {
     @Override
     public int compareTo(final MutableLong o) {
         return Long.compare(value, o.value);
+    }
+
+    public boolean equals(final Number other){
+        return other != null && value == other.longValue();
+    }
+
+    @Override
+    public boolean equals(final Object other) {
+        return other instanceof Number && equals((Number)other);
+    }
+
+    @Override
+    public int hashCode() {
+        return Longs.hashCode(value);
     }
 }

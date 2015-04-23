@@ -127,9 +127,9 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
             }
         }
         finally {
+            rootObjectName = null;
             exposedBeans.clear();
         }
-        System.gc();
     }
 
     /**

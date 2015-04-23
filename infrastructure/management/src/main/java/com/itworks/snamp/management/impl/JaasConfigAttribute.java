@@ -41,8 +41,6 @@ final class JaasConfigAttribute extends OpenMBean.OpenAttribute<byte[], ArrayTyp
         try (final ByteArrayOutputStream out = new ByteArrayOutputStream(1024)) {
             manager.get().dumpConfiguration(out);
             return out.toByteArray();
-        } catch (final Exception e) {
-            return null;
         } finally {
             manager.release(context);
         }

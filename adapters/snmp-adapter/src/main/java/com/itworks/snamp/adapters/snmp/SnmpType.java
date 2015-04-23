@@ -1,11 +1,9 @@
 package com.itworks.snamp.adapters.snmp;
 
+import com.itworks.snamp.adapters.AttributeAccessor;
 import com.itworks.snamp.jmx.DescriptorUtils;
 import com.itworks.snamp.jmx.WellKnownType;
-import org.snmp4j.smi.Counter64;
-import org.snmp4j.smi.Integer32;
-import org.snmp4j.smi.OctetString;
-import org.snmp4j.smi.Variable;
+import org.snmp4j.smi.*;
 
 import javax.management.Descriptor;
 import javax.management.DescriptorRead;
@@ -14,8 +12,6 @@ import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.nio.Buffer;
 import java.util.Date;
-
-import com.itworks.snamp.adapters.AttributeAccessor;
 
 /**
  * Represents SNMP managed object factory.
@@ -39,7 +35,7 @@ enum SnmpType {
 
         @Override
         Number convert(final Variable value, final Type valueType, final DescriptorRead options) throws InvalidAttributeValueException {
-            return SnmpBigNumberObject.fromSnmpObject(value, valueType);
+            return SnmpBigNumberObject.fromSnmpObject((AssignableFromByteArray)value, valueType);
         }
     },
 
@@ -120,7 +116,7 @@ enum SnmpType {
 
         @Override
         Number convert(final Variable value, final Type valueType, final DescriptorRead options) throws InvalidAttributeValueException {
-            return SnmpFloatObject.fromSnmpObject(value, valueType);
+            return SnmpFloatObject.fromSnmpObject((AssignableFromByteArray)value, valueType);
         }
     },
 
@@ -160,7 +156,7 @@ enum SnmpType {
 
         @Override
         Serializable convert(final Variable value, final Type valueType, final DescriptorRead options) throws InvalidAttributeValueException {
-            return SnmpStringObject.fromSnmpObject(value, valueType);
+            return SnmpStringObject.fromSnmpObject((AssignableFromByteArray)value, valueType);
         }
     },
 
@@ -254,7 +250,7 @@ enum SnmpType {
     private final boolean isScalar;
     private final int syntax;
 
-    private SnmpType(final boolean scalar, final int syntax){
+    SnmpType(final boolean scalar, final int syntax){
         this.isScalar = scalar;
         this.syntax = syntax;
     }

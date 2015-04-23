@@ -76,21 +76,21 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
 
     private static void copyAttributes(final Map<String, ManagedResourceConfiguration.AttributeConfiguration> input, final Map<String, ManagedResourceConfiguration.AttributeConfiguration> output, final Supplier<ManagedResourceConfiguration.AttributeConfiguration> attributeFactory){
         if(input != null && output != null)
-            for(final String attributeId: input.keySet()){
-                final ManagedResourceConfiguration.AttributeConfiguration inputAttr = input.get(attributeId);
+            for(final Map.Entry<String, ManagedResourceConfiguration.AttributeConfiguration> entry: input.entrySet()){
+                final ManagedResourceConfiguration.AttributeConfiguration inputAttr = entry.getValue();
                 final ManagedResourceConfiguration.AttributeConfiguration outputAttr = attributeFactory.get();
                 copy(inputAttr, outputAttr);
-                output.put(attributeId, outputAttr);
+                output.put(entry.getKey(), outputAttr);
             }
     }
 
     private static void copyEvents(final Map<String, ManagedResourceConfiguration.EventConfiguration> input, final Map<String, ManagedResourceConfiguration.EventConfiguration> output, final Supplier<ManagedResourceConfiguration.EventConfiguration> eventFactory){
         if(input != null && output != null)
-            for(final String eventID: input.keySet()){
-                final ManagedResourceConfiguration.EventConfiguration inputEv = input.get(eventID);
+            for(final Map.Entry<String, ManagedResourceConfiguration.EventConfiguration> entry: input.entrySet()){
+                final ManagedResourceConfiguration.EventConfiguration inputEv = entry.getValue();
                 final ManagedResourceConfiguration.EventConfiguration outputEv = eventFactory.get();
                 copy(inputEv, outputEv);
-                output.put(eventID, outputEv);
+                output.put(entry.getKey(), outputEv);
             }
     }
 
@@ -133,11 +133,11 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
                              final Supplier<T> entityFactory,
                              final ConfigurationEntityCopier<T> copier){
         output.clear();
-        for(final String entry: input.keySet()){
-            final T source = input.get(entry);
+        for(final Map.Entry<String, T> entry: input.entrySet()){
+            final T source = entry.getValue();
             final T dest = entityFactory.get();
             copier.copy(source, dest);
-            output.put(entry, dest);
+            output.put(entry.getKey(), dest);
         }
     }
 
@@ -207,8 +207,8 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         if(obj1 == obj2) return true;
         else if(obj1 == null || obj2 == null) return false;
         else if(obj1.size() == obj2.size()){
-            for(final String key1: obj1.keySet())
-                if(!Objects.equals(obj1.get(key1), obj2.get(key1))) return false;
+            for(final Map.Entry<String, ?> entry1: obj1.entrySet())
+                if(!Objects.equals(entry1.getValue(), obj2.get(entry1.getKey()))) return false;
             return true;
         }
         else return false;

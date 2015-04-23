@@ -6,11 +6,13 @@ import com.itworks.snamp.Consumer;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
 import com.itworks.snamp.core.OSGiLoggingContext;
+import com.itworks.snamp.io.IOUtils;
 import org.snmp4j.agent.MOAccess;
 import org.snmp4j.agent.mo.MOAccessImpl;
 import org.snmp4j.agent.mo.MOColumn;
 import org.snmp4j.agent.mo.MOTable;
-import org.snmp4j.smi.OID;
+import org.snmp4j.smi.AssignableFromByteArray;
+import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.Variable;
 
 import javax.management.MBeanAttributeInfo;
@@ -18,6 +20,7 @@ import javax.management.ReflectionException;
 import javax.management.openmbean.ArrayType;
 import java.io.*;
 import java.lang.reflect.Array;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -31,12 +34,21 @@ import java.util.regex.Pattern;
  * @author Roman Sakno
  */
 final class SnmpHelpers {
+    static final Charset SNMP_ENCODING = StandardCharsets.UTF_8;
     static final String ADAPTER_NAME = "snmp";
     private static final String LOGGER_NAME = AbstractResourceAdapter.getLoggerName(ADAPTER_NAME);
     private static final TimeZone ZERO_TIME_ZONE = new SimpleTimeZone(0, "UTC");
 
     private SnmpHelpers(){
 
+    }
+
+    static OctetString toOctetString(final String value) {
+        return new OctetString(value.getBytes(SNMP_ENCODING));
+    }
+
+    static String toString(final AssignableFromByteArray value){
+        return new String(value.toByteArray(), SNMP_ENCODING);
     }
 
     static byte toByte(final long value){
@@ -62,7 +74,7 @@ final class SnmpHelpers {
     /**
      * Represents date/time formatter.
      */
-    static interface DateTimeFormatter{
+    interface DateTimeFormatter{
         byte[] convert(final Date value);
         Date convert(final byte[] value) throws ParseException;
     }
@@ -74,6 +86,7 @@ final class SnmpHelpers {
     private static class CustomDateTimeFormatter extends SimpleDateFormat implements DateTimeFormatter{
         private static final String DEFAUT_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
         public static final String FORMATTER_NAME = "default";
+        private static final long serialVersionUID = -4381345715692133371L;
 
         public CustomDateTimeFormatter(){
             this(DEFAUT_FORMAT);
@@ -85,7 +98,7 @@ final class SnmpHelpers {
 
         @Override
         public final byte[] convert(final Date value) {
-            return format(value).getBytes(StandardCharsets.UTF_8);
+            return format(value).getBytes(IOUtils.DEFAULT_CHARSET);
         }
 
         private Date convert(final String value) throws ParseException{
@@ -94,7 +107,7 @@ final class SnmpHelpers {
 
         @Override
         public final Date convert(final byte[] value) throws ParseException {
-            return convert(new String(value, StandardCharsets.UTF_8));
+            return convert(new String(value, SNMP_ENCODING));
         }
     }
 
@@ -267,7 +280,7 @@ final class SnmpHelpers {
         public byte[] convert(final Date value) {
             final Calendar cal = createCalendar();
             cal.setTime(value);
-            return convert(cal).getBytes(StandardCharsets.UTF_8);
+            return convert(cal).getBytes(IOUtils.DEFAULT_CHARSET);
         }
 
         private Date convert(final String value) throws ParseException{
@@ -275,16 +288,16 @@ final class SnmpHelpers {
             if (matcher.matches())
             {
                 final CalendarBuilder builder = new CalendarBuilder();
-                builder.setYear(Integer.valueOf(matcher.group(1)));
-                builder.setMonth(Integer.valueOf(matcher.group(2))-1);
-                builder.setDayOfMonth(Integer.valueOf(matcher.group(3)));
-                builder.setHourOfDay(Integer.valueOf(matcher.group(4)));
-                builder.setMinute(Integer.valueOf(matcher.group(5)));
-                builder.setSecond(Integer.valueOf(matcher.group(6)));
-                builder.setDeciseconds(Integer.valueOf(matcher.group(7)));
+                builder.setYear(Integer.parseInt(matcher.group(1)));
+                builder.setMonth(Integer.parseInt(matcher.group(2))-1);
+                builder.setDayOfMonth(Integer.parseInt(matcher.group(3)));
+                builder.setHourOfDay(Integer.parseInt(matcher.group(4)));
+                builder.setMinute(Integer.parseInt(matcher.group(5)));
+                builder.setSecond(Integer.parseInt(matcher.group(6)));
+                builder.setDeciseconds(Integer.parseInt(matcher.group(7)));
                 builder.setDirectionFromUTCPlus(matcher.group(8).equals("+"));
-                builder.setOffsetInHours(Integer.valueOf(matcher.group(9)));
-                builder.setOffsetInMinutes(Integer.valueOf(matcher.group(10)));
+                builder.setOffsetInHours(Integer.parseInt(matcher.group(9)));
+                builder.setOffsetInMinutes(Integer.parseInt(matcher.group(10)));
                 return builder.build().getTime();
             }
             else
@@ -293,7 +306,7 @@ final class SnmpHelpers {
 
         @Override
         public Date convert(final byte[] value) throws ParseException {
-            return convert(new String(value));
+            return convert(new String(value, SNMP_ENCODING));
         }
     }
 
@@ -329,28 +342,6 @@ final class SnmpHelpers {
     static int findColumnIndex(final MOTable<?, ? extends MOColumn<?>, ?> table, final Class<? extends MOColumn<?>> columnType){
         final MOColumn<? extends Variable> column = findColumn(table, columnType);
         return column != null ? column.getColumnID() : -1;
-    }
-
-    private static OID getPrefix(final OID objectId){
-        final OID result = new OID(objectId);
-        result.trim(2);
-        return result;
-    }
-
-    static Set<OID> getPrefixes(final Collection<? extends SnmpEntity> objects){
-        //first two numbers of OID are identified as prefix
-        final Set<OID> result = new HashSet<>(objects.size());
-        for(final SnmpEntity obj: objects)
-            result.add(getPrefix(obj.getID()));
-        return result;
-    }
-
-    static <T extends SnmpEntity> Collection<T> getObjectsByPrefix(final OID prefix, final Collection<T> objects){
-        final Collection<T> result = new ArrayList<>(objects.size());
-        for(final T obj: objects)
-            if(Objects.equals(getPrefix(obj.getID()), prefix))
-                result.add(obj);
-        return result;
     }
 
     static Object toArray(final List<?> lst, final ArrayType<?> arrayType) throws ReflectionException {

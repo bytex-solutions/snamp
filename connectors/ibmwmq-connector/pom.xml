@@ -8,75 +8,76 @@
     <artifactId>connectors</artifactId>
     <version>1.0.0</version>
   </parent>
-  <artifactId>ibmwmq</artifactId>
+  <artifactId>ibmwmq-connector</artifactId>
   <version>1.0.0</version>
-  <packaging>jar</packaging>
-  <name>IBM MQ Connector Module Plugin</name>
+  <packaging>bundle</packaging>
+  <name>IBM MQ Connector</name>
   <build>
     <plugins>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>2.3.2</version>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <extensions>true</extensions>
         <configuration>
-          <archive>
-            <manifest>
-              <addClasspath>true</addClasspath>
-              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-            </manifest>
-          </archive>
-        </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.3.2</version>
-        <configuration>
-          <source>1.7</source>
-          <target>1.7</target>
+          <instructions>
+            <Bundle-SymbolicName>com.itworks.snamp.connectors.wmq</Bundle-SymbolicName>
+            <Bundle-Activator>com.itworks.snamp.connectors.wmq.MQConnectorActivator</Bundle-Activator>
+            <Export-Package/>
+            <!--SNAMP specific header-->
+            <SNAMP-Resource-Connector>ibm-wmq</SNAMP-Resource-Connector>
+          </instructions>
         </configuration>
       </plugin>
     </plugins>
   </build>
   <dependencies>
-      <dependency>
-          <groupId>org.codehaus.groovy</groupId>
-          <artifactId>groovy-all</artifactId>
-          <version>2.2.2</version>
-      </dependency>
+    <dependency>
+      <scope>provided</scope>
+      <groupId>com.itworks.snamp</groupId>
+      <artifactId>framework</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+    <dependency>
+      <scope>provided</scope>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.core</artifactId>
+      <version>4.3.1</version>
+    </dependency>
+    <dependency>
+      <scope>provided</scope>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.compendium</artifactId>
+      <version>4.3.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>18.0</version>
+      <scope>provided</scope>
+    </dependency>
     <dependency>
       <groupId>com.ibm.mq</groupId>
       <artifactId>WebSphereJMQI</artifactId>
       <version>6.0.0.0</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.ibm.mq</groupId>
       <artifactId>WebSphereMQ</artifactId>
       <version>6.0.0.0</version>
-    </dependency>
-    <dependency>
-      <groupId>com.ibm.mq</groupId>
-      <artifactId>WebSphereCommonServices</artifactId>
-      <version>6.0.0.0</version>
-    </dependency>
-    <dependency>
-      <groupId>com.ibm.mq</groupId>
-      <artifactId>WebSphereMQHeaders</artifactId>
-      <version>6.0.0.0</version>
-    </dependency>
-    <dependency>
-      <groupId>com.ibm</groupId>
-      <artifactId>JSSEProvider</artifactId>
-      <version>2.0.0</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.ibm.mq</groupId>
       <artifactId>WebSphereMQPCF</artifactId>
       <version>6.0.0.0</version>
+      <scope>provided</scope>
     </dependency>
-   <dependency>
-       <groupId>javax.resource</groupId>
-       <artifactId>jca</artifactId>
-       <version>6.0.0.0</version>
-   </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 </project>

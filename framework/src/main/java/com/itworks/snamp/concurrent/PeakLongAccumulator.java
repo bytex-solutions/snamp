@@ -8,6 +8,8 @@ package com.itworks.snamp.concurrent;
  * @since 1.0
  */
 public final class PeakLongAccumulator extends AbstractLongAccumulator {
+    private static final long serialVersionUID = -8443558435352145841L;
+
     /**
      * Initializes a new accumulator of {@literal long} values.
      *

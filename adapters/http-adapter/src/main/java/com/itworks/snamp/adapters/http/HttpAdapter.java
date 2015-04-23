@@ -322,7 +322,6 @@ final class HttpAdapter extends AbstractResourceAdapter {
         publisher.unregister(getServletContext());
         servletFactory.attributes.clear();
         servletFactory.notifications.clear();
-        System.gc();
     }
 
     @SuppressWarnings("unchecked")

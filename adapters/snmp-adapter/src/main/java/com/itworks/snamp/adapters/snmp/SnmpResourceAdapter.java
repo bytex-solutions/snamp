@@ -73,7 +73,7 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
 
         @Override
         public OctetString getReceiverName() {
-            return new OctetString(parseTargetName(getMetadata()));
+            return SnmpHelpers.toOctetString(parseTargetName(getMetadata()));
         }
 
         @Override
@@ -109,16 +109,17 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
             @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
             final SnmpNotification snmpTrap = new SnmpNotification(notification, metadata);
             originator.notify(new OctetString(), snmpTrap.notificationID, snmpTrap.getBindings()); //for SNMPv3 sending
-            originator.notify(new OctetString("public"), snmpTrap.notificationID, snmpTrap.getBindings()); //for SNMPv2 sending
+            originator.notify(SnmpHelpers.toOctetString("public"), snmpTrap.notificationID, snmpTrap.getBindings()); //for SNMPv2 sending
         }
 
         @Override
         public void handleNotification(final Notification notification, final Object handback) {
             final WeakReference<NotificationOriginator> originatorRef = this.notificationOriginator;
-            if(originatorRef != null){
-                final NotificationOriginator originator = originatorRef.get();
+            final NotificationOriginator originator = originatorRef != null ?
+                    originatorRef.get() :
+                    null;
+            if (originator != null)
                 handleNotification(originator, notification, resourceName, getMetadata());
-            }
         }
 
         @Override
@@ -146,6 +147,17 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
 
         private ResourceAdapterUpdatedCallback getCallback(){
             return agent;
+        }
+
+        /**
+         * Releases all resources associated with this
+         *
+         * @throws InterruptedException Unable to interrupt background timer.
+         */
+        @Override
+        public synchronized void close() throws Exception {
+            agent.stop();
+            super.close();
         }
     }
 
@@ -193,7 +205,7 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
     }
 
     @Override
-    protected void start(final Map<String, String> parameters) throws IOException, DuplicateRegistrationException, SnmpAdapterAbsentParameterException {
+    protected synchronized void start(final Map<String, String> parameters) throws IOException, DuplicateRegistrationException, SnmpAdapterAbsentParameterException {
         start(new OID(parseContext(parameters)),
                 parseEngineID(parameters),
                 parsePort(parameters),
@@ -303,12 +315,10 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
      * </p>
      */
     @Override
-    protected void stop() throws InterruptedException{
+    protected synchronized void stop() throws Exception{
         try {
-            if(updateManager != null) {
-                updateManager.agent.stop();
+            if(updateManager != null)
                 updateManager.close();
-            }
             //remove all notifications
             for(final String resourceName: notifications.keySet())
                 for(final FeatureAccessor<?, ?> mapping: notifications.get(resourceName))
@@ -323,9 +333,6 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
             notifications.clear();
             attributes.clear();
         }
-        //it is a good time for GC because attributes and notifications
-        //detached from it models
-        System.gc();
     }
 
     /**

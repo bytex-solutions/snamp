@@ -82,7 +82,6 @@ final class XMPPAdapter extends AbstractResourceAdapter {
         if (connection.isConnected())
             connection.disconnect(new Presence(Presence.Type.unavailable));
         connection = null;
-        System.gc();
     }
 
     @Override

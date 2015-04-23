@@ -36,7 +36,7 @@ public enum BLOBFormat implements Converter<byte[]> {
 
     private final BaseEncoding encoding;
 
-    private BLOBFormat(final BaseEncoding enc){
+    BLOBFormat(final BaseEncoding enc){
         this.encoding = enc;
     }
 
@@ -47,6 +47,6 @@ public enum BLOBFormat implements Converter<byte[]> {
      */
     @Override
     public final byte[] apply(final String input) {
-        return encoding.decode(input);
+        return input != null ? encoding.decode(input) : new byte[0];
     }
 }

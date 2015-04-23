@@ -65,7 +65,6 @@ final class NagiosAdapter extends AbstractResourceAdapter {
     protected void stop() throws Exception {
         publisher.unregister(getServletContext());
         service.clear();
-        System.gc();
     }
 
     @Override

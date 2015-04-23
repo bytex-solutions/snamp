@@ -80,4 +80,18 @@ final class MutableInteger extends Number implements Comparable<MutableInteger> 
     public int compareTo(final MutableInteger o) {
         return Integer.compare(value, o.value);
     }
+
+    public boolean equals(final Number other){
+        return other != null && value == other.intValue();
+    }
+
+    @Override
+    public boolean equals(final Object other) {
+        return other instanceof Number && equals((Number)other);
+    }
+
+    @Override
+    public int hashCode() {
+        return value;
+    }
 }

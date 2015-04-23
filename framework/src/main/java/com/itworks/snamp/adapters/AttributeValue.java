@@ -140,4 +140,41 @@ public class AttributeValue extends Attribute implements AttributeValueReader {
     public final Object call() {
         return getValue();
     }
+
+    /**
+     * Compares the current Attribute Object with another Attribute Object.
+     *
+     * @param other The Attribute that the current Attribute is to be compared with.
+     * @return True if the two Attribute objects are equal, otherwise false.
+     */
+    public boolean equals(final AttributeValue other){
+        return other != null &&
+                Objects.equals(getName(), other.getName()) &&
+                Objects.equals(getValue(), other.getValue()) &&
+                Objects.equals(type, other.type);
+    }
+
+    /**
+     * Compares the current Attribute Object with another Attribute Object.
+     *
+     * @param other The Attribute that the current Attribute is to be compared with.
+     * @return True if the two Attribute objects are equal, otherwise false.
+     */
+    @Override
+    public final boolean equals(final Object other) {
+        return other instanceof AttributeValue && equals((AttributeValue)other);
+    }
+
+    /**
+     * Returns a hash code value for this attribute.
+     *
+     * @return a hash code value for this attribute.
+     */
+    @Override
+    public int hashCode() {
+        final Object value = getValue();
+        return value != null ?
+                Objects.hash(value, getName(), type) :
+                Objects.hash(getName(), type);
+    }
 }

@@ -3,10 +3,13 @@ package com.itworks.snamp.adapters.snmp;
 import com.itworks.snamp.adapters.AttributeAccessor;
 import com.itworks.snamp.internal.annotations.SpecialUse;
 import com.itworks.snamp.jmx.WellKnownType;
+import org.snmp4j.smi.AssignableFromByteArray;
 import org.snmp4j.smi.OctetString;
-import org.snmp4j.smi.Variable;
 
-import javax.management.*;
+import javax.management.InvalidAttributeValueException;
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
+import javax.management.ReflectionException;
 import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.util.Objects;
@@ -19,28 +22,28 @@ final class SnmpStringObject extends SnmpScalarObject<OctetString>{
 
     @SpecialUse
     SnmpStringObject(final AttributeAccessor connector){
-        super(connector, new OctetString(DEFAULT_VALUE));
+        super(connector, SnmpHelpers.toOctetString(DEFAULT_VALUE));
     }
 
     @SpecialUse
     static OctetString toSnmpObject(final Object value){
         if(value instanceof ObjectName)
-            return new OctetString(((ObjectName)value).getCanonicalName());
+            return SnmpHelpers.toOctetString(((ObjectName) value).getCanonicalName());
         else if(value instanceof String)
-            return new OctetString((String)value);
+            return SnmpHelpers.toOctetString((String)value);
         else if(value instanceof Character)
-            return new OctetString(String.valueOf((char)value));
-        else return new OctetString(Objects.toString(value, DEFAULT_VALUE));
+            return SnmpHelpers.toOctetString(String.valueOf((char)value));
+        else return SnmpHelpers.toOctetString(Objects.toString(value, DEFAULT_VALUE));
     }
 
     @SpecialUse
-    static Serializable fromSnmpObject(final Variable value, final Type expectedType) throws InvalidAttributeValueException {
+    static Serializable fromSnmpObject(final AssignableFromByteArray value, final Type expectedType) throws InvalidAttributeValueException {
         switch (WellKnownType.getType(expectedType)){
-            case STRING: return value.toString();
+            case STRING: return SnmpHelpers.toString(value);
             case CHAR: return SnmpHelpers.toChar(value.toString());
             case OBJECT_NAME:
                 try {
-                    return new ObjectName(value.toString());
+                    return new ObjectName(SnmpHelpers.toString(value));
                 } catch (final MalformedObjectNameException e) {
                     throw new InvalidAttributeValueException(e.getMessage());
                 }

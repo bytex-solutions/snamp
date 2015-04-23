@@ -149,7 +149,7 @@ final class SecurityConfiguration {
         }
 
         public final void setPassword(final byte[] password){
-            setPassword(new String(password));
+            setPassword(new String(password, SnmpHelpers.SNMP_ENCODING));
         }
 
         public final boolean setPassword(final Object password){
@@ -201,7 +201,7 @@ final class SecurityConfiguration {
         }
 
         public final void setPrivacyKey(final byte[] passphrase){
-            setPrivacyKey(new String(passphrase));
+            setPrivacyKey(new String(passphrase, SnmpHelpers.SNMP_ENCODING));
         }
 
         public final boolean setPrivacyKey(final Object passphrase){
@@ -216,19 +216,23 @@ final class SecurityConfiguration {
             else return false;
         }
 
-        public final OctetString getPasswordAsOctectString() {
-            return password == null || password.isEmpty() ? null : new OctetString(password);
+        public final OctetString getPasswordAsOctetString() {
+            return password == null || password.isEmpty() ?
+                    null :
+                    SnmpHelpers.toOctetString(password);
         }
 
         public final OctetString getPrivacyKeyAsOctetString(){
-            return encryptionKey == null || encryptionKey.isEmpty() ? null : new OctetString(encryptionKey);
+            return encryptionKey == null || encryptionKey.isEmpty() ?
+                    null :
+                    SnmpHelpers.toOctetString(encryptionKey);
         }
 
         public final void defineUser(final USM userHive, final OctetString userName, final OctetString engineID) {
             userHive.addUser(userName, engineID,
                     new UsmUser(userName,
                             getAuthenticationProtocol(),
-                            getPasswordAsOctectString(),
+                            getPasswordAsOctetString(),
                             getPrivacyProtocol(),
                             getPrivacyKeyAsOctetString()));
         }
@@ -555,7 +559,7 @@ final class SecurityConfiguration {
     public final void setupUserBasedSecurity(final USM security){
         for(final UserGroup group: groups.values())
             for(final Map.Entry<String, User> user: group.entrySet()){
-                final OctetString userName = new OctetString(user.getKey());
+                final OctetString userName = SnmpHelpers.toOctetString(user.getKey());
                 final User userDef = user.getValue();
                 userDef.defineUser(security, userName, securityEngineID);
             }
@@ -565,16 +569,16 @@ final class SecurityConfiguration {
         for(final Map.Entry<String, UserGroup> group: groups.entrySet()){
             final UserGroup groupDef = group.getValue();
             for(final Map.Entry<String, User> user: groupDef.entrySet()){
-                vacm.addGroup(SecurityModel.SECURITY_MODEL_USM, new OctetString(user.getKey()),
-                        new OctetString(group.getKey()),
+                vacm.addGroup(SecurityModel.SECURITY_MODEL_USM, SnmpHelpers.toOctetString(user.getKey()),
+                        SnmpHelpers.toOctetString(group.getKey()),
                         StorageType.nonVolatile);
             }
-            vacm.addAccess(new OctetString(group.getKey()), new OctetString(),
+            vacm.addAccess(SnmpHelpers.toOctetString(group.getKey()), new OctetString(),
                     SecurityModel.SECURITY_MODEL_USM, groupDef.getSecurityLevel().getSnmpValue(),
                     MutableVACM.VACM_MATCH_EXACT,
-                    groupDef.hasAccessRights(AccessRights.READ) ? new OctetString("fullReadView") : null,
-                    groupDef.hasAccessRights(AccessRights.WRITE) ? new OctetString("fullWriteView") : null,
-                    groupDef.hasAccessRights(AccessRights.NOTIFY) ? new OctetString("fullNotifyView") : null,
+                    groupDef.hasAccessRights(AccessRights.READ) ? SnmpHelpers.toOctetString("fullReadView") : null,
+                    groupDef.hasAccessRights(AccessRights.WRITE) ? SnmpHelpers.toOctetString("fullWriteView") : null,
+                    groupDef.hasAccessRights(AccessRights.NOTIFY) ? SnmpHelpers.toOctetString("fullNotifyView") : null,
                     StorageType.nonVolatile);
         }
     }

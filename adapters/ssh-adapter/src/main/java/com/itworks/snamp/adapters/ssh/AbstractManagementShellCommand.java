@@ -13,6 +13,7 @@ import org.apache.sshd.server.Environment;
 import org.apache.sshd.server.ExitCallback;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -137,8 +138,8 @@ abstract class AbstractManagementShellCommand extends BasicParser implements Man
 
                     @Override
                     public void run() {
-                        try (final PrintWriter out = new PrintWriter(this.out);
-                             final PrintWriter err = new PrintWriter(this.err)) {
+                        try (final PrintWriter out = new PrintWriter(new OutputStreamWriter(this.out, StandardCharsets.UTF_8));
+                             final PrintWriter err = new PrintWriter(new OutputStreamWriter(this.out, StandardCharsets.UTF_8))) {
                             AbstractManagementShellCommand.this.doCommand(arguments, out, err);
                         }
 

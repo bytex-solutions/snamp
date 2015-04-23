@@ -7,6 +7,7 @@ import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
 import com.itworks.snamp.internal.KeyedObjects;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
+import com.itworks.snamp.io.IOUtils;
 import com.itworks.snamp.jmx.JMExceptionUtils;
 
 import javax.management.*;
@@ -20,6 +21,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static com.itworks.snamp.internal.Utils.blackhole;
 
 /**
  * Provides a base support of management attributes.
@@ -51,7 +54,7 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
         private static BigInteger toBigInteger(final String value){
             return value == null || value.isEmpty() ?
                     BigInteger.ZERO:
-                    new BigInteger(value.getBytes());
+                    new BigInteger(value.getBytes(IOUtils.DEFAULT_CHARSET));
         }
 
         private static BigInteger computeIdentity(final String attributeName,
@@ -175,21 +178,19 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
                 synchronizedList(Lists.<Attribute>newArrayListWithExpectedSize(attributes.length));
         final CountDownLatch synchronizer = new CountDownLatch(attributes.length);
         for (final String attributeID : attributes)
-            executor.submit(new Callable<Object>() {
+            blackhole(executor.submit(new Callable<Object>() {
                 @Override
                 public Object call() throws JMException {
                     try {
                         return result.add(new Attribute(attributeID, getAttribute(attributeID)));
-                    }
-                    catch (final JMException e){
+                    } catch (final JMException e) {
                         failedToGetAttribute(attributeID, e);
                         return null;
-                    }
-                    finally {
+                    } finally {
                         synchronizer.countDown();
                     }
                 }
-            });
+            }));
         if (timeout == null)
             synchronizer.await();
         else if (!synchronizer.await(timeout.duration, timeout.unit))
@@ -250,7 +251,7 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
                 Collections.synchronizedList(Lists.<Attribute>newArrayListWithExpectedSize(attributes.size()));
         final CountDownLatch synchronizer = new CountDownLatch(attributes.size());
         for (final Attribute attr : attributes.asList())
-            executor.submit(new Callable<Object>() {
+            blackhole(executor.submit(new Callable<Object>() {
                 @Override
                 public Object call() throws Exception {
                     try {
@@ -265,7 +266,7 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
                         synchronizer.countDown();
                     }
                 }
-            });
+            }));
         if(timeout == null)
             synchronizer.await();
         else if(!synchronizer.await(timeout.duration, timeout.unit))

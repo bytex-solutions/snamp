@@ -22,14 +22,14 @@ final class SnmpUnixTimeObject extends SnmpScalarObject<OctetString>{
 
     @SpecialUse
     SnmpUnixTimeObject(final AttributeAccessor connector){
-        super(connector, new OctetString(DEFAULT_VALUE));
+        super(connector, SnmpHelpers.toOctetString(DEFAULT_VALUE));
         formatter = createFormatter(connector.getMetadata());
     }
 
     private static OctetString toSnmpObject(final Object value, final DateTimeFormatter formatter) {
         if (value instanceof Date)
             return OctetString.fromByteArray(formatter.convert((Date) value));
-        else return new OctetString(DEFAULT_VALUE);
+        else return SnmpHelpers.toOctetString(DEFAULT_VALUE);
     }
 
     @SpecialUse

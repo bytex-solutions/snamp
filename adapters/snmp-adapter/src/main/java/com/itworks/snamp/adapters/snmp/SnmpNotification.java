@@ -68,15 +68,15 @@ final class SnmpNotification extends HashMap<OID, Variable> {
     SnmpNotification(final Notification n,
                      final MBeanNotificationInfo metadata) {
         this(new OID(parseOID(metadata)));
-        put(messageId, new OctetString(n.getMessage()));
+        put(messageId, SnmpHelpers.toOctetString(n.getMessage()));
         put(severityId, new Integer32(NotificationDescriptor.getSeverity(metadata).getLevel()));
         put(sequenceNumberId, new Counter64(n.getSequenceNumber()));
-        put(categoryId, new OctetString(NotificationDescriptor.getNotificationCategory(metadata)));
+        put(categoryId, SnmpHelpers.toOctetString(NotificationDescriptor.getNotificationCategory(metadata)));
         final DateTimeFormatter formatter = SnmpHelpers.createDateTimeFormatter(parseDateTimeDisplayFormat(metadata));
         put(timeStampId, new OctetString(formatter.convert(new Date(n.getTimeStamp()))));
         putAttachment(notificationID, n.getUserData(), metadata, this);
-        put(eventNameId, new OctetString(n.getType()));
-        put(sourceId, new OctetString(Objects.toString(n.getSource(), "")));
+        put(eventNameId, SnmpHelpers.toOctetString(n.getType()));
+        put(sourceId, SnmpHelpers.toOctetString(Objects.toString(n.getSource(), "")));
     }
 
     private static void putAttachment(final OID notificationID,
@@ -159,8 +159,8 @@ final class SnmpNotification extends HashMap<OID, Variable> {
     VariableBinding[] getBindings(){
         final VariableBinding[] result = new VariableBinding[size()];
         int i = 0;
-        for(final OID id: keySet())
-            result[i++] = new VariableBinding(id, get(id));
+        for(final Map.Entry<OID, Variable> entry: entrySet())
+            result[i++] = new VariableBinding(entry.getKey(), entry.getValue());
         return result;
     }
 

@@ -37,7 +37,7 @@
       <module>snmp-connector</module>
       <module>rshell-connector</module>
       <module>aggregator-connector</module>
-      <!--<module>ibmwmb-connector</module>
-      <module>ibmwmq-connector</module>-->
+      <!--<module>ibmwmb-connector</module>-->
+      <module>ibmwmq-connector</module>
   </modules>
 </project>

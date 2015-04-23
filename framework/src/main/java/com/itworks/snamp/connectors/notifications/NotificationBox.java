@@ -4,6 +4,8 @@ import javax.management.Notification;
 import javax.management.NotificationListener;
 import java.util.concurrent.ArrayBlockingQueue;
 
+import static com.itworks.snamp.internal.Utils.blackhole;
+
 /**
  * Represents fixed-size mailbox for the notifications.
  * @author Roman Sakno
@@ -34,6 +36,6 @@ public class NotificationBox extends ArrayBlockingQueue<Notification> implements
      */
     @Override
     public void handleNotification(final Notification notification, final Object handback) {
-        offer(notification);
+        blackhole(offer(notification));
     }
 }

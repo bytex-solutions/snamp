@@ -12,7 +12,7 @@ import org.snmp4j.security.nonstandard.PrivAES256With3DESKeyExtension;
  */
 public final class DefaultSecurityProtocols extends SecurityProtocols {
     private static final long serialVersionUID = -4976046491353164997L;
-    private static DefaultSecurityProtocols INSTANCE;
+    private volatile static DefaultSecurityProtocols INSTANCE;
 
     /**
      * Initializes a new set of default security protocols.

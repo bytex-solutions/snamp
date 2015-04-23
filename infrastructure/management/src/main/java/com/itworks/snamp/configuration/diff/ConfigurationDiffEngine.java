@@ -25,36 +25,36 @@ public final class ConfigurationDiffEngine {
                                            final Map<String, ResourceAdapterConfiguration> target,
                                            final Map<String, ResourceAdapterConfiguration> baseline){
         //compute gaps for adapters that should be deleted from baseline config
-        for(final String adapterInstanceName: baseline.keySet())
-            if(!target.containsKey(adapterInstanceName))
-                output.add(new RemoveResourceAdapterPatchImpl(adapterInstanceName, baseline.get(adapterInstanceName)));
+        for(final Map.Entry<String, ResourceAdapterConfiguration> adapterInstance: baseline.entrySet())
+            if(!target.containsKey(adapterInstance.getKey()))
+                output.add(new RemoveResourceAdapterPatchImpl(adapterInstance.getKey(), adapterInstance.getValue()));
 
-        for(final String adapterInstanceName: target.keySet())
+        for(final Map.Entry<String, ResourceAdapterConfiguration> adapterInstance: target.entrySet())
             //compute gaps between two resource adapters
-            if(baseline.containsKey(adapterInstanceName)){
-                final ResourceAdapterConfiguration targetConfig = target.get(adapterInstanceName);
-                if(!AbstractAgentConfiguration.equals(targetConfig, baseline.get(adapterInstanceName)))
-                    output.add(new UpdateResourceAdapterInstancePatchImpl(adapterInstanceName, targetConfig));
+            if(baseline.containsKey(adapterInstance.getKey())){
+                final ResourceAdapterConfiguration targetConfig = adapterInstance.getValue();
+                if(!AbstractAgentConfiguration.equals(targetConfig, baseline.get(adapterInstance.getKey())))
+                    output.add(new UpdateResourceAdapterInstancePatchImpl(adapterInstance.getKey(), targetConfig));
             }
             //compute gaps for adapters that should be added to the baseline config
-            else output.add(new AddResourceAdapterPatchIml(adapterInstanceName, target.get(adapterInstanceName)));
+            else output.add(new AddResourceAdapterPatchIml(adapterInstance.getKey(), adapterInstance.getValue()));
     }
 
     private static void computeResourcesGap(final Collection<ConfigurationPatch> output,
                                             final Map<String, ManagedResourceConfiguration> target,
                                             final Map<String, ManagedResourceConfiguration> baseline) {
         //compute gaps for resources that should be deleted from baseline config
-        for (final String resourceName : baseline.keySet())
-            if (!target.containsKey(resourceName))
-                output.add(new RemoveManagedResourcePatchImpl(resourceName, baseline.get(resourceName)));
+        for (final Map.Entry<String, ManagedResourceConfiguration> resource : baseline.entrySet())
+            if (!target.containsKey(resource.getKey()))
+                output.add(new RemoveManagedResourcePatchImpl(resource.getKey(), resource.getValue()));
 
-        for(final String resourceName : target.keySet())
-            if(baseline.containsKey(resourceName)){
-                final ManagedResourceConfiguration targetConfig = target.get(resourceName);
-                if(!AbstractAgentConfiguration.equals(targetConfig, baseline.get(resourceName)))
-                    output.add(new UpdateManagedResourcePatchImpl(resourceName, targetConfig));
+        for(final Map.Entry<String, ManagedResourceConfiguration> resource : target.entrySet())
+            if(baseline.containsKey(resource.getKey())){
+                final ManagedResourceConfiguration targetConfig = resource.getValue();
+                if(!AbstractAgentConfiguration.equals(targetConfig, baseline.get(resource.getKey())))
+                    output.add(new UpdateManagedResourcePatchImpl(resource.getKey(), targetConfig));
             }
-            else output.add(new AddManagedResourcePatchImpl(resourceName, target.get(resourceName)));
+            else output.add(new AddManagedResourcePatchImpl(resource.getKey(), resource.getValue()));
     }
 
     /**

@@ -221,7 +221,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
                     result.put(bnd.getOid().toDottedString(), ((OID)bnd.getVariable()).toDottedString());
                 else if(bnd.getVariable() instanceof OctetString){
                     final OctetString str = (OctetString)bnd.getVariable();
-                    result.put(bnd.getOid().toDottedString(), str.isPrintable() ? new String(str.getValue()) : str.toByteArray());
+                    result.put(bnd.getOid().toDottedString(), str.isPrintable() ? new String(str.toByteArray(), SnmpObjectConverter.SNMP_ENCODING) : str.toByteArray());
                 }
                 else if(bnd.getVariable() instanceof Address)
                     result.put(bnd.getOid().toDottedString(), bnd.getVariable().toString());

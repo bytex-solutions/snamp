@@ -12,6 +12,7 @@ import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.core.OSGiLoggingContext;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.MethodStub;
+import com.itworks.snamp.io.IOUtils;
 import com.itworks.snamp.management.Maintainable;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -1054,7 +1055,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     private static BigInteger toBigInteger(final String value){
         return value == null || value.isEmpty() ?
                 BigInteger.ZERO :
-                new BigInteger(value.getBytes());
+                new BigInteger(value.getBytes(IOUtils.DEFAULT_CHARSET));
     }
 
     /**

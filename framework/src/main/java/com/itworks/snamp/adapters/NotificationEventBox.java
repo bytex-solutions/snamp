@@ -1,6 +1,7 @@
 package com.itworks.snamp.adapters;
 
 import java.util.concurrent.ArrayBlockingQueue;
+import static com.itworks.snamp.internal.Utils.blackhole;
 
 /**
  * Represents alternative queue of notifications with limited size.
@@ -30,6 +31,6 @@ public class NotificationEventBox extends ArrayBlockingQueue<NotificationEvent> 
      */
     @Override
     public void handleNotification(final NotificationEvent event) {
-        offer(event);
+        blackhole(offer(event));
     }
 }

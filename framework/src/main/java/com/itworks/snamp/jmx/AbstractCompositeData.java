@@ -155,7 +155,8 @@ public abstract class AbstractCompositeData<V> extends HashMap<String, V> implem
      */
     public final boolean check(){
         try{
-            return getCompositeType() != null;
+            getCompositeType();
+            return true;
         }
         catch (final IllegalStateException ignored){
             return false;

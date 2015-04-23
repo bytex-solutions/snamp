@@ -38,14 +38,4 @@ public final class HttpAdapterActivator extends ResourceAdapterActivator<HttpAda
                         new RestAdapterConfigurationManager()
                 });
     }
-
-    /**
-     * Releases all resources associated with this library.
-     *
-     * @throws Exception Abnormal library termination.
-     */
-    @Override
-    protected void shutdown() throws Exception {
-        super.shutdown();
-    }
 }

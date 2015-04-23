@@ -217,4 +217,9 @@ public class ServiceReferenceHolder<S> implements ServiceProvider<S> {
         return obj instanceof ServiceReferenceHolder<?> &&
                 equals((ServiceReferenceHolder<?>)obj);
     }
+
+    @Override
+    public final int hashCode() {
+        return serviceRef.hashCode();
+    }
 }

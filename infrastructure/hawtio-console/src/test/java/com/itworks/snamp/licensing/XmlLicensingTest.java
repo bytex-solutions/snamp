@@ -1,5 +1,6 @@
 package com.itworks.snamp.licensing;
 
+import com.itworks.snamp.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.xml.sax.SAXException;
@@ -11,7 +12,6 @@ import javax.xml.crypto.MarshalException;
 import javax.xml.crypto.dsig.XMLSignatureException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 
 /**
  * @author Roman Sakno
@@ -40,7 +40,7 @@ public final class XmlLicensingTest extends Assert {
         }
         assertFalse(licenseContent.isEmpty());
         try(final InputStream input = new FileInputStream(getLicenseFile());
-            final InputStreamReader reader = new InputStreamReader(input, StandardCharsets.UTF_8)){
+            final InputStreamReader reader = new InputStreamReader(input, IOUtils.DEFAULT_CHARSET)){
             license = XmlLicense.load(reader);
         }
         assertNotNull(license);

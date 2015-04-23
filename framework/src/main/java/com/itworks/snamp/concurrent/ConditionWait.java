@@ -8,18 +8,19 @@ import com.itworks.snamp.TimeSpan;
  * @version 1.0
  * @since 1.0
  */
-public abstract class ConditionWait<E extends Throwable> extends SpinWait<Boolean, E> {
+public abstract class ConditionWait<E extends Throwable> extends SpinWait<Object, E> {
 
-    protected ConditionWait(final TimeSpan spinDelay){
+    protected ConditionWait(final TimeSpan spinDelay) {
         super(spinDelay);
     }
 
-    protected ConditionWait(){
+    protected ConditionWait() {
         this(DEFAULT_SPIN_DELAY);
     }
 
     /**
      * Do conditional check.
+     *
      * @return {@literal true} to change the state of this spin wait to signalled; otherwise, {@literal false}.
      * @throws E Internal condition check error.
      */
@@ -35,7 +36,7 @@ public abstract class ConditionWait<E extends Throwable> extends SpinWait<Boolea
      * @throws E Internal checker error.
      */
     @Override
-    protected final Boolean get() throws E {
-        return checkCondition() ? Boolean.TRUE : null;
+    protected final Object get() throws E {
+        return checkCondition() ? this : null;
     }
 }

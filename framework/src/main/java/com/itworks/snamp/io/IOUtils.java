@@ -5,6 +5,7 @@ import com.itworks.snamp.TypeTokens;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author Roman Sakno
@@ -12,6 +13,11 @@ import java.nio.charset.Charset;
  * @since 1.0
  */
 public final class IOUtils {
+    /**
+     * Represents charset used by default in SNAMP for string encoding/decoding.
+     */
+    public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
+
     private IOUtils(){
 
     }

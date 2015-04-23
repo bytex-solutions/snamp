@@ -129,19 +129,16 @@ public class ResourceAdapterUpdateManager implements AutoCloseable {
 
     /**
      * Releases all resources associated with this
-     * @throws InterruptedException Unable to interrupt background timer.
+     * @throws Exception Unable to interrupt background timer.
      */
     @Override
-    public final void close() throws InterruptedException {
-        Thread t = null;
-        synchronized (this) {
-            if (timer != null) {
-                t = timer;
-                t.interrupt();
-                timer = null;
-            }
+    public synchronized void close() throws Exception {
+        Thread t = timer;
+        timer = null;
+        if (t != null) {
+            t.interrupt();
+            t.join();
         }
-        if (t != null) t.join();
     }
 
     /**

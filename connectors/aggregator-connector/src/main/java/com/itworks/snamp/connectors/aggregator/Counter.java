@@ -27,6 +27,6 @@ final class Counter extends UnaryAttributeAggregation<Long> {
 
     @Override
     protected Long compute(final Object value) throws NumberFormatException {
-        return accumulator.setAndGet(NumberUtils.toLong(value));
+        return accumulator.update(NumberUtils.toLong(value));
     }
 }

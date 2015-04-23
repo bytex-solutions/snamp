@@ -219,7 +219,7 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
             //force attribute change
             testStringAttribute();
             //wait for notifications
-            assertTrue(awaitor.await(TimeSpan.fromSeconds(3)));
+            assertNotNull(awaitor.await(TimeSpan.fromSeconds(3)));
         } catch (final InterruptedException | TimeoutException e) {
             fail(e.getMessage());
         } finally {

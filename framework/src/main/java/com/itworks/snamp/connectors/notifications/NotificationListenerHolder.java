@@ -63,4 +63,9 @@ public final class NotificationListenerHolder implements NotificationListener, N
     public boolean equals(final Object listener) {
         return listener instanceof NotificationListener && equals((NotificationListener)listener);
     }
+
+    @Override
+    public int hashCode() {
+        return listener.hashCode();
+    }
 }

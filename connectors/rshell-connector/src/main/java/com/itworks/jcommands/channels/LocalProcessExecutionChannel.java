@@ -12,7 +12,6 @@ import org.apache.commons.exec.ExecuteException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,11 +29,10 @@ final class LocalProcessExecutionChannel extends HashMap<String, String> impleme
     private static final String NORMAL_EXIT_CODE_PARAM = "normalExitCode";
     private static final long serialVersionUID = 5308027932652020638L;
 
-    private final Runtime rt;
+    private transient final Runtime rt = Runtime.getRuntime();
 
     LocalProcessExecutionChannel(final Map<String, String> params){
         super(params);
-        rt = Runtime.getRuntime();
     }
 
     LocalProcessExecutionChannel(final int normalExitCode) {
@@ -43,7 +41,7 @@ final class LocalProcessExecutionChannel extends HashMap<String, String> impleme
 
     int getNormalExitCode() {
         if (containsKey(NORMAL_EXIT_CODE_PARAM))
-            return Integer.valueOf(get(NORMAL_EXIT_CODE_PARAM));
+            return Integer.parseInt(get(NORMAL_EXIT_CODE_PARAM));
         else if (Utils.IS_OS_LINUX)
             return 0;
         else if (Utils.IS_OS_WINDOWS)
@@ -102,8 +100,8 @@ final class LocalProcessExecutionChannel extends HashMap<String, String> impleme
     public <I, O, E extends Exception> O exec(final ChannelProcessor<I, O, E> command,
                                            final I obj) throws IOException, E {
         final Process proc = rt.exec(command.renderCommand(obj, this));
-        try (final Reader input = new InputStreamReader(proc.getInputStream(), StandardCharsets.UTF_8);
-             final Reader error = new InputStreamReader(proc.getErrorStream(), StandardCharsets.UTF_8)) {
+        try (final Reader input = new InputStreamReader(proc.getInputStream(), IOUtils.DEFAULT_CHARSET);
+             final Reader error = new InputStreamReader(proc.getErrorStream(), IOUtils.DEFAULT_CHARSET)) {
             final int processExitCode = proc.waitFor();
             final String result = IOUtils.toString(input);
             final String err = IOUtils.toString(error);

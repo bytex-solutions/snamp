@@ -176,7 +176,6 @@ final class SysLogAdapter extends AbstractResourceAdapter {
         attributeSender = null;
         attributes.clear();
         notifications.clear();
-        System.gc();
     }
 
     @Override

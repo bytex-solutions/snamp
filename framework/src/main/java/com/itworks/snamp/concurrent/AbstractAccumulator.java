@@ -1,7 +1,5 @@
 package com.itworks.snamp.concurrent;
 
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 /**
  * Represents abstract time-based accumulator.
  * @author Roman Sakno
@@ -15,11 +13,9 @@ abstract class AbstractAccumulator extends Number {
      * Time-to-live of the value in this accumulator, in millis.
      */
     protected final long timeToLive;
-    final ReentrantReadWriteLock synchronizer;
 
     protected AbstractAccumulator(final long ttl){
         timer = System.currentTimeMillis();
         this.timeToLive = ttl;
-        synchronizer = new ReentrantReadWriteLock();
     }
 }

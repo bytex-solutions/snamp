@@ -25,12 +25,12 @@ enum OctetStringConversionFormat implements SnmpObjectConverter<OctetString> {
     TEXT(SimpleType.STRING) {
         @Override
         public OctetString convert(final Object value) {
-            return new OctetString(Objects.toString(value, ""));
+            return new OctetString(Objects.toString(value, "").getBytes(SNMP_ENCODING));
         }
 
         @Override
         public String convert(final OctetString value) {
-            return new String(value.toByteArray());
+            return new String(value.toByteArray(), SNMP_ENCODING);
         }
     },
 
@@ -68,7 +68,7 @@ enum OctetStringConversionFormat implements SnmpObjectConverter<OctetString> {
 
     private final OpenType<?> openType;
 
-    private OctetStringConversionFormat(final OpenType<?> type){
+    OctetStringConversionFormat(final OpenType<?> type){
         this.openType = type;
     }
 

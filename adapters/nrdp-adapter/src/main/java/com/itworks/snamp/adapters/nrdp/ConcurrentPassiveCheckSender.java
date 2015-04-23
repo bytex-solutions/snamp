@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
+import static com.itworks.snamp.internal.Utils.blackhole;
 
 /**
  * @author Roman Sakno
@@ -33,13 +34,13 @@ final class ConcurrentPassiveCheckSender extends NagiosCheckSenderImpl implement
 
     @Override
     public void send(final Collection<NagiosCheckResult> results) {
-        threadPool.submit(new Callable<Void>() {
+        blackhole(threadPool.submit(new Callable<Void>() {
             @Override
             public Void call() throws IOException, NRDPException {
                 ConcurrentPassiveCheckSender.super.send(results);
                 return null;
             }
-        });
+        }));
     }
 
     @Override

@@ -109,8 +109,8 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
 
         private boolean parametersAreEqual(final Map<String, String> newParameters) {
             if(parameters.size() == newParameters.size()) {
-                for (final String name : newParameters.keySet())
-                    if(!Objects.equals(parameters.get(name), newParameters.get(name)))
+                for (final Map.Entry<String, String> entry : newParameters.entrySet())
+                    if(!Objects.equals(parameters.get(entry.getKey()), entry.getValue()))
                         return false;
                 return true;
             }

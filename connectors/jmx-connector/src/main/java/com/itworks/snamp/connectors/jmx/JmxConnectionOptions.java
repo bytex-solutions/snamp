@@ -46,7 +46,7 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
         }
         else login = password = "";
         this.watchDogPeriod = options.containsKey(CONNECTION_CHECK_PERIOD) ?
-                Integer.valueOf(options.get(CONNECTION_CHECK_PERIOD)) : 3000L;
+                Integer.parseInt(options.get(CONNECTION_CHECK_PERIOD)) : 3000L;
     }
 
     private Map<String, Object> getJmxOptions(){

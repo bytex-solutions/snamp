@@ -12,10 +12,8 @@ import org.apache.sshd.server.ExitCallback;
 import org.apache.sshd.server.SessionAware;
 import org.apache.sshd.server.session.ServerSession;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -87,7 +85,7 @@ final class ManagementShell implements Command, SessionAware {
 
         @Override
         public void run() {
-            try (final PrintWriter error = new PrintWriter(errStream)) {
+            try (final PrintWriter error = new PrintWriter(new OutputStreamWriter(errStream, StandardCharsets.UTF_8))) {
                 final ConsoleReader reader = new ConsoleReader(inStream, outStream);
                 reader.setExpandEvents(false);
                 final PrintWriter output = new PrintWriter(reader.getOutput());

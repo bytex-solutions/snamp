@@ -105,17 +105,17 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
     private static TabularData parseConnectorAttributes(final Map<String,AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> map)
             throws OpenDataException {
         final TabularDataBuilderRowFill builder = new TabularDataBuilderRowFill(CONNECTOR_ATTRIBUTE_MAP_TYPE);
-        for (final String attributeName : map.keySet()) {
+        for (final Map.Entry<String, AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> attribute : map.entrySet()) {
             builder.newRow()
-                    .cell("UserDefinedName", attributeName)
+                    .cell("UserDefinedName", attribute.getKey())
                     .cell("Attribute", ATTRIBUTE_METADATA_BUILDER.build(
                             ImmutableMap.of(
-                                    "Name", map.get(attributeName).getAttributeName(),
-                                    "ReadWriteTimeout", (map.get(attributeName).getReadWriteTimeout() != TimeSpan.INFINITE
-                                            ? map.get(attributeName).getReadWriteTimeout().convert(TimeUnit.MILLISECONDS).duration
+                                    "Name", attribute.getValue().getAttributeName(),
+                                    "ReadWriteTimeout", (attribute.getValue().getReadWriteTimeout() != TimeSpan.INFINITE
+                                            ? attribute.getValue().getReadWriteTimeout().convert(TimeUnit.MILLISECONDS).duration
                                             : Long.MAX_VALUE),
                                     "AdditionalProperties", MonitoringUtils.transformAdditionalPropertiesToTabularData(
-                                            map.get(attributeName).getParameters())
+                                            attribute.getValue().getParameters())
                             )))
                     .flush();
         }
@@ -131,14 +131,14 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
     private static TabularData parseConnectorEvents(final Map<String,AgentConfiguration.ManagedResourceConfiguration.EventConfiguration> map)
             throws OpenDataException {
         final TabularDataBuilderRowFill builder = new TabularDataBuilderRowFill(CONNECTOR_EVENT_MAP_TYPE);
-        for (final String eventName : map.keySet()) {
+        for (final Map.Entry<String, AgentConfiguration.ManagedResourceConfiguration.EventConfiguration> event : map.entrySet()) {
             builder.newRow()
-                    .cell("UserDefinedName", eventName)
+                    .cell("UserDefinedName", event.getKey())
                     .cell("Event", EVENT_METADATA_BUILDER.build(
                             ImmutableMap.of(
-                                    "Category", map.get(eventName).getCategory(),
+                                    "Category", event.getValue().getCategory(),
                                     "AdditionalProperties",  MonitoringUtils.transformAdditionalPropertiesToTabularData(
-                                            map.get(eventName).getParameters())
+                                            event.getValue().getParameters())
                             )))
                     .flush();
         }
@@ -162,14 +162,14 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
         // adapter parsing
         final TabularDataBuilderRowFill builderAdapter = new TabularDataBuilderRowFill(ADAPTER_MAP_TYPE);
         final Map<String, AgentConfiguration.ResourceAdapterConfiguration> adapterMapConfig = configuration.getResourceAdapters();
-        for (final String adapterName : adapterMapConfig.keySet()) {
+        for (final Map.Entry<String, AgentConfiguration.ResourceAdapterConfiguration> adapter : adapterMapConfig.entrySet()) {
             builderAdapter.newRow()
-                    .cell("UserDefinedName", adapterName)
+                    .cell("UserDefinedName", adapter.getKey())
                     .cell("Adapter", ADAPTER_METADATA_BUILDER.build(
                             ImmutableMap.of(
-                                    "Name", adapterMapConfig.get(adapterName).getAdapterName(),
+                                    "Name", adapter.getValue().getAdapterName(),
                                     "Parameters",  MonitoringUtils.transformAdditionalPropertiesToTabularData(
-                                            adapterMapConfig.get(adapterName).getParameters())
+                                            adapter.getValue().getParameters())
                             )))
                     .flush();
         }
@@ -177,19 +177,19 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
         // connector parsing
         final TabularDataBuilderRowFill builderConnector = new TabularDataBuilderRowFill(CONNECTOR_MAP_TYPE);
         final Map<String, AgentConfiguration.ManagedResourceConfiguration> connectors = configuration.getManagedResources();
-        for (final String connectorName : connectors.keySet()) {
+        for (final Map.Entry<String, AgentConfiguration.ManagedResourceConfiguration> connector : connectors.entrySet()) {
             builderConnector.newRow()
-                    .cell("UserDefinedName", connectorName)
+                    .cell("UserDefinedName", connector.getKey())
                     .cell("Connector", CONNECTOR_METADATA_BUILDER.build(
                             ImmutableMap.of(
-                                    "ConnectionString", connectors.get(connectorName).getConnectionString(),
-                                    "ConnectionType", connectors.get(connectorName).getConnectionType(),
-                                    "Attributes", parseConnectorAttributes(connectors.get(connectorName).getElements(
+                                    "ConnectionString", connector.getValue().getConnectionString(),
+                                    "ConnectionType", connector.getValue().getConnectionType(),
+                                    "Attributes", parseConnectorAttributes(connector.getValue().getElements(
                                             AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class)),
-                                    "Events", parseConnectorEvents(connectors.get(connectorName).getElements(
+                                    "Events", parseConnectorEvents(connector.getValue().getElements(
                                             AgentConfiguration.ManagedResourceConfiguration.EventConfiguration.class)),
                                     "Parameters", MonitoringUtils.transformAdditionalPropertiesToTabularData(
-                                            connectors.get(connectorName).getParameters())
+                                            connector.getValue().getParameters())
                             )))
                     .flush();
         }
