@@ -88,7 +88,7 @@ public class ResourceAdapterUpdateManager implements AutoCloseable {
      * Notifies about beginning of the updating process.
      */
     @MethodStub
-    protected void beginUpdateCore(){
+    protected void beginUpdate(){
 
     }
 
@@ -108,7 +108,7 @@ public class ResourceAdapterUpdateManager implements AutoCloseable {
             return false;
         }
         else {
-            beginUpdateCore();
+            beginUpdate();
             timer = new ResumeTimer(callback);
             timer.start();
             return true;
@@ -132,16 +132,13 @@ public class ResourceAdapterUpdateManager implements AutoCloseable {
      * @throws InterruptedException Unable to interrupt background timer.
      */
     @Override
-    public final void close() throws InterruptedException {
-        Thread t = null;
-        synchronized (this) {
-            if (timer != null) {
-                t = timer;
-                t.interrupt();
-                timer = null;
-            }
+    public synchronized void close() throws Exception {
+        final Thread t = timer;
+        if (t != null) {
+            t.interrupt();
+            t.join();
         }
-        if (t != null) t.join();
+        timer = null;
     }
 
     /**

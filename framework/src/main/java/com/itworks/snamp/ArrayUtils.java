@@ -147,12 +147,6 @@ public final class ArrayUtils {
         return result;
     }
 
-    public static <T> T[] createAndFill(final Class<T> componentType, final T value, final int length){
-        final T[] result = ObjectArrays.newArray(componentType, length);
-        Arrays.fill(result, value);
-        return result;
-    }
-
     public static <T> T find(final T[] array, final Predicate<T> filter, final T defval) {
         for(final T item: array)
             if(filter.apply(item)) return item;

@@ -14,5 +14,5 @@ public interface MaintenanceActionInfo extends Descriptive {
      * Gets system name of this action,
      * @return The system name of this action.
      */
-    public String getName();
+    String getName();
 }

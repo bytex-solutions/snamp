@@ -140,12 +140,18 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
         }
 
         @Override
-        protected void beginUpdateCore() {
+        protected void beginUpdate() {
             agent.suspend();
         }
 
         private ResourceAdapterUpdatedCallback getCallback(){
             return agent;
+        }
+
+        @Override
+        public synchronized void close() throws Exception {
+            agent.stop();
+            super.close();
         }
     }
 
@@ -303,22 +309,17 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
      * </p>
      */
     @Override
-    protected void stop() throws InterruptedException{
+    protected void stop() throws Exception {
         try {
-            if(updateManager != null) {
-                updateManager.agent.stop();
+            if (updateManager != null)
                 updateManager.close();
-            }
             //remove all notifications
-            for(final String resourceName: notifications.keySet())
-                for(final FeatureAccessor<?, ?> mapping: notifications.get(resourceName))
-                    mapping.disconnect();
+            for (final FeatureAccessor<?, ?> mapping : notifications.values())
+                mapping.disconnect();
             //remove all attributes
-            for(final String resourceName: attributes.keySet())
-                for(final SnmpAttributeMapping mapping: attributes.get(resourceName))
-                    mapping.disconnect(null);
-        }
-        finally {
+            for (final SnmpAttributeMapping mapping : attributes.values())
+                mapping.disconnect(null);
+        } finally {
             updateManager = null;
             notifications.clear();
             attributes.clear();
