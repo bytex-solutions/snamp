@@ -58,7 +58,18 @@ public final class AggregatorResourceConnectorActivator extends ManagedResourceA
         }
     }
 
+    private static final class DiscoveryServiceManagerImpl extends DiscoveryServiceManager<AggregatorDiscoveryService>{
+
+        @Override
+        protected AggregatorDiscoveryService createDiscoveryService(final RequiredService<?>... dependencies) {
+            return new AggregatorDiscoveryService();
+        }
+    }
+
     public AggregatorResourceConnectorActivator(){
-        super(NAME, new ConnectorController(), new ConfigurationProvider());
+        super(NAME,
+                new ConnectorController(),
+                new DiscoveryServiceManagerImpl(),
+                new ConfigurationProvider());
     }
 }

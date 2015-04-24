@@ -50,8 +50,18 @@ public final class MQConnectorActivator extends ManagedResourceActivator<MQConne
         }
     }
 
+    private static final class MQDiscoveryServiceProvider extends DiscoveryServiceManager<MQConnector.MQDiscoveryService>{
+        @Override
+        protected MQConnector.MQDiscoveryService createDiscoveryService(final RequiredService<?>... dependencies) throws IntrospectionException {
+            return new MQConnector.MQDiscoveryService();
+        }
+    }
+
     @SpecialUse
     public MQConnectorActivator() {
-        super(NAME, new MQConnectorFactory(), new MQConnectorConfigurationProvider());
+        super(NAME,
+                new MQConnectorFactory(),
+                new MQConnectorConfigurationProvider(),
+                new MQDiscoveryServiceProvider());
     }
 }

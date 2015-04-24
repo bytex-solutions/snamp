@@ -3,9 +3,13 @@ package com.itworks.snamp.connectors;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.itworks.snamp.AbstractAggregator;
 import com.itworks.snamp.Descriptive;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.attributes.*;
+import com.itworks.snamp.connectors.discovery.DiscoveryResultBuilder;
+import com.itworks.snamp.connectors.discovery.DiscoveryService;
 import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.jmx.JMExceptionUtils;
 import com.itworks.snamp.jmx.WellKnownType;
@@ -32,6 +36,8 @@ import java.lang.reflect.UndeclaredThrowableException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static com.itworks.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.*;
 
 /**
  * Represents SNAMP in-process management connector that exposes
@@ -129,7 +135,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
 
         private SelfDescriptor(final ManagedResourceConnectorBean instance) throws IntrospectionException {
             connectorRef = new WeakReference<>(instance);
-            metadata = Introspector.getBeanInfo(instance.getClass(), ManagedResourceConnectorBean.class);
+            metadata = reflect(instance.getClass());
         }
 
         /**
@@ -321,7 +327,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * @since 1.0
      * @version 1.0
      */
-    protected static class JavaBeanAttributeInfo extends CustomAttributeInfo implements AttributeDescriptorRead{
+    private static class JavaBeanAttributeInfo extends CustomAttributeInfo implements AttributeDescriptorRead{
         private static final long serialVersionUID = -5047097712279607039L;
         private final MethodHandle getter;
         private final MethodHandle setter;
@@ -514,7 +520,8 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                                                          final AttributeDescriptor descriptor) throws AttributeNotFoundException, ReflectionException {
             final BeanInfo info = bean.getBeanInfo();
             for(final PropertyDescriptor property: info.getPropertyDescriptors())
-                if(Objects.equals(property.getName(), descriptor.getAttributeName()))
+                if(isReservedProperty(property)) continue;
+                else if(Objects.equals(property.getName(), descriptor.getAttributeName()))
                     try{
                         //try to connect as Open Type attribute
                         return new JavaBeanOpenAttributeInfo(attributeID, property, descriptor, bean.getInstance());
@@ -608,6 +615,83 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         }
     }
 
+    /**
+     * Represents default implementation of {@link DiscoveryService} based on information
+     * supplied through reflection of the bean.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    public static abstract class BeanDiscoveryService extends AbstractAggregator implements DiscoveryService{
+        private final Collection<? extends ManagementNotificationType<?>> notifications;
+        private final BeanInfo beanMetadata;
+
+        private BeanDiscoveryService(final BeanInfo beanMetadata,
+                                     final Collection<? extends ManagementNotificationType<?>> notifications){
+            this.beanMetadata = Objects.requireNonNull(beanMetadata);
+            this.notifications = Objects.requireNonNull(notifications);
+        }
+
+        protected BeanDiscoveryService(final Class<? extends ManagedResourceConnectorBean> connectorType) throws IntrospectionException {
+            this(connectorType, EnumSet.noneOf(EmptyManagementNotificationType.class));
+        }
+
+        protected <N extends Enum<N> & ManagementNotificationType<?>> BeanDiscoveryService(final Class<? extends ManagedResourceConnectorBean> connectorType,
+                                                                                           final EnumSet<N> notifications) throws IntrospectionException {
+            this(reflect(connectorType), notifications);
+        }
+
+        protected BeanDiscoveryService(final Class<?> beanType,
+                                       final BeanIntrospector introspector) throws IntrospectionException {
+            this(introspector.getBeanInfo(beanType),
+                    EnumSet.noneOf(EmptyManagementNotificationType.class));
+        }
+
+        protected <N extends Enum<N> & ManagementNotificationType<?>> BeanDiscoveryService(final Class<?> beanType,
+                                                                                           final BeanIntrospector introspector,
+                                                                                           final EnumSet<N> notifications) throws IntrospectionException {
+            this(introspector.getBeanInfo(beanType), notifications);
+        }
+
+        private static Collection<AttributeConfiguration> discoverAttributes(final PropertyDescriptor[] properties) {
+            final Collection<AttributeConfiguration> result = Lists.newArrayListWithExpectedSize(properties.length);
+            for (final PropertyDescriptor descriptor : properties)
+                if (!isReservedProperty(descriptor))
+                    result.add(new SerializableAttributeConfiguration(descriptor.getName()));
+            return result;
+        }
+
+        private static Collection<EventConfiguration> discoverNotifications(final Collection<? extends ManagementNotificationType<?>> notifications){
+            final Collection<EventConfiguration> result = Lists.newArrayListWithExpectedSize(notifications.size());
+            for(final ManagementNotificationType<?> notifType: notifications)
+                result.add(new SerializableEventConfiguration(notifType.getCategory()));
+            return result;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public <T extends FeatureConfiguration> Collection<T> discover(final String connectionString,
+                                                                       final Map<String, String> connectionOptions,
+                                                                       final Class<T> entityType) {
+            if(Objects.equals(entityType, AttributeConfiguration.class))
+                return (Collection<T>)discoverAttributes(beanMetadata.getPropertyDescriptors());
+            else if(Objects.equals(entityType, EventConfiguration.class))
+                return (Collection<T>)discoverNotifications(notifications);
+            else return Collections.emptyList();
+        }
+
+        @SafeVarargs
+        @Override
+        public final DiscoveryResult discover(final String connectionString,
+                                        final Map<String, String> connectionOptions,
+                                        final Class<? extends FeatureConfiguration>... entityTypes) {
+            final DiscoveryResultBuilder result = new DiscoveryResultBuilder();
+            for(final Class<? extends FeatureConfiguration> type: entityTypes)
+                result.importFeatures(this, connectionString, connectionOptions, type);
+            return result.get();
+        }
+    }
+
     private final JavaBeanAttributeSupport attributes;
     private final JavaBeanNotificationSupport notifications;
 
@@ -630,10 +714,10 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      */
     protected ManagedResourceConnectorBean( final String resourceName,
                                             final Object beanInstance,
-                                               final BeanIntrospector introspector) throws IntrospectionException {
+                                            final BeanIntrospector introspector) throws IntrospectionException {
         this(resourceName,
                 new BeanDescriptor<>(beanInstance, introspector),
-                Collections.<ManagementNotificationType<?>>emptySet());
+                EnumSet.noneOf(EmptyManagementNotificationType.class));
     }
 
     /**
@@ -844,6 +928,27 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         emitNotificationImpl(category, message, userData);
     }
 
+    private static BeanDiscoveryService createDiscoveryService(final BeanInfo beanMetadata,
+                                                               final Set<? extends ManagementNotificationType<?>> notifTypes,
+                                                               final Logger logger){
+        return new BeanDiscoveryService(beanMetadata, notifTypes) {
+            @Override
+            public Logger getLogger() {
+                return logger;
+            }
+        };
+    }
+
+    /**
+     * Creates a new instance of the resource metadata discovery service.
+     * @return A new instance of the discovery service.
+     */
+    public DiscoveryService createDiscoveryService(){
+        final BeanInfo beanMetadata = attributes.bean.getBeanInfo();
+        final Set<? extends ManagementNotificationType<?>> notifTypes = notifications.notifTypes;
+        return createDiscoveryService(beanMetadata, notifTypes, getLogger());
+    }
+
     /**
      * Retrieves the aggregated object.
      *
@@ -858,5 +963,13 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                 return ManagedResourceConnectorBean.super.queryObject(objectType);
             }
         }, attributes, notifications);
+    }
+
+    protected static BeanInfo reflect(final Class<? extends ManagedResourceConnectorBean> connectorType) throws IntrospectionException {
+        return Introspector.getBeanInfo(connectorType, ManagedResourceConnectorBean.class);
+    }
+
+    private static boolean isReservedProperty(final PropertyDescriptor property){
+        return Objects.equals(property.getName(), "logger");
     }
 }

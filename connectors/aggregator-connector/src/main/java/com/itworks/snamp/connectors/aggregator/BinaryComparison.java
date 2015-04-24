@@ -4,6 +4,8 @@ import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 
 import javax.management.openmbean.SimpleType;
 
+import static com.itworks.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration;
+
 /**
  * Compares two foreign attributes
  */
@@ -27,5 +29,12 @@ final class BinaryComparison extends BinaryAttributeAggregation<Boolean> {
                               final Object right) throws Exception {
         return comparison.compute(NumberUtils.toBigDecimal(left),
                 NumberUtils.toBigDecimal(right));
+    }
+
+    static SerializableAttributeConfiguration getConfiguration() {
+        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration(NAME);
+        fillParameters(result.getParameters());
+        result.getParameters().put(AggregatorConnectorConfiguration.COMPARER_PARAM, "=");
+        return result;
     }
 }

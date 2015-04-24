@@ -1,5 +1,6 @@
 package com.itworks.snamp.connectors.aggregator;
 
+import com.itworks.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 
 import javax.management.openmbean.SimpleType;
@@ -32,5 +33,13 @@ final class UnaryComparison extends UnaryAttributeAggregation<Boolean> {
     @Override
     protected Boolean compute(final Object foreignAttributeValue) throws Exception {
         return comparison.compute(NumberUtils.toBigDecimal(foreignAttributeValue), userDefinedValue);
+    }
+
+    public static SerializableAttributeConfiguration getConfiguration() {
+        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration(NAME);
+        fillParameters(result.getParameters());
+        result.getParameters().put(AggregatorConnectorConfiguration.COMPARER_PARAM, "=");
+        result.getParameters().put(AggregatorConnectorConfiguration.VALUE_PARAM, "0");
+        return result;
     }
 }

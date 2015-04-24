@@ -21,15 +21,15 @@ import java.util.ResourceBundle;
  * @since 1.0
  */
 final class AggregatorConnectorConfiguration extends ConfigurationEntityDescriptionProviderImpl {
-    private static final String SOURCE_PARAM = "source";
-    private static final String FOREIGN_ATTRIBUTE_PARAM = "foreignAttribute";
-    private static final String PATTERN_PARAM = "pattern";
-    private static final String FIRST_FOREIGN_ATTRIBUTE_PARAM = "firstForeignAttribute";
-    private static final String SECOND_FOREIGN_ATTRIBUTE_PARAM = "secondForeignAttribute";
-    private static final String COMPARER_PARAM = "comparer";
-    private static final String VALUE_PARAM = "value";
-    private static final String TIME_INTERVAL_PARAM = "timeInterval";
-    private static final String FIELD_PATH_PARAM = "fieldPath";
+    static final String SOURCE_PARAM = "source";
+    static final String FOREIGN_ATTRIBUTE_PARAM = "foreignAttribute";
+    static final String PATTERN_PARAM = "pattern";
+    static final String FIRST_FOREIGN_ATTRIBUTE_PARAM = "firstForeignAttribute";
+    static final String SECOND_FOREIGN_ATTRIBUTE_PARAM = "secondForeignAttribute";
+    static final String COMPARER_PARAM = "comparer";
+    static final String VALUE_PARAM = "value";
+    static final String TIME_INTERVAL_PARAM = "timeInterval";
+    static final String FIELD_PATH_PARAM = "fieldPath";
     private static final String NOTIFICATION_FREQUENCY_PARAM = "notificationFrequency";
 
     private static final class AdapterConfigurationDescriptor extends ResourceBasedConfigurationEntityDescription<ManagedResourceConfiguration>{

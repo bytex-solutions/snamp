@@ -4,6 +4,7 @@ import com.itworks.snamp.concurrent.SumLongAccumulator;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 
 import javax.management.openmbean.SimpleType;
+import static com.itworks.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration;
 
 /**
  * Represents counter.
@@ -28,5 +29,11 @@ final class Counter extends UnaryAttributeAggregation<Long> {
     @Override
     protected Long compute(final Object value) throws NumberFormatException {
         return accumulator.update(NumberUtils.toLong(value));
+    }
+
+    static SerializableAttributeConfiguration getConfiguration() {
+        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration(NAME);
+        fillParameters(result.getParameters());
+        return result;
     }
 }

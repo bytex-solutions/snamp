@@ -3,6 +3,7 @@ package com.itworks.snamp.connectors.aggregator;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 
 import javax.management.openmbean.SimpleType;
+import static com.itworks.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration;
 
 /**
  * @author Roman Sakno
@@ -41,5 +42,11 @@ final class Average extends UnaryAttributeAggregation<Double> {
     @Override
     protected Double compute(final Object value) throws Exception {
         return avg(value);
+    }
+
+    static SerializableAttributeConfiguration getConfiguratoin() {
+        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration(NAME);
+        fillParameters(result.getParameters());
+        return result;
     }
 }

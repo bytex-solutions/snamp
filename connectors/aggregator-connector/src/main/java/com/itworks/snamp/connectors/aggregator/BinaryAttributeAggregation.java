@@ -4,6 +4,7 @@ import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 
 import javax.management.DynamicMBean;
 import javax.management.openmbean.OpenType;
+import java.util.Map;
 
 /**
  * @author Roman Sakno
@@ -22,6 +23,12 @@ abstract class BinaryAttributeAggregation<T> extends AbstractAttributeAggregatio
         super(attributeID, description, attributeType, descriptor);
         leftOperand = AggregatorConnectorConfiguration.getFirstForeignAttributeName(descriptor);
         rightOperand = AggregatorConnectorConfiguration.getSecondForeignAttributeName(descriptor);
+    }
+
+    protected static void fillParameters(final Map<String, String> parameters){
+        parameters.put(AggregatorConnectorConfiguration.SOURCE_PARAM, "");
+        parameters.put(AggregatorConnectorConfiguration.FIRST_FOREIGN_ATTRIBUTE_PARAM, "");
+        parameters.put(AggregatorConnectorConfiguration.SECOND_FOREIGN_ATTRIBUTE_PARAM, "");
     }
 
     public final String getFirstOperandAttribute(){

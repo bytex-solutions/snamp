@@ -23,7 +23,7 @@ public interface DiscoveryService extends SupportService {
      * @since 1.0
      * @version 1.0
      */
-    public static interface DiscoveryResult{
+    interface DiscoveryResult{
         /**
          * Retrieves a sub-result of discovery operation.
          * @param entityType Type of the discovered managed entity.
@@ -34,13 +34,15 @@ public interface DiscoveryService extends SupportService {
         <T extends FeatureConfiguration> Collection<T> getSubResult(final Class<T> entityType) throws IllegalArgumentException;
     }
 
+
+
     /**
      * Represents an empty discovery result.
      * @author Roman Sakno
      * @since 1.0
      * @version 1.0
      */
-    public static final class EmptyDiscoveryResult implements DiscoveryResult{
+    final class EmptyDiscoveryResult implements DiscoveryResult{
         private final Set<Class<? extends FeatureConfiguration>> entities;
 
         /**
@@ -98,7 +100,6 @@ public interface DiscoveryService extends SupportService {
      * @param entityTypes An array of requested entity types.
      * @return Discovery result.
      */
-    @SuppressWarnings("unchecked")
     DiscoveryResult discover(final String connectionString,
                              final Map<String, String> connectionOptions,
                              final Class<? extends FeatureConfiguration>... entityTypes);

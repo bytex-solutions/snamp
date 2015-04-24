@@ -1,6 +1,7 @@
 package com.itworks.snamp.connectors.aggregator;
 
 import com.itworks.snamp.ServiceReferenceHolder;
+import com.itworks.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableEventConfiguration;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
@@ -24,6 +25,7 @@ import static com.itworks.snamp.connectors.aggregator.AggregatorConnectorConfigu
  */
 final class PeriodicAttributeQuery extends CustomNotificationInfo {
     private static final String DESCRIPTION = "Broadcasts attribute value in periodic manner";
+    static final String CATEGORY = "periodicAttributeQuery";
     private static final long serialVersionUID = -3815002481131666409L;
 
     private final String source;
@@ -65,5 +67,12 @@ final class PeriodicAttributeQuery extends CustomNotificationInfo {
         } finally {
             connector.release(context);
         }
+    }
+
+    static SerializableEventConfiguration getConfiguration() {
+        final SerializableEventConfiguration result = new SerializableEventConfiguration(CATEGORY);
+        result.getParameters().put(AggregatorConnectorConfiguration.SOURCE_PARAM, "");
+        result.getParameters().put(AggregatorConnectorConfiguration.FOREIGN_ATTRIBUTE_PARAM, "");
+        return result;
     }
 }

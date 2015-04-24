@@ -6,6 +6,7 @@ import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.InvalidKeyException;
 import javax.management.openmbean.SimpleType;
 import java.util.Objects;
+import static com.itworks.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration;
 
 /**
  * @author Roman Sakno
@@ -33,5 +34,12 @@ final class Decomposer extends UnaryAttributeAggregation<String> {
         return value instanceof CompositeData ?
                 toString(path.getFieldValue((CompositeData)value)):
                 toString(value);
+    }
+
+    static SerializableAttributeConfiguration getConfiguration() {
+        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration(NAME);
+        fillParameters(result.getParameters());
+        result.getParameters().put(AggregatorConnectorConfiguration.FIELD_PATH_PARAM, "");
+        return result;
     }
 }

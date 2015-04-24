@@ -27,6 +27,23 @@ import java.util.logging.Logger;
  */
 final class MQConnector extends ManagedResourceConnectorBean {
     static final String NAME = "ibm-wmq";
+
+    public static final class MQDiscoveryService extends BeanDiscoveryService{
+        public MQDiscoveryService() throws IntrospectionException {
+            super(MQConnector.class);
+        }
+
+        /**
+         * Gets logger associated with this service.
+         *
+         * @return The logger associated with this service.
+         */
+        @Override
+        public Logger getLogger() {
+            return MQConnector.getLogger(NAME);
+        }
+    }
+
     private final PCFMessageAgent mqmonitor;
     private final DateFormat mqDateTimeFormatter;
     private final DiffLongAccumulator bytesSentLastHour;

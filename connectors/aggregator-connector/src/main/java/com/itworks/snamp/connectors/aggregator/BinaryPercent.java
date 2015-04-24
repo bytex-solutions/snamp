@@ -5,6 +5,8 @@ import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import javax.management.openmbean.SimpleType;
 import java.math.BigDecimal;
 
+import static com.itworks.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration;
+
 /**
  * Computes percent.
  * @author Roman Sakno
@@ -29,5 +31,11 @@ final class BinaryPercent extends BinaryAttributeAggregation<Double> {
     @Override
     protected Double compute(final Object left, final Object right) throws Exception {
         return compute(NumberUtils.toBigDecimal(left), NumberUtils.toBigDecimal(right));
+    }
+
+    static SerializableAttributeConfiguration getConfiguration() {
+        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration(NAME);
+        fillParameters(result.getParameters());
+        return result;
     }
 }

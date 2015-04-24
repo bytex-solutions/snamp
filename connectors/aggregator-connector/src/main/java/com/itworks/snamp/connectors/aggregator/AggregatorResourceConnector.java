@@ -89,7 +89,11 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
         @Override
         protected PeriodicAttributeQuery enableNotifications(final String notifType,
                                                              final NotificationDescriptor metadata) throws AbsentAggregatorNotificationParameterException {
-            return new PeriodicAttributeQuery(notifType, metadata);
+            switch (metadata.getNotificationCategory()){
+                case PeriodicAttributeQuery.CATEGORY:
+                    return new PeriodicAttributeQuery(notifType, metadata);
+                default: return null;
+            }
         }
 
         @Override
@@ -215,7 +219,7 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
         notifications.enableNotifications(listID, category, options);
     }
 
-    private static Logger getLoggerImpl(){
+    static Logger getLoggerImpl(){
         return getLogger(NAME);
     }
 

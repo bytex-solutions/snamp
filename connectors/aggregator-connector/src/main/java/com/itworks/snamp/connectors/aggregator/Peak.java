@@ -4,6 +4,7 @@ import com.itworks.snamp.concurrent.PeakLongAccumulator;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 
 import javax.management.openmbean.SimpleType;
+import static com.itworks.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration;
 
 /**
  * @author Roman Sakno
@@ -25,5 +26,11 @@ final class Peak extends UnaryAttributeAggregation<Long> {
     @Override
     protected Long compute(final Object value) throws NumberFormatException {
         return accumulator.update(NumberUtils.toLong(value));
+    }
+
+    static SerializableAttributeConfiguration getConfiguration() {
+        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration(NAME);
+        fillParameters(result.getParameters());
+        return result;
     }
 }

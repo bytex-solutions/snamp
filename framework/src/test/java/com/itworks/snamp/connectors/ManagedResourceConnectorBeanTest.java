@@ -5,9 +5,11 @@ import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.AttributeValue;
 import com.itworks.snamp.concurrent.Awaitor;
+import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
 import com.itworks.snamp.configuration.ConfigParameters;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.attributes.CustomAttributeInfo;
+import com.itworks.snamp.connectors.discovery.DiscoveryService;
 import com.itworks.snamp.connectors.notifications.SynchronizationListener;
 import com.itworks.snamp.internal.annotations.SpecialUse;
 import org.junit.Assert;
@@ -19,6 +21,7 @@ import javax.management.Notification;
 import javax.management.openmbean.OpenType;
 import javax.management.openmbean.SimpleType;
 import java.beans.IntrospectionException;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -125,6 +128,18 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         protected final void emitPropertyChanged(final String propertyName) {
             emitNotification(TestNotificationType.PROPERTY_CHANGED, String.format("Property %s is changed", propertyName), "Attachment string");
         }
+    }
+
+    @Test
+    public void discoveryTest() throws IntrospectionException {
+        final TestManagementConnectorBean connector = new TestManagementConnectorBean();
+        final DiscoveryService discovery = connector.createDiscoveryService();
+        final Collection<AttributeConfiguration> attributes =
+                discovery.discover("", ImmutableMap.<String, String>of(), AttributeConfiguration.class);
+        assertEquals(3, attributes.size());
+        final Collection<EventConfiguration> events =
+                discovery.discover("", ImmutableMap.<String, String>of(), EventConfiguration.class);
+        assertEquals(1, events.size());
     }
 
     @Test
