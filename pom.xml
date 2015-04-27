@@ -14,7 +14,7 @@
     <version>1.0.0</version>
     <organization>
         <name>IT Works</name>
-        <url>http://www.itworks.com/snamp</url>
+        <url>http://snamp.itworks.com/</url>
   </organization>
   <build>
     <plugins>
@@ -35,7 +35,6 @@
     <module>framework</module>
     <module>connectors</module>
     <module>adapters</module>
-    <module>infrastructure/hawtio-console</module>
     <module>infrastructure/jmx2json</module>
     <module>third-party-libs/bundlized/snmp4j</module>
     <module>third-party-libs/bundlized/sshj</module>
