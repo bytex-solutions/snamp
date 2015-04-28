@@ -353,7 +353,7 @@
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>xmpp-adapter</artifactId>
-            <version>1.0.0</version>
+            <version>${snamp.adapters.xmpp.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
