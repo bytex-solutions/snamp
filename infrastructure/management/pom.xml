@@ -12,7 +12,7 @@
     <description>SNAMP self-management service provider</description>
     <modelVersion>4.0.0</modelVersion>
     <packaging>bundle</packaging>
-    <version>1.0.0</version>
+    <version>${snamp.management.version}</version>
     <build>
         <plugins>
             <plugin>
@@ -45,7 +45,7 @@
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>framework</artifactId>
-            <version>1.0.0</version>
+            <version>${snamp.framework.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

@@ -17,6 +17,31 @@
     <jetty.version>8.1.15.v20140411</jetty.version>
     <gson.version>2.3.1</gson.version>
     <guava.version>18.0</guava.version>
+    <jersey.version>1.18.1</jersey.version>
+    <!--Versioning of SNAMP Components-->
+    <snmp4j.version>2.3.4</snmp4j.version>
+    <sshj.version>0.10.0</sshj.version>
+    <snamp.framework.version>1.0.0</snamp.framework.version>
+
+    <snamp.adapters.http.version>1.0.0</snamp.adapters.http.version>
+    <snamp.adapters.jmx.version>1.0.0</snamp.adapters.jmx.version>
+    <snamp.adapters.nagios.version>1.0.0</snamp.adapters.nagios.version>
+    <snamp.adapters.nrdp.version>1.0.0</snamp.adapters.nrdp.version>
+    <snamp.adapters.nsca.version>1.0.0</snamp.adapters.nsca.version>
+    <snamp.adapters.snmp.version>1.0.0</snamp.adapters.snmp.version>
+    <snamp.adapters.ssh.version>1.0.0</snamp.adapters.ssh.version>
+    <snamp.adapters.syslog.version>1.0.0</snamp.adapters.syslog.version>
+    <snamp.adapters.xmpp.version>1.0.0</snamp.adapters.xmpp.version>
+
+    <snamp.jmxhelper.version>1.0.0</snamp.jmxhelper.version>
+    <snamp.jaasconfig.version>1.0.0</snamp.jaasconfig.version>
+    <snamp.management.version>1.0.0</snamp.management.version>
+
+    <snamp.connectors.rshell.version>1.0.0</snamp.connectors.rshell.version>
+    <snamp.connectors.aggregator.version>1.0.0</snamp.connectors.aggregator.version>
+    <snamp.connectors.ibmwmq.version>1.0.0</snamp.connectors.ibmwmq.version>
+    <snamp.connectors.jmx.version>1.0.0</snamp.connectors.jmx.version>
+    <snamp.connectors.snmp.version>1.0.0</snamp.connectors.snmp.version>
   </properties>
   <version>1.0.0</version>
   <organization>

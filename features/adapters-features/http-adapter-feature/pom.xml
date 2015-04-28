@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <name>HTTP Adapter Karaf Feature</name>
     <artifactId>http-adapter-feature</artifactId>
-    <version>1.0.0</version>
+    <version>${snamp.adapters.http.version}</version>
     <description>HTTP Adapter wrapped in the form of Apache Karaf Feature</description>
     <packaging>kar</packaging>
     <build>
@@ -38,12 +38,4 @@
             </plugin>
         </plugins>
     </build>
-    <dependencies>
-        <dependency>
-            <groupId>com.itworks.snamp</groupId>
-            <artifactId>http-adapter</artifactId>
-            <version>1.0.0</version>
-            <scope>provided</scope>
-        </dependency>
-    </dependencies>
 </project>

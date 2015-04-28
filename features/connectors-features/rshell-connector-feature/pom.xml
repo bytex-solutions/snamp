@@ -11,9 +11,15 @@
     <name>RShell Connector Karaf Feature</name>
     <description>KAR package for RShell Connector</description>
     <artifactId>rshell-connector-feature</artifactId>
-    <version>1.0.0</version>
+    <version>${snamp.connectors.rshell.version}</version>
     <packaging>kar</packaging>
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.karaf.tooling</groupId>
@@ -32,11 +38,4 @@
             </plugin>
         </plugins>
     </build>
-    <dependencies>
-        <dependency>
-            <groupId>com.itworks.snamp</groupId>
-            <artifactId>rshell-connector</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-    </dependencies>
 </project>

@@ -12,7 +12,7 @@
     <description>Bundlized version of SSHJ library</description>
     <artifactId>sshj</artifactId>
     <name>SSHJ</name>
-    <version>0.10.0</version>
+    <version>${sshj.version}</version>
     <packaging>bundle</packaging>
     <organization>
         <name>schmizz.net</name>
@@ -53,7 +53,7 @@
         <dependency>
             <groupId>net.schmizz</groupId>
             <artifactId>sshj</artifactId>
-            <version>0.10.0</version>
+            <version>${sshj.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>

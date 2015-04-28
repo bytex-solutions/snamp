@@ -8,11 +8,17 @@
         <version>1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <version>1.0.0</version>
+    <version>${snamp.adapters.nrdp.version}</version>
     <artifactId>nrdp-adapter-feature</artifactId>
     <name>NRDP Adapter Karaf Feature</name>
     <packaging>kar</packaging>
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.karaf.tooling</groupId>
@@ -31,12 +37,4 @@
             </plugin>
         </plugins>
     </build>
-    <dependencies>
-        <dependency>
-            <groupId>com.itworks.snamp</groupId>
-            <artifactId>nrdp-adapter</artifactId>
-            <version>1.0.0</version>
-            <scope>provided</scope>
-        </dependency>
-    </dependencies>
 </project>

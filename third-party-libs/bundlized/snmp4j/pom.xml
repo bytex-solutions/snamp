@@ -17,7 +17,7 @@
     </organization>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>snmp4j</artifactId>
-    <version>2.3.4</version>
+    <version>${snmp4j.version}</version>
     <build>
         <plugins>
             <plugin>
@@ -51,13 +51,13 @@
             <scope>provided</scope>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.compendium</artifactId>
-            <version>4.3.1</version>
+            <version>${osgi.version}</version>
         </dependency>
         <dependency>
             <scope>provided</scope>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.core</artifactId>
-            <version>4.3.1</version>
+            <version>${osgi.version}</version>
         </dependency>
     </dependencies>
     <repositories>

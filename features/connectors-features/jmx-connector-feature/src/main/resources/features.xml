@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="snamp">
-    <feature name="jmx-connector-feature" description="SNAMP JMX Connector" version="1.0.0">
+    <feature name="jmx-connector-feature" description="SNAMP JMX Connector" version="${project.version}">
         <details>Represents SNAMP JMX Resource Connector as Apache Karaf Feature</details>
-        <bundle>mvn:com.itworks.snamp/jmx-connector/1.0.0</bundle>
+        <bundle>mvn:com.itworks.snamp/jmx-connector/${project.version}</bundle>
     </feature>
 </features>

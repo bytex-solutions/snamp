@@ -11,7 +11,7 @@
     <modelVersion>4.0.0</modelVersion>
     <name>Syslog Adapter Karaf Feature</name>
     <artifactId>syslog-adapter-feature</artifactId>
-    <version>1.0.0</version>
+    <version>${snamp.adapters.syslog.version}</version>
     <description>Syslog Adapter in the form of Apache Karaf Feature</description>
     <build>
         <resources>
@@ -38,12 +38,4 @@
             </plugin>
         </plugins>
     </build>
-    <dependencies>
-        <dependency>
-            <groupId>com.itworks.snamp</groupId>
-            <artifactId>syslog-adapter</artifactId>
-            <version>1.0.0</version>
-            <scope>provided</scope>
-        </dependency>
-    </dependencies>
 </project>

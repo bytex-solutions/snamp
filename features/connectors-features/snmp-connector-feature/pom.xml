@@ -11,8 +11,14 @@
     <packaging>kar</packaging>
     <artifactId>snmp-connector-feature</artifactId>
     <name>SNMP Connector Karaf Feature</name>
-    <version>1.0.0</version>
+    <version>${snamp.connectors.snmp.version}</version>
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.karaf.tooling</groupId>
@@ -31,12 +37,4 @@
             </plugin>
         </plugins>
     </build>
-    <dependencies>
-        <dependency>
-            <groupId>com.itworks.snamp</groupId>
-            <artifactId>snmp-connector</artifactId>
-            <version>1.0.0</version>
-            <scope>provided</scope>
-        </dependency>
-    </dependencies>
 </project>

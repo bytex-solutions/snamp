@@ -11,6 +11,7 @@
     <name>SNAMP Integration Tests</name>
     <description>Tests for connectors/adapters</description>
     <artifactId>osgi-tests</artifactId>
+    <version>${project.parent.version}</version>
     <properties>
         <exam.version>4.4.0</exam.version>
         <felix.gogo.version>0.14.0</felix.gogo.version>
@@ -45,10 +46,9 @@
             </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.3.2</version>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
                 </configuration>
                 <executions>
                     <execution>
@@ -59,7 +59,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.12.4</version>
                 <executions>
                     <execution>
                         <id>default-test</id>
@@ -237,19 +236,19 @@
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>framework</artifactId>
-            <version>1.0.0</version>
+            <version>${snamp.framework.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>snmp4j</artifactId>
-            <version>2.3.4</version>
+            <version>${snmp4j.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>sshj</artifactId>
-            <version>0.10.0</version>
+            <version>${sshj.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -305,7 +304,7 @@
             <scope>test</scope>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.3.1</version>
+            <version>${gson.version}</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty.websocket</groupId>
@@ -316,7 +315,7 @@
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>rshell-connector</artifactId>
-            <version>1.0.0</version>
+            <version>${snamp.connectors.rshell.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -342,13 +341,13 @@
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>jaas-config</artifactId>
-            <version>1.0.0</version>
+            <version>${snamp.jaasconfig.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
-            <artifactId>jmx2json</artifactId>
-            <version>1.0.0</version>
+            <artifactId>jmx-helpers</artifactId>
+            <version>${snamp.jmxhelper.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -360,7 +359,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>18.0</version>
+            <version>${guava.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

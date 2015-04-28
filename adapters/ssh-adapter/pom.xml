@@ -12,7 +12,7 @@
     <artifactId>ssh-adapter</artifactId>
     <packaging>bundle</packaging>
     <name>SSH Adapter</name>
-    <version>1.0.0</version>
+    <version>${snamp.adapters.ssh.version}</version>
     <description>Exploring management information via SSH protocol</description>
     <build>
         <plugins>
@@ -53,7 +53,7 @@
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>framework</artifactId>
-            <version>1.0.0</version>
+            <version>${snamp.framework.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -83,7 +83,7 @@
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>sshj</artifactId>
-            <version>0.10.0</version>
+            <version>${sshj.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -142,8 +142,8 @@
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
-            <artifactId>jmx2json</artifactId>
-            <version>1.0.0</version>
+            <artifactId>jmx-helpers</artifactId>
+            <version>${snamp.jmxhelper.version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

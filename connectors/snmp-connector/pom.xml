@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <name>SNMP Connector</name>
-    <version>1.0.0</version>
+    <version>${snamp.connectors.snmp.version}</version>
     <description>SNMP-compliant managed resource connector</description>
     <artifactId>snmp-connector</artifactId>
     <packaging>bundle</packaging>
@@ -36,7 +36,7 @@
             <scope>provided</scope>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>framework</artifactId>
-            <version>1.0.0</version>
+            <version>${snamp.framework.version}</version>
         </dependency>
         <dependency>
             <scope>provided</scope>
@@ -53,7 +53,7 @@
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>snmp4j</artifactId>
-            <version>2.3.4</version>
+            <version>${snmp4j.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

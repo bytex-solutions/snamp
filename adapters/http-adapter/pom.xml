@@ -8,14 +8,13 @@
         <version>1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <version>1.0.0</version>
+    <version>${snamp.adapters.http.version}</version>
     <packaging>bundle</packaging>
     <name>HTTP Adapter</name>
     <artifactId>http-adapter</artifactId>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
-        <jersey.version>1.18.1</jersey.version>
         <atmosphere.version>2.2.6</atmosphere.version>
     </properties>
     <description>REST-JSON Adapter</description>
@@ -60,7 +59,7 @@
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>framework</artifactId>
-            <version>1.0.0</version>
+            <version>${snamp.framework.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -137,8 +136,8 @@
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
-            <artifactId>jmx2json</artifactId>
-            <version>1.0.0</version>
+            <artifactId>jmx-helpers</artifactId>
+            <version>${snamp.jmxhelper.version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

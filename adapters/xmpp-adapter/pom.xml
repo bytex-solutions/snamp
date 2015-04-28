@@ -8,7 +8,7 @@
         <version>1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <version>1.0.0</version>
+    <version>${snamp.adapters.xmpp.version}</version>
     <name>XMPP Adapter</name>
     <description>SNAMP adapter for XMPP protocol</description>
     <artifactId>xmpp-adapter</artifactId>
@@ -49,7 +49,7 @@
             <scope>provided</scope>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>framework</artifactId>
-            <version>1.0.0</version>
+            <version>${snamp.framework.version}</version>
         </dependency>
         <dependency>
             <scope>provided</scope>
@@ -101,8 +101,8 @@
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
-            <artifactId>jmx2json</artifactId>
-            <version>1.0.0</version>
+            <artifactId>jmx-helpers</artifactId>
+            <version>${snamp.jmxhelper.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

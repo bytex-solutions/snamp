@@ -12,6 +12,7 @@
     <name>SNAMP Distribution Package</name>
     <description>Assembly of SNAMP Distribution Package</description>
     <packaging>karaf-assembly</packaging>
+    <version>${project.parent.version}</version>
     <build>
         <plugins>
             <plugin>
@@ -39,98 +40,98 @@
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>platform-feature</artifactId>
-            <version>1.0.0</version>
+            <version>${project.version}</version>
             <type>kar</type>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>http-adapter-feature</artifactId>
-            <version>1.0.0</version>
+            <version>${snamp.adapters.http.version}</version>
             <type>kar</type>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>jmx-adapter-feature</artifactId>
-            <version>1.0.0</version>
+            <version>${snamp.adapters.jmx.version}</version>
             <type>kar</type>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>nagios-adapter-feature</artifactId>
-            <version>1.0.0</version>
+            <version>${snamp.adapters.nagios.version}</version>
             <type>kar</type>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>nrdp-adapter-feature</artifactId>
-            <version>1.0.0</version>
+            <version>${snamp.adapters.nrdp.version}</version>
             <type>kar</type>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>nsca-adapter-feature</artifactId>
-            <version>1.0.0</version>
+            <version>${snamp.adapters.nsca.version}</version>
             <type>kar</type>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>snmp-adapter-feature</artifactId>
-            <version>1.0.0</version>
+            <version>${snamp.adapters.snmp.version}</version>
             <type>kar</type>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>ssh-adapter-feature</artifactId>
-            <version>1.0.0</version>
+            <version>${snamp.adapters.ssh.version}</version>
             <type>kar</type>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>syslog-adapter-feature</artifactId>
-            <version>1.0.0</version>
+            <version>${snamp.adapters.syslog.version}</version>
             <type>kar</type>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>xmpp-adapter-feature</artifactId>
-            <version>1.0.0</version>
+            <version>${snamp.adapters.xmpp.version}</version>
             <type>kar</type>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>aggregator-connector-feature</artifactId>
-            <version>1.0.0</version>
+            <version>${snamp.connectors.aggregator.version}</version>
             <type>kar</type>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>jmx-connector-feature</artifactId>
-            <version>1.0.0</version>
+            <version>${snamp.connectors.jmx.version}</version>
             <type>kar</type>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>rshell-connector-feature</artifactId>
-            <version>1.0.0</version>
+            <version>${snamp.connectors.rshell.version}</version>
             <type>kar</type>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>snmp-connector-feature</artifactId>
-            <version>1.0.0</version>
+            <version>${snamp.connectors.snmp.version}</version>
             <type>kar</type>
             <scope>compile</scope>
         </dependency>

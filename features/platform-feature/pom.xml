@@ -11,8 +11,14 @@
     <name>SNAMP Platform Karaf Feature</name>
     <artifactId>platform-feature</artifactId>
     <packaging>kar</packaging>
-    <version>1.0.0</version>
+    <version>${project.parent.version}</version>
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.karaf.tooling</groupId>
@@ -31,24 +37,4 @@
             </plugin>
         </plugins>
     </build>
-    <dependencies>
-        <dependency>
-            <groupId>com.itworks.snamp</groupId>
-            <artifactId>framework</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.itworks.snamp</groupId>
-            <artifactId>management</artifactId>
-            <version>1.0.0</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.itworks.snamp</groupId>
-            <artifactId>jaas-config</artifactId>
-            <version>1.0.0</version>
-            <scope>provided</scope>
-        </dependency>
-    </dependencies>
 </project>

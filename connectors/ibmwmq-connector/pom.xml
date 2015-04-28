@@ -9,9 +9,12 @@
     <version>1.0.0</version>
   </parent>
   <artifactId>ibmwmq-connector</artifactId>
-  <version>1.0.0</version>
+  <version>${snamp.connectors.ibmwmq.version}</version>
   <packaging>bundle</packaging>
   <name>IBM MQ Connector</name>
+  <properties>
+    <ibm.wmq.version>6.0.0.0</ibm.wmq.version>
+  </properties>
   <build>
     <plugins>
       <plugin>
@@ -35,7 +38,7 @@
       <scope>provided</scope>
       <groupId>com.itworks.snamp</groupId>
       <artifactId>framework</artifactId>
-      <version>1.0.0</version>
+      <version>${snamp.framework.version}</version>
     </dependency>
     <dependency>
       <scope>provided</scope>
@@ -58,19 +61,19 @@
     <dependency>
       <groupId>com.ibm.mq</groupId>
       <artifactId>WebSphereJMQI</artifactId>
-      <version>6.0.0.0</version>
+      <version>${ibm.wmq.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.ibm.mq</groupId>
       <artifactId>WebSphereMQ</artifactId>
-      <version>6.0.0.0</version>
+      <version>${ibm.wmq.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.ibm.mq</groupId>
       <artifactId>WebSphereMQPCF</artifactId>
-      <version>6.0.0.0</version>
+      <version>${ibm.wmq.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>

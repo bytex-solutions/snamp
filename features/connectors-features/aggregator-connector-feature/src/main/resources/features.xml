@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="snamp">
-    <feature name="aggregator-connector-feature" description="SNAMP Resource Aggregator" version="1.0.0">
+    <feature name="aggregator-connector-feature" description="SNAMP Resource Aggregator" version="${project.version}">
         <details>Represents SNAMP Resource Aggregator as Apache Karaf Feature</details>
-        <bundle>mvn:com.itworks.snamp/aggregator-connector/1.0.0</bundle>
+        <bundle>mvn:com.itworks.snamp/aggregator-connector/${project.version}</bundle>
     </feature>
 </features>

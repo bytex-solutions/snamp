@@ -8,7 +8,7 @@
         <version>1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <version>1.0.0</version>
+    <version>${snamp.adapters.nrdp.version}</version>
     <name>Nagios NRDP Adapter</name>
     <description>SNAMP adapter for NRDP passive check plug-in</description>
     <artifactId>nrdp-adapter</artifactId>
@@ -46,7 +46,7 @@
             <scope>provided</scope>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>framework</artifactId>
-            <version>1.0.0</version>
+            <version>${snamp.framework.version}</version>
         </dependency>
         <dependency>
             <scope>provided</scope>

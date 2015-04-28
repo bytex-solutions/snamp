@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="snamp">
-    <feature name="syslog-adapter-feature" description="SNAMP Syslog Adapter" version="1.0.0">
+    <feature name="syslog-adapter-feature" description="SNAMP Syslog Adapter" version="${project.version}">
         <details>Represents SNAMP Syslog Adapter as Apache Karaf Feature</details>
-        <bundle>mvn:com.itworks.snamp/syslog-adapter/1.0.0</bundle>
+        <bundle>mvn:com.itworks.snamp/syslog-adapter/${project.version}</bundle>
     </feature>
 </features>
