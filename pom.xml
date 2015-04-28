@@ -59,7 +59,7 @@
     <module>framework</module>
     <module>connectors</module>
     <module>adapters</module>
-    <module>infrastructure/jmx2json</module>
+    <module>infrastructure/jmx-helpers</module>
     <module>third-party-libs/bundlized/snmp4j</module>
     <module>third-party-libs/bundlized/sshj</module>
     <module>infrastructure/management</module>

@@ -9,9 +9,9 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <name>JMX-to-JSON conversion library</name>
-    <description>A small library for converting JMX data types into JSON and vice versa</description>
-    <artifactId>jmx2json</artifactId>
+    <name>JMX type system support library</name>
+    <description>A small library for converting JMX data types into JSON/XML and vice versa</description>
+    <artifactId>jmx-helpers</artifactId>
     <packaging>bundle</packaging>
     <version>1.0.0</version>
     <build>

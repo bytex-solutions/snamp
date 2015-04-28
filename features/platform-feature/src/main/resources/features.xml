@@ -12,6 +12,6 @@
         <bundle>mvn:com.itworks.snamp/framework/1.0.0</bundle>
         <bundle start="true">mvn:com.itworks.snamp/management/1.0.0</bundle>
         <bundle start="true">mvn:com.itworks.snamp/jaas-config/1.0.0</bundle>
-        <bundle>mvn:com.itworks.snamp/jmx2json/1.0.0</bundle>
+        <bundle>mvn:com.itworks.snamp/jmx-helpers/1.0.0</bundle>
     </feature>
 </features>
