@@ -14,6 +14,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
+    <aries.version>1.0.0</aries.version>
   </properties>
     <build>
         <plugins>
@@ -50,68 +51,70 @@
           <scope>provided</scope>
           <groupId>org.osgi</groupId>
           <artifactId>org.osgi.core</artifactId>
-          <version>4.3.1</version>
+          <version>${osgi.version}</version>
       </dependency>
       <dependency>
           <scope>provided</scope>
           <groupId>org.osgi</groupId>
           <artifactId>org.osgi.compendium</artifactId>
-          <version>4.3.1</version>
+          <version>${osgi.version}</version>
       </dependency>
       <dependency>
           <groupId>org.apache.aries.jndi</groupId>
           <artifactId>org.apache.aries.jndi</artifactId>
-          <version>1.0.0</version>
+          <version>${aries.version}</version>
       </dependency>
       <dependency>
           <groupId>org.apache.aries.jndi</groupId>
           <artifactId>org.apache.aries.jndi.core</artifactId>
-          <version>1.0.0</version>
+          <version>${aries.version}</version>
       </dependency>
       <dependency>
           <groupId>org.apache.aries.jndi</groupId>
           <artifactId>org.apache.aries.jndi.url</artifactId>
-          <version>1.0.0</version>
+          <version>${aries.version}</version>
           <scope>provided</scope>
       </dependency>
       <dependency>
           <groupId>org.apache.aries.jndi</groupId>
           <artifactId>org.apache.aries.jndi.api</artifactId>
-          <version>1.0.0</version>
+          <version>${aries.version}</version>
           <scope>provided</scope>
       </dependency>
       <dependency>
           <groupId>org.apache.aries.jndi</groupId>
           <artifactId>org.apache.aries.jndi.rmi</artifactId>
-          <version>1.0.0</version>
+          <version>${aries.version}</version>
           <scope>provided</scope>
       </dependency>
       <dependency>
           <groupId>org.apache.aries</groupId>
           <artifactId>org.apache.aries.util</artifactId>
-          <version>1.0.0</version>
+          <version>${aries.version}</version>
           <scope>provided</scope>
       </dependency>
       <dependency>
           <groupId>org.apache.aries.proxy</groupId>
           <artifactId>org.apache.aries.proxy.api</artifactId>
-          <version>1.0.0</version>
+          <version>${aries.version}</version>
+          <scope>provided</scope>
       </dependency>
       <dependency>
           <groupId>org.apache.aries.proxy</groupId>
           <artifactId>org.apache.aries.proxy</artifactId>
-          <version>1.0.1</version>
+          <version>${aries.version}</version>
+          <scope>provided</scope>
       </dependency>
       <dependency>
           <groupId>org.apache.aries.proxy</groupId>
           <artifactId>org.apache.aries.proxy.impl</artifactId>
-          <version>1.0.1</version>
+          <version>${aries.version}</version>
           <scope>provided</scope>
       </dependency>
       <dependency>
           <groupId>com.google.guava</groupId>
           <artifactId>guava</artifactId>
-          <version>18.0</version>
+          <version>${guava.version}</version>
           <scope>provided</scope>
       </dependency>
   </dependencies>

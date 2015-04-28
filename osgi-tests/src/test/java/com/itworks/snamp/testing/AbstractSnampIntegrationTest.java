@@ -15,8 +15,6 @@ import org.osgi.service.cm.ConfigurationAdmin;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.concurrent.TimeoutException;
@@ -34,10 +32,7 @@ import java.util.concurrent.TimeoutException;
         "com.sun.management.jmxremote.authenticate",
         "com.sun.management.jmxremote.port",
         "com.sun.management.jmxremote.ssl",
-        SnampSystemProperties.LICENSING_FILE,
-        "pax.exam.osgi.unresolved.fail",
-        SnampSystemProperties.WEB_CONSOLE_HOST,
-        SnampSystemProperties.WEB_CONSOLE_PORT
+        "pax.exam.osgi.unresolved.fail"
 })
 @ImportPackages("com.itworks.snamp;version=\"[1.0,2)\"")
 public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTest {
@@ -82,16 +77,7 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
         //WORKAROUND for system properties with relative path
         if(!isInTestContainer()){
             expandSystemPropertyFileName(SnampSystemProperties.JAAS_CONFIG_FILE);
-            expandSystemPropertyFileName(SnampSystemProperties.LICENSING_FILE);
         }
-    }
-
-    protected static String getLicenseFile(){
-        return System.getProperty(SnampSystemProperties.LICENSING_FILE);
-    }
-
-    protected static String getLicenseContent() throws IOException {
-        return new String(Files.readAllBytes(Paths.get(getLicenseFile())), "UTF-8");
     }
 
     private static void expandSystemPropertyFileName(final String propertyName) {

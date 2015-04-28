@@ -13,6 +13,9 @@
     <description>SNAMP adapter for XMPP protocol</description>
     <artifactId>xmpp-adapter</artifactId>
     <packaging>bundle</packaging>
+    <properties>
+        <smack.version>4.1.0</smack.version>
+    </properties>
     <build>
         <plugins>
             <plugin>
@@ -52,42 +55,42 @@
             <scope>provided</scope>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.core</artifactId>
-            <version>4.3.1</version>
+            <version>${osgi.version}</version>
         </dependency>
         <dependency>
             <scope>provided</scope>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.compendium</artifactId>
-            <version>4.3.1</version>
+            <version>${osgi.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>18.0</version>
+            <version>${guava.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.igniterealtime.smack</groupId>
             <artifactId>smack-im</artifactId>
-            <version>4.1.0</version>
+            <version>${smack.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.igniterealtime.smack</groupId>
             <artifactId>smack-java7</artifactId>
-            <version>4.1.0</version>
+            <version>${smack.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.igniterealtime.smack</groupId>
             <artifactId>smack-tcp</artifactId>
-            <version>4.1.0</version>
+            <version>${smack.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.igniterealtime.smack</groupId>
             <artifactId>smack-extensions</artifactId>
-            <version>4.1.0</version>
+            <version>${smack.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -105,7 +108,7 @@
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.3.1</version>
+            <version>${gson.version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

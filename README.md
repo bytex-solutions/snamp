@@ -63,8 +63,24 @@ SNAM project provides the following Maven profiles:
 * `Development` profile disables all unit and integrations tests in the project
 * `Release` profile enables to assembly final SNAMP Distribution package on top of Apache Karaf container 
 
+## Versioning
+SNAMP uses [Semantic Versioning](http://semver.org/) for each component separately.
+
+Given a version number _MAJOR.MINOR.PATCH_, increment the:
+
+* MAJOR version when you make incompatible API changes,
+* MINOR version when you add functionality in a backwards-compatible manner, and
+* PATCH version when you make backwards-compatible bug fixes.
+
+But versioning policy of SNAMP distribution package based the following rules:
+
+* Every MINOR change in the component cause increment of the MINOR version of distribution package
+* Every PATCH change in the component cause increment of the PATCH version of distribution package
+* Every MAJOR change in the adapter/connector = `MINOR + 2` version of distribution package
+* Every MAJOR change in the core bundle cause recursive changes in adapters/connectors. Therefore, MAJOR version of package should be changed
+
 ## Code Conventions and Optimization Techniques
-Optimization techniques used in SNAMP are based on [HotSpot Perofmance Techniques](https://wikis.oracle.com/display/HotSpotInternals/PerformanceTechniques).
+Optimization techniques used in SNAMP are based on [HotSpot Performance Techniques](https://wikis.oracle.com/display/HotSpotInternals/PerformanceTechniques).
 > premature optimization is the root of all evil - Donald Knuth
 
 Code Convention is based on official [Code Conventions for the Java Programming Language](http://www.oracle.com/technetwork/java/javase/documentation/codeconvtoc-136057.html) 
@@ -77,7 +93,7 @@ Generic recommendations:
 1. `final` keyword for fields has two meanings: simplification of concurrent programming and [Value Object](https://wikis.oracle.com/display/HotSpotInternals/Value+Objects) optimization
 1. `final` keyword of methods has two menanigs: fix the stable behavior and improve chance of [inlining](https://wikis.oracle.com/display/HotSpotInternals/PerformanceTechniques)
 1. All getters and setters must be `final`
-1. Use immutable objects whenever possible (to reduce potential concurrenct problems and obtain benefits of [Value Objects](https://wikis.oracle.com/display/HotSpotInternals/Value+Objects))
+1. Use immutable objects whenever possible (to reduce potential concurrent problems and obtain benefits of [Value Objects](https://wikis.oracle.com/display/HotSpotInternals/Value+Objects))
 1. Each interface should have default or abstract implementation
 1. Use [Template method pattern](http://en.wikipedia.org/wiki/Template_method_pattern) for partial implementation of interface methods within abstract class (abstract class delcares interface method with `final` keyword but provides extensibility point in the form of protected abstract method called from interface method)
 1. Declare `serialVersionUUID` for each serializable class

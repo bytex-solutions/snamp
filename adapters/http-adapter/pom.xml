@@ -15,6 +15,8 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
+        <jersey.version>1.18.1</jersey.version>
+        <atmosphere.version>2.2.6</atmosphere.version>
     </properties>
     <description>REST-JSON Adapter</description>
     <build>
@@ -65,30 +67,30 @@
             <scope>provided</scope>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.core</artifactId>
-            <version>4.3.1</version>
+            <version>${osgi.version}</version>
         </dependency>
         <dependency>
             <scope>provided</scope>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.compendium</artifactId>
-            <version>4.3.1</version>
+            <version>${osgi.version}</version>
         </dependency>
         <dependency>
             <scope>provided</scope>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-server</artifactId>
-            <version>1.18.1</version>
+            <version>${jersey.version}</version>
         </dependency>
         <dependency>
             <scope>provided</scope>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-servlet</artifactId>
-            <version>1.18.1</version>
+            <version>${jersey.version}</version>
         </dependency>
         <dependency>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-core</artifactId>
-            <version>1.18.1</version>
+            <version>${jersey.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -101,36 +103,36 @@
             <scope>provided</scope>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.3.1</version>
+            <version>${gson.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>18.0</version>
+            <version>${guava.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.atmosphere</groupId>
             <artifactId>atmosphere-jersey</artifactId>
-            <version>2.2.6</version>
+            <version>${atmosphere.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.atmosphere</groupId>
             <artifactId>atmosphere-annotations</artifactId>
-            <version>2.2.6</version>
+            <version>${atmosphere.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.atmosphere</groupId>
             <artifactId>atmosphere-runtime</artifactId>
-            <version>2.2.6</version>
+            <version>${atmosphere.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty.aggregate</groupId>
             <artifactId>jetty-all-server</artifactId>
-            <version>8.1.15.v20140411</version>
+            <version>${jetty.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

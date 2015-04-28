@@ -18,7 +18,6 @@
             <plugin>
                 <groupId>org.apache.karaf.tooling</groupId>
                 <artifactId>karaf-maven-plugin</artifactId>
-                <version>3.0.3</version>
                 <executions>
                     <execution>
                         <id>add-features-to-repo</id>

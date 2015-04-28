@@ -13,6 +13,9 @@
     <description>SNAMP adapter for Nagios active check</description>
     <artifactId>nagios-adapter</artifactId>
     <packaging>bundle</packaging>
+    <properties>
+        <jersey.version>1.18.1</jersey.version>
+    </properties>
     <build>
         <plugins>
             <plugin>
@@ -42,36 +45,36 @@
             <scope>provided</scope>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.core</artifactId>
-            <version>4.3.1</version>
+            <version>${osgi.version}</version>
         </dependency>
         <dependency>
             <scope>provided</scope>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.compendium</artifactId>
-            <version>4.3.1</version>
+            <version>${osgi.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>18.0</version>
+            <version>${guava.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <scope>provided</scope>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-server</artifactId>
-            <version>1.18.1</version>
+            <version>${jersey.version}</version>
         </dependency>
         <dependency>
             <scope>provided</scope>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-servlet</artifactId>
-            <version>1.18.1</version>
+            <version>${jersey.version}</version>
         </dependency>
         <dependency>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-core</artifactId>
-            <version>1.18.1</version>
+            <version>${jersey.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -83,13 +86,13 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.11</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty.aggregate</groupId>
             <artifactId>jetty-all-server</artifactId>
-            <version>8.1.15.v20140411</version>
+            <version>${jetty.version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

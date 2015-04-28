@@ -15,7 +15,6 @@
         <exam.version>4.4.0</exam.version>
         <felix.gogo.version>0.14.0</felix.gogo.version>
         <slf4jVersion>1.7.7</slf4jVersion>
-        <karaf.version>3.0.3</karaf.version>
     </properties>
     <build>
         <plugins>
@@ -84,11 +83,8 @@
                         <com.sun.management.jmxremote.port>3334</com.sun.management.jmxremote.port>
                         <com.sun.management.jmxremote.authenticate>false</com.sun.management.jmxremote.authenticate>
                         <com.sun.management.jmxremote.ssl>false</com.sun.management.jmxremote.ssl>
-                        <com.itworks.snamp.licensing.file>./unlimited.lic</com.itworks.snamp.licensing.file>
                         <com.itworks.snamp.login.config.boot>./jaas.json</com.itworks.snamp.login.config.boot>
                         <pax.exam.osgi.unresolved.fail>true</pax.exam.osgi.unresolved.fail>
-                        <com.itworks.snamp.webconsole.host>localhost</com.itworks.snamp.webconsole.host>
-                        <com.itworks.snamp.webconsole.port>3344</com.itworks.snamp.webconsole.port>
                         <mavenLocalRepository>${settings.localRepository}</mavenLocalRepository>
                     </systemPropertyVariables>
                 </configuration>
@@ -182,7 +178,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.11</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -261,13 +257,7 @@
             <scope>provided</scope>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.compendium</artifactId>
-            <version>4.3.1</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>${osgi.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.vysper</groupId>
@@ -379,13 +369,5 @@
             <version>2.0.0</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <version>1.4.0</version>
-            <type>maven-plugin</type>
-        </dependency>
     </dependencies>
-
-
 </project>
