@@ -25,6 +25,17 @@ In this configuration, Nagios can monitor Java Application, Linux Server, Networ
 
 Full set of supported management protocols listed [here](/features.md).
 
+# Concepts
+SNAMP functionality based on the two main components:
+* Resource Connector
+* Resource Adapter
+
+Resource Connector provides conversion from resource-specific management protocol to the unified [Management Information Model](/inform_model.md).
+
+Resource Adapter provides conversion from unified [Management Information Model](/inform_model.md) to the a management protocol supported by **monitoring & management tool**.
+
+![Information Flow](/images/inform-flow.png)
+
 ## Managed Resource
 **Managed resource** is a component of the enterprise IT infrastructure you want to manage. The possible (but not limited to) types of managed resources:
 * Software component
@@ -43,7 +54,7 @@ Managed resource is accessible through SNAMP when and only when it is connected 
 * Events (or notifications)
 * Operations
 
-Resource Connector may support all these features or some of them. Supported set of features dependends on the particularity of the used Resource Connector. For example, SNMP Resource Connector doesn't support operations because of SNMP protocol limitations.
+Resource Connector may support all these features or some of them. Supported set of features depends on the particularity of the used Resource Connector. For example, SNMP Resource Connector doesn't support operations because of SNMP protocol limitations.
 
 **Resource Connector** has the following characteristics:
 * _System name_ (or _type_) - a name of the installed resource connector. Typically, system name indicates the management protocol used by resource connector
@@ -109,8 +120,16 @@ Examples of operations:
 ## Resource Adapter
 **Resource Adapter** is a software component used to expose management information of connected managed resources to **monitoring & management tools** using the specific management protocol.
 
+Resource Adapter uses resource connector to extract management information and expose it to the outside world. Resource Adapter may expose all configured management features or some of them. It is depend on particularity of the management protocol supported by Resource Adapter. For example, you have configured SNMP Adapter and JMX Connector. JMX Connector supports operations, but SNMP Adapter can't provide access to these operations due to SNMP protocol limitations.
 
-## Technology Stack
+Resource Adapter has the following characteristics:
+* _System Name_ (or _Adapter Name_) - the name of the Resource Adapter. Typically, system name represents the provided management protocol
+* _Configuration_ - a set of configuration properties controlling behavior and network accessibility of the adapter
+
+See [Feature List](/features.md) for more information about provided Resource Adapters.
+
+
+# Technology Stack
 SNAMP constructed on top of [Apache Karaf](http://karaf.apache.org/) and requires Java Runtime Environment.
 
 ![Technology Stack](/images/tstack.png)
