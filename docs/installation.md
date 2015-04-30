@@ -4,14 +4,12 @@ This page provides installation instructions and system requirements
 
 ## System requirements
 Environment:
-
-* Java SE Runtime Environment 7/8. Recommended JVMs
+* Java SE Runtime Environment 7. Recommended JVMs
     * OpenJDK
     * Oracle JRE
-* The `JAVA_HOME` environment variable must be set to the directory where the Java runtime is installed 
+* The `JAVA_HOME` environment variable must be set to the directory where the Java runtime is installed
 
 Supported operating systems:
-
 * Windows
     * Windows Vista SP2
     * Windows 7
@@ -25,8 +23,7 @@ Supported operating systems:
     * Suse Linux Enterprise Server 10 SP2, 11.x
 
 Hardware:
-
-* Processor architectures: 
+* Processor architectures:
     * x86
     * x64
     * ARMv6/ARMv7 (commercial license only)
@@ -36,3 +33,10 @@ Hardware:
 * 2 GB RAM (minimum)
 
 It is possible to run SNAMP on ARM-based hardware (such as RaspberryPi). Contact us for more information.
+
+## Integration in the operating system
+SNAMP may be integrated as an OS System Service:
+* like a native Windows Service
+* like a Unix daemon process
+
+Because of SNAMP is developed on top of Apache Karaf therefore you can use exising [Apache Karaf Integration Guide](https://karaf.apache.org/manual/latest/users-guide/wrapper.html).
