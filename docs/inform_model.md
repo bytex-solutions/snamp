@@ -41,3 +41,15 @@ You should take into account that the semantics of the protocol-specific data ty
 > Of course, Resource Adapter provides configuration properties allowing you to specify conversion rules. For example, `int32` value may be converted into ASN.1 `INTEGER_32` or 4-byte `OCTET_STRING`.
 
 ## Notification
+Notification is a message emitted by connected **managed resource** and routed to **Resource Adapter** through **Resource Connector**. SNAMP Management Information Model defines unified way for representing notifications called **Notification Object**.
+
+The structure of **Notification Object**:
+
+Field | Data Type | Description
+---- | ---- | ----
+TimeStamp | date/time | The notification emission date
+Source | string | The name of the managed resource emitting notification
+Type | string | The name of the notification (differs from event category)
+Message | string | Human-readable description of the notification
+Sequence Number | int64 | The notification sequence number within the source. It's a serial number identifying a particular instance of notification in the context of the notification source. The notification model does not assume that notifications will be received in the same order that they are sent. The sequence number helps you to sort received notifications
+Payload | _any supported data type_ | Additional payload delivered from **managed resource**. The semantics of this part of the notification depends on the connected **managed reresource** and its management protocol
