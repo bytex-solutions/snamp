@@ -1,4 +1,4 @@
-mvn install:install-file -Dfile=./websphere-mq/com.ibm.mq.pcf.jar -DgroupId=com.ibm.mq -DartifactId=WebSphereMQPCF -Dversion=6.0.0.0 -Dpackaging=jar
+mvn install:install-file -Dfile=./ibm/websphere-osgi-bun/com.ibm.mq.pcf.jar -DgroupId=com.ibm.mq -DartifactId=WebSphereMQPCF -Dversion=6.0.0.0 -Dpackaging=jar
 mvn install:install-file -Dfile=./websphere/connector.jar -DgroupId=javax.resource -DartifactId=jca -Dversion=6.0.0.0 -Dpackaging=jar
 mvn install:install-file -Dfile=./websphere/ibmjsseprovider2.jar -DgroupId=com.ibm -DartifactId=JSSEProvider -Dversion=2.0.0 -Dpackaging=jar
 mvn install:install-file -Dfile=./websphere/com.ibm.mq.commonservices.jar -DgroupId=com.ibm.mq -DartifactId=WebSphereCommonServices -Dversion=6.0.0.0 -Dpackaging=jar
