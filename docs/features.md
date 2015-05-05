@@ -36,4 +36,5 @@ jmx | JMX | Yes | Yes | No
 rshell | SSH, REXEC, RSHELL, Local Process Execution | Yes | No | No
 snmp | SNMPv2, SNMPv3 | Yes | Yes | No
 ibm-wmq | Proprietary | Yes | No | No
+ibm-wmb | Proprietary | Yes | Yes | No
 aggregator | _Not Applicable_ | Yes | Yes | No

@@ -139,3 +139,7 @@ From the Deployment Viewpoint, SNAMP is a set of OSGi bundles packaged into KAR 
 Additional topics:
 * [Apache Karaf User's Guide](http://karaf.apache.org/manual/latest/users-guide/index.html)
 * [OSGi Architecture](http://www.osgi.org/Technology/WhatIsOSGi)
+
+# Management Console
+SNAMP Management Console is a web console allowing you to configure SNAMP from your browser. It is build on top of [Hawt.IO](http://hawt.io/).
+> SNAMP Management Console is available in commercial license only 

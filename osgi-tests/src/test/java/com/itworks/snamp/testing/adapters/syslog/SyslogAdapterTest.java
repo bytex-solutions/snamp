@@ -63,9 +63,14 @@ public final class SyslogAdapterTest extends AbstractJmxConnectorTest<TestOpenMB
 
     @Test
     public void configurationDescriptorTest() throws BundleException {
-        final ConfigurationEntityDescription desc = ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, EventConfiguration.class);
+        ConfigurationEntityDescription desc = ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, EventConfiguration.class);
         assertNotNull(desc);
-        final ConfigurationEntityDescription.ParameterDescription param = desc.getParameterDescriptor("severity");
+        ConfigurationEntityDescription.ParameterDescription param = desc.getParameterDescriptor("severity");
+        assertNotNull(param);
+        assertFalse(param.getDescription(null).isEmpty());
+        desc = ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, ResourceAdapterConfiguration.class);
+        assertNotNull(desc);
+        param = desc.getParameterDescriptor("port");
         assertNotNull(param);
         assertFalse(param.getDescription(null).isEmpty());
     }

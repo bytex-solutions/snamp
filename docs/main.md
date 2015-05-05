@@ -16,6 +16,7 @@ This is a top-level page of SNAMP technical documentation. Here you can found al
   * [Resource Connectors](/connectors/introduction.md) - details about all SNAMP Resource Connectors
 * [Updating](/updating.md) - how to install new SNAMP components
 * [Troubleshooting](/troubleshooting.md) - how to fix the most common troubles
+* [Release Notes](/ReleaseNotes.md) - what's new in the current version of SNAMP
 
 ## Advanced Topics
 
