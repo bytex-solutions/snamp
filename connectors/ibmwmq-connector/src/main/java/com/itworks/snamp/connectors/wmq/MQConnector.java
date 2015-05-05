@@ -2,8 +2,8 @@ package com.itworks.snamp.connectors.wmq;
 
 import com.google.common.collect.ImmutableMap;
 import com.ibm.mq.MQException;
-import com.ibm.mq.pcf.CMQC;
-import com.ibm.mq.pcf.CMQCFC;
+import com.ibm.mq.constants.CMQC;
+import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.pcf.PCFMessage;
 import com.ibm.mq.pcf.PCFMessageAgent;
 import com.itworks.snamp.TimeSpan;
@@ -25,7 +25,7 @@ import java.util.logging.Logger;
  * @author  Chernovsky Oleg, Sakno Roman
  * @since 1.1.0
  */
-final class MQConnector extends ManagedResourceConnectorBean {
+final class MQConnector extends ManagedResourceConnectorBean implements CMQC, CMQCFC {
     static final String NAME = "ibm-wmq";
 
     public static final class MQDiscoveryService extends BeanDiscoveryService{
@@ -131,32 +131,32 @@ final class MQConnector extends ManagedResourceConnectorBean {
 
     private String getQueueParameterThroughPCF(final int parameter, final String defaultValue) throws IOException, MQException {
         final Map<Integer, ?> filter  = ImmutableMap.of(
-                CMQC.MQCA_Q_NAME, queueName,
-                CMQCFC.MQIACF_Q_STATUS_TYPE, CMQCFC.MQIACF_Q_STATUS,
-                CMQCFC.MQIACF_Q_STATUS_ATTRS, new int[]{parameter});
-        return getParameterThroughPCF(CMQCFC.MQCMD_INQUIRE_Q_STATUS, filter, parameter, defaultValue);
+                MQCA_Q_NAME, queueName,
+                MQIACF_Q_STATUS_TYPE, MQIACF_Q_STATUS,
+                MQIACF_Q_STATUS_ATTRS, new int[]{parameter});
+        return getParameterThroughPCF(MQCMD_INQUIRE_Q_STATUS, filter, parameter, defaultValue);
     }
 
     private int getQueueParameterThroughPCF(final int parameter, final int defaultValue) throws IOException, MQException {
         final Map<Integer, ?> filter  = ImmutableMap.of(
-                CMQC.MQCA_Q_NAME, queueName,
-                CMQCFC.MQIACF_Q_STATUS_TYPE, CMQCFC.MQIACF_Q_STATUS,
-                CMQCFC.MQIACF_Q_STATUS_ATTRS, new int[]{parameter});
-        return getParameterThroughPCF(CMQCFC.MQCMD_INQUIRE_Q_STATUS, filter, parameter, defaultValue);
+                MQCA_Q_NAME, queueName,
+                MQIACF_Q_STATUS_TYPE, MQIACF_Q_STATUS,
+                MQIACF_Q_STATUS_ATTRS, new int[]{parameter});
+        return getParameterThroughPCF(MQCMD_INQUIRE_Q_STATUS, filter, parameter, defaultValue);
     }
 
     private int getChannelParameterThroughPCF(final int parameter, final int defaultValue) throws IOException, MQException {
         final Map<Integer, ?> filter  = ImmutableMap.of(
-                CMQCFC.MQCACH_CHANNEL_NAME, channelName,
-                CMQCFC.MQIACH_CHANNEL_INSTANCE_ATTRS, new int[]{parameter});
-        return getParameterThroughPCF(CMQCFC.MQCMD_INQUIRE_CHANNEL_STATUS, filter, parameter, defaultValue);
+                MQCACH_CHANNEL_NAME, channelName,
+                MQIACH_CHANNEL_INSTANCE_ATTRS, new int[]{parameter});
+        return getParameterThroughPCF(MQCMD_INQUIRE_CHANNEL_STATUS, filter, parameter, defaultValue);
     }
 
     private long getChannelParameterThroughPCF(final int parameter, final long defaultValue) throws IOException, MQException {
         final Map<Integer, ?> filter  = ImmutableMap.of(
-                CMQCFC.MQCACH_CHANNEL_NAME, channelName,
-                CMQCFC.MQIACH_CHANNEL_INSTANCE_ATTRS, new int[]{parameter});
-        return getParameterThroughPCF(CMQCFC.MQCMD_INQUIRE_CHANNEL_STATUS, filter, parameter, defaultValue);
+                MQCACH_CHANNEL_NAME, channelName,
+                MQIACH_CHANNEL_INSTANCE_ATTRS, new int[]{parameter});
+        return getParameterThroughPCF(MQCMD_INQUIRE_CHANNEL_STATUS, filter, parameter, defaultValue);
     }
 
     /**
@@ -167,7 +167,7 @@ final class MQConnector extends ManagedResourceConnectorBean {
      */
     @ManagementAttribute
     public boolean isActive() throws IOException, MQException {
-        return getQueueParameterThroughPCF(CMQC.MQCA_Q_NAME, null) != null;
+        return getQueueParameterThroughPCF(MQCA_Q_NAME, null) != null;
     }
 
     /**
@@ -180,13 +180,13 @@ final class MQConnector extends ManagedResourceConnectorBean {
     @ManagementAttribute
     public Date getLastGetDate() throws MQException, IOException, ParseException {
         final Map<Integer, ?> filter  = ImmutableMap.of(
-                CMQC.MQCA_Q_NAME, queueName,
-                CMQCFC.MQIACF_Q_STATUS_TYPE, CMQCFC.MQIACF_Q_STATUS,
-                CMQCFC.MQIACF_Q_STATUS_ATTRS, new int[]{CMQCFC.MQCACF_LAST_GET_TIME, CMQCFC.MQCACF_LAST_GET_DATE});
-        final PCFMessage response = sendPcfMessage(CMQCFC.MQCMD_INQUIRE_Q_STATUS, filter);
+                MQCA_Q_NAME, queueName,
+                MQIACF_Q_STATUS_TYPE, MQIACF_Q_STATUS,
+                MQIACF_Q_STATUS_ATTRS, new int[]{MQCACF_LAST_GET_TIME, MQCACF_LAST_GET_DATE});
+        final PCFMessage response = sendPcfMessage(MQCMD_INQUIRE_Q_STATUS, filter);
         //obtain last MQ GET time and date
-        final String time = response.getStringParameterValue(CMQCFC.MQCACF_LAST_GET_TIME);
-        final String date = response.getStringParameterValue(CMQCFC.MQCACF_LAST_GET_DATE);
+        final String time = response.getStringParameterValue(MQCACF_LAST_GET_TIME);
+        final String date = response.getStringParameterValue(MQCACF_LAST_GET_DATE);
         //create formatter
         return mqDateTimeFormatter.parse(String.format("%s %s", date, time));
     }
@@ -201,13 +201,13 @@ final class MQConnector extends ManagedResourceConnectorBean {
     @ManagementAttribute
     public Date getLastPutDate() throws MQException, IOException, ParseException {
         final Map<Integer, ?> filter  = ImmutableMap.of(
-                CMQC.MQCA_Q_NAME, queueName,
-                CMQCFC.MQIACF_Q_STATUS_TYPE, CMQCFC.MQIACF_Q_STATUS,
-                CMQCFC.MQIACF_Q_STATUS_ATTRS, new int[]{CMQCFC.MQCACF_LAST_PUT_TIME, CMQCFC.MQCACF_LAST_PUT_DATE});
-        final PCFMessage response = sendPcfMessage(CMQCFC.MQCMD_INQUIRE_Q_STATUS, filter);
+                MQCA_Q_NAME, queueName,
+                MQIACF_Q_STATUS_TYPE, MQIACF_Q_STATUS,
+                MQIACF_Q_STATUS_ATTRS, new int[]{MQCACF_LAST_PUT_TIME, MQCACF_LAST_PUT_DATE});
+        final PCFMessage response = sendPcfMessage(MQCMD_INQUIRE_Q_STATUS, filter);
         //obtain last MQ PUT time and date
-        final String time = response.getStringParameterValue(CMQCFC.MQCACF_LAST_GET_TIME);
-        final String date = response.getStringParameterValue(CMQCFC.MQCACF_LAST_GET_DATE);
+        final String time = response.getStringParameterValue(MQCACF_LAST_GET_TIME);
+        final String date = response.getStringParameterValue(MQCACF_LAST_GET_DATE);
         //create formatter
         return mqDateTimeFormatter.parse(String.format("%s %s", date, time));
     }
@@ -222,7 +222,7 @@ final class MQConnector extends ManagedResourceConnectorBean {
      */
     @ManagementAttribute
     public int getOpenHandlesForInput() throws MQException, IOException{
-        return getQueueParameterThroughPCF(CMQC.MQIA_OPEN_INPUT_COUNT, 0);
+        return getQueueParameterThroughPCF(MQIA_OPEN_INPUT_COUNT, 0);
     }
 
     /**
@@ -234,7 +234,7 @@ final class MQConnector extends ManagedResourceConnectorBean {
      */
     @ManagementAttribute
     public int getOpenHandlesForOutput() throws MQException, IOException {
-        return getQueueParameterThroughPCF(CMQC.MQIA_OPEN_OUTPUT_COUNT, 0);
+        return getQueueParameterThroughPCF(MQIA_OPEN_OUTPUT_COUNT, 0);
     }
 
     /**
@@ -246,7 +246,7 @@ final class MQConnector extends ManagedResourceConnectorBean {
      */
     @ManagementAttribute
     public int getQueueDepth() throws MQException, IOException {
-        return getQueueParameterThroughPCF(CMQCFC.MQIACF_Q_STATUS, 0);
+        return getQueueParameterThroughPCF(MQIACF_Q_STATUS, 0);
     }
 
     /**
@@ -257,7 +257,7 @@ final class MQConnector extends ManagedResourceConnectorBean {
      */
     @ManagementAttribute
     public int getOldestMessageAge() throws MQException, IOException {
-        return getQueueParameterThroughPCF(CMQCFC.MQIACF_OLDEST_MSG_AGE, 0);
+        return getQueueParameterThroughPCF(MQIACF_OLDEST_MSG_AGE, 0);
     }
 
     /**
@@ -268,7 +268,7 @@ final class MQConnector extends ManagedResourceConnectorBean {
      */
     @ManagementAttribute
     public int getMessageOnQueueTime() throws MQException, IOException{
-        return getQueueParameterThroughPCF(CMQCFC.MQIACF_Q_TIME_INDICATOR, 0);
+        return getQueueParameterThroughPCF(MQIACF_Q_TIME_INDICATOR, 0);
     }
 
     /**
@@ -279,7 +279,7 @@ final class MQConnector extends ManagedResourceConnectorBean {
      */
     @ManagementAttribute
     public int getUncommittedMessagesCount() throws MQException, IOException{
-        return getQueueParameterThroughPCF(CMQCFC.MQIACF_UNCOMMITTED_MSGS, 0);
+        return getQueueParameterThroughPCF(MQIACF_UNCOMMITTED_MSGS, 0);
     }
 
     /**
@@ -290,7 +290,7 @@ final class MQConnector extends ManagedResourceConnectorBean {
      */
     @ManagementAttribute
     public long getTotalBytesSent() throws MQException, IOException {
-        return getChannelParameterThroughPCF(CMQCFC.MQIACH_BYTES_SENT, 0L);
+        return getChannelParameterThroughPCF(MQIACH_BYTES_SENT, 0L);
     }
 
     /**
@@ -323,7 +323,7 @@ final class MQConnector extends ManagedResourceConnectorBean {
      */
     @ManagementAttribute
     public long getTotalBytesReceived() throws MQException, IOException {
-        return getChannelParameterThroughPCF(CMQCFC.MQIACH_BYTES_RECEIVED, 0L);
+        return getChannelParameterThroughPCF(MQIACH_BYTES_RECEIVED, 0L);
     }
 
     /**
@@ -356,7 +356,7 @@ final class MQConnector extends ManagedResourceConnectorBean {
      */
     @ManagementAttribute
     public int getProcessedMessagesCount() throws MQException, IOException {
-        return getChannelParameterThroughPCF(CMQCFC.MQIACH_MSGS, 0);
+        return getChannelParameterThroughPCF(MQIACH_MSGS, 0);
     }
 
     /**

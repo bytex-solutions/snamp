@@ -16,6 +16,7 @@
         <module>snmp-connector-feature</module>
         <module>rshell-connector-feature</module>
         <module>aggregator-connector-feature</module>
+        <module>ibmwmq-connector-feature</module>
     </modules>
 
 </project>

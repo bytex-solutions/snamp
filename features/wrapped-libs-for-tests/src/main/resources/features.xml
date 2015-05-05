@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="wrapped-bundles">
-    <feature name="wrapped-libs-for-tests" description="Repackaged libraries as Apache Karaf Features" version="1.0.0">
+    <feature name="${project.artifactId}" description="Repackaged libraries as Apache Karaf Features" version="1.0.0">
         <details>Repackaged libraries as Apache Karaf Features</details>
         <bundle>wrap:mvn:org.apache.directory.server/apacheds-all/2.0.0-M16$Export-Package=org.apache.directory.*;version="2.0.0.16"</bundle>
         <bundle>mvn:io.netty/netty/3.10.0.Final</bundle>

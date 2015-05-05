@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="snamp">
     <repository>mvn:io.hawt/hawtio-karaf/1.4.47/xml/features</repository>
-    <feature name="platform-feature" description="SNAMP Platform" version="${project.version}">
+    <feature name="${project.artifactId}" description="SNAMP Platform" version="${project.version}">
         <details>Basic set of features required to support SNAMP platform</details>
         <!-- Third-party features -->
         <feature>eventadmin</feature>

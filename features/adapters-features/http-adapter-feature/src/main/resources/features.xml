@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="snamp">
-    <feature name="http-adapter-feature" description="SNAMP HTTP Adapter" version="${project.version}">
+    <feature name="${project.artifactId}" description="SNAMP HTTP Adapter" version="${project.version}">
         <details>Represents SNAMP HTTP Adapter as Apache Karaf Feature</details>
         <bundle>mvn:org.apache.geronimo.specs/geronimo-servlet_3.0_spec/1.0</bundle>
         <bundle>mvn:com.sun.jersey/jersey-core/${jersey.version}</bundle>

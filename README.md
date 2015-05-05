@@ -16,8 +16,11 @@ for the complex IT infrastructure.
 * JDK 7 or higher (Oracle HotSpot or OpenJDK is recommended but not required)
 
 ## How to build
-Not all dependencies located at the Maven Central, therefore, you should download artifacts from the
-following repositories:
+Not all dependencies located at the Maven Central. Some dependencies are proprietary libraries. Therefore,
+it is necessary to prepare your local Maven repository as follows.
+
+### Third-party repositories
+SNAMP uses the following third-party repositories:
 
 * [OOSNMP Maven Repository](https://server.oosnmp.net/dist/release). Artifacts: snmp4j-agent, snmp4j
 
@@ -47,6 +50,25 @@ cd <snamp-project-dir>/third-party-libs/bundlized/snmp4j
 export MAVEN_OPTS="-Xmx512m -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Djsse.enableSNIExtension=false"
 mvn clean package
 ```
+
+### Other libraries
+SNAMP uses the following third-party libraries not placed on any Maven repository:
+* IBM WebSphere MQ libraries for Java
+* IBM WebSphere MB (Integration Bus) libraries for Java
+
+Copy WebSphere the following libraries to third-party-libs/binaries/ibm/websphere folder:
+* `com.ibm.mq.pcf.jar`
+* `com.ibm.mq.jar`
+* `com.ibm.mq.jmqi.jar`
+* `com.ibm.mq.headers.jar`
+
+WebSphere MQ classes for Java located in `MQ_INSTALLATION_PATH/java/lib` repository on Linux and
+`MQ_INSTALLATION_PATH\java\lib` on Windows.
+
+> See [WebSphere MQ classes for Java](http://www-01.ibm.com/support/knowledgecenter/SSFKSJ_7.5.0/com.ibm.mq.dev.doc/q030520_.htm)
+for more information about WMQ Java API.
+
+Execute `third-party-libs/binaries/mvn-install.sh` shell script.
 
 ## Running tests
 SNAMP project contains two category of tests:

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="snamp">
-    <feature name="snmp-connector-feature" description="SNAMP SNMP Connector" version="${project.version}">
+    <feature name="${project.artifactId}" description="SNAMP SNMP Connector" version="${project.version}">
         <details>Represents SNAMP SNMP Resource Connector as Apache Karaf Feature</details>
         <bundle>mvn:com.itworks.snamp/snmp4j/${snmp4j.version}</bundle>
         <bundle>mvn:com.itworks.snamp/snmp-connector/${project.version}</bundle>

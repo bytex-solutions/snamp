@@ -13,7 +13,7 @@
   <packaging>bundle</packaging>
   <name>IBM MQ Connector</name>
   <properties>
-    <ibm.wmq.version>6.0.0.0</ibm.wmq.version>
+    <ibm.wmq.version>7.5.0.2</ibm.wmq.version>
   </properties>
   <build>
     <plugins>
@@ -25,6 +25,13 @@
           <instructions>
             <Bundle-SymbolicName>com.itworks.snamp.connectors.wmq</Bundle-SymbolicName>
             <Bundle-Activator>com.itworks.snamp.connectors.wmq.MQConnectorActivator</Bundle-Activator>
+            <Import-Package>
+              !com.ibm.*,
+              *
+            </Import-Package>
+            <DynamicImport-Package>
+              com.ibm.*;version="[7.5,9)"
+            </DynamicImport-Package>
             <Export-Package/>
             <!--SNAMP specific header-->
             <SNAMP-Resource-Connector>ibm-wmq</SNAMP-Resource-Connector>
@@ -58,24 +65,32 @@
       <version>${guava.version}</version>
       <scope>provided</scope>
     </dependency>
+
     <dependency>
-      <groupId>com.ibm.mq</groupId>
-      <artifactId>WebSphereJMQI</artifactId>
+      <groupId>com.ibm</groupId>
+      <artifactId>jmqi</artifactId>
       <version>${ibm.wmq.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>com.ibm.mq</groupId>
-      <artifactId>WebSphereMQ</artifactId>
+      <groupId>com.ibm</groupId>
+      <artifactId>mq-headers</artifactId>
       <version>${ibm.wmq.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>com.ibm.mq</groupId>
-      <artifactId>WebSphereMQPCF</artifactId>
+      <groupId>com.ibm</groupId>
+      <artifactId>mq</artifactId>
       <version>${ibm.wmq.version}</version>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>com.ibm</groupId>
+      <artifactId>mq-pcf</artifactId>
+      <version>${ibm.wmq.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
