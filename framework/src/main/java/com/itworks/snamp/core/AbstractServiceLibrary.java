@@ -250,20 +250,28 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                     context);
         }
 
-        private void register(final BundleContext context, final ActivationPropertyReader properties) throws Exception{
+        @MethodStub
+        protected boolean isActivationAllowed(){
+            return true;
+        }
+
+        private void register(final BundleContext context, final ActivationPropertyReader properties) throws Exception {
             this.properties = properties;
-            if(ownDependencies.isEmpty()) //instantiate and register service now because there are no dependencies
-                activateAndRegisterService(context);
-            else {
-                final DependencyListeningFilter filter = new DependencyListeningFilter();
-                for (final RequiredService<?> dependency : ownDependencies) {
-                    filter.append(dependency);
-                    for (final ServiceReference<?> serviceRef : dependency.getCandidates(context))
-                        serviceChanged(context, new ServiceEvent(ServiceEvent.REGISTERED, serviceRef));
+            if(isActivationAllowed()) {
+                if (ownDependencies.isEmpty()) //instantiate and register service now because there are no dependencies
+                    activateAndRegisterService(context);
+                else {
+                    final DependencyListeningFilter filter = new DependencyListeningFilter();
+                    for (final RequiredService<?> dependency : ownDependencies) {
+                        filter.append(dependency);
+                        for (final ServiceReference<?> serviceRef : dependency.getCandidates(context))
+                            serviceChanged(context, new ServiceEvent(ServiceEvent.REGISTERED, serviceRef));
+                    }
+                    //dependency tracking required
+                    filter.applyServiceListener(context, this);
                 }
-                //dependency tracking required
-                filter.applyServiceListener(context, this);
             }
+            else this.properties = emptyActivationPropertyReader;
         }
 
         private void unregister(final BundleContext context) throws Exception {

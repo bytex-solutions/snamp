@@ -79,7 +79,9 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
         private ActionHandle(final Maintainable owner,
                              final Method actionImpl,
                              final MethodHandles.Lookup resolver) throws IllegalAccessException {
-            handle = resolver.unreflect(actionImpl).bindTo(owner);
+            handle = isStatic(actionImpl.getModifiers()) ?
+                    resolver.unreflect(actionImpl) :
+                    resolver.unreflect(actionImpl).bindTo(owner);
             final Action actionInfo = actionImpl.getAnnotation(Action.class);
             localeSpecific = actionInfo != null ? actionInfo.localeSpecific() : Action.DEFAULT_LOCALE_SPECIFIC;
         }
@@ -154,8 +156,12 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
         return getActionDescription(allActions, actionName, loc);
     }
 
-    private static boolean isPublicInstance(final int modifiers){
-        return Modifier.isPublic(modifiers) && !Modifier.isStatic(modifiers);
+    private static boolean isPublic(final int modifiers){
+        return Modifier.isPublic(modifiers);
+    }
+
+    private static boolean isStatic(final int modifiers){
+        return Modifier.isStatic(modifiers);
     }
 
     /**
@@ -190,8 +196,8 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
     private static ActionHandle findActionImplementation(final Maintainable maintainable,
                                                    final MaintenanceActionInfo action,
                                                    final MethodHandles.Lookup resolver) throws IllegalAccessException, NoSuchElementException {
-        for (final Method m : maintainable.getClass().getMethods())
-            if (isPublicInstance(m.getModifiers()) &&
+        for (final Method m : maintainable.getClass().getDeclaredMethods())
+            if (isPublic(m.getModifiers()) &&
                     m.isAnnotationPresent(Action.class) &&
                     Objects.equals(m.getName(), action.getName()))
                 return new ActionHandle(maintainable, m, resolver);

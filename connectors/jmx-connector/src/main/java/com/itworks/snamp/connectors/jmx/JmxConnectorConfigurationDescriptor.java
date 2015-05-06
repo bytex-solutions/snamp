@@ -41,6 +41,7 @@ final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescr
 
         private EventConfigurationInfo(){
             super(EventConfiguration.class,
+                    OBJECT_NAME_PROPERTY,
                     SEVERITY_PARAM);
         }
 

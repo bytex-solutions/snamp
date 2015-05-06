@@ -1,6 +1,5 @@
 package com.itworks.snamp.connectors.wmq;
 
-import com.itworks.snamp.internal.annotations.SpecialUse;
 import com.itworks.snamp.management.AbstractMaintainable;
 
 import java.util.Locale;
@@ -24,17 +23,13 @@ public final class MQConnectorMaintainer extends AbstractMaintainable<Maintenanc
         return new Object[0];
     }
 
-    static boolean isWmqInstalledImpl(){
+    @Action
+    public static boolean isWmqInstalled() {
         try {
             return Class.forName("com.ibm.mq.constants.CMQCFC") != null;
         } catch (final ClassNotFoundException ignored) {
             return false;
         }
-    }
-
-    @SpecialUse
-    public boolean isWmqInstalled() {
-        return isWmqInstalledImpl();
     }
 
     @Override

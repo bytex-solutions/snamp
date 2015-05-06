@@ -6,6 +6,7 @@ import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
 import org.junit.Assume;
 import org.junit.Test;
+import org.osgi.framework.BundleContext;
 
 import java.util.Locale;
 import java.util.concurrent.Future;
@@ -32,13 +33,19 @@ public final class WMQConnectorTest extends AbstractResourceConnectorTest {
         return Boolean.valueOf(installed.get());
     }
 
+    @Override
+    protected void afterStartTest(final BundleContext context) throws Exception {
+        if (isWmqInstalled())
+            super.afterStartTest(context);
+    }
+
     @Test
     public void simpleTest() throws Exception {
-        Assume.assumeTrue(isWmqInstalled());
+        Assume.assumeTrue("WebSphere MQ classes for Java are not installed", isWmqInstalled());
     }
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 }

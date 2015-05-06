@@ -6,10 +6,7 @@ import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.configuration.*;
 import com.itworks.snamp.connectors.discovery.AbstractDiscoveryService;
 import com.itworks.snamp.connectors.discovery.DiscoveryService;
-import com.itworks.snamp.core.AbstractServiceLibrary;
-import com.itworks.snamp.core.FrameworkService;
-import com.itworks.snamp.core.LogicalOperation;
-import com.itworks.snamp.core.OSGiLoggingContext;
+import com.itworks.snamp.core.*;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.MethodStub;
 import com.itworks.snamp.io.IOUtils;
@@ -55,6 +52,12 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                         final Exception cause){
             super(message, cause);
         }
+
+        /**
+         * Determines whether the bundle activation process should be terminated.
+         * @return {@literal true} to terminate activator; otherwise, {@literal false}.
+         */
+        protected abstract boolean abortStarting();
     }
 
     /**
@@ -74,6 +77,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
     private static final ActivationProperty<String> CONNECTOR_TYPE_HOLDER = defineActivationProperty(String.class);
     private static final ActivationProperty<Logger> LOGGER_HOLDER = defineActivationProperty(Logger.class);
+    private static final ActivationProperty<Boolean> PREREQUISITES_CHECK_HOLDER = defineActivationProperty(Boolean.class, false);
 
     /**
      * Represents an interface responsible for lifecycle control over resource connector instances.
@@ -332,6 +336,11 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
             this.configurationHashes = Maps.newHashMapWithExpectedSize(10);
         }
 
+        @Override
+        protected boolean isActivationAllowed() {
+            return getActivationPropertyValue(PREREQUISITES_CHECK_HOLDER);
+        }
+
         private OSGiLoggingContext getLoggingContext() {
             Logger logger = getActivationPropertyValue(LOGGER_HOLDER);
             if (logger == null)
@@ -473,6 +482,10 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
         private SupportConnectorServiceManager(final Class<S> contract, final RequiredService<?>... dependencies) {
             super(contract, dependencies);
+        }
+
+        protected final boolean isPrerequisitesOK(){
+            return getActivationPropertyValue(PREREQUISITES_CHECK_HOLDER);
         }
 
         /**
@@ -754,6 +767,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * Represents name of the management connector.
      */
     public final String connectorType;
+    private boolean prerequisitesOK;
 
     /**
      * Initializes a new connector factory.
@@ -783,6 +797,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                        final SupportConnectorServiceManager<?, ?>[] optionalServices){
         super(ArrayUtils.addToEnd(optionalServices, new ManagedResourceConnectorRegistry<>(connectorType, controller, connectorDependencies), ProvidedService.class));
         this.connectorType = connectorType;
+        this.prerequisitesOK = false;
     }
 
     private static void createIdentity(final String resourceName,
@@ -809,9 +824,8 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
     }
 
-    @MethodStub
     protected void checkPrerequisites() throws PrerequisiteException{
-
+        prerequisitesOK = true;
     }
 
     /**
@@ -819,8 +833,19 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @param bundleLevelDependencies A collection of library-level dependencies to fill.
      */
     @Override
-    protected final void start(final Collection<RequiredService<?>> bundleLevelDependencies) throws Exception{
-        checkPrerequisites();
+    protected final void start(final Collection<RequiredService<?>> bundleLevelDependencies) throws Exception {
+        prerequisitesOK = true;
+        try {
+            checkPrerequisites();
+        } catch (final PrerequisiteException e) {
+            if (e.abortStarting()) throw e;
+            else try (final OSGiLoggingContext logger = getLoggingContext()) {
+                logger.log(Level.WARNING, String.format("Preconditions for %s connector are not met", connectorType), e);
+            }
+            finally {
+                prerequisitesOK = false;
+            }
+        }
         bundleLevelDependencies.add(new SimpleDependency<>(ConfigurationAdmin.class));
         addDependencies(bundleLevelDependencies);
     }
@@ -835,6 +860,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     protected final void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception {
         activationProperties.publish(LOGGER_HOLDER, getLogger());
         activationProperties.publish(CONNECTOR_TYPE_HOLDER, connectorType);
+        activationProperties.publish(PREREQUISITES_CHECK_HOLDER, prerequisitesOK);
         try(final OSGiLoggingContext logger = getLoggingContext()){
             logger.info(String.format("Activating resource connectors of type %s. Context: %s",
                     connectorType,

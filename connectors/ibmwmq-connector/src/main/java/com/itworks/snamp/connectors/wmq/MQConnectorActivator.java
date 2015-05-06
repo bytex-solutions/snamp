@@ -23,6 +23,11 @@ public final class MQConnectorActivator extends ManagedResourceActivator<MQConne
         private WMQJavaClassesNotInstalled() {
             super("WebSphere MQ classes for Java are not installed into OSGi environment");
         }
+
+        @Override
+        protected boolean abortStarting() {
+            return false;
+        }
     }
 
     private static final class MQConnectorFactory extends ManagedResourceConnectorModeler<MQConnector> {
@@ -58,10 +63,15 @@ public final class MQConnectorActivator extends ManagedResourceActivator<MQConne
         }
     }
 
-    private static final class MQDiscoveryServiceProvider extends DiscoveryServiceManager<MQConnector.MQDiscoveryService>{
+    private static final class MQDiscoveryServiceProvider extends DiscoveryServiceManager<MQConnector.MQDiscoveryService> {
         @Override
-        protected MQConnector.MQDiscoveryService createDiscoveryService(final RequiredService<?>... dependencies) throws IntrospectionException {
+        protected MQConnector.MQDiscoveryService createDiscoveryService(final RequiredService<?>... dependencies) throws IntrospectionException, WMQJavaClassesNotInstalled {
             return new MQConnector.MQDiscoveryService();
+        }
+
+        @Override
+        protected boolean isActivationAllowed() {
+            return isPrerequisitesOK();
         }
     }
 
@@ -82,9 +92,13 @@ public final class MQConnectorActivator extends ManagedResourceActivator<MQConne
                 new MQMaintenanceManager());
     }
 
+    private static boolean isWmqInstalled(){
+        return MQConnectorMaintainer.isWmqInstalled();
+    }
+
     @Override
     protected void checkPrerequisites() throws WMQJavaClassesNotInstalled {
-        if (!MQConnectorMaintainer.isWmqInstalledImpl())
+        if (!isWmqInstalled())
             throw new WMQJavaClassesNotInstalled();
     }
 }
