@@ -17,6 +17,14 @@ import java.util.Map;
 public final class MQConnectorActivator extends ManagedResourceActivator<MQConnector> {
     private static final String NAME = MQConnector.NAME;
 
+    private static final class WMQJavaClassesNotInstalled extends PrerequisiteException{
+        private static final long serialVersionUID = -3317875854766072865L;
+
+        private WMQJavaClassesNotInstalled() {
+            super("WebSphere MQ classes for Java are not installed into OSGi environment");
+        }
+    }
+
     private static final class MQConnectorFactory extends ManagedResourceConnectorModeler<MQConnector> {
 
         @Override
@@ -57,11 +65,26 @@ public final class MQConnectorActivator extends ManagedResourceActivator<MQConne
         }
     }
 
+    private static final class MQMaintenanceManager extends MaintenanceServiceManager<MQConnectorMaintainer>{
+
+        @Override
+        protected MQConnectorMaintainer createMaintenanceService(final RequiredService<?>... dependencies) {
+            return new MQConnectorMaintainer();
+        }
+    }
+
     @SpecialUse
     public MQConnectorActivator() {
         super(NAME,
                 new MQConnectorFactory(),
                 new MQConnectorConfigurationProvider(),
-                new MQDiscoveryServiceProvider());
+                new MQDiscoveryServiceProvider(),
+                new MQMaintenanceManager());
+    }
+
+    @Override
+    protected void checkPrerequisites() throws WMQJavaClassesNotInstalled {
+        if (!MQConnectorMaintainer.isWmqInstalledImpl())
+            throw new WMQJavaClassesNotInstalled();
     }
 }

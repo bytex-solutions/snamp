@@ -8,8 +8,8 @@ package com.itworks.snamp.testing;
  */
 public enum SnampFeature {
     PLATFORM("platform-feature", "1.0.0"),
-    WEB_CONSOLE("console-feature", "1.0.0"),
     JMX_CONNECTOR("jmx-connector-feature", "1.0.0"),
+    WMQ_CONNECTOR("ibmwmq-connector-feature", "1.0.0"),
     SNMP_ADAPTER("snmp-adapter-feature", "1.0.0"),
     JMX_ADAPTER("jmx-adapter-feature", "1.0.0"),
     SNMP_CONNECTOR("snmp-connector-feature", "1.0.0"),

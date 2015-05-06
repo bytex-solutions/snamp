@@ -18,13 +18,15 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 public final class MaintainableTest extends Assert {
-    private static enum MaintenanceActions implements MaintenanceActionInfo {
+    private enum MaintenanceActions implements MaintenanceActionInfo {
+        @SpecialUse
         INC("inc"),
+        @SpecialUse
         DEC("dec");
 
         private final String name;
 
-        private MaintenanceActions(final String name){
+        MaintenanceActions(final String name){
             this.name = name;
         }
 

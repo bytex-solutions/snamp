@@ -25,11 +25,11 @@ SNAMP supports the following set of data types:
   * int16 - 16-bit signed integer
   * int32 - 32-bit signed integer
   * int64 - 64-bit signed integer
-  * float - IEEE-754 floating-point number with single precision
-  * double - IEEE-754 floating-point number with double precision
+  * float32 - IEEE-754 floating-point number with single precision
+  * float64 - IEEE-754 floating-point number with double precision
   * bigint - integer with arbitary precision
   * bigdecimal - floating-point number with arbitary precision
-  * character - 16-bit Unicode single character
+  * char - 16-bit Unicode single character
   * string - 16-bit Unicode string
   * objectname - [JMX Object Identifier](http://www.oracle.com/technetwork/java/javase/tech/best-practices-jsp-136021.html#mozTocId509360)
   * bool - boolean data type with two possible values: `true` and `false`

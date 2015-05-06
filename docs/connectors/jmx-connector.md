@@ -5,7 +5,7 @@ JMX Resource Connector allows you to manage and monitor Java components via JMX 
 * Java components
 * Java standalone application
 
-Supported features:
+Short list of supported features:
 
 Feature | Comments
 ---- | ----
@@ -46,6 +46,7 @@ Although it is legal according to _RFC 2609_ to have a url-path that begins with
 Case is not significant in the initial `service:jmx:protocol` string or in the host part of the address. Depending on the protocol, case can be significant in the url-path.
 
 Examples:
+
 * `service:jmx:rmi:///jndi/rmi://127.0.0.1:1099/karaf-root` for local connection
 * `service:jmx:rmi://192.168.0.1:1100/jndi/rmi://192.168.0.1:1099/jmxrmi` for remote connection
 
@@ -74,4 +75,48 @@ useRegexp | Boolean (`true`/`false`) | No | Indicating that the `objectName` par
 ## Configuring notifications
 Each event configured in JMX Resource Connector has the following configuration schema:
 * `Category` - notification type of the target JMX notification. For example, `jmx.attribute.change`
-* 
+* Configuration parameters:
+
+Parameter | Type | Required | Meaning | Example
+---- | ---- | ---- | ---- | ----
+severity | String | No | Overrides severity level of the emitted notification | `warning`
+objectName | String | Yes | The name of the MBean on remote JMX server. This MBean emits JMX notifications to be routed to resource adapter | `java.lang:type=OperatingSystem`
+
+You may `severity` parameter in the following cases:
+1. Severity level supplied by JMX is not valid
+1. JMX doesn't supply severity level of the particular notification
+
+## Information Model Mapping
+This section describes mapping between JMX data types and SNAMP Management Information Model
+
+JMX Data Type | Management Information Model
+---- | ----
+BYTE | int8
+SHORT | int16
+INTEGER | int32
+LONG | int64
+FLOAT | float32
+DOUBLE | float64
+BIGINTEGER | bigint
+BIGDECIMAL | bigdecimal
+CHARACTER | char
+STRING | string
+BOOLEAN | bool
+DATE | Date/time
+OBJECTNAME | objectname
+CompositeData | Dictionary
+TabularData | Table
+
+Notification Mapping:
+
+JMX Notification | SNAMP Notification Object
+---- | ----
+Message | Message
+SequenceNumber | Sequence Number
+Source | _None_
+TimeStamp | TimeStamp
+Type | _None_
+UserData | Payload
+
+See [JMX Notification](https://docs.oracle.com/javase/tutorial/jmx/notifs/) for more information about JMX notifications.
+JMX Resource Connector set `Source` of the SNAMP Notification Object to the configured name of the managed resource, `Type` of the SNAMP Notification Object to the configured name of the event

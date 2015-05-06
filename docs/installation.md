@@ -26,7 +26,7 @@ Hardware:
 * Processor architectures:
     * x86
     * x64
-    * ARMv6/ARMv7 (commercial license only)
+    * ARMv6/ARMv7 (in paid subscription only)
 * 2 Cores (minimum)
 * 150 MB of free disk space
 > Disk space requirement ignores growing of log files

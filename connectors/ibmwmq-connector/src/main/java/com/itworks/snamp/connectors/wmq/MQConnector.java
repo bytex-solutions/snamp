@@ -381,6 +381,10 @@ final class MQConnector extends ManagedResourceConnectorBean implements CMQC, CM
         return messagesProcessedLast24Hours.update(getProcessedMessagesCount());
     }
 
+    static Logger getLoggerImpl(){
+        return getLogger(NAME);
+    }
+
     /**
      * Gets a logger associated with this platform service.
      *
@@ -388,7 +392,7 @@ final class MQConnector extends ManagedResourceConnectorBean implements CMQC, CM
      */
     @Override
     public Logger getLogger() {
-        return getLogger(NAME);
+        return getLoggerImpl();
     }
 
     @Override

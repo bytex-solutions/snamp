@@ -42,6 +42,22 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResource
  */
 public class ManagedResourceActivator<TConnector extends ManagedResourceConnector> extends AbstractServiceLibrary {
     /**
+     * Describes missing prerequisite.
+     */
+    public static abstract class PrerequisiteException extends Exception{
+        private static final long serialVersionUID = 7774921412080568085L;
+
+        protected PrerequisiteException(final String message){
+            super(message);
+        }
+
+        protected PrerequisiteException(final String message,
+                                        final Exception cause){
+            super(message, cause);
+        }
+    }
+
+    /**
      * Represents name of the manifest header which contains the name of the management connector.
      * <p>
      *     The following example demonstrates how to set the name of the management connector
@@ -793,12 +809,18 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
     }
 
+    @MethodStub
+    protected void checkPrerequisites() throws PrerequisiteException{
+
+    }
+
     /**
      * Initializes the library.
      * @param bundleLevelDependencies A collection of library-level dependencies to fill.
      */
     @Override
-    protected final void start(final Collection<RequiredService<?>> bundleLevelDependencies) {
+    protected final void start(final Collection<RequiredService<?>> bundleLevelDependencies) throws Exception{
+        checkPrerequisites();
         bundleLevelDependencies.add(new SimpleDependency<>(ConfigurationAdmin.class));
         addDependencies(bundleLevelDependencies);
     }

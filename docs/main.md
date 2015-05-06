@@ -11,7 +11,7 @@ This is a top-level page of SNAMP technical documentation. Here you can found al
 
 * [Installation](/installation.md) - how to install SNAMP in standalone and clustered configuration
 * [Performance](/performance.md) - how to tune SNAMP to fit performance requirements
-* [Configuration](/configuration.md) - how to configure SNAMP
+* [Configuration and Management](/configuration.md) - how to configure SNAMP
   * [Resource Adapters](/adapters/introduction.md) - details about all SNAMP Resource Adapters
   * [Resource Connectors](/connectors/introduction.md) - details about all SNAMP Resource Connectors
 * [Updating](/updating.md) - how to install new SNAMP components
