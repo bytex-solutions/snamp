@@ -1,6 +1,7 @@
 package com.itworks.snamp.io;
 
 import com.google.common.reflect.TypeToken;
+import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.TypeTokens;
 
 import java.io.*;
@@ -80,6 +81,21 @@ public final class IOUtils {
         } catch (final IOException ingored) {
             return false;
         }
+    }
+
+    public static boolean waitForData(final InputStream is,
+                                      long timeout) throws IOException, InterruptedException {
+        while ((is.available() == 0) && timeout >= 0){
+            final long PAUSE = 1L;
+            Thread.sleep(PAUSE);
+            timeout -= PAUSE;
+        }
+        return timeout > 0L;
+    }
+
+    public static boolean waitForData(final InputStream is,
+                                      final TimeSpan timeout) throws IOException, InterruptedException {
+        return waitForData(is, timeout.toMillis());
     }
 
     public static String toString(final Reader reader) throws IOException {

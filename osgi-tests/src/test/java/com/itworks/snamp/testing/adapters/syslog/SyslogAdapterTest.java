@@ -7,6 +7,7 @@ import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.adapters.ResourceAdapterClient;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
+import com.itworks.snamp.io.IOUtils;
 import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
@@ -48,12 +49,12 @@ public final class SyslogAdapterTest extends AbstractJmxConnectorTest<TestOpenMB
     }
 
     @Test
-    public void testIntAttribute() throws JMException, IOException {
+    public void testIntAttribute() throws JMException, IOException, InterruptedException {
         final ManagedResourceConnector connector = getManagementConnector();
         try{
             connector.setAttribute(new Attribute("3.0", 80));
             try(final Socket socket = server.accept()){
-                assertTrue(socket.getInputStream().available() > 10);
+                assertTrue(IOUtils.waitForData(socket.getInputStream(), 1000L));
             }
         }
         finally {
