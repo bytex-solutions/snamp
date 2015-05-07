@@ -38,7 +38,7 @@ SNAMP supports the following set of data types:
 * Table - a set of rows and columns. The name of the column is a _string_. The cell value may have any data type supported by SNAMP Management Information Model
 
 You should take into account that the semantics of the protocol-specific data type may be loss during conversion. For example, we have configured SNMP Adapter and JMX Connector. JMX-compliant managed resource exposes attribute of `Float` JMX type. This JMX-specific type can be converted directly to `float` value in SNAMP Management Information Model. But ASN.1 type system (used by SNMP protocol) doesn't have support for IEEE-754 floating-point numbers. Therefore, SNMP Adapter converts `float` value to ASN.1 `OCTET_STRING`.  
-> Of course, Resource Adapter provides configuration properties allowing you to specify conversion rules. For example, `int32` value may be converted into ASN.1 `INTEGER_32` or 4-byte `OCTET_STRING`.
+> Some Resource Adapter provide configuration properties allowing you to specify conversion rules. For example, `int32` value may be converted into ASN.1 `INTEGER_32` or 4-byte `OCTET_STRING`.
 
 ## Notification
 Notification is a message emitted by connected **managed resource** and routed to **Resource Adapter** through **Resource Connector**. SNAMP Management Information Model defines unified way for representing notifications called **Notification Object**.

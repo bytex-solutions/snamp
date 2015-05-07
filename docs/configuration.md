@@ -15,6 +15,38 @@ See [SNAMP Management Interface](/mgmt.md) for more information about SNAMP mana
 ## Configuration Model
 SNAMP configuration describes a set of resource adapters, resource connectors and its attributes, notifications and operations.
 
+At high level, configuration model can be represented as a tree of configurable elements:
+* _Resource Adapters_ section may contain zero or more configured adapter instances
+  * `Adapter Instance Name` - unique name of the configured resource adapter
+    * `System Name`: system name of the resource adapter
+    * Additional configuration parameters in the form of key/value pairs
+* _Managed Resources_ section may contain zero or more configured managed resources
+  * `Managed Resource Name` - unique name of the managed resource. Some adapters use this name when exposing connected resource to the outside
+    * `Resource Connector Name` - the system name of the resource connector
+    * `Connection String` - resource-specific connection string used by Resource Connector
+    * Additional configuration parameters in the form of key/value pairs
+    * _Attributes_ section may contain zero or more configured attributes
+    * _Events_ section may contain zero or more configured events
+    * _Operations_ section may contain zero or more configured operations
+
+_Attributes_ section:
+* `Attribute Instance Name` - unique name of the attribute. Resource Connector uses this name when exposing attributes to Resource Adapters
+  * `Name` - the name of the attribute declared by managed resource. Note that this name depends on the management information provided by managed resource. This is the required parameter.
+  * `Read/write timeout` - timeout (in millis) used when accessing attribute value. This is the optional parameter.
+  * Additional configuration parameters in the form of key/value pairs
+
+_Events_ section:
+* `Event Name` - unique name of the event. Resource Connector uses this name as notification type when exposing notifications to Resource Adapters
+  * `Category` - the event category declared by managed resource. Note that category depends on the management information provided by managed resource. This is the required parameter
+  * Additional configuration parameters in the form of the key/value pairs
+
+_Operations_ section may contain zero:
+* `Operation instance name` - unique name of the operation. Resource Connector uses this name when exposing operations to Resource Adapters
+  * `Operation Name` - the name of the operation declared by managed resource. Note that operation name depends on the management information provided by managed resource. This is the required parameter
+  * Additional configuration parameters in the form of the key/value pairs
+
+A set of additional configuration parameters depends on the particular Resource Adapter or Resource Connector.
+
 ## Using SNAMP Management Console
 SNAMP Management Console allows you to configure and maintain SNAMP via user-friendly Web interface in your browser.
 > SNAMP Management Console available in paid subscription only
