@@ -1,8 +1,16 @@
 package com.itworks.snamp;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Lists;
+import com.google.common.collect.ObjectArrays;
+
+import javax.management.ObjectName;
+import javax.management.ReflectionException;
+import javax.management.openmbean.*;
 import java.lang.reflect.Array;
-import java.util.Collection;
-import java.util.Objects;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.*;
 
 /**
  * Represents advanced routines to work with arrays.
@@ -12,7 +20,15 @@ import java.util.Objects;
  */
 public final class ArrayUtils {
     private ArrayUtils(){
+    }
 
+    /**
+     * Determines whether the specified object is an array.
+     * @param candidate An object to check.
+     * @return {@literal true}, if the specified object is an array; otherwise, {@literal false}.
+     */
+    public static boolean isArray(final Object candidate){
+        return candidate != null && (candidate instanceof Object[] || candidate.getClass().isArray());
     }
 
     /**
@@ -22,17 +38,8 @@ public final class ArrayUtils {
      * @param <T> Array component type.
      * @return An array with elements from the collection.
      */
-    @SuppressWarnings("unchecked")
-    public static <T> T[] toArray(final Collection<T> source, final Class<T> componentType){
-        return source.toArray((T[])Array.newInstance(componentType, source.size()));
-    }
-
-    public static <I, O extends I> O castArrayElement(final I[] array,
-                                                      final int index,
-                                                      final Class<O> elementType,
-                                                      final O defval){
-        final I element = array[index];
-        return elementType.isInstance(element) ? elementType.cast(element) : defval;
+    public static <T> T[] toArray(final Collection<? extends T> source, final Class<T> componentType){
+        return source.toArray(ObjectArrays.newArray(componentType, source.size()));
     }
 
     /**
@@ -44,21 +51,20 @@ public final class ArrayUtils {
      * at the specified position.
      */
     @SuppressWarnings("unchecked")
-    public static <T> T[] remove(final T[] array, final int index){
-        return (T[]) remove((Object) array, index);
+    public static <T> T[] remove(final T[] array, final int index) {
+        return (T[]) removeImpl(array, index);
     }
 
     private static IndexOutOfBoundsException createIndexOutOfBoundsException(final int index, final int length){
         return new IndexOutOfBoundsException(String.format("Index: %s, Length: %s", index, length));
     }
 
-    @SuppressWarnings("SuspiciousSystemArraycopy")
-    private static Object remove(final Object array, final int index) throws IndexOutOfBoundsException{
-        if(array == null) return null;
-        final int length = Array.getLength(array);
+    private static Object[] removeImpl(final Object[] array, final int index) throws IndexOutOfBoundsException {
+        if (array == null) return null;
+        final int length = array.length;
         if (index < 0 || index >= length)
             throw createIndexOutOfBoundsException(index, length);
-        final Object result = Array.newInstance(array.getClass().getComponentType(), length - 1);
+        final Object[] result = ObjectArrays.newArray(array.getClass().getComponentType(), length - 1);
         System.arraycopy(array, 0, result, 0, index);
         if (index < length - 1)
             System.arraycopy(array, index + 1, result, index, length - index - 1);
@@ -69,11 +75,12 @@ public final class ArrayUtils {
      * Adds an element to the end of the array.
      * @param array An array to add element.
      * @param element An element to insert.
+     * @param componentType Type of the resulting array. Cannot be {@literal null}.
      * @param <T> Type of the array component.
      * @return A newly created array.
      */
-    public static <T> T[] addToEnd(final T[] array, final T element){
-        return add(array, array.length, element);
+    public static <T> T[] addToEnd(final T[] array, final T element, final Class<T> componentType){
+        return add(array, array.length, element, componentType);
     }
 
     /**
@@ -81,36 +88,25 @@ public final class ArrayUtils {
      * @param array An array to add the element.
      * @param index An index of the element to add.
      * @param element An element to insert.
+     * @param componentType Type of the resulting array. Cannot be {@literal null}.
      * @param <T> Type of the array elements.
      * @return A new array that contains inserted element.
      */
-    @SuppressWarnings("unchecked")
-    public static <T> T[] add(final T[] array, final int index, final T element) {
-        final Class<?> componentType;
-        if (array != null)
-            componentType = array.getClass().getComponentType();
-        else if (element != null)
-            componentType = element.getClass();
-        else
-            throw new IllegalArgumentException("Array and element cannot both be null");
-        return  (T[]) add(array, index, element, componentType);
-    }
-
-    @SuppressWarnings("SuspiciousSystemArraycopy")
-    private static Object add(final Object array, final int index, final Object element, final Class<?> clss) {
+    public static <T> T[] add(final T[] array, final int index, final T element,
+                              final Class<T> componentType) {
         if (array == null) {
             if (index != 0)
                 throw createIndexOutOfBoundsException(index, 0);
-            final Object joinedArray = Array.newInstance(clss, 1);
-            Array.set(joinedArray, 0, element);
+            final T[] joinedArray = ObjectArrays.newArray(componentType, 1);
+            joinedArray[0] = element;
             return joinedArray;
         }
-        final int length = Array.getLength(array);
+        final int length = array.length;
         if (index > length || index < 0)
             throw createIndexOutOfBoundsException(index, length);
-        final Object result = Array.newInstance(clss, length + 1);
+        final T[] result = ObjectArrays.newArray(componentType, length + 1);
         System.arraycopy(array, 0, result, 0, index);
-        Array.set(result, index, element);
+        result[index] = element;
         if (index < length)
             System.arraycopy(array, index, result, index + 1, length - index);
         return result;
@@ -149,5 +145,104 @@ public final class ArrayUtils {
         for (int i = 0; i < value.length; i++)
             result[i] = value[i];
         return result;
+    }
+
+    public static <T> T find(final T[] array, final Predicate<T> filter, final T defval) {
+        for(final T item: array)
+            if(filter.apply(item)) return item;
+        return defval;
+    }
+
+    public static <T> T find(final T[] array, final Predicate<T> filter) {
+        return find(array, filter, null);
+    }
+
+    public static <T> T[] filter(final T[] array, final Predicate<T> filter, final Class<T> elementType){
+        final ArrayList<T> result = Lists.newArrayListWithExpectedSize(array.length);
+        for(final T item: array)
+            if(filter.apply(item)) result.add(item);
+        return toArray(result, elementType);
+    }
+
+
+
+    private static Object newArray(final OpenType<?> elementType,
+                                   final int[] dimensions,
+                                   final boolean isPrimitive) throws ReflectionException {
+        if(Objects.equals(SimpleType.BYTE, elementType))
+            return Array.newInstance(isPrimitive ? byte.class : Byte.class, dimensions);
+        else if(SimpleType.CHARACTER.equals(elementType))
+            return Array.newInstance(isPrimitive ? char.class : Character.class, dimensions);
+        else if(SimpleType.SHORT.equals(elementType))
+            return Array.newInstance(isPrimitive ? short.class : Short.class, dimensions);
+        else if(SimpleType.INTEGER.equals(elementType))
+            return Array.newInstance(isPrimitive ? int.class : Integer.class, dimensions);
+        else if(SimpleType.LONG.equals(elementType))
+            return Array.newInstance(isPrimitive ? long.class : Long.class, dimensions);
+        else if(SimpleType.BOOLEAN.equals(elementType))
+            return Array.newInstance(isPrimitive ? boolean.class : Boolean.class, dimensions);
+        else if(SimpleType.FLOAT.equals(elementType))
+            return Array.newInstance(isPrimitive ? float.class : Float.class, dimensions);
+        else if(SimpleType.DOUBLE.equals(elementType))
+            return Array.newInstance(isPrimitive ? double.class : Double.class, dimensions);
+        else if(SimpleType.VOID.equals(elementType))
+            return Array.newInstance(isPrimitive ? void.class : Void.class, dimensions);
+        else if(SimpleType.STRING.equals(elementType))
+            return Array.newInstance(String.class, dimensions);
+        else if(SimpleType.BIGDECIMAL.equals(elementType))
+            return Array.newInstance(BigDecimal.class, dimensions);
+        else if(SimpleType.BIGINTEGER.equals(elementType))
+            return Array.newInstance(BigInteger.class, dimensions);
+        else if(SimpleType.DATE.equals(elementType))
+            return Array.newInstance(Date.class, dimensions);
+        else if(SimpleType.OBJECTNAME.equals(elementType))
+            return Array.newInstance(ObjectName.class, dimensions);
+        else if(elementType instanceof CompositeType)
+            return Array.newInstance(CompositeData.class, dimensions);
+        else if(elementType instanceof TabularType)
+            return Array.newInstance(TabularData.class, dimensions);
+        else try{
+            return Array.newInstance(Class.forName(elementType.getClassName()), dimensions);
+        }
+        catch (final ClassNotFoundException e){
+            throw new ReflectionException(e);
+        }
+    }
+
+    /**
+     * Creates a new instance of the array.
+     * @param arrayType An array type definition.
+     * @param dimensions An array of length of each dimension.
+     * @return A new empty array.
+     * @throws ReflectionException Unable to create a new array.
+     * @throws java.lang.IllegalArgumentException The specified number of dimensions doesn't match to the number of dimensions
+     * in the array definition.
+     */
+    public static Object newArray(final ArrayType<?> arrayType, final int... dimensions) throws ReflectionException {
+        if(arrayType == null)
+            return null;
+        else if(dimensions.length != arrayType.getDimension())
+            throw new IllegalArgumentException("Actual number of dimensions doesn't match to the array type");
+        else return newArray(arrayType.getElementOpenType(), dimensions, arrayType.isPrimitiveArray());
+    }
+
+    public static boolean equals(final Object array1, final Object array2){
+        if(Array.getLength(array1) == Array.getLength(array2)) {
+            for (int i = 0; i < Array.getLength(array1); i++)
+                if (!Objects.equals(Array.get(array1, i), Array.get(array2, i))) return false;
+            return true;
+        }
+        else return false;
+    }
+
+    public static <T> T[] emptyIfNull(final T[] items, final Class<T> elementType) {
+        return items == null ? ObjectArrays.newArray(elementType, 0) : items;
+    }
+
+    @SafeVarargs
+    public static <T> T[] concat(final Class<T> elementType, T[] firstArray, final T[]... arrays) {
+        for(final T[] ar: arrays)
+            firstArray = ObjectArrays.concat(firstArray, ar, elementType);
+        return firstArray;
     }
 }

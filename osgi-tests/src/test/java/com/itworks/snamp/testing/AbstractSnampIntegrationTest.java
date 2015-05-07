@@ -1,25 +1,23 @@
 package com.itworks.snamp.testing;
 
-import com.google.common.base.Supplier;
+import com.itworks.snamp.ExceptionalCallable;
+import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.adapters.*;
+import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.configuration.AgentConfiguration;
-import com.itworks.snamp.configuration.ConfigurationManager;
-import com.itworks.snamp.licensing.AbstractLicenseLimitations;
-import com.itworks.snamp.licensing.LicenseReader;
-import com.itworks.snamp.licensing.LicensingException;
+import com.itworks.snamp.configuration.PersistentConfigurationManager;
 import org.junit.After;
 import org.junit.Before;
-import org.ops4j.pax.exam.options.AbstractProvisionOption;
-import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
-import org.ops4j.pax.exam.spi.reactors.PerClass;
+import org.ops4j.pax.exam.karaf.options.KarafFeaturesOption;
 import org.osgi.framework.BundleContext;
+import org.osgi.service.cm.ConfigurationAdmin;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.io.IOException;
-
-import static com.itworks.snamp.configuration.ConfigurationManager.CONFIGURATION_FILE_PROPERTY;
-import static com.itworks.snamp.licensing.LicenseReader.LICENSE_FILE_PROPERTY;
-import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
+import java.net.MalformedURLException;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Represents an abstract class for all SNAMP-based integration tests.
@@ -27,44 +25,76 @@ import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
  * @version 1.0
  * @since 1.0
  */
-@ExamReactorStrategy(PerClass.class)
+@SnampDependencies({SnampFeature.PLATFORM})
+@PropagateSystemProperties({
+        SnampSystemProperties.JAAS_CONFIG_FILE,
+        "java.security.egd",
+        "com.sun.management.jmxremote.authenticate",
+        "com.sun.management.jmxremote.port",
+        "com.sun.management.jmxremote.ssl",
+        "pax.exam.osgi.unresolved.fail"
+})
+@ImportPackages("com.itworks.snamp;version=\"[1.0,2)\"")
 public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTest {
 
-    /**
-     * Represents relative path to the test license file.
-     */
-    private static final String TEST_LICENCE_FILE = "unlimited.lic";
+    private static final class AdapterStartedSynchronizationEvent extends SynchronizationEvent<ResourceAdapter> implements ResourceAdapterEventListener {
 
-    @Inject
-    private ConfigurationManager configManager = null;
-    @Inject
-    private LicenseReader licenseReader = null;
-
-    static {
-        try {
-            final File configFile = File.createTempFile("snamp-config", ".xml");
-            //noinspection ResultOfMethodCallIgnored
-            configFile.delete();
-            System.setProperty(CONFIGURATION_FILE_PROPERTY, configFile.getAbsolutePath());
-            final File licenseFile = new File(System.getProperty(LICENSE_FILE_PROPERTY, TEST_LICENCE_FILE));
-            if(!licenseFile.exists())
-                throw new IOException("License file for tests is missed.");
-            else System.setProperty(LICENSE_FILE_PROPERTY, licenseFile.getAbsolutePath());
-        }
-        catch (final IOException e) {
-            fail(e.getMessage());
+        @Override
+        public void handle(final ResourceAdapterEvent e) {
+            if(e instanceof ResourceAdapterStartedEvent)
+                fire(e.getSource());
         }
     }
 
-    private static AbstractProvisionOption<?>[] buildDependencies(AbstractProvisionOption<?>[] deps) {
-        deps = concat(deps, mavenBundle("org.apache.felix", "org.apache.felix.log", "1.0.1"),
-                mavenBundle("org.apache.felix", "org.apache.felix.eventadmin", "1.4.2"),
-                mavenBundle("com.google.guava", "guava", "18.0"));
-        return concat(SnampArtifact.makeBasicSet(), deps);
+    private static final class AdapterUpdatedSynchronizationEvent extends SynchronizationEvent<ResourceAdapter> implements ResourceAdapterEventListener{
+
+        @Override
+        public void handle(final ResourceAdapterEvent e) {
+            if(e instanceof ResourceAdapterUpdatedEvent)
+                fire(e.getSource());
+        }
     }
 
-    protected AbstractSnampIntegrationTest(final AbstractProvisionOption<?>... deps){
-        super(buildDependencies(deps));
+    private PersistentConfigurationManager configManager = null;
+    @Inject
+    private ConfigurationAdmin configAdmin = null;
+
+    protected AbstractSnampIntegrationTest(){
+        super(new EnvironmentBuilder() {
+            @Override
+            public Collection<KarafFeaturesOption> getFeatures(final Class<? extends AbstractIntegrationTest> testType) {
+                final Collection<KarafFeaturesOption> result = new LinkedList<>();
+                for(final SnampDependencies deps: TestUtils.getAnnotations(testType, SnampDependencies.class))
+                    for(final SnampFeature feature: deps.value())
+                        try {
+                            result.add(new SnampFeatureOption(feature));
+                        } catch (final MalformedURLException e) {
+                            fail(e.getMessage());
+                        }
+                return result;
+            }
+        });
+        //WORKAROUND for system properties with relative path
+        if(!isInTestContainer()){
+            expandSystemPropertyFileName(SnampSystemProperties.JAAS_CONFIG_FILE);
+        }
+    }
+
+    private static void expandSystemPropertyFileName(final String propertyName) {
+        String fileName = System.getProperty(propertyName);
+        if (fileName != null && fileName.startsWith("./")) {
+            fileName = fileName.substring(2);
+            fileName = getPathToFileInProjectRoot(fileName);
+            System.setProperty(propertyName, fileName);
+        }
+    }
+
+    private PersistentConfigurationManager getTestConfigurationManager() throws Exception{
+        if(configManager == null){
+            configManager = new PersistentConfigurationManager(configAdmin);
+            configManager.load();
+        }
+        return configManager;
     }
 
     /**
@@ -73,14 +103,14 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
      */
     protected abstract void setupTestConfiguration(final AgentConfiguration config);
 
+
     /**
      * Reads SNAMP configuration from temporary storage.
      * @return Deserialized SNAMP configuration.
      * @throws IOException
      */
-    protected final AgentConfiguration readSnampConfiguration() throws IOException{
-        assertNotNull(configManager);
-        return configManager.getCurrentConfiguration();
+    protected final AgentConfiguration readSnampConfiguration() throws Exception{
+        return getTestConfigurationManager().getCurrentConfiguration();
     }
 
     protected void beforeStartTest(final BundleContext context) throws Exception{
@@ -99,10 +129,8 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
     public final void prepare() throws Exception{
         beforeStartTest(getTestBundleContext());
         //read SNAMP configuration
-        assertNotNull(configManager);
-        setupTestConfiguration(configManager.getCurrentConfiguration());
-        //verify licensing engine
-        assertNotNull(licenseReader);
+        setupTestConfiguration(getTestConfigurationManager().getCurrentConfiguration());
+        getTestConfigurationManager().save();
         afterStartTest(getTestBundleContext());
     }
 
@@ -117,30 +145,38 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
     @After
     public final void cleanup() throws Exception{
         beforeCleanupTest(getTestBundleContext());
-        configManager.getCurrentConfiguration().clear();
+        getTestConfigurationManager().getCurrentConfiguration().clear();
+        getTestConfigurationManager().save();
         afterCleanupTest(getTestBundleContext());
     }
 
-    /**
-     * Verifies some limitation from SNAMP license.
-     * @param descriptor
-     * @param limitationName
-     * @param actualValue
-     * @param <L>
-     * @param <A>
-     * @throws LicensingException
-     */
-    protected final <L extends AbstractLicenseLimitations, A> void verifyLicenseLimitation(final Class<L> descriptor,
-                                                                                           final String limitationName,
-                                                                                           final A actualValue,
-                                                                                           final Supplier<L> fallback) throws LicensingException{
-        final L lims = getLicenseLimitation(descriptor, fallback);
-        assertNotNull(String.format("Limitation %s is not described in license", descriptor), lims);
-        lims.verify(limitationName, actualValue);
+    protected static <V, E extends Exception> V syncWithAdapterStartedEvent(final String adapterName,
+                                                                          final ExceptionalCallable<V, E> handler,
+                                                                          final TimeSpan timeout) throws E, TimeoutException, InterruptedException {
+        final AdapterStartedSynchronizationEvent synchronizer = new AdapterStartedSynchronizationEvent();
+        ResourceAdapterClient.addEventListener(adapterName, synchronizer);
+        try {
+            final V result = handler.call();
+            synchronizer.getAwaitor().await(timeout);
+            return result;
+        }
+        finally {
+            ResourceAdapterClient.removeEventListener(adapterName, synchronizer);
+        }
     }
 
-    protected final <L extends AbstractLicenseLimitations> L getLicenseLimitation(final Class<L> limitationType, final Supplier<L> fallback){
-        assertNotNull("Licensing service is not available.", licenseReader);
-        return licenseReader.getLimitations(limitationType, fallback);
+    protected static <V, E extends Exception> V syncWithAdapterUpdatedEvent(final String adapterName,
+                                                                            final ExceptionalCallable<V, E> handler,
+                                                                            final TimeSpan timeout) throws E, TimeoutException, InterruptedException {
+        final AdapterUpdatedSynchronizationEvent synchronizer = new AdapterUpdatedSynchronizationEvent();
+        ResourceAdapterClient.addEventListener(adapterName, synchronizer);
+        try {
+            final V result = handler.call();
+            synchronizer.getAwaitor().await(timeout);
+            return result;
+        }
+        finally {
+            ResourceAdapterClient.removeEventListener(adapterName, synchronizer);
+        }
     }
 }

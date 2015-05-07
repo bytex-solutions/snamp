@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>features</artifactId>
+        <groupId>com.itworks.snamp</groupId>
+        <version>1.0.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <name>SNAMP Adapters Collection</name>
+    <artifactId>adapters-features</artifactId>
+    <packaging>pom</packaging>
+    <modules>
+        <module>jmx-adapter-feature</module>
+        <module>snmp-adapter-feature</module>
+        <module>ssh-adapter-feature</module>
+        <module>http-adapter-feature</module>
+        <module>nsca-adapter-feature</module>
+        <module>nrdp-adapter-feature</module>
+        <module>nagios-adapter-feature</module>
+        <module>syslog-adapter-feature</module>
+        <module>xmpp-adapter-feature</module>
+    </modules>
+
+</project>

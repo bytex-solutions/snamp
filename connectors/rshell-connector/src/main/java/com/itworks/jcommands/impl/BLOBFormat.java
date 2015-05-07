@@ -1,9 +1,8 @@
 package com.itworks.jcommands.impl;
 
 
-import com.itworks.snamp.ArrayUtils;
+import com.google.common.io.BaseEncoding;
 
-import javax.xml.bind.DatatypeConverter;
 import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.bind.annotation.XmlType;
@@ -16,39 +15,30 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlType(name = "BlobFormat", namespace = XmlConstants.NAMESPACE)
 @XmlEnum
-public enum BLOBFormat implements Converter<Byte[]> {
+public enum BLOBFormat implements Converter<byte[]> {
     /**
      * Represents textual fragment with HEX numbers.
      */
     @XmlEnumValue("hex")
-    HEX {
+    HEX(BaseEncoding.base16()),
 
-        @Override
-        public Byte[] parse(final String input) {
-
-            return ArrayUtils.boxArray(DatatypeConverter.parseHexBinary(input));
-        }
-    },
+    /**
+     * Represents textual fragment encoding with BASE-32.
+     */
+    @XmlEnumValue("base32")
+    BASE32(BaseEncoding.base32()),
 
     /**
      * Represents textual fragment encoding with BASE-64.
      */
     @XmlEnumValue("base64")
-    BASE64 {
-        @Override
-        public Byte[] parse(final String input) {
-            return ArrayUtils.boxArray(DatatypeConverter.parseBase64Binary(input));
-        }
-    };
+    BASE64(BaseEncoding.base64());
 
+    private final BaseEncoding encoding;
 
-
-    /**
-     * Parses textual fragment into the array of bytes.
-     * @param input The fragment to parse.
-     * @return An array of bytes that represents the BLOB.
-     */
-    public abstract Byte[] parse(final String input);
+    BLOBFormat(final BaseEncoding enc){
+        this.encoding = enc;
+    }
 
     /**
      * Parses textual fragment into the array of bytes.
@@ -56,7 +46,7 @@ public enum BLOBFormat implements Converter<Byte[]> {
      * @return An array of bytes that represents the BLOB.
      */
     @Override
-    public final Byte[] apply(final String input) {
-        return parse(input);
+    public final byte[] apply(final String input) {
+        return input != null ? encoding.decode(input) : new byte[0];
     }
 }

@@ -1,13 +1,12 @@
 package com.itworks.snamp.internal;
 
-import com.google.common.base.Function;
-import com.google.common.base.StandardSystemProperty;
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
+import com.google.common.base.*;
+import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.Consumer;
-import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.ExceptionalCallable;
+import com.itworks.snamp.Wrapper;
 import com.itworks.snamp.internal.annotations.Internal;
+import com.itworks.snamp.internal.annotations.MethodStub;
 import org.osgi.framework.*;
 import org.osgi.service.event.Event;
 
@@ -20,10 +19,11 @@ import java.lang.reflect.Array;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.Collection;
 import java.util.Dictionary;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
+import java.util.concurrent.Callable;
 
 import static org.osgi.framework.Constants.OBJECTCLASS;
 
@@ -38,6 +38,23 @@ import static org.osgi.framework.Constants.OBJECTCLASS;
  */
 @Internal
 public final class Utils {
+
+    private static final class WeakInvocationHandler<T> extends WeakReference<T> implements InvocationHandler, Wrapper<T>{
+        private WeakInvocationHandler(final T obj){
+            super(obj);
+        }
+
+        @Override
+        public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+            return method.invoke(get(), args);
+        }
+
+        @Override
+        public <R> R handle(final Function<T, R> handler) {
+            return handler.apply(get());
+        }
+    }
+
     /**
      * Determines whether the underlying OS is Linux.
      */
@@ -61,30 +78,18 @@ public final class Utils {
         return StandardSystemProperty.OS_NAME.value();
     }
 
+
     /**
      * Isolates the interface reference from the implementation class.
      * @param obj An implementation of the interface.
      * @param iface An interface to isolate.
-     * @param weakIsolation {@literal true}, if returned interface reference has weak reference to its implementer;
-     * {@literal false}, if returned interface reference has strong reference to its implementer.
      * @param <I> Type of the interface to isolate.
      * @param <T> The class that implements the interface to isolate.
      * @return A reference to the implemented interface that cannot be casted to implementer.
      * @throws java.lang.IllegalArgumentException iface is not an interface.
      */
-    public static  <I, T extends I> I isolate(final T obj, final Class<I> iface, final boolean weakIsolation){
-
-        if(obj == null) return null;
-        else if(weakIsolation){
-            final Reference<T> weakObj = new WeakReference<>(obj);
-            return iface.cast(Proxy.newProxyInstance(iface.getClassLoader(), new Class<?>[]{iface}, new InvocationHandler() {
-                @Override
-                public final Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-                    return method.invoke(weakObj.get(), args);
-                }
-            }));
-        }
-        else return iface.cast(Proxy.newProxyInstance(iface.getClassLoader(), new Class<?>[]{iface}, new InvocationHandler() {
+    public static  <I, T extends I> I isolate(final T obj, final Class<I> iface) {
+        return iface.cast(Proxy.newProxyInstance(iface.getClassLoader(), new Class<?>[]{iface}, new InvocationHandler() {
             @Override
             public final Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
                 return method.invoke(obj, args);
@@ -92,64 +97,12 @@ public final class Utils {
         }));
     }
 
-    /**
-     * Isolates the interface reference from the implementation class.
-     * @param obj An implementation of the interface.
-     * @param iface An interface to isolate.
-     * @param <I> Type of the interface to isolate.
-     * @param <T> The class that implements the interface to isolate.
-     * @return A reference to the implemented interface that cannot be casted to implementer.
-     * @throws java.lang.IllegalArgumentException iface is not an interface.
-     */
-    public static  <I, T extends I> I isolate(final T obj, final Class<I> iface){
-        return isolate(obj, iface, false);
+    private static <I, T extends I, R extends Reference<T> & InvocationHandler> I wrapReference(final R obj, final Class<I> iface){
+        return iface.cast(Proxy.newProxyInstance(iface.getClassLoader(), new Class<?>[]{iface}, obj));
     }
 
-    /**
-     * Wraps the reference to an object into the specified interface.
-     * @param obj A reference to wrap.
-     * @param iface An information about wrapper type.
-     * @param <I> Method return type.
-     * @param <T> Type of the referenced object.
-     * @return A strong reference wrapper for the specified reference (soft, weak, phantom).
-     */
-    public static <I, T extends I> I wrapReference(final Reference<T> obj, final Class<I> iface){
-        return iface.cast(Proxy.newProxyInstance(iface.getClassLoader(), new Class<?>[]{iface}, new InvocationHandler() {
-            @Override
-            public final Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-                return method.invoke(obj.get(), args);
-            }
-        }));
-    }
-
-    /**
-     * Creates transparent weak reference to the specified object.
-     * @param obj An object to be referenced.
-     * @param iface Superclass or interface implemented by the specified object.
-     * @param <I>
-     * @param <T>
-     * @return Transparent proxy that holds weak reference to the wrapped object.
-     */
-    public static <I, T extends I> I weakReference(final T obj, final Class<I> iface){
-        return wrapReference(new WeakReference<>(obj), iface);
-    }
-
-    public static <I, T extends I> I weakReference(final Supplier<T> activator, final Class<I> iface){
-        return weakReference(activator.get(), iface);
-    }
-
-    /**
-     * Casts the specified object to a another class and isolates interface
-     * from the conversion result.
-     * @param obj An object to cast. Cannot be {@literal null}.
-     * @param castResult Type of the conversion result.
-     * @param iface An interface to isolate.
-     * @param <I> Type of the interface to isolate.
-     * @param <T> Type of the conversion result.
-     * @return Isolated reference to an interface.
-     */
-    public static <I, T extends I> I castAndIsolate(final Object obj, final Class<T> castResult, final Class<I> iface){
-        return isolate(castResult.cast(obj), iface);
+    public static <I, T extends I> I weakReference(final T obj, final Class<I> iface) {
+        return wrapReference(new WeakInvocationHandler<>(obj), iface);
     }
 
     public static String getFullyQualifiedResourceName(Class<?> locator, String name){
@@ -183,16 +136,12 @@ public final class Utils {
      * @return A bundle context associated with bundle which owns the specified object; or {@literal null}
      * if bundle context cannot be resolved.
      */
-    public static BundleContext getBundleContextByObject(final Object obj){
-        return obj != null ? FrameworkUtil.getBundle(obj.getClass()).getBundleContext() : null;
+    public static BundleContext getBundleContextByObject(final Object obj) {
+        return obj != null ?
+                FrameworkUtil.getBundle(obj.getClass()).getBundleContext():
+                null;
     }
 
-    /**
-     * Determines whether the service implements the specified interface.
-     * @param serviceRef The service reference to check.
-     * @param serviceType The name of the interface.
-     * @return
-     */
     public static boolean isInstanceOf(final ServiceReference<?> serviceRef, final String serviceType){
         final Object names = serviceRef.getProperty(OBJECTCLASS);
         if(names != null && names.getClass().isArray())
@@ -201,12 +150,6 @@ public final class Utils {
         return false;
     }
 
-    /**
-     * Determines whether the service implements the specified interface.
-     * @param serviceRef
-     * @param serviceType
-     * @return
-     */
     public static boolean isInstanceOf(final ServiceReference<?> serviceRef, final Class<?> serviceType){
         return isInstanceOf(serviceRef, serviceType.getName());
     }
@@ -296,9 +239,17 @@ public final class Utils {
                                        final Class<V> propertyType,
                                        final Supplier<V> defaultValue){
         if(defaultValue == null) return getProperty(dict, propertyKey, propertyType, Suppliers.<V>ofInstance(null));
-        else if(dict == null) return null;
+        else if(dict == null) return defaultValue.get();
         final Object value = dict.get(propertyKey);
         return value != null && propertyType.isInstance(value) ? propertyType.cast(value) : defaultValue.get();
+    }
+
+    public static <K, V> boolean setProperty(final Dictionary<K, ? super V> dict,
+                                     final K propertyKey,
+                                     final V value) {
+        if (dict == null) return false;
+        dict.put(propertyKey, value);
+        return true;
     }
 
     /**
@@ -327,7 +278,7 @@ public final class Utils {
      * @return The value of the property.
      * @throws IntrospectionException Unable to get property value.
      */
-    public static Object getProperty(final javax.management.Notification obj,
+    public static Object getProperty(final Object obj,
                                      final BeanInfo descriptor,
                                      final String propertyName) throws IntrospectionException, ReflectiveOperationException{
         if(obj == null) throw new IllegalArgumentException("obj is null.");
@@ -342,24 +293,6 @@ public final class Utils {
     }
 
     /**
-     * Converts functional interface with input and output parameter into functional interface
-     * with input parameter only.
-     * @param transformer The functional interface to convert.
-     * @param <I> Type of the value to be transformed.
-     * @param <O> Type of the transformation result.
-     * @return {@link com.google.common.base.Function} representation of the transformer.
-     */
-    public static <I, O> TransformerClosure<I, O> toClosure(final Function<I, O> transformer) {
-        return transformer != null ?
-                new TransformerClosure<I, O>() {
-                    @Override
-                    public O apply(final I input) {
-                        return transformer.apply(input);
-                    }
-                } : null;
-    }
-
-    /**
      * Processes a service provided by the calling bundle.
      * @param caller The caller class.
      * @param serviceType The contract of the exposed service.
@@ -367,14 +300,15 @@ public final class Utils {
      * @param serviceInvoker The object that implements procession logic.
      * @param <S> The contract of the exposed service.
      * @param <E> Type of the exception that may be occurred in service invoker.
+     * @return {@literal true}, if requested service resolved; otherwise, {@literal false}.
      * @throws InvalidSyntaxException Invalid service selector.
      * @throws E Service invoker internal error.
      */
-    public static <S, E extends Throwable> void processExposedService(final Class<?> caller,
+    public static <S, E extends Throwable> boolean processExposedService(final Class<?> caller,
                                                  final Class<S> serviceType,
                                                  final String filter,
                                                  final Consumer<S, E> serviceInvoker) throws InvalidSyntaxException, E {
-        processExposedService(caller, serviceType, filter == null || filter.isEmpty() ? null : FrameworkUtil.createFilter(filter), serviceInvoker);
+        return processExposedService(caller, serviceType, filter == null || filter.isEmpty() ? null : FrameworkUtil.createFilter(filter), serviceInvoker);
     }
 
     /**
@@ -385,9 +319,10 @@ public final class Utils {
      * @param serviceInvoker The object that implements procession logic.
      * @param <S> The contract of the exposed service.
      * @param <E> Type of the exception that can be thrown by service invoker.
+     * @return {@literal true}, if requested service resolved; otherwise, {@literal false}.
      * @throws E Service invoker internal error.
      */
-    public static <S, E extends Throwable> void processExposedService(final Class<?> caller,
+    public static <S, E extends Throwable> boolean processExposedService(final Class<?> caller,
                                                  final Class<S> serviceType,
                                                  final Filter filter,
                                                  final Consumer<S, E> serviceInvoker) throws E {
@@ -397,34 +332,11 @@ public final class Utils {
             if ((filter == null || filter.match(ref)) && isInstanceOf(ref, serviceType))
                 try {
                     serviceInvoker.accept(serviceType.cast(owner.getBundleContext().getService(ref)));
+                    return true;
                 } finally {
                     owner.getBundleContext().ungetService(ref);
                 }
-    }
-
-    /**
-     * Determines whether the specified service is registered in OSGI service registry.
-     * @param callerClass The caller class.
-     * @param serviceType The service contract.
-     * @param filter The service filter. May be {@literal null}.
-     * @return {@literal true}, if the specified service is registered in OSGI service registry.
-     * @throws org.osgi.framework.InvalidSyntaxException Incorrect filter.
-     */
-    public static boolean isServiceRegistered(final Class<?> callerClass,
-                                       final Class<?> serviceType,
-                                       final String filter) throws InvalidSyntaxException {
-        final Bundle bundle = FrameworkUtil.getBundle(callerClass);
-        return bundle.getBundleContext().getServiceReferences(serviceType, filter).size() > 0;
-    }
-
-    public static void withContextClassLoader(final ClassLoader loader, final Runnable action) {
-        withContextClassLoader(loader, new ExceptionalCallable<Void, ExceptionPlaceholder>() {
-            @Override
-            public Void call() {
-                action.run();
-                return null;
-            }
-        });
+        return false;
     }
 
     public static <V, E extends Exception> V withContextClassLoader(final ClassLoader loader, final ExceptionalCallable<V, E> action) throws E{
@@ -439,13 +351,17 @@ public final class Utils {
         }
     }
 
-    public static <T> boolean isEqualSet(final Set<T> columns1, final Set<T> columns2) {
-        if (columns1 == null) return columns2 == null;
-        else if (columns2 == null) return false;
-        else if (columns1.size() != columns2.size()) return false;
-        else for (final T element : columns1)
-                if (!columns2.contains(element)) return false;
-        return true;
+    public static <T> boolean collectionsAreEqual(final Collection<T> collection1, final Collection<T> collection2) {
+        if (collection1 == null) return collection2 == null;
+        else
+            return collection2 != null && collection1.size() == collection2.size() && collection1.containsAll(collection2);
+    }
+
+    public static <K, V> boolean mapsAreEqual(final Map<K, V> map1,
+                                              final Map<K, V> map2){
+        if(map1 == null) return map2 == null;
+        else
+            return map2 != null && map1.size() == map2.size() && map1.entrySet().containsAll(map2.entrySet());
     }
 
     /**
@@ -467,5 +383,51 @@ public final class Utils {
             return propertyType.isInstance(result) ? propertyType.cast(result) : defaultValue;
         }
         else return defaultValue;
+    }
+
+    /**
+     * Gets the stack trace in the form of the single string.
+     * @return The current stack trace.
+     */
+    public static String getStackTrace(){
+        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+        if(stackTrace.length > 0)
+            stackTrace = ArrayUtils.remove(stackTrace, 0);
+        return Joiner.on(System.lineSeparator()).join(stackTrace);
+    }
+
+    /**
+     * Used to initialize static fields in interfaces
+     * when initialization code may throw exception.
+     *
+     * @param <T>  the type parameter
+     * @param initializer the initializer
+     * @return The value returned from initializer.
+     * @throws ExceptionInInitializerError the exception in initializer error
+     */
+    public static <T> T interfaceStaticInitialize(final Callable<T> initializer){
+        try {
+            return initializer.call();
+        } catch (final Exception e) {
+            throw new ExceptionInInitializerError(e);
+        }
+    }
+
+    /**
+     * Used to ignore return value of the method invocation.
+     * @param retval Return value of the method invocation.
+     */
+    @MethodStub
+    public static void blackhole(@SuppressWarnings("UnusedParameters") final Object retval){
+
+    }
+
+    /**
+     * Used to ignore return value of the method invocation.
+     * @param retval Return value of the method invocation.
+     */
+    @MethodStub
+    public static void blackhole(@SuppressWarnings("UnusedParameters") final boolean retval){
+
     }
 }

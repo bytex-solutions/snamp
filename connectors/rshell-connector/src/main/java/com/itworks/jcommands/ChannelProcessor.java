@@ -16,7 +16,7 @@ public interface ChannelProcessor<I, O, E extends Exception> {
      * Creates a textual command to be executed through the channel.
      * @param input User-define input for the command renderer.
      * @param channelParameters The channel initialization parameters. Cannot be {@literal null}.
-     * @return The command to execute.
+     * @return The command to apply.
      */
     String renderCommand(final I input, final Map<String, ?> channelParameters);
 

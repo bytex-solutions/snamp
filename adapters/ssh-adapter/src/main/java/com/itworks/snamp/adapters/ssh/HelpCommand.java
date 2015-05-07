@@ -56,23 +56,17 @@ final class HelpCommand extends AbstractManagementShellCommand {
 
     /**
      * Executes command synchronously.
-     * @param input A command to execute.
+     * @param input A command to apply.
      * @param output Output stream for the command execution result.
      */
     @Override
     protected void doCommand(final CommandLine input, final PrintWriter output) {
         printHelp(formatter, output, COMMAND_NAME, COMMAND_DESC, COMMAND_OPTIONS);
         printHelp(formatter, output, ListOfResourcesCommand.COMMAND_NAME, ListOfResourcesCommand.COMMAND_DESC, ListOfResourcesCommand.COMMAND_OPTIONS);
-        printHelp(formatter, output, ListOfAttributesCommand.COMMAND_NAME, ListOfAttributesCommand.COMMAND_DESC, ListOfAttributesCommand.COMMAND_OPTIONS);
+        printHelp(formatter, output, ListOfAttributesCommand.COMMAND_USAGE, ListOfAttributesCommand.COMMAND_DESC, ListOfAttributesCommand.COMMAND_OPTIONS);
         output.println();
         printHelp(formatter, output, GetAttributeCommand.COMMAND_USAGE, GetAttributeCommand.COMMAND_DESC, GetAttributeCommand.COMMAND_OPTIONS);
         printHelp(formatter, output, SetAttributeCommand.COMMAND_USAGE, SetAttributeCommand.COMMAND_DESC, SetAttributeCommand.COMMAND_OPTIONS);
-        output.println();
-        printHelp(formatter, output, SetArrayCommand.COMMAND_USAGE, SetArrayCommand.COMMAND_DESC, SetArrayCommand.COMMAND_OPTIONS);
-        output.println();
-        printHelp(formatter, output, SetMapCommand.COMMAND_USAGE, SetMapCommand.COMMAND_DESC, SetMapCommand.COMMAND_OPTIONS);
-        output.println();
-        printHelp(formatter, output, SetTableCommand.COMMAND_USAGE, SetTableCommand.COMMAND_DESC, SetTableCommand.COMMAND_OPTIONS);
         output.println();
         printHelp(formatter, output, NotificationsCommand.COMMAND_USAGE, NotificationsCommand.COMMAND_DESC, NotificationsCommand.COMMAND_OPTIONS);
         output.println();
@@ -86,9 +80,6 @@ final class HelpCommand extends AbstractManagementShellCommand {
                 ListOfAttributesCommand.COMMAND_NAME,
                 GetAttributeCommand.COMMAND_NAME,
                 SetAttributeCommand.COMMAND_NAME,
-                SetArrayCommand.COMMAND_NAME,
-                SetMapCommand.COMMAND_NAME,
-                SetTableCommand.COMMAND_NAME,
                 NotificationsCommand.COMMAND_NAME);
     }
 }

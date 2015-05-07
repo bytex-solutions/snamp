@@ -1,21 +1,23 @@
 package com.itworks.snamp.adapters.ssh;
 
-import com.itworks.snamp.WriteOnceRef;
+import com.google.common.base.Joiner;
+import com.itworks.snamp.concurrent.WriteOnceRef;
+import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.internal.annotations.MethodStub;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.apache.sshd.common.Session;
 import org.apache.sshd.server.Command;
 import org.apache.sshd.server.Environment;
 import org.apache.sshd.server.ExitCallback;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * Represents SSH adapter shell command.
@@ -24,14 +26,22 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 abstract class AbstractManagementShellCommand extends BasicParser implements ManagementShellCommand {
-    static Options EMPTY_OPTIONS = new Options();
+    protected static final Option RESOURCE_OPTION = new Option("r",
+            "resource",
+            true,
+            "Name of the managed resource");
+    final static Options EMPTY_OPTIONS = new Options();
+
+
 
     static class CommandException extends Exception {
-        public CommandException(final String message, final Object... args) {
+        private static final long serialVersionUID = -1305857667263784898L;
+
+        CommandException(final String message, final Object... args) {
             super(String.format(message, args));
         }
 
-        public CommandException(final Throwable cause) {
+        CommandException(final Throwable cause) {
             super(cause.getMessage(), cause);
         }
     }
@@ -50,16 +60,8 @@ abstract class AbstractManagementShellCommand extends BasicParser implements Man
         return getService(CommandExecutionContext.CONTROLLER);
     }
 
-    protected final Session getSession(){
-        return getService(CommandExecutionContext.SESSION);
-    }
-
     protected final ExecutorService getExecutionService(){
         return getService(CommandExecutionContext.EXECUTOR);
-    }
-
-    protected final Logger getLogger(){
-        return getService(CommandExecutionContext.LOGGER);
     }
 
     protected final InputStream getConsoleInputStream(){
@@ -77,9 +79,14 @@ abstract class AbstractManagementShellCommand extends BasicParser implements Man
         try {
             final CommandLine input = parse(getCommandOptions(), arguments);
             doCommand(input, outStream);
-        } catch (final ParseException | CommandException e) {
+            outStream.flush();
+        } catch (final Throwable e) {
             errStream.println(e.getMessage());
             errStream.flush();
+            SshHelpers.log(Level.WARNING, String.format("Unable to process command %s with arguments %s. Context: %s",
+                    getClass().getSimpleName(),
+                    Joiner.on(' ').join(arguments),
+                    LogicalOperation.current()), e);
         }
     }
 
@@ -131,10 +138,11 @@ abstract class AbstractManagementShellCommand extends BasicParser implements Man
 
                     @Override
                     public void run() {
-                        try (final PrintWriter out = new PrintWriter(this.out);
-                             final PrintWriter err = new PrintWriter(this.err)) {
+                        try (final PrintWriter out = new PrintWriter(new OutputStreamWriter(this.out, StandardCharsets.UTF_8));
+                             final PrintWriter err = new PrintWriter(new OutputStreamWriter(this.out, StandardCharsets.UTF_8))) {
                             AbstractManagementShellCommand.this.doCommand(arguments, out, err);
                         }
+
                         finally {
                             exitCallback.onExit(0);
                         }

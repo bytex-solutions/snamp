@@ -14,11 +14,7 @@ import java.io.PrintWriter;
  */
 final class ListOfResourcesCommand extends AbstractManagementShellCommand {
     static final String COMMAND_NAME = "resources";
-    static final Options COMMAND_OPTIONS;
-
-    static {
-        COMMAND_OPTIONS = new Options();
-    }
+    static final Options COMMAND_OPTIONS = EMPTY_OPTIONS;
 
     static final String COMMAND_DESC = "Display list of connected managed resources";
 
@@ -39,7 +35,7 @@ final class ListOfResourcesCommand extends AbstractManagementShellCommand {
     /**
      * Executes command synchronously.
      *
-     * @param input  The command to execute.
+     * @param input  The command to apply.
      * @param output Output stream for the command execution result.
      */
     @Override

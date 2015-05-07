@@ -1,7 +1,11 @@
 package com.itworks.snamp.adapters.ssh;
 
+import com.itworks.snamp.Consumer;
+import com.itworks.snamp.jmx.ExpressionBasedDescriptorFilter;
+
+import javax.management.Notification;
+import java.io.Writer;
 import java.util.Set;
-import java.util.logging.Logger;
 
 /**
  * Represents mediation layer between SNAMP infrastructure and Secure Shell Interpreter.
@@ -9,7 +13,7 @@ import java.util.logging.Logger;
  * @version 1.0
  * @since 1.0
  */
-interface AdapterController {
+public interface AdapterController {
     /**
      * Gets a collection of connected managed resources.
      * @return A collection of connected managed resources.
@@ -23,33 +27,11 @@ interface AdapterController {
      */
     Set<String> getAttributes(final String resourceName);
 
-    /**
-     * Gets an attribute accessor.
-     * @param attributeID ID of the attribute.
-     * @return The attribute accessor; or {@literal null}, if attribute doesn't exist.
-     */
-    SshAttributeView getAttribute(final String attributeID);
+    <E extends Exception> boolean processAttribute(final String resourceName,
+                                                   final String attributeID,
+                                                   final Consumer<? super SshAttributeMapping, E> handler) throws E;
 
-    /**
-     * Gets logger associated with adapter.
-     * @return The logger.
-     */
-    Logger getLogger();
+    Notification poll(final ExpressionBasedDescriptorFilter filter);
 
-
-    /**
-     * Adds a new notification listener.
-     * @param listener The listener.
-     * @return A new ID of the notification listener.
-     */
-    long addNotificationListener(final NotificationListener listener);
-
-    /**
-     * Gets a collection of available notifications.
-     * @param resourceName The name of the managed resource.
-     * @return A collection of available notifications.
-     */
-    Set<String> getNotifications(final String resourceName);
-
-    void removeNotificationListener(final long listenerID);
+    void print(final Notification notif, final Writer output);
 }

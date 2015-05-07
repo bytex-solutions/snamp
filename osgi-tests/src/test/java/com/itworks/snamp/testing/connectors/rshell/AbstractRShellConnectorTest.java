@@ -1,6 +1,8 @@
 package com.itworks.snamp.testing.connectors.rshell;
 
-import com.itworks.snamp.testing.SnampArtifact;
+import com.google.common.collect.ImmutableMap;
+import com.itworks.snamp.testing.SnampDependencies;
+import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
 import org.apache.sshd.SshServer;
 import org.apache.sshd.server.Command;
@@ -9,44 +11,59 @@ import org.apache.sshd.server.PasswordAuthenticator;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.server.session.ServerSession;
 import org.apache.sshd.server.shell.ProcessShellFactory;
-import org.ops4j.pax.exam.options.AbstractProvisionOption;
 import org.osgi.framework.BundleContext;
 
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.Objects;
-
-import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 
 /**
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
+@SnampDependencies(SnampFeature.RSHELL_CONNECTOR)
 public abstract class AbstractRShellConnectorTest extends AbstractResourceConnectorTest {
     protected static final String CONNECTOR_NAME = "rshell";
-    private final SshServer server;
+    private SshServer server;
     private final int port;
+    private final String certificateFile;
+    private final String sshUserName;
+    private final String password;
 
     protected AbstractRShellConnectorTest(final String sshUserName,
                                           final String password,
                                           final int port,
                                           final String certificateFile,
-                                          final String fingerprint,
-                                          final AbstractProvisionOption<?>... deps) {
-        super(CONNECTOR_NAME, getConnectionString(port), new HashMap<String, String>(){{
-                    put("host", "localhost");
-                    put("port", Integer.toString(port));
-                    put("fingerprint", fingerprint);
-                    put("userName", sshUserName);
-                    put("password", password);
-                }},
-                concat(deps,
-                        mavenBundle("org.apache.sshd", "sshd-core", "0.12.0"),
-                        SnampArtifact.SSHJ.getReference(),
-                        SnampArtifact.RSHELL_CONNECTOR.getReference()));
-        server = SshServer.setUpDefaultServer();
-        server.setPort(this.port = port);
+                                          final String fingerprint) {
+        super(CONNECTOR_NAME, getConnectionString(port), ImmutableMap.of(
+                    "host", "localhost",
+                    "port", Integer.toString(port),
+                    "fingerprint", fingerprint,
+                    "userName", sshUserName,
+                    "password", password
+        ));
+        this.certificateFile = certificateFile;
+        this.port = port;
+        this.sshUserName = sshUserName;
+        this.password = password;
+    }
+
+    protected static String getConnectionString(final int port){
+        return String.format("ssh://localhost:%s", port);
+    }
+
+    protected final String getConnectionString(){
+        return getConnectionString(port);
+    }
+
+    /*@Override
+    protected boolean enableRemoteDebugging() {
+        return true;
+    } */
+
+    @Override
+    protected void beforeStartTest(final BundleContext context) throws Exception {
+        final SshServer server = this.server = SshServer.setUpDefaultServer();
+        server.setPort(port);
         server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(certificateFile));
         server.setPasswordAuthenticator(new PasswordAuthenticator() {
             @Override
@@ -62,23 +79,12 @@ public abstract class AbstractRShellConnectorTest extends AbstractResourceConnec
                 return factory.create();
             }
         });
-    }
-
-    protected static String getConnectionString(final int port){
-        return String.format("ssh://localhost:%s", port);
-    }
-
-    protected final String getConnectionString(){
-        return getConnectionString(port);
-    }
-
-    @Override
-    protected void beforeStartTest(final BundleContext context) throws IOException {
         server.start();
     }
 
     @Override
     protected void afterCleanupTest(final BundleContext context) throws Exception {
         server.stop();
+        server = null;
     }
 }

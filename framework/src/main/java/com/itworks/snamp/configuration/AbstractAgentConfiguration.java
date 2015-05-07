@@ -11,7 +11,7 @@ import java.util.*;
  * @version 1.0
  */
 public abstract class AbstractAgentConfiguration implements AgentConfiguration {
-    private static interface ConfigurationEntityCopier<T extends ConfigurationEntity>{
+    private static interface ConfigurationEntityCopier<T extends EntityConfiguration>{
         void copy(final T input, final T output);
     }
 
@@ -76,25 +76,25 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
 
     private static void copyAttributes(final Map<String, ManagedResourceConfiguration.AttributeConfiguration> input, final Map<String, ManagedResourceConfiguration.AttributeConfiguration> output, final Supplier<ManagedResourceConfiguration.AttributeConfiguration> attributeFactory){
         if(input != null && output != null)
-            for(final String attributeId: input.keySet()){
-                final ManagedResourceConfiguration.AttributeConfiguration inputAttr = input.get(attributeId);
+            for(final Map.Entry<String, ManagedResourceConfiguration.AttributeConfiguration> entry: input.entrySet()){
+                final ManagedResourceConfiguration.AttributeConfiguration inputAttr = entry.getValue();
                 final ManagedResourceConfiguration.AttributeConfiguration outputAttr = attributeFactory.get();
                 copy(inputAttr, outputAttr);
-                output.put(attributeId, outputAttr);
+                output.put(entry.getKey(), outputAttr);
             }
     }
 
     private static void copyEvents(final Map<String, ManagedResourceConfiguration.EventConfiguration> input, final Map<String, ManagedResourceConfiguration.EventConfiguration> output, final Supplier<ManagedResourceConfiguration.EventConfiguration> eventFactory){
         if(input != null && output != null)
-            for(final String eventID: input.keySet()){
-                final ManagedResourceConfiguration.EventConfiguration inputEv = input.get(eventID);
+            for(final Map.Entry<String, ManagedResourceConfiguration.EventConfiguration> entry: input.entrySet()){
+                final ManagedResourceConfiguration.EventConfiguration inputEv = entry.getValue();
                 final ManagedResourceConfiguration.EventConfiguration outputEv = eventFactory.get();
                 copy(inputEv, outputEv);
-                output.put(eventID, outputEv);
+                output.put(entry.getKey(), outputEv);
             }
     }
 
-    private static void copyConnector(final ManagedResourceConfiguration input, final ManagedResourceConfiguration output){
+    public static void copy(final ManagedResourceConfiguration input, final ManagedResourceConfiguration output){
         output.setConnectionString(input.getConnectionString());
         output.setConnectionType(input.getConnectionType());
         //import additional elements
@@ -121,23 +121,23 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
                 });
     }
 
-    private static void copyAdapter(final ResourceAdapterConfiguration input, final ResourceAdapterConfiguration output){
+    public static void copy(final ResourceAdapterConfiguration input, final ResourceAdapterConfiguration output){
         output.setAdapterName(input.getAdapterName());
         final Map<String, String> additionalElements = output.getParameters();
         additionalElements.clear();
         additionalElements.putAll(input.getParameters());
     }
 
-    private static <T extends ConfigurationEntity> void copy(final Map<String, T> input,
+    private static <T extends EntityConfiguration> void copy(final Map<String, T> input,
                              final Map<String, T> output,
                              final Supplier<T> entityFactory,
                              final ConfigurationEntityCopier<T> copier){
         output.clear();
-        for(final String entry: input.keySet()){
-            final T source = input.get(entry);
+        for(final Map.Entry<String, T> entry: input.entrySet()){
+            final T source = entry.getValue();
             final T dest = entityFactory.get();
             copier.copy(source, dest);
-            output.put(entry, dest);
+            output.put(entry.getKey(), dest);
         }
     }
 
@@ -169,7 +169,7 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         new ConfigurationEntityCopier<ResourceAdapterConfiguration>() {
             @Override
             public void copy(final ResourceAdapterConfiguration input, final ResourceAdapterConfiguration output) {
-                copyAdapter(input, output);
+                AbstractAgentConfiguration.copy(input, output);
             }
         });
         //import management targets
@@ -183,7 +183,7 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         new ConfigurationEntityCopier<ManagedResourceConfiguration>() {
             @Override
             public void copy(final ManagedResourceConfiguration input, final ManagedResourceConfiguration output) {
-                copyConnector(input, output);
+                AbstractAgentConfiguration.copy(input, output);
             }
         });
 
@@ -207,8 +207,8 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         if(obj1 == obj2) return true;
         else if(obj1 == null || obj2 == null) return false;
         else if(obj1.size() == obj2.size()){
-            for(final String key1: obj1.keySet())
-                if(!Objects.equals(obj1.get(key1), obj2.get(key1))) return false;
+            for(final Map.Entry<String, ?> entry1: obj1.entrySet())
+                if(!Objects.equals(entry1.getValue(), obj2.get(entry1.getKey()))) return false;
             return true;
         }
         else return false;

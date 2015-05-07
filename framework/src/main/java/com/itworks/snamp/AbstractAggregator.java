@@ -1,5 +1,7 @@
 package com.itworks.snamp;
 
+import com.google.common.base.Function;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -30,6 +32,14 @@ import java.lang.reflect.Method;
  * @version 1.0
  */
 public abstract class AbstractAggregator implements Aggregator {
+    private static final class SimpleAggregator extends Switch<Class<?>, Object> implements Aggregator {
+
+        @Override
+        public <T> T queryObject(final Class<T> objectType) {
+            return apply(objectType, objectType);
+        }
+    }
+
     /**
      * Identifies that the parameterless method or field holds the aggregated object.
      * @author Roman Sakno
@@ -38,7 +48,7 @@ public abstract class AbstractAggregator implements Aggregator {
      */
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.METHOD, ElementType.FIELD})
-    protected @interface Aggregation{
+    protected static  @interface Aggregation{
 
     }
 
@@ -73,6 +83,8 @@ public abstract class AbstractAggregator implements Aggregator {
     @Override
     public <T> T queryObject(final Class<T> objectType) {
         if(objectType == null) return null;
+        else if(objectType.isInstance(this))
+            return objectType.cast(this);
         //iterates through all derived classes
         Class<?> lookup = getClass();
         while (lookup != null){
@@ -80,6 +92,49 @@ public abstract class AbstractAggregator implements Aggregator {
             if(serviceInstance == null) lookup = lookup.getSuperclass();
             else return serviceInstance;
         }
-        return objectType.isInstance(this) ? objectType.cast(this) : null;
+        return null;
+    }
+
+    protected static <T> T findObject(final Class<T> objectType,
+                                      final Function<? super Class<T>, ? extends T> fallback,
+                                      final Object... candidates){
+        for(final Object obj: candidates)
+            if(objectType.isInstance(obj)) return objectType.cast(obj);
+        return fallback.apply(objectType);
+    }
+
+    public static <T> SimpleAggregator create(final Class<T> objectClass,
+                                        final T obj){
+        return (SimpleAggregator)new SimpleAggregator().equals(objectClass, obj);
+    }
+
+    public static <T1, T2> SimpleAggregator create(final Class<T1> objectClass1,
+                                             final T1 obj1,
+                                             final Class<T2> objectClass2,
+                                             final T2 obj2){
+        return (SimpleAggregator)create(objectClass1, obj1)
+                .equals(objectClass2, obj2);
+    }
+
+    public static <T1, T2, T3> SimpleAggregator create(final Class<T1> objectClass1,
+                                                 final T1 obj1,
+                                                 final Class<T2> objectClass2,
+                                                 final T2 obj2,
+                                                 final Class<T3> objectClass3,
+                                                 final T3 obj3){
+        return (SimpleAggregator)create(objectClass1, obj1, objectClass2, obj2)
+                .equals(objectClass3, obj3);
+    }
+
+    public static <T1, T2, T3, T4> SimpleAggregator create(final Class<T1> objectClass1,
+                                                 final T1 obj1,
+                                                 final Class<T2> objectClass2,
+                                                 final T2 obj2,
+                                                 final Class<T3> objectClass3,
+                                                 final T3 obj3,
+                                                 final Class<T4> objectClass4,
+                                                 final T4 obj4){
+        return (SimpleAggregator)create(objectClass1, obj1, objectClass2, obj2, objectClass3, obj3)
+                .equals(objectClass4, obj4);
     }
 }

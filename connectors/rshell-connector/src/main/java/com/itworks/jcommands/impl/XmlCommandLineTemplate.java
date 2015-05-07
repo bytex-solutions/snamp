@@ -7,6 +7,7 @@ import org.stringtemplate.v4.ST;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.xml.bind.annotation.*;
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
 
@@ -19,8 +20,9 @@ import java.util.Map;
 @XmlRootElement(name = "template", namespace = XmlConstants.NAMESPACE)
 @XmlType(namespace = XmlConstants.NAMESPACE, name = "XmlCommandLineTemplate")
 @XmlAccessorType(XmlAccessType.PROPERTY)
-public class XmlCommandLineTemplate implements ChannelProcessor<Map<String, ?>, Object, ScriptException> {
+public class XmlCommandLineTemplate implements Serializable, ChannelProcessor<Map<String, ?>, Object, ScriptException> {
 
+    private static final long serialVersionUID = -7260435161943556221L;
     private String template;
     private transient ST precompiledTemplate;
     private XmlParserDefinition outputParser;
@@ -82,7 +84,8 @@ public class XmlCommandLineTemplate implements ChannelProcessor<Map<String, ?>, 
      */
     public static ST createCommandTemplate(final String template) {
         final ST result = new ST(template, TEMPLATE_DELIMITER_START_CHAR, TEMPLATE_DELIMITER_STOP_CHAR);
-        StringTemplateExtender.register(result.groupThatCreatedThisInstance);
+        CommonExtender.register(result.groupThatCreatedThisInstance);
+        CompositeDataExtender.register(result.groupThatCreatedThisInstance);
         return result;
     }
 
@@ -91,7 +94,7 @@ public class XmlCommandLineTemplate implements ChannelProcessor<Map<String, ?>, 
      *
      * @param channelParameters The channel initialization parameters. Cannot be {@literal null}.
      * @param input Additional template formatting parameters.
-     * @return The command to execute.
+     * @return The command to apply.
      */
     @Override
     @ThreadSafe(true)
@@ -106,7 +109,8 @@ public class XmlCommandLineTemplate implements ChannelProcessor<Map<String, ?>, 
         //fill template attributes from custom input
         if (input != null)
             for (final Map.Entry<String, ?> pair : input.entrySet())
-                template.add(pair.getKey(), pair.getValue());
+                if(pair.getKey().indexOf('.') < 0)   //attribute name cannot be null or contain '.'
+                    template.add(pair.getKey(), pair.getValue());
         return template.render();
     }
 
@@ -114,7 +118,7 @@ public class XmlCommandLineTemplate implements ChannelProcessor<Map<String, ?>, 
      * Creates a textual command to be executed through the channel.
      *
      * @param channelParameters The channel initialization parameters. Cannot be {@literal null}.
-     * @return The command to execute.
+     * @return The command to apply.
      * @throws java.lang.IllegalStateException The command template is not specified.
      */
     @ThreadSafe(true)
@@ -139,6 +143,9 @@ public class XmlCommandLineTemplate implements ChannelProcessor<Map<String, ?>, 
     @ThreadSafe(false)
     public Object process(final String result, final Exception error) throws ScriptException {
         if (error != null) throw new ScriptException(error);
-        return getCommandOutputParser().parse(result, scriptManager != null ? scriptManager : new ScriptEngineManager());
+        return getCommandOutputParser().parse(result,
+                scriptManager != null ?
+                        scriptManager :
+                        new ScriptEngineManager());
     }
 }

@@ -5,6 +5,7 @@ import org.snmp4j.TransportMapping;
 import org.snmp4j.TransportStateReference;
 import org.snmp4j.smi.Address;
 
+import java.io.Closeable;
 import java.nio.ByteBuffer;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -16,7 +17,7 @@ import java.util.concurrent.ExecutorService;
  * @version 1.0
  * @since 1.0
  */
-public final class ConcurrentMessageDispatcher extends MessageDispatcherImpl {
+public final class ConcurrentMessageDispatcher extends MessageDispatcherImpl implements Closeable {
     private final ExecutorService executor;
 
     public ConcurrentMessageDispatcher(final ExecutorService threadPool) {
@@ -34,5 +35,13 @@ public final class ConcurrentMessageDispatcher extends MessageDispatcherImpl {
                         tmStateReference);
             }
         });
+    }
+
+    /**
+     * Shutdowns the thread pool used to process SNMP messages.
+     */
+    @Override
+    public void close() {
+        executor.shutdownNow();
     }
 }

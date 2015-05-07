@@ -12,7 +12,7 @@
     <description>Bundlized version of SSHJ library</description>
     <artifactId>sshj</artifactId>
     <name>SSHJ</name>
-    <version>0.10.0</version>
+    <version>${sshj.version}</version>
     <packaging>bundle</packaging>
     <organization>
         <name>schmizz.net</name>
@@ -30,7 +30,7 @@
                         <Embed-Dependency>
                             *;scope=compile
                         </Embed-Dependency>
-                        <Export-Package>net.schmizz.*</Export-Package>
+                        <Export-Package>net.schmizz.*;org.bouncycastle.jce.provider;org.bouncycastle.crypto.prng</Export-Package>
                         <Embed-Transitive>true</Embed-Transitive>
                         <Import-Package>
                             !javax.swing.*,
@@ -53,7 +53,7 @@
         <dependency>
             <groupId>net.schmizz</groupId>
             <artifactId>sshj</artifactId>
-            <version>0.10.0</version>
+            <version>${sshj.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -76,19 +76,7 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>1.7.7</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-core</artifactId>
-            <version>1.1.2</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.1.2</version>
-            <scope>compile</scope>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

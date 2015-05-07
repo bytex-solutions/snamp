@@ -26,6 +26,7 @@ final class RExecExecutionChannel extends HashMap<String, String> implements Com
     private static final String REMOTE_HOST_PROPERTY = "host";
     private static final String REMOTE_PORT_PROPERTY = "port";
     private static final int DEFAULT_PORT = 514;
+    private static final long serialVersionUID = 6937841976838538881L;
 
     public RExecExecutionChannel(final Map<String, String> params){
         super(params);
@@ -73,7 +74,7 @@ final class RExecExecutionChannel extends HashMap<String, String> implements Com
     /**
      * Executes the specified action in the channel context.
      *
-     * @param command The command to execute in channel context.
+     * @param command The command to apply in channel context.
      * @param input The additional input for command renderer.
      * @return The execution result.
      * @throws java.io.IOException Some I/O error occurs in the channel.
@@ -86,8 +87,8 @@ final class RExecExecutionChannel extends HashMap<String, String> implements Com
                 containsKey(REMOTE_PORT_PROPERTY) ? Integer.parseInt(get(REMOTE_HOST_PROPERTY)) : DEFAULT_PORT);
         try {
             client.rexec(get(LOCAL_USER_PROPERTY), get(PASSWORD_PROPERTY), command.renderCommand(input, this), true);
-            final String result = IOUtils.readFully(client.getInputStream()).toString();
-            final String err = IOUtils.readFully(client.getErrorStream()).toString();
+            final String result = IOUtils.readFully(client.getInputStream()).toString("UTF-8");
+            final String err = IOUtils.readFully(client.getErrorStream()).toString("UTF-8");
             return command.process(result, err == null || err.isEmpty() ? null : new IOException(err));
         } finally {
             client.disconnect();

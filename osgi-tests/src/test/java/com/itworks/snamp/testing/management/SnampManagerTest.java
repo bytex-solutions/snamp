@@ -1,82 +1,73 @@
 package com.itworks.snamp.testing.management;
 
 import com.google.common.base.Supplier;
-import com.itworks.snamp.SafeConsumer;
-import com.itworks.snamp.SynchronizationEvent;
+import com.google.common.collect.ImmutableMap;
+import com.itworks.snamp.ArrayUtils;
+import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
+import com.itworks.snamp.adapters.ResourceAdapterActivator;
+import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.configuration.AgentConfiguration;
-import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
-import com.itworks.snamp.connectors.DiscoveryService;
-import com.itworks.snamp.licensing.LicensingDescriptionService;
-import com.itworks.snamp.management.Maintainable;
-import com.itworks.snamp.management.SnampComponentDescriptor;
-import com.itworks.snamp.management.SnampManager;
-import com.itworks.snamp.testing.SnampArtifact;
+import com.itworks.snamp.testing.SnampDependencies;
+import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
+import org.junit.ComparisonFailure;
+import org.junit.Ignore;
 import org.junit.Test;
-import org.ops4j.pax.exam.options.FrameworkPropertyOption;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceReference;
-import org.osgi.framework.Version;
 import org.osgi.service.log.LogService;
 
 import javax.management.*;
 import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.CompositeDataSupport;
 import javax.management.openmbean.TabularData;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
-import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 
 /**
+ * The type Snamp manager test.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
+@SnampDependencies(SnampFeature.SNMP_ADAPTER)
 public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final String ADAPTER_NAME = "snmp";
     private static final String SNMP_PORT = "3222";
     private static final String SNMP_HOST = "127.0.0.1";
 
+    /**
+     * Instantiates a new Snamp manager test.
+     *
+     * @throws MalformedObjectNameException the malformed object name exception
+     */
     public SnampManagerTest() throws MalformedObjectNameException {
-        super(new TestOpenMBean(), new ObjectName(TestOpenMBean.BEAN_NAME),
-                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi", "1.0.0"),
-                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.core", "1.0.0"),
-                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.url", "1.0.0"),
-                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.api", "1.0.0"),
-                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.rmi", "1.0.0"),
-                mavenBundle("org.apache.aries", "org.apache.aries.util", "1.0.0"),
-                mavenBundle("org.apache.aries.proxy", "org.apache.aries.proxy.api", "1.0.0"),
-                mavenBundle("org.apache.aries.proxy", "org.apache.aries.proxy.impl", "1.0.1"),
-                mavenBundle("org.apache.aries.proxy", "org.apache.aries.proxy", "1.0.1"),
-                mavenBundle("org.apache.aries.jmx", "org.apache.aries.jmx", "1.1.1"),
-                mavenBundle("org.apache.aries.jmx", "org.apache.aries.jmx.api", "1.1.0"),
-                mavenBundle("org.apache.aries.jmx", "org.apache.aries.jmx.core", "1.1.1"),
-                mavenBundle("org.apache.aries.jmx", "org.apache.aries.jmx.core.whiteboard", "1.1.1"),
-                SnampArtifact.MANAGEMENT.getReference(),
-                SnampArtifact.SNMP4J.getReference(),
-                SnampArtifact.SNMP_ADAPTER.getReference());
+        super(new TestOpenMBean(), new ObjectName(TestOpenMBean.BEAN_NAME));
     }
 
-    @Override
-    protected Collection<FrameworkPropertyOption> getFrameworkProperties() {
-        return Arrays.asList(new FrameworkPropertyOption("com.itworks.snamp.management.usePlatformMBean").value("true"));
-    }
-
+    /**
+     * Jmx monitoring test.
+     *
+     * @throws IOException the iO exception
+     * @throws JMException the jM exception
+     * @throws InterruptedException the interrupted exception
+     * @throws TimeoutException the timeout exception
+     */
     @Test
     public void jmxMonitoringTest() throws IOException, JMException, InterruptedException, TimeoutException {
-        final String jmxPort =
-                System.getProperty("com.sun.management.jmxremote.port", "9010");
-        final String connectionString = String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/jmxrmi", jmxPort);
-        try(final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(connectionString))){
+        try(final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))){
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
             final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
             assertNotNull(connection.getMBeanInfo(commonsObj));
@@ -130,121 +121,542 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
         }
     }
 
+    /**
+     * Configuration get test.
+     *
+     * @throws IOException the iO exception
+     * @throws JMException the jM exception
+     * @throws InterruptedException the interrupted exception
+     * @throws TimeoutException the timeout exception
+     */
     @Test
-    public void additionalComponentsTest(){
-        final ServiceReference<SnampManager> managerRef = getTestBundleContext().getServiceReference(SnampManager.class);
-        assertNotNull(managerRef);
-        try{
-            final SnampManager manager = getTestBundleContext().getService(managerRef);
-            final Collection<SnampComponentDescriptor> components = manager.getInstalledComponents();
-            assertFalse(components.isEmpty());
-            for(final SnampComponentDescriptor c: components){
-                assertFalse(c.getName(null).isEmpty());
-                assertFalse(c.getDescription(null).isEmpty());
-                assertNotNull(c.getVersion());
-            }
-        }
-        finally {
-            getTestBundleContext().ungetService(managerRef);
+    public void configurationGetTest() throws IOException, JMException, InterruptedException, TimeoutException {
+        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
+            final MBeanServerConnection connection = connector.getMBeanServerConnection();
+            final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
+            Object configurationContent = connection.getAttribute(commonsObj, "configuration");
+            assertNotNull(configurationContent);
+            assertTrue(configurationContent instanceof CompositeData);
+            final CompositeData configurationData = (CompositeData) configurationContent;
+
+            // snmp adapter check
+            assertTrue(configurationData.containsKey("ResourceAdapters"));
+            assertTrue(configurationData.get("ResourceAdapters") instanceof TabularData);
+
+            final TabularData resourceAdapters = (TabularData) configurationData.get("ResourceAdapters");
+            assertTrue(resourceAdapters.values().size() == 1);
+
+            assertTrue(resourceAdapters.containsKey(new Object[]{"test-snmp"}));
+            final CompositeData currentAdapter = resourceAdapters.get(new Object[]{"test-snmp"});
+            assertTrue(currentAdapter.get("adapter") instanceof  CompositeData);
+            final CompositeData adapterComposite = (CompositeData) currentAdapter.get("adapter");
+            assertEquals(adapterComposite.get("Name"), ADAPTER_NAME);
+            assertTrue(adapterComposite.containsKey("Parameters"));
+            assertTrue(adapterComposite.get("Parameters") instanceof TabularData);
+
+            final TabularData adapterAdditionalParameters = (TabularData) adapterComposite.get("Parameters");
+
+            assertTrue(adapterAdditionalParameters.containsKey(new Object[]{"port"}));
+            assertTrue(adapterAdditionalParameters.containsKey(new Object[]{"host"}));
+            assertTrue(adapterAdditionalParameters.containsKey(new Object[]{"socketTimeout"}));
+
+            assertEquals(adapterAdditionalParameters.get(new Object[]{"port"}).get("value"), SNMP_PORT);
+            assertEquals(adapterAdditionalParameters.get(new Object[]{"host"}).get("value"), SNMP_HOST);
+            assertEquals(adapterAdditionalParameters.get(new Object[]{"socketTimeout"}).get("value"), "5000");
+
+            // jmx connector check
+            assertTrue(configurationData.containsKey("ManagedResources"));
+
+            final TabularData managedResources = (TabularData) configurationData.get("ManagedResources");
+            assertTrue(managedResources.values().size() == 1);
+
+            assertTrue(managedResources.containsKey(new Object[]{"test-target"}));
+
+            final CompositeData jmxConnector = managedResources.get(new Object[]{"test-target"});
+
+            assertTrue(jmxConnector.get("connector") instanceof  CompositeData);
+            final CompositeData connectorComposite = (CompositeData) jmxConnector.get("connector");
+            assertEquals(connectorComposite.get("ConnectionString"), JMX_RMI_CONNECTION_STRING);
+            assertEquals(connectorComposite.get("ConnectionType"), CONNECTOR_NAME);
+
+            assertTrue(connectorComposite.containsKey("Parameters"));
+            assertTrue(connectorComposite.get("Parameters") instanceof TabularData);
+
+            final TabularData connectorAdditionalParameters = (TabularData) connectorComposite.get("Parameters");
+
+
+            assertTrue(connectorAdditionalParameters.containsKey(new Object[]{"login"}));
+            assertTrue(connectorAdditionalParameters.containsKey(new Object[]{"password"}));
+
+            assertEquals(connectorAdditionalParameters.get(new Object[]{"login"}).get("value"), JMX_LOGIN);
+            assertEquals(connectorAdditionalParameters.get(new Object[]{"password"}).get("value"), JMX_PASSWORD);
+
+            assertTrue(connectorComposite.containsKey("Attributes"));
+            assertTrue(connectorComposite.get("Attributes") instanceof TabularData);
+
+            final TabularData connectorAttributes = (TabularData) connectorComposite.get("Attributes");
+
+            assertTrue(connectorAttributes.containsKey(new Object[]{"1.0"}));
+            assertTrue(connectorAttributes.containsKey(new Object[]{"2.0"}));
+            assertTrue(connectorAttributes.containsKey(new Object[]{"3.0"}));
+            assertTrue(connectorAttributes.containsKey(new Object[]{"4.0"}));
+            assertTrue(connectorAttributes.containsKey(new Object[]{"5.1"}));
+            assertTrue(connectorAttributes.containsKey(new Object[]{"6.1"}));
+            assertTrue(connectorAttributes.containsKey(new Object[]{"7.1"}));
+            assertTrue(connectorAttributes.containsKey(new Object[]{"8.0"}));
+            assertTrue(connectorAttributes.containsKey(new Object[]{"9.0"}));
+            assertTrue(connectorAttributes.containsKey(new Object[]{"10.0"}));
+            assertTrue(connectorAttributes.containsKey(new Object[]{"11.0"}));
+
+            assertTrue(connectorAttributes.get(new Object[]{"1.0"}).containsKey("attribute"));
+            assertTrue(connectorAttributes.get(new Object[]{"2.0"}).containsKey("attribute"));
+            assertTrue(connectorAttributes.get(new Object[]{"3.0"}).containsKey("attribute"));
+            assertTrue(connectorAttributes.get(new Object[]{"4.0"}).containsKey("attribute"));
+            assertTrue(connectorAttributes.get(new Object[]{"5.1"}).containsKey("attribute"));
+            assertTrue(connectorAttributes.get(new Object[]{"6.1"}).containsKey("attribute"));
+            assertTrue(connectorAttributes.get(new Object[]{"7.1"}).containsKey("attribute"));
+            assertTrue(connectorAttributes.get(new Object[]{"8.0"}).containsKey("attribute"));
+            assertTrue(connectorAttributes.get(new Object[]{"9.0"}).containsKey("attribute"));
+            assertTrue(connectorAttributes.get(new Object[]{"10.0"}).containsKey("attribute"));
+            assertTrue(connectorAttributes.get(new Object[]{"11.0"}).containsKey("attribute"));
+
+            assertTrue(connectorAttributes.get(new Object[]{"1.0"}).get("attribute") instanceof CompositeData);
+            assertTrue(connectorAttributes.get(new Object[]{"2.0"}).get("attribute") instanceof CompositeData);
+            assertTrue(connectorAttributes.get(new Object[]{"3.0"}).get("attribute") instanceof CompositeData);
+            assertTrue(connectorAttributes.get(new Object[]{"4.0"}).get("attribute") instanceof CompositeData);
+            assertTrue(connectorAttributes.get(new Object[]{"5.1"}).get("attribute") instanceof CompositeData);
+            assertTrue(connectorAttributes.get(new Object[]{"6.1"}).get("attribute") instanceof CompositeData);
+            assertTrue(connectorAttributes.get(new Object[]{"7.1"}).get("attribute") instanceof CompositeData);
+            assertTrue(connectorAttributes.get(new Object[]{"8.0"}).get("attribute") instanceof CompositeData);
+            assertTrue(connectorAttributes.get(new Object[]{"9.0"}).get("attribute") instanceof CompositeData);
+            assertTrue(connectorAttributes.get(new Object[]{"10.0"}).get("attribute") instanceof CompositeData);
+            assertTrue(connectorAttributes.get(new Object[]{"11.0"}).get("attribute") instanceof CompositeData);
+
+            final CompositeData attribute10 = (CompositeData) connectorAttributes.get(new Object[]{"1.0"}).get("attribute");
+            assertEquals(attribute10.get("Name"), "string");
+            assertEquals(attribute10.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertTrue(attribute10.containsKey("AdditionalProperties"));
+            assertTrue(attribute10.get("AdditionalProperties") instanceof TabularData);
+            assertTrue(((TabularData) attribute10.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
+            assertEquals(((TabularData) attribute10.get("AdditionalProperties")).get(new Object[]{"objectName"}).get("value"), BEAN_NAME);
+            assertEquals(((TabularData) attribute10.get("AdditionalProperties")).get(new Object[]{"oid"}).get("value"), "1.1.1.0");
+
+            final CompositeData attribute20 = (CompositeData) connectorAttributes.get(new Object[]{"2.0"}).get("attribute");
+            assertEquals(attribute20.get("Name"), "boolean");
+            assertEquals(attribute20.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertTrue(attribute20.containsKey("AdditionalProperties"));
+            assertTrue(attribute20.get("AdditionalProperties") instanceof TabularData);
+            assertTrue(((TabularData) attribute20.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
+            assertEquals(((TabularData) attribute20.get("AdditionalProperties")).get(new Object[]{"objectName"}).get("value"), BEAN_NAME);
+            assertEquals(((TabularData) attribute20.get("AdditionalProperties")).get(new Object[]{"oid"}).get("value"), "1.1.2.0");
+
+            final CompositeData attribute30 = (CompositeData) connectorAttributes.get(new Object[]{"3.0"}).get("attribute");
+            assertEquals(attribute30.get("Name"), "int32");
+            assertEquals(attribute30.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertTrue(attribute30.containsKey("AdditionalProperties"));
+            assertTrue(attribute30.get("AdditionalProperties") instanceof TabularData);
+            assertTrue(((TabularData) attribute30.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
+            assertEquals(((TabularData) attribute30.get("AdditionalProperties")).get(new Object[]{"objectName"}).get("value"), BEAN_NAME);
+            assertEquals(((TabularData) attribute30.get("AdditionalProperties")).get(new Object[]{"oid"}).get("value"), "1.1.3.0");
+
+            final CompositeData attribute40 = (CompositeData) connectorAttributes.get(new Object[]{"4.0"}).get("attribute");
+            assertEquals(attribute40.get("Name"), "bigint");
+            assertEquals(attribute40.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertTrue(attribute40.containsKey("AdditionalProperties"));
+            assertTrue(attribute40.get("AdditionalProperties") instanceof TabularData);
+            assertTrue(((TabularData) attribute40.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
+            assertEquals(((TabularData) attribute40.get("AdditionalProperties")).get(new Object[]{"objectName"}).get("value"), BEAN_NAME);
+            assertEquals(((TabularData) attribute40.get("AdditionalProperties")).get(new Object[]{"oid"}).get("value"), "1.1.4.0");
+
+            final CompositeData attribute51 = (CompositeData) connectorAttributes.get(new Object[]{"5.1"}).get("attribute");
+            assertEquals(attribute51.get("Name"), "array");
+            assertEquals(attribute51.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertTrue(attribute51.containsKey("AdditionalProperties"));
+            assertTrue(attribute51.get("AdditionalProperties") instanceof TabularData);
+            assertTrue(((TabularData) attribute51.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
+            assertEquals(((TabularData) attribute51.get("AdditionalProperties")).get(new Object[]{"objectName"}).get("value"), BEAN_NAME);
+            assertEquals(((TabularData) attribute51.get("AdditionalProperties")).get(new Object[]{"oid"}).get("value"), "1.1.5.1");
+
+            final CompositeData attribute61 = (CompositeData) connectorAttributes.get(new Object[]{"6.1"}).get("attribute");
+            assertEquals(attribute61.get("Name"), "dictionary");
+            assertEquals(attribute61.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertTrue(attribute61.containsKey("AdditionalProperties"));
+            assertTrue(attribute61.get("AdditionalProperties") instanceof TabularData);
+            assertTrue(((TabularData) attribute61.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
+            assertEquals(((TabularData) attribute61.get("AdditionalProperties")).get(new Object[]{"objectName"}).get("value"), BEAN_NAME);
+            assertEquals(((TabularData) attribute61.get("AdditionalProperties")).get(new Object[]{"oid"}).get("value"), "1.1.6.1");
+
+            final CompositeData attribute71 = (CompositeData) connectorAttributes.get(new Object[]{"7.1"}).get("attribute");
+            assertEquals(attribute71.get("Name"), "table");
+            assertEquals(attribute71.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertTrue(attribute71.containsKey("AdditionalProperties"));
+            assertTrue(attribute71.get("AdditionalProperties") instanceof TabularData);
+            assertTrue(((TabularData) attribute71.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
+            assertEquals(((TabularData) attribute71.get("AdditionalProperties")).get(new Object[]{"objectName"}).get("value"), BEAN_NAME);
+            assertEquals(((TabularData) attribute71.get("AdditionalProperties")).get(new Object[]{"oid"}).get("value"), "1.1.7.1");
+
+            final CompositeData attribute80 = (CompositeData) connectorAttributes.get(new Object[]{"8.0"}).get("attribute");
+            assertEquals(attribute80.get("Name"), "float");
+            assertEquals(attribute80.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertTrue(attribute80.containsKey("AdditionalProperties"));
+            assertTrue(attribute80.get("AdditionalProperties") instanceof TabularData);
+            assertTrue(((TabularData) attribute80.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
+            assertEquals(((TabularData) attribute80.get("AdditionalProperties")).get(new Object[]{"objectName"}).get("value"), BEAN_NAME);
+            assertEquals(((TabularData) attribute80.get("AdditionalProperties")).get(new Object[]{"oid"}).get("value"), "1.1.8.0");
+
+            final CompositeData attribute90 = (CompositeData) connectorAttributes.get(new Object[]{"9.0"}).get("attribute");
+            assertEquals(attribute90.get("Name"), "date");
+            assertEquals(attribute90.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertTrue(attribute90.containsKey("AdditionalProperties"));
+            assertTrue(attribute90.get("AdditionalProperties") instanceof TabularData);
+            assertTrue(((TabularData) attribute90.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
+            assertEquals(((TabularData) attribute90.get("AdditionalProperties")).get(new Object[]{"objectName"}).get("value"), BEAN_NAME);
+            assertEquals(((TabularData) attribute90.get("AdditionalProperties")).get(new Object[]{"displayFormat"}).get("value"), "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+            assertEquals(((TabularData) attribute90.get("AdditionalProperties")).get(new Object[]{"oid"}).get("value"), "1.1.9.0");
+
+            final CompositeData attribute100 = (CompositeData) connectorAttributes.get(new Object[]{"10.0"}).get("attribute");
+            assertEquals(attribute100.get("Name"), "date");
+            assertEquals(attribute100.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertTrue(attribute100.containsKey("AdditionalProperties"));
+            assertTrue(attribute100.get("AdditionalProperties") instanceof TabularData);
+            assertTrue(((TabularData) attribute100.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
+            assertEquals(((TabularData) attribute100.get("AdditionalProperties")).get(new Object[]{"objectName"}).get("value"), BEAN_NAME);
+            assertEquals(((TabularData) attribute100.get("AdditionalProperties")).get(new Object[]{"displayFormat"}).get("value"), "rfc1903-human-readable");
+            assertEquals(((TabularData) attribute100.get("AdditionalProperties")).get(new Object[]{"oid"}).get("value"), "1.1.10.0");
+
+            final CompositeData attribute110 = (CompositeData) connectorAttributes.get(new Object[]{"11.0"}).get("attribute");
+            assertEquals(attribute110.get("Name"), "date");
+            assertEquals(attribute110.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertTrue(attribute110.containsKey("AdditionalProperties"));
+            assertTrue(attribute110.get("AdditionalProperties") instanceof TabularData);
+            assertTrue(((TabularData) attribute110.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
+            assertEquals(((TabularData) attribute110.get("AdditionalProperties")).get(new Object[]{"objectName"}).get("value"), BEAN_NAME);
+            assertEquals(((TabularData) attribute110.get("AdditionalProperties")).get(new Object[]{"displayFormat"}).get("value"), "rfc1903");
+            assertEquals(((TabularData) attribute110.get("AdditionalProperties")).get(new Object[]{"oid"}).get("value"), "1.1.11.0");
         }
     }
 
-    private void testSnmpAdapterDescriptor(final SnampComponentDescriptor descriptor){
-        assertEquals(new Version(1, 0, 0), descriptor.getVersion());
-        assertFalse(descriptor.getDescription(Locale.getDefault()).isEmpty());
-        descriptor.invokeManagementService(LicensingDescriptionService.class, new SafeConsumer<LicensingDescriptionService>() {
-            @Override
-            public void accept(final LicensingDescriptionService input) {
-                assertFalse(input.getLimitations().isEmpty());
-            }
-        });
-        descriptor.invokeManagementService(ConfigurationEntityDescriptionProvider.class, new SafeConsumer<ConfigurationEntityDescriptionProvider>() {
-            @Override
-            public void accept(final ConfigurationEntityDescriptionProvider input) {
-                assertNotNull(input.getDescription(AgentConfiguration.ResourceAdapterConfiguration.class));
-            }
-        });
+    @Override
+    protected boolean enableRemoteDebugging() {
+        return false;
     }
 
+
+    /**
+     * Configuration set test.
+     *
+     * @throws Exception the exception
+     */
     @Test
-    public void adaptersManagementTest(){
-        final ServiceReference<SnampManager> managerRef = getTestBundleContext().getServiceReference(SnampManager.class);
-        assertNotNull(managerRef);
-        try{
-            final SnampManager manager = getTestBundleContext().getService(managerRef);
-            final Collection<SnampComponentDescriptor> adapters = manager.getInstalledResourceAdapters();
-            assertFalse(adapters.isEmpty());
-            boolean snmpAdapterDiscovered = false;
-            for(final SnampComponentDescriptor adapter: adapters)
-                if(Objects.equals("SNMP Resource Adapter", adapter.getName(null))){
-                    testSnmpAdapterDescriptor(adapter);
-                    snmpAdapterDiscovered = true;
-                }
-            assertTrue(snmpAdapterDiscovered);
-        }
-        finally {
-            getTestBundleContext().ungetService(managerRef);
+    public void configurationSetTest() throws Exception {
+        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
+            final MBeanServerConnection connection = connector.getMBeanServerConnection();
+            final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
+
+            Object configurationContent = connection.getAttribute(commonsObj, "configuration");
+            assertNotNull(configurationContent);
+            assertTrue(configurationContent instanceof CompositeData);
+
+            // test to reset default test case settings
+            connection.setAttribute(commonsObj, new Attribute("configuration", configurationContent));
+            configurationGetTest();
+
+            // change adapter's parameter value
+            final CompositeData snmpAdapter = ((TabularData) ((CompositeData) configurationContent).get("ResourceAdapters")).get(new Object[]{"test-snmp"});
+            final TabularData paramData = ((TabularData)((CompositeData) snmpAdapter.get("adapter")).get("Parameters"));
+            paramData.remove(new Object[]{"socketTimeout"});
+            paramData.put(new CompositeDataSupport(paramData.getTabularType().getRowType(), ImmutableMap.of("key", "socketTimeout", "value", "4000")));
+            connection.setAttribute(commonsObj, new Attribute("configuration", configurationContent));
+
+            // we must get junit comparison failure
+            try {
+                configurationGetTest();
+            } catch (final ComparisonFailure ex) {
+                assertEquals(ex.getActual(), "5000");
+                assertEquals(ex.getExpected(), "4000");
+            }
+
+            // turn configuration back
+            paramData.remove(new Object[]{"socketTimeout"});
+            paramData.put(new CompositeDataSupport(paramData.getTabularType().getRowType(), ImmutableMap.of("key", "socketTimeout", "value", "5000")));
+            connection.setAttribute(commonsObj, new Attribute("configuration", configurationContent));
+
+            // check if current configuration is ok
+            configurationGetTest();
+
+            // change connector's param
+            final CompositeData jmxConnector = ((TabularData) ((CompositeData) configurationContent).get("ManagedResources")).get(new Object[]{"test-target"});
+            final TabularData attributesData = ((TabularData)((CompositeData) jmxConnector.get("connector")).get("Attributes"));
+            final TabularData connectorAttributeParams = ((TabularData)((CompositeData)(attributesData.get(new Object[]{"2.0"}).get("attribute"))).get("AdditionalProperties"));
+            connectorAttributeParams.remove(new Object[]{"oid"});
+            connectorAttributeParams.put(new CompositeDataSupport(connectorAttributeParams.getTabularType().getRowType(),
+                    ImmutableMap.of("key", "oid", "value", "1.1.2.1")));
+            connection.setAttribute(commonsObj, new Attribute("configuration", configurationContent));
+
+            // we must get junit comparison failure
+            try {
+                configurationGetTest();
+            } catch (final ComparisonFailure ex) {
+                assertEquals(ex.getActual(), "1.1.2.0");
+                assertEquals(ex.getExpected(), "1.1.2.1");
+            }
+
+            // turn the configuration back
+            connectorAttributeParams.remove(new Object[]{"oid"});
+            connectorAttributeParams.put(new CompositeDataSupport(connectorAttributeParams.getTabularType().getRowType(),
+                    ImmutableMap.of("key", "oid", "value", "1.1.2.0")));
+            connection.setAttribute(commonsObj, new Attribute("configuration", configurationContent));
+
+            // check if current configuration is ok
+            configurationGetTest();
         }
     }
 
-    private static void testJmxConnectorDescriptor(final SnampComponentDescriptor descriptor){
-        assertEquals(new Version(1, 0, 0), descriptor.getVersion());
-        assertFalse(descriptor.getDescription(Locale.getDefault()).isEmpty());
-        descriptor.invokeManagementService(DiscoveryService.class, new SafeConsumer<DiscoveryService>() {
-            @Override
-            public void accept(final DiscoveryService input) {
-                assertNotNull(input);
-            }
-        });
-        descriptor.invokeManagementService(LicensingDescriptionService.class, new SafeConsumer<LicensingDescriptionService>() {
-            @Override
-            public void accept(final LicensingDescriptionService input) {
-                assertNotNull(input);
-            }
-        });
-        descriptor.invokeManagementService(Maintainable.class, new SafeConsumer<Maintainable>() {
-            @Override
-            public void accept(final Maintainable input) {
-                assertNotNull(input);
-            }
-        });
-    }
-
+    /**
+     * Adapter snmp runned.
+     *
+     * @throws IOException the iO exception
+     */
     @Test
-    public void connectorsManagementTest(){
-        final ServiceReference<SnampManager> managerRef = getTestBundleContext().getServiceReference(SnampManager.class);
-        assertNotNull(managerRef);
-        try{
-            final SnampManager manager = getTestBundleContext().getService(managerRef);
-            final Collection<SnampComponentDescriptor> connectors = manager.getInstalledResourceConnectors();
-            assertFalse(connectors.isEmpty());
-            boolean jmxConnectorDiscovered = false;
-            for(final SnampComponentDescriptor descriptor: connectors){
-                assertEquals(Bundle.ACTIVE, descriptor.getState());
-                if(Objects.equals(descriptor.getName(null), "JMX Connector")){
-                    jmxConnectorDiscovered = true;
-                    testJmxConnectorDescriptor(descriptor);
-                }
-            }
-            assertTrue(jmxConnectorDiscovered);
+    public void adapterSnmpRunned() throws IOException, MalformedObjectNameException, AttributeNotFoundException, MBeanException, ReflectionException, InstanceNotFoundException {
+        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
+            final MBeanServerConnection connection = connector.getMBeanServerConnection();
+            final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
+
+            // checking if the we have SNMP adapter installed
+            Object installedAdapters = connection.getAttribute(commonsObj, "InstalledAdapters");
+            assertNotNull(installedAdapters);
+            assertTrue(installedAdapters instanceof String[]);
+            assertTrue(new ArrayList<>(Arrays.asList((String[]) installedAdapters)).contains("snmp"));
+
+            // getting the adapter info
+            Object snmpAdapterInfo = connection.invoke(commonsObj,
+                    "getAdapterInfo",
+                    new Object[]{"snmp", ""},
+                    new String[]{String.class.getName(), String.class.getName()});
+            assertNotNull(snmpAdapterInfo);
+            assertTrue(snmpAdapterInfo instanceof CompositeData);
+            assertTrue(((CompositeData) snmpAdapterInfo).containsKey("State"));
+            assertNotNull(((CompositeData) snmpAdapterInfo).get("State"));
+            assertTrue(((CompositeData) snmpAdapterInfo).get("State") instanceof Integer);
+            assertEquals(Bundle.ACTIVE, ((CompositeData) snmpAdapterInfo).get("State"));
         }
-        finally {
-            getTestBundleContext().ungetService(managerRef);
+    }
+
+    /**
+     * Connector jmx runned.
+     *
+     * @throws IOException the iO exception
+     */
+    @Test
+    public void connectorJmxRunned() throws IOException, MalformedObjectNameException, AttributeNotFoundException, MBeanException, ReflectionException, InstanceNotFoundException {
+        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
+            final MBeanServerConnection connection = connector.getMBeanServerConnection();
+            final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
+
+            // checking if the we have SNMP adapter installed
+            Object installedConnectors = connection.getAttribute(commonsObj, "InstalledConnectors");
+            assertNotNull(installedConnectors);
+            assertTrue(installedConnectors instanceof String[]);
+            assertTrue(new ArrayList<>(Arrays.asList((String[]) installedConnectors)).contains("jmx"));
+
+            // getting the adapter info
+            Object snmpConnectorInfo = connection.invoke(commonsObj,
+                    "getConnectorInfo",
+                    new Object[]{"jmx", ""},
+                    new String[]{String.class.getName(), String.class.getName()});
+            assertNotNull(snmpConnectorInfo);
+            assertTrue(snmpConnectorInfo instanceof CompositeData);
+            assertTrue(((CompositeData) snmpConnectorInfo).containsKey("State"));
+            assertNotNull(((CompositeData) snmpConnectorInfo).get("State"));
+            assertTrue(((CompositeData) snmpConnectorInfo).get("State") instanceof Integer);
+            assertEquals(Bundle.ACTIVE, ((CompositeData) snmpConnectorInfo).get("State"));
         }
+    }
+
+    /**
+     * Adapter management start stop test.
+     *
+     * @throws IOException the iO exception
+     */
+    @Test
+    public void adapterManagementTest() throws IOException, MalformedObjectNameException, MBeanException, InstanceNotFoundException, ReflectionException, AttributeNotFoundException {
+        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
+            final MBeanServerConnection connection = connector.getMBeanServerConnection();
+            final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
+
+            // checking if the we have SNMP adapter installed
+            Object installedAdapters = connection.getAttribute(commonsObj, "InstalledAdapters");
+            assertNotNull(installedAdapters);
+            assertTrue(installedAdapters instanceof String[]);
+            assertTrue(new ArrayList<>(Arrays.asList((String[]) installedAdapters)).contains("snmp"));
+
+            // check if adapter is alive
+            adapterSnmpRunned();
+
+            // stopping the adapter
+            connection.invoke(commonsObj,
+                    "stopAdapter",
+                    new Object[]{"snmp"},
+                    new String[]{String.class.getName()});
+
+            // check if the adapter has appropriate status after stopping
+            final Object snmpAdapterInfo = connection.invoke(commonsObj,
+                    "getAdapterInfo",
+                    new Object[]{"snmp", ""},
+                    new String[]{String.class.getName(), String.class.getName()});
+            assertNotNull(snmpAdapterInfo);
+            assertTrue(snmpAdapterInfo instanceof CompositeData);
+            assertTrue(((CompositeData) snmpAdapterInfo).containsKey("State"));
+            assertNotNull(((CompositeData) snmpAdapterInfo).get("State"));
+            assertTrue(((CompositeData) snmpAdapterInfo).get("State") instanceof Integer);
+            assertEquals(Bundle.RESOLVED, ((CompositeData) snmpAdapterInfo).get("State"));
+
+            // starting the adapter
+            connection.invoke(commonsObj,
+                    "startAdapter",
+                    new Object[]{"snmp"},
+                    new String[]{String.class.getName()});
+
+            // check if adapter is ok after start
+            adapterSnmpRunned();
+        }
+    }
+
+    /**
+     * Connectors management test.
+     *
+     * @throws IOException the iO exception
+     * @throws MalformedObjectNameException the malformed object name exception
+     * @throws MBeanException the m bean exception
+     * @throws InstanceNotFoundException the instance not found exception
+     * @throws ReflectionException the reflection exception
+     * @throws AttributeNotFoundException the attribute not found exception
+     */
+    @Test
+    public void connectorsManagementTest() throws IOException, MalformedObjectNameException, MBeanException, InstanceNotFoundException, ReflectionException, AttributeNotFoundException {
+        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
+            final MBeanServerConnection connection = connector.getMBeanServerConnection();
+            final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
+
+            // checking if the we have JMX connector installed
+            Object installedConnectors = connection.getAttribute(commonsObj, "InstalledConnectors");
+            assertNotNull(installedConnectors);
+            assertTrue(installedConnectors instanceof String[]);
+            assertTrue(ArrayUtils.contains((String[])installedConnectors, "jmx"));
+
+            // check if connector is alive
+            connectorJmxRunned();
+
+            // stopping the adapter
+            connection.invoke(commonsObj,
+                    "stopConnector",
+                    new Object[]{"jmx"},
+                    new String[]{String.class.getName()});
+
+            // check if the connector has appropriate status after stopping
+            final Object snmpConnectorInfo = connection.invoke(commonsObj,
+                    "getConnectorInfo",
+                    new Object[]{"jmx", ""},
+                    new String[]{String.class.getName(), String.class.getName()});
+            assertNotNull(snmpConnectorInfo);
+            assertTrue(snmpConnectorInfo instanceof CompositeData);
+            assertTrue(((CompositeData) snmpConnectorInfo).containsKey("State"));
+            assertNotNull(((CompositeData) snmpConnectorInfo).get("State"));
+            assertTrue(((CompositeData) snmpConnectorInfo).get("State") instanceof Integer);
+            assertEquals(Bundle.RESOLVED, ((CompositeData) snmpConnectorInfo).get("State"));
+
+            // starting the connector
+            connection.invoke(commonsObj,
+                    "startConnector",
+                    new Object[]{"jmx"},
+                    new String[]{String.class.getName()});
+
+            // check if connector is ok after start
+            connectorJmxRunned();
+        }
+    }
+
+    /**
+     * Restart test.
+     *
+     * @throws IOException the iO exception
+     */
+    @Ignore
+    @Test
+    public void restartTest() throws IOException, JMException, InterruptedException, TimeoutException {
+        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
+            final MBeanServerConnection connection = connector.getMBeanServerConnection();
+            final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
+            Object voidReturn = connection.invoke(commonsObj, "restart", null, null);
+            assertTrue(voidReturn instanceof Void);
+        }
+    }
+
+    /**
+     * Gets connector configuration schema test.
+     *
+     * @throws IOException the iO exception
+     * @throws JMException the jM exception
+     * @throws InterruptedException the interrupted exception
+     * @throws TimeoutException the timeout exception
+     */
+    @Test
+    public void getConnectorConfigurationSchemaTest() throws IOException, JMException, InterruptedException, TimeoutException {
+        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
+            final MBeanServerConnection connection = connector.getMBeanServerConnection();
+            final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
+            final Object result = connection.invoke(commonsObj,
+                    "getConnectorConfigurationSchema",
+                    new Object[]{"jmx", ""},
+                    new String[]{String.class.getName(), String.class.getName()});
+            assertTrue(result instanceof CompositeData);
+        }
+    }
+
+    /**
+     * Gets adapter configuration schema test.
+     *
+     * @throws IOException the iO exception
+     * @throws JMException the jM exception
+     * @throws InterruptedException the interrupted exception
+     * @throws TimeoutException the timeout exception
+     */
+    @Test
+    public void getAdapterConfigurationSchemaTest() throws IOException, JMException, InterruptedException, TimeoutException {
+        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
+            final MBeanServerConnection connection = connector.getMBeanServerConnection();
+            final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
+            final Object result = connection.invoke(commonsObj,
+                    "getAdapterConfigurationSchema",
+                    new Object[]{"snmp", ""},
+                    new String[]{String.class.getName(), String.class.getName()});
+            assertTrue(result instanceof CompositeData);
+        }
+    }
+
+    @Override
+    protected void beforeStartTest(final BundleContext context) throws Exception {
+        super.beforeStartTest(context);
+        beforeCleanupTest(context);
     }
 
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
-        AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        super.afterStartTest(context);
-        AbstractResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        startResourceConnector(context);
+        syncWithAdapterStartedEvent(ADAPTER_NAME, new ExceptionalCallable<Void, BundleException>() {
+            @Override
+            public Void call() throws BundleException {
+                ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
+                return null;
+            }
+        }, TimeSpan.fromSeconds(4));
     }
 
     @Override
-    protected void afterCleanupTest(final BundleContext context) throws Exception {
-        AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+    protected void beforeCleanupTest(final BundleContext context) throws Exception {
+        ResourceAdapterActivator.stopResourceAdapter(context, ADAPTER_NAME);
         stopResourceConnector(context);
-        super.afterCleanupTest(context);
     }
 
     @Override

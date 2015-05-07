@@ -1,6 +1,6 @@
 package com.itworks.snamp.connectors.snmp;
 
-import org.snmp4j.mp.MPv3;
+import com.google.common.base.Supplier;
 import org.snmp4j.security.*;
 import org.snmp4j.smi.Address;
 import org.snmp4j.smi.GenericAddress;
@@ -9,6 +9,7 @@ import org.snmp4j.smi.OctetString;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
 import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.*;
 
@@ -30,15 +31,14 @@ final class SnmpConnectionOptions {
     private final OctetString encryptionKey;
     private final OctetString securityContext;
     private final int socketTimeout;
+    private final Supplier<ExecutorService> threadPoolConfig;
 
-    public SnmpConnectionOptions(final String connectionString, final Map<String, String> parameters) {
+    SnmpConnectionOptions(final String connectionString,
+                                 final Map<String, String> parameters) {
         connectionAddress = GenericAddress.parse(connectionString);
-        engineID = parameters.containsKey(ENGINE_ID_PARAM) ?
-                new OctetString(parameters.get(ENGINE_ID_PARAM)) :
-                new OctetString(MPv3.createLocalEngineID());
-        community = parameters.containsKey(COMMUNITY_PARAM) ?
-                new OctetString(parameters.get(COMMUNITY_PARAM)) :
-                new OctetString("public");
+        threadPoolConfig = new SnmpThreadPoolConfig(parameters, connectionString);
+        engineID = parseEngineID(parameters);
+        community = parseCommunity(parameters);
         userName = parameters.containsKey(USER_NAME_PARAM) ?
                 new OctetString(parameters.get(USER_NAME_PARAM)) :
                 null;
@@ -60,8 +60,8 @@ final class SnmpConnectionOptions {
         securityContext = parameters.containsKey(SECURITY_CONTEXT_PARAM) ?
                 new OctetString(parameters.get(SECURITY_CONTEXT_PARAM)) :
                 null;
-        socketTimeout = parameters.containsKey(SOCKET_TIMEOUT) ?
-                Integer.parseInt(parameters.get(SOCKET_TIMEOUT)) :
+        socketTimeout = parameters.containsKey(SOCKET_TIMEOUT_PARAM) ?
+                Integer.parseInt(parameters.get(SOCKET_TIMEOUT_PARAM)) :
                 DEFAULT_SOCKET_TIMEOUT;
     }
 
@@ -99,13 +99,14 @@ final class SnmpConnectionOptions {
      * @return A new instance of SNMP client.
      * @throws IOException Unable to instantiate SNMP client.
      */
-    public SnmpClient createSnmpClient() throws IOException{
+    SnmpClient createSnmpClient() throws IOException{
+
         return userName == null ?
-                SnmpClient.create(connectionAddress, community, localAddress, socketTimeout):
-                SnmpClient.create(connectionAddress, engineID, userName, authProtocol, password, encryptionProtocol, encryptionKey, securityContext, localAddress, socketTimeout);
+                SnmpClient.create(connectionAddress, community, localAddress, socketTimeout, threadPoolConfig):
+                SnmpClient.create(connectionAddress, engineID, userName, authProtocol, password, encryptionProtocol, encryptionKey, securityContext, localAddress, socketTimeout, threadPoolConfig);
     }
 
-    public static boolean authenticationRequred(final Map<String, String> connectionOptions) {
+    static boolean authenticationRequred(final Map<String, String> connectionOptions) {
         return connectionOptions.containsKey(ENGINE_ID_PARAM) ||
                 connectionOptions.containsKey(USER_NAME_PARAM) ||
                 connectionOptions.containsKey(PASSWORD_PARAM) ||

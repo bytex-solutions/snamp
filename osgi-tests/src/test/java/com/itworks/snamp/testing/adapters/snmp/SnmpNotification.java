@@ -1,6 +1,6 @@
 package com.itworks.snamp.testing.adapters.snmp;
 
-import com.itworks.snamp.connectors.notifications.Notification;
+import com.itworks.snamp.connectors.notifications.Severity;
 import org.snmp4j.smi.*;
 
 import java.text.ParseException;
@@ -9,8 +9,6 @@ import java.util.HashMap;
 
 import static com.itworks.snamp.testing.adapters.snmp.SnmpHelpers.DateTimeFormatter;
 
-import com.itworks.snamp.connectors.notifications.Severity;
-
 /**
  * Represents SNMP notification with attachments.
  * @author Roman Sakno
@@ -18,6 +16,7 @@ import com.itworks.snamp.connectors.notifications.Severity;
  * @since 1.0
  */
 final class SnmpNotification extends HashMap<OID, Variable> {
+    private static final long serialVersionUID = -9064210467469772285L;
     /**
      * Represents identifier of this SNMP notification instance.
      */
@@ -38,57 +37,14 @@ final class SnmpNotification extends HashMap<OID, Variable> {
         this.notificationID = notificationID;
         for(final VariableBinding b: bindings)
             put(b);
-        messageId = new OID(notificationID).append(new OID("1"));
-        severityId = new OID(notificationID).append(new OID("2"));
-        sequenceNumberId = new OID(notificationID).append(new OID("3"));
-        timeStampId = new OID(notificationID).append(new OID("4"));
-        categoryId = new OID(notificationID).append(new OID("5"));
+        messageId = new OID(notificationID).append(1);
+        severityId = new OID(notificationID).append(2);
+        sequenceNumberId = new OID(notificationID).append(3);
+        timeStampId = new OID(notificationID).append(4);
+        categoryId = new OID(notificationID).append(5);
     }
 
-    /**
-     * Initializes new SNMP notification based on SNAMP generic notification.
-     * <p>
-     *     This constructor maps the following notification properties:
-     *     <ul>
-     *         <li>{@link com.itworks.snamp.connectors.notifications.Notification#getMessage()} into OID .1</li>
-     *         <li>{@link com.itworks.snamp.connectors.notifications.Notification#getSeverity()} ordinal into OID .2</li>
-     *         <li>{@link com.itworks.snamp.connectors.notifications.Notification#getSequenceNumber()} into OID .3</li>
-     *     </ul>
-     * </p>
-     * @param notificationID The notification identifier.
-     * @param n The notification to wrap.
-     * @param category Notification category.
-     */
-    public SnmpNotification(final OID notificationID, final Notification n, final String category){
-        this(notificationID);
-        put(messageId, new OctetString(n.getMessage()));
-        put(severityId, new Integer32(n.getSeverity().ordinal()));
-        put(sequenceNumberId, new Counter64(n.getSequenceNumber()));
-        put(categoryId, new OctetString(category));
-    }
-
-    /**
-     * Initializes new SNMP notification based on SNAMP generic notification.
-     * <p>
-     *     This constructor maps the following notification properties:
-     *     <ul>
-     *         <li>{@link com.itworks.snamp.connectors.notifications.Notification#getMessage()} into OID .1</li>
-     *         <li>{@link com.itworks.snamp.connectors.notifications.Notification#getSeverity()} ordinal into OID .2</li>
-     *         <li>{@link com.itworks.snamp.connectors.notifications.Notification#getSequenceNumber()} into OID .3</li>
-     *         <li>{@link com.itworks.snamp.connectors.notifications.Notification#getTimeStamp()} into OID .4</li>
-     *     </ul>
-     * </p>
-     * @param notificationID The notification identifier.
-     * @param n The notification to wrap.
-     * @param category Notification category.
-     * @param formatter Notification timestamp formatter.
-     */
-    public SnmpNotification(final OID notificationID, final Notification n, final String category, final SnmpHelpers.DateTimeFormatter formatter){
-        this(notificationID, n, category);
-        put(timeStampId, new OctetString(formatter.convert(n.getTimeStamp())));
-    }
-
-    public final boolean put(final VariableBinding binding){
+    boolean put(final VariableBinding binding){
         return binding != null && put(binding.getOid(), binding.getVariable()) == null;
     }
 
@@ -109,7 +65,7 @@ final class SnmpNotification extends HashMap<OID, Variable> {
     }
 
     private static Severity getSeverity(final Integer32 value){
-        return Severity.values()[value.toInt()];
+        return Severity.resolve(value.toInt());
     }
 
     public final Severity getSeverity(){

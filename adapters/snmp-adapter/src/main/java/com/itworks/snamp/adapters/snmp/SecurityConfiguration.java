@@ -13,9 +13,6 @@ import javax.naming.NamingException;
 import javax.naming.directory.*;
 import java.util.*;
 import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.*;
 
 /**
  * Represents security configuration of the SNMP adapter that is used
@@ -25,6 +22,62 @@ import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor
  * @since 1.0
  */
 final class SecurityConfiguration {
+    /**
+     * Represents configuration property that provides a set of user groups.
+     */
+    static final String SNMPv3_GROUPS_PARAM = "snmpv3-groups";
+
+    /**
+     * Represents LDAP server URI.
+     */
+    static final String LDAP_URI_PARAM = "ldap-uri";
+
+    /**
+     * Represents LDAP DN of the admin user that is used to read security configuration structure.
+     */
+    private static final String LDAP_ADMINDN_PARAM = "ldap-user";
+
+    /**
+     * Represents LDAP admin user password.
+     */
+    private static final String LDAP_ADMIN_PASSWORD_PARAM = "ldap-password";
+
+    /**
+     * Represents type of the LDAP authentication.
+     */
+    private static final String LDAP_ADMIN_AUTH_TYPE_PARAM = "ldap-auth-protocol";
+
+    /**
+     * Represents user search filter template that is used to find users in the group.
+     * <p>
+     *     $GROUPNAME$ string inside of the filter will be replaced with group name.
+     * </p>
+     */
+    private static final String LDAP_USER_SEARCH_FILTER_PARAM = "ldap-user-search-filter";
+
+    /**
+     * Represents semicolon delimiter string of group DNs.
+     */
+    static final String LDAP_GROUPS_PARAM = "ldap-groups";
+
+    /**
+     * Represents search base DN.
+     */
+    private static final String LDAP_BASE_DN_PARAM = "ldap-base-dn";
+
+    /**
+     * Represents JNDI/LDAP factory name.
+     * <p>
+     *     By default, this property equals to com.sun.jndi.ldap.LdapCtxFactory.
+     * </p>
+     */
+    private static final String JNDI_LDAP_FACTORY_PARAM = "jndi-ldap-factory";
+
+    /**
+     * Represents name of the attribute in directory that holds the user attribute as release text.
+     */
+    private static final String LDAP_PASSWORD_HOLDER_PARAM = "ldap-user-password-attribute-name";
+
 
     public static enum LdapAuthenticationType{
         NONE("none"),
@@ -96,7 +149,7 @@ final class SecurityConfiguration {
         }
 
         public final void setPassword(final byte[] password){
-            setPassword(new String(password));
+            setPassword(new String(password, SnmpHelpers.SNMP_ENCODING));
         }
 
         public final boolean setPassword(final Object password){
@@ -148,7 +201,7 @@ final class SecurityConfiguration {
         }
 
         public final void setPrivacyKey(final byte[] passphrase){
-            setPrivacyKey(new String(passphrase));
+            setPrivacyKey(new String(passphrase, SnmpHelpers.SNMP_ENCODING));
         }
 
         public final boolean setPrivacyKey(final Object passphrase){
@@ -163,19 +216,23 @@ final class SecurityConfiguration {
             else return false;
         }
 
-        public final OctetString getPasswordAsOctectString() {
-            return password == null || password.isEmpty() ? null : new OctetString(password);
+        public final OctetString getPasswordAsOctetString() {
+            return password == null || password.isEmpty() ?
+                    null :
+                    SnmpHelpers.toOctetString(password);
         }
 
         public final OctetString getPrivacyKeyAsOctetString(){
-            return encryptionKey == null || encryptionKey.isEmpty() ? null : new OctetString(encryptionKey);
+            return encryptionKey == null || encryptionKey.isEmpty() ?
+                    null :
+                    SnmpHelpers.toOctetString(encryptionKey);
         }
 
         public final void defineUser(final USM userHive, final OctetString userName, final OctetString engineID) {
             userHive.addUser(userName, engineID,
                     new UsmUser(userName,
                             getAuthenticationProtocol(),
-                            getPasswordAsOctectString(),
+                            getPasswordAsOctetString(),
                             getPrivacyProtocol(),
                             getPrivacyKeyAsOctetString()));
         }
@@ -211,6 +268,7 @@ final class SecurityConfiguration {
      * @version 1.0
      */
     public static final class UserGroup extends HashMap<String, User>{
+        private static final long serialVersionUID = -9033732379101836365L;
         private SecurityLevel level;
         private final EnumSet<AccessRights> rights;
 
@@ -335,7 +393,6 @@ final class SecurityConfiguration {
                                               final Map<String, UserGroup> groups) {
         final String ldapUserName = adapterSettings.get(LDAP_ADMINDN_PARAM);
         final String ldapUserPassword = adapterSettings.get(LDAP_ADMIN_PASSWORD_PARAM);
-        final Logger logger = SnmpHelpers.getLogger();
         String jndiLdapFactory = adapterSettings.get(JNDI_LDAP_FACTORY_PARAM);
         if(jndiLdapFactory == null || jndiLdapFactory.isEmpty())
             jndiLdapFactory = "com.sun.jndi.ldap.LdapCtxFactory";
@@ -357,7 +414,7 @@ final class SecurityConfiguration {
         //env.put("com.sun.jndi.ldap.trace.ber", System.err);
         try {
             final DirContext ctx = contextFactory.create(env);
-            logger.fine(String.format("User %s is authenticated successfully on LDAP %s", ldapUserName, ldapUri));
+            SnmpHelpers.log(Level.FINE, "User %s is authenticated successfully on LDAP %s", ldapUserName, ldapUri, null);
             final String ldapGroups = adapterSettings.get(LDAP_GROUPS_PARAM);
             final String userSearchFilter = adapterSettings.get(LDAP_USER_SEARCH_FILTER_PARAM);
             final String baseDn = adapterSettings.get(LDAP_BASE_DN_PARAM);
@@ -367,13 +424,13 @@ final class SecurityConfiguration {
             return true;
         }
         catch (final AuthenticationException e){
-            logger.log(Level.SEVERE,
-                    String.format("Failed to authenticate %s user on LDAP %s", ldapUserName, ldapUri),
+            SnmpHelpers.log(Level.SEVERE,
+                    "Failed to authenticate %s user on LDAP %s", ldapUserName, ldapUri,
                     e);
             return false;
         }
         catch (final NamingException e) {
-            logger.log(Level.SEVERE, "Failed to process LDAP response ",
+            SnmpHelpers.log(Level.SEVERE, "Failed to process LDAP response",
                     e);
             return false;
         }
@@ -496,13 +553,13 @@ final class SecurityConfiguration {
         for(final UserGroup group: groups.values())
             for(final String lookup: group.keySet())
                 if(Objects.equals(userName, lookup)) return group.getSecurityLevel();
-        return null;
+        return SecurityLevel.noAuthNoPriv;
     }
 
     public final void setupUserBasedSecurity(final USM security){
         for(final UserGroup group: groups.values())
             for(final Map.Entry<String, User> user: group.entrySet()){
-                final OctetString userName = new OctetString(user.getKey());
+                final OctetString userName = SnmpHelpers.toOctetString(user.getKey());
                 final User userDef = user.getValue();
                 userDef.defineUser(security, userName, securityEngineID);
             }
@@ -512,16 +569,16 @@ final class SecurityConfiguration {
         for(final Map.Entry<String, UserGroup> group: groups.entrySet()){
             final UserGroup groupDef = group.getValue();
             for(final Map.Entry<String, User> user: groupDef.entrySet()){
-                vacm.addGroup(SecurityModel.SECURITY_MODEL_USM, new OctetString(user.getKey()),
-                        new OctetString(group.getKey()),
+                vacm.addGroup(SecurityModel.SECURITY_MODEL_USM, SnmpHelpers.toOctetString(user.getKey()),
+                        SnmpHelpers.toOctetString(group.getKey()),
                         StorageType.nonVolatile);
             }
-            vacm.addAccess(new OctetString(group.getKey()), new OctetString(),
+            vacm.addAccess(SnmpHelpers.toOctetString(group.getKey()), new OctetString(),
                     SecurityModel.SECURITY_MODEL_USM, groupDef.getSecurityLevel().getSnmpValue(),
                     MutableVACM.VACM_MATCH_EXACT,
-                    groupDef.hasAccessRights(AccessRights.READ) ? new OctetString("fullReadView") : null,
-                    groupDef.hasAccessRights(AccessRights.WRITE) ? new OctetString("fullWriteView") : null,
-                    groupDef.hasAccessRights(AccessRights.NOTIFY) ? new OctetString("fullNotifyView") : null,
+                    groupDef.hasAccessRights(AccessRights.READ) ? SnmpHelpers.toOctetString("fullReadView") : null,
+                    groupDef.hasAccessRights(AccessRights.WRITE) ? SnmpHelpers.toOctetString("fullWriteView") : null,
+                    groupDef.hasAccessRights(AccessRights.NOTIFY) ? SnmpHelpers.toOctetString("fullNotifyView") : null,
                     StorageType.nonVolatile);
         }
     }

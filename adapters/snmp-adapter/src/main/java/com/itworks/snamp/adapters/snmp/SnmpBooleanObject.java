@@ -1,30 +1,30 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.itworks.snamp.TypeLiterals;
-import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
-import com.itworks.snamp.connectors.ManagedEntityType;
+import com.itworks.snamp.adapters.AttributeAccessor;
+import com.itworks.snamp.internal.annotations.SpecialUse;
 import org.snmp4j.smi.Integer32;
 import org.snmp4j.smi.Variable;
 
-import static com.itworks.snamp.connectors.ManagedEntityTypeHelper.convertFrom;
 import static org.snmp4j.smi.SMIConstants.SYNTAX_INTEGER32;
 
-@MOSyntax(SYNTAX_INTEGER32)
 final class SnmpBooleanObject extends SnmpScalarObject<Integer32>{
-    public static final int defaultValue = -1;
+    static final int SYNTAX = SYNTAX_INTEGER32;
+    static final int defaultValue = -1;
+    private static final Integer32 TRUE = new Integer32(1);
+    private static final Integer32 FALSE = new Integer32(0);
 
-    public SnmpBooleanObject(final String oid, final AttributeAccessor connector){
-        super(oid, connector, new Integer32(defaultValue));
+    @SpecialUse
+    SnmpBooleanObject(final AttributeAccessor connector){
+        super(connector, new Integer32(defaultValue));
     }
 
-    public static Integer32 convert(final Object value, final ManagedEntityType attributeTypeInfo){
-        return new Integer32(convertFrom(attributeTypeInfo, value, TypeLiterals.BOOLEAN) ? 1 : 0);
+    @SpecialUse
+    static Integer32 toSnmpObject(final Object value){
+        return value instanceof Boolean && (Boolean)value ? TRUE : FALSE;
     }
 
-
-    //do not remove 'type' argument because it is used by reflection in SnmpType
-    @SuppressWarnings("UnusedParameters")
-    public static Boolean convert(final Variable value, final ManagedEntityType type){
+    @SpecialUse
+    static boolean fromSnmpObject(final Variable value){
         return value.toLong() != 0;
     }
 
@@ -36,7 +36,7 @@ final class SnmpBooleanObject extends SnmpScalarObject<Integer32>{
      */
     @Override
     protected Integer32 convert(final Object value) {
-        return convert(value, getMetadata().getType());
+        return toSnmpObject(value);
     }
 
     /**
@@ -46,7 +46,7 @@ final class SnmpBooleanObject extends SnmpScalarObject<Integer32>{
      * @return Resource-specific representation of SNMP-compliant value.
      */
     @Override
-    protected Object convert(final Integer32 value) {
-        return convert(value, getMetadata().getType());
+    protected Boolean convert(final Integer32 value) {
+        return fromSnmpObject(value);
     }
 }

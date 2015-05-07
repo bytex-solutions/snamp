@@ -1,12 +1,20 @@
 package com.itworks.snamp.connectors.jmx;
 
+import com.google.common.base.Functions;
+import com.google.common.collect.Collections2;
+import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.itworks.snamp.configuration.ResourceBasedConfigurationEntityDescription;
+import com.itworks.snamp.connectors.SelectableConnectorParameterDescriptor;
+import com.itworks.snamp.connectors.notifications.NotificationDescriptor;
 
+import javax.management.MBeanServerConnection;
+import javax.management.remote.JMXConnector;
+import java.io.IOException;
 import java.util.Locale;
+import java.util.Map;
 import java.util.ResourceBundle;
-import java.util.logging.Logger;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
@@ -25,7 +33,7 @@ final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescr
      */
     static final String CONNECTION_CHECK_PERIOD = "connectionCheckPeriod";
     static final String OBJECT_NAME_PROPERTY = "objectName";
-    static final String SEVERITY_PARAM = "severity";
+    static final String SEVERITY_PARAM = NotificationDescriptor.SEVERITY_PARAM;
     static final String USE_REGEXP_PARAM = "useRegexp";
 
     private static final class EventConfigurationInfo extends ResourceBasedConfigurationEntityDescription<EventConfiguration>{
@@ -33,6 +41,7 @@ final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescr
 
         private EventConfigurationInfo(){
             super(EventConfiguration.class,
+                    OBJECT_NAME_PROPERTY,
                     SEVERITY_PARAM);
         }
 
@@ -66,10 +75,45 @@ final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescr
     private static final class AttributeConfigurationInfo extends ResourceBasedConfigurationEntityDescription<AttributeConfiguration> {
         private static final String RESOURCE_NAME = "JmxAttributeConfig";
 
+        private final class ObjectNameParameter extends ParameterDescriptionImpl implements SelectableConnectorParameterDescriptor {
+            private ObjectNameParameter() {
+                super(OBJECT_NAME_PROPERTY);
+            }
+
+            @Override
+            public String[] suggestValues(final String connectionString,
+                                          final Map<String, String> connectionOptions,
+                                          final Locale loc) throws IOException {
+                final JmxConnectionOptions options = new JmxConnectionOptions(connectionString, connectionOptions);
+                try (final JMXConnector connection = options.createConnection()) {
+                    final MBeanServerConnection server = connection.getMBeanServerConnection();
+                    return ArrayUtils.toArray(Collections2.transform(server.queryNames(null, null),
+                            Functions.toStringFunction()), String.class);
+
+                }
+            }
+        }
+
         private AttributeConfigurationInfo() {
             super(AttributeConfiguration.class,
                     OBJECT_NAME_PROPERTY,
                     USE_REGEXP_PARAM);
+        }
+
+        /**
+         * Creates a new resource-based parameter descriptor.
+         *
+         * @param parameterName The name of the configuration parameter.
+         * @return A new instance of descriptor.
+         */
+        @Override
+        protected ParameterDescriptionImpl createParameterDescriptor(final String parameterName) {
+            switch (parameterName) {
+                case OBJECT_NAME_PROPERTY:
+                    return new ObjectNameParameter();
+                default:
+                    return super.createParameterDescriptor(parameterName);
+            }
         }
 
         /**
@@ -87,15 +131,5 @@ final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescr
 
     JmxConnectorConfigurationDescriptor(){
         super(new AttributeConfigurationInfo(), new ConnectorConfigurationInfo(), new EventConfigurationInfo());
-    }
-
-    /**
-     * Gets logger associated with this service.
-     *
-     * @return The logger associated with this service.
-     */
-    @Override
-    public Logger getLogger() {
-        return JmxConnectorHelpers.getLogger();
     }
 }

@@ -1,60 +1,59 @@
 package com.itworks.snamp.connectors.operations;
 
-
-import com.google.common.annotations.Beta;
-import com.itworks.snamp.TimeSpan;
-
-import java.util.*;
+import javax.management.MBeanException;
+import javax.management.MBeanOperationInfo;
+import javax.management.ReflectionException;
 
 /**
- * Provides operation invocation support for management connector.
+ * Provides support of management operations.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-@Beta
 public interface OperationSupport {
+    /**
+     * The name of the field in operation descriptor indicating
+     * that the operation is asynchronous and returns {@link com.google.common.util.concurrent.ListenableFuture}
+     * as invocation result.
+     */
+    String ASYNC_FIELD = "async";
 
     /**
-     * Creates a new invocation queue that is used to execute the specified operations.
-     *
-     * @param operations A map of operations, where key is a name of the operation and value
-     *                   is a map of operation options. Cannot be {@literal null} or empty.
-     * @return A new unique identifier of the invocation queue.
-     * @throws java.lang.IllegalArgumentException operations is {@literal null} or empty.
-     * @throws com.itworks.snamp.connectors.operations.OperationSupportException Internal connector error.
+     * The name of the field in operation descriptor that holds
+     * name of the managed resource operation as it is declared in the configuration.
      */
-    Object createInvocationQueue(final Map<String, Map<String, String>> operations) throws OperationSupportException;
+    String OPERATION_NAME_FIELD = "operationName";
 
     /**
-     * Destroys the specified invocation queue.
+     * Allows an operation to be invoked on the managed resource.
      *
-     * @param queueId An unique identifier of the invocation queue returned by {@link #createInvocationQueue(java.util.Map)} method.
-     * @param force   {@literal true} to stop all active executions if timeout is reached; otherwise, {@literal false}.
-     * @param timeout Invocation completion timeout.
-     * @return {@literal true}, if queue is destroyed successfully; otherwise, {@literal false}.
-     * @throws java.lang.IllegalArgumentException Unrecognized queue identifier detected.
+     * @param operationName The name of the operation to be invoked.
+     * @param params An array containing the parameters to be set when the operation is
+     * invoked.
+     * @param signature An array containing the signature of the operation. The class objects will
+     * be loaded through the same class loader as the one used for loading the
+     * managed resource connector on which the action is invoked.
+     *
+     * @return  The object returned by the operation, which represents the result of
+     * invoking the operation on the specified managed resource; or {@link com.google.common.util.concurrent.ListenableFuture}
+     * for asynchronous operations.
+     *
+     * @exception javax.management.MBeanException  Wraps a <CODE>java.lang.Exception</CODE> thrown by the managed resource.
+     * @exception javax.management.ReflectionException  Wraps a <CODE>java.lang.Exception</CODE> thrown while trying to invoke the method
      */
-    boolean destroyInvocationQueue(final Object queueId, final boolean force, final TimeSpan timeout);
+    Object invoke(final String operationName, final Object[] params, final String[] signature)
+            throws MBeanException, ReflectionException;
 
     /**
-     * Returns operation description.
-     *
-     * @param queueId   An unique identifier of the invocation queue returned by {@link #createInvocationQueue(java.util.Map)} method.
-     * @param operation The name of the operation to retrieve.
-     * @return An information about operation that can be executed inside of the specified queue;
-     * or {@literal null} if operation is not registered in the specified queue.
+     * Returns an array of supported operations.
+     * @return An array of supported operations.
      */
-    OperationMetadata getOperationInfo(final Object queueId, final String operation);
+    MBeanOperationInfo[] getOperationInfo();
 
     /**
-     * Enqueue an invocation of the specified operation.
-     *
-     * @param queueId       An unique identifier of the invocation queue returned by {@link #createInvocationQueue(java.util.Map)} method.
-     * @param operationName The name of the operation to invoke.
-     * @param input         An input message.
-     * @return An object that provides control over the operation execution process; or {@literal null} if operation is {@link OperationMetadata#isOneWay()}.
-     * @throws com.itworks.snamp.connectors.operations.UnknownOperationException The specified operation is not registered in the queue.
+     * Returns a metadata of the operation.
+     * @param operationName The name of the operation.
+     * @return The operation metadata; or {@literal null}, if operation doesn't exist.
      */
-    InvocationResult invokeOperation(final Object queueId, final String operationName, final Object input) throws UnknownOperationException;
+    MBeanOperationInfo getOperationInfo(final String operationName);
 }

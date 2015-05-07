@@ -1,7 +1,7 @@
 package com.itworks.snamp.testing.connectors.jmx;
 
 
-import com.itworks.snamp.Repeater;
+import com.itworks.snamp.concurrent.Repeater;
 import com.itworks.snamp.TimeSpan;
 
 import javax.management.*;
@@ -108,6 +108,12 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
             "Occurs when timer is changed"
     );
 
+    private static final MBeanNotificationInfo PLAIN_EVENT = new MBeanNotificationInfo(
+            new String[]{"com.itworks.snamp.connectors.tests.impl.plainnotif"},
+            Notification.class.getName(),
+            "Notification with attachment"
+    );
+
     private static final MBeanInfo BEAN_INFO = new MBeanInfo(TestOpenMBean.class.getName(),
             "Test MBean",
             new MBeanAttributeInfo[]{STRING_PROPERTY,
@@ -122,13 +128,13 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
             },
             new MBeanConstructorInfo[0],
             new MBeanOperationInfo[0],
-            new MBeanNotificationInfo[]{PROPERTY_CHANGED_EVENT, TIMER_EVENT});
+            new MBeanNotificationInfo[]{PROPERTY_CHANGED_EVENT, TIMER_EVENT, PLAIN_EVENT});
 
     private String chosenString;
     private boolean aBoolean;
     private int anInt;
     private BigInteger aBigInt;
-    private Short[] array;
+    private short[] array;
     private CompositeData dictionary;
     private TabularData table;
     private final AtomicLong sequenceCounter;
@@ -140,7 +146,7 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
         sequenceCounter = new AtomicLong(0);
         chosenString = "NO VALUE";
         aBigInt = BigInteger.ZERO;
-        array = new Short[]{42,100,43,99};
+        array = new short[]{42,100,43,99};
         aFloat = 0F;
         aDate = new Date();
         try{
@@ -184,11 +190,11 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
         this(false);
     }
 
-    public final Short[] getArray(){
+    public final short[] getArray(){
         return array;
     }
 
-    public final void setArray(final Short[] value){
+    public final void setArray(final short[] value){
         array = value;
     }
 
@@ -285,12 +291,19 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
                 attributeType,
                 oldValue,
                 newValue));
-        sendNotification(new TimerNotification("com.itworks.snamp.connectors.tests.impl.testnotif",
+        sendNotification(new TimerNotification(TIMER_EVENT.getNotifTypes()[0],
                 this,
                 sequenceCounter.getAndIncrement(),
                 System.currentTimeMillis(),
                 "Property changed",
                 32));
+        final Notification notif = new Notification(PLAIN_EVENT.getNotifTypes()[0],
+                this,
+                sequenceCounter.getAndIncrement(),
+                System.currentTimeMillis(),
+                "Message");
+        notif.setUserData(table);
+        sendNotification(notif);
     }
 
     /**
@@ -335,7 +348,7 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
         }
         else if(Objects.equals(attribute.getName(), ARRAY_PROPERTY.getName())){
             oldValue = array;
-            newValue = array = (Short[])attribute.getValue();
+            newValue = array = (short[])attribute.getValue();
             attributeType = ARRAY_PROPERTY.getType();
         }
         else if(Objects.equals(attribute.getName(), DICTIONARY_PROPERTY.getName())){

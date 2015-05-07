@@ -1,27 +1,60 @@
 package com.itworks.snamp.testing.adapters.snmp;
 
-import com.itworks.snamp.SynchronizationEvent;
-import com.itworks.snamp.Table;
+import com.google.common.collect.ImmutableList;
+import com.itworks.snamp.concurrent.SynchronizationEvent;
+import com.itworks.snamp.testing.SnmpTable;
 import org.snmp4j.*;
 import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.event.ResponseListener;
-import org.snmp4j.smi.*;
+import org.snmp4j.smi.OID;
+import org.snmp4j.smi.UdpAddress;
+import org.snmp4j.smi.Variable;
+import org.snmp4j.smi.VariableBinding;
 import org.snmp4j.util.DefaultPDUFactory;
 import org.snmp4j.util.TableEvent;
 import org.snmp4j.util.TableUtils;
 
 import java.io.IOException;
-import java.math.BigInteger;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.logging.Logger;
-
-import static com.itworks.snamp.TableFactory.INTEGER_TABLE_FACTORY;
 
 /**
  * Represents abstract class for any SNMP client side helper
  * @author Evgeniy Kirichenko
  */
-public abstract class AbstractSnmpClient implements SnmpClient {
+abstract class AbstractSnmpClient implements SnmpClient {
+    private static final class SnmpTableImpl extends ArrayList<Variable[]> implements SnmpTable{
+        private static final long serialVersionUID = -3238910325989531874L;
+        private final ImmutableList<Class<?>> columns;
+
+        private SnmpTableImpl(final List<Class<?>> columns, final int rowCapacity){
+            super(rowCapacity);
+            this.columns = ImmutableList.copyOf(columns);
+        }
+
+        @Override
+        public int getRowCount() {
+            return size();
+        }
+
+        @Override
+        public int getColumnCount() {
+            return columns.size();
+        }
+
+        @Override
+        public Variable getRawCell(final int columnIndex, final int rowIndex) {
+            return get(rowIndex)[columnIndex];
+        }
+
+        @Override
+        public Object getCell(final int columndIndex, final int rowIndex) {
+            return AbstractSnmpTable.deserialize(getRawCell(columndIndex, rowIndex), columns.get(columndIndex));
+        }
+    }
 
     protected Snmp snmp = null;
     protected String address;
@@ -44,18 +77,10 @@ public abstract class AbstractSnmpClient implements SnmpClient {
         return result;
     }
 
-    /**
-     * Returns SNMP table using TableUtils
-     * @param method
-     * @param oidTable
-     * @param columnCount
-     * @return
-     * @throws Exception
-     */
-    private List<Variable[]> getTable(final ReadMethod method, final OID oidTable, final int columnCount) throws Exception{
+    private SnmpTable getTable(final ReadMethod method, final OID oidTable, final List<Class<?>> cols) throws Exception{
         final TableUtils utils = new TableUtils(snmp, method.createPduFactory());
-        final List<TableEvent> events = utils.getTable(getTarget(), makeColumnIDs(oidTable, columnCount), null, null);
-        final List<Variable[]> result = new ArrayList<>(events.size());
+        final List<TableEvent> events = utils.getTable(getTarget(), makeColumnIDs(oidTable, cols.size()), null, null);
+        final SnmpTableImpl result = new SnmpTableImpl(cols, events.size());
         for(final TableEvent ev: events)
             if(ev.isError()) throw new Exception(ev.getErrorMessage());
             else {
@@ -80,11 +105,9 @@ public abstract class AbstractSnmpClient implements SnmpClient {
         method.prepareOIDs(oids);
         final PDU pdu = DefaultPDUFactory.createPDU(getTarget(), method.getPduType());
         pdu.setMaxRepetitions(50);
-        pdu.setNonRepeaters(1);
         for (OID oid : oids) {
             pdu.add(new VariableBinding(oid));
         }
-
         final ResponseEvent event = snmp.send(pdu, getTarget(), null);
         if(event != null) {
             return event;
@@ -118,7 +141,7 @@ public abstract class AbstractSnmpClient implements SnmpClient {
      * @param notificationID
      * @return
      */
-    public final SynchronizationEvent.Awaitor<SnmpNotification> addNotificationListener(final OID notificationID){
+    public final SynchronizationEvent.EventAwaitor<SnmpNotification> addNotificationListener(final OID notificationID){
         final SynchronizationEvent<SnmpNotification> signaller = new SynchronizationEvent<>();
         snmp.addCommandResponder(new CommandResponder() {
             @Override
@@ -160,33 +183,8 @@ public abstract class AbstractSnmpClient implements SnmpClient {
      */
     public final  <T> void writeAttribute(final OID oid, final T value, final Class<T> valueType) throws IOException{
         final PDU pdu = DefaultPDUFactory.createPDU(this.getTarget(), PDU.SET);
-        final Variable var;
-
-        if (valueType == int.class || valueType == Integer.class || valueType == short.class)
-        {
-            var = new Integer32(Integer.class.cast(value));
-        }
-        else if (valueType == long.class || valueType == Long.class)
-        {
-            var = new Counter64(Long.class.cast(value));
-        }
-        else if (valueType == Boolean.class || valueType == boolean.class)
-        {
-            var = new Integer32((Boolean.class.cast(value) == Boolean.TRUE)?1:0);
-        }
-        else if (valueType == byte[].class)
-        {
-            var = new OctetString((byte[])value);
-        }
-        else
-        {
-            var = new OctetString(value.toString());
-        }
-
-        final VariableBinding varBind = new VariableBinding(oid,var);
-
+        final VariableBinding varBind = new VariableBinding(oid, AbstractSnmpTable.serialize(value, valueType));
         pdu.add(varBind);
-
         final ResponseListener listener = new ResponseListener() {
             public void onResponse(ResponseEvent event) {
                 final PDU strResponse;
@@ -195,46 +193,14 @@ public abstract class AbstractSnmpClient implements SnmpClient {
                 strResponse = event.getResponse();
                 if (strResponse!= null) {
                     result = strResponse.getErrorStatusText();
-                    System.out.println("Set Status is: "+result);
+                    System.out.println("Set Status is: " + result);
                 }
                 else
-                    System.out.println("SNMP error occured while sending SET request on OID: " + oid.toDottedString());
+                    System.out.println("SNMP error occurred while sending SET request on OID: " + oid.toDottedString());
             }};
 
         this.set(pdu, listener);
     }
-
-
-    /**
-     * Helper class that transform SMI variable to an appropriate Java type class representation
-     * @param var
-     * @param className
-     * @param <T>
-     * @return
-     */
-    private static <T> T deserialize(final Variable var, final Class<T> className){
-        final Object result;
-        if (var instanceof UnsignedInteger32 || var instanceof Integer32)
-            result = (className == Boolean.class)?(var.toInt() == 1):var.toInt();
-        else if (var instanceof OctetString)
-        {
-            if (className == BigInteger.class)
-                result = new BigInteger(var.toString());
-            else if (className == Float.class)
-                result = Float.valueOf(var.toString());
-            else if (className == byte[].class)
-                result = ((OctetString) var).toByteArray();
-            else
-                result = var.toString();
-        }
-        else if (var instanceof IpAddress)
-            result = var.toString();
-        else if (var instanceof Counter64)
-            result = var.toLong();
-        else result = null;
-        return className.cast(result);
-    }
-
 
     /**
      * Read attibute and returns it as some Java class representation
@@ -248,8 +214,7 @@ public abstract class AbstractSnmpClient implements SnmpClient {
     public final  <T>T readAttribute(final ReadMethod method, final OID oid, final Class<T> className) throws IOException {
         final ResponseEvent value = this.get(method, new OID[]{oid});
         //assertNotNull(value);
-        return deserialize(value.getResponse().getVariable(oid), className);
-
+        return AbstractSnmpTable.deserialize(value.getResponse().getVariable(oid), className);
     }
 
     /**
@@ -260,41 +225,42 @@ public abstract class AbstractSnmpClient implements SnmpClient {
      * @return
      * @throws Exception
      */
-    public final Table<Integer> readTable(final ReadMethod method, final OID oid, final Map<Integer, Class<?>> columns) throws Exception {
-        final Collection<Variable[]> rows = this.getTable(method, oid, columns.size());
-        final Table<Integer> table = INTEGER_TABLE_FACTORY.create(columns, rows.size());
-        for(final Variable[] row: rows)
-            table.addRow(new HashMap<Integer, Object>(){{
-                for(int i = 0; i < row.length; i++){
-                    final Integer column = i + 2;
-                    put(column, deserialize(row[i], columns.get(column)));
-                }
-            }});
-        return table;
+    @Override
+    public final SnmpTable readTable(final ReadMethod method, final OID oid, final Class<?>... columns) throws Exception {
+        return getTable(method, oid, Arrays.asList(columns));
     }
 
     /**
-     * Attemps to write table, return PDU response as a result of writing
+     * Attempts to write table, return PDU response as a result of writing
      * @param tablePrefix
      * @param table
      * @return
      * @throws IOException
      */
-    public final PDU writeTable(final String tablePrefix, final Table<Integer> table) throws IOException {
+    @Override
+    public final PDU writeTable(final String tablePrefix, final SnmpTable table) throws IOException {
         final PDU pdu = DefaultPDUFactory.createPDU(this.getTarget(), PDU.SET);
-        //add rows
-        for(int i = 0; i < table.getRowCount(); i++){
-            //iterate through each column
-            final Integer rowIndex = i;
-            for(final Integer column: table.getColumns()){
-                final OID rowId = new OID(tablePrefix + "." + column + "." + (rowIndex + 1));
-                pdu.add(new VariableBinding(rowId, (Variable)table.getCell(column, rowIndex)));
+        for(int rowIndex = 0; rowIndex < table.getRowCount(); rowIndex++)
+            for(int columnIndex = 0; columnIndex < table.getColumnCount(); columnIndex++){
+                //row index always starts from 1 in SnmpAdapter
+                //column index always starts from 2 in SnmpAdapter
+                final OID rowId = new OID(tablePrefix + '.' + (columnIndex + 2) + '.' + (rowIndex + 1));
+                pdu.add(new VariableBinding(rowId, table.getRawCell(columnIndex, rowIndex)));
             }
-        }
-        final PDU response = this.set(pdu).getResponse();
-        return response;
+        return this.set(pdu).getResponse();
         //assertEquals(response.getErrorStatusText(), SnmpConstants.SNMP_ERROR_SUCCESS, response.getErrorStatus());
     }
 
-
+    /**
+     * Closes this stream and releases any system resources associated
+     * with it. If the stream is already closed then invoking this
+     * method has no effect.
+     *
+     * @throws java.io.IOException if an I/O error occurs
+     */
+    @Override
+    public final void close() throws IOException {
+        final Snmp client = snmp;
+        if(client != null) client.close();
+    }
 }

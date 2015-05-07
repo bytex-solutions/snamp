@@ -2,12 +2,14 @@ package com.itworks.snamp.management;
 
 import com.itworks.snamp.Consumer;
 import com.itworks.snamp.Descriptive;
+import com.itworks.snamp.core.SupportService;
 import org.osgi.framework.Version;
 
 import java.util.Locale;
 import java.util.Map;
 
 /**
+ * Describes SNAMP component.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
@@ -16,7 +18,7 @@ public interface SnampComponentDescriptor extends Descriptive, Map<String, Strin
     /**
      * Represents name of the property that contains connector name.
      */
-    String CONNECTOR_SYSTEM_NAME_PROPERTY = "connectorName";
+    String CONNECTOR_SYSTEM_NAME_PROPERTY = "connectorType";
     /**
      * Represents name of the property that contains adapter name.
      */
@@ -62,7 +64,8 @@ public interface SnampComponentDescriptor extends Descriptive, Map<String, Strin
      * @return {@literal true}, if the requested service is invoked; otherwise, {@literal false}.
      * @throws E An exception raised by service invoker.
      * @see com.itworks.snamp.management.Maintainable
-     * @see com.itworks.snamp.licensing.LicensingDescriptionService
+     * @see com.itworks.snamp.connectors.discovery.DiscoveryService
+     * @see com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider
      */
-    <S extends ManagementService, E extends Exception> boolean invokeManagementService(final Class<S> serviceType, final Consumer<S, E> serviceInvoker) throws E;
+    <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Consumer<S, E> serviceInvoker) throws E;
 }

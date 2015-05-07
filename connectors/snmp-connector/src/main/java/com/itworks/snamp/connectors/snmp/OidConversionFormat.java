@@ -1,13 +1,15 @@
 package com.itworks.snamp.connectors.snmp;
 
-import com.google.common.reflect.TypeToken;
-import com.itworks.snamp.ArrayUtils;
-import com.itworks.snamp.TypeLiterals;
 import org.snmp4j.smi.OID;
 
-import java.util.Map;
+import javax.management.Descriptor;
+import javax.management.InvalidAttributeValueException;
+import javax.management.openmbean.OpenType;
+import javax.management.openmbean.SimpleType;
 
-import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.SNMP_CONVERSION_FORMAT;
+import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.SNMP_CONVERSION_FORMAT_PARAM;
+import static com.itworks.snamp.jmx.DescriptorUtils.getField;
+import static com.itworks.snamp.jmx.DescriptorUtils.hasField;
 
 /**
  * Represents {@link org.snmp4j.smi.OID} conversion format.
@@ -15,39 +17,50 @@ import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvid
  * @version 1.0
  * @since 1.0
  */
-enum OidConversionFormat {
-    TEXT,
-    INT_ARRAY;
+enum OidConversionFormat implements SnmpObjectConverter<OID> {
+    TEXT(SimpleType.STRING) {
+        @Override
+        public String convert(final OID value) {
+            return value.toDottedString();
+        }
+    },
+    INT_ARRAY(SnmpConnectorHelpers.arrayType(SimpleType.INTEGER, true)) {
+        @Override
+        public int[] convert(final OID value) {
+            return value.toIntArray();
+        }
+    };
 
-    static final TypeToken<OID> OBJ_ID = TypeToken.of(OID.class);
+    private final OpenType<?> openType;
 
-    public static OidConversionFormat getFormat(final Map<String, String> options){
-        if(options.containsKey(SNMP_CONVERSION_FORMAT))
-            return getFormat(options.get(SNMP_CONVERSION_FORMAT));
+    private OidConversionFormat(final OpenType<?> type){
+        this.openType = type;
+    }
+
+    @Override
+    public OID convert(final Object value) throws InvalidAttributeValueException {
+        if(value instanceof int[])
+            return new OID((int[])value);
+        else if(value instanceof String)
+            return new OID((String)value);
+        else throw new InvalidAttributeValueException(String.format("Unable convert %s to OID", value));
+    }
+
+    static OidConversionFormat getFormat(final Descriptor options){
+        if(hasField(options, SNMP_CONVERSION_FORMAT_PARAM))
+            return getFormat(getField(options, SNMP_CONVERSION_FORMAT_PARAM, String.class));
         else return INT_ARRAY;
     }
 
-    public static OidConversionFormat getFormat(final String formatName){
+    static OidConversionFormat getFormat(final String formatName){
         switch (formatName){
             case "text": return TEXT;
             default: return INT_ARRAY;
         }
     }
 
-    public SMITypeProjection<OID, ?> createTypeProjection(){
-        switch (this){
-            case TEXT: return new SMITypeProjection<OID, String>(OBJ_ID, TypeLiterals.STRING) {
-                @Override
-                protected String convertFrom(final OID value) throws IllegalArgumentException {
-                    return value.toDottedString();
-                }
-            };
-            default: return new SMITypeProjection<OID, Object[]>(OBJ_ID, TypeLiterals.OBJECT_ARRAY) {
-                @Override
-                protected Integer[] convertFrom(final OID value) throws IllegalArgumentException {
-                    return ArrayUtils.boxArray(value.getValue());
-                }
-            };
-        }
+    @Override
+    public final OpenType<?> getOpenType() {
+        return openType;
     }
 }

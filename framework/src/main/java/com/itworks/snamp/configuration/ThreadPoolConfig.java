@@ -1,12 +1,12 @@
 package com.itworks.snamp.configuration;
 
 import com.google.common.base.Supplier;
-import com.itworks.snamp.GroupedThreadFactory;
+import com.itworks.snamp.concurrent.GroupedThreadFactory;
 
 import java.util.Map;
 import java.util.concurrent.*;
 
-import static com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEntity;
+import static com.itworks.snamp.configuration.AgentConfiguration.EntityConfiguration;
 import static com.itworks.snamp.configuration.ThreadPoolConfigurationDescriptor.*;
 
 /**
@@ -64,7 +64,7 @@ public class ThreadPoolConfig implements Supplier<ExecutorService> {
                         defaultThreadPriority);
     }
 
-    public ThreadPoolConfig(final ConfigurationEntity entity,
+    public ThreadPoolConfig(final EntityConfiguration entity,
                             final String threadGroupName,
                             final int defaultMinPoolSize,
                             final int defaultMaxPoolSize,

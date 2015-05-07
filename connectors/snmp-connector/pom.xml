@@ -9,6 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <name>SNMP Connector</name>
+    <version>${snamp.connectors.snmp.version}</version>
     <description>SNMP-compliant managed resource connector</description>
     <artifactId>snmp-connector</artifactId>
     <packaging>bundle</packaging>
@@ -35,30 +36,30 @@
             <scope>provided</scope>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>framework</artifactId>
-            <version>1.0.0</version>
+            <version>${snamp.framework.version}</version>
         </dependency>
         <dependency>
             <scope>provided</scope>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.core</artifactId>
-            <version>4.3.1</version>
+            <version>${osgi.version}</version>
         </dependency>
         <dependency>
             <scope>provided</scope>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.compendium</artifactId>
-            <version>4.3.1</version>
+            <version>${osgi.version}</version>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>snmp4j</artifactId>
-            <version>2.2.3</version>
+            <version>${snmp4j.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>18.0</version>
+            <version>${guava.version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

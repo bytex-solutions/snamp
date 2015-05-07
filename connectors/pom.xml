@@ -11,11 +11,33 @@
   <packaging>pom</packaging>
   <name>SNAMP Connectors</name>
   <description>A base classes for building SNAMP management connectors</description>
+  <build>
+      <plugins>
+          <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-surefire-plugin</artifactId>
+              <version>2.12.4</version>
+              <executions>
+                  <execution>
+                      <goals>
+                          <goal>test</goal>
+                      </goals>
+                  </execution>
+              </executions>
+              <configuration>
+                  <systemPropertyVariables>
+                      <ssh-cert-file>../../hostkey.ser</ssh-cert-file>
+                  </systemPropertyVariables>
+              </configuration>
+          </plugin>
+      </plugins>
+  </build>
   <modules>
       <module>jmx-connector</module>
       <module>snmp-connector</module>
       <module>rshell-connector</module>
-      <!--<module>ibmwmb-connector</module>
-      <module>ibmwmq-connector</module>-->
+      <module>aggregator-connector</module>
+      <!--<module>ibmwmb-connector</module>-->
+      <module>ibmwmq-connector</module>
   </modules>
 </project>

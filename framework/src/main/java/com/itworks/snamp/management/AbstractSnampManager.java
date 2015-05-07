@@ -1,19 +1,19 @@
 package com.itworks.snamp.management;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import com.itworks.snamp.AbstractAggregator;
 import com.itworks.snamp.Aggregator;
 import com.itworks.snamp.Consumer;
-import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
+import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.adapters.ResourceAdapterClient;
-import com.itworks.snamp.connectors.AbstractManagedResourceActivator;
+import com.itworks.snamp.connectors.ManagedResourceActivator;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
+import com.itworks.snamp.core.SupportService;
 import com.itworks.snamp.internal.Utils;
 import org.osgi.framework.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Locale;
+import java.util.*;
 
 /**
  * Represents partial implementation of {@link com.itworks.snamp.management.SnampManager} service.
@@ -23,14 +23,15 @@ import java.util.Locale;
  */
 public abstract class AbstractSnampManager extends AbstractAggregator implements SnampManager {
     private final class InternalSnampComponentDescriptor extends HashMap<String, String> implements SnampComponentDescriptor{
+        private static final long serialVersionUID = 5684854305916946882L;
 
-        public InternalSnampComponentDescriptor(final long bid){
+        private InternalSnampComponentDescriptor(final long bid){
             super(1);
             put(BUNDLE_ID_PROPERTY, Long.toString(bid));
         }
 
         private long getBundleID(){
-            return Long.valueOf(get(BUNDLE_ID_PROPERTY));
+            return Long.parseLong(get(BUNDLE_ID_PROPERTY));
         }
 
         private BundleContext getItselfContext(){
@@ -86,10 +87,9 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          * @param serviceInvoker User-defined action that is used to perform some management actions.
          * @return {@literal true}, if the specified service is invoked successfully.
          * @see com.itworks.snamp.management.Maintainable
-         * @see com.itworks.snamp.licensing.LicensingDescriptionService
          */
         @Override
-        public <S extends ManagementService, E extends Exception> boolean invokeManagementService(final Class<S> serviceType, final Consumer<S, E> serviceInvoker) throws E {
+        public <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Consumer<S, E> serviceInvoker) throws E {
             final BundleContext context = getItselfContext();
             final Bundle bnd = context.getBundle(getBundleID());
             boolean result = false;
@@ -136,6 +136,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      * @version 1.0
      */
     protected static abstract class ResourceAdapterDescriptor extends HashMap<String, String> implements SnampComponentDescriptor{
+        private static final long serialVersionUID = 5641114150847940779L;
 
         protected ResourceAdapterDescriptor(final String systemName){
             super(1);
@@ -199,10 +200,9 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          * @param serviceType    Requested service contract.
          * @param serviceInvoker User-defined action that is used to perform some management actions.
          * @see com.itworks.snamp.management.Maintainable
-         * @see com.itworks.snamp.licensing.LicensingDescriptionService
          */
         @Override
-        public final  <S extends ManagementService, E extends Exception> boolean invokeManagementService(final Class<S> serviceType, final Consumer<S, E> serviceInvoker) throws E {
+        public final  <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Consumer<S, E> serviceInvoker) throws E {
             ServiceReference<S> ref = null;
             try {
                 ref = ResourceAdapterClient.getServiceReference(getItselfContext(), getSystemName(), null, serviceType);
@@ -245,6 +245,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      * @version 1.0
      */
     protected static abstract class ResourceConnectorDescriptor extends HashMap<String, String> implements SnampComponentDescriptor {
+        private static final long serialVersionUID = -5406342058157943559L;
 
         protected ResourceConnectorDescriptor(final String connectorName){
             super(1);
@@ -320,15 +321,14 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          * @param serviceType    Requested service contract.
          * @param serviceInvoker User-defined action that is used to perform some management actions.
          * @see com.itworks.snamp.management.Maintainable
-         * @see com.itworks.snamp.licensing.LicensingDescriptionService
          */
         @Override
-        public final  <S extends ManagementService, E extends Exception> boolean invokeManagementService(final Class<S> serviceType, final Consumer<S, E> serviceInvoker) throws E {
+        public final  <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Consumer<S, E> serviceInvoker) throws E {
             ServiceReference<S> ref = null;
             try {
                 ref = ManagedResourceConnectorClient.getServiceReference(getItselfContext(), getSystemName(), null, serviceType);
                 if (ref == null) return false;
-                serviceInvoker.accept(getItselfContext().getService(ref));
+                else serviceInvoker.accept(getItselfContext().getService(ref));
             } catch (final InvalidSyntaxException ignored) {
                 return false;
             } finally {
@@ -360,9 +360,9 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      * @return A read-only collection of installed resource connectors.
      */
     @Override
-    public final Collection<SnampComponentDescriptor> getInstalledResourceConnectors() {
-        final Collection<String> systemNames = AbstractManagedResourceActivator.getInstalledResourceConnectors(Utils.getBundleContextByObject(this));
-        final Collection<SnampComponentDescriptor> result = new ArrayList<>(systemNames.size());
+    public final Collection<? extends ResourceConnectorDescriptor> getInstalledResourceConnectors() {
+        final Collection<String> systemNames = ManagedResourceActivator.getInstalledResourceConnectors(Utils.getBundleContextByObject(this));
+        final Collection<ResourceConnectorDescriptor> result = new ArrayList<>(systemNames.size());
         for(final String systemName: systemNames)
             result.add(createResourceConnectorDescriptor(systemName));
         return result;
@@ -381,9 +381,9 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      * @return A read-only collection of installed resource adapters.
      */
     @Override
-    public final Collection<SnampComponentDescriptor> getInstalledResourceAdapters() {
-        final Collection<String> systemNames = AbstractResourceAdapterActivator.getInstalledResourceAdapters(Utils.getBundleContextByObject(this));
-        final Collection<SnampComponentDescriptor> result = new ArrayList<>(systemNames.size());
+    public final Collection<? extends ResourceAdapterDescriptor> getInstalledResourceAdapters() {
+        final Collection<String> systemNames = ResourceAdapterActivator.getInstalledResourceAdapters(Utils.getBundleContextByObject(this));
+        final Collection<ResourceAdapterDescriptor> result = new ArrayList<>(systemNames.size());
         for(final String systemName: systemNames)
             result.add(createResourceAdapterDescriptor(systemName));
         return result;
@@ -395,8 +395,8 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      * @return {@literal true}, if the specified bundle is a part of SNAMP; otherwise, {@literal false}.
      */
     public static boolean isSnampComponent(final Bundle bnd){
-        if(AbstractResourceAdapterActivator.isResourceAdapterBundle(bnd) ||
-                AbstractManagedResourceActivator.isResourceConnectorBundle(bnd)) return false;
+        if(ResourceAdapterActivator.isResourceAdapterBundle(bnd) ||
+                ManagedResourceActivator.isResourceConnectorBundle(bnd)) return false;
         final String importPackages = bnd.getHeaders().get(Constants.IMPORT_PACKAGE);
         if(importPackages == null) return false;
         final String snampPackageNameRoot = Aggregator.class.getPackage().getName();
@@ -409,12 +409,30 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      * @return A read-only collection of installed additional SNAMP components.
      */
     @Override
-    public final Collection<SnampComponentDescriptor> getInstalledComponents() {
+    public final Collection<InternalSnampComponentDescriptor> getInstalledComponents() {
         final BundleContext context = Utils.getBundleContextByObject(this);
-        final Collection<SnampComponentDescriptor> result = new ArrayList<>(10);
+        final Collection<InternalSnampComponentDescriptor> result = new ArrayList<>(10);
         for(final Bundle bnd: context.getBundles())
             if(isSnampComponent(bnd))
                 result.add(new InternalSnampComponentDescriptor(bnd.getBundleId()));
         return result;
+    }
+
+    public final ResourceConnectorDescriptor getResourceConnector(final String connectorName) {
+        return Iterables.find(getInstalledResourceConnectors(), new Predicate<SnampComponentDescriptor>() {
+            @Override
+            public boolean apply(final SnampComponentDescriptor connector) {
+                return Objects.equals(connectorName, connector.get(SnampComponentDescriptor.CONNECTOR_SYSTEM_NAME_PROPERTY));
+            }
+        });
+    }
+
+    public final ResourceAdapterDescriptor getResourceAdapter(final String adapterName) {
+        return Iterables.find(getInstalledResourceAdapters(), new Predicate<SnampComponentDescriptor>() {
+            @Override
+            public boolean apply(final SnampComponentDescriptor connector) {
+                return Objects.equals(adapterName, connector.get(SnampComponentDescriptor.ADAPTER_SYSTEM_NAME_PROPERTY));
+            }
+        });
     }
 }

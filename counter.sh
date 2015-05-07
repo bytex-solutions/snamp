@@ -1,4 +1,4 @@
-#/bin/bash
+#!/usr/bin/env bash
 everything=$(find | grep -v /docs)
 
 for OUTPUT in $(git log --format='%aN' | sort -u)

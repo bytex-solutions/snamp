@@ -9,6 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <name>RShell Connector</name>
+    <version>${snamp.connectors.rshell.version}</version>
     <packaging>bundle</packaging>
     <description>RShell Connector that uses remote shells (ssh, rsh, rexec and etc) to obtain management information</description>
     <build>
@@ -52,7 +53,7 @@
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>framework</artifactId>
-            <version>1.0.0</version>
+            <version>${snamp.framework.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -71,18 +72,18 @@
             <scope>provided</scope>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.core</artifactId>
-            <version>4.3.1</version>
+            <version>${osgi.version}</version>
         </dependency>
         <dependency>
             <scope>provided</scope>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.compendium</artifactId>
-            <version>4.3.1</version>
+            <version>${osgi.version}</version>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>sshj</artifactId>
-            <version>0.10.0</version>
+            <version>${sshj.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -100,8 +101,20 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>18.0</version>
+            <version>${guava.version}</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.sshd</groupId>
+            <artifactId>sshd-core</artifactId>
+            <version>0.12.0</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

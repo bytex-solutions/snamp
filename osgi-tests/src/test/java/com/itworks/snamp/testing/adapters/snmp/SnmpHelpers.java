@@ -70,8 +70,7 @@ final class SnmpHelpers {
                 dataStream.writeByte(value.get(Calendar.DAY_OF_MONTH));
                 dataStream.writeByte(value.get(Calendar.HOUR_OF_DAY));
                 dataStream.writeByte(value.get(Calendar.MINUTE));
-                int second = value.get(Calendar.SECOND);
-                dataStream.writeByte(second == 0 ? 60 : second);
+                dataStream.writeByte(value.get(Calendar.SECOND));
                 dataStream.writeByte(value.get(Calendar.MILLISECOND) / 100);
 
                 int offsetInMillis = value.getTimeZone().getRawOffset();
@@ -214,7 +213,7 @@ final class SnmpHelpers {
             final String dayOfMonth = Integer.toString(value.get(Calendar.DAY_OF_MONTH));
             final String hourOfDay = addLeadingZeroes(Integer.toString(value.get(Calendar.HOUR_OF_DAY)), 2);
             final String minute = addLeadingZeroes(Integer.toString(value.get(Calendar.MINUTE)), 2);
-            final String second = addLeadingZeroes(Integer.toString(replace(value.get(Calendar.SECOND), 0, 60)), 2);
+            final String second = addLeadingZeroes(Integer.toString(value.get(Calendar.SECOND)), 2);
             final String deciseconds = Integer.toString(value.get(Calendar.MILLISECOND) / 100);
             int offsetInMillis = value.getTimeZone().getRawOffset();
             char directionFromUTC = '+';

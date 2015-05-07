@@ -1,46 +1,72 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
-import com.itworks.snamp.connectors.ManagedEntityType;
-import com.itworks.snamp.connectors.attributes.AttributeMetadata;
-import com.itworks.snamp.connectors.attributes.AttributeSupportException;
+import com.itworks.snamp.adapters.AttributeAccessor;
+import com.itworks.snamp.adapters.ReadAttributeLogicalOperation;
+import com.itworks.snamp.adapters.WriteAttributeLogicalOperation;
+import com.itworks.snamp.core.LogicalOperation;
+import com.itworks.snamp.jmx.WellKnownType;
+import org.snmp4j.agent.DuplicateRegistrationException;
+import org.snmp4j.agent.MOServer;
+import org.snmp4j.agent.mo.MOAccessImpl;
 import org.snmp4j.agent.mo.MOScalar;
 import org.snmp4j.mp.SnmpConstants;
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.Variable;
 
-import java.util.concurrent.TimeoutException;
+import javax.management.InvalidAttributeValueException;
+import javax.management.JMException;
+import javax.management.MBeanAttributeInfo;
+import javax.management.ReflectionException;
+import java.lang.reflect.Type;
+import java.util.Objects;
 import java.util.logging.Level;
 
+import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.parseOID;
 import static com.itworks.snamp.adapters.snmp.SnmpHelpers.getAccessRestrictions;
-import static com.itworks.snamp.connectors.ManagedEntityTypeHelper.ConversionFallback;
 
 /**
  * Represents a base class for scalar SNMP managed objects.
  * @param <T> Type of the ASN notation.
  */
 abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implements SnmpAttributeMapping {
-    private final T defaultValue;
-    private final AttributeAccessor attribute;
+    private static final String OID_PARAMETER = "OID";
 
-    protected SnmpScalarObject(final String oid, final AttributeAccessor attribute, final T defval){
-        super(new OID(oid), getAccessRestrictions(attribute), defval);
-        this.defaultValue = defval;
-        this.attribute = attribute;
+    private static final class SnmpWriteAttributeLogicalOperation extends WriteAttributeLogicalOperation{
+        private SnmpWriteAttributeLogicalOperation(final AttributeAccessor accessor,
+                                                   final OID oid){
+            super(accessor.getName(), accessor.toString(), OID_PARAMETER, oid);
+        }
     }
 
-    protected static <T> T logAndReturnDefaultValue(final T defaultValue, final Variable originalValue, final ManagedEntityType attributeType){
-        log.log(Level.WARNING, String.format("Cannot convert '%s' value to '%s' attribute type.", originalValue, attributeType));
-        return defaultValue;
+    private static final class SnmpReadAttributeLogicalOperation extends ReadAttributeLogicalOperation{
+        private SnmpReadAttributeLogicalOperation(final AttributeAccessor accessor,
+                                                  final OID oid){
+            super(accessor.getName(), accessor.toString(), OID_PARAMETER, oid);
+        }
     }
 
-    protected static  <T> ConversionFallback<T> fallbackWithDefaultValue(final T defaultValue, final Variable originalValue, final ManagedEntityType attributeType){
-        return new ConversionFallback<T>() {
-            @Override
-            public T call() {
-                return logAndReturnDefaultValue(defaultValue, originalValue, attributeType);
-            }
-        };
+    private final AttributeAccessor accessor;
+
+    protected SnmpScalarObject(final AttributeAccessor attribute, final T defval){
+        this(attribute, false, defval);
+    }
+
+    protected SnmpScalarObject(final AttributeAccessor attribute,
+                               final boolean readOnly,
+                               final T defval){
+        super(new OID(parseOID(attribute.getMetadata())),
+                readOnly ? MOAccessImpl.ACCESS_READ_ONLY : getAccessRestrictions(attribute.getMetadata()),
+                defval);
+        this.accessor = attribute;
+        setVolatile(true);
+    }
+
+    protected static <T extends Variable> InvalidAttributeValueException unexpectedSnmpType(final Class<T> type){
+        return new InvalidAttributeValueException(String.format("%s expected", type));
+    }
+
+    protected static InvalidAttributeValueException unexpectedAttributeType(final Type type){
+        return new InvalidAttributeValueException(String.format("Unexpected type %s", type));
     }
 
     /**
@@ -55,7 +81,11 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
      * @param value The value to convert.
      * @return Resource-specific representation of SNMP-compliant value.
      */
-    protected abstract Object convert(final T value);
+    protected abstract Object convert(final T value) throws JMException;
+
+    private T getDefaultValue(){
+        return super.getValue();
+    }
 
     /**
      * Returns SNMP-compliant value of the attribute.
@@ -64,14 +94,15 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
     @Override
     public final T getValue() {
         Object result;
-        try{
-            result = attribute.getRawValue();
+        try(final LogicalOperation ignored = new SnmpReadAttributeLogicalOperation(accessor, getOid())) {
+            result = accessor.getValue();
         }
-        catch (final TimeoutException | AttributeSupportException e){
-            log.log(Level.WARNING, String.format("Read operation failed for %s attribute", attribute.getName()), e);
-            result = defaultValue;
+        catch (final JMException e) {
+            SnmpHelpers.log(Level.WARNING, "Read operation failed for %s attribute. Context: %s",
+                    accessor, LogicalOperation.current(), e);
+            result = getDefaultValue();
         }
-        return result == null ? defaultValue : convert(result);
+        return result == null ? getDefaultValue() : convert(result);
     }
 
     /**
@@ -83,11 +114,14 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
     @Override
     public final int setValue(final T value) {
         int result;
-        try {
-            attribute.setValue(convert(value));
+        try(final LogicalOperation ignored = new SnmpWriteAttributeLogicalOperation(accessor, getOid())) {
+            accessor.setValue(convert(value));
             result = SnmpConstants.SNMP_ERROR_SUCCESS;
-        } catch (final TimeoutException | AttributeSupportException e) {
-            log.log(Level.WARNING, e.getLocalizedMessage(), e);
+        } catch (final JMException e) {
+            SnmpHelpers.log(Level.WARNING, "Writing operation failed for %s attribute. Context: %s",
+                    accessor,
+                    LogicalOperation.current(),
+                    e);
             result = SnmpConstants.SNMP_ERROR_RESOURCE_UNAVAILABLE;
         }
         return result;
@@ -99,7 +133,41 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
      * @return The metadata of the underlying attribute.
      */
     @Override
-    public final AttributeMetadata getMetadata() {
-        return attribute;
+    public final MBeanAttributeInfo getMetadata() {
+        return accessor.getMetadata();
+    }
+
+    protected final Type getAttributeType() throws ReflectionException {
+        final WellKnownType knownType = accessor.getType();
+        return knownType != null ? knownType : accessor.getRawType();
+    }
+
+    @Override
+    public final boolean connect(final OID context, final MOServer server) throws DuplicateRegistrationException {
+        //do not add the attribute
+        if (getID().startsWith(context)) {
+            server.register(this, null);
+            return true;
+        }
+        else return false;
+    }
+
+    @Override
+    public final AttributeAccessor disconnect(final MOServer server) {
+        if(server != null) {
+            server.unregister(this, null);
+        }
+        else accessor.disconnect();
+        return accessor;
+    }
+
+    @Override
+    public final boolean equals(final MBeanAttributeInfo metadata) {
+        return Objects.equals(getID(), new OID(parseOID(metadata)));
+    }
+
+    @Override
+    public final String toString() {
+        return String.format("Scalar. Metadata: %s; OID: %s; Access: %s", accessor.toString(), getID(), getAccess());
     }
 }

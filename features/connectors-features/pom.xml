@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>features</artifactId>
+        <groupId>com.itworks.snamp</groupId>
+        <version>1.0.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <name>SNAMP Connectors Collection</name>
+    <artifactId>connectors-features</artifactId>
+    <packaging>pom</packaging>
+    <modules>
+        <module>jmx-connector-feature</module>
+        <module>snmp-connector-feature</module>
+        <module>rshell-connector-feature</module>
+        <module>aggregator-connector-feature</module>
+        <module>ibmwmq-connector-feature</module>
+    </modules>
+
+</project>

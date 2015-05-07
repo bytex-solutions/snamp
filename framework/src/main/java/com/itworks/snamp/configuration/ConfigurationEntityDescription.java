@@ -5,7 +5,7 @@ import com.itworks.snamp.Descriptive;
 import java.util.Collection;
 import java.util.Locale;
 
-import static com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEntity;
+import static com.itworks.snamp.configuration.AgentConfiguration.EntityConfiguration;
 
 /**
  * Represents description of the SNAMP plugin configuration model.
@@ -21,7 +21,7 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ConfigurationEn
  * @version 1.0
  * @since 1.0
  */
-public interface ConfigurationEntityDescription<T extends ConfigurationEntity> extends Collection<String> {
+public interface ConfigurationEntityDescription<T extends EntityConfiguration> extends Collection<String> {
 
     /**
      * Represents relationship between configuration parameters.
@@ -54,13 +54,13 @@ public interface ConfigurationEntityDescription<T extends ConfigurationEntity> e
          * Gets the name of this parameter.
          * @return The name of this parameter.
          */
-        public String getName();
+        String getName();
 
         /**
          * Determines whether the configuration parameter must be presented in the configuration.
          * @return {@literal true}, if this parameter should be presented in the configuration; otherwise, {@literal false}.
          */
-        public boolean isRequired();
+        boolean isRequired();
 
         /**
          * Returns regular expression pattern that can be used to validate parameter value.
@@ -68,7 +68,7 @@ public interface ConfigurationEntityDescription<T extends ConfigurationEntity> e
          * @return The regular expression pattern that can be used to validate parameter value; or {@literal null} if it
          * is unknown.
          */
-        public String getValuePattern(final Locale loc);
+        String getValuePattern(final Locale loc);
 
         /**
          * Determines whether the specified parameter value is correct.
@@ -76,21 +76,21 @@ public interface ConfigurationEntityDescription<T extends ConfigurationEntity> e
          * @param loc The locale of the parameter value.
          * @return {@literal true}, if the specified value is correct; otherwise, {@literal false}.
          */
-        public boolean validateValue(final String value, final Locale loc);
+        boolean validateValue(final String value, final Locale loc);
 
         /**
          * Returns a collection of related parameters.
          * @param relationship Required relationship between this parameter and other parameters.
          * @return A read-only collection of related parameters.
          */
-        public Collection<String> getRelatedParameters(final ParameterRelationship relationship);
+        Collection<String> getRelatedParameters(final ParameterRelationship relationship);
 
         /**
          * Returns the default value of this configuration parameter.
          * @param loc The localization of the default value. May be {@literal null}.
          * @return The default value of this configuration parameter; or {@literal null} if value is not available.
          */
-        public String getDefaultValue(final Locale loc);
+        String getDefaultValue(final Locale loc);
     }
 
     /**

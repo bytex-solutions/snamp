@@ -1,87 +1,118 @@
 package com.itworks.snamp.connectors.attributes;
 
-import com.itworks.snamp.TimeSpan;
+import javax.management.*;
 
-import java.util.*;
-import java.util.concurrent.TimeoutException;
+import static com.itworks.snamp.configuration.AgentConfiguration.EntityConfiguration;
 
 /**
- * Represents support for management managementAttributes.
+ * Represents support for management attributes.
+ * <p>
+ *     The type of each managed resource attribute is limited to the following classes:
+ *     <ul>
+ *         <li>All JMX Open Types are valid attribute types. For more information, see {@link javax.management.openmbean.OpenType}</li>
+ *         <li>{@link java.nio.ByteBuffer}</li>
+ *         <li>{@link java.nio.CharBuffer}</li>
+ *         <li>{@link java.nio.ShortBuffer}</li>
+ *         <li>{@link java.nio.IntBuffer}</li>
+ *         <li>{@link java.nio.LongBuffer}</li>
+ *         <li>{@link java.nio.FloatBuffer}</li>
+ *         <li>{@link java.nio.DoubleBuffer}</li>
+ *     </ul>
+ * </p>
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
 public interface AttributeSupport {
     /**
-     * Connects to the specified attribute.
-     * @param id A key string that is used to invoke attribute from this connector.
+     * The name of field in {@link javax.management.Descriptor} which contains
+     * the name of the attribute.
+     */
+    String ATTRIBUTE_NAME_FIELD = "attributeName";
+
+    /**
+     * The name of the field in {@link javax.management.Descriptor} which
+     * contains {@link com.itworks.snamp.TimeSpan} value.
+     */
+    String READ_WRITE_TIMEOUT_FIELD = "readWriteTimeout";
+
+    /**
+     * The name of the field in {@link javax.management.Descriptor}
+     * which contains attribute description.
+     */
+    String DESCRIPTION_FIELD = EntityConfiguration.DESCRIPTION_KEY;
+
+    /**
+     * The name of the field of {@link javax.management.openmbean.OpenType} in {@link javax.management.Descriptor}
+     * which describes the attribute type.
+     */
+    String OPEN_TYPE = JMX.OPEN_TYPE_FIELD;
+
+    /**
+     * Obtain the value of a specific attribute of the managed resource.
+     *
+     * @param attribute The name of the attribute to be retrieved
+     *
+     * @return  The value of the attribute retrieved.
+     *
+     * @exception javax.management.AttributeNotFoundException
+     * @exception javax.management.MBeanException  Wraps a <CODE>java.lang.Exception</CODE> thrown by the MBean's getter.
+     * @exception javax.management.ReflectionException  Wraps a <CODE>java.lang.Exception</CODE> thrown while trying to invoke the getter.
+     *
+     * @see #setAttribute
+     */
+    Object getAttribute(final String attribute) throws AttributeNotFoundException,
+            MBeanException, ReflectionException;
+
+    /**
+     * Set the value of a specific attribute of the managed resource.
+     *
+     * @param attribute The identification of the attribute to
+     * be set and  the value it is to be set to.
+     *
+     * @exception AttributeNotFoundException
+     * @exception InvalidAttributeValueException
+     * @exception MBeanException Wraps a <CODE>java.lang.Exception</CODE> thrown by the MBean's setter.
+     * @exception ReflectionException Wraps a <CODE>java.lang.Exception</CODE> thrown while trying to invoke the MBean's setter.
+     *
+     * @see #getAttribute
+     */
+    void setAttribute(final Attribute attribute) throws AttributeNotFoundException,
+            InvalidAttributeValueException, MBeanException, ReflectionException ;
+
+    /**
+     * Get the values of several attributes of the managed resource.
+     *
+     * @param attributes A list of the attributes to be retrieved.
+     *
+     * @return  The list of attributes retrieved.
+     *
+     * @see #setAttributes
+     */
+    AttributeList getAttributes(final String[] attributes);
+
+    /**
+     * Sets the values of several attributes of the managed resource.
+     *
+     * @param attributes A list of attributes: The identification of the
+     * attributes to be set and  the values they are to be set to.
+     *
+     * @return  The list of attributes that were set, with their new values.
+     *
+     * @see #getAttributes
+     */
+    AttributeList setAttributes(final AttributeList attributes);
+
+    /**
+     * Gets an array of connected attributes.
+     * @return An array of connected attributes.
+     */
+    MBeanAttributeInfo[] getAttributeInfo();
+
+    /**
+     * Gets attribute metadata.
      * @param attributeName The name of the attribute.
-     * @param options The attribute discovery options.
-     * @return The description of the attribute.
-     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
+     * @return The attribute metadata; or {@literal null}, if attribute doesn't exist.
      */
-    AttributeMetadata connectAttribute(final String id, final String attributeName, final Map<String, String> options) throws AttributeSupportException;
-
-    /**
-     * Returns the attribute value.
-     * @param id  A key string that is used to invoke attribute from this connector.
-     * @param readTimeout The attribute value invoke operation timeout.
-     * @return The value of the attribute, or default value.
-     * @throws java.util.concurrent.TimeoutException The attribute value cannot be invoke in the specified duration.
-     * @throws com.itworks.snamp.connectors.attributes.UnknownAttributeException The requested attribute doesn't exist.
-     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
-     */
-    Object getAttribute(final String id, final TimeSpan readTimeout) throws TimeoutException,
-                                                                                UnknownAttributeException,
-                                                                                AttributeSupportException;
-
-    /**
-     * Reads a set of managementAttributes.
-     * @param output The dictionary with set of attribute keys to invoke and associated default values.
-     * @param readTimeout The attribute value invoke operation timeout.
-     * @return The set of managementAttributes ids really written to the dictionary.
-     * @throws TimeoutException The attribute value cannot be invoke in the specified duration.
-     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
-     */
-    Set<String> getAttributes(final Map<String, Object> output, final TimeSpan readTimeout) throws TimeoutException, AttributeSupportException;
-
-    /**
-     * Writes the value of the specified attribute.
-     * @param id An identifier of the attribute,
-     * @param writeTimeout The attribute value write operation timeout.
-     * @param value The value to write.
-     * @throws TimeoutException The attribute value cannot be written in the specified time constraint.
-     * @throws com.itworks.snamp.connectors.attributes.UnknownAttributeException The updated attribute doesn't exist.
-     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
-     */
-    void setAttribute(final String id, final TimeSpan writeTimeout, final Object value) throws TimeoutException, UnknownAttributeException, AttributeSupportException;
-
-    /**
-     * Writes a set of managementAttributes inside of the transaction.
-     * @param values The dictionary of managementAttributes keys and its values.
-     * @param writeTimeout The attribute value write operation timeout.
-     * @throws TimeoutException The attribute value cannot be written in the specified time constraint.
-     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
-     */
-    void setAttributes(final Map<String, Object> values, final TimeSpan writeTimeout) throws TimeoutException, AttributeSupportException;
-
-    /**
-     * Removes the attribute from the connector.
-     * @param id The unique identifier of the attribute.
-     * @return {@literal true}, if the attribute successfully disconnected; otherwise, {@literal false}.
-     */
-    boolean disconnectAttribute(final String id);
-
-    /**
-     * Returns the information about the connected attribute.
-     * @param id An identifier of the attribute.
-     * @return The attribute descriptor; or {@literal null} if attribute is not connected.
-     */
-    AttributeMetadata getAttributeInfo(final String id);
-
-    /**
-     * Returns a read-only collection of registered IDs of managementAttributes.
-     * @return A read-only collection of registered IDs of managementAttributes.
-     */
-    Collection<String> getConnectedAttributes();
+    MBeanAttributeInfo getAttributeInfo(final String attributeName);
 }

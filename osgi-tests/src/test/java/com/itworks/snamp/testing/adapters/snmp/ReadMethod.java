@@ -9,7 +9,7 @@ import org.snmp4j.util.PDUFactory;
  * Represents the set of available GET methods for snmp
  * @author Sakno Roman
  */
-public enum ReadMethod{
+enum ReadMethod{
     GET(PDU.GET),
     GETBULK(PDU.GETBULK);
 
@@ -19,19 +19,15 @@ public enum ReadMethod{
         method = m;
     }
 
-    public final void setPduType(final PDU pdu){
-        pdu.setType(method);
-    }
-
-    public final int getPduType(){
+    int getPduType(){
         return method;
     }
 
-    public final PDUFactory createPduFactory(){
+    PDUFactory createPduFactory(){
         return new DefaultPDUFactory(method);
     }
 
-    public final void prepareOIDs(final OID[] oids) {
+    void prepareOIDs(final OID[] oids) {
         switch (method){
             case PDU.GETBULK:
                 for(int i = 0; i < oids.length; i++)

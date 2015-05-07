@@ -2,15 +2,24 @@ package com.itworks.snamp.adapters.ssh;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.base.Supplier;
 import com.google.common.collect.Collections2;
-import com.google.common.collect.MapMaker;
-import com.itworks.snamp.InMemoryTable;
-import com.itworks.snamp.Table;
-import com.itworks.snamp.TypeLiterals;
-import com.itworks.snamp.adapters.AbstractResourceAdapter;
-import com.itworks.snamp.connectors.attributes.AttributeSupportException;
-import com.itworks.snamp.connectors.notifications.Notification;
-import com.itworks.snamp.connectors.notifications.NotificationMetadata;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.itworks.snamp.Consumer;
+import com.itworks.snamp.adapters.*;
+import com.itworks.snamp.concurrent.ThreadSafeObject;
+import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
+import com.itworks.snamp.connectors.attributes.CustomAttributeInfo;
+import com.itworks.snamp.internal.Utils;
+import com.itworks.snamp.jmx.ExpressionBasedDescriptorFilter;
+import com.itworks.snamp.jmx.TabularDataUtils;
+import com.itworks.snamp.jmx.WellKnownType;
+import com.itworks.snamp.jmx.json.Formatters;
+import com.itworks.snamp.jmx.json.JsonSerializerFunction;
+import net.schmizz.sshj.userauth.keyprovider.*;
 import org.apache.sshd.SshServer;
 import org.apache.sshd.server.Command;
 import org.apache.sshd.server.CommandFactory;
@@ -21,18 +30,21 @@ import org.apache.sshd.server.jaas.JaasPasswordAuthenticator;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.server.session.ServerSession;
 
+import javax.management.*;
+import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.TabularData;
+import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.Reader;
+import java.io.Writer;
+import java.nio.*;
 import java.security.PublicKey;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
+import static com.itworks.snamp.adapters.ssh.SshAdapterConfigurationDescriptor.*;
 
 /**
  * Represents SSH resource adapter.
@@ -42,233 +54,364 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResource
  */
 final class SshAdapter extends AbstractResourceAdapter implements AdapterController {
     static final String NAME = SshHelpers.ADAPTER_NAME;
+    private static Gson FORMATTER = Formatters.enableAll(new GsonBuilder())
+            .serializeSpecialFloatingPointValues()
+            .serializeNulls()
+            .create();
 
-    private static final class SshNotificationsModel extends AbstractNotificationsModel<SshNotificationView>{
-        private final AtomicLong idCounter = new AtomicLong(0L);
-        private final Map<Long, NotificationListener> listeners;
+    private static final class SshNotificationMappingImpl extends UnicastNotificationRouter implements SshNotificationMapping {
+        private final String resourceName;
 
-        private SshNotificationsModel() {
-            listeners = new MapMaker().weakValues().initialCapacity(10).makeMap();
+        private SshNotificationMappingImpl(final MBeanNotificationInfo metadata,
+                                           final NotificationEventBox mailbox,
+                                           final String resourceName){
+            super(metadata, mailbox);
+            this.resourceName = resourceName;
         }
 
-        /**
-         * Creates a new notification metadata representation.
-         *
-         * @param resourceName User-defined name of the managed resource.
-         * @param eventName    The resource-local identifier of the event.
-         * @param notifMeta    The notification metadata to wrap.
-         * @return A new notification metadata representation.
-         */
         @Override
-        protected SshNotificationView createNotificationView(final String resourceName, final String eventName, final NotificationMetadata notifMeta) {
-            return new SshNotificationView() {
-                @Override
-                public String getEventName() {
-                    return eventName;
-                }
+        protected Notification intercept(final Notification notification) {
+            notification.setSource(resourceName);
+            return notification;
+        }
+    }
+
+    private static final class SshNotificationsModel extends ThreadSafeObject{
+        private final Map<String, ResourceNotificationList<SshNotificationMappingImpl>> notifications;
+        private final NotificationEventBox mailbox;
+
+        private SshNotificationsModel(){
+            notifications = createNotifs();
+            mailbox = new NotificationEventBox(50);
+        }
+
+        private static Map<String, ResourceNotificationList<SshNotificationMappingImpl>> createNotifs(){
+            return new HashMap<String, ResourceNotificationList<SshNotificationMappingImpl>>(20){
+                private static final long serialVersionUID = 3091347160169529722L;
 
                 @Override
-                public String getResourceName() {
-                    return resourceName;
+                public void clear() {
+                    for(final ResourceNotificationList<?> list: values())
+                        list.clear();
+                    super.clear();
                 }
             };
         }
 
-        /**
-         * Processes SNAMP notification.
-         *
-         * @param sender               The name of the managed resource which emits the notification.
-         * @param notif                The notification to process.
-         * @param notificationMetadata The metadata of the notification.
-         */
-        @Override
-        protected void handleNotification(final String sender, final Notification notif, final SshNotificationView notificationMetadata) {
-            for(final NotificationListener listener: listeners.values())
-                listener.handle(sender, notificationMetadata.getEventName(), notif);
+        private void clear(){
+            try(final LockScope ignored = beginWrite()){
+                notifications.clear();
+            }
+            mailbox.clear();
         }
 
-        long addNotificationListener(final NotificationListener listener) {
-            final long listenerID;
-            listeners.put(listenerID = idCounter.incrementAndGet(),
-                    Objects.requireNonNull(listener));
-            return listenerID;
+        private NotificationAccessor addNotification(final String resourceName,
+                                                     final MBeanNotificationInfo metadata){
+            try(final LockScope ignored = beginWrite()){
+                final ResourceNotificationList<SshNotificationMappingImpl> list;
+                if(notifications.containsKey(resourceName))
+                    list = notifications.get(resourceName);
+                else notifications.put(resourceName, list = new ResourceNotificationList<>());
+                final SshNotificationMappingImpl accessor = new SshNotificationMappingImpl(metadata, mailbox, resourceName);
+                list.put(accessor);
+                return accessor;
+            }
         }
 
-        void removeNotificationListener(final long listenerID) {
-            listeners.remove(listenerID);
+        private Iterable<? extends NotificationAccessor> clear(final String resourceName){
+            try(final LockScope ignored = beginWrite()){
+                return notifications.containsKey(resourceName) ?
+                    notifications.remove(resourceName).values():
+                        ImmutableList.<SshNotificationMappingImpl>of();
+            }
         }
 
-        /**
-         * Creates subscription list ID.
-         *
-         * @param resourceName User-defined name of the managed resource which can emit the notification.
-         * @param eventName    User-defined name of the event.
-         * @return A new unique subscription list ID.
-         */
-        @Override
-        protected String makeSubscriptionListID(final String resourceName, final String eventName) {
-            return String.format("%s/%s", resourceName, eventName);
+        private NotificationAccessor removeNotification(final String resourceName,
+                                                        final MBeanNotificationInfo metadata){
+            try(final LockScope ignored = beginWrite()){
+                final ResourceNotificationList<SshNotificationMappingImpl> list;
+                if(notifications.containsKey(resourceName))
+                    list = notifications.get(resourceName);
+                else return null;
+                final NotificationAccessor result = list.remove(metadata);
+                if(list.isEmpty())
+                    notifications.remove(resourceName);
+                return result;
+            }
         }
 
-        Set<String> getNotifications(final String resourceName) {
-            final Set<String> notifs = new HashSet<>(size());
-            for (final String notifID : keySet())
-                if (notifID.startsWith(resourceName))
-                    notifs.add(notifID);
-            return notifs;
-        }
-    }
-
-    private static final class SshAttributesModel extends AbstractAttributesModel<SshAttributeView>{
-
-        /**
-         * Creates a new domain-specific representation of the management attribute.
-         *
-         * @param resourceName             User-defined name of the managed resource.
-         * @param userDefinedAttributeName User-defined name of the attribute.
-         * @param accessor                 An accessor for the individual management attribute.
-         * @return A new domain-specific representation of the management attribute.
-         */
-        @Override
-        protected SshAttributeView createAttributeView(final String resourceName, final String userDefinedAttributeName, final AttributeAccessor accessor) {
-            return new SshAttributeView() {
-                private void printValue(final Object[] value, final PrintWriter output){
-                    output.println(String.format("ARRAY = %s", Arrays.toString(value)));
-                }
-
-                private void printValue(final Map<String, Object> value, final PrintWriter output){
-                    output.println("MAP");
-                    for(final Map.Entry<String, Object> pair: value.entrySet())
-                        output.println(String.format("%s = %s", pair.getKey(), pair.getValue()));
-                }
-
-                private String joinString(Collection<?> values,
-                                               final String format,
-                                               final String separator) {
-                    Collections2.transform(values, new Function<Object, String>() {
-                        @Override
-                        public final String apply(final Object input) {
-                            return String.format(format, input);
-                        }
-                    });
-                    return Joiner.on(separator).join(values);
-                }
-
-                private void printValue(final Table<String> value,
-                                        final boolean columnBasedView,
-                                        final PrintWriter output){
-                    output.println("TABLE");
-                    output.println();
-                    if(columnBasedView){
-                        final List<String> columns = InMemoryTable.getOrderedColumns(value);
-                        final String COLUMN_SEPARATOR = "\t";
-                        final String ITEM_FORMAT = "%-10s";
-                        //print columns first
-                        output.println(joinString(columns, ITEM_FORMAT, COLUMN_SEPARATOR));
-                        //print rows
-                        for(int row = 0; row < value.getRowCount(); row++){
-                            output.println(joinString(InMemoryTable.getRow(value, columns, row), ITEM_FORMAT, COLUMN_SEPARATOR));
-                        }
-
-                    }
-                    else for(int i = 0; i < value.getRowCount(); i++){
-                        output.println(String.format("ROW #%s:", i));
-                        for(final String column: value.getColumns())
-                            output.println(String.format("%s = %s", column, value.getCell(column, i)));
-                        output.println();
-                    }
-                }
-
-                @Override
-                public void printValue(final PrintWriter output) throws TimeoutException {
-                    final String VALUE_STUB = "<UNABLE TO DISPLAY VALUE>";
-                    final Object attrValue = accessor.getValue(accessor.getWellKnownType(), null);
-                    if(TypeLiterals.isInstance(attrValue, TypeLiterals.OBJECT_ARRAY))
-                        printValue(TypeLiterals.cast(attrValue, TypeLiterals.OBJECT_ARRAY), output);
-                    else if(TypeLiterals.isInstance(attrValue, TypeLiterals.STRING_MAP))
-                        printValue(TypeLiterals.cast(attrValue, TypeLiterals.STRING_MAP), output);
-                    else if(TypeLiterals.isInstance(attrValue, TypeLiterals.STRING_COLUMN_TABLE))
-                        printValue(TypeLiterals.cast(attrValue, TypeLiterals.STRING_COLUMN_TABLE),
-                                accessor.containsKey(SshAdapterConfigurationDescriptor.COLUMN_BASED_OUTPUT_PARAM),
-                                output);
-                    else output.println(Objects.toString(attrValue, VALUE_STUB));
-                }
-
-                @Override
-                public String getName() {
-                    return accessor.getName();
-                }
-
-                @Override
-                public void printOptions(final PrintWriter output) {
-                    for(final Map.Entry<String, String> option: accessor.entrySet())
-                        output.println(String.format("%s = %s", option.getKey(), option.getValue()));
-                }
-
-                @Override
-                public boolean canRead() {
-                    return accessor.canRead();
-                }
-
-                @Override
-                public boolean canWrite() {
-                    return accessor.canWrite();
-                }
-
-                @Override
-                public void setValue(final Object value) throws TimeoutException, AttributeSupportException {
-                    accessor.setValue(value);
-                }
-
-                @Override
-                public <I, O> O applyTransformation(final Class<? extends ValueTransformation<I, O>> transformation, final I arg) throws ReflectiveOperationException, TimeoutException, AttributeSupportException{
-                    final ValueTransformation<I, O> t = transformation.newInstance();
-                    return t.transform(arg, accessor);
-                }
-            };
-        }
-
-        /**
-         * Creates a new unique identifier of the management attribute.
-         * <p>
-         * The identifier must be unique through all instances of the resource adapter.
-         * </p>
-         *
-         * @param resourceName             User-defined name of the managed resource which supply the attribute.
-         * @param userDefinedAttributeName User-defined name of the attribute.
-         * @return A new unique identifier of the management attribute.
-         */
-        @Override
-        protected String makeAttributeID(final String resourceName, final String userDefinedAttributeName) {
-            return String.format("%s/%s", resourceName, userDefinedAttributeName);
-        }
-
-        private Set<String> byResourceName(final String resourceName) {
-            final HashSet<String> attributes = new HashSet<>(size());
-            for(final String attributeID: keySet())
-                if(attributeID.startsWith(resourceName))
-                    attributes.add(attributeID);
-            return attributes;
+        private Notification poll(final ExpressionBasedDescriptorFilter filter) {
+            final NotificationEvent event = mailbox.poll();
+            return filter == null || filter.match(event.getSource()) ?
+                    event.getNotification() : null;
         }
     }
 
-    private final SshServer server;
-    private final ExecutorService commandExecutors;
+    private abstract static class AbstractSshAttributeMapping extends AttributeAccessor implements SshAttributeMapping {
+        private AbstractSshAttributeMapping(final MBeanAttributeInfo metadata){
+            super(metadata);
+        }
+
+        @Override
+        public final String getOriginalName() {
+            return AttributeDescriptor.getAttributeName(getMetadata());
+        }
+
+        private void printValueAsJson(final Writer output) throws IOException, JMException{
+            FORMATTER.toJson(getValue(), output);
+            output.flush();
+        }
+
+        @Override
+        public final void printValue(final Writer output, final AttributeValueFormat format) throws JMException, IOException {
+            switch (format){
+                case JSON: printValueAsJson(output); return;
+                default: printValueAsText(output);
+            }
+        }
+
+        protected abstract void printValueAsText(final Writer output) throws JMException, IOException;
+
+        /**
+         * Prints attribute value.
+         *
+         * @param input An input stream that contains attribute
+         * @throws javax.management.JMException
+         */
+        @Override
+        public final void setValue(final Reader input) throws JMException, IOException {
+            if(getType() != null && canWrite())
+                setValue(FORMATTER.fromJson(input, getType().getJavaType()));
+            else throw new UnsupportedOperationException(String.format("Attribute %s is read-only", getName()));
+        }
+
+        @Override
+        public final void printOptions(final Writer output) throws IOException{
+            final Descriptor descr = getMetadata().getDescriptor();
+            for(final String fieldName: descr.getFieldNames())
+                output.append(String.format("%s = %s", fieldName, descr.getFieldValue(fieldName)));
+            output.flush();
+        }
+    }
+
+    private static final class ReadOnlyAttributeMapping extends AbstractSshAttributeMapping {
+        private ReadOnlyAttributeMapping(final MBeanAttributeInfo metadata){
+            super(metadata);
+        }
+
+        @Override
+        protected void printValueAsText(final Writer output) throws JMException, IOException {
+            output.append(Objects.toString(getValue(), "NULL"));
+        }
+
+        @Override
+        public boolean canWrite() {
+            return false;
+        }
+    }
+
+    private static final class DefaultAttributeMapping extends AbstractSshAttributeMapping {
+
+        private DefaultAttributeMapping(final MBeanAttributeInfo metadata) {
+            super(metadata);
+        }
+
+        @Override
+        protected void printValueAsText(final Writer output) throws JMException, IOException {
+            output.append(Objects.toString(getValue(), ""));
+        }
+    }
+
+    private static abstract class AbstractBufferAttributeMapping<B extends Buffer> extends AbstractSshAttributeMapping {
+        protected static final char WHITESPACE = ' ';
+        private final Class<B> bufferType;
+
+        private AbstractBufferAttributeMapping(final MBeanAttributeInfo metadata,
+                                               final Class<B> bufferType){
+            super(metadata);
+            this.bufferType = bufferType;
+        }
+
+        protected abstract void printValueAsText(final B buffer, final Writer output) throws IOException;
+
+        @Override
+        protected final void printValueAsText(final Writer output) throws JMException, IOException {
+            printValueAsText(getValue(bufferType), output);
+        }
+    }
+
+    private static final class ByteBufferAttributeMapping extends AbstractBufferAttributeMapping<ByteBuffer> {
+        private ByteBufferAttributeMapping(final MBeanAttributeInfo metadata){
+            super(metadata, ByteBuffer.class);
+        }
+
+        @Override
+        protected void printValueAsText(final ByteBuffer buffer, final Writer output) throws IOException {
+            while (buffer.hasRemaining())
+                output.append(Byte.toString(buffer.get())).append(WHITESPACE);
+        }
+    }
+
+    private static final class CharBufferAttributeMapping extends AbstractBufferAttributeMapping<CharBuffer> {
+        private CharBufferAttributeMapping(final MBeanAttributeInfo metadata){
+            super(metadata, CharBuffer.class);
+        }
+
+        @Override
+        protected void printValueAsText(final CharBuffer buffer, final Writer output) throws IOException {
+            while (buffer.hasRemaining())
+                output.append(buffer.get()).append(WHITESPACE);
+        }
+    }
+
+    private static final class ShortBufferAttributeMapping extends AbstractBufferAttributeMapping<ShortBuffer> {
+        private ShortBufferAttributeMapping(final MBeanAttributeInfo metadata){
+            super(metadata, ShortBuffer.class);
+        }
+
+        @Override
+        protected void printValueAsText(final ShortBuffer buffer, final Writer output) throws IOException {
+            while (buffer.hasRemaining())
+                output.append(Short.toString(buffer.get())).append(WHITESPACE);
+        }
+    }
+
+    private static final class IntBufferAttributeMapping extends AbstractBufferAttributeMapping<IntBuffer> {
+        private IntBufferAttributeMapping(final MBeanAttributeInfo metadata){
+            super(metadata, IntBuffer.class);
+        }
+
+        @Override
+        protected void printValueAsText(final IntBuffer buffer, final Writer output) throws IOException {
+            while (buffer.hasRemaining())
+                output.append(Integer.toString(buffer.get())).append(WHITESPACE);
+        }
+    }
+
+    private static final class LongBufferAttributeMapping extends AbstractBufferAttributeMapping<LongBuffer> {
+        private LongBufferAttributeMapping(final MBeanAttributeInfo metadata){
+            super(metadata, LongBuffer.class);
+        }
+
+        @Override
+        protected void printValueAsText(final LongBuffer buffer, final Writer output) throws IOException {
+            while (buffer.hasRemaining())
+                output.append(Long.toString(buffer.get())).append(WHITESPACE);
+        }
+    }
+
+    private static final class FloatBufferAttributeMapping extends AbstractBufferAttributeMapping<FloatBuffer> {
+        private FloatBufferAttributeMapping(final MBeanAttributeInfo metadata){
+            super(metadata, FloatBuffer.class);
+        }
+
+        @Override
+        protected void printValueAsText(final FloatBuffer buffer, final Writer output) throws IOException {
+            while (buffer.hasRemaining())
+                output.append(Float.toString(buffer.get())).append(WHITESPACE);
+        }
+    }
+
+    private static final class DoubleBufferAttributeMapping extends AbstractBufferAttributeMapping<DoubleBuffer> {
+        private DoubleBufferAttributeMapping(final MBeanAttributeInfo metadata){
+            super(metadata, DoubleBuffer.class);
+        }
+
+        @Override
+        protected void printValueAsText(final DoubleBuffer buffer, final Writer output) throws IOException {
+            while (buffer.hasRemaining())
+                output.append(Double.toString(buffer.get())).append(WHITESPACE);
+        }
+    }
+
+    private static final class CompositeDataAttributeMapping extends AbstractSshAttributeMapping {
+        private CompositeDataAttributeMapping(final MBeanAttributeInfo metadata){
+            super(metadata);
+        }
+
+        @Override
+        protected void printValueAsText(final Writer output) throws JMException, IOException {
+            final CompositeData value = getValue(CompositeData.class);
+            for(final String key: value.getCompositeType().keySet())
+                output
+                        .append(String.format("%s = %s", key, FORMATTER.toJson(value.get(key))))
+                        .append(System.lineSeparator());
+        }
+    }
+
+    private static final class TabularDataAttributeMapping extends AbstractSshAttributeMapping {
+        private TabularDataAttributeMapping(final MBeanAttributeInfo metadata){
+            super(metadata);
+        }
+
+        private static String joinString(final Collection<?> values,
+                                  final String format,
+                                  final String separator) {
+            return Joiner.on(separator).join(Collections2.transform(values, new Function<Object, String>() {
+                @Override
+                public final String apply(final Object input) {
+                    return String.format(format, input);
+                }
+            }));
+        }
+
+        @Override
+        protected void printValueAsText(final Writer output) throws JMException, IOException {
+            final TabularData data = getValue(TabularData.class);
+            final String COLUMN_SEPARATOR = "\t";
+            final String ITEM_FORMAT = "%-10s";
+            //print column first
+            output.append(joinString(data.getTabularType().getRowType().keySet(), ITEM_FORMAT, COLUMN_SEPARATOR));
+            //print rows
+            TabularDataUtils.forEachRow(data, new Consumer<CompositeData, IOException>() {
+                @Override
+                public void accept(final CompositeData row) throws IOException{
+                    final Collection<?> values = Collections2.transform(row.values(), new JsonSerializerFunction(FORMATTER));
+                    output.append(joinString(values, ITEM_FORMAT, COLUMN_SEPARATOR));
+                }
+            });
+        }
+    }
+
+    private static final class SshAttributesModel extends AbstractAttributesModel<AbstractSshAttributeMapping>{
+
+        @Override
+        protected AbstractSshAttributeMapping createAccessor(final MBeanAttributeInfo metadata) {
+            final WellKnownType attributeType = CustomAttributeInfo.getType(metadata);
+            if(attributeType != null)
+                switch (attributeType){
+                    case BYTE_BUFFER:
+                        return new ByteBufferAttributeMapping(metadata);
+                    case CHAR_BUFFER:
+                        return new CharBufferAttributeMapping(metadata);
+                    case SHORT_BUFFER:
+                        return new ShortBufferAttributeMapping(metadata);
+                    case INT_BUFFER:
+                        return new IntBufferAttributeMapping(metadata);
+                    case LONG_BUFFER:
+                        return new LongBufferAttributeMapping(metadata);
+                    case FLOAT_BUFFER:
+                        return new FloatBufferAttributeMapping(metadata);
+                    case DOUBLE_BUFFER:
+                        return new DoubleBufferAttributeMapping(metadata);
+                    case DICTIONARY:
+                        return new CompositeDataAttributeMapping(metadata);
+                    case TABLE:
+                        return new TabularDataAttributeMapping(metadata);
+                    default:
+                        return new DefaultAttributeMapping(metadata);
+                }
+            return new ReadOnlyAttributeMapping(metadata);
+        }
+    }
+
+    private SshServer server;
+    private ExecutorService threadPool;
     private final SshAttributesModel attributes;
     private final SshNotificationsModel notifications;
 
-    SshAdapter(final String host,
-               final int port,
-               final String serverCertificateFile,
-               final SshSecuritySettings security,
-               final Map<String, ManagedResourceConfiguration> resources) {
-        super(resources);
-        server = SshServer.setUpDefaultServer();
-        server.setHost(host);
-        server.setPort(port);
-        server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(serverCertificateFile));
-        setupSecurity(server, security);
-        commandExecutors = Executors.newCachedThreadPool();
+    SshAdapter(final String adapterInstanceName) {
+        super(adapterInstanceName);
         attributes = new SshAttributesModel();
         notifications = new SshNotificationsModel();
     }
@@ -300,36 +443,126 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         }
     }
 
-    /**
-     * Starts the adapter.
-     * <p>
-     * This method will be called by SNAMP infrastructure automatically.
-     * </p>
-     *
-     * @return {@literal true}, if adapter is started successfully; otherwise, {@literal false}.
-     */
-    @Override
-    protected boolean start() {
-        server.setShellFactory(ManagementShell.createFactory(this, commandExecutors, getLogger()));
+    private static SshSecuritySettings createSecuritySettings(final Map<String, String> parameters){
+        return new SshSecuritySettings() {
+            @Override
+            public String getUserName() {
+                return parameters.get(USER_NAME_PARAM);
+            }
+
+            @Override
+            public String getPassword() {
+                return parameters.get(PASSWORD_PARAM);
+            }
+
+            @Override
+            public boolean hasUserCredentials() {
+                return parameters.containsKey(USER_NAME_PARAM) && parameters.containsKey(PASSWORD_PARAM);
+            }
+
+            @Override
+            public String getJaasDomain() {
+                return parameters.get(JAAS_DOMAIN_PARAM);
+            }
+
+            @Override
+            public boolean hasJaasDomain() {
+                return parameters.containsKey(JAAS_DOMAIN_PARAM);
+            }
+
+            @Override
+            public boolean hasClientPublicKey() {
+                return parameters.containsKey(PUBLIC_KEY_FILE_PARAM);
+            }
+
+            @Override
+            public PublicKey getClientPublicKey() {
+                final File keyFile = new File(parameters.get(PUBLIC_KEY_FILE_PARAM));
+                KeyFormat format = getClientPublicKeyFormat();
+                try {
+                    if (format == KeyFormat.Unknown)
+                        format = KeyProviderUtil.detectKeyFileFormat(keyFile);
+                    final FileKeyProvider provider;
+                    switch (format) {
+                        case PKCS8:
+                            provider = new PKCS8KeyFile();
+                            break;
+                        case OpenSSH:
+                            provider = new OpenSSHKeyFile();
+                            break;
+                        case PuTTY:
+                            provider = new PuTTYKeyFile();
+                            break;
+                        default:
+                            throw new IOException("Unknown public key format.");
+                    }
+                    provider.init(keyFile);
+                    return provider.getPublic();
+                } catch (final IOException e) {
+                    SshHelpers.log(Level.WARNING, "Invalid SSH public key file.", e);
+                }
+                return null;
+            }
+
+            @Override
+            public KeyFormat getClientPublicKeyFormat() {
+                if (parameters.containsKey(PUBLIC_KEY_FILE_FORMAT_PARAM))
+                    switch (parameters.get(PUBLIC_KEY_FILE_FORMAT_PARAM).toLowerCase()) {
+                        case "pkcs8":
+                            return KeyFormat.PKCS8;
+                        case "openssh":
+                            return KeyFormat.OpenSSH;
+                        case "putty":
+                            return KeyFormat.PuTTY;
+                    }
+                return KeyFormat.Unknown;
+            }
+        };
+    }
+
+    private void start(final String host,
+                       final int port,
+                       final String serverCertificateFile,
+                       final SshSecuritySettings security,
+                       final Supplier<ExecutorService> threadPoolFactory) throws Exception{
+        final SshServer server = SshServer.setUpDefaultServer();
+        final ExecutorService commandExecutors = threadPoolFactory.get();
+        server.setHost(host);
+        server.setPort(port);
+        server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(serverCertificateFile));
+        setupSecurity(server, security);
+        server.setShellFactory(ManagementShell.createFactory(this, commandExecutors));
         server.setCommandFactory(new CommandFactory() {
-            private final AdapterController controller = SshAdapter.this;
+            private final AdapterController controller = Utils.weakReference(SshAdapter.this, AdapterController.class);
 
             @Override
             public Command createCommand(final String commandLine) {
                 return commandLine != null && commandLine.length() > 0 ?
-                        ManagementShell.createSshCommand(commandLine, controller, commandExecutors, getLogger()) :
+                        ManagementShell.createSshCommand(commandLine, controller, commandExecutors) :
                         null;
             }
         });
-        populateModel(attributes);
-        populateModel(notifications);
-        try {
-            server.start();
-            return true;
-        } catch (final IOException e) {
-            failedToStartAdapter(Level.SEVERE, e);
-            return false;
-        }
+        server.start();
+        this.server = server;
+        this.threadPool = commandExecutors;
+    }
+
+    @Override
+    protected void start(final Map<String, String> parameters) throws Exception {
+        final String host = parameters.containsKey(HOST_PARAM) ?
+                parameters.get(HOST_PARAM) :
+                DEFAULT_HOST;
+        final int port = parameters.containsKey(PORT_PARAM) ?
+                Integer.parseInt(parameters.get(PORT_PARAM)) :
+                DEFAULT_PORT;
+        final String certificateFile = parameters.containsKey(CERTIFICATE_FILE_PARAM) ?
+                parameters.get(CERTIFICATE_FILE_PARAM) :
+                DEFAULT_CERTIFICATE;
+        start(host,
+                port,
+                certificateFile,
+                createSecuritySettings(parameters),
+                new SshThreadPoolConfig(getInstanceName(), parameters));
     }
 
     /**
@@ -339,16 +572,16 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
      * </p>
      */
     @Override
-    protected void stop() {
+    protected void stop() throws Exception{
         try {
             server.stop();
-        }
-        catch (final InterruptedException e) {
-            failedToStopAdapter(Level.SEVERE, e);
+            threadPool.shutdownNow();
         }
         finally {
-            clearModel(attributes);
-            clearModel(notifications);
+            attributes.clear();
+            notifications.clear();
+            server = null;
+            threadPool = null;
         }
     }
 
@@ -357,14 +590,13 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
      *
      * @return The logger associated with this service.
      */
-    @Override
     public Logger getLogger() {
-        return SshHelpers.getLogger();
+        return getLogger(NAME);
     }
 
     @Override
     public Set<String> getConnectedResources() {
-        return getHostedResources();
+        return attributes.getHostedResources();
     }
 
     /**
@@ -375,38 +607,48 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
      */
     @Override
     public Set<String> getAttributes(final String resourceName) {
-        return attributes.byResourceName(resourceName);
-    }
-
-    /**
-     * Gets an attribute accessor.
-     *
-     * @param attributeID ID of the attribute.
-     * @return The attribute accessor; or {@literal null}, if attribute doesn't exist.
-     */
-    @Override
-    public SshAttributeView getAttribute(final String attributeID) {
-        return attributes.get(attributeID);
+        return attributes.getResourceAttributes(resourceName);
     }
 
     @Override
-    public long addNotificationListener(final NotificationListener listener) {
-        return notifications.addNotificationListener(listener);
+    public <E extends Exception> boolean processAttribute(final String resourceName,
+                                                          final String attributeID,
+                                                          final Consumer<? super SshAttributeMapping, E> handler) throws E {
+        return attributes.processAttribute(resourceName, attributeID, handler);
     }
 
     @Override
-    public void removeNotificationListener(final long listenerID) {
-        notifications.removeNotificationListener(listenerID);
+    public Notification poll(final ExpressionBasedDescriptorFilter filter) {
+        return notifications.poll(filter);
     }
 
-    /**
-     * Gets a collection of available notifications.
-     *
-     * @param resourceName The name of the managed resource.
-     * @return A collection of available notifications.
-     */
+    @SuppressWarnings("unchecked")
     @Override
-    public Set<String> getNotifications(final String resourceName) {
-        return notifications.getNotifications(resourceName);
+    protected <M extends MBeanFeatureInfo, S> FeatureAccessor<M, S> addFeature(final String resourceName, final M feature) throws Exception {
+        if(feature instanceof MBeanAttributeInfo)
+            return (FeatureAccessor<M, S>)attributes.addAttribute(resourceName, (MBeanAttributeInfo)feature);
+        else if(feature instanceof MBeanNotificationInfo)
+            return (FeatureAccessor<M, S>)notifications.addNotification(resourceName, (MBeanNotificationInfo)feature);
+        else return null;
+    }
+
+    @Override
+    protected Iterable<? extends FeatureAccessor<?, ?>> removeAllFeatures(final String resourceName) {
+        return Iterables.concat(attributes.clear(resourceName), notifications.clear(resourceName));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    protected <M extends MBeanFeatureInfo> FeatureAccessor<M, ?> removeFeature(final String resourceName, final M feature) {
+        if(feature instanceof MBeanAttributeInfo)
+            return (FeatureAccessor<M, ?>)attributes.removeAttribute(resourceName, (MBeanAttributeInfo)feature);
+        else if(feature instanceof MBeanNotificationInfo)
+            return (FeatureAccessor<M, ?>)notifications.removeNotification(resourceName, (MBeanNotificationInfo)feature);
+        else return null;
+    }
+
+    @Override
+    public void print(final Notification notif, final Writer output) {
+        FORMATTER.toJson(notif, output);
     }
 }

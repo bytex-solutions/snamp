@@ -1,15 +1,29 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.itworks.snamp.connectors.notifications.Notification;
+import com.itworks.snamp.ArrayUtils;
+import com.itworks.snamp.Consumer;
+import com.itworks.snamp.SafeConsumer;
+import com.itworks.snamp.connectors.notifications.NotificationDescriptor;
+import com.itworks.snamp.connectors.notifications.Severity;
+import com.itworks.snamp.jmx.TabularDataUtils;
+import com.itworks.snamp.jmx.WellKnownType;
 import org.snmp4j.smi.*;
 
+import javax.management.DescriptorRead;
+import javax.management.MBeanNotificationInfo;
+import javax.management.Notification;
+import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.TabularData;
+import java.lang.reflect.Array;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
+import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.parseDateTimeDisplayFormat;
+import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.parseOID;
 import static com.itworks.snamp.adapters.snmp.SnmpHelpers.DateTimeFormatter;
-
-import com.itworks.snamp.connectors.notifications.Severity;
 
 /**
  * Represents SNMP notification with attachments.
@@ -18,6 +32,7 @@ import com.itworks.snamp.connectors.notifications.Severity;
  * @since 1.0
  */
 final class SnmpNotification extends HashMap<OID, Variable> {
+    private static final long serialVersionUID = -9060826056942721355L;
     /**
      * Represents identifier of this SNMP notification instance.
      */
@@ -27,104 +42,149 @@ final class SnmpNotification extends HashMap<OID, Variable> {
     private final OID sequenceNumberId;
     private final OID timeStampId;
     private final OID categoryId;
+    private final OID eventNameId;
+    private final OID sourceId;
+    private static final int MAX_RESERVED_POSTFIX = 10;
 
     /**
      * Initializes a new SNMP notification message.
      * @param notificationID Notification identifier. Cannot be {@literal null}.
      */
-    public SnmpNotification(final OID notificationID, final VariableBinding... bindings){
+    SnmpNotification(final OID notificationID, final VariableBinding... bindings){
         super(bindings.length > 0 ? bindings.length : 4);
         if(notificationID == null) throw new IllegalArgumentException("notificationID is null.");
         this.notificationID = notificationID;
         for(final VariableBinding b: bindings)
             put(b);
-        messageId = new OID(notificationID).append(new OID("1"));
-        severityId = new OID(notificationID).append(new OID("2"));
-        sequenceNumberId = new OID(notificationID).append(new OID("3"));
-        timeStampId = new OID(notificationID).append(new OID("4"));
-        categoryId = new OID(notificationID).append(new OID("5"));
+        messageId = new OID(notificationID).append(1);
+        severityId = new OID(notificationID).append(2);
+        sequenceNumberId = new OID(notificationID).append(3);
+        timeStampId = new OID(notificationID).append(4);
+        categoryId = new OID(notificationID).append(5);
+        eventNameId = new OID(notificationID).append(6);
+        sourceId = new OID(notificationID).append(7);
     }
 
-    /**
-     * Initializes new SNMP notification based on SNAMP generic notification.
-     * <p>
-     *     This constructor maps the following notification properties:
-     *     <ul>
-     *         <li>{@link com.itworks.snamp.connectors.notifications.Notification#getMessage()} into OID .1</li>
-     *         <li>{@link com.itworks.snamp.connectors.notifications.Notification#getSeverity()} ordinal into OID .2</li>
-     *         <li>{@link com.itworks.snamp.connectors.notifications.Notification#getSequenceNumber()} into OID .3</li>
-     *     </ul>
-     * </p>
-     * @param notificationID The notification identifier.
-     * @param n The notification to wrap.
-     * @param category Notification category.
-     */
-    public SnmpNotification(final OID notificationID, final Notification n, final String category){
-        this(notificationID);
-        put(messageId, new OctetString(n.getMessage()));
-        put(severityId, new Integer32(n.getSeverity().ordinal()));
+    SnmpNotification(final Notification n,
+                     final MBeanNotificationInfo metadata) {
+        this(new OID(parseOID(metadata)));
+        put(messageId, SnmpHelpers.toOctetString(n.getMessage()));
+        put(severityId, new Integer32(NotificationDescriptor.getSeverity(metadata).getLevel()));
         put(sequenceNumberId, new Counter64(n.getSequenceNumber()));
-        put(categoryId, new OctetString(category));
+        put(categoryId, SnmpHelpers.toOctetString(NotificationDescriptor.getNotificationCategory(metadata)));
+        final DateTimeFormatter formatter = SnmpHelpers.createDateTimeFormatter(parseDateTimeDisplayFormat(metadata));
+        put(timeStampId, new OctetString(formatter.convert(new Date(n.getTimeStamp()))));
+        putAttachment(notificationID, n.getUserData(), metadata, this);
+        put(eventNameId, SnmpHelpers.toOctetString(n.getType()));
+        put(sourceId, SnmpHelpers.toOctetString(Objects.toString(n.getSource(), "")));
     }
 
-    /**
-     * Initializes new SNMP notification based on SNAMP generic notification.
-     * <p>
-     *     This constructor maps the following notification properties:
-     *     <ul>
-     *         <li>{@link com.itworks.snamp.connectors.notifications.Notification#getMessage()} into OID .1</li>
-     *         <li>{@link com.itworks.snamp.connectors.notifications.Notification#getSeverity()} ordinal into OID .2</li>
-     *         <li>{@link com.itworks.snamp.connectors.notifications.Notification#getSequenceNumber()} into OID .3</li>
-     *         <li>{@link com.itworks.snamp.connectors.notifications.Notification#getTimeStamp()} into OID .4</li>
-     *     </ul>
-     * </p>
-     * @param notificationID The notification identifier.
-     * @param n The notification to wrap.
-     * @param category Notification category.
-     * @param formatter Notification timestamp formatter.
-     */
-    public SnmpNotification(final OID notificationID, final Notification n, final String category, final SnmpHelpers.DateTimeFormatter formatter){
-        this(notificationID, n, category);
-        put(timeStampId, new OctetString(formatter.convert(n.getTimeStamp())));
+    private static void putAttachment(final OID notificationID,
+                                      final Object attachment,
+                                      final MBeanNotificationInfo options,
+                                      final Map<OID, Variable> output) {
+        if (attachment == null) return;
+        final SnmpType type = SnmpType.map(WellKnownType.fromValue(attachment));
+        if (type.isScalar()) {
+            final Variable value = type.convert(attachment, options);
+            output.put(new OID(notificationID).append(MAX_RESERVED_POSTFIX + 1), value != null ? value : new Null());
+        } else if (Objects.equals(type, SnmpType.TABLE))
+            forEachVariable(attachment, options, new SafeConsumer<VariableBinding>() {
+                @Override
+                public void accept(final VariableBinding binding) {
+                    output.put(new OID(notificationID).append(MAX_RESERVED_POSTFIX + 1).append(binding.getOid()), binding.getVariable());
+                }
+            });
     }
 
-    public final boolean put(final VariableBinding binding){
-        return binding != null && put(binding.getOid(), binding.getVariable()) == null;
+    private static <E extends Exception> void forEachVariable(final CompositeData attachment,
+                                                              final DescriptorRead options,
+                                                              final Consumer<VariableBinding, E> handler) throws E {
+        int index = 0;
+        for(final String itemName: attachment.getCompositeType().keySet()){
+            final WellKnownType itemType = WellKnownType.getType(attachment.getCompositeType().getType(itemName));
+            if(itemType == null || !itemType.isPrimitive()) continue;
+            final SnmpType snmpType = SnmpType.map(itemType);
+            handler.accept(new VariableBinding(new OID(new int[]{index++}), snmpType.convert(attachment.get(itemName), options)));
+        }
+    }
+
+    private static <E extends Exception> void iterateOverArray(final Object array,
+                                                              final DescriptorRead options,
+                                                              final Consumer<VariableBinding, E> handler) throws E{
+        final WellKnownType elementType = WellKnownType.getType(array.getClass().getComponentType());
+        if(elementType == null || !elementType.isPrimitive()) return;
+        final SnmpType snmpType = SnmpType.map(elementType);
+        for(int i = 0; i < Array.getLength(array); i++)
+            handler.accept(new VariableBinding(new OID(new int[]{i}), snmpType.convert(Array.get(array, i), options)));
+    }
+
+    private static <E extends Exception> void forEachVariable(final TabularData attachment,
+                                                      final DescriptorRead options,
+                                                      final Consumer<VariableBinding, E> handler) throws E{
+        final MutableInteger rowIndex = new MutableInteger(0);
+        TabularDataUtils.forEachRow(attachment, new Consumer<CompositeData, E>() {
+            @Override
+            public void accept(final CompositeData value) throws E {
+                int columnIndex = 0;
+                for(final String columnName: value.getCompositeType().keySet()){
+                    final SnmpType columnType = SnmpType.map(WellKnownType.getType(value.getCompositeType().getType(columnName)));
+                    handler.accept(new VariableBinding(new OID(new int[]{columnIndex++, rowIndex.getAndIncrement()}), columnType.convert(value.get(columnName), options)));
+                }
+            }
+        });
+    }
+
+    static <E extends Exception> void forEachVariable(final Object attachment,
+                                                      final DescriptorRead options,
+                                                      final Consumer<VariableBinding, E> handler) throws E{
+        if(attachment instanceof CompositeData)
+            forEachVariable((CompositeData)attachment, options, handler);
+        else if(ArrayUtils.isArray(attachment))
+            iterateOverArray(attachment, options, handler);
+        else if(attachment instanceof TabularData)
+            forEachVariable((TabularData)attachment, options, handler);
+    }
+
+    boolean put(final VariableBinding binding) {
+        if (binding == null || containsKey(binding.getOid())) return false;
+        put(binding.getOid(), binding.getVariable());
+        return true;
     }
 
     /**
      * Returns an array of variable bindings associated with this message.
      * @return An array of variable bindings associated with this message.
      */
-    public final VariableBinding[] getBindings(){
+    VariableBinding[] getBindings(){
         final VariableBinding[] result = new VariableBinding[size()];
         int i = 0;
-        for(final OID id: keySet())
-            result[i++] = new VariableBinding(id, get(id));
+        for(final Map.Entry<OID, Variable> entry: entrySet())
+            result[i++] = new VariableBinding(entry.getKey(), entry.getValue());
         return result;
     }
 
-    public final String getMessage(){
+    String getMessage(){
         return containsKey(messageId) ? get(messageId).toString() : null;
     }
 
     private static Severity getSeverity(final Integer32 value){
-        return Severity.values()[value.toInt()];
+        return Severity.resolve(value.toInt());
     }
 
-    public final Severity getSeverity(){
+    Severity getSeverity(){
         return containsKey(severityId) ? getSeverity((Integer32)get(severityId)) : Severity.UNKNOWN;
     }
 
-    public final long getSequenceNumber(){
+    long getSequenceNumber(){
         return containsKey(sequenceNumberId) ? get(sequenceNumberId).toLong() : -1L;
     }
 
-    public final Date getTimeStamp(final DateTimeFormatter formatter) throws ParseException {
+    Date getTimeStamp(final DateTimeFormatter formatter) throws ParseException {
         return containsKey(timeStampId) ? formatter.convert(((OctetString)get(timeStampId)).toByteArray()) : null;
     }
 
-    public final String getCategory() {
+    String getCategory() {
         return containsKey(categoryId) ? get(categoryId).toString() : null;
     }
 

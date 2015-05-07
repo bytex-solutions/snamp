@@ -1,18 +1,31 @@
 package com.itworks.snamp.adapters.snmp;
 
+import com.google.common.primitives.Shorts;
+import com.itworks.snamp.ArrayUtils;
+import com.itworks.snamp.Consumer;
+import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
-import com.itworks.snamp.connectors.attributes.AttributeMetadata;
+import com.itworks.snamp.core.OSGiLoggingContext;
+import com.itworks.snamp.io.IOUtils;
 import org.snmp4j.agent.MOAccess;
 import org.snmp4j.agent.mo.MOAccessImpl;
 import org.snmp4j.agent.mo.MOColumn;
 import org.snmp4j.agent.mo.MOTable;
-import org.snmp4j.smi.OID;
+import org.snmp4j.smi.AssignableFromByteArray;
+import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.Variable;
 
+import javax.management.MBeanAttributeInfo;
+import javax.management.ReflectionException;
+import javax.management.openmbean.ArrayType;
 import java.io.*;
+import java.lang.reflect.Array;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -21,25 +34,47 @@ import java.util.regex.Pattern;
  * @author Roman Sakno
  */
 final class SnmpHelpers {
+    static final Charset SNMP_ENCODING = StandardCharsets.UTF_8;
     static final String ADAPTER_NAME = "snmp";
+    private static final String LOGGER_NAME = AbstractResourceAdapter.getLoggerName(ADAPTER_NAME);
     private static final TimeZone ZERO_TIME_ZONE = new SimpleTimeZone(0, "UTC");
 
     private SnmpHelpers(){
 
     }
 
-    private static Calendar createCalendar() {
-        return Calendar.getInstance(ZERO_TIME_ZONE, Locale.ROOT);
+    static OctetString toOctetString(final String value) {
+        return new OctetString(value.getBytes(SNMP_ENCODING));
     }
 
-    public static Logger getLogger() {
-        return AbstractResourceAdapter.getLogger(ADAPTER_NAME);
+    static String toString(final AssignableFromByteArray value){
+        return new String(value.toByteArray(), SNMP_ENCODING);
+    }
+
+    static byte toByte(final long value){
+        if(value > Byte.MAX_VALUE)
+            return Byte.MAX_VALUE;
+        else if(value < Byte.MIN_VALUE)
+            return Byte.MIN_VALUE;
+        else return (byte)value;
+    }
+
+    static short toShort(final long value){
+        return Shorts.saturatedCast(value);
+    }
+
+    static char toChar(final String value){
+        return value == null || value.isEmpty() ? '\0' : value.charAt(0);
+    }
+
+    private static Calendar createCalendar() {
+        return Calendar.getInstance(ZERO_TIME_ZONE, Locale.ROOT);
     }
 
     /**
      * Represents date/time formatter.
      */
-    public static interface DateTimeFormatter{
+    interface DateTimeFormatter{
         byte[] convert(final Date value);
         Date convert(final byte[] value) throws ParseException;
     }
@@ -51,6 +86,7 @@ final class SnmpHelpers {
     private static class CustomDateTimeFormatter extends SimpleDateFormat implements DateTimeFormatter{
         private static final String DEFAUT_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
         public static final String FORMATTER_NAME = "default";
+        private static final long serialVersionUID = -4381345715692133371L;
 
         public CustomDateTimeFormatter(){
             this(DEFAUT_FORMAT);
@@ -62,7 +98,7 @@ final class SnmpHelpers {
 
         @Override
         public final byte[] convert(final Date value) {
-            return format(value).getBytes();
+            return format(value).getBytes(IOUtils.DEFAULT_CHARSET);
         }
 
         private Date convert(final String value) throws ParseException{
@@ -71,7 +107,7 @@ final class SnmpHelpers {
 
         @Override
         public final Date convert(final byte[] value) throws ParseException {
-            return convert(new String(value));
+            return convert(new String(value, SNMP_ENCODING));
         }
     }
 
@@ -85,8 +121,7 @@ final class SnmpHelpers {
                 dataStream.writeByte(value.get(Calendar.DAY_OF_MONTH));
                 dataStream.writeByte(value.get(Calendar.HOUR_OF_DAY));
                 dataStream.writeByte(value.get(Calendar.MINUTE));
-                int second = value.get(Calendar.SECOND);
-                dataStream.writeByte(second == 0 ? 60 : second);
+                dataStream.writeByte(value.get(Calendar.SECOND));
                 dataStream.writeByte(value.get(Calendar.MILLISECOND) / 100);
 
                 int offsetInMillis = value.getTimeZone().getRawOffset();
@@ -217,10 +252,6 @@ final class SnmpHelpers {
             else return value;
         }
 
-        private static <T extends Comparable<T>> T replace(final T actual, final T check, final T replacement){
-            return actual.compareTo(check) == 0 ? replacement : actual;
-        }
-
         private static String convert(final Calendar value){
             final String RFC1903_FORMAT = "%s-%s-%s,%s:%s:%s.%s,%s%s:%s";
             //parse components of RFC1903
@@ -229,7 +260,7 @@ final class SnmpHelpers {
             final String dayOfMonth = Integer.toString(value.get(Calendar.DAY_OF_MONTH));
             final String hourOfDay = addLeadingZeroes(Integer.toString(value.get(Calendar.HOUR_OF_DAY)), 2);
             final String minute = addLeadingZeroes(Integer.toString(value.get(Calendar.MINUTE)), 2);
-            final String second = addLeadingZeroes(Integer.toString(replace(value.get(Calendar.SECOND), 0, 60)), 2);
+            final String second = addLeadingZeroes(Integer.toString(value.get(Calendar.SECOND)), 2);
             final String deciseconds = Integer.toString(value.get(Calendar.MILLISECOND) / 100);
             int offsetInMillis = value.getTimeZone().getRawOffset();
             char directionFromUTC = '+';
@@ -249,7 +280,7 @@ final class SnmpHelpers {
         public byte[] convert(final Date value) {
             final Calendar cal = createCalendar();
             cal.setTime(value);
-            return convert(cal).getBytes();
+            return convert(cal).getBytes(IOUtils.DEFAULT_CHARSET);
         }
 
         private Date convert(final String value) throws ParseException{
@@ -257,16 +288,16 @@ final class SnmpHelpers {
             if (matcher.matches())
             {
                 final CalendarBuilder builder = new CalendarBuilder();
-                builder.setYear(Integer.valueOf(matcher.group(1)));
-                builder.setMonth(Integer.valueOf(matcher.group(2))-1);
-                builder.setDayOfMonth(Integer.valueOf(matcher.group(3)));
-                builder.setHourOfDay(Integer.valueOf(matcher.group(4)));
-                builder.setMinute(Integer.valueOf(matcher.group(5)));
-                builder.setSecond(Integer.valueOf(matcher.group(6)));
-                builder.setDeciseconds(Integer.valueOf(matcher.group(7)));
+                builder.setYear(Integer.parseInt(matcher.group(1)));
+                builder.setMonth(Integer.parseInt(matcher.group(2))-1);
+                builder.setDayOfMonth(Integer.parseInt(matcher.group(3)));
+                builder.setHourOfDay(Integer.parseInt(matcher.group(4)));
+                builder.setMinute(Integer.parseInt(matcher.group(5)));
+                builder.setSecond(Integer.parseInt(matcher.group(6)));
+                builder.setDeciseconds(Integer.parseInt(matcher.group(7)));
                 builder.setDirectionFromUTCPlus(matcher.group(8).equals("+"));
-                builder.setOffsetInHours(Integer.valueOf(matcher.group(9)));
-                builder.setOffsetInMinutes(Integer.valueOf(matcher.group(10)));
+                builder.setOffsetInHours(Integer.parseInt(matcher.group(9)));
+                builder.setOffsetInMinutes(Integer.parseInt(matcher.group(10)));
                 return builder.build().getTime();
             }
             else
@@ -275,11 +306,11 @@ final class SnmpHelpers {
 
         @Override
         public Date convert(final byte[] value) throws ParseException {
-            return convert(new String(value));
+            return convert(new String(value, SNMP_ENCODING));
         }
     }
 
-    public static DateTimeFormatter createDateTimeFormatter(final String formatterName){
+    static DateTimeFormatter createDateTimeFormatter(final String formatterName){
         if(formatterName == null || formatterName.isEmpty()) return new Rfc1903BinaryDateTimeFormatter();
         else switch (formatterName){
             case CustomDateTimeFormatter.FORMATTER_NAME: return new CustomDateTimeFormatter();
@@ -289,8 +320,8 @@ final class SnmpHelpers {
         }
     }
 
-    public static MOAccess getAccessRestrictions(final AttributeMetadata metadata, final boolean mayCreate){
-        switch ((metadata.canWrite() ? 1 : 0) << 1 | (metadata.canRead() ? 1 : 0)){
+    static MOAccess getAccessRestrictions(final MBeanAttributeInfo metadata, final boolean mayCreate){
+        switch ((metadata.isWritable() ? 1 : 0) << 1 | (metadata.isReadable() ? 1 : 0)){
             //case 0: case 1:
             default: return MOAccessImpl.ACCESS_READ_ONLY;
             case 2: return mayCreate ? new MOAccessImpl(MOAccessImpl.ACCESSIBLE_FOR_WRITE | MOAccessImpl.ACCESSIBLE_FOR_CREATE) : MOAccessImpl.ACCESS_WRITE_ONLY;
@@ -298,40 +329,54 @@ final class SnmpHelpers {
         }
     }
 
-    public static MOAccess getAccessRestrictions(final AttributeMetadata metadata){
+    static MOAccess getAccessRestrictions(final MBeanAttributeInfo metadata){
         return getAccessRestrictions(metadata, false);
     }
 
-    public static <COLUMN extends MOColumn<? extends Variable>> COLUMN findColumn(final MOTable<?, ? extends MOColumn<? extends Variable>, ?> table, final Class<COLUMN> columnType){
+    static <COLUMN extends MOColumn<?>> COLUMN findColumn(final MOTable<?, ? extends MOColumn<?>, ?> table, final Class<COLUMN> columnType){
         for(final MOColumn<? extends Variable> column: table.getColumns())
             if(columnType.isInstance(column)) return columnType.cast(column);
         return null;
     }
 
-    public static int findColumnIndex(final MOTable<?, ? extends MOColumn<? extends Variable>, ?> table, final Class<? extends MOColumn<? extends Variable>> columnType){
+    static int findColumnIndex(final MOTable<?, ? extends MOColumn<?>, ?> table, final Class<? extends MOColumn<?>> columnType){
         final MOColumn<? extends Variable> column = findColumn(table, columnType);
         return column != null ? column.getColumnID() : -1;
     }
 
-    private static OID getPrefix(final OID objectId){
-        final OID result = new OID(objectId);
-        result.trim(2);
+    static Object toArray(final List<?> lst, final ArrayType<?> arrayType) throws ReflectionException {
+        final Object result = ArrayUtils.newArray(arrayType, lst.size());
+        for(int i = 0; i < lst.size(); i++)
+            Array.set(result, i, lst.get(i));
         return result;
     }
 
-    public static Set<OID> getPrefixes(final Collection<? extends SnmpEntity> objects){
-        //first two numbers of OID are identified as prefix
-        final Set<OID> result = new HashSet<>(objects.size());
-        for(final SnmpEntity obj: objects)
-            result.add(getPrefix(obj.getID()));
-        return result;
+    static <E extends Exception> void withLogger(final Consumer<Logger, E> contextBody) throws E {
+        OSGiLoggingContext.within(LOGGER_NAME, contextBody);
     }
 
-    public static <T extends SnmpEntity> Collection<T> getObjectsByPrefix(final OID prefix, final Collection<T> objects){
-        final Collection<T> result = new ArrayList<>(objects.size());
-        for(final T obj: objects)
-            if(Objects.equals(getPrefix(obj.getID()), prefix))
-                result.add(obj);
-        return result;
+    private static void log(final Level lvl, final String message, final Object[] args, final Throwable e){
+        withLogger(new SafeConsumer<Logger>() {
+            @Override
+            public void accept(final Logger logger) {
+                logger.log(lvl, String.format(message, args), e);
+            }
+        });
+    }
+
+    static void log(final Level lvl, final String message, final Throwable e){
+        log(lvl, message, new Object[0], e);
+    }
+
+    static void log(final Level lvl, final String message, final Object arg0, final Throwable e){
+        log(lvl, message, new Object[]{arg0}, e);
+    }
+
+    static void log(final Level lvl, final String message, final Object arg0, final Object arg1, final Throwable e){
+        log(lvl, message, new Object[]{arg0, arg1}, e);
+    }
+
+    static void log(final Level lvl, final String message, final Object arg0, final Object arg1, final Object arg2, final Throwable e){
+        log(lvl, message, new Object[]{arg0, arg1, arg2}, e);
     }
 }

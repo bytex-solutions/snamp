@@ -4,7 +4,8 @@ import com.google.common.base.Predicate;
 import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.Attribute;
 import com.itworks.snamp.AttributeReader;
-import com.itworks.snamp.TypeLiterals;
+import com.itworks.snamp.StringAppender;
+import com.itworks.snamp.TypeTokens;
 import com.itworks.snamp.internal.annotations.MethodStub;
 import org.osgi.framework.*;
 
@@ -19,7 +20,32 @@ import static com.itworks.snamp.internal.Utils.isInstanceOf;
  * @version 1.0
  * @since 1.0
  */
-public abstract class AbstractBundleActivator implements BundleActivator, AllServiceListener {
+public abstract class AbstractBundleActivator implements BundleActivator, ServiceListener {
+
+    final static class BundleLogicalOperation extends RichLogicalOperation {
+        static final String BUNDLE_NAME_PROPERTY = "bundleName";
+
+        private BundleLogicalOperation(final String operationName,
+                                       final String bundleName){
+            super(operationName, BUNDLE_NAME_PROPERTY, bundleName);
+        }
+
+        private String getBundleName(){
+            return getProperty(BUNDLE_NAME_PROPERTY, String.class, "");
+        }
+
+        private static BundleLogicalOperation startBundle(final BundleContext context){
+            return new BundleLogicalOperation("startBundle", context.getBundle().getSymbolicName());
+        }
+
+        private static BundleLogicalOperation stopBundle(final BundleContext context){
+            return new BundleLogicalOperation("stopBundle", context.getBundle().getSymbolicName());
+        }
+
+        private static BundleLogicalOperation processServiceChanged(final BundleContext context){
+            return new BundleLogicalOperation("bundleServiceChanged", context.getBundle().getSymbolicName());
+        }
+    }
 
     /**
      * Represents bundle activation property.
@@ -28,7 +54,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      * @since 1.0
      * @version 1.0
      */
-    protected static interface ActivationProperty<T> extends Attribute<T>{
+    protected interface ActivationProperty<T> extends Attribute<T>{
         /**
          * Gets type of the activation property.
          * @return The type of the attribute value.
@@ -52,7 +78,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      * @version 1.0
      */
     @SuppressWarnings("UnusedDeclaration")
-    protected static interface NamedActivationProperty<T> extends ActivationProperty<T>{
+    protected interface NamedActivationProperty<T> extends ActivationProperty<T>{
         /**
          * Gets name of this property.
          * @return The name of this property.
@@ -69,7 +95,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      * @since 1.0
      * @version 1.0
      */
-    protected static interface ActivationPropertyPublisher{
+    protected interface ActivationPropertyPublisher{
         /**
          * Publishes the activation property.
          * @param propertyDef The definition of the property. Cannot be {@literal null}.
@@ -90,7 +116,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      * @since 1.0
      * @version 1.0
      */
-    protected static interface ActivationPropertyReader extends AttributeReader{
+    protected interface ActivationPropertyReader extends AttributeReader{
         /**
          * Finds the property definition.
          * @param propertyType The type of the property definition.
@@ -117,7 +143,9 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
     };
 
     private static final class ActivationProperties extends HashMap<ActivationProperty<?>, Object> implements ActivationPropertyPublisher, ActivationPropertyReader{
-        public ActivationProperties(){
+        private static final long serialVersionUID = -1855442064833049167L;
+
+        private ActivationProperties(){
             super(10);
         }
 
@@ -151,8 +179,8 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
             if (propertyDef == null) return null;
             else if (containsKey(propertyDef)) {
                 final Object value = get(propertyDef);
-                return TypeLiterals.isInstance(value, propertyDef.getType()) ?
-                        TypeLiterals.cast(value, propertyDef.getType()) :
+                return TypeTokens.isInstance(value, propertyDef.getType()) ?
+                        TypeTokens.cast(value, propertyDef.getType()) :
                         propertyDef.getDefaultValue();
             } else return null;
         }
@@ -274,7 +302,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
             else return false;
         }
 
-        boolean unbind(final BundleContext context){
+        final boolean unbind(final BundleContext context){
             return unbind(context, this.reference);
         }
 
@@ -286,7 +314,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
             return false;
         }
 
-        synchronized void processServiceEvent(final BundleContext context,
+        final synchronized void processServiceEvent(final BundleContext context,
                                               final ServiceReference<?> reference,
                                               final int eventType) {
             switch (eventType){
@@ -312,6 +340,34 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
                 refs = null;
             }
             return refs != null ? refs : new ServiceReference<?>[0];
+        }
+    }
+
+    static final class DependencyListeningFilter extends StringAppender {
+        private static final long serialVersionUID = -7803401262064949694L;
+        private int appendCalledTimes = 0;
+
+        void append(final RequiredService<?> dependency){
+            append(String.format("(%s=%s)", Constants.OBJECTCLASS, dependency.dependencyContract.getName()));
+            appendCalledTimes += 1;
+        }
+
+        void applyServiceListener(final BundleContext context, final ServiceListener listener) throws InvalidSyntaxException {
+            final String filter = toString();
+            if(filter.isEmpty())
+                context.addServiceListener(listener);
+            else context.addServiceListener(listener, filter);
+        }
+
+        @SuppressWarnings("NullableProblems")
+        @Override
+        public String toString() {
+            switch (appendCalledTimes){
+                case 0: return "";
+                case 1: return super.toString();
+                default:
+                    return String.format("(|%s)", super.toString());
+            }
         }
     }
 
@@ -411,7 +467,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      * @since 1.0
      * @version 1.0
      */
-     protected static enum ActivationState {
+     protected enum ActivationState {
         /**
          * Bundle is not activated.
          */
@@ -481,6 +537,8 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      */
     protected static <T> ActivationProperty<T> defineActivationProperty(final TypeToken<T> propertyType, final T defaultValue){
         return new ActivationProperty<T>() {
+            private static final long serialVersionUID = -2754311111835732097L;
+
             @Override
             public TypeToken<T> getType() {
                 return propertyType;
@@ -523,6 +581,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      */
     protected static <T> NamedActivationProperty<T> defineActivationProperty(final String propertyName, final Class<T> propertyType, final T defaultValue){
         return new NamedActivationProperty<T>() {
+            private static final long serialVersionUID = -5801941853707054641L;
             private final TypeToken<T> pType = TypeToken.of(propertyType);
 
             @Override
@@ -549,9 +608,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
             public boolean equals(final Object obj) {
                 if(obj instanceof NamedActivationProperty<?>)
                     return Objects.equals(propertyName, ((NamedActivationProperty<?>)obj).getName());
-                else if(obj instanceof String)
-                    return Objects.equals(propertyName, obj);
-                else return false;
+                else return Objects.equals(propertyName, obj);
             }
         };
     }
@@ -563,7 +620,6 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      * @param <T> Type of the property.
      * @return Named activation property definition.
      */
-    @SuppressWarnings("UnusedDeclaration")
     protected static <T> NamedActivationProperty<T> defineActivationProperty(final String propertyName, final Class<T> propertyType){
         return defineActivationProperty(propertyName, propertyType, null);
     }
@@ -575,7 +631,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      * @param <S> Type of the service contract.
      * @return Search result; or {@literal null} if dependency not found.
      */
-    @SuppressWarnings({"UnusedDeclaration", "unchecked"})
+    @SuppressWarnings("unchecked")
     public static <S> RequiredService<S> findDependency(final Class<S> serviceContract, final RequiredService<?>... dependencies){
         return findDependency(serviceContract, Arrays.asList(dependencies));
     }
@@ -587,7 +643,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      * @param <S> Type of the service contract.
      * @return Search result; or {@literal null} if dependency not found.
      */
-    @SuppressWarnings({"UnusedDeclaration", "unchecked"})
+    @SuppressWarnings("unchecked")
     public static <S> RequiredService<S> findDependency(final Class<S> serviceContract, final Iterable<RequiredService<?>> dependencies){
         return findDependency(RequiredService.class, serviceContract, dependencies);
     }
@@ -618,6 +674,11 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
         final D found = findDependency(descriptor, serviceContract, dependencies);
         return found != null ? found.getService() : null;
     }
+
+    /**
+     * Represents an empty array of required services.
+     */
+    protected static final RequiredService<?>[] EMPTY_REQUIRED_SERVICES = new RequiredService<?>[0];
 
     private final List<RequiredService<?>> bundleLevelDependencies;
     private final ActivationProperties properties;
@@ -685,7 +746,10 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      */
     @Override
     public final void serviceChanged(final ServiceEvent event) {
-        serviceChanged(getBundleContextByObject(this), event);
+        final BundleContext context = getBundleContextByObject(this);
+        try(final LogicalOperation ignored = BundleLogicalOperation.processServiceChanged(context)) {
+            serviceChanged(context, event);
+        }
     }
 
     /**
@@ -695,16 +759,19 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      */
     @Override
     public final void start(final BundleContext context) throws Exception {
-        start(context, bundleLevelDependencies);
-        //try to resolve bundle-level dependencies immediately
-        for(final RequiredService<?> dependency: bundleLevelDependencies)
-            for(final ServiceReference<?> serviceRef: dependency.getCandidates(context))
-                serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, serviceRef));
-        //attach bundle-level dependencies as service listeners
-        context.addServiceListener(this);
+        try (final LogicalOperation ignored = BundleLogicalOperation.startBundle(context)) {
+            start(context, bundleLevelDependencies);
+            //try to resolve bundle-level dependencies immediately
+            final DependencyListeningFilter filter = new DependencyListeningFilter();
+            for (final RequiredService<?> dependency : bundleLevelDependencies) {
+                filter.append(dependency);
+                for (final ServiceReference<?> serviceRef : dependency.getCandidates(context))
+                    serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, serviceRef));
+            }
+            //attach bundle-level dependencies as service listeners
+            filter.applyServiceListener(context, this);
+        }
     }
-
-
 
     private static void unregister(final BundleContext context, final Collection<RequiredService<?>> dependencies){
         for(final RequiredService<?> dependency: dependencies)
@@ -723,16 +790,19 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
      */
     @Override
     public final void stop(final BundleContext context) throws Exception {
-        context.removeServiceListener(this);
-        if(state == ActivationState.ACTIVATED)
-            deactivateInternal(context, getActivationProperties());
-        try {
-            shutdown(context);
-        }
-        finally {
-            //unbind all dependencies
-            bundleLevelDependencies.clear();
-            properties.clear();
+        try (final LogicalOperation ignored = BundleLogicalOperation.stopBundle(context)) {
+            context.removeServiceListener(this);
+            if (state == ActivationState.ACTIVATED) {
+                state = ActivationState.DEACTIVATING;
+                deactivateInternal(context, getActivationProperties());
+            }
+            try {
+                shutdown(context);
+            } finally {
+                //unbind all dependencies
+                bundleLevelDependencies.clear();
+                properties.clear();
+            }
         }
     }
 
@@ -778,7 +848,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
 
     }
 
-    ActivationPropertyReader getActivationProperties(){
+    final ActivationPropertyReader getActivationProperties(){
         return properties;
     }
 
@@ -819,6 +889,8 @@ public abstract class AbstractBundleActivator implements BundleActivator, AllSer
 
     /**
      * Gets properties of the service that is represented by the specified reference.
+     * <p>
+     *     Note that the service reference should be valid.
      * @param reference The reference to the service.
      * @return A dictionary that provides access to the service properties.
      */

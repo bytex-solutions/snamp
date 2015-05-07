@@ -3,6 +3,7 @@ package com.itworks.snamp;
 import com.google.common.base.Function;
 import com.google.common.base.Supplier;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -12,7 +13,8 @@ import java.util.Objects;
  * @version 1.0
  * @since 1.0
  */
-public class Box<T> implements Wrapper<T>, Supplier<T>, SafeConsumer<T>, Cloneable{
+public class Box<T> implements Wrapper<T>, Supplier<T>, SafeConsumer<T>, Cloneable, Serializable{
+    private static final long serialVersionUID = -3932725773035687013L;
     private T value;
 
     /**
@@ -40,6 +42,7 @@ public class Box<T> implements Wrapper<T>, Supplier<T>, SafeConsumer<T>, Cloneab
         this(null);
     }
 
+
     /**
      * Performs this operation on the given argument.
      *
@@ -51,10 +54,9 @@ public class Box<T> implements Wrapper<T>, Supplier<T>, SafeConsumer<T>, Cloneab
     }
 
     /**
-     * Retrieves an instance of the appropriate type. The returned object may or
-     * may not be a new instance, depending on the implementation.
+     * Retrieves an instance of the stored object.
      *
-     * @return an instance of the appropriate type
+     * @return An object stored in this box.
      */
     @Override
     public final T get() {
@@ -62,11 +64,42 @@ public class Box<T> implements Wrapper<T>, Supplier<T>, SafeConsumer<T>, Cloneab
     }
 
     /**
+     * Gets the value stored in this box and overwrites this value after.
+     * @param newValue A new value to be stored in this box.
+     * @return An existing value in this box.
+     */
+    public final T getAndSet(final T newValue){
+        final T result = value;
+        value = newValue;
+        return result;
+    }
+
+    /**
+     * Retrieves an instance of the stored object or returns alternative value
+     * if stored object is {@literal null}.
+     * @param defval The alternative value to return.
+     * @return An object stored in this box; or {@code defval} if stored object is {@literal null}.
+     */
+    public final T getOrDefault(final T defval){
+        return value != null ? value : defval;
+    }
+
+    /**
      * Places a new value into this container.
-     * @param value A new value to store in this container.
+     * @param value A new value to store into this container.
      */
     public final void set(final T value){
         this.value = value;
+    }
+
+    /**
+     * Places a new value into this container.
+     * @param value The value to be transformed and placed into this container.
+     * @param transformer The transformer applied to input value.
+     * @param <I> Type of the value to be transformed.
+     */
+    public final <I> void set(final I value, final Function<I, T> transformer){
+        set(transformer.apply(value));
     }
 
     /**

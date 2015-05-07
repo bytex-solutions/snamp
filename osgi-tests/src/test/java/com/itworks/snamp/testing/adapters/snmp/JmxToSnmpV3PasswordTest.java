@@ -1,18 +1,23 @@
 package com.itworks.snamp.testing.adapters.snmp;
 
 import com.google.common.base.Supplier;
-import com.itworks.snamp.SynchronizationEvent;
-import com.itworks.snamp.Table;
+import com.google.common.collect.ImmutableList;
+import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
+import com.itworks.snamp.adapters.ResourceAdapterActivator;
+import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import com.itworks.snamp.connectors.notifications.Severity;
-import com.itworks.snamp.testing.SnampArtifact;
+import com.itworks.snamp.testing.SnampDependencies;
+import com.itworks.snamp.testing.SnampFeature;
+import com.itworks.snamp.testing.SnmpTable;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.snmp4j.security.AuthSHA;
+import org.snmp4j.security.PrivAES256;
 import org.snmp4j.security.SecurityLevel;
 import org.snmp4j.smi.Integer32;
 import org.snmp4j.smi.OID;
@@ -26,89 +31,95 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static com.itworks.snamp.TableFactory.INTEGER_TABLE_FACTORY;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
-import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 
 /**
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
+@SnampDependencies(SnampFeature.SNMP_ADAPTER)
 public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final String ADAPTER_NAME = "snmp";
     private static final String SNMP_PORT = "3222";
     private static final String SNMP_HOST = "127.0.0.1";
     private static final String USER_NAME = "testuser";
     private static final String PASSWORD = "1-2-3-4-5-password";
-    private static final SnmpClient client = SnmpClientFactory.createSnmpV3("udp:" + SNMP_HOST + "/" + SNMP_PORT, USER_NAME, SecurityLevel.authPriv);
+    private static final String PRIVACY_KEY = "6-7-8-9-0-passphrase";
+    private static final String ENGINE_ID = "80:00:13:70:01:7f:00:01:01:be:1e:8b:35";
+    private final SnmpClient client;
 
-    public JmxToSnmpV3PasswordTest() throws MalformedObjectNameException {
-        super(new TestOpenMBean(), new ObjectName(BEAN_NAME),
-                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi", "1.0.0"),
-                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.core", "1.0.0"),
-                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.url", "1.0.0"),
-                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.api", "1.0.0"),
-                mavenBundle("org.apache.aries.jndi", "org.apache.aries.jndi.rmi", "1.0.0"),
-                mavenBundle("org.apache.aries", "org.apache.aries.util", "1.0.0"),
-                mavenBundle("org.apache.aries.proxy", "org.apache.aries.proxy.api", "1.0.0"),
-                mavenBundle("net.engio", "mbassador", "1.1.10"),
-                SnampArtifact.SNMP4J.getReference(),
-                SnampArtifact.SNMP_ADAPTER.getReference());
+    public JmxToSnmpV3PasswordTest() throws MalformedObjectNameException, IOException {
+        super(new TestOpenMBean(), new ObjectName(BEAN_NAME));
+        client = SnmpClientFactory.createSnmpV3(ENGINE_ID,
+                "udp:" + SNMP_HOST + "/" + SNMP_PORT, USER_NAME,
+                SecurityLevel.authPriv,
+                PASSWORD,
+                AuthSHA.ID,
+                PRIVACY_KEY,
+                PrivAES256.ID);
     }
 
     @Override
-    protected void afterStartTest(final BundleContext context) throws Exception {
-        AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        super.afterStartTest(context);
-        AbstractResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+    protected void beforeStartTest(final BundleContext context) throws Exception {
+        super.beforeStartTest(context);
+        beforeCleanupTest(context);
+    }
+
+    @Override
+    protected void afterStartTest(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
+        startResourceConnector(context);
+        syncWithAdapterStartedEvent(ADAPTER_NAME, new ExceptionalCallable<Void, BundleException>() {
+            @Override
+            public Void call() throws BundleException {
+                ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
+                return null;
+            }
+        }, TimeSpan.fromSeconds(4));
+    }
+
+    @Override
+    protected void beforeCleanupTest(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
+        ResourceAdapterActivator.stopResourceAdapter(context, ADAPTER_NAME);
+        stopResourceConnector(context);
     }
 
     @Override
     protected void afterCleanupTest(final BundleContext context) throws Exception {
-        AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        stopResourceConnector(context);
-        super.afterCleanupTest(context);
+        try{
+            client.close();
+        }
+        finally {
+            super.afterCleanupTest(context);
+        }
     }
 
     @Test
     public final void testForStringProperty() throws IOException, BundleException {
-        try {
             final String valueToCheck = "SETTED VALUE";
             final OID attributeId = new OID("1.1.1.0");
             client.writeAttribute(attributeId, valueToCheck, String.class);
             assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET, attributeId, String.class));
             assertEquals(valueToCheck, client.readAttribute(ReadMethod.GETBULK, attributeId, String.class));
-        }
-        finally {
-            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        }
     }
 
     @Test
     public final void testForFloatProperty() throws IOException, BundleException {
-        try {
             final float valueToCheck = 31.337F;
             final OID oid = new OID("1.1.8.0");
             client.writeAttribute(oid, valueToCheck, Float.class);
             assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET, oid, Float.class), 0.000001);
             assertEquals(valueToCheck, client.readAttribute(ReadMethod.GETBULK, oid, Float.class), 0.000001);
-        }
-        finally {
-            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        }
     }
 
     @Test
     public final void testForDatePropertyCustomDisplayFormat() throws IOException, BundleException {
-        try {
             final Calendar cal = Calendar.getInstance();
             cal.set(1994, Calendar.APRIL, 5); // Kurt Donald Cobain, good night, sweet prince
             cal.set(Calendar.MILLISECOND, 0);
@@ -117,15 +128,10 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
             client.writeAttribute(oid, valueToCheck, String.class);
             assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET, oid, String.class));
             assertEquals(valueToCheck, client.readAttribute(ReadMethod.GETBULK, oid, String.class));
-        }
-        finally {
-            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        }
     }
 
     @Test
     public final void testForDatePropertyRFC1903HumanReadable() throws IOException, BundleException {
-        try {
             final Calendar cal = Calendar.getInstance();
             cal.set(1994, Calendar.APRIL, 5); // Kurt Donald Cobain, good night, sweet prince
             cal.set(Calendar.MILLISECOND, 0);
@@ -135,15 +141,10 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
             client.writeAttribute(oid, valueToCheck, String.class);
             assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET, oid, String.class));
             assertEquals(valueToCheck, client.readAttribute(ReadMethod.GETBULK, oid, String.class));
-        }
-        finally {
-            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        }
     }
 
     @Test
     public final void testForDatePropertyRFC1903() throws IOException, BundleException {
-        try {
             final Calendar cal = Calendar.getInstance();
             cal.set(1994, Calendar.APRIL, 5); // Kurt Donald Cobain, good night, sweet prince
             cal.set(Calendar.MILLISECOND, 0);
@@ -153,179 +154,161 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
             client.writeAttribute(oid, byteString, byte[].class);
             assertArrayEquals(byteString, client.readAttribute(ReadMethod.GET, oid, byte[].class));
             assertArrayEquals(byteString, client.readAttribute(ReadMethod.GETBULK, oid, byte[].class));
-        }
-        finally {
-            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        }
     }
 
     @Test
     public final void testForBooleanProperty() throws IOException, BundleException {
-        try {
             final boolean valueToCheck = true;
             final OID oid = new OID("1.1.2.0");
             client.writeAttribute(oid, valueToCheck, Boolean.class);
             assertTrue(client.readAttribute(ReadMethod.GET, oid, Boolean.class));
             assertTrue(client.readAttribute(ReadMethod.GETBULK, oid, Boolean.class));
-        }
-        finally {
-            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        }
     }
 
     @Test
     public final void testForInt32Property() throws IOException, BundleException {
-        try {
             final int valueToCheck = 42;
             final OID oid = new OID("1.1.3.0");
             client.writeAttribute(oid, valueToCheck, Integer.class);
             assertEquals(valueToCheck, (int) client.readAttribute(ReadMethod.GET, oid, Integer.class));
             assertEquals(valueToCheck, (int) client.readAttribute(ReadMethod.GETBULK, oid, Integer.class));
-        }
-        finally {
-            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        }
     }
 
     @Test
     public final void testForBigIntProperty() throws IOException, BundleException {
-        try {
             final BigInteger valueToCheck = new BigInteger("100500");
             final OID oid = new OID("1.1.4.0");
             client.writeAttribute(oid, valueToCheck, BigInteger.class);
             assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET, oid, BigInteger.class));
             assertEquals(valueToCheck, client.readAttribute(ReadMethod.GETBULK, oid, BigInteger.class));
-        }
-        finally {
-            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        }
+    }
+
+    @Override
+    protected boolean enableRemoteDebugging() {
+        return false;
     }
 
     @Test
-    public final void testForTableProperty() throws Exception{
-        try {
-            Table<Integer> table = INTEGER_TABLE_FACTORY.create(new HashMap<Integer, Class<?>>() {{
-                put(2, Variable.class);//bool
-                put(3, Variable.class);//int
-                put(4, Variable.class);//str
-            }});
-            table.addRow(new HashMap<Integer, Object>() {{
-                put(2, new Integer32(0));//false
-                put(3, new Integer32(4230));
-                put(4, new OctetString("Row #1"));
-            }});
-            table.addRow(new HashMap<Integer, Object>() {{
-                put(2, new Integer32(1));//true
-                put(3, new Integer32(4231));
-                put(4, new OctetString("Row #2"));
-            }});
-            table.addRow(new HashMap<Integer, Object>() {{
-                put(2, new Integer32(1));//true
-                put(3, new Integer32(4232));
-                put(4, new OctetString("Row #3"));
-            }});
-            table.addRow(new HashMap<Integer, Object>() {{
-                put(2, new Integer32(1));//true
-                put(3, new Integer32(4233));
-                put(4, new OctetString("Row #4"));
-            }});
-            client.writeTable("1.1.7.1", table);
-            table = client.readTable(ReadMethod.GETBULK, new OID("1.1.7.1"), new HashMap<Integer, Class<?>>() {{
-                put(2, Boolean.class);//bool
-                put(3, Integer.class);//int
-                put(4, String.class);//str
-            }});
-            assertEquals(4, table.getRowCount());
-            assertEquals(3, table.getColumns().size());
+    public final void testForTableProperty() throws Exception {
+        final SnmpTable table = new AbstractSnmpTable(Boolean.class, Integer.class, String.class) {
+            private final ImmutableList<Variable[]> rows = ImmutableList.of(
+                    new Variable[]{new Integer32(0), new Integer32(4230), new OctetString("Row #1")},
+                    new Variable[]{new Integer32(1), new Integer32(4231), new OctetString("Row #2")},
+                    new Variable[]{new Integer32(1), new Integer32(4232), new OctetString("Row #3")},
+                    new Variable[]{new Integer32(1), new Integer32(4233), new OctetString("Row #4")}
+            );
 
-            assertEquals(false, table.getCell(2, 0));
-            assertEquals(4230, table.getCell(3, 0));
-            assertEquals("Row #1", table.getCell(4, 0));
+            @Override
+            public int getRowCount() {
+                return rows.size();
+            }
 
-            assertEquals(true, table.getCell(2, 3));
-            assertEquals(4233, table.getCell(3, 3));
-            assertEquals("Row #4", table.getCell(4, 3));
-        }
-        finally {
-            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        }
+            @Override
+            public int getColumnCount() {
+                return 3;
+            }
+
+            @Override
+            public Variable getRawCell(final int columnIndex, final int rowIndex) {
+                return rows.get(rowIndex)[columnIndex];
+            }
+        };
+        client.writeTable("1.1.7.1", table);
+        final SnmpTable result = client.readTable(ReadMethod.GETBULK, new OID("1.1.7.1"),
+                Boolean.class,
+                Integer.class,
+                String.class
+        );
+        assertEquals(4, result.getRowCount());
+        assertEquals(false, result.getCell(0, 0));
+        assertEquals(4230, result.getCell(1, 0));
+        assertEquals("Row #1", result.getCell(2, 0));
+
+        assertEquals(true, result.getCell(0, 3));
+        assertEquals(4233, result.getCell(1, 3));
+        assertEquals("Row #4", result.getCell(2, 3));
     }
 
     @Test
-    public final void testForArrayProperty() throws Exception{
-        try {
-            Table<Integer> array = INTEGER_TABLE_FACTORY.create(new HashMap<Integer, Class<?>>(1) {{
-                put(2, Variable.class);
-            }});
-            array.addRow(new HashMap<Integer, Object>(2) {{
-                put(2, new Integer32(20));
-            }});
-            array.addRow(new HashMap<Integer, Object>(2) {{
-                put(2, new Integer32(30));
-            }});
-            client.writeTable("1.1.5.1", array);
-            array = client.readTable(ReadMethod.GETBULK, new OID("1.1.5.1"), new HashMap<Integer, Class<?>>() {{
-                put(2, Integer.class);
-            }});
-            assertEquals(2, array.getRowCount());
-            assertEquals(1, array.getColumns().size());
-            assertEquals(20, array.getCell(2, 0));
-            assertEquals(30, array.getCell(2, 1));
-        }
-        finally {
-            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        }
+    public final void testForArrayProperty() throws Exception {
+        SnmpTable array = new AbstractSnmpTable() {
+            private final ImmutableList<Variable[]> rows = ImmutableList.of(
+                    new Variable[]{new Integer32(20)},
+                    new Variable[]{new Integer32(30)}
+            );
+
+            @Override
+            public int getRowCount() {
+                return rows.size();
+            }
+
+            @Override
+            public int getColumnCount() {
+                return 1;
+            }
+
+            @Override
+            public Variable getRawCell(final int columnIndex, final int rowIndex) {
+                return rows.get(rowIndex)[columnIndex];
+            }
+        };
+        client.writeTable("1.1.5.1", array);
+        array = client.readTable(ReadMethod.GETBULK, new OID("1.1.5.1"), Integer.class);
+        assertEquals(2, array.getRowCount());
+        assertEquals(20, array.getCell(0, 0));
+        assertEquals(30, array.getCell(0, 1));
     }
 
     @Test
-    public final void testForDictionaryProperty() throws Exception{
-        try {
-            Table<Integer> dict = INTEGER_TABLE_FACTORY.create(new HashMap<Integer, Class<?>>() {{
-                put(2, Variable.class);
-                put(3, Variable.class);
-                put(4, Variable.class);
-            }});
-            dict.addRow(new HashMap<Integer, Object>() {{
-                put(2, new Integer32(0));//false
-                put(3, new Integer32(4230));
-                put(4, new OctetString("Test for dictionary property"));
-            }});
-            client.writeTable("1.1.6.1", dict);
-            dict = client.readTable(ReadMethod.GETBULK, new OID("1.1.6.1"), new HashMap<Integer, Class<?>>() {{
-                put(2, Boolean.class);
-                put(3, Integer.class);
-                put(4, String.class);
-            }});
-            assertEquals(3, dict.getColumns().size());
-            assertEquals(1, dict.getRowCount());
-            assertEquals(false, dict.getCell(2, 0));
-            assertEquals(4230, dict.getCell(3, 0));
-            assertEquals("Test for dictionary property", dict.getCell(4, 0));
-        }
-        finally {
-            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        }
+    public final void testForDictionaryProperty() throws Exception {
+        SnmpTable dict = new AbstractSnmpTable() {
+            private final Variable[] row = {
+                    new Integer32(0),
+                    new Integer32(4230),
+                    new OctetString("Test for dictionary property")
+            };
+
+            @Override
+            public int getRowCount() {
+                return 1;
+            }
+
+            @Override
+            public int getColumnCount() {
+                return 3;
+            }
+
+            @Override
+            public Variable getRawCell(final int columnIndex, final int rowIndex) {
+                return row[columnIndex];
+            }
+        };
+        client.writeTable("1.1.6.1", dict);
+        dict = client.readTable(ReadMethod.GETBULK, new OID("1.1.6.1"),
+                Boolean.class,
+                Integer.class,
+                String.class
+        );
+        assertEquals(1, dict.getRowCount());
+        assertEquals(false, dict.getCell(0, 0));
+        assertEquals(4230, dict.getCell(1, 0));
+        assertEquals("Test for dictionary property", dict.getCell(2, 0));
     }
 
     @Test
     public final void notificationTest() throws IOException, TimeoutException, InterruptedException, BundleException {
-        try {
-            final SynchronizationEvent.Awaitor<SnmpNotification> awaitor1 = client.addNotificationListener(new OID("1.1.19.1"));
-            final SynchronizationEvent.Awaitor<SnmpNotification> awaitor2 = client.addNotificationListener(new OID("1.1.20.1"));
-            client.writeAttribute(new OID("1.1.1.0"), "NOTIFICATION TEST", String.class);
-            final SnmpNotification p1 = awaitor1.await(new TimeSpan(4, TimeUnit.MINUTES));
-            final SnmpNotification p2 = awaitor2.await(new TimeSpan(4, TimeUnit.MINUTES));
-            assertNotNull(p1);
-            assertNotNull(p2);
-            assertEquals(Severity.NOTICE, p1.getSeverity());
-            assertEquals(Severity.PANIC, p2.getSeverity());
-            assertEquals(0L, p1.getSequenceNumber());
-            assertEquals("Property string is changed", p1.getMessage());
-            assertEquals("Property changed", p2.getMessage());
-        }
-        finally {
-            AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        }
+        final SynchronizationEvent.EventAwaitor<SnmpNotification> awaitor1 = client.addNotificationListener(new OID("1.1.19.1"));
+        final SynchronizationEvent.EventAwaitor<SnmpNotification> awaitor2 = client.addNotificationListener(new OID("1.1.20.1"));
+        client.writeAttribute(new OID("1.1.1.0"), "NOTIFICATION TEST", String.class);
+        final SnmpNotification p1 = awaitor1.await(new TimeSpan(4, TimeUnit.MINUTES));
+        final SnmpNotification p2 = awaitor2.await(new TimeSpan(4, TimeUnit.MINUTES));
+        assertNotNull(p1);
+        assertNotNull(p2);
+        assertEquals(Severity.NOTICE, p1.getSeverity());
+        assertEquals(Severity.PANIC, p2.getSeverity());
+        assertEquals(0L, p1.getSequenceNumber());
+        assertEquals("Property string is changed", p1.getMessage());
+        assertEquals("Property changed", p2.getMessage());
     }
 
     @Override
@@ -335,6 +318,8 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
         snmpAdapter.getParameters().put("port", SNMP_PORT);
         snmpAdapter.getParameters().put("host", SNMP_HOST);
         snmpAdapter.getParameters().put("socketTimeout", "5000");
+        snmpAdapter.getParameters().put("engineID", ENGINE_ID);
+        snmpAdapter.getParameters().put("context", "1.1");
         adapters.put("test-snmp", snmpAdapter);
         snmpAdapter.getParameters().put("snmpv3-groups", "group1; group2");
         //group1 setup
@@ -343,13 +328,13 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
         snmpAdapter.getParameters().put("group1-users", USER_NAME);
         snmpAdapter.getParameters().put(USER_NAME + "-password", PASSWORD);
         snmpAdapter.getParameters().put(USER_NAME + "-auth-protocol", "sha");
-        snmpAdapter.getParameters().put(USER_NAME + "-privacy-key", "6-7-8-9-0-passphrase");
+        snmpAdapter.getParameters().put(USER_NAME + "-privacy-key", PRIVACY_KEY);
         snmpAdapter.getParameters().put(USER_NAME + "-privacy-protocol", "AES256");
         //group2 setup
         snmpAdapter.getParameters().put("group2-security-level", "authNoPriv");
         snmpAdapter.getParameters().put("group2-access-rights", "read");
         snmpAdapter.getParameters().put("group2-users", "testuser2");
-        snmpAdapter.getParameters().put("testuser2-password", "1-2-3-4-5-password");
+        snmpAdapter.getParameters().put("testuser2-password", PASSWORD);
         snmpAdapter.getParameters().put("testuser2-auth-protocol", "sha");
     }
 

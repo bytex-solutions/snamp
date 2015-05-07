@@ -3,61 +3,132 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.itworks.snamp</groupId>
   <artifactId>snamp</artifactId>
-  <version>1.0.0</version>
+
   <packaging>pom</packaging>
-  <name>snamp</name>
+  <name>SNAMP</name>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
+    <!--Global dependencies-->
+    <karaf.version>3.0.3</karaf.version>
+    <osgi.version>4.3.1</osgi.version>
+    <junit.version>4.11</junit.version>
+    <jetty.version>8.1.15.v20140411</jetty.version>
+    <gson.version>2.3.1</gson.version>
+    <guava.version>18.0</guava.version>
+    <jersey.version>1.18.1</jersey.version>
+    <!--Versioning of SNAMP Components-->
+    <snmp4j.version>2.3.4</snmp4j.version>
+    <sshj.version>0.10.0</sshj.version>
+    <snamp.framework.version>1.0.0</snamp.framework.version>
+
+    <snamp.adapters.http.version>1.0.0</snamp.adapters.http.version>
+    <snamp.adapters.jmx.version>1.0.0</snamp.adapters.jmx.version>
+    <snamp.adapters.nagios.version>1.0.0</snamp.adapters.nagios.version>
+    <snamp.adapters.nrdp.version>1.0.0</snamp.adapters.nrdp.version>
+    <snamp.adapters.nsca.version>1.0.0</snamp.adapters.nsca.version>
+    <snamp.adapters.snmp.version>1.0.0</snamp.adapters.snmp.version>
+    <snamp.adapters.ssh.version>1.0.0</snamp.adapters.ssh.version>
+    <snamp.adapters.syslog.version>1.0.0</snamp.adapters.syslog.version>
+    <snamp.adapters.xmpp.version>1.0.0</snamp.adapters.xmpp.version>
+
+    <snamp.jmxhelper.version>1.0.0</snamp.jmxhelper.version>
+    <snamp.jaasconfig.version>1.0.0</snamp.jaasconfig.version>
+    <snamp.management.version>1.0.0</snamp.management.version>
+
+    <snamp.connectors.rshell.version>1.0.0</snamp.connectors.rshell.version>
+    <snamp.connectors.aggregator.version>1.0.0</snamp.connectors.aggregator.version>
+    <snamp.connectors.ibmwmq.version>1.0.0</snamp.connectors.ibmwmq.version>
+    <snamp.connectors.jmx.version>1.0.0</snamp.connectors.jmx.version>
+    <snamp.connectors.snmp.version>1.0.0</snamp.connectors.snmp.version>
   </properties>
+  <version>1.0.0</version>
   <organization>
         <name>IT Works</name>
-        <url>http://www.itworks.com/snamp</url>
+        <url>http://snamp.itworks.com/</url>
   </organization>
-  <scm>
-    <developerConnection>scm:git:git@github.com:sakno/snamp.git</developerConnection>
-    <tag>HEAD</tag>
-  </scm>
   <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-release-plugin</artifactId>
-        <version>2.4.1</version>
-        <configuration>
-          <autoVersionSubmodules>true</autoVersionSubmodules>
-          <tagNameFormat>@{project.version}</tagNameFormat>
-          <goals>package</goals>
-          <useReleaseProfile>false</useReleaseProfile>  <!-- This should be reviewed when we will have javadocs -->
-        </configuration>
-      </plugin>
-    </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.servicemix.tooling</groupId>
+                    <artifactId>depends-maven-plugin</artifactId>
+                    <version>1.2</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.karaf.tooling</groupId>
+                    <artifactId>karaf-maven-plugin</artifactId>
+                    <version>${karaf.version}</version>
+                    <extensions>true</extensions>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>1.3.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>2.12.4</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.felix</groupId>
+                    <artifactId>maven-bundle-plugin</artifactId>
+                    <version>2.4.0</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
   </build>
   <modules>
     <module>framework</module>
     <module>connectors</module>
     <module>adapters</module>
-    <module>license-generator</module>
-     <module>infrastructure/config-bundle</module>
-     <module>infrastructure/licensing-bundle</module>
-     <module>osgi-tests</module>
-     <!--<module>html</module>-->
-     <module>third-party-libs/bundlized/snmp4j</module>
-     <module>third-party-libs/bundlized/sshj</module>
-     <module>infrastructure/management-bundle</module>
-      <module>infrastructure/web-console</module>
+    <module>infrastructure/jmx-helpers</module>
+    <module>third-party-libs/bundlized/snmp4j</module>
+    <module>third-party-libs/bundlized/sshj</module>
+    <module>infrastructure/management</module>
+    <module>infrastructure/jaas-config</module>
+    <module>features</module>
+    <module>osgi-tests</module>
+
   </modules>
     <repositories>
-        <repository>
-            <id>oosnmpRepo</id>
-            <name>OOSNMP.COM Repository</name>
-            <url>https://server.oosnmp.net/dist/release</url>
-        </repository>
         <repository>
             <id>maven</id>
             <name>Central Maven Repository</name>
             <url>http://repo1.maven.org/maven2/</url>
         </repository>
+        <repository>
+            <id>maven2</id>
+            <name>Central Maven Repository</name>
+            <url>http://repo2.maven.org/maven2/</url>
+        </repository>
     </repositories>
+
+    <profiles>
+        <profile>
+            <id>Development</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <!-- skip tests -->
+                <maven.test.skip>true</maven.test.skip>
+            </properties>
+        </profile>
+        <profile>
+            <id>Release</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <modules>
+                <module>assembly</module>
+            </modules>
+            <properties>
+                <!-- enable tests -->
+                <maven.test.skip>false</maven.test.skip>
+            </properties>
+        </profile>
+    </profiles>
 </project>

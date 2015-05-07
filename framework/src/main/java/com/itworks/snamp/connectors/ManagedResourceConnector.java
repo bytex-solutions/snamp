@@ -1,6 +1,10 @@
 package com.itworks.snamp.connectors;
 
 import com.itworks.snamp.core.FrameworkService;
+import com.itworks.snamp.internal.annotations.ThreadSafe;
+
+import javax.management.DynamicMBean;
+import java.util.Map;
 
 /**
  * Represents management connector that provides unified access to the management information.
@@ -10,22 +14,59 @@ import com.itworks.snamp.core.FrameworkService;
  *     to provide management mechanisms:
  *     <ul>
  *         <li>{@link com.itworks.snamp.connectors.attributes.AttributeSupport} to provide management
- *         via resource properties.</li>
+ *         via resource attributes.</li>
  *         <li>{@link com.itworks.snamp.connectors.notifications.NotificationSupport} to receiver
  *         management notifications.</li>
- *         <li>{@link com.itworks.snamp.connectors.operations.OperationSupport} to operate
- *         with managed resource in service-like manner.</li>
  *     </ul>
- * </p>
- * @param <TConnectionOptions> The connection options used to initiate connection to the management target.
  * @author Roman Sakno
  * @since 1.0
  * @version 1.0
  */
-public interface ManagedResourceConnector<TConnectionOptions> extends AutoCloseable, FrameworkService {
+public interface ManagedResourceConnector extends AutoCloseable, FrameworkService, DynamicMBean {
     /**
-     * Returns connection options used by this management connector.
-     * @return The connection options used by this management connector.
+     * Represents an exception indicating that the resource connector cannot be updated
+     * without it recreation. This class cannot be inherited.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
      */
-    TConnectionOptions getConnectionOptions();
+    final class UnsupportedUpdateOperationException extends UnsupportedOperationException{
+        private static final long serialVersionUID = 8128304831615736668L;
+
+        /**
+         * Initializes a new exception.
+         * @param message A human-readable explanation.
+         * @param args Formatting arguments.
+         */
+        public UnsupportedUpdateOperationException(final String message, final Object... args){
+            super(String.format(message, args));
+        }
+    }
+
+    /**
+     * Updates resource connector with a new connection options.
+     * @param connectionString A new connection string.
+     * @param connectionParameters A new connection parameters.
+     * @throws Exception Unable to update managed resource connector.
+     * @throws UnsupportedUpdateOperationException This operation is not supported
+     *  by this resource connector.
+     */
+    void update(final String connectionString,
+                final Map<String, String> connectionParameters) throws Exception;
+
+    /**
+     * Adds a new listener for the connector-related events.
+     * <p>
+     *     The managed resource connector should holds a weak reference to all added event listeners.
+     * @param listener An event listener to add.
+     */
+    @ThreadSafe
+    void addResourceEventListener(final ResourceEventListener listener);
+
+    /**
+     * Removes connector event listener.
+     * @param listener The listener to remove.
+     */
+    @ThreadSafe
+    void removeResourceEventListener(final ResourceEventListener listener);
 }

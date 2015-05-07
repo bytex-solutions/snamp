@@ -1,123 +1,89 @@
 package com.itworks.snamp.connectors.notifications;
 
-import java.util.*;
+import com.google.common.base.Supplier;
+import com.itworks.snamp.internal.annotations.ThreadSafe;
+
+import javax.management.Notification;
+import java.util.Date;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Represents in-memory notification builder.
+ * Represents builder of {@link Notification} objects.
+ * This class cannot be inherited.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-@SuppressWarnings("UnusedDeclaration")
-public class NotificationBuilder {
-    /**
-     * Determines whether the sequence number
-     */
-    protected final boolean autoIncrementSequence;
-    private long sequenceNum;
-    private Date timeStamp;
-    private final Map<String, Object> attachments;
-    private Severity severity;
-    private String message;
+@ThreadSafe(false)
+public class NotificationBuilder implements Supplier<Notification> {
+    private final AtomicLong sequenceNumber = new AtomicLong(0L);
+    private String message = "";
+    private long timeStamp = System.currentTimeMillis();
+    private String type = "";
+    private Object source = null;
+    private Object userData = null;
 
-    /**
-     * Initializes a new notification builder.
-     * @param autoIncrementSequence {@literal true} to increment sequence number after each call of {@link #build()} method;
-     *                                             otherwise, {@literal false}.
-     */
-    public NotificationBuilder(final boolean autoIncrementSequence){
-        this.autoIncrementSequence = autoIncrementSequence;
-        sequenceNum = 0L;
-        timeStamp = null;
-        attachments = new HashMap<>(10);
-        severity = Severity.UNKNOWN;
-        message = "";
+    public final NotificationBuilder setType(final String value){
+        type = Objects.requireNonNull(value);
+        return this;
     }
 
-    /**
-     * Initializes a new notification builder.
-     */
-    public NotificationBuilder(){
-        this(false);
+    public final NotificationBuilder setSequenceNumber(final long value){
+        sequenceNumber.set(value);
+        return this;
     }
 
-    /**
-     * Gets time stamp used that will be used in generated notifications.
-     * @return Time stamp used that will be used in generated notifications.
-     */
-    public final Date getTimeStamp(){
-        return new Date(timeStamp.getTime());
+    public final NotificationBuilder setMessage(final String value){
+        message = Objects.requireNonNull(value);
+        return this;
     }
 
-    /**
-     * Sets time stamp used for generating notifications.
-     * @param value
-     */
-    public final void setTimeStamp(final Date value){
-        timeStamp = new Date(value.getTime());
+    public final NotificationBuilder setTimeStamp(final long value){
+        timeStamp = value;
+        return this;
     }
 
-    public final void setSequenceNumber(final long value){
-        sequenceNum = value;
+    public final NotificationBuilder setTimeStamp(final Date value){
+        return setTimeStamp(value.getTime());
     }
 
-    public final long getSequenceNumber(){
-        return sequenceNum;
+    public final NotificationBuilder setTimeStamp(){
+        return setTimeStamp(System.currentTimeMillis());
     }
 
-    /**
-     * Increments the sequence number and returns a new value.
-     * @return Increased sequence number.
-     */
-    protected final long incrementSequenceNumber(){
-        return ++sequenceNum;
+    public final NotificationBuilder setSource(final Object value){
+        source = Objects.requireNonNull(value);
+        return this;
     }
 
-    /**
-     * Adds a new attachment to the notification.
-     * @param name The name of the attachment.
-     * @param attachment The attachment content.
-     */
-    public final void addAttachment(final String name, final Object attachment){
-        attachments.put(name, attachment);
+    public final NotificationBuilder setUserData(final Object value){
+        userData = value;
+        return this;
     }
 
-    public final boolean removeAttachment(final String name){
-        return attachments.remove(name) != null;
-    }
-
-    public final void setSeverity(final Severity value){
-        severity = value != null ? value : Severity.UNKNOWN;
-    }
-
-    public final Severity getSeverity(){
-        return severity;
-    }
-
-    /**
-     * Resets the internal state of this builder.
-     */
-    public void clear(){
-        sequenceNum = 0;
-        timeStamp = null;
-        attachments.clear();
-    }
-
-    public final void setMessage(final String value){
-        message = value != null ? value : "";
-    }
-
-    public final String getMessage(){
-        return message;
-    }
-
-    /**
-     * Constructs a new instance of the notification.
-     * @return A new instance of the notification.
-     */
-    public Notification build(){
-        final Notification result = new NotificationImpl(severity, sequenceNum, timeStamp, message, attachments);
-        if(autoIncrementSequence) incrementSequenceNumber();
+    protected Notification create(final String type,
+                                  final Object source,
+                                  final long sequenceNumber,
+                                  final long timeStamp,
+                                  final String message,
+                                  final Object userData){
+        final Notification result = new Notification(type,
+                source,
+                sequenceNumber,
+                timeStamp,
+                message);
+        result.setUserData(userData);
         return result;
+    }
+
+    /**
+     * Retrieves an instance of the {@link Notification}.
+     *
+     * @return An instance of the {@link Notification}.
+     */
+    @Override
+    public final Notification get() {
+        return create(type, source, sequenceNumber.getAndIncrement(), timeStamp, message, userData);
     }
 }

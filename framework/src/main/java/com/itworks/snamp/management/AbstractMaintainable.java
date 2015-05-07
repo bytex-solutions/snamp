@@ -9,7 +9,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.Futures;
 import com.itworks.snamp.AbstractAggregator;
 import com.itworks.snamp.ArrayUtils;
-import com.itworks.snamp.FutureThread;
+import com.itworks.snamp.concurrent.FutureThread;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -19,6 +19,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.UndeclaredThrowableException;
 import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -45,7 +46,7 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
      */
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
-    public static @interface Action{
+    public @interface Action{
         /**
          * Represents default value of {@link #localeSpecific()} parameter.
          */
@@ -78,7 +79,9 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
         private ActionHandle(final Maintainable owner,
                              final Method actionImpl,
                              final MethodHandles.Lookup resolver) throws IllegalAccessException {
-            handle = resolver.unreflect(actionImpl).bindTo(owner);
+            handle = isStatic(actionImpl.getModifiers()) ?
+                    resolver.unreflect(actionImpl) :
+                    resolver.unreflect(actionImpl).bindTo(owner);
             final Action actionInfo = actionImpl.getAnnotation(Action.class);
             localeSpecific = actionInfo != null ? actionInfo.localeSpecific() : Action.DEFAULT_LOCALE_SPECIFIC;
         }
@@ -92,13 +95,13 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
          */
         public String doAction(Object[] args, final Locale loc) throws Exception {
             if (localeSpecific)
-                args = ArrayUtils.addToEnd(args, loc);
+                args = ArrayUtils.addToEnd(args, loc, Object.class);
             try {
                 return Objects.toString(handle.invokeWithArguments(args));
             } catch (final Exception | Error e) {
                 throw e;
             } catch (final Throwable e) {
-                throw new Exception(e);
+                throw new UndeclaredThrowableException(e);
             }
         }
     }
@@ -127,7 +130,7 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
      * @throws IllegalArgumentException actions is {@literal null}.
      */
     protected AbstractMaintainable(final Class<T> actions){
-        this(actions != null ? EnumSet.allOf(actions) : null);
+        this(EnumSet.allOf(actions));
     }
 
     /**
@@ -153,8 +156,12 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
         return getActionDescription(allActions, actionName, loc);
     }
 
-    private static boolean isPublicInstance(final int modifiers){
-        return Modifier.isPublic(modifiers) && !Modifier.isStatic(modifiers);
+    private static boolean isPublic(final int modifiers){
+        return Modifier.isPublic(modifiers);
+    }
+
+    private static boolean isStatic(final int modifiers){
+        return Modifier.isStatic(modifiers);
     }
 
     /**
@@ -188,9 +195,9 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
 
     private static ActionHandle findActionImplementation(final Maintainable maintainable,
                                                    final MaintenanceActionInfo action,
-                                                   final MethodHandles.Lookup resolver) throws IllegalAccessException {
-        for (final Method m : maintainable.getClass().getMethods())
-            if (isPublicInstance(m.getModifiers()) &&
+                                                   final MethodHandles.Lookup resolver) throws IllegalAccessException, NoSuchElementException {
+        for (final Method m : maintainable.getClass().getDeclaredMethods())
+            if (isPublic(m.getModifiers()) &&
                     m.isAnnotationPresent(Action.class) &&
                     Objects.equals(m.getName(), action.getName()))
                 return new ActionHandle(maintainable, m, resolver);
@@ -208,7 +215,6 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
         //find the action implemented through reflection
         try {
             final ActionHandle actionImpl = actionCache.get(action, new Callable<ActionHandle>() {
-
                 @Override
                 public ActionHandle call() throws IllegalAccessException {
                     return findActionImplementation(AbstractMaintainable.this, action, actionResolver);

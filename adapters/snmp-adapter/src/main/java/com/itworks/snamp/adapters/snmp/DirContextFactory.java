@@ -11,5 +11,11 @@ import java.util.Hashtable;
  * @since 1.0
  */
 interface DirContextFactory {
+    /**
+     * Creates a new JNDI context.
+     * @param env Environment parameters used to create JNDI context.
+     * @return A new instance of JNDI context.
+     * @throws NamingException Unable to create JNDI context.
+     */
     DirContext create(final Hashtable<?, ?> env) throws NamingException;
 }

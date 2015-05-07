@@ -23,6 +23,7 @@ import static com.itworks.snamp.connectors.jmx.JmxConnectorConfigurationDescript
  */
 final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionFactory {
 
+    private static final long serialVersionUID = 2313970631036350249L;
     private final String login;
     private final String password;
     private final long watchDogPeriod;
@@ -33,11 +34,11 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
      * @throws MalformedURLException The specified URL is not JMX-compliant.
      */
     @SuppressWarnings("UnusedDeclaration")
-    public JmxConnectionOptions(final String connectionString) throws MalformedURLException {
+    JmxConnectionOptions(final String connectionString) throws MalformedURLException {
         this(connectionString, Collections.<String, String>emptyMap());
     }
 
-    public JmxConnectionOptions(final String connectionString, final Map<String, String> options) throws MalformedURLException{
+    JmxConnectionOptions(final String connectionString, final Map<String, String> options) throws MalformedURLException{
         super(connectionString);
         if(options.containsKey(JMX_LOGIN) && options.containsKey(JMX_PASSWORD)){
             login = options.get(JMX_LOGIN);
@@ -45,7 +46,7 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
         }
         else login = password = "";
         this.watchDogPeriod = options.containsKey(CONNECTION_CHECK_PERIOD) ?
-                Integer.valueOf(options.get(CONNECTION_CHECK_PERIOD)) : 3000L;
+                Integer.parseInt(options.get(CONNECTION_CHECK_PERIOD)) : 3000L;
     }
 
     private Map<String, Object> getJmxOptions(){

@@ -3,43 +3,32 @@ package com.itworks.snamp;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.collect.Iterators;
+import com.itworks.snamp.internal.annotations.MethodStub;
 
+import java.io.CharArrayWriter;
 import java.io.Flushable;
 import java.io.IOException;
 import java.io.Serializable;
+import java.text.DecimalFormat;
 import java.util.Formatter;
 import java.util.Iterator;
-import java.util.Objects;
 
 /**
  * Represents advanced version of {@link java.lang.StringBuilder} class.
- * This class cannot be inherited.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-public final class StringAppender implements Appendable, CharSequence, Serializable {
-    private final StringBuilder builder;
+public class StringAppender extends CharArrayWriter implements Appendable, CharSequence, Serializable {
+    private static final long serialVersionUID = 5383532773187026410L;
+    private static final char[] EMPTY_CHAR_ARRAY = new char[0];
 
-    private StringAppender(final StringBuilder builder) {
-        this.builder = Objects.requireNonNull(builder, "builder is null");
+    public StringAppender(){
+        this(32);
     }
 
-    /**
-     * Creates a new empty string appender.
-     * @return A new empty string appender.
-     */
-    public static StringAppender init(){
-        return new StringAppender(new StringBuilder());
-    }
-
-    /**
-     * Creates a new empty string appender with predefined capacity.
-     * @param capacity The initial capacity of the appender.
-     * @return A new empty string appender.
-     */
-    public static StringAppender init(final int capacity){
-        return new StringAppender(new StringBuilder(capacity));
+    public StringAppender(final int capacity){
+        super(capacity);
     }
 
     /**
@@ -49,7 +38,7 @@ public final class StringAppender implements Appendable, CharSequence, Serializa
      * @param <T> Type of the destination stream.
      * @throws IOException I/O error occurs.
      */
-    public <T extends Appendable & Flushable> void flush(final T output) throws IOException{
+    public final <T extends Appendable & Flushable> void flush(final T output) throws IOException{
         drainTo(output);
         output.flush();
     }
@@ -59,15 +48,15 @@ public final class StringAppender implements Appendable, CharSequence, Serializa
      * @param output The content acceptor.
      * @throws IOException I/O error occurs.
      */
-    public void drainTo(final Appendable output) throws IOException {
-        output.append(builder);
+    public final void drainTo(final Appendable output) throws IOException {
+        output.append(new String(buf, 0, count));
     }
 
     /**
      * Appends a new line.
      * @return This appender.
      */
-    public StringAppender newLine(){
+    public final StringAppender newLine(){
         return append(System.lineSeparator());
     }
 
@@ -78,7 +67,7 @@ public final class StringAppender implements Appendable, CharSequence, Serializa
      * @param args The formatting arguments.
      * @return This appender.
      */
-    public StringAppender append(final Formatter formatter,
+    public final StringAppender append(final Formatter formatter,
                                  final String template,
                                  final Object... args) {
         return formatter == null ?
@@ -93,7 +82,7 @@ public final class StringAppender implements Appendable, CharSequence, Serializa
      * @param args The formatting arguments.
      * @return This appender.
      */
-    public StringAppender appendln(final Formatter formatter,
+    public final StringAppender appendln(final Formatter formatter,
                                    final String template,
                                    final Object... args){
         return append(formatter, template, args).newLine();
@@ -105,7 +94,7 @@ public final class StringAppender implements Appendable, CharSequence, Serializa
      * @param args The formatting arguments.
      * @return This appender.
      */
-    public StringAppender appendln(final String format, final Object... args) {
+    public final StringAppender appendln(final String format, final Object... args) {
         return appendln(null, format, args);
     }
 
@@ -123,8 +112,8 @@ public final class StringAppender implements Appendable, CharSequence, Serializa
      * @return A reference to this <tt>Appendable</tt>
      */
     @Override
-    public StringAppender append(final CharSequence csq) {
-        builder.append(csq);
+    public final StringAppender append(final CharSequence csq) {
+        super.append(csq);
         return this;
     }
 
@@ -152,8 +141,8 @@ public final class StringAppender implements Appendable, CharSequence, Serializa
      *                                   <tt>csq.length()</tt>
      */
     @Override
-    public StringAppender append(final CharSequence csq, final int start, final int end) {
-        builder.append(csq, start, end);
+    public final StringAppender append(final CharSequence csq, final int start, final int end) {
+        super.append(csq, start, end);
         return this;
     }
 
@@ -164,9 +153,29 @@ public final class StringAppender implements Appendable, CharSequence, Serializa
      * @return A reference to this <tt>Appendable</tt>
      */
     @Override
-    public StringAppender append(final char c) {
-        builder.append(c);
+    public final StringAppender append(final char c) {
+        write(c);
         return this;
+    }
+
+    public final StringAppender append(final long value){
+        return append(Long.toString(value));
+    }
+
+    public final StringAppender append(final byte b){
+        return append((long)b);
+    }
+
+    public final StringAppender append(final short s){
+        return append((long)s);
+    }
+
+    public final StringAppender append(final int i){
+        return append((long)i);
+    }
+
+    public final StringAppender append(final Number value, final DecimalFormat format){
+        return append(format.format(value));
     }
 
     private StringAppender join(final Iterator<? extends CharSequence> elements,
@@ -182,18 +191,18 @@ public final class StringAppender implements Appendable, CharSequence, Serializa
         return this;
     }
 
-    public <I> StringAppender join(final Iterable<I> elements,
+    public final <I> StringAppender join(final Iterable<I> elements,
                                    final Function<? super I, ? extends CharSequence> iteration,
                                    final CharSequence separator) {
         return join(Iterators.transform(elements.iterator(), iteration), separator);
     }
 
-    public <I> StringAppender appendln(final Iterable<? extends I> elements,
+    public final <I> StringAppender appendln(final Iterable<? extends I> elements,
                                        final Function<? super I, ? extends CharSequence> iteration) {
         return join(elements, iteration, System.lineSeparator());
     }
 
-    public StringAppender appendln(final Iterable<?> elements) {
+    public final StringAppender appendln(final Iterable<?> elements) {
         return appendln(elements, Functions.toStringFunction());
     }
 
@@ -204,8 +213,8 @@ public final class StringAppender implements Appendable, CharSequence, Serializa
      * @return the number of <code>char</code>s in this sequence
      */
     @Override
-    public int length() {
-        return builder.length();
+    public final int length() {
+        return count;
     }
 
     /**
@@ -224,8 +233,10 @@ public final class StringAppender implements Appendable, CharSequence, Serializa
      *                                   <tt>length()</tt>
      */
     @Override
-    public char charAt(final int index) {
-        return builder.charAt(index);
+    public final char charAt(final int index) {
+        if(index < 0 || index >= count)
+            throw new StringIndexOutOfBoundsException();
+        else return buf[index];
     }
 
     /**
@@ -244,16 +255,32 @@ public final class StringAppender implements Appendable, CharSequence, Serializa
      *                                   or if <tt>start</tt> is greater than <tt>end</tt>
      */
     @Override
-    public CharSequence subSequence(final int start, final int end) {
-        return builder.subSequence(start, end);
+    public final String subSequence(final int start, final int end) {
+        final int newLength = end - start;
+        if(newLength < 0) throw new IndexOutOfBoundsException();
+        else if(newLength == 0) return "";
+        else {
+            final char[] newBuffer = new char[newLength];
+            System.arraycopy(buf, start, newBuffer, 0, newLength);
+            return new String(newBuffer);
+        }
     }
 
     /**
-     * Builds the whole string from fragments saved in this appender.
-     * @return The whole string concatenated from fragments saved in this appender.
+     * Nothing to do, but you can override this behavior.
      */
     @Override
-    public String toString() {
-        return builder.toString();
+    @MethodStub
+    public void flush() {
+
+    }
+
+    /**
+     * Destroys underlying buffer.
+     */
+    @Override
+    public void close() {
+        buf = EMPTY_CHAR_ARRAY;
+        count = 0;
     }
 }

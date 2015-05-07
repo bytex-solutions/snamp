@@ -9,10 +9,6 @@ import com.itworks.snamp.core.FrameworkService;
  * @since 1.0
  */
 public interface ConfigurationManager extends FrameworkService {
-    /**
-     * Represents system property that contains a path to the SNAMP configuration file.
-     */
-    String CONFIGURATION_FILE_PROPERTY = "com.itworks.snamp.configuration.file";
 
     /**
      * Returns the currently loaded configuration.

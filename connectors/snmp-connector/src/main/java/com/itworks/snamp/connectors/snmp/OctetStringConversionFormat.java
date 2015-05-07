@@ -1,13 +1,16 @@
 package com.itworks.snamp.connectors.snmp;
 
-import com.google.common.reflect.TypeToken;
-import com.itworks.snamp.ArrayUtils;
-import com.itworks.snamp.TypeLiterals;
 import org.snmp4j.smi.OctetString;
 
-import java.util.Map;
+import javax.management.Descriptor;
+import javax.management.InvalidAttributeValueException;
+import javax.management.openmbean.OpenType;
+import javax.management.openmbean.SimpleType;
+import java.util.Objects;
 
-import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.SNMP_CONVERSION_FORMAT;
+import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.SNMP_CONVERSION_FORMAT_PARAM;
+import static com.itworks.snamp.jmx.DescriptorUtils.getField;
+import static com.itworks.snamp.jmx.DescriptorUtils.hasField;
 
 /**
  * Represents {@link org.snmp4j.smi.OctetString} format type.
@@ -15,36 +18,68 @@ import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvid
  * @version 1.0
  * @since 1.0
  */
-enum OctetStringConversionFormat {
+enum OctetStringConversionFormat implements SnmpObjectConverter<OctetString> {
     /**
      * Represents octet string as text.
      */
-    TEXT,
+    TEXT(SimpleType.STRING) {
+        @Override
+        public OctetString convert(final Object value) {
+            return new OctetString(Objects.toString(value, "").getBytes(SNMP_ENCODING));
+        }
+
+        @Override
+        public String convert(final OctetString value) {
+            return new String(value.toByteArray(), SNMP_ENCODING);
+        }
+    },
 
     /**
      * Hexadecimal representation of the octet string.
      */
-    HEX,
+    HEX(SimpleType.STRING) {
+        @Override
+        public OctetString convert(final Object value) {
+            return OctetString.fromHexString(Objects.toString(value, ""));
+        }
+
+        @Override
+        public Object convert(final OctetString value) {
+            return value.toHexString();
+        }
+    },
 
     /**
      * As byte array.
      */
-    BYTE_ARRAY;
+    BYTE_ARRAY(SnmpConnectorHelpers.arrayType(SimpleType.BYTE, true)) {
+        @Override
+        public OctetString convert(final Object value) throws InvalidAttributeValueException {
+            return value instanceof byte[] ?
+                OctetString.fromByteArray((byte[])value):
+                new OctetString(Objects.toString(value, ""));
+        }
 
-    static final TypeToken<OctetString> OCTET_STRING = TypeToken.of(OctetString.class);
+        @Override
+        public Object convert(final OctetString value) {
+            return value.toByteArray();
+        }
+    };
 
-    public static OctetStringConversionFormat adviceFormat(final OctetString value){
-        return value.isPrintable() ? TEXT : HEX;
+    private final OpenType<?> openType;
+
+    OctetStringConversionFormat(final OpenType<?> type){
+        this.openType = type;
     }
 
-    public static OctetStringConversionFormat getFormat(final OctetString value, final Map<String, String> options){
-        if(options.containsKey(SNMP_CONVERSION_FORMAT))
-            return getFormat(options.get(SNMP_CONVERSION_FORMAT));
+    static OctetStringConversionFormat getFormat(final OctetString value, final Descriptor options){
+        if(hasField(options, SNMP_CONVERSION_FORMAT_PARAM))
+            return getFormat(getField(options, SNMP_CONVERSION_FORMAT_PARAM, String.class));
         else if(value.isPrintable()) return TEXT;
         else return BYTE_ARRAY;
     }
 
-    public static OctetStringConversionFormat getFormat(final String formatName){
+    static OctetStringConversionFormat getFormat(final String formatName){
         switch (formatName){
             case "text": return TEXT;
             case "hex": return HEX;
@@ -52,44 +87,12 @@ enum OctetStringConversionFormat {
         }
     }
 
-    public SMITypeProjection<OctetString, ?> createTypeProjection(){
-        switch (this){
-            case HEX: return new SMITypeProjection<OctetString, String>(OCTET_STRING, TypeLiterals.STRING) {
-                @Override
-                protected String convertFrom(final OctetString value) throws IllegalArgumentException {
-                    return value.toHexString();
-                }
-            };
-            case TEXT: return new SMITypeProjection<OctetString, String>(OCTET_STRING, TypeLiterals.STRING) {
-                @Override
-                protected String convertFrom(final OctetString value) throws IllegalArgumentException {
-                    return new String(value.getValue());
-                }
-            };
-            default: return new SMITypeProjection<OctetString, Object[]>(OCTET_STRING, TypeLiterals.OBJECT_ARRAY) {
-                @Override
-                protected Byte[] convertFrom(final OctetString value) throws IllegalArgumentException {
-                    return ArrayUtils.boxArray(value.getValue());
-                }
-            };
-        }
+    @Override
+    public final OpenType<?> getOpenType(){
+        return openType;
     }
 
-
-    /**
-     * Returns the name of this enum constant, as contained in the
-     * declaration.  This method may be overridden, though it typically
-     * isn't necessary or desirable.  An enum type should override this
-     * method when a more "programmer-friendly" string form exists.
-     *
-     * @return the name of this enum constant
-     */
-    @Override
-    public String toString() {
-        switch (this){
-            case HEX: return "hex";
-            case TEXT: return "text";
-            default: return "raw";
-        }
+    static String adviceFormat(final OctetString value) {
+        return value.isPrintable() ? "text" : "hex";
     }
 }

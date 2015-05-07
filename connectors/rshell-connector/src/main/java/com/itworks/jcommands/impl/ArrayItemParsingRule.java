@@ -1,8 +1,6 @@
 package com.itworks.jcommands.impl;
 
 import javax.xml.bind.annotation.*;
-import java.lang.reflect.Array;
-import java.util.List;
 
 /**
 * @author Roman Sakno
@@ -28,7 +26,7 @@ public final class ArrayItemParsingRule extends ParsingRule{
 
     @XmlAttribute(name = "elementType", namespace = XmlConstants.NAMESPACE, required = true)
     public void setElementType(final XmlParsingResultType value){
-        if(value == null || !value.isScalar)
+        if(value == null || !value.isScalar())
             throw new IllegalArgumentException(String.format("Expected scalar type but found %s", value));
         else elementType = value;
     }
@@ -40,10 +38,5 @@ public final class ArrayItemParsingRule extends ParsingRule{
 
     public void setItemParsingRule(final String value){
         itemParsingRule = value != null ? value : "";
-    }
-
-    private static Class<?> getNativeType(final List parsingTemplate) {
-        final ArrayItemParsingRule rule = findRule(parsingTemplate, ArrayItemParsingRule.class);
-        return rule != null ? Array.newInstance(rule.getElementType().underlyingType, 0).getClass() : null;
     }
 }

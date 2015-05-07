@@ -1,63 +1,68 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.itworks.snamp.TypeLiterals;
-import com.itworks.snamp.adapters.AbstractResourceAdapter.AttributeAccessor;
-import com.itworks.snamp.connectors.ManagedEntityType;
+import com.itworks.snamp.adapters.AttributeAccessor;
+import com.itworks.snamp.internal.annotations.SpecialUse;
 import org.snmp4j.smi.OctetString;
+import org.snmp4j.smi.SMIConstants;
 import org.snmp4j.smi.Variable;
 
+import javax.management.DescriptorRead;
+import javax.management.InvalidAttributeValueException;
 import java.text.ParseException;
 import java.util.Date;
-import java.util.Map;
-import java.util.logging.Level;
 
-import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.DATE_TIME_DISPLAY_FORMAT_PARAM;
+import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.parseDateTimeDisplayFormat;
 import static com.itworks.snamp.adapters.snmp.SnmpHelpers.DateTimeFormatter;
-import static com.itworks.snamp.connectors.ManagedEntityTypeHelper.convertFrom;
 
 final class SnmpUnixTimeObject extends SnmpScalarObject<OctetString>{
-    public static final String defaultValue = "1970-1-1,00:00:00.0,+0:0";
+    static int SYNTAX = SMIConstants.SYNTAX_OCTET_STRING;
+    static final String DEFAULT_VALUE = "1970-1-1,00:00:00.0,+0:0";
 
     private final DateTimeFormatter formatter;
 
-    public SnmpUnixTimeObject(final String oid, final AttributeAccessor connector){
-        super(oid, connector, new OctetString(defaultValue));
-        formatter = createFormatter(getMetadata());
+    @SpecialUse
+    SnmpUnixTimeObject(final AttributeAccessor connector){
+        super(connector, SnmpHelpers.toOctetString(DEFAULT_VALUE));
+        formatter = createFormatter(connector.getMetadata());
     }
 
-    private static OctetString convert(final Object value, final ManagedEntityType attributeTypeInfo, final DateTimeFormatter formatter){
-        final Date convertedValue = convertFrom(attributeTypeInfo, value, TypeLiterals.DATE);
-        return new OctetString(formatter.convert(convertedValue));
+    private static OctetString toSnmpObject(final Object value, final DateTimeFormatter formatter) {
+        if (value instanceof Date)
+            return OctetString.fromByteArray(formatter.convert((Date) value));
+        else return SnmpHelpers.toOctetString(DEFAULT_VALUE);
     }
 
-    public static OctetString convert(final Object value, final ManagedEntityType attributeTypeInfo, final Map<String, String> options){
-        return convert(value, attributeTypeInfo, createFormatter(options));
+    @SpecialUse
+    static OctetString toSnmpObject(final Object value, final DescriptorRead options){
+        return toSnmpObject(value, createFormatter(options));
     }
 
-    private static Object convert(final OctetString value, final DateTimeFormatter formatter){
+    private static Date fromSnmpObject(final OctetString value, final DateTimeFormatter formatter) throws InvalidAttributeValueException {
         try {
             return formatter.convert(value.toByteArray());
-        } catch (final ParseException e) {
-            log.log(Level.WARNING, String.format("Invalid date/time string %s", e));
-            return null;
+        } catch (ParseException e) {
+            throw new InvalidAttributeValueException(e.getMessage());
         }
     }
 
-    public static Object convert(final Variable value, final Map<String, String> options){
-        return convert((OctetString)value, createFormatter(options));
+    @SpecialUse
+    static Date fromSnmpObject(final Variable value, final DescriptorRead options) throws InvalidAttributeValueException {
+        if(value instanceof OctetString)
+            return fromSnmpObject((OctetString) value, createFormatter(options));
+        else throw unexpectedSnmpType(OctetString.class);
     }
 
     @Override
     protected OctetString convert(final Object value) {
-        return convert(value, getMetadata().getType(), formatter);
+        return toSnmpObject(value, formatter);
     }
 
     @Override
-    protected Object convert(final OctetString value) {
-        return convert(value, formatter);
+    protected Date convert(final OctetString value) throws InvalidAttributeValueException{
+        return fromSnmpObject(value, getMetadata());
     }
 
-    private static DateTimeFormatter createFormatter(final Map<String, String> options){
-        return SnmpHelpers.createDateTimeFormatter(options.containsKey(DATE_TIME_DISPLAY_FORMAT_PARAM) ? options.get(DATE_TIME_DISPLAY_FORMAT_PARAM) : null);
+    private static DateTimeFormatter createFormatter(final DescriptorRead options){
+        return SnmpHelpers.createDateTimeFormatter(parseDateTimeDisplayFormat(options));
     }
 }

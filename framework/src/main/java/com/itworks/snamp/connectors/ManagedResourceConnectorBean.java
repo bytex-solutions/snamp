@@ -1,36 +1,47 @@
 package com.itworks.snamp.connectors;
 
-import com.google.common.reflect.TypeToken;
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.itworks.snamp.AbstractAggregator;
+import com.itworks.snamp.Descriptive;
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.TypeConverter;
-import com.itworks.snamp.WriteOnceRef;
-import com.itworks.snamp.connectors.attributes.AttributeMetadata;
-import com.itworks.snamp.connectors.attributes.AttributeSupport;
-import com.itworks.snamp.connectors.attributes.AttributeSupportException;
-import com.itworks.snamp.connectors.attributes.UnknownAttributeException;
+import com.itworks.snamp.connectors.attributes.*;
+import com.itworks.snamp.connectors.discovery.DiscoveryResultBuilder;
+import com.itworks.snamp.connectors.discovery.DiscoveryService;
 import com.itworks.snamp.connectors.notifications.*;
-import com.itworks.snamp.internal.annotations.Internal;
-import com.itworks.snamp.internal.annotations.MethodStub;
+import com.itworks.snamp.jmx.JMExceptionUtils;
+import com.itworks.snamp.jmx.WellKnownType;
 
+import javax.management.*;
+import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.OpenMBeanAttributeInfo;
+import javax.management.openmbean.OpenType;
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
-import java.lang.annotation.*;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
+import java.lang.reflect.UndeclaredThrowableException;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.itworks.snamp.internal.Utils.safeCast;
+import static com.itworks.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.*;
 
 /**
- * Represents SNAMP in-process management connector that exposes Java Bean properties through connector managementAttributes.
+ * Represents SNAMP in-process management connector that exposes
+ * Java Bean properties through connector managementAttributes.
  * <p>
  *     Use this class as base class for your custom management connector, if schema of the management information base
  *     is well known at the compile time and stable through connector instantiations.
@@ -40,7 +51,6 @@ import static com.itworks.snamp.internal.Utils.safeCast;
  *       private String prop1;
  *
  *       public CustomConnector(){
- *           super(new WellKnownTypeSystem());
  *           prop1 = "Hello, world!";
  *       }
  *
@@ -55,38 +65,13 @@ import static com.itworks.snamp.internal.Utils.safeCast;
  *
  *     final CustomConnector c = new CustomConnector();
  *     c.connectProperty("001", "property1", new HashMap<>());
- *     System.out.println(c.getAttribute("001", TimeSpan.INFINITE));//output is: Hello, world!
+ *     System.out.println(c.getAttribute("001"));//output is: Hello, world!
  *     }</pre>
- * </p>
- * <p>
- *     By default, {@link WellKnownTypeSystem} supports only primitive types. Therefore, if you use
- *     this type system then your Java Bean properties should have only primitive types:
- *     <ul>
- *         <li>{@link Byte}</li>
- *         <li>{@link Short}</li>
- *         <li>{@link Integer}</li>
- *         <li>{@link Long}</li>
- *         <li>{@link Boolean}</li>
- *         <li>{@link Date}</li>
- *         <li>{@link String}</li>
- *         <li>{@link Float}</li>
- *         <li>{@link Double}</li>
- *         <li>{@link java.math.BigInteger}</li>
- *         <li>{@link java.math.BigDecimal}</li>
- *     </ul>
- *     To support custom type (such as {@link com.itworks.snamp.Table}, {@link Map} or array) you apply do the following steps:
- *     <ul>
- *      <li>Creates your own type system provider that derives from {@link WellKnownTypeSystem}.</li>
- *      <li>Declares public instance parameterless method that have {@link ManagedEntityType} return type in custom type system provider.</li>
- *      <li>Annotates property getter or setter with {@link ManagedResourceConnectorBean.ManagementAttribute} annotation and specify method name(declared
- *      and implemented in custom type system  provider) in {@link ManagedResourceConnectorBean.ManagementAttribute#typeProvider()} parameter.</li>
- *     </ul>
- * </p>
  * @author Roman Sakno
  * @since 1.0
  * @version 1.0
  */
-public class ManagedResourceConnectorBean extends AbstractManagedResourceConnector<ManagedResourceConnectorBean.ManagedBeanDescriptor<?>>
+public abstract class ManagedResourceConnectorBean extends AbstractManagedResourceConnector
         implements NotificationSupport, AttributeSupport {
 
     /**
@@ -96,8 +81,7 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
      * @since 1.0
      * @version 1.0
      */
-    @Internal
-    public static interface ManagedBeanDescriptor<T>{
+    private interface ManagedBeanDescriptor<T>{
         /**
          * Gets metadata of the manageable bean.
          * @return The metadata of the manageable bean.
@@ -115,11 +99,13 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
         private final T instance;
         private final BeanInfo metadata;
 
-        private BeanDescriptor(final T beanInstance, final BeanIntrospector<T> introspector) throws IntrospectionException {
+        private BeanDescriptor(final T beanInstance, final BeanIntrospector introspector) throws IntrospectionException {
             if(beanInstance == null) throw new IllegalArgumentException("beanInstance is null.");
             else if(introspector == null) throw new IllegalArgumentException("introspector is null.");
-            else
-                this.metadata = introspector.getBeanInfo(this.instance = beanInstance);
+            else {
+                this.instance = beanInstance;
+                this.metadata = introspector.getBeanInfo(beanInstance.getClass());
+            }
         }
 
         /**
@@ -145,11 +131,11 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
 
     private static final class SelfDescriptor implements ManagedBeanDescriptor<ManagedResourceConnectorBean> {
         private Reference<ManagedResourceConnectorBean> connectorRef;
-        private final WriteOnceRef<BeanInfo> metadata = new WriteOnceRef<>();
+        private final BeanInfo metadata;
 
-        private void setSelfReference(final ManagedResourceConnectorBean instance) throws IntrospectionException {
+        private SelfDescriptor(final ManagedResourceConnectorBean instance) throws IntrospectionException {
             connectorRef = new WeakReference<>(instance);
-            metadata.set(Introspector.getBeanInfo(instance.getClass(), ManagedResourceConnectorBean.class));
+            metadata = reflect(instance.getClass());
         }
 
         /**
@@ -159,7 +145,7 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
          */
         @Override
         public BeanInfo getBeanInfo() {
-            return metadata.get();
+            return metadata;
         }
 
         /**
@@ -174,6 +160,96 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
     }
 
     /**
+     * Describes management notification type supported by this connector.
+     * @param <T> Well-known type of the user data to be associated with each notification.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    protected interface ManagementNotificationType<T> extends Descriptive{
+        /**
+         * Gets user data type.
+         * @return The user data type; or {@literal} null if user data is not supported.
+         */
+        OpenType<T> getUserDataType();
+
+        /**
+         * The category of the notification.
+         * @return The category of the notification.
+         */
+        String getCategory();
+    }
+
+    private enum EmptyManagementNotificationType implements ManagementNotificationType<Void>{
+        ;
+
+        @Override
+        public OpenType<Void> getUserDataType() {
+            return null;
+        }
+
+        @Override
+        public String getCategory() {
+            return null;
+        }
+
+        @Override
+        public String getDescription(final Locale locale) {
+            return getCategory();
+        }
+    }
+
+    /**
+     * Represents attribute formatter for custom attribute types.
+     * @param <T> JMX-compliant type.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    protected interface ManagementAttributeFormatter<T>{
+        /**
+         * Gets JMX-compliant type of the attribute.
+         * @return JMX-compliant type of the attribute.
+         */
+        OpenType<T> getAttributeType();
+
+        /**
+         * Converts attribute value to the JMX-compliant type.
+         * @param attributeValue The value of the attribute.
+         * @param metadata The metadata of the bean property.
+         * @return JMX-compliant attribute value.
+         */
+        T toJmxValue(final Object attributeValue, final CustomAttributeInfo metadata);
+
+        /**
+         * Converts JMX-compliant attribute value into the native Java object.
+         * @param jmxValue The value to convert.
+         * @param metadata The metadata of the bean property.
+         * @return The converted attribute value.
+         */
+        Object fromJmxValue(final T jmxValue, final CustomAttributeInfo metadata);
+    }
+
+    private static final class DefaultManagementAttributeFormatter implements ManagementAttributeFormatter<Object>{
+        @Override
+        public OpenType<Object> getAttributeType() {
+            return null;
+        }
+
+        @Override
+        public Object toJmxValue(final Object attributeValue,
+                                 final CustomAttributeInfo descriptor) {
+            return attributeValue;
+        }
+
+        @Override
+        public Object fromJmxValue(final Object jmxValue,
+                                   final CustomAttributeInfo descriptor) {
+            return jmxValue;
+        }
+    }
+
+    /**
      * Associated additional attribute info with the bean property getter and setter.
      * @author Roman Sakno
      * @since 1.0
@@ -181,723 +257,580 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
      */
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.METHOD)
-    protected static @interface ManagementAttribute {
+    protected @interface ManagementAttribute {
         /**
          * Determines whether the attribute if cached.
          * @return {@literal true}, if attribute value is cached in the private field; otherwise, {@literal false}.
          */
-        public boolean cached() default false;
+        boolean cached() default false;
 
         /**
-         * Gets the name of the public instance parameterless method in {@link WellKnownTypeSystem} class that returns
-         * {@link ManagedEntityType} for the specified bean property.
-         * @return The name of the public instance method that produces {@link WellKnownTypeSystem} instance
-         * for the annotated bean property.
-         */
-        public String typeProvider() default "";
-    }
-
-    private  final static class JavaBeanPropertyMetadata extends GenericAttributeMetadata<ManagedEntityTypeBuilder.AbstractManagedEntityType>{
-        private final Map<String, String> properties;
-        private final TypeToken<?> propertyType;
-        private final Method getter;
-        private final Method setter;
-        private final Reference<WellKnownTypeSystem> typeBuilder;
-
-        public JavaBeanPropertyMetadata(final PropertyDescriptor descriptor, final WellKnownTypeSystem typeBuilder, final Map<String, String> props){
-            super(descriptor.getName());
-            properties = new HashMap<>(props);
-            properties.put("displayName", descriptor.getDisplayName());
-            properties.put("shortDescription", descriptor.getShortDescription());
-            propertyType = TypeToken.of(descriptor.getPropertyType());
-            getter = descriptor.getReadMethod();
-            if(getter != null && !getter.isAccessible()) getter.setAccessible(true);
-            setter = descriptor.getWriteMethod();
-            if(setter != null && !setter.isAccessible()) setter.setAccessible(true);
-            this.typeBuilder = new WeakReference<>(typeBuilder);
-        }
-
-        private ManagementAttribute getAttributeInfo(){
-            final ManagementAttribute info;
-            if(getter != null && getter.isAnnotationPresent(ManagementAttribute.class))
-                info = getter.getAnnotation(ManagementAttribute.class);
-            else if(setter != null && setter.isAnnotationPresent(ManagementAttribute.class))
-                info = setter.getAnnotation(ManagementAttribute.class);
-            else info = new ManagementAttribute(){
-                    @Override
-                    public boolean cached() {
-                        return false;
-                    }
-
-                    @Override
-                    public String typeProvider() {
-                        return "";
-                    }
-
-                    @Override
-                    public Class<? extends Annotation> annotationType() {
-                        return ManagementAttribute.class;
-                    }
-                };
-            return info;
-        }
-
-        /**
-         * Determines whether the value of the attribute can be cached after first reading
-         * and supplied as real attribute value before first write, return {@literal false} by default.
-         *
-         * @return {@literal true}, if the value of this attribute can be cached; otherwise, {@literal false}.
-         */
-        @Override
-        public final boolean cacheable() {
-            return getAttributeInfo().cached();
-        }
-
-        public final Object getValue(final Object beanInstance) throws ReflectiveOperationException {
-            if(getter == null) return null;
-            return getter.invoke(beanInstance);
-        }
-
-        public final void setValue(final Object beanInstance, final Object value) throws ReflectiveOperationException {
-            final TypeConverter<?> converter = getType().getProjection(propertyType);
-            if(converter != null)
-                setter.invoke(beanInstance, converter.convertFrom(value));
-        }
-
-        /**
-         * Determines whether this property available for read.
-         *
-         * @return {@literal true}, if this property has getter; otherwise, {@literal false}.
-         */
-        @Override
-        public final boolean canRead() {
-            return getter != null;
-        }
-
-        /**
-         * Determines whether the value of this attribute can be changed, returns {@literal true} by default.
-         *
-         * @return {@literal true}, if the attribute value can be changed; otherwise, {@literal false}.
-         */
-        @Override
-        public boolean canWrite() {
-            return setter != null;
-        }
-
-        /**
-         * Detects the attribute type (this method will be called by infrastructure once).
-         *
-         * @return Detected attribute type.
-         */
-        @Override
-        protected final ManagedEntityTypeBuilder.AbstractManagedEntityType detectAttributeType() {
-            ManagedEntityTypeBuilder.AbstractManagedEntityType typeInfo = null;
-            final String typeProviderMethodName = getAttributeInfo().typeProvider();
-            final WellKnownTypeSystem typeBuilder = this.typeBuilder.get();
-            if(typeBuilder != null)
-                try {
-                    final Method typeProviderImpl = typeBuilder.getClass().getMethod(typeProviderMethodName);
-                    typeInfo = (ManagedEntityTypeBuilder.AbstractManagedEntityType)typeProviderImpl.invoke(typeBuilder);
-                }
-                catch (final ReflectiveOperationException e) {
-                    if(propertyType.isArray())
-                        typeInfo = typeBuilder.createEntityArrayType(typeBuilder.createEntitySimpleType(propertyType.getComponentType()));
-                    else
-                        typeInfo = typeBuilder.createEntitySimpleType(propertyType);
-                }
-                finally {
-                    this.typeBuilder.clear();
-                }
-            return typeInfo;
-        }
-
-        @Override
-        public final int size() {
-            return properties.size();
-        }
-
-        @Override
-        public final boolean isEmpty() {
-            return properties.isEmpty();
-        }
-
-        @Override
-        public final boolean containsKey(final Object key) {
-            return properties.containsKey(key);
-        }
-
-        @Override
-        public final boolean containsValue(final Object value) {
-            return properties.containsValue(value);
-        }
-
-        @Override
-        public final String get(final Object key) {
-            return properties.get(key);
-        }
-
-        @SuppressWarnings("NullableProblems")
-        @Override
-        public final Set<String> keySet() {
-            return properties.keySet();
-        }
-
-        @SuppressWarnings("NullableProblems")
-        @Override
-        public final Collection<String> values() {
-            return properties.values();
-        }
-
-        @SuppressWarnings("NullableProblems")
-        @Override
-        public final Set<Entry<String, String>> entrySet() {
-            return properties.entrySet();
-        }
-    }
-
-    private static final class JavaBeanNotification extends HashMap<String, Object> implements Notification {
-        private final Date timeStamp;
-        private final Severity severity;
-        private final long seqnum;
-        private final String message;
-        private transient volatile Object userData;
-
-        public JavaBeanNotification(final Severity severity,
-                                    final long sequenceNumber,
-                                    final String message,
-                                    final Map<String, Object> attachments){
-            this.timeStamp = new Date();
-            this.severity = severity != null ? severity : Severity.UNKNOWN;
-            this.seqnum = sequenceNumber;
-            this.message = message != null ? message : "";
-            putAll(attachments != null ? attachments : Collections.<String, Object>emptyMap());
-            userData = null;
-        }
-
-        /**
-         * Gets user data associated with this object.
-         *
-         * @return The user data associated with this object.
-         */
-        @Override
-        public Object getUserData() {
-            return userData;
-        }
-
-        /**
-         * Sets the user data associated with this object.
-         *
-         * @param value The user data to be associated with this object.
-         */
-        @Override
-        public void setUserData(final Object value) {
-            userData = value;
-        }
-
-        /**
-         * Gets the date and time at which the notification is generated.
-         *
-         * @return The date and time at which the notification is generated.
-         */
-        @Override
-        public final Date getTimeStamp() {
-            return timeStamp;
-        }
-
-        /**
-         * Gets the order number of the notification message.
-         *
-         * @return The order number of the notification message.
-         */
-        @Override
-        public final long getSequenceNumber() {
-            return seqnum;
-        }
-
-        /**
-         * Gets a severity of this event.
-         *
-         * @return The severity of this event.
-         */
-        @Override
-        public final Severity getSeverity() {
-            return severity;
-        }
-
-        /**
-         * Gets a message description of this notification.
-         *
-         * @return The message description of this notification.
-         */
-        @Override
-        public final String getMessage() {
-            return message;
-        }
-    }
-
-    private static final class JavaBeanEventMetadata extends GenericNotificationMetadata{
-        private final AtomicLong sequenceCounter;
-        private final WellKnownTypeSystem typeSystem;
-        private final Map<String, String> options;
-        private final NotificationListenerInvoker listenerInvoker;
-
-        public JavaBeanEventMetadata(final WellKnownTypeSystem typeSys,
-                                     final String category,
-                                     final Map<String, String> options,
-                                     final NotificationListenerInvoker listenerInvoker){
-            super(category);
-            if(listenerInvoker == null) throw new IllegalArgumentException("listenerInvoker is null.");
-            sequenceCounter = new AtomicLong(0L);
-            typeSystem = typeSys;
-            this.options = options != null ? Collections.unmodifiableMap(options) : new HashMap<String, String>();
-            this.listenerInvoker = listenerInvoker;
-        }
-
-        public final void fireListeners(final Severity severity, final String message, final Map<String, Object> attachments){
-            fire(new JavaBeanNotification(severity, sequenceCounter.getAndIncrement(), message, attachments), listenerInvoker);
-        }
-
-        /**
-         * Gets listeners invocation model for this notification type.
-         * @return Listeners invocation model for this notification type.
-         */
-        @Override
-        public final NotificationModel getNotificationModel() {
-            return NotificationModel.MULTICAST_SEQUENTIAL;
-        }
-
-        /**
-         * Returns the type descriptor for the specified attachment.
-         *
-         * @param attachment The notification attachment.
-         * @return The type descriptor for the specified attachment; or {@literal null} if the specified
-         *         attachment is not supported.
-         */
-        @Override
-        public final ManagedEntityType getAttachmentType(final Object attachment) {
-            if(attachment == null) return typeSystem.createFallbackEntityType();
-            final ManagedEntityType typeInfo = typeSystem.createEntitySimpleType(TypeToken.of(attachment.getClass()));
-            return typeInfo != null ? typeInfo: typeSystem.createFallbackEntityType();
-        }
-
-        @Override
-        public final int size() {
-            return options.size();
-        }
-
-        @Override
-        public final boolean isEmpty() {
-            return options.isEmpty();
-        }
-
-        @Override
-        public final boolean containsKey(final Object key) {
-            return options.containsKey(key);
-        }
-
-        @Override
-        public final boolean containsValue(final Object value) {
-            return options.containsValue(value);
-        }
-
-        @Override
-        public final String get(final Object key) {
-            return options.get(key);
-        }
-
-        @SuppressWarnings("NullableProblems")
-        @Override
-        public final Set<String> keySet() {
-            return options.keySet();
-        }
-
-
-        @SuppressWarnings("NullableProblems")
-        @Override
-        public final Collection<String> values() {
-            return options.values();
-        }
-
-        @SuppressWarnings("NullableProblems")
-        @Override
-        public final Set<Entry<String, String>> entrySet() {
-            return options.entrySet();
-        }
-    }
-
-    private static final class JavaBeanNotificationSupport extends AbstractNotificationSupport{
-        private final WellKnownTypeSystem attachmentTypeSystem;
-        private final Logger logger;
-
-        private JavaBeanNotificationSupport(final WellKnownTypeSystem typeSystem,
-                                            final Logger logger){
-            this.attachmentTypeSystem = typeSystem;
-            this.logger = logger;
-        }
-
-        /**
-         * Reports an error when disabling notifications.
-         *
-         * @param listID Subscription list identifier.
-         * @param e      Internal connector error.
-         * @see #failedToDisableNotifications(java.util.logging.Logger, java.util.logging.Level, String, Exception)
-         */
-        @Override
-        protected void failedToDisableNotifications(final String listID, final Exception e) {
-            failedToDisableNotifications(logger, Level.WARNING, listID, e);
-        }
-
-        /**
-         * Reports an error when enabling notifications.
-         *
-         * @param listID   Subscription list identifier.
-         * @param category An event category.
-         * @param e        Internal connector error.
-         * @see #failedToEnableNotifications(java.util.logging.Logger, java.util.logging.Level, String, String, Exception)
-         */
-        @Override
-        protected void failedToEnableNotifications(final String listID, final String category, final Exception e) {
-            failedToEnableNotifications(logger, Level.WARNING, listID, category, e);
-        }
-
-        /**
-         * Reports an error when subscribing the listener.
-         *
-         * @param listenerID Subscription list identifier.
-         * @param e          Internal connector error.
-         * @see #failedToSubscribe(java.util.logging.Logger, java.util.logging.Level, String, Exception)
-         */
-        @Override
-        protected void failedToSubscribe(final String listenerID, final Exception e) {
-            failedToSubscribe(logger, Level.WARNING, listenerID, e);
-        }
-
-        /**
-         * Raises notification.
-         * @param category The category of the event to raise.
-         * @param severity The severity of the event to raise.
-         * @param message Human-readable description of the event.
-         * @param attachments A set of notification attachments. May be {@literal null}.
-         */
-        public final void emitNotification(final String category, final Severity severity, final String message, final Map<String, Object> attachments){
-            for(final JavaBeanEventMetadata eventMetadata: getEnabledNotifications(category, JavaBeanEventMetadata.class).values())
-                eventMetadata.fireListeners(severity, message, attachments);
-        }
-
-        /**
-         * Creates a new listeners invocation strategy.
-         * <p>
-         *     This method automatically calls from {@link #enableNotifications(String, java.util.Map)} method.
-         *     By default, this method uses {@link NotificationListenerInvokerFactory#createParallelInvoker(java.util.concurrent.ExecutorService)}
-         *     strategy.
-         * </p>
-         * @return A new listeners invocation strategy.
-         */
-        protected NotificationListenerInvoker createListenerInvoker(){
-            return NotificationListenerInvokerFactory.createParallelInvoker(Executors.newSingleThreadExecutor());
-        }
-
-        /**
-         * Enables event listening for the specified category of events.
-         *
-         * @param category The name of the category to listen.
-         * @param options  Event discovery options.
-         * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
-         */
-        @Override
-        protected final GenericNotificationMetadata enableNotifications(final String category, final Map<String, String> options) {
-            return new JavaBeanEventMetadata(attachmentTypeSystem, category, options, createListenerInvoker());
-        }
-
-        /**
-         * Adds a new listener for the specified notification.
-         *
-         * @param listener The event listener.
-         * @return Any custom data associated with the subscription.
-         */
-        @Override
-        @MethodStub
-        protected Object subscribe(final NotificationListener listener) {
-            return null;
-        }
-
-        /**
-         * Cancels the notification listening.
-         *
-         * @param listener The notification listener to remove.
-         * @param data     The custom data associated with subscription that returned from {@link #subscribe(com.itworks.snamp.connectors.notifications.NotificationListener)}
-         */
-        @Override
-        @MethodStub
-        protected void unsubscribe(final NotificationListener listener, final Object data) {
-
-        }
-    }
-
-    private static final class JavaBeanAttributeSupport extends AbstractAttributeSupport {
-        private final WellKnownTypeSystem typeSystem;
-        private final ManagedBeanDescriptor<?> descriptor;
-        private final Logger logger;
-
-        private JavaBeanAttributeSupport(final ManagedBeanDescriptor<?> descriptor,
-                                        final WellKnownTypeSystem typeSystem,
-                                        final Logger logger) {
-            this.typeSystem = typeSystem;
-            this.descriptor = descriptor;
-            this.logger = logger;
-        }
-
-        /**
-         * Reports an error when connecting attribute.
-         *
-         * @param attributeID   The attribute identifier.
-         * @param attributeName The name of the attribute.
-         * @param e             Internal connector error.
-         * @see #failedToConnectAttribute(java.util.logging.Logger, java.util.logging.Level, String, String, Exception)
-         */
-        @Override
-        protected void failedToConnectAttribute(final String attributeID, final String attributeName, final Exception e) {
-            failedToConnectAttribute(logger, Level.WARNING, attributeID, attributeName, e);
-        }
-
-        /**
-         * Reports an error when getting attribute.
-         *
-         * @param attributeID The attribute identifier.
-         * @param e           Internal connector error.
-         * @see #failedToGetAttribute(java.util.logging.Logger, java.util.logging.Level, String, Exception)
-         */
-        @Override
-        protected void failedToGetAttribute(final String attributeID, final Exception e) {
-             failedToGetAttribute(logger, Level.WARNING, attributeID, e);
-        }
-
-        /**
-         * Reports an error when updating attribute.
-         *
-         * @param attributeID The attribute identifier.
-         * @param value       The value of the attribute.
-         * @param e           Internal connector error.
-         * @see #failedToSetAttribute(java.util.logging.Logger, java.util.logging.Level, String, Object, Exception)
-         */
-        @Override
-        protected void failedToSetAttribute(final String attributeID, final Object value, final Exception e) {
-            failedToSetAttribute(logger, Level.WARNING, attributeID, value, e);
-        }
-
-        /**
-         * Connects the specified Java Bean property.
-         *
-         * @param property Java Bean property to connect.
-         * @param options  Additional connection options.
-         * @return An information about registered attribute.
-         */
-        protected final GenericAttributeMetadata connectAttribute(final PropertyDescriptor property, final Map<String, String> options) {
-            return new JavaBeanPropertyMetadata(property, typeSystem, options);
-        }
-
-        /**
-         * Connects to the specified attribute.
-         *
-         * @param attributeName The name of the attribute.
-         * @param options       Attribute discovery options.
+         * Gets the description of the attribute.
          * @return The description of the attribute.
          */
-        @Override
-        protected final GenericAttributeMetadata connectAttribute(final String attributeName, final Map<String, String> options) {
-            for (final PropertyDescriptor pd : descriptor.getBeanInfo().getPropertyDescriptors())
-                if (Objects.equals(pd.getName(), attributeName))
-                    return connectAttribute(pd, options);
-            return null;
-        }
+        String description() default "";
 
         /**
-         * Returns the value of the attribute.
-         *
-         * @param attribute   The metadata of the attribute to get.
-         * @param readTimeout Attribute read timeout.
-         * @return The value of the attribute.
-         * @throws java.lang.ReflectiveOperationException Unable to get attribute value.
+         * Represents attribute formatter that is used to convert custom Java type to
+         * JMX-compliant value and vice versa.
+         * @return The attribute formatter.
          */
-        @Override
-        protected final Object getAttributeValue(final AttributeMetadata attribute, final TimeSpan readTimeout) throws ReflectiveOperationException {
-            if (attribute.canRead() && attribute instanceof JavaBeanPropertyMetadata)
-                return ((JavaBeanPropertyMetadata) attribute).getValue(descriptor.getInstance());
-            else
-                throw new ReflectiveOperationException(String.format("Attribute %s is write-only", attribute.getName()));
-        }
-
-        /**
-         * Sends the attribute value to the remote agent.
-         *
-         * @param attribute    The metadata of the attribute to set.
-         * @param writeTimeout Attribute write timeout.
-         * @param value        A new attribute value.
-         * @throws java.lang.ReflectiveOperationException Unable to update attribute.
-         */
-        @Override
-        protected final void setAttributeValue(final AttributeMetadata attribute, final TimeSpan writeTimeout, final Object value) throws ReflectiveOperationException {
-            if (attribute.canWrite() && attribute instanceof JavaBeanPropertyMetadata)
-                ((JavaBeanPropertyMetadata) attribute).setValue(descriptor.getInstance(), value);
-            else
-                throw new ReflectiveOperationException(String.format("Attribute %s is read-only", attribute.getName()));
-        }
+        Class<? extends ManagementAttributeFormatter<?>> formatter() default DefaultManagementAttributeFormatter.class;
     }
 
+
+
     /**
-     * Provides introspection for the specified bean instance.
-     * @param <T> Type of JavaBean to reflect.
+     * Provides introspection for the specified bean type.
      * @author Roman Sakno
      * @since 1.0
      * @version 1.0
      */
-    protected static interface BeanIntrospector<T>{
+    protected interface BeanIntrospector{
         /**
          * Reflects the specified JavaBean.
-         * @param beanInstance An instance of JavaBean to reflect.
+         * @param beanType A type of JavaBean to reflect.
          * @return Metadata of the specified JavaBean.
          * @throws IntrospectionException Cannot reflect the specified JavaBean.
          */
-        public BeanInfo getBeanInfo(final T beanInstance) throws IntrospectionException;
+        BeanInfo getBeanInfo(final Class<?> beanType) throws IntrospectionException;
     }
 
     /**
      * Provides the standard implementation of JavaBean reflection that simply
      * calls {@link Introspector#getBeanInfo(Class)} method. This class cannot be inherited.
-     * @param <T> Type of JavaBean to reflect.
      * @author Roman Sakno
      * @since 1.0
      * @version 1.0
      */
-    protected static final class StandardBeanIntrospector<T> implements BeanIntrospector<T>{
+    protected static final class StandardBeanIntrospector implements BeanIntrospector{
 
         /**
          * Reflects the specified JavaBean.
          * <p>
          *     This method simply calls {@link Introspector#getBeanInfo(Class)} method.
-         * </p>
-         * @param beanInstance An instance of JavaBean to reflect.
+         * @param beanType A type of JavaBean to reflect.
          * @return Metadata of the specified JavaBean.
          * @throws java.beans.IntrospectionException
          *          Cannot reflect the specified JavaBean.
          */
         @Override
-        public final BeanInfo getBeanInfo(final T beanInstance) throws IntrospectionException {
-            return Introspector.getBeanInfo(beanInstance.getClass());
+        public final BeanInfo getBeanInfo(final Class<?> beanType) throws IntrospectionException {
+            return Introspector.getBeanInfo(beanType);
         }
     }
 
-    private final JavaBeanNotificationSupport notifications;
-    private final JavaBeanAttributeSupport attributes;
-
     /**
-     * Initializes a new management connector that reflects properties of this class as
-     * connector managementAttributes.
-     * @param typeBuilder Type information provider that provides property type converter.
-     * @param logger A logger for this management connector.
-     * @throws IllegalArgumentException typeBuilder is {@literal null}.
+     * Represents an attribute declared as a Java property in this resource connector.
+     * This class cannot be inherited or instantiated directly in your code.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
      */
-    @SuppressWarnings("UnusedDeclaration")
-    protected ManagedResourceConnectorBean(final WellKnownTypeSystem typeBuilder, final Logger logger) throws IntrospectionException {
-        super(new SelfDescriptor(), logger);
-        //creates weak reference to this object
-        safeCast(getConnectionOptions(), SelfDescriptor.class).setSelfReference(this);
-        if (typeBuilder == null) throw new IllegalArgumentException("typeBuilder is null.");
-        this.attributes = new JavaBeanAttributeSupport(getConnectionOptions(), typeBuilder, logger);
-        this.notifications = new JavaBeanNotificationSupport(typeBuilder, logger);
+    private static class JavaBeanAttributeInfo extends CustomAttributeInfo implements AttributeDescriptorRead{
+        private static final long serialVersionUID = -5047097712279607039L;
+        private final MethodHandle getter;
+        private final MethodHandle setter;
+
+        /**
+         * Represents attribute formatter.
+         */
+        protected final ManagementAttributeFormatter formatter;
+
+        private JavaBeanAttributeInfo(final String attributeName,
+                                      final PropertyDescriptor property,
+                                      final AttributeDescriptor descriptor,
+                                      final Object owner) throws ReflectionException {
+            super(attributeName,
+                    property.getPropertyType(),
+                    getDescription(property, descriptor),
+                    getSpecifier(property),
+                    descriptor);
+            final Method getter = property.getReadMethod();
+            final Method setter = property.getWriteMethod();
+            final ManagementAttribute info = getAdditionalInfo(getter, setter);
+            if(info != null)
+                try {
+                    final Class<? extends ManagementAttributeFormatter> formatterClass =
+                            info.formatter();
+                    this.formatter = Objects.equals(formatterClass, DefaultManagementAttributeFormatter.class) ?
+                            new DefaultManagementAttributeFormatter():
+                            formatterClass.newInstance();
+                } catch (final ReflectiveOperationException e){
+                    throw new ReflectionException(e);
+                }
+            else formatter = new DefaultManagementAttributeFormatter();
+            final MethodHandles.Lookup lookup = MethodHandles.publicLookup();
+            try{
+                this.setter = setter != null ? lookup.unreflect(setter).bindTo(owner): null;
+                this.getter = getter != null ? lookup.unreflect(getter).bindTo(owner): null;
+            } catch (final IllegalAccessException e) {
+                throw new ReflectionException(e);
+            }
+        }
+
+        final Object getValue() throws ReflectionException {
+            if (getter != null)
+                try {
+                    return formatter.toJmxValue(getter.invoke(), this);
+                } catch (final Exception e) {
+                    throw new ReflectionException(e);
+                } catch (final Error e) {
+                    throw e;
+                } catch (final Throwable e) {
+                    throw new ReflectionException(new UndeclaredThrowableException(e));
+                }
+            else throw new ReflectionException(new UnsupportedOperationException("Attribute is write-only"));
+        }
+
+        @SuppressWarnings("unchecked")
+        final void setValue(final Object value) throws ReflectionException, InvalidAttributeValueException {
+            if (setter != null)
+                try {
+                    setter.invoke(formatter.fromJmxValue(value, this));
+                } catch (final IllegalArgumentException e) {
+                    throw new InvalidAttributeValueException(e.getMessage());
+                } catch (final Exception e) {
+                    throw new ReflectionException(e);
+                } catch (final Error e) {
+                    throw e;
+                } catch (final Throwable e) {
+                    throw new ReflectionException(new UndeclaredThrowableException(e));
+                }
+            else throw new ReflectionException(new UnsupportedOperationException("Attribute is read-only"));
+        }
+
+        private static AttributeSpecifier getSpecifier(final PropertyDescriptor descriptor){
+            AttributeSpecifier result = AttributeSpecifier.NOT_ACCESSIBLE;
+            if(descriptor.getReadMethod() != null){
+                result = result.readable(true);
+                result = descriptor.getReadMethod().getName().startsWith("is") ?
+                        result.flag(true):
+                        result;
+            }
+            result = result.writable(descriptor.getWriteMethod() != null);
+            return result;
+        }
+
+        private static ManagementAttribute getAdditionalInfo(final Method... methods){
+            for(final Method m: methods)
+                if(m != null && m.isAnnotationPresent(ManagementAttribute.class))
+                    return m.getAnnotation(ManagementAttribute.class);
+            return null;
+        }
+
+        private static String getDescription(final PropertyDescriptor property,
+                                             final AttributeDescriptor descriptor) {
+            String description = descriptor.getDescription();
+            if (description == null || description.isEmpty()) {
+                final ManagementAttribute attr = getAdditionalInfo(property.getReadMethod(), property.getWriteMethod());
+                description = attr != null ? attr.description() : null;
+                if (description == null || description.isEmpty())
+                    description = property.getName();
+            }
+            return description;
+        }
+    }
+
+    private static final class JavaBeanOpenAttributeInfo extends JavaBeanAttributeInfo implements OpenMBeanAttributeInfo{
+        private static final long serialVersionUID = -4173983412042130772L;
+        private final OpenType<?> openType;
+
+        private JavaBeanOpenAttributeInfo(final String attributeName,
+                                          final PropertyDescriptor property,
+                                          final AttributeDescriptor descriptor,
+                                          final Object owner) throws ReflectionException, OpenDataException {
+            super(attributeName, property, descriptor, owner);
+            OpenType<?> type = formatter.getAttributeType();
+            //tries to detect open type via WellKnownType
+            if(type == null){
+                final WellKnownType knownType = WellKnownType.getType(property.getPropertyType());
+                if(knownType != null && knownType.isOpenType())
+                    type = knownType.getOpenType();
+                else throw new OpenDataException();
+            }
+            this.openType = type;
+        }
+
+        @Override
+        public OpenType<?> getOpenType() {
+            return openType;
+        }
+
+        @Override
+        public Object getDefaultValue() {
+            return null;
+        }
+
+        @Override
+        public Set<?> getLegalValues() {
+            return null;
+        }
+
+        @Override
+        public Comparable<?> getMinValue() {
+            return null;
+        }
+
+        @Override
+        public Comparable<?> getMaxValue() {
+            return null;
+        }
+
+        @Override
+        public boolean hasDefaultValue() {
+            return false;
+        }
+
+        @Override
+        public boolean hasLegalValues() {
+            return false;
+        }
+
+        @Override
+        public boolean hasMinValue() {
+            return false;
+        }
+
+        @Override
+        public boolean hasMaxValue() {
+            return false;
+        }
+
+        @Override
+        public boolean isValue(final Object obj) {
+            return openType.isValue(obj);
+        }
+    }
+
+    private static final class JavaBeanAttributeSupport extends AbstractAttributeSupport<JavaBeanAttributeInfo> {
+        private final Logger logger;
+        private final ManagedBeanDescriptor<?> bean;
+
+        private JavaBeanAttributeSupport(final String resourceName,
+                                         final ManagedBeanDescriptor<?> beanDesc,
+                                         final Logger logger){
+            super(resourceName, JavaBeanAttributeInfo.class);
+            this.logger = Objects.requireNonNull(logger);
+            this.bean = Objects.requireNonNull(beanDesc);
+        }
+
+        @Override
+        protected JavaBeanAttributeInfo connectAttribute(final String attributeID,
+                                                         final AttributeDescriptor descriptor) throws AttributeNotFoundException, ReflectionException {
+            final BeanInfo info = bean.getBeanInfo();
+            for(final PropertyDescriptor property: info.getPropertyDescriptors())
+                if(isReservedProperty(property)) continue;
+                else if(Objects.equals(property.getName(), descriptor.getAttributeName()))
+                    try{
+                        //try to connect as Open Type attribute
+                        return new JavaBeanOpenAttributeInfo(attributeID, property, descriptor, bean.getInstance());
+                    }
+                    catch (final OpenDataException e){
+                        //bean property type is not Open Type
+                        return new JavaBeanAttributeInfo(attributeID, property, descriptor, bean.getInstance());
+                    }
+            throw JMExceptionUtils.attributeNotFound(descriptor.getAttributeName());
+        }
+
+        @Override
+        protected void failedToConnectAttribute(final String attributeID, final String attributeName, final Exception e) {
+            failedToConnectAttribute(logger, Level.SEVERE, attributeID, attributeName, e);
+        }
+
+        @Override
+        protected Object getAttribute(final JavaBeanAttributeInfo metadata) throws ReflectionException {
+            return metadata.getValue();
+        }
+
+        @Override
+        protected void failedToGetAttribute(final String attributeID, final Exception e) {
+            failedToGetAttribute(logger, Level.WARNING, attributeID, e);
+        }
+
+        @Override
+        protected void setAttribute(final JavaBeanAttributeInfo attribute, final Object value) throws ReflectionException, InvalidAttributeValueException {
+            attribute.setValue(value);
+        }
+
+        @Override
+        protected void failedToSetAttribute(final String attributeID, final Object value, final Exception e) {
+            failedToSetAttribute(logger, Level.WARNING, attributeID, value, e);
+        }
+    }
+
+    private static final class JavaBeanNotificationSupport extends AbstractNotificationSupport<CustomNotificationInfo> {
+        private final Logger logger;
+        private final Set<? extends ManagementNotificationType<?>> notifTypes;
+        private final NotificationListenerInvoker listenerInvoker;
+
+        private JavaBeanNotificationSupport(final String resourceName,
+                                            final Set<? extends ManagementNotificationType<?>> notifTypes,
+                                            final Logger logger) {
+            super(resourceName, CustomNotificationInfo.class);
+            this.logger = Objects.requireNonNull(logger);
+            this.notifTypes = Objects.requireNonNull(notifTypes);
+            this.listenerInvoker = NotificationListenerInvokerFactory.createSequentialInvoker();
+        }
+
+        @Override
+        protected NotificationListenerInvoker getListenerInvoker() {
+            return listenerInvoker;
+        }
+
+        @Override
+        protected CustomNotificationInfo enableNotifications(final String category,
+                                                             final NotificationDescriptor metadata) throws IllegalArgumentException {
+            //find the suitable notification type
+            final ManagementNotificationType<?> type = Iterables.find(notifTypes, new Predicate<ManagementNotificationType<?>>() {
+                @Override
+                public boolean apply(final ManagementNotificationType<?> type) {
+                    return Objects.equals(type.getCategory(), metadata.getNotificationCategory());
+                }
+            });
+            if (type != null) {
+                String description = type.getDescription(Locale.getDefault());
+                if (description == null || description.isEmpty()) {
+                    description = metadata.getDescription();
+                    if (description == null || description.isEmpty())
+                        description = type.getCategory();
+                }
+                return new CustomNotificationInfo(category, description, metadata.setUserDataType(type.getUserDataType()));
+            } else
+                throw new IllegalArgumentException(String.format("Unsupported notification %s", metadata.getNotificationCategory()));
+        }
+
+        @Override
+        protected boolean disableNotifications(final CustomNotificationInfo metadata) {
+            return true;
+        }
+
+        @Override
+        protected void failedToEnableNotifications(final String listID, final String category, final Exception e) {
+            failedToEnableNotifications(logger, Level.WARNING, listID, category, e);
+        }
+
+        private void fire(final ManagementNotificationType<?> category, final String message, final Object userData) {
+            fire(category.getCategory(), message, userData);
+        }
     }
 
     /**
-     * Initializes a new management connector that reflects properties of the specified instance
+     * Represents default implementation of {@link DiscoveryService} based on information
+     * supplied through reflection of the bean.
+     * @author Roman Sakno
+     * @since 1.0
+     * @version 1.0
+     */
+    public static abstract class BeanDiscoveryService extends AbstractAggregator implements DiscoveryService{
+        private final Collection<? extends ManagementNotificationType<?>> notifications;
+        private final BeanInfo beanMetadata;
+
+        private BeanDiscoveryService(final BeanInfo beanMetadata,
+                                     final Collection<? extends ManagementNotificationType<?>> notifications){
+            this.beanMetadata = Objects.requireNonNull(beanMetadata);
+            this.notifications = Objects.requireNonNull(notifications);
+        }
+
+        protected BeanDiscoveryService(final Class<? extends ManagedResourceConnectorBean> connectorType) throws IntrospectionException {
+            this(connectorType, EnumSet.noneOf(EmptyManagementNotificationType.class));
+        }
+
+        protected <N extends Enum<N> & ManagementNotificationType<?>> BeanDiscoveryService(final Class<? extends ManagedResourceConnectorBean> connectorType,
+                                                                                           final EnumSet<N> notifications) throws IntrospectionException {
+            this(reflect(connectorType), notifications);
+        }
+
+        protected BeanDiscoveryService(final Class<?> beanType,
+                                       final BeanIntrospector introspector) throws IntrospectionException {
+            this(introspector.getBeanInfo(beanType),
+                    EnumSet.noneOf(EmptyManagementNotificationType.class));
+        }
+
+        protected <N extends Enum<N> & ManagementNotificationType<?>> BeanDiscoveryService(final Class<?> beanType,
+                                                                                           final BeanIntrospector introspector,
+                                                                                           final EnumSet<N> notifications) throws IntrospectionException {
+            this(introspector.getBeanInfo(beanType), notifications);
+        }
+
+        private static Collection<AttributeConfiguration> discoverAttributes(final PropertyDescriptor[] properties) {
+            final Collection<AttributeConfiguration> result = Lists.newArrayListWithExpectedSize(properties.length);
+            for (final PropertyDescriptor descriptor : properties)
+                if (!isReservedProperty(descriptor))
+                    result.add(new SerializableAttributeConfiguration(descriptor.getName()));
+            return result;
+        }
+
+        private static Collection<EventConfiguration> discoverNotifications(final Collection<? extends ManagementNotificationType<?>> notifications){
+            final Collection<EventConfiguration> result = Lists.newArrayListWithExpectedSize(notifications.size());
+            for(final ManagementNotificationType<?> notifType: notifications)
+                result.add(new SerializableEventConfiguration(notifType.getCategory()));
+            return result;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public <T extends FeatureConfiguration> Collection<T> discover(final String connectionString,
+                                                                       final Map<String, String> connectionOptions,
+                                                                       final Class<T> entityType) {
+            if(Objects.equals(entityType, AttributeConfiguration.class))
+                return (Collection<T>)discoverAttributes(beanMetadata.getPropertyDescriptors());
+            else if(Objects.equals(entityType, EventConfiguration.class))
+                return (Collection<T>)discoverNotifications(notifications);
+            else return Collections.emptyList();
+        }
+
+        @SafeVarargs
+        @Override
+        public final DiscoveryResult discover(final String connectionString,
+                                        final Map<String, String> connectionOptions,
+                                        final Class<? extends FeatureConfiguration>... entityTypes) {
+            final DiscoveryResultBuilder result = new DiscoveryResultBuilder();
+            for(final Class<? extends FeatureConfiguration> type: entityTypes)
+                result.importFeatures(this, connectionString, connectionOptions, type);
+            return result.get();
+        }
+    }
+
+    private final JavaBeanAttributeSupport attributes;
+    private final JavaBeanNotificationSupport notifications;
+
+    private ManagedResourceConnectorBean(final String resourceName,
+                                         ManagedBeanDescriptor<?> descriptor,
+                                         final Set<? extends ManagementNotificationType<?>> notifTypes) throws IntrospectionException {
+        if(descriptor == null) descriptor = new SelfDescriptor(this);
+        attributes = new JavaBeanAttributeSupport(resourceName, descriptor, getLogger());
+        notifications = new JavaBeanNotificationSupport(resourceName, notifTypes, getLogger());
+    }
+
+    /**
+     * Initializes a new managed resource connector that reflects properties of the specified instance
      * as connector managementAttributes.
+     * @param resourceName The name of the managed resource served by this connector.
      * @param beanInstance An instance of JavaBean to reflect. Cannot be {@literal null}.
      * @param introspector An introspector that reflects the specified JavaBean. Cannot be {@literal null}.
-     * @param typeBuilder Type information provider that provides property type converter. Cannot be {@literal null}.
-     * @param <T>  Type of JavaBean to reflect.
      * @throws IntrospectionException Cannot reflect the specified instance.
      * @throws IllegalArgumentException At least one of the specified arguments is {@literal null}.
      */
-    @SuppressWarnings("UnusedDeclaration")
-    protected <T> ManagedResourceConnectorBean(final T beanInstance,
-                                               final BeanIntrospector<T> introspector,
-                                               final WellKnownTypeSystem typeBuilder,
-                                               final Logger logger) throws IntrospectionException {
-        super(new BeanDescriptor<>(beanInstance, introspector), logger);
-        if (typeBuilder == null) throw new IllegalArgumentException("typeBuilder is null.");
-        this.attributes = new JavaBeanAttributeSupport(getConnectionOptions(), typeBuilder, logger);
-        this.notifications = new JavaBeanNotificationSupport(typeBuilder, logger);
+    protected ManagedResourceConnectorBean( final String resourceName,
+                                            final Object beanInstance,
+                                            final BeanIntrospector introspector) throws IntrospectionException {
+        this(resourceName,
+                new BeanDescriptor<>(beanInstance, introspector),
+                EnumSet.noneOf(EmptyManagementNotificationType.class));
+    }
+
+    /**
+     * Initializes a new managed resource connector that reflects itself.
+     * @param resourceName The name of the managed resource served by this connector.
+     * @throws IntrospectionException Unable to reflect managed resource connector.
+     */
+    protected ManagedResourceConnectorBean(final String resourceName) throws IntrospectionException {
+        this(resourceName, EnumSet.noneOf(EmptyManagementNotificationType.class));
+    }
+
+    /**
+     * Initializes a new managed resource connector that reflects itself.
+     * @param resourceName The name of the managed resource served by this connector.
+     * @param notifTypes A set of notifications supported by this connector.
+     * @param <N> Type of the notification category provider.
+     * @throws IntrospectionException Unable to reflect managed resource connector.
+     */
+    protected <N extends Enum<N> & ManagementNotificationType<?>> ManagedResourceConnectorBean(final String resourceName,
+                                                                                               final EnumSet<N> notifTypes) throws IntrospectionException {
+        this(resourceName, null, notifTypes);
     }
 
     /**
      * Creates SNAMP management connector from the specified Java Bean.
+     * @param resourceName The name of the managed resource served by this connector.
+     * @param connectorName The name of the managed resource connector.
      * @param beanInstance An instance of the Java Bean to wrap.
-     * @param typeBuilder Bean property type converter.
      * @param <T> Type of the Java Bean to wrap.
      * @return A new instance of the management connector that wraps the Java Bean.
      * @throws IntrospectionException Cannot reflect the specified instance.
      */
-    public static <T> ManagedResourceConnectorBean wrap(final T beanInstance, final WellKnownTypeSystem typeBuilder) throws IntrospectionException {
-        return new ManagedResourceConnectorBean(beanInstance, new StandardBeanIntrospector<>(), typeBuilder, Logger.getLogger(getLoggerName("javabean")));
+    public static <T> ManagedResourceConnectorBean wrap(final String resourceName,
+                                                        final String connectorName,
+                                                        final T beanInstance) throws IntrospectionException {
+        return new ManagedResourceConnectorBean(resourceName, beanInstance, new StandardBeanIntrospector()){
+
+            @Override
+            public Logger getLogger() {
+                return getLogger(connectorName);
+            }
+        };
     }
 
     /**
-     * Returns an array of all discovered managementAttributes available for registration.
-     * @return An array of all discovered managementAttributes available for registration.
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    public final String[] availableAttributes(){
-        final PropertyDescriptor[] properties = getConnectionOptions().getBeanInfo().getPropertyDescriptors();
-        final String[] result = new String[properties.length];
-        for(int i = 0; i < properties.length; i++)
-            result[i] = properties[i].getName();
-        return result;
-    }
-
-
-
-    /**
-     * Enables event listening for the specified category of events.
-     * <p>
-     * categoryId can be used for enabling notifications for the same category
-     * but with different options.
-     * </p>
+     * Adds a new listener for the connector-related events.
+     * <p/>
+     * The managed resource connector should holds a weak reference to all added event listeners.
      *
-     * @param listId   An identifier of the subscription list.
-     * @param category The name of the category to listen.
-     * @param options  Event discovery options.
-     * @return The metadata of the event to listen;
-     * @throws com.itworks.snamp.connectors.notifications.NotificationSupportException Internal connector error.
-     * @throws java.lang.IllegalStateException Resource connector is closed.
+     * @param listener An event listener to add.
      */
     @Override
-    public final NotificationMetadata enableNotifications(final String listId, final String category, final Map<String, String> options) throws NotificationSupportException{
-        verifyInitialization();
-        return notifications.enableNotifications(listId, category, options);
+    public final void addResourceEventListener(final ResourceEventListener listener) {
+        addResourceEventListener(listener, attributes, notifications);
     }
 
     /**
-     * Raises notification.
-     * <p>
-     *     In the derived class you should write your own emitter for each notification category,
-     *     for example:
-     *     <pre>{@code
-     *     protected final void emitPropertyChanged(final String propertyName, final Object oldValue, final Object newValue){
-     *       final Map<String, Object> attachments =new HashMap<String, Object>(3){{
-     *         put("propertyName", propertyName);
-     *         put("oldValue", oldValue);
-     *         put("newValue", newValue);
-     *       }};
-     *       emitNotification("propertyChanged", Notification.Severity.NOTICE, String.format("Property %s changed", propertyName), attachments);
-     *     }
-     *     }</pre>
-     * </p>
-     * @param category The category of the event to raise.
-     * @param severity The severity of the event to raise.
-     * @param message Human-readable description of the event.
-     * @param attachments A set of notification attachments. May be {@literal null}.
+     * Removes connector event listener.
+     *
+     * @param listener The listener to remove.
      */
-    protected final void emitNotification(final String category, final Severity severity, final String message, final Map<String, Object> attachments){
-        notifications.emitNotification(category, severity, message, attachments);
+    @Override
+    public final void removeResourceEventListener(final ResourceEventListener listener) {
+        removeResourceEventListener(listener, attributes, notifications);
+    }
+
+    /**
+     * Gets subscription model.
+     *
+     * @return The subscription model.
+     */
+    @Override
+    public final NotificationSubscriptionModel getSubscriptionModel() {
+        return notifications.getSubscriptionModel();
+    }
+
+    /**
+     * Removes a listener from this MBean.  If the listener
+     * has been registered with different handback objects or
+     * notification filters, all entries corresponding to the listener
+     * will be removed.
+     *
+     * @param listener A listener that was previously added to this
+     *                 MBean.
+     * @throws javax.management.ListenerNotFoundException The listener is not
+     *                                                    registered with the MBean.
+     * @see #addNotificationListener
+     * @see NotificationEmitter#removeNotificationListener
+     */
+    @Override
+    public final void removeNotificationListener(final NotificationListener listener) throws ListenerNotFoundException {
+        verifyInitialization();
+        notifications.removeNotificationListener(listener);
+    }
+
+    /**
+     * Adds a listener to this MBean.
+     *
+     * @param listener The listener object which will handle the
+     *                 notifications emitted by the broadcaster.
+     * @param filter   The filter object. If filter is null, no
+     *                 filtering will be performed before handling notifications.
+     * @param handback An opaque object to be sent back to the
+     *                 listener when a notification is emitted. This object cannot be
+     *                 used by the Notification broadcaster object. It should be
+     *                 resent unchanged with the notification to the listener.
+     * @throws IllegalArgumentException Listener parameter is null.
+     * @see #removeNotificationListener
+     */
+    @Override
+    public final void addNotificationListener(final NotificationListener listener, final NotificationFilter filter, final Object handback) throws IllegalArgumentException {
+        verifyInitialization();
+        notifications.addNotificationListener(listener, filter, handback);
     }
 
     /**
@@ -908,138 +841,31 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
      *
      * @param listId The identifier of the subscription list.
      * @return {@literal true}, if notifications for the specified category is previously enabled; otherwise, {@literal false}.
-     * @throws com.itworks.snamp.connectors.notifications.NotificationSupportException Internal connector error.
      */
-    @Override
-    public final boolean disableNotifications(final String listId) throws NotificationSupportException{
+    public final boolean disableNotifications(final String listId) {
         verifyInitialization();
         return notifications.disableNotifications(listId);
     }
 
     /**
-     * Gets the notification metadata by its category.
+     * Enables event listening for the specified category of events.
+     * <p>
+     * category can be used for enabling notifications for the same category
+     * but with different options.
+     * <p>
+     * listId parameter
+     * is used as a value of {@link javax.management.Notification#getType()}.
      *
-     * @param listId The identifier of the subscription list.
-     * @return The metadata of the specified notification category; or {@literal null}, if notifications
-     * for the specified category is not enabled by {@link #enableNotifications(String, String, java.util.Map)} method.
+     * @param listId   An identifier of the subscription list.
+     * @param category The name of the event category to listen.
+     * @param options  Event discovery options.
+     * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
      */
-    @Override
-    public final NotificationMetadata getNotificationInfo(final String listId) {
+    public final MBeanNotificationInfo enableNotifications(final String listId,
+                                                           final String category,
+                                                           final CompositeData options) {
         verifyInitialization();
-        return notifications.getNotificationInfo(listId);
-    }
-
-    /**
-     * Returns a read-only collection of enabled notifications (subscription list identifiers).
-     *
-     * @return A read-only collection of enabled notifications (subscription list identifiers).
-     */
-    @Override
-    public final Collection<String> getEnabledNotifications() {
-        verifyInitialization();
-        return notifications.getEnabledNotifications();
-    }
-
-    /**
-     * Attaches the notification listener.
-     *
-     * @param listenerId Unique identifier of the notification listener.
-     * @param listener The notification listener.
-     * @param delayed Specifies delayed subscription.
-     * @throws com.itworks.snamp.connectors.notifications.NotificationSupportException Internal connector error.
-     */
-    @Override
-    public final void subscribe(final String listenerId, final NotificationListener listener, final boolean delayed) throws NotificationSupportException{
-        verifyInitialization();
-        notifications.subscribe(listenerId, listener, delayed);
-    }
-
-    /**
-     * Removes the notification listener.
-     *
-     * @param listenerId An identifier previously returned by {@link #subscribe(String, com.itworks.snamp.connectors.notifications.NotificationListener, boolean)}.
-     * @return {@literal true} if listener is removed successfully; otherwise, {@literal false}.
-     */
-    @Override
-    public final boolean unsubscribe(final String listenerId) {
-        verifyInitialization();
-        return notifications.unsubscribe(listenerId);
-    }
-
-    /**
-     * Connects to the specified attribute.
-     *
-     * @param id            A key string that is used to invoke attribute from this connector.
-     * @param attributeName The name of the attribute.
-     * @param options       The attribute discovery options.
-     * @return The description of the attribute.
-     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
-     */
-    @Override
-    public final AttributeMetadata connectAttribute(final String id, final String attributeName, final Map<String, String> options) throws AttributeSupportException {
-        verifyInitialization();
-        return attributes.connectAttribute(id, attributeName, options);
-    }
-
-    /**
-     * Returns the attribute value.
-     *
-     * @param id           A key string that is used to invoke attribute from this connector.
-     * @param readTimeout  The attribute value invoke operation timeout.
-     * @return The value of the attribute, or default value.
-     * @throws java.util.concurrent.TimeoutException The attribute value cannot be obtained in the specified time constraint.
-     * @throws com.itworks.snamp.connectors.attributes.UnknownAttributeException The requested attribute doesn't exist.
-     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
-     */
-    @Override
-    public final Object getAttribute(final String id, final TimeSpan readTimeout) throws TimeoutException, UnknownAttributeException, AttributeSupportException {
-        verifyInitialization();
-        return attributes.getAttribute(id, readTimeout);
-    }
-
-    /**
-     * Reads a set of managementAttributes.
-     *
-     * @param output      The dictionary with set of attribute keys to invoke and associated default values.
-     * @param readTimeout The attribute value invoke operation timeout.
-     * @return The set of managementAttributes ids really written to the dictionary.
-     * @throws java.util.concurrent.TimeoutException The attribute value cannot be invoke in the specified duration.
-     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
-     */
-    @Override
-    public final Set<String> getAttributes(final Map<String, Object> output, final TimeSpan readTimeout) throws TimeoutException, AttributeSupportException {
-        verifyInitialization();
-        return attributes.getAttributes(output, readTimeout);
-    }
-
-    /**
-     * Writes the value of the specified attribute.
-     *
-     * @param id           An identifier of the attribute,
-     * @param writeTimeout The attribute value write operation timeout.
-     * @param value        The value to write.
-     * @throws java.util.concurrent.TimeoutException The attribute value cannot be write in the specified duration.
-     * @throws com.itworks.snamp.connectors.attributes.UnknownAttributeException The requested attribute doesn't exist.
-     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
-     */
-    @Override
-    public final void setAttribute(final String id, final TimeSpan writeTimeout, final Object value) throws TimeoutException, AttributeSupportException, UnknownAttributeException {
-        verifyInitialization();
-        attributes.setAttribute(id, writeTimeout, value);
-    }
-
-    /**
-     * Writes a set of managementAttributes inside of the transaction.
-     *
-     * @param values       The dictionary of managementAttributes keys and its values.
-     * @param writeTimeout Attribute write timeout.
-     * @throws TimeoutException The attribute value cannot be written in the specified time constraint.
-     * @throws com.itworks.snamp.connectors.attributes.AttributeSupportException Internal connector error.
-     */
-    @Override
-    public final void setAttributes(final Map<String, Object> values, final TimeSpan writeTimeout) throws TimeoutException, AttributeSupportException {
-        verifyInitialization();
-        attributes.setAttributes(values, writeTimeout);
+        return notifications.enableNotifications(listId, category, options);
     }
 
     /**
@@ -1048,43 +874,102 @@ public class ManagedResourceConnectorBean extends AbstractManagedResourceConnect
      * @param id The unique identifier of the attribute.
      * @return {@literal true}, if the attribute successfully disconnected; otherwise, {@literal false}.
      */
-    @Override
-    public final boolean disconnectAttribute(final String id) {
+    public final boolean removeAttribute(final String id) {
+        return attributes.removeAttribute(id);
+    }
+
+    /**
+     * Connects to the specified attribute.
+     *
+     * @param id               A key string that is used to invoke attribute from this connector.
+     * @param attributeName    The name of the attribute.
+     * @param readWriteTimeout A read/write timeout using for attribute read/write operation.
+     * @param options          The attribute discovery options.
+     * @return The description of the attribute.
+     */
+    public final MBeanAttributeInfo addAttribute(final String id,
+                                                 final String attributeName,
+                                                 final TimeSpan readWriteTimeout,
+                                                 final CompositeData options) {
         verifyInitialization();
-        return attributes.disconnectAttribute(id);
+        return attributes.addAttribute(id, attributeName, readWriteTimeout, options);
     }
 
     /**
-     * Returns the information about the connected attribute.
-     *
-     * @param id An identifier of the attribute.
-     * @return The attribute descriptor; or {@literal null} if attribute is not connected.
+     * Removes all attributes from this connector.
      */
-    @Override
-    public final AttributeMetadata getAttributeInfo(final String id) {
+    public final void removeAllAttributes(){
         verifyInitialization();
-        return attributes.getAttributeInfo(id);
+        attributes.clear(false);
     }
 
     /**
-     * Returns a read-only collection of registered IDs of managementAttributes.
-     *
-     * @return A read-only collection of registered IDs of managementAttributes.
+     * Removes all notifications and listeners from this connector.
      */
-    @Override
-    public final Collection<String> getConnectedAttributes() {
-        return attributes.getConnectedAttributes();
+    public final void removeAllNotifications(){
+        verifyInitialization();
+        notifications.clear(true, false);
+    }
+
+    private void emitNotificationImpl(final ManagementNotificationType<?> category,
+                                      final String message,
+                                      final Object userData){
+        notifications.fire(category, message, userData);
+    }
+
+    protected final void emitNotification(final ManagementNotificationType<?> category,
+                                          final String message){
+        emitNotificationImpl(category, message, null);
+    }
+
+    protected final <T> void emitNotification(final ManagementNotificationType<T> category,
+                                              final String message,
+                                              final T userData){
+        emitNotificationImpl(category, message, userData);
+    }
+
+    private static BeanDiscoveryService createDiscoveryService(final BeanInfo beanMetadata,
+                                                               final Set<? extends ManagementNotificationType<?>> notifTypes,
+                                                               final Logger logger){
+        return new BeanDiscoveryService(beanMetadata, notifTypes) {
+            @Override
+            public Logger getLogger() {
+                return logger;
+            }
+        };
     }
 
     /**
-     * Releases all resources associated with this connector.
+     * Creates a new instance of the resource metadata discovery service.
+     * @return A new instance of the discovery service.
+     */
+    public DiscoveryService createDiscoveryService(){
+        final BeanInfo beanMetadata = attributes.bean.getBeanInfo();
+        final Set<? extends ManagementNotificationType<?>> notifTypes = notifications.notifTypes;
+        return createDiscoveryService(beanMetadata, notifTypes, getLogger());
+    }
+
+    /**
+     * Retrieves the aggregated object.
      *
-     * @throws Exception
+     * @param objectType Type of the aggregated object.
+     * @return An instance of the requested object; or {@literal null} if object is not available.
      */
     @Override
-    public void close() throws Exception {
-        super.close();
-        attributes.clear();
-        notifications.clear();
+    public <T> T queryObject(final Class<T> objectType) {
+        return findObject(objectType, new Function<Class<T>, T>() {
+            @Override
+            public T apply(final Class<T> objectType) {
+                return ManagedResourceConnectorBean.super.queryObject(objectType);
+            }
+        }, attributes, notifications);
+    }
+
+    protected static BeanInfo reflect(final Class<? extends ManagedResourceConnectorBean> connectorType) throws IntrospectionException {
+        return Introspector.getBeanInfo(connectorType, ManagedResourceConnectorBean.class);
+    }
+
+    private static boolean isReservedProperty(final PropertyDescriptor property){
+        return Objects.equals(property.getName(), "logger");
     }
 }

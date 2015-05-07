@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="snamp">
+    <feature name="${project.artifactId}" description="SNAMP Nagios Adapter" version="${project.version}">
+        <details>Represents SNAMP Nagios Adapter as Apache Karaf Feature</details>
+        <bundle>mvn:org.apache.geronimo.specs/geronimo-servlet_3.0_spec/1.0</bundle>
+        <bundle>mvn:com.sun.jersey/jersey-core/${jersey.version}</bundle>
+        <bundle>mvn:com.sun.jersey/jersey-server/${jersey.version}</bundle>
+        <bundle>mvn:com.sun.jersey/jersey-servlet/${jersey.version}</bundle>
+        <feature>war</feature>
+        <bundle>mvn:com.itworks.snamp/nagios-adapter/${project.version}</bundle>
+    </feature>
+</features>

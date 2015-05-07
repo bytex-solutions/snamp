@@ -1,18 +1,21 @@
 package com.itworks.jcommands.channels;
 
+import com.google.common.collect.ImmutableMap;
 import com.itworks.jcommands.ChannelProcessingMode;
 import com.itworks.jcommands.ChannelProcessor;
 import com.itworks.jcommands.CommandExecutionChannel;
-import com.itworks.snamp.MapBuilder;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.MethodStub;
+import com.itworks.snamp.io.IOUtils;
 import org.apache.commons.exec.ExecuteException;
-import org.apache.commons.net.telnet.TelnetClient;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.util.*;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents channel that executes commands as processes in
@@ -24,24 +27,21 @@ import java.util.*;
 final class LocalProcessExecutionChannel extends HashMap<String, String> implements CommandExecutionChannel {
     static final String CHANNEL_NAME = "process";
     private static final String NORMAL_EXIT_CODE_PARAM = "normalExitCode";
+    private static final long serialVersionUID = 5308027932652020638L;
 
-    private final Runtime rt;
+    private transient final Runtime rt = Runtime.getRuntime();
 
-    public LocalProcessExecutionChannel(final Map<String, String> params){
+    LocalProcessExecutionChannel(final Map<String, String> params){
         super(params);
-        rt = Runtime.getRuntime();
-        org.apache.commons.net.telnet.TelnetClient cl = new TelnetClient();
     }
 
-    public LocalProcessExecutionChannel(final int normalExitCode) {
-        this(MapBuilder
-                .create(NORMAL_EXIT_CODE_PARAM, Integer.toString(normalExitCode))
-                .buildHashMap());
+    LocalProcessExecutionChannel(final int normalExitCode) {
+        this(ImmutableMap.of(NORMAL_EXIT_CODE_PARAM, Integer.toString(normalExitCode)));
     }
 
-    public int getNormalExitCode() {
+    int getNormalExitCode() {
         if (containsKey(NORMAL_EXIT_CODE_PARAM))
-            return Integer.valueOf(get(NORMAL_EXIT_CODE_PARAM));
+            return Integer.parseInt(get(NORMAL_EXIT_CODE_PARAM));
         else if (Utils.IS_OS_LINUX)
             return 0;
         else if (Utils.IS_OS_WINDOWS)
@@ -49,7 +49,7 @@ final class LocalProcessExecutionChannel extends HashMap<String, String> impleme
         else return 0;
     }
 
-    public void setNormalExitCode(final int value){
+    void setNormalExitCode(final int value){
         put(NORMAL_EXIT_CODE_PARAM, Integer.toString(value));
     }
 
@@ -87,20 +87,10 @@ final class LocalProcessExecutionChannel extends HashMap<String, String> impleme
             throw new IllegalArgumentException(String.format("Unsupported processing mode %s", value));
     }
 
-    private static String toString(final Reader reader) throws IOException {
-        final StringBuilder result = new StringBuilder();
-        while (reader.ready()){
-            final char[] buffer = new char[10];
-            final int count = reader.read(buffer);
-            result.append(buffer, 0, count);
-        }
-        return result.toString();
-    }
-
     /**
      * Executes the specified action in the channel context.
      *
-     * @param command The command to execute in channel context.
+     * @param command The command to apply in channel context.
      * @param obj Additional input for the command renderer.
      * @return The execution result.
      * @throws java.io.IOException Some I/O error occurs in the channel.
@@ -110,12 +100,12 @@ final class LocalProcessExecutionChannel extends HashMap<String, String> impleme
     public <I, O, E extends Exception> O exec(final ChannelProcessor<I, O, E> command,
                                            final I obj) throws IOException, E {
         final Process proc = rt.exec(command.renderCommand(obj, this));
-        try (final Reader input = new InputStreamReader(proc.getInputStream());
-             final Reader error = new InputStreamReader(proc.getErrorStream())) {
+        try (final Reader input = new InputStreamReader(proc.getInputStream(), IOUtils.DEFAULT_CHARSET);
+             final Reader error = new InputStreamReader(proc.getErrorStream(), IOUtils.DEFAULT_CHARSET)) {
             final int processExitCode = proc.waitFor();
-            final String result = toString(input);
-            final String err = toString(error);
-            return err != null && err.length() > 0 || processExitCode != getNormalExitCode() ?
+            final String result = IOUtils.toString(input);
+            final String err = IOUtils.toString(error);
+            return err.length() > 0 || processExitCode != getNormalExitCode() ?
                     command.process(result, new ExecuteException(err, processExitCode)) :
                     command.process(result, null);
         } catch (final InterruptedException e) {

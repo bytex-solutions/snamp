@@ -1,8 +1,12 @@
 package com.itworks.snamp.testing.adapters.ssh;
 
 import com.google.common.base.Supplier;
-import com.itworks.snamp.adapters.AbstractResourceAdapterActivator;
-import com.itworks.snamp.testing.SnampArtifact;
+import com.itworks.snamp.ExceptionalCallable;
+import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.adapters.ResourceAdapterActivator;
+import com.itworks.snamp.testing.SnampDependencies;
+import com.itworks.snamp.testing.SnampFeature;
+import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
 import net.schmizz.sshj.SSHClient;
@@ -10,18 +14,20 @@ import net.schmizz.sshj.common.IOUtils;
 import net.schmizz.sshj.connection.channel.direct.Session;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
 
 import javax.management.AttributeChangeNotification;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.TimeoutException;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
-import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 
 /**
  * Represents SSH-to-RShell integration test.
@@ -29,56 +35,109 @@ import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
  * @version 1.0
  * @since 1.0
  */
+@SnampDependencies(SnampFeature.SSH_ADAPTER)
 public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> {
-    private static final String FINGERPRINT = "24:aa:e0:cb:d9:89:1d:68:f3:1d:ed:53:0e:99:31:87";
+    private static final String FINGERPRINT = "e8:0d:af:84:bb:ec:05:03:b9:7c:f3:75:19:5a:2a:63";
     private static final String USER_NAME = "Dummy";
     private static final String PASSWORD = "Password";
     private static final int PORT = 22000;
     private static final String ADAPTER_NAME = "ssh";
 
     public JmxToSshTest() throws MalformedObjectNameException {
-        super(new TestOpenMBean(/*true*/), new ObjectName(BEAN_NAME),
-                mavenBundle("jline", "jline", "2.12"),
-                SnampArtifact.SSHJ.getReference(),
-                SnampArtifact.SSH_ADAPTER.getReference());
+        super(new TestOpenMBean(/*true*/), new ObjectName(BEAN_NAME));
     }
 
-    @Test
-    public void getIntegerTest() throws IOException {
+    private void testScalarAttribute(final String attributeName,
+                               final String value,
+                               final Equator<String> equator) throws IOException{
         try(final SSHClient client = new SSHClient()){
             client.addHostKeyVerifier(FINGERPRINT);
             client.connect("localhost", PORT);
             client.authPassword(USER_NAME, PASSWORD);
-            final String INT_ATTR = String.format("%s/%s", TEST_RESOURCE_NAME, "3.0");
             try(final Session s = client.startSession()) {
-                s.exec(String.format("set " + INT_ATTR + " 42"));
+                s.exec(String.format("set -n %s -r %s -v %s", attributeName, TEST_RESOURCE_NAME, value));
             }
             try(final Session s = client.startSession()){
-                final String value = IOUtils.readFully(s.exec("get " + INT_ATTR).getInputStream()).toString();
-                assertNotNull(value);
-                assertFalse(value.isEmpty());
-                assertEquals("42", value);
+                final Session.Command result = s.exec(String.format("get -n %s -r %s --json", attributeName, TEST_RESOURCE_NAME));
+                final String output = IOUtils.readFully(result.getInputStream()).toString();
+                final String error = IOUtils.readFully(result.getErrorStream()).toString();
+                if(error != null && error.length() > 0)
+                    fail(error);
+                assertNotNull(output);
+                assertFalse(output.isEmpty());
+                assertTrue(equator.equate(output, value));
             }
         }
     }
 
-    /*@Test
-    public void simpleHostTest() throws InterruptedException {
-        Thread.sleep(10000000);
-    }*/
-
     @Override
-    protected void afterStartTest(final BundleContext context) throws Exception {
-        AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
-        super.afterStartTest(context);
-        AbstractResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+    protected boolean enableRemoteDebugging() {
+        return false;
+    }
+
+    @Test
+    public void integerTest() throws IOException {
+        testScalarAttribute("3.0", "42", AbstractResourceConnectorTest.<String>valueEquator());
+    }
+
+    private static Equator<String> quotedEquator(){
+        return new Equator<String>() {
+            @Override
+            public boolean equate(String value1, String value2) {
+                value2 = value2.replace('\'', '\"');
+                value1 = '\"' + value1 + '\"';
+                return Objects.equals(value1, value2);
+            }
+        };
+    }
+
+    @Test
+    public void stringTest() throws IOException{
+        testScalarAttribute("1.0", "\"'Hello, world'\"", quotedEquator());
+    }
+
+    @Test
+    public void booleanTest() throws IOException{
+        testScalarAttribute("2.0", "true", AbstractResourceConnectorTest.<String>valueEquator());
+    }
+
+    @Test
+    public void bigIntTest() throws IOException{
+        testScalarAttribute("4.0", "10005000", AbstractResourceConnectorTest.<String>valueEquator());
+    }
+
+    @Test
+    public void floatTest() throws IOException{
+        testScalarAttribute("8.0", "3.141", AbstractResourceConnectorTest.<String>valueEquator());
+    }
+
+    @Test
+    public void arrayTest() throws IOException{
+        testScalarAttribute("5.1", "[42,100,332,99]", AbstractResourceConnectorTest.<String>valueEquator());
     }
 
     @Override
-    protected void afterCleanupTest(final BundleContext context) throws Exception {
-        AbstractResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+    protected void beforeStartTest(final BundleContext context) throws Exception {
+        super.beforeStartTest(context);
+        beforeCleanupTest(context);
+    }
+
+    @Override
+    protected void afterStartTest(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
+        startResourceConnector(context);
+        syncWithAdapterStartedEvent(ADAPTER_NAME, new ExceptionalCallable<Void, BundleException>() {
+            @Override
+            public Void call() throws BundleException {
+                ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
+                return null;
+            }
+        }, TimeSpan.fromSeconds(60));
+    }
+
+    @Override
+    protected void beforeCleanupTest(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
+        ResourceAdapterActivator.stopResourceAdapter(context, ADAPTER_NAME);
         stopResourceConnector(context);
-        super.afterCleanupTest(context);
     }
 
     @Override
@@ -89,6 +148,7 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
         restAdapter.getParameters().put("port", Integer.toString(PORT));
         restAdapter.getParameters().put("userName", USER_NAME);
         restAdapter.getParameters().put("password", PASSWORD);
+        restAdapter.getParameters().put("certificateFile", getPathToFileInProjectRoot("hostkey.ser"));
         restAdapter.getParameters().put("tty-options", "echo");
         adapters.put("test-jmx", restAdapter);
     }
@@ -121,25 +181,9 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
         attributes.put("5.1", attribute);
 
         attribute = attributeFactory.get();
-        attribute.setAttributeName("dictionary");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attributes.put("6.1", attribute);
-
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("table");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attribute.getParameters().put("columnBasedPrint", "true");
-        attributes.put("7.1", attribute);
-
-        attribute = attributeFactory.get();
         attribute.setAttributeName("float");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attributes.put("8.0", attribute);
-
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("date");
-        attribute.getParameters().put("objectName", BEAN_NAME);
-        attributes.put("9.0", attribute);
     }
 
     @Override
