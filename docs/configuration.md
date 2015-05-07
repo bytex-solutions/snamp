@@ -47,9 +47,70 @@ _Operations_ section may contain zero:
 
 A set of additional configuration parameters depends on the particular Resource Adapter or Resource Connector.
 
+Let's consider the following example of the configuration model:
+* _Resource Adapter_
+  * `Adapter Instance Name`: adapter1
+    * `System Name`: http
+    * `dateFormat`: MM/DD/YYYY
+  * `Adapter Instance Name`: adapter2
+    * `System Name`: http
+    * `notificationTransport`: WebSockets
+  * `Adapter Instance Name`: adapter3
+    * `System Name`: xmpp
+    * `userName`: user
+    * `password`: pwd
+    * `host`: jabber.test.com
+    * `enableM2M`: true
+* _Managed Resources_
+  * `Managed Resource Name`: partner-gateway
+    * `Resource Connector Name`: jmx
+    * `Connection String`: service:jmx:rmi:///jndi/rmi://localhost:1099/glassfish
+    * `login`: jmxLogin
+    * `password`: jmxPassword
+    * _Attributes_
+      * `Attribute Instance Name`: freeMemory
+        * `Name`: freeMemoryInMB
+        * `Read/write timeout`: 2000
+        * `objectName`: com.sun.glassfish.management:type=Memory
+        * `xmppFormat`: human-readable
+      * `Attribute Instance Name`: freeMemoryRaw
+        * `Name`: freeMemoryInMB
+        * `objectName`: com.sun.glassfish.management:type=Memory
+        * `xmppFormat`: binary
+      * `Attribute Instance Name`: available
+        * `Name`: isActive
+        * `objectName`: com.sun.glassfish.management:type=Common
+        * `xmppFormat`: human-readable
+    * _Events_
+      * `Event Name`: error
+        * `Category`: com.sun.glassfish.ejb.unhandledException
+        * `objectName`: com.sun.glassfish.management:type=Common
+        * `fullStackTrace`: true
+
+In this example single managed resource named _partner-gateway_ connected via JMX protocol. The managed resource contains two MBeans (`Memory` and `Common`) with attributes and JMX notifications. This managed resource can be managed via two protocols: `http` and `xmpp` (Jabber). It is possible because configuration model contains three configured resource adapters. Two adapters have the same `http` system name. But these two adapters configured with different set of parameters. Each `http` adapter exposes REST API on its own URL context (`http://localhost/snamp/adapters/http/adapter1` and `http://localhost/snamp/adapters/http/adapter2`). The third resource adapter allows to managed resources via Jabber client (such as Miranda IM).
+
+Managed Resource `partner-gateway` is connected using `jmx` Resource Connector. This example demonstrates how to expose two JMX attributes with the same in MBean (`freeMemoryMB`) with different settings and instance names. Both attributes are visible from `http` resource adapter using the following URLs:
+* `http://localhost/snamp/adapters/http/adapter1/attributes/freeMemoryRaw`
+* `http://localhost/snamp/adapters/http/adapter2/attributes/freeMemoryRaw`
+* `http://localhost/snamp/adapters/http/adapter1/attributes/freeMemory`
+* `http://localhost/snamp/adapters/http/adapter2/attributes/freeMemory`
+
+XMPP Adapter provides value of the `freeMemoryRaw` and `freeMemory` in two different formats: human-readable and binary. This behavior is defined using `xmppFormat` configuration property associated with each attribute.
+
+As you can see, configuration parameters depends on the Resource Adapter and Resource Connector. See [Configuring Resource Adapters](/adapters/introduction.md) and [Configuring Resource Connectors](/connectors/introduction.md) for more details about SNAMP configuration.
+
 ## Using SNAMP Management Console
 SNAMP Management Console allows you to configure and maintain SNAMP via user-friendly Web interface in your browser.
 > SNAMP Management Console available in paid subscription only
+
+The console supports the following configuration features:
+* Highlight the available Resource Adapters
+* Highlight the available Resource Connectors
+* Highlight the available configuration properties
+* Discovers available attributes, events and operations
+* Start, stop and restart resource adapters and connectors
+
+SNAMP Management Console build on top of powerful [hawt.io](http://hawt.io) web console.
 
 ## Without SNAMP Management Console
 There are the following ways to change the SNAMP configuration:
