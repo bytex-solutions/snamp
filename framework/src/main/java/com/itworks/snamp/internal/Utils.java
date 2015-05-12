@@ -74,6 +74,14 @@ public final class Utils {
 
     }
 
+    /**
+     * Determines whether the specified class within OSGi container.
+     * @return {@literal true}, if the specified class withing OSGi container; otherwise, {@literal false}.
+     */
+    public static boolean isInOSGiContainer(final Class<?> cls){
+        return FrameworkUtil.getBundle(cls) != null;
+    }
+
     private static String getOS(){
         return StandardSystemProperty.OS_NAME.value();
     }

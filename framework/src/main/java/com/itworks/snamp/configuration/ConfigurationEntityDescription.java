@@ -26,7 +26,7 @@ public interface ConfigurationEntityDescription<T extends EntityConfiguration> e
     /**
      * Represents relationship between configuration parameters.
      */
-    public static enum ParameterRelationship{
+    enum ParameterRelationship{
         /**
          * Parameter X should be always used with parameter Y.
          */
@@ -49,7 +49,7 @@ public interface ConfigurationEntityDescription<T extends EntityConfiguration> e
      * @since 1.0
      * @version 1.0
      */
-    public static interface ParameterDescription extends Descriptive {
+    interface ParameterDescription extends Descriptive {
         /**
          * Gets the name of this parameter.
          * @return The name of this parameter.

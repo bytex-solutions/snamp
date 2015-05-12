@@ -18,6 +18,7 @@
     <gson.version>2.3.1</gson.version>
     <guava.version>18.0</guava.version>
     <jersey.version>1.18.1</jersey.version>
+    <groovy.version>2.4.3</groovy.version>
     <!--Versioning of SNAMP Components-->
     <snmp4j.version>2.3.4</snmp4j.version>
     <sshj.version>0.10.0</sshj.version>
@@ -39,6 +40,7 @@
 
     <snamp.connectors.rshell.version>1.0.0</snamp.connectors.rshell.version>
     <snamp.connectors.aggregator.version>1.0.0</snamp.connectors.aggregator.version>
+    <snamp.connectors.groovy.version>1.0.0</snamp.connectors.groovy.version>
     <snamp.connectors.ibmwmq.version>1.0.0</snamp.connectors.ibmwmq.version>
     <snamp.connectors.jmx.version>1.0.0</snamp.connectors.jmx.version>
     <snamp.connectors.snmp.version>1.0.0</snamp.connectors.snmp.version>

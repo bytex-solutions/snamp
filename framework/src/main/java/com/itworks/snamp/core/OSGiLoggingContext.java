@@ -355,9 +355,11 @@ public class OSGiLoggingContext extends Logger implements AutoCloseable {
 
     protected static <E extends Exception> void within(final Logger logger,
                                                     final Consumer<Logger, E> contextBody) throws E {
-        try (final OSGiLoggingContext context = new OSGiLoggingContext(logger, Utils.getBundleContextByObject(contextBody))) {
-            contextBody.accept(context);
-        }
+        if (Utils.isInOSGiContainer(contextBody.getClass()))
+            try (final OSGiLoggingContext context = new OSGiLoggingContext(logger, Utils.getBundleContextByObject(contextBody))) {
+                contextBody.accept(context);
+            }
+        else contextBody.accept(logger);
     }
 
     public static <E extends Exception> void within(final String loggerName,

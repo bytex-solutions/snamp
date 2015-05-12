@@ -134,7 +134,14 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
     }
 
     public static TimeSpan getReadWriteTimeout(final Descriptor metadata){
-        return DescriptorUtils.getField(metadata, READ_WRITE_TIMEOUT_FIELD, TimeSpan.class, TimeSpan.INFINITE);
+        final Object timeout = metadata.getFieldValue(READ_WRITE_TIMEOUT_FIELD);
+        if(timeout instanceof TimeSpan)
+            return (TimeSpan)timeout;
+        else if(timeout instanceof Number)
+            return new TimeSpan(((Number)timeout).longValue());
+        else if(timeout instanceof String)
+            return new TimeSpan(Long.parseLong(timeout.toString()));
+        else return null;
     }
 
     public static TimeSpan getReadWriteTimeout(final MBeanAttributeInfo metadata){

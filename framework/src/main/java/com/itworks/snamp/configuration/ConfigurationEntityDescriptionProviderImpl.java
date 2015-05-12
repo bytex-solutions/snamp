@@ -4,6 +4,7 @@ import com.itworks.snamp.AbstractAggregator;
 import com.itworks.snamp.configuration.AgentConfiguration.EntityConfiguration;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 /**
@@ -34,7 +35,7 @@ public class ConfigurationEntityDescriptionProviderImpl extends AbstractAggregat
     @Override
     public final <T extends EntityConfiguration> ConfigurationEntityDescription<T> getDescription(final Class<T> configurationEntity) {
         for(final ConfigurationEntityDescription description: descriptions)
-            if(configurationEntity.equals(description.getEntityType()))
+            if(Objects.equals(configurationEntity, description.getEntityType()))
                 return description;
         return null;
     }

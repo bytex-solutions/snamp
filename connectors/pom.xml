@@ -39,5 +39,6 @@
       <module>aggregator-connector</module>
       <!--<module>ibmwmb-connector</module>-->
       <module>ibmwmq-connector</module>
+      <module>groovy-connector</module>
   </modules>
 </project>
