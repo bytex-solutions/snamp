@@ -4,13 +4,10 @@ import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProviderImp
 import com.itworks.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 
 import javax.management.Descriptor;
-
-import java.util.Locale;
 import java.util.Objects;
-import java.util.ResourceBundle;
 
-import static com.itworks.snamp.jmx.DescriptorUtils.*;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.itworks.snamp.jmx.DescriptorUtils.*;
 
 /**
  * @author Roman Sakno
@@ -30,7 +27,8 @@ final class NagiosAdapterConfigurationDescriptor extends ConfigurationEntityDesc
         private static final String RESOURCE_NAME = "AttributeParameters";
 
         private AttributeConfigurationInfo(){
-            super(AttributeConfiguration.class,
+            super(RESOURCE_NAME,
+                    AttributeConfiguration.class,
                     SERVICE_NAME_PARAM,
                     LABEL_PARAM,
                     CRIT_THRESHOLD_PARAM,
@@ -38,12 +36,6 @@ final class NagiosAdapterConfigurationDescriptor extends ConfigurationEntityDesc
                     UOM_PARAM,
                     MAX_VALUE_PARAM,
                     MIN_VALUE_PARAM);
-        }
-
-        @Override
-        protected ResourceBundle getBundle(final Locale loc) {
-            return loc != null ? ResourceBundle.getBundle(getResourceName(RESOURCE_NAME), loc) :
-                    ResourceBundle.getBundle(getResourceName(RESOURCE_NAME));
         }
     }
 

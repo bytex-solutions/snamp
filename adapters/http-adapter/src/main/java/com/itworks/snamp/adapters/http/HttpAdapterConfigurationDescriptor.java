@@ -5,11 +5,10 @@ import com.itworks.snamp.configuration.ResourceBasedConfigurationEntityDescripti
 import com.itworks.snamp.configuration.ThreadPoolConfigurationDescriptor;
 
 import javax.management.Descriptor;
-import java.util.Locale;
-import java.util.ResourceBundle;
-import static com.itworks.snamp.jmx.DescriptorUtils.*;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
+import static com.itworks.snamp.jmx.DescriptorUtils.getField;
+import static com.itworks.snamp.jmx.DescriptorUtils.hasField;
 
 /**
  * Represents descriptor of REST adapter configuration scheme.
@@ -25,15 +24,10 @@ final class HttpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
     private static final class AdapterConfigurationInfo extends ResourceBasedConfigurationEntityDescription<ResourceAdapterConfiguration> implements ThreadPoolConfigurationDescriptor<ResourceAdapterConfiguration> {
         private static final String RESOURCE_NAME = "RestAdapterConfig";
 
-        public AdapterConfigurationInfo(){
-            super(ResourceAdapterConfiguration.class,
+        private AdapterConfigurationInfo(){
+            super(RESOURCE_NAME,
+                    ResourceAdapterConfiguration.class,
                     DATE_FORMAT_PARAM);
-        }
-
-        @Override
-        protected final ResourceBundle getBundle(final Locale loc) {
-            return loc != null ? ResourceBundle.getBundle(getResourceName(RESOURCE_NAME), loc) :
-                    ResourceBundle.getBundle(getResourceName(RESOURCE_NAME));
         }
     }
 

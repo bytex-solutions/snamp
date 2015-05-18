@@ -57,7 +57,8 @@ final class SshAdapterConfigurationDescriptor extends ConfigurationEntityDescrip
         }
 
         private AdapterConfigurationInfo() {
-            super(ResourceAdapterConfiguration.class,
+            super(RESOURCE_NAME,
+                    ResourceAdapterConfiguration.class,
                     HOST_PARAM,
                     PORT_PARAM,
                     CERTIFICATE_FILE_PARAM,
@@ -65,12 +66,6 @@ final class SshAdapterConfigurationDescriptor extends ConfigurationEntityDescrip
                     PASSWORD_PARAM,
                     PUBLIC_KEY_FILE_FORMAT_PARAM,
                     PUBLIC_KEY_FILE_PARAM);
-        }
-
-        @Override
-        protected final ResourceBundle getBundle(final Locale loc) {
-            return loc != null ? ResourceBundle.getBundle(getResourceName(RESOURCE_NAME), loc) :
-                    ResourceBundle.getBundle(getResourceName(RESOURCE_NAME));
         }
 
         @Override

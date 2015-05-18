@@ -1,6 +1,9 @@
 package com.itworks.snamp.connectors.groovy;
 
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
+import com.itworks.snamp.internal.annotations.SpecialUse;
+import groovy.grape.Grape;
+import org.apache.ivy.Ivy;
 
 import java.util.logging.Logger;
 
@@ -26,5 +29,15 @@ public final class ResourceConnectorInfo {
 
     static String getLoggerName(){
         return AbstractManagedResourceConnector.getLoggerName(NAME);
+    }
+
+    @SpecialUse
+    private static Class<Ivy> apacheIvyDependency(){
+        return Ivy.class;
+    }
+
+    @SpecialUse
+    private static Class<Grape> groovyGrapeDependency(){
+        return Grape.class;
     }
 }

@@ -1,13 +1,13 @@
 package com.itworks.snamp.testing.connectors.groovy;
 
-import com.google.common.base.StandardSystemProperty;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
-import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
+import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
 
+import java.io.File;
 import java.util.Map;
 
 /**
@@ -25,7 +25,16 @@ public abstract class AbstractGroovyConnectorTest extends AbstractResourceConnec
     }
 
     protected AbstractGroovyConnectorTest(){
-        this(getProjectRootDir() + StandardSystemProperty.FILE_SEPARATOR.value() + "sample-groovy-scripts/", ImmutableMap.<String, String>of());
+        this(getConnectionString(),
+                getDefaultConnectionParams());
+    }
+
+    protected static String getConnectionString(){
+        return getProjectRootDir() + File.separator + "sample-groovy-scripts/";
+    }
+
+    protected static Map<String, String> getDefaultConnectionParams(){
+        return ImmutableMap.of("initScript", "init.groovy");
     }
 
     @Override
@@ -34,5 +43,13 @@ public abstract class AbstractGroovyConnectorTest extends AbstractResourceConnec
         attr.setAttributeName("DummyAttribute");
         attr.getParameters().put("configParam", "value");
         attributes.put("dummy", attr);
+
+        attr = attributeFactory.get();
+        attr.setAttributeName("JsonAttribute");
+        attributes.put("json", attr);
+
+        attr = attributeFactory.get();
+        attr.setAttributeName("Yahoo");
+        attributes.put("finance", attr);
     }
 }

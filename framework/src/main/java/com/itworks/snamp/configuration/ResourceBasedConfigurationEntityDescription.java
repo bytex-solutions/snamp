@@ -12,7 +12,7 @@ import static com.itworks.snamp.configuration.AgentConfiguration.EntityConfigura
  * @version 1.0
  * @since 1.0
  */
-public abstract class ResourceBasedConfigurationEntityDescription<T extends EntityConfiguration> extends ResourceReader implements ConfigurationEntityDescription<T> {
+public class ResourceBasedConfigurationEntityDescription<T extends EntityConfiguration> extends ResourceReader implements ConfigurationEntityDescription<T> {
     private static final String DESCRIPTION_POSTFIX = ".description";
     private static final String REQUIRED_POSTFIX = ".required";
     private static final String PATTERN_POSTFIX = ".pattern";
@@ -25,21 +25,28 @@ public abstract class ResourceBasedConfigurationEntityDescription<T extends Enti
 
     /**
      * Initializes a new resource-based descriptor.
+     * @param baseName The name of the resource.
      * @param entityType Configuration element type. Cannot be {@literal null}.
      * @param parameters A collection of configuration parameters.
      */
-    protected ResourceBasedConfigurationEntityDescription(final Class<T> entityType, final Collection<String> parameters){
+    protected ResourceBasedConfigurationEntityDescription(final String baseName,
+                                                          final Class<T> entityType,
+                                                          final Collection<String> parameters){
+        super(baseName);
         this.parameters = new HashSet<>(parameters);
         this.entityType = entityType;
     }
 
     /**
      * Initializes a new resource-based descriptor.
+     * @param baseName The name of the resource.
      * @param entityType Configuration element type. Cannot be {@literal null}.
      * @param parameters An array of configuration parameters.
      */
-    protected ResourceBasedConfigurationEntityDescription(final Class<T> entityType, final String... parameters){
-        this(entityType, Arrays.asList(parameters));
+    protected ResourceBasedConfigurationEntityDescription(final String baseName,
+                                                          final Class<T> entityType,
+                                                          final String... parameters){
+        this(baseName, entityType, Arrays.asList(parameters));
     }
 
     /**
@@ -326,7 +333,7 @@ public abstract class ResourceBasedConfigurationEntityDescription<T extends Enti
      */
     @SuppressWarnings("NullableProblems")
     @Override
-    public final  <E> E[] toArray(final E[] a) {
+    public final <E> E[] toArray(final E[] a) {
         return parameters.toArray(a);
     }
 

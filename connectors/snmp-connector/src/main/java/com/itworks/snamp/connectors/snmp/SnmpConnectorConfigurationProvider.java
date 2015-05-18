@@ -9,9 +9,7 @@ import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import org.snmp4j.mp.MPv3;
 import org.snmp4j.smi.OctetString;
 
-import java.util.Locale;
 import java.util.Map;
-import java.util.ResourceBundle;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
@@ -49,14 +47,7 @@ final class SnmpConnectorConfigurationProvider extends ConfigurationEntityDescri
         private static final String RESOURCE_NAME = "EventOptions";
 
         public EventConfigurationDescriptor(){
-            super(EventConfiguration.class, SEVERITY_PARAM, MESSAGE_TEMPLATE_PARAM);
-        }
-
-        @Override
-        protected ResourceBundle getBundle(final Locale loc) {
-            return loc != null ?
-                    ResourceBundle.getBundle(getResourceName(RESOURCE_NAME), loc):
-                    ResourceBundle.getBundle(getResourceName(RESOURCE_NAME));
+            super(RESOURCE_NAME, EventConfiguration.class, SEVERITY_PARAM, MESSAGE_TEMPLATE_PARAM);
         }
     }
 
@@ -64,14 +55,10 @@ final class SnmpConnectorConfigurationProvider extends ConfigurationEntityDescri
         private static final String RESOURCE_NAME = "AttributeOptions";
 
         public AttributeConfigurationDescriptor(){
-            super(AttributeConfiguration.class, SNMP_CONVERSION_FORMAT_PARAM, RESPONSE_TIMEOUT_PARAM);
-        }
-
-        @Override
-        protected ResourceBundle getBundle(final Locale loc) {
-            return loc != null ?
-                    ResourceBundle.getBundle(getResourceName(RESOURCE_NAME), loc):
-                    ResourceBundle.getBundle(getResourceName(RESOURCE_NAME));
+            super(RESOURCE_NAME,
+                    AttributeConfiguration.class,
+                    SNMP_CONVERSION_FORMAT_PARAM,
+                    RESPONSE_TIMEOUT_PARAM);
         }
     }
 
@@ -79,7 +66,8 @@ final class SnmpConnectorConfigurationProvider extends ConfigurationEntityDescri
         private static final String RESOURCE_NAME = "ConnectorOptions";
 
         public ConnectorConfigurationDescriptor(){
-            super(ManagedResourceConfiguration.class,
+            super(RESOURCE_NAME,
+                    ManagedResourceConfiguration.class,
                     COMMUNITY_PARAM,
                     ENGINE_ID_PARAM,
                     USER_NAME_PARAM,
@@ -94,13 +82,6 @@ final class SnmpConnectorConfigurationProvider extends ConfigurationEntityDescri
                     KEEP_ALIVE_TIME_PROPERTY,
                     MIN_POOL_SIZE_PROPERTY,
                     MAX_POOL_SIZE_PROPERTY);
-        }
-
-        @Override
-        protected ResourceBundle getBundle(final Locale loc) {
-            return loc != null ?
-                    ResourceBundle.getBundle(getResourceName(RESOURCE_NAME), loc):
-                    ResourceBundle.getBundle(getResourceName(RESOURCE_NAME));
         }
     }
 

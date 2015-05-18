@@ -1,5 +1,6 @@
 package com.itworks.snamp.connectors.groovy;
 
+import com.google.common.collect.ImmutableList;
 import com.itworks.snamp.internal.annotations.SpecialUse;
 
 import java.util.Collection;
@@ -16,7 +17,7 @@ import static com.itworks.snamp.configuration.SerializableAgentConfiguration.Ser
  * @version 1.0
  * @since 1.0
  */
-public abstract class InitializationScript extends ManagementScript implements AutoCloseable {
+public abstract class InitializationScript extends ManagementScript implements ManagedResourceInfo {
     private final Collection<AttributeConfiguration> attributes = new LinkedList<>();
     private final Collection<EventConfiguration> events = new LinkedList<>();
 
@@ -45,11 +46,12 @@ public abstract class InitializationScript extends ManagementScript implements A
     }
 
     @SuppressWarnings("unchecked")
+    @Override
     public final <T extends FeatureConfiguration> Collection<T> getEntities(final Class<T> entityType) {
         if(AttributeConfiguration.class.isAssignableFrom(entityType))
-            return (Collection<T>)attributes;
+            return (Collection<T>) ImmutableList.copyOf(attributes);
         else if(EventConfiguration.class.isAssignableFrom(entityType))
-            return (Collection<T>) events;
+            return (Collection<T>) ImmutableList.copyOf(events);
         else return null;
     }
 

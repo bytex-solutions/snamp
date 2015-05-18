@@ -18,9 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
-import java.util.Locale;
 import java.util.Map;
-import java.util.ResourceBundle;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -46,18 +44,13 @@ public final class XMPPAdapterConfiguration extends ConfigurationEntityDescripti
         private static final String RESOURCE_NAME = "AdapterParameters";
 
         private AdapterConfigurationDescriptor(){
-            super(ResourceAdapterConfiguration.class,
+            super(RESOURCE_NAME, ResourceAdapterConfiguration.class,
                     PORT_PARAM,
                     HOST_PARAM,
                     PASSWORD_PARAM,
                     KEYSTORE_PASSWORD_PARAM,
                     KEYSTORE_PATH_PARAM,
                     KEYSTORE_TYPE_PARAM);
-        }
-
-        @Override
-        protected ResourceBundle getBundle(final Locale loc) {
-            return ResourceBundle.getBundle(getResourceName(RESOURCE_NAME), loc != null ? loc : Locale.getDefault());
         }
     }
 

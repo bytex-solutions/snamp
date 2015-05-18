@@ -19,6 +19,7 @@
     <guava.version>18.0</guava.version>
     <jersey.version>1.18.1</jersey.version>
     <groovy.version>2.4.3</groovy.version>
+    <apache.ivy.version>2.4.0</apache.ivy.version>
     <!--Versioning of SNAMP Components-->
     <snmp4j.version>2.3.4</snmp4j.version>
     <sshj.version>0.10.0</sshj.version>

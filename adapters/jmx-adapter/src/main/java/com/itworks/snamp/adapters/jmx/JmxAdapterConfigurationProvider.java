@@ -7,9 +7,7 @@ import com.itworks.snamp.configuration.ResourceBasedConfigurationEntityDescripti
 
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
-import java.util.Locale;
 import java.util.Map;
-import java.util.ResourceBundle;
 
 /**
  * @author Roman Sakno
@@ -28,13 +26,7 @@ final class JmxAdapterConfigurationProvider extends ConfigurationEntityDescripti
         private static final String RESOURCE_NAME = "JmxEventSettings";
 
         public EventConfigSchema(){
-            super(EventConfiguration.class, SEVERITY_PARAM);
-        }
-
-        @Override
-        protected ResourceBundle getBundle(final Locale loc) {
-            return loc != null ? ResourceBundle.getBundle(getResourceName(RESOURCE_NAME), loc) :
-                    ResourceBundle.getBundle(getResourceName(RESOURCE_NAME));
+            super(RESOURCE_NAME, EventConfiguration.class, SEVERITY_PARAM);
         }
     }
 
@@ -42,13 +34,8 @@ final class JmxAdapterConfigurationProvider extends ConfigurationEntityDescripti
         private static final String RESOURCE_NAME = "JmxAdapterSettings";
 
         public AdapterConfigSchema() {
-            super(ResourceAdapterConfiguration.class, OBJECT_NAME_PARAM, USE_PLATFORM_MBEAN_PARAM);
-        }
-
-        @Override
-        protected ResourceBundle getBundle(final Locale loc) {
-            return loc != null ? ResourceBundle.getBundle(getResourceName(RESOURCE_NAME), loc) :
-                    ResourceBundle.getBundle(getResourceName(RESOURCE_NAME));
+            super(RESOURCE_NAME,
+                    ResourceAdapterConfiguration.class, OBJECT_NAME_PARAM, USE_PLATFORM_MBEAN_PARAM);
         }
     }
 

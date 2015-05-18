@@ -2,7 +2,7 @@ package com.itworks.snamp.connectors.groovy.impl;
 
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.ManagedResourceActivator;
-import com.itworks.snamp.connectors.groovy.InitializationScript;
+import com.itworks.snamp.connectors.groovy.ManagedResourceInfo;
 import com.itworks.snamp.connectors.groovy.ManagementScriptEngine;
 import com.itworks.snamp.internal.annotations.SpecialUse;
 import groovy.util.ResourceException;
@@ -36,7 +36,7 @@ public final class GroovyResourceActivator extends ManagedResourceActivator<Groo
 
         @Override
         protected void enableNotifications(final GroovyResourceConnector connector, final String listId, final String category, final CompositeData options) {
-
+            connector.enableNotifications(listId, category, options);
         }
 
         @Override
@@ -53,14 +53,15 @@ public final class GroovyResourceActivator extends ManagedResourceActivator<Groo
         }
     }
 
-    private static final class GroovyDiscoveryService extends SimpleDiscoveryServiceManager<InitializationScript>{
+    private static final class GroovyDiscoveryService extends SimpleDiscoveryServiceManager<ManagedResourceInfo>{
 
         @Override
-        protected InitializationScript createManagementInformationProvider(final String connectionString,
+        protected ManagedResourceInfo createManagementInformationProvider(final String connectionString,
                                                                            final Map<String, String> connectionOptions,
                                                                            final RequiredService<?>... dependencies) throws IOException, ResourceException, ScriptException {
             final String[] paths = GroovyResourceConnector.getPaths(connectionString);
             final ManagementScriptEngine engine = new ManagementScriptEngine(
+                    getClass().getClassLoader(),
                     GroovyResourceConnector.toProperties(connectionOptions),
                     paths);
             final String initScript = GroovyResourceConfigurationDescriptor.getInitScriptFile(connectionOptions);
@@ -69,7 +70,7 @@ public final class GroovyResourceActivator extends ManagedResourceActivator<Groo
 
         @Override
         protected <T extends FeatureConfiguration> Collection<T> getManagementInformation(final Class<T> entityType,
-                                                                                          final InitializationScript provider,
+                                                                                          final ManagedResourceInfo provider,
                                                                                           final RequiredService<?>... dependencies) {
             return provider.getEntities(entityType);
         }

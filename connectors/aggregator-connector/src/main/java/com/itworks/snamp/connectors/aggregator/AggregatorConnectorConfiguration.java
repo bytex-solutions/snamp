@@ -9,9 +9,7 @@ import com.itworks.snamp.configuration.ResourceBasedConfigurationEntityDescripti
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.notifications.NotificationDescriptor;
 
-import java.util.Locale;
 import java.util.Map;
-import java.util.ResourceBundle;
 
 /**
  * Provides configuration schema of this resource connector.
@@ -36,12 +34,9 @@ final class AggregatorConnectorConfiguration extends ConfigurationEntityDescript
         private static final String RESOURCE_NAME = "ConnectorParameters";
 
         private AdapterConfigurationDescriptor(){
-            super(ManagedResourceConfiguration.class, NOTIFICATION_FREQUENCY_PARAM);
-        }
-
-        @Override
-        protected ResourceBundle getBundle(final Locale loc) {
-            return ResourceBundle.getBundle(getResourceName(RESOURCE_NAME), loc != null ? loc : Locale.getDefault());
+            super(RESOURCE_NAME,
+                    ManagedResourceConfiguration.class,
+                    NOTIFICATION_FREQUENCY_PARAM);
         }
     }
 
@@ -49,14 +44,10 @@ final class AggregatorConnectorConfiguration extends ConfigurationEntityDescript
         private static final String RESOURCE_NAME = "EventParameters";
 
         private EventConfigurationDescriptor(){
-            super(EventConfiguration.class,
+            super(RESOURCE_NAME,
+                    EventConfiguration.class,
                     FOREIGN_ATTRIBUTE_PARAM,
                     SOURCE_PARAM);
-        }
-
-        @Override
-        protected ResourceBundle getBundle(final Locale loc) {
-            return ResourceBundle.getBundle(getResourceName(RESOURCE_NAME), loc != null ? loc : Locale.getDefault());
         }
     }
 
@@ -64,7 +55,8 @@ final class AggregatorConnectorConfiguration extends ConfigurationEntityDescript
         private static final String RESOURCE_NAME = "AttributeParameters";
 
         private AttributeConfigurationDescriptor(){
-            super(AttributeConfiguration.class,
+            super(RESOURCE_NAME,
+                    AttributeConfiguration.class,
                     SOURCE_PARAM,
                     FOREIGN_ATTRIBUTE_PARAM,
                     PATTERN_PARAM,
@@ -73,11 +65,6 @@ final class AggregatorConnectorConfiguration extends ConfigurationEntityDescript
                     COMPARER_PARAM,
                     VALUE_PARAM,
                     TIME_INTERVAL_PARAM);
-        }
-
-        @Override
-        protected ResourceBundle getBundle(final Locale loc) {
-            return ResourceBundle.getBundle(getResourceName(RESOURCE_NAME), loc != null ? loc : Locale.getDefault());
         }
     }
 

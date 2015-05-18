@@ -17,7 +17,7 @@ import java.util.Objects;
  * @version 1.0
  * @since 1.0
  */
-public abstract class AttributeScript extends ResourceFeatureScript {
+public abstract class AttributeScript extends ResourceFeatureScript implements AttributeAccessor {
     private static final String GET_VALUE_METHOD = "getValue";
     private static final String SET_VALUE_METHOD = "setValue";
     @SpecialUse

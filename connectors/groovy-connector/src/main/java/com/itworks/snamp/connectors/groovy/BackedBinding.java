@@ -27,7 +27,7 @@ final class BackedBinding extends Binding {
      */
     @Override
     public Object getVariable(final String name) {
-        return parent.hasVariable(name) ? parent.getVariable(name) : super.getVariable(name);
+        return super.hasVariable(name) ? super.getVariable(name) : parent.getVariable(name);
     }
 
     /**
@@ -37,7 +37,7 @@ final class BackedBinding extends Binding {
      */
     @Override
     public boolean hasVariable(final String name) {
-        return parent.hasVariable(name) && super.hasVariable(name);
+        return super.hasVariable(name) && parent.hasVariable(name);
     }
 
     /**
@@ -48,9 +48,10 @@ final class BackedBinding extends Binding {
      */
     @Override
     public void setVariable(final String name, final Object value) {
-        if(parent.hasVariable(name))
+        if(super.hasVariable(name))
+            super.setVariable(name, value);
+        else
             parent.setVariable(name, value);
-        else super.setVariable(name, value);
     }
 
     @SuppressWarnings("unchecked")

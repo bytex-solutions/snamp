@@ -9,9 +9,7 @@ import org.snmp4j.mp.MPv3;
 import org.snmp4j.smi.OctetString;
 
 import javax.management.DescriptorRead;
-import java.util.Locale;
 import java.util.Map;
-import java.util.ResourceBundle;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
@@ -74,7 +72,8 @@ final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
     private static final class ResourceAdapterConfigurationInfo extends ResourceBasedConfigurationEntityDescription<ResourceAdapterConfiguration> implements ThreadPoolConfigurationDescriptor<ResourceAdapterConfiguration> {
         private static final String RESOURCE_NAME = "SnmpAdapterConfig";
         private ResourceAdapterConfigurationInfo(){
-            super(ResourceAdapterConfiguration.class,
+            super(RESOURCE_NAME,
+                    ResourceAdapterConfiguration.class,
                     CONTEXT_PARAM_NAME,
                     ENGINE_ID_PARAM,
                     SNMPv3_GROUPS_PARAM,
@@ -89,33 +88,16 @@ final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
                     PRIORITY_PROPERTY,
                     RESTART_TIMEOUT_PARAM);
         }
-
-        /**
-         * Retrieves resource accessor for the specified locale.
-         *
-         * @param loc The requested localization of the resource. May be {@literal null}.
-         * @return The resource accessor.
-         */
-        @Override
-        protected final ResourceBundle getBundle(final Locale loc) {
-            return loc != null ? ResourceBundle.getBundle(getResourceName(RESOURCE_NAME), loc) :
-                    ResourceBundle.getBundle(getResourceName(RESOURCE_NAME));
-        }
     }
 
     private static final class AttributeConfigurationInfo extends ResourceBasedConfigurationEntityDescription<AttributeConfiguration>{
         private static final String RESOURCE_NAME = "SnmpAttributeConfig";
 
         private AttributeConfigurationInfo(){
-            super(AttributeConfiguration.class,
+            super(RESOURCE_NAME,
+                    AttributeConfiguration.class,
                     OID_PARAM_NAME,
                     DATE_TIME_DISPLAY_FORMAT_PARAM);
-        }
-
-        @Override
-        protected final ResourceBundle getBundle(final Locale loc) {
-            return loc != null ? ResourceBundle.getBundle(getResourceName(RESOURCE_NAME), loc) :
-                    ResourceBundle.getBundle(getResourceName(RESOURCE_NAME));
         }
     }
 
@@ -123,19 +105,14 @@ final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
         private static final String RESOURCE_NAME = "SnmpEventConfig";
 
         private EventConfigurationInfo(){
-            super(EventConfiguration.class,
+            super(RESOURCE_NAME,
+                    EventConfiguration.class,
                     OID_PARAM_NAME,
                     DATE_TIME_DISPLAY_FORMAT_PARAM,
                     TARGET_ADDRESS_PARAM,
                     TARGET_NAME_PARAM,
                     TARGET_NOTIF_TIMEOUT_PARAM,
                     TARGET_RETRY_COUNT_PARAM);
-        }
-
-        @Override
-        protected final ResourceBundle getBundle(final Locale loc) {
-            return loc != null ? ResourceBundle.getBundle(getResourceName(RESOURCE_NAME), loc) :
-                    ResourceBundle.getBundle(getResourceName(RESOURCE_NAME));
         }
     }
 

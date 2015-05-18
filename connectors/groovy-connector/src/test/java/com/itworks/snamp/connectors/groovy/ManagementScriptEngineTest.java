@@ -17,7 +17,7 @@ public final class ManagementScriptEngineTest extends Assert {
     private final ManagementScriptEngine engine;
 
     public ManagementScriptEngineTest() throws IOException {
-        engine = new ManagementScriptEngine("sample-groovy-scripts/");
+        engine = new ManagementScriptEngine(getClass().getClassLoader(), "sample-groovy-scripts/");
     }
 
     @Test
@@ -26,11 +26,10 @@ public final class ManagementScriptEngineTest extends Assert {
         config.setParameter("configParam", "Hello, world!");
         config.setReadWriteTimeout(TimeSpan.fromSeconds(2));
 
-        final AttributeScript scr = engine.loadAttribute(new AttributeDescriptor(config));
-        scr.run();
+        final AttributeAccessor scr = engine.loadAttribute(new AttributeDescriptor(config));
         assertEquals(AttributeScript.INT32, scr.type());
-        assertTrue(scr.isReadable());
-        assertTrue(scr.isWritable());
+        assertTrue(scr.specifier().canRead());
+        assertTrue(scr.specifier().canWrite());
 
         scr.setValue(20);
         assertEquals(20, scr.getValue());

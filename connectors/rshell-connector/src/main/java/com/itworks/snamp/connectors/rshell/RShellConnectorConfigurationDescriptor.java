@@ -3,9 +3,6 @@ package com.itworks.snamp.connectors.rshell;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.itworks.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 
-import java.util.Locale;
-import java.util.ResourceBundle;
-
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 
 /**
@@ -22,18 +19,7 @@ final class RShellConnectorConfigurationDescriptor extends ConfigurationEntityDe
         private static final String RESOURCE_NAME = "RShellAttributeConfig";
 
         private AttributeConfigurationInfo(){
-            super(AttributeConfiguration.class, COMMAND_PROFILE_PATH_PARAM);
-        }
-
-        /**
-         * Retrieves resource accessor for the specified locale.
-         * @param loc The requested localization of the resource. May be {@literal null}.
-         * @return The resource accessor.
-         */
-        @Override
-        protected ResourceBundle getBundle(Locale loc) {
-            if(loc == null) loc = Locale.getDefault();
-            return ResourceBundle.getBundle(getResourceName(RESOURCE_NAME), loc);
+            super(RESOURCE_NAME, AttributeConfiguration.class, COMMAND_PROFILE_PATH_PARAM);
         }
     }
 

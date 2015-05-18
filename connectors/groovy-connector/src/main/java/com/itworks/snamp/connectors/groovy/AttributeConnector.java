@@ -18,7 +18,7 @@ public interface AttributeConnector {
      * @throws ResourceException Unable to find file.
      * @throws ScriptException Invalid script program.
      */
-    AttributeScript loadAttribute(final String scriptFile) throws ResourceException, ScriptException;
+    AttributeAccessor loadAttribute(final String scriptFile) throws ResourceException, ScriptException;
 
     /**
      * Loads attribute described in Groovy script.
@@ -27,5 +27,5 @@ public interface AttributeConnector {
      * @throws ResourceException Unable to find file.
      * @throws ScriptException Invalid script program.
      */
-    AttributeScript loadAttribute(final AttributeDescriptor descriptor) throws ResourceException, ScriptException;
+    AttributeAccessor loadAttribute(final AttributeDescriptor descriptor) throws ResourceException, ScriptException;
 }

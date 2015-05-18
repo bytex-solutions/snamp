@@ -9,15 +9,11 @@ import com.itworks.snamp.configuration.ResourceBasedConfigurationEntityDescripti
 import com.itworks.snamp.jmx.DescriptorUtils;
 
 import javax.management.Descriptor;
-import java.util.Locale;
 import java.util.Map;
-import java.util.ResourceBundle;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
-import static com.itworks.snamp.jmx.DescriptorUtils.getField;
-import static com.itworks.snamp.jmx.DescriptorUtils.getUOM;
-import static com.itworks.snamp.jmx.DescriptorUtils.hasField;
+import static com.itworks.snamp.jmx.DescriptorUtils.*;
 
 /**
  * @author Roman Sakno
@@ -38,13 +34,9 @@ final class NRDPAdapterConfigurationDescriptor extends ConfigurationEntityDescri
         private static final String RESOURCE_NAME = "EventParameters";
 
         private EventConfigurationInfo(){
-            super(EventConfiguration.class, SERVICE_NAME_PARAM);
-        }
-
-        @Override
-        protected ResourceBundle getBundle(final Locale loc) {
-            return loc != null ? ResourceBundle.getBundle(getResourceName(RESOURCE_NAME), loc) :
-                    ResourceBundle.getBundle(getResourceName(RESOURCE_NAME));
+            super(RESOURCE_NAME,
+                    EventConfiguration.class,
+                    SERVICE_NAME_PARAM);
         }
     }
 
@@ -52,17 +44,12 @@ final class NRDPAdapterConfigurationDescriptor extends ConfigurationEntityDescri
         private static final String RESOURCE_NAME = "AttributeParameters";
 
         private AttributeConfigurationInfo(){
-            super(AttributeConfiguration.class,
+            super(RESOURCE_NAME,
+                    AttributeConfiguration.class,
                     SERVICE_NAME_PARAM,
                     MAX_VALUE_PARAM,
                     MIN_VALUE_PARAM,
                     UNIT_OF_MEASUREMENT_PARAM);
-        }
-
-        @Override
-        protected ResourceBundle getBundle(final Locale loc) {
-            return loc != null ? ResourceBundle.getBundle(getResourceName(RESOURCE_NAME), loc) :
-                    ResourceBundle.getBundle(getResourceName(RESOURCE_NAME));
         }
     }
 
@@ -70,17 +57,12 @@ final class NRDPAdapterConfigurationDescriptor extends ConfigurationEntityDescri
         private static final String RESOURCE_NAME = "AdapterParameters";
 
         private ResourceAdapterConfigurationInfo(){
-            super(ResourceAdapterConfiguration.class,
+            super(RESOURCE_NAME,
+                    ResourceAdapterConfiguration.class,
                     NRDP_SERVER_URL_PARAM,
                     CONNECTION_TIMEOUT_PARAM,
                     TOKEN_PARAM,
                     PASSIVE_CHECK_SEND_PERIOD_PARAM);
-        }
-
-        @Override
-        protected final ResourceBundle getBundle(final Locale loc) {
-            return loc != null ? ResourceBundle.getBundle(getResourceName(RESOURCE_NAME), loc) :
-                    ResourceBundle.getBundle(getResourceName(RESOURCE_NAME));
         }
     }
 

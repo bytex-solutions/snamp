@@ -14,7 +14,6 @@ import javax.management.remote.JMXConnector;
 import java.io.IOException;
 import java.util.Locale;
 import java.util.Map;
-import java.util.ResourceBundle;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
@@ -40,14 +39,10 @@ final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescr
         private static final String RESOURCE_NAME = "JmxEventConfig";
 
         private EventConfigurationInfo(){
-            super(EventConfiguration.class,
+            super(RESOURCE_NAME,
+                    EventConfiguration.class,
                     OBJECT_NAME_PROPERTY,
                     SEVERITY_PARAM);
-        }
-
-        @Override
-        protected ResourceBundle getBundle(final Locale loc) {
-            return ResourceBundle.getBundle(getResourceName(RESOURCE_NAME), loc != null ? loc : Locale.getDefault());
         }
     }
 
@@ -55,15 +50,11 @@ final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescr
         private static final String RESOURCE_NAME = "JmxConnectorConfig";
 
         private ConnectorConfigurationInfo() {
-            super(ManagedResourceConfiguration.class,
+            super(RESOURCE_NAME,
+                    ManagedResourceConfiguration.class,
                     JMX_LOGIN,
                     JMX_PASSWORD,
                     CONNECTION_CHECK_PERIOD);
-        }
-
-        @Override
-        protected ResourceBundle getBundle(final Locale loc) {
-            return ResourceBundle.getBundle(getResourceName(RESOURCE_NAME), loc != null ? loc : Locale.getDefault());
         }
     }
 
@@ -95,7 +86,8 @@ final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescr
         }
 
         private AttributeConfigurationInfo() {
-            super(AttributeConfiguration.class,
+            super(RESOURCE_NAME,
+                    AttributeConfiguration.class,
                     OBJECT_NAME_PROPERTY,
                     USE_REGEXP_PARAM);
         }
@@ -114,18 +106,6 @@ final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescr
                 default:
                     return super.createParameterDescriptor(parameterName);
             }
-        }
-
-        /**
-         * Retrieves resource accessor for the specified locale.
-         *
-         * @param loc The requested localization of the resource. May be {@literal null}.
-         * @return The resource accessor.
-         */
-        @Override
-        protected final ResourceBundle getBundle(Locale loc) {
-            if(loc == null) loc = Locale.getDefault();
-            return ResourceBundle.getBundle(getResourceName(RESOURCE_NAME), loc);
         }
     }
 
