@@ -33,7 +33,7 @@ enum OidConversionFormat implements SnmpObjectConverter<OID> {
 
     private final OpenType<?> openType;
 
-    private OidConversionFormat(final OpenType<?> type){
+    OidConversionFormat(final OpenType<?> type){
         this.openType = type;
     }
 

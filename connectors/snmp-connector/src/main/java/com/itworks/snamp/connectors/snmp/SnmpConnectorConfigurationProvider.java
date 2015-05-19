@@ -23,7 +23,7 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResource
  */
 final class SnmpConnectorConfigurationProvider extends ConfigurationEntityDescriptionProviderImpl {
     //connector related parameters
-    static final String COMMUNITY_PARAM = "community";
+    private static final String COMMUNITY_PARAM = "community";
     static final String ENGINE_ID_PARAM = "engineID";
     static final String USER_NAME_PARAM = "userName";
     static final String AUTH_PROTOCOL_PARAM = "authenticationProtocol";

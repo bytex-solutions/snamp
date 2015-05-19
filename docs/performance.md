@@ -110,6 +110,8 @@ Examples:
 
 
 ## Thread pool size
+> It is possible to configure internal thread pool of some resource adapters and connectors. See [Configuration](configuration.md) for more information about thread pool configuration parameters.
+
 Optimal max thread pool size should be equal to ![](http://latex.codecogs.com/gif.latex?S=1.5\times&space;k). Each thread may be used as a separated channel for handling requests.
 
 For example, if workload `λ = 50` tps, `t = 0.1` seconds and expected availability is `P=0,999` (99,9%) then required number of threads `S=14`. Therefore, the required number of cores `k = 14/1.5= [9.3]=10`. The savings on the number of cores is 28%.

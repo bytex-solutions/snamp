@@ -12,21 +12,21 @@ public interface ThreadPoolConfigurationDescriptor<T extends EntityConfiguration
     /**
      * Configuration property for the min pool size.
      */
-    final String MIN_POOL_SIZE_PROPERTY = "minPoolSize";
+    String MIN_POOL_SIZE_PROPERTY = "minPoolSize";
     /**
      * Configuration property for the max pool size.
      */
-    final String MAX_POOL_SIZE_PROPERTY = "maxPoolSize";
+    String MAX_POOL_SIZE_PROPERTY = "maxPoolSize";
     /**
      * Configuration property for the queue size.
      */
-    final String QUEUE_SIZE_PROPERTY = "queueSize";
+    String QUEUE_SIZE_PROPERTY = "queueSize";
     /**
      * Configuration property for the keep alive time.
      */
-    final String KEEP_ALIVE_TIME_PROPERTY = "keepAliveTime";
+    String KEEP_ALIVE_TIME_PROPERTY = "keepAliveTime";
     /**
      * Configuration property for the priority.
      */
-    final String PRIORITY_PROPERTY = "priority";
+    String PRIORITY_PROPERTY = "priority";
 }

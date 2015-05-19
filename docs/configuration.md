@@ -123,8 +123,14 @@ SNAMP Configuration Model provides a set of optional configuration parameters wi
 
 Parameter | Applied to | Meaning
 ---- | ---- | ----
-`severity` | Event configuration | Overrides severity of notification supplied by managed resource
+severity | Event configuration | Overrides severity of notification supplied by managed resource
+minPoolSize | Managed Resource or Resource Adapter configuration | The number of threads to keep in the pool, even if they are idle
+maxPoolSize | Managed Resource or Resource Adapter configuration | The maximum number of threads to allow in the pool
+queueSize | Managed Resource or Resource Adapter configuration | The maximum number of waiting input requests
+keepAliveTime | Managed Resource or Resource Adapter configuration | when the number of threads is greater than the `minPoolSize`, this is the maximum time (in millis) that excess idle threads will wait for new tasks before terminating
+priority | Managed Resource or Resource Adapter configuration | Priority of all threads in the thread pool
 
+### `severity` parameter
 The possible values of `severity` parameter (in descending order):
 
 Value | Description
@@ -137,6 +143,15 @@ warning | Warning messages, not an error, but indication that an error will occu
 notice | Events that are unusual but not error conditions - might be summarized in an email to developers or admins to spot potential problems - no immediate action required.
 informational | Normal operational messages - may be harvested for reporting, measuring throughput, etc. - no action required.
 debug | Info useful to developers for debugging the application, not useful during operations.
+
+### Thread pool configuration parameters
+Some Resource Connectors and Adapters supports explicit configuration of its internal thread pool. All related configuration parameters are optional therefore you may specify some of them. But you should take into account the following restrictions:
+* `minPoolSize` must be less than `maxPoolSize`
+* If `queueSize` is not specified explicitly then SNAMP component uses unlimited capacity of the queue
+* It is not recommended to set `keepAliveTime` to zero due to performance penalties
+* If `priority` is not specified then SNAMP uses default OS priority for threads in pool
+* `priority` must be is in range _1..10_. Note that _1_ is the lowest priority.
+
 
 ## Examples
 * [Monitoring JMX resources over SNMP](jmx-over-snmp.md)

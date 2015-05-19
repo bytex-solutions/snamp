@@ -35,7 +35,7 @@ enum TimeTicksConversionFormat implements SnmpObjectConverter<TimeTicks> {
 
     private final OpenType<?> openType;
 
-    private TimeTicksConversionFormat(final OpenType<?> type){
+    TimeTicksConversionFormat(final OpenType<?> type){
         this.openType = type;
     }
 

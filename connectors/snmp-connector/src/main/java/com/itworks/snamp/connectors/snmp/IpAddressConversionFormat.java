@@ -34,7 +34,7 @@ enum IpAddressConversionFormat implements SnmpObjectConverter<IpAddress> {
 
     private OpenType<?> openType;
 
-    private IpAddressConversionFormat(final OpenType<?> type){
+    IpAddressConversionFormat(final OpenType<?> type){
         this.openType = type;
     }
 
