@@ -27,3 +27,7 @@ Examples of connection string:
 * `udp://192.168.0.1/9293`
 
 ## Configuration Parameters
+SNMP Resource Connector recognizes the following parameters:
+
+Parameter | Type | Required | Meaning | Example
+---- | ---- | ---- | ---- | ----

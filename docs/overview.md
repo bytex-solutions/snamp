@@ -2,7 +2,7 @@ SNAMP Overview
 ====
 SNAMP is a middleware acting as a bridge between **managed resources** and **monitoring & management tools** used in your enterprise and hides management protocol details.
 
-![Architecture Overview](/images/snamp.png)
+![Architecture Overview](images/snamp.png)
 
 **Resource Adapter** exposes management information to **monitoring & management tool** using a unified management protocol. Therefore, you can manage & monitor different **managed resources** with a single tool.
 
@@ -10,7 +10,7 @@ SNAMP is a middleware acting as a bridge between **managed resources** and **mon
 
 Let's take a look at this example:
 
-![Configuration Example](/images/example.png)
+![Configuration Example](images/example.png)
 
 Example configuration consists of:
 * Three **managed resources**
@@ -23,18 +23,18 @@ Example configuration consists of:
 
 In this configuration, Nagios can monitor Java Application, Linux Server, Network Switch via single HTTP protocol. Microsoft SCOM can monitor Java Application, Linux Server, Network Switch via single SNMP protocol.  
 
-Full set of supported management protocols listed [here](/features.md).
+Full set of supported management protocols listed [here](features.md).
 
 # Concepts
 SNAMP functionality based on the two main components:
 * Resource Connector
 * Resource Adapter
 
-Resource Connector provides conversion from resource-specific management protocol to the unified [Management Information Model](/inform_model.md).
+Resource Connector provides conversion from resource-specific management protocol to the unified [Management Information Model](inform_model.md).
 
-Resource Adapter provides conversion from unified [Management Information Model](/inform_model.md) to the a management protocol supported by **monitoring & management tool**.
+Resource Adapter provides conversion from unified [Management Information Model](inform_model.md) to the a management protocol supported by **monitoring & management tool**.
 
-![Information Flow](/images/inform-flow.png)
+![Information Flow](images/inform-flow.png)
 
 ## Managed Resource
 **Managed resource** is a component of the enterprise IT infrastructure you want to manage. The possible (but not limited to) types of managed resources:
@@ -71,7 +71,7 @@ Attribute has the following characteristics:
   * _Write_ - attribute value is write-only
   * _Read/Write_ - attribute value can be modified or obtained
 * _Read/write timeout_ - a timeout used to read or write attribute value. By default, SNAMP uses infinite timeout
-* _Type_ - the type of the attribute value. See [Management Information Model](/inform_model.md) for more information about supported attribute types
+* _Type_ - the type of the attribute value. See [Management Information Model](inform_model.md) for more information about supported attribute types
 * _Configuration_ - a set of configuration parameters associated with the attribute
 
 The attribute configuration and attribute name may be specified by SNAMP administrator. Other characteristics depends on the connected managed resource and cannot be changed by administrator.
@@ -94,7 +94,7 @@ Event has the following characteristics:
 
 The event configuration, category and severity level (optionally) may be specified by SNAMP administrator. Other characteristics depends on the connected managed resource and cannot be changed by administrator.
 
-See [Management Information Model](/inform_model.md) ror more information about severity level and notification content.
+See [Management Information Model](inform_model.md) ror more information about severity level and notification content.
 
 Examples of notifications:
 * Fatal or critical error
@@ -126,13 +126,13 @@ Resource Adapter has the following characteristics:
 * _System Name_ (or _Adapter Name_) - the name of the Resource Adapter. Typically, system name represents the provided management protocol
 * _Configuration_ - a set of configuration properties controlling behavior and network accessibility of the adapter
 
-See [Feature List](/features.md) for more information about provided Resource Adapters.
+See [Feature List](features.md) for more information about provided Resource Adapters.
 
 
 # Technology Stack
 SNAMP constructed on top of [Apache Karaf](http://karaf.apache.org/) and requires Java Runtime Environment.
 
-![Technology Stack](/images/tstack.png)
+![Technology Stack](images/tstack.png)
 
 From the Deployment Viewpoint, SNAMP is a set of OSGi bundles packaged into KAR (Apache Karaf Feature archive) archives.
 
@@ -142,4 +142,4 @@ Additional topics:
 
 # Management Console
 SNAMP Management Console is a web console allowing you to configure SNAMP from your browser. It is build on top of [Hawt.IO](http://hawt.io/).
-> SNAMP Management Console is available in commercial license only 
+> SNAMP Management Console is available in commercial license only

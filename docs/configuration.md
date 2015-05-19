@@ -10,7 +10,7 @@ System configuration (JVM and Apache Karaf) can be changed via set of configurat
 
 See [Configuring Apache Karaf](http://karaf.apache.org/manual/latest/users-guide/configuration.html) for more information about Apache Karaf configuration model.
 
-See [SNAMP Management Interface](/mgmt.md) for more information about SNAMP management via JMX.
+See [SNAMP Management Interface](mgmt.md) for more information about SNAMP management via JMX.
 
 ## Configuration Model
 SNAMP configuration describes a set of resource adapters, resource connectors and its attributes, notifications and operations.
@@ -97,7 +97,7 @@ Managed Resource `partner-gateway` is connected using `jmx` Resource Connector. 
 
 XMPP Adapter provides value of the `freeMemoryRaw` and `freeMemory` in two different formats: human-readable and binary. This behavior is defined using `xmppFormat` configuration property associated with each attribute.
 
-As you can see, configuration parameters depends on the Resource Adapter and Resource Connector. See [Configuring Resource Adapters](/adapters/introduction.md) and [Configuring Resource Connectors](/connectors/introduction.md) for more details about SNAMP configuration.
+As you can see, configuration parameters depends on the Resource Adapter and Resource Connector. See [Configuring Resource Adapters](adapters/introduction.md) and [Configuring Resource Connectors](connectors/introduction.md) for more details about SNAMP configuration.
 
 ## Using SNAMP Management Console
 SNAMP Management Console allows you to configure and maintain SNAMP via user-friendly Web interface in your browser.
@@ -139,6 +139,6 @@ informational | Normal operational messages - may be harvested for reporting, me
 debug | Info useful to developers for debugging the application, not useful during operations.
 
 ## Examples
-* [Monitoring JMX resources over SNMP](/jmx-over-snmp.md)
-* [Monitoring SNMP resources over HTTP](/snmp-over-http.md)
-* [Monitoring JMX resources over XMPP](/jmx-over-xmpp.md)
+* [Monitoring JMX resources over SNMP](jmx-over-snmp.md)
+* [Monitoring SNMP resources over HTTP](snmp-over-http.md)
+* [Monitoring JMX resources over XMPP](jmx-over-xmpp.md)
