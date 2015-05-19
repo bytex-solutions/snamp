@@ -3,6 +3,7 @@ package com.itworks.snamp.concurrent;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.internal.annotations.MethodStub;
 
+import java.io.Closeable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -12,7 +13,7 @@ import java.util.concurrent.TimeoutException;
  * @version 1.0
  * @since 1.0
  */
-public abstract class Repeater implements AutoCloseable, Runnable {
+public abstract class Repeater implements Closeable, Runnable {
     /**
      * Represents state of this timer.
      * @author Roman Sakno
@@ -62,6 +63,14 @@ public abstract class Repeater implements AutoCloseable, Runnable {
         this.period = period;
         this.exception = null;
         this.repeatThread = null;
+    }
+
+    /**
+     * Initializes a new repeater.
+     * @param period Time between successive task executions, in millis.
+     */
+    protected Repeater(final long period){
+        this(new TimeSpan(period));
     }
 
     /**

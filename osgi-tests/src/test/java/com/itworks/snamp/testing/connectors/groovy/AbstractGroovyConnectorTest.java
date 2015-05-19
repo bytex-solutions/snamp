@@ -3,6 +3,7 @@ package com.itworks.snamp.testing.connectors.groovy;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
@@ -51,5 +52,12 @@ public abstract class AbstractGroovyConnectorTest extends AbstractResourceConnec
         attr = attributeFactory.get();
         attr.setAttributeName("Yahoo");
         attributes.put("finance", attr);
+    }
+
+    @Override
+    protected void fillEvents(final Map<String, EventConfiguration> events, final Supplier<EventConfiguration> eventFactory) {
+        EventConfiguration ev = eventFactory.get();
+        ev.setCategory("Event");
+        events.put("ev", ev);
     }
 }

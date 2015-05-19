@@ -705,22 +705,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         protected ConfigurationEntityDescriptionProviderImpl createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
             return new ConfigurationEntityDescriptionProviderImpl(descriptions);
         }
-
-        /**
-         * Provides service cleanup operations.
-         * <p>
-         * In the default implementation this method does nothing.
-         * </p>
-         *
-         * @param serviceInstance An instance of the hosted service to cleanup.
-         * @param stopBundle      {@literal true}, if this method calls when the owner bundle is stopping;
-         *                        {@literal false}, if this method calls when loosing dependency.
-         */
-        @Override
-        @MethodStub
-        protected void cleanupService(final ConfigurationEntityDescriptionProviderImpl serviceInstance, final boolean stopBundle) throws Exception {
-            //nothing to do
-        }
     }
 
     /**

@@ -307,7 +307,8 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          */
         @MethodStub
         protected void cleanupService(final T serviceInstance, final boolean stopBundle) throws Exception{
-
+            if(serviceInstance instanceof AutoCloseable)
+                ((AutoCloseable)serviceInstance).close();
         }
 
         /**

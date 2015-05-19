@@ -39,6 +39,14 @@ public final class ManagementScriptEngine extends GroovyScriptEngine implements 
         rootBinding = new Binding();
     }
 
+    public void setGlobalVariable(final String name, final Object value){
+        rootBinding.setVariable(name, value);
+    }
+
+    public Object getGlobalVariable(final String name){
+        return rootBinding.getVariable(name);
+    }
+
     private static void setupClassPath(final CompilerConfiguration config) {
         final List<String> classPath = config.getClasspath();
         final String javaClassPath = StandardSystemProperty.JAVA_CLASS_PATH.value();

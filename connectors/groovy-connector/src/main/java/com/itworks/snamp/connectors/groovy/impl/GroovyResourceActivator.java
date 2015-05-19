@@ -76,10 +76,19 @@ public final class GroovyResourceActivator extends ManagedResourceActivator<Groo
         }
     }
 
+    private static final class GroovyConfigurationDescriptionProvider extends ConfigurationEntityDescriptionManager<GroovyResourceConfigurationDescriptor>{
+
+        @Override
+        protected GroovyResourceConfigurationDescriptor createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) throws Exception {
+            return new GroovyResourceConfigurationDescriptor();
+        }
+    }
+
     @SpecialUse
     public GroovyResourceActivator(){
         super(NAME,
                 new GroovyResourceConnectorFactory(),
-                new GroovyDiscoveryService());
+                new GroovyDiscoveryService(),
+                new GroovyConfigurationDescriptionProvider());
     }
 }

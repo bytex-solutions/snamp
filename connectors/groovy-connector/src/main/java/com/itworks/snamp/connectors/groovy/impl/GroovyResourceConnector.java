@@ -6,16 +6,14 @@ import com.google.common.base.StandardSystemProperty;
 import com.google.common.base.Strings;
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.concurrent.GroupedThreadFactory;
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
 import com.itworks.snamp.connectors.ResourceEventListener;
 import com.itworks.snamp.connectors.attributes.AbstractAttributeSupport;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.attributes.OpenTypeAttributeInfo;
 import com.itworks.snamp.connectors.groovy.*;
-import com.itworks.snamp.connectors.notifications.AbstractNotificationSupport;
-import com.itworks.snamp.connectors.notifications.CustomNotificationInfo;
-import com.itworks.snamp.connectors.notifications.NotificationDescriptor;
-import com.itworks.snamp.connectors.notifications.NotificationListenerInvoker;
+import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.core.OSGiLoggingContext;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.MethodStub;
@@ -24,12 +22,16 @@ import groovy.util.ScriptException;
 import org.osgi.framework.BundleContext;
 
 import javax.management.InvalidAttributeValueException;
+import javax.management.NotificationListener;
 import javax.management.ReflectionException;
 import javax.management.openmbean.CompositeData;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -70,6 +72,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
 
     private static final class GroovyNotificationSupport extends AbstractNotificationSupport<GroovyNotificationInfo>{
         private final EventConnector connector;
+        private final NotificationListenerInvoker listenerInvoker;
 
         private final class NotificationEmitterSlim implements NotificationEmitter{
             private final String category;
@@ -99,6 +102,17 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
                                           final EventConnector connector){
             super(resourceName, GroovyNotificationInfo.class);
             this.connector = Objects.requireNonNull(connector);
+            final ExecutorService executor = Executors.newSingleThreadExecutor(new GroupedThreadFactory("notifs-" + resourceName));
+            this.listenerInvoker = createListenerInvoker(executor);
+        }
+
+        private static NotificationListenerInvoker createListenerInvoker(final Executor executor){
+            return NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker(executor, new NotificationListenerInvokerFactory.ExceptionHandler() {
+                @Override
+                public final void handle(final Throwable e, final NotificationListener source) {
+                    getLoggerImpl().log(Level.SEVERE, "Unable to process JMX notification.", e);
+                }
+            });
         }
 
         /**
@@ -108,7 +122,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
          */
         @Override
         protected NotificationListenerInvoker getListenerInvoker() {
-            return null;
+            return listenerInvoker;
         }
 
         @Override
@@ -262,6 +276,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         }
     }
 
+    private static final String RESOURCE_NAME_VAR = "resourceName";
     private final GroovyAttributeSupport attributes;
     private static final Splitter PATH_SPLITTER;
     private final ManagedResourceInfo groovyConnector;
@@ -290,6 +305,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         final ManagementScriptEngine engine = new ManagementScriptEngine(getClass().getClassLoader(),
                 toProperties(params),
                 paths);
+        engine.setGlobalVariable(RESOURCE_NAME_VAR, resourceName);
         final String initScript = GroovyResourceConfigurationDescriptor.getInitScriptFile(params);
         groovyConnector = Strings.isNullOrEmpty(initScript) ?
                 null :

@@ -4,6 +4,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Sets;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.concurrent.GroupedThreadFactory;
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
 import com.itworks.snamp.connectors.ResourceEventListener;
 import com.itworks.snamp.connectors.attributes.AbstractAttributeSupport;
@@ -256,7 +257,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
             super(resourceName, JmxNotificationInfo.class);
             this.connectionManager = connectionManager;
             this.connectionManager.addReconnectionHandler(this);
-            listenerInvoker = createListenerInvoker(Executors.newSingleThreadExecutor());
+            listenerInvoker = createListenerInvoker(Executors.newSingleThreadExecutor(new GroupedThreadFactory("notifs-" + resourceName)));
         }
 
         private static NotificationListenerInvoker createListenerInvoker(final Executor executor){
