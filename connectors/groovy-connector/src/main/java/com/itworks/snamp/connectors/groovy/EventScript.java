@@ -1,5 +1,7 @@
 package com.itworks.snamp.connectors.groovy;
 
+import com.itworks.snamp.internal.annotations.SpecialUse;
+
 import java.lang.ref.WeakReference;
 
 /**
@@ -12,6 +14,7 @@ public abstract class EventScript extends ManagementScript implements Notificati
     private WeakReference<NotificationEmitter> emitter;
 
     @Override
+    @SpecialUse
     public final void emitNotification(final String message) {
         final NotificationEmitter emitter = getEmitter();
         if(emitter != null)
@@ -24,6 +27,7 @@ public abstract class EventScript extends ManagementScript implements Notificati
     }
 
     @Override
+    @SpecialUse
     public final void emitNotification(final String message, final Object userData) {
         final NotificationEmitter emitter = getEmitter();
         if(emitter != null)

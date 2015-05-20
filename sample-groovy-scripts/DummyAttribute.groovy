@@ -6,7 +6,7 @@ def builder = new StringBuilder()
 def container = 10
 
 def getValue() {
-    return container
+    container
 }
 
 def setValue(value){

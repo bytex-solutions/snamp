@@ -52,6 +52,14 @@ public abstract class AbstractGroovyConnectorTest extends AbstractResourceConnec
         attr = attributeFactory.get();
         attr.setAttributeName("Yahoo");
         attributes.put("finance", attr);
+
+        attr = attributeFactory.get();
+        attr.setAttributeName("DictionaryAttribute");
+        attributes.put("dict", attr);
+
+        attr = attributeFactory.get();
+        attr.setAttributeName("TableAttribute");
+        attributes.put("table", attr);
     }
 
     @Override

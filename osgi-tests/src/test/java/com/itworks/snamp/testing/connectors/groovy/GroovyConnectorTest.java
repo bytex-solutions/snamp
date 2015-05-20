@@ -10,11 +10,14 @@ import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.connectors.notifications.NotificationSupport;
 import com.itworks.snamp.connectors.notifications.SynchronizationListener;
+import com.itworks.snamp.jmx.CompositeDataUtils;
 import org.junit.Test;
 
 import javax.management.Attribute;
 import javax.management.JMException;
 import javax.management.Notification;
+import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.TabularData;
 import java.util.Collection;
 import java.util.concurrent.TimeoutException;
 
@@ -65,6 +68,34 @@ public final class GroovyConnectorTest extends AbstractGroovyConnectorTest {
     }
 
     @Test
+    public void dictionaryTest() throws JMException{
+        final ManagedResourceConnector groovyConnector = getManagementConnector();
+        try {
+            final Object value = groovyConnector.getAttribute("dict");
+            assertTrue(value instanceof CompositeData);
+            assertEquals(67L, CompositeDataUtils.getLong((CompositeData) value, "key1", 0L));
+            groovyConnector.setAttribute(new Attribute("dict", value));
+        }
+        finally {
+            releaseManagementConnector();
+        }
+    }
+
+    @Test
+    public void tableTest() throws JMException{
+        final ManagedResourceConnector groovyConnector = getManagementConnector();
+        try {
+            final Object value = groovyConnector.getAttribute("table");
+            assertTrue(value instanceof TabularData);
+            assertEquals(2, ((TabularData)value).size());
+            groovyConnector.setAttribute(new Attribute("table", value));
+        }
+        finally {
+            releaseManagementConnector();
+        }
+    }
+
+    @Test
     public void notificationTest() throws JMException, TimeoutException, InterruptedException {
         final ManagedResourceConnector groovyConnector = getManagementConnector();
         try{
@@ -104,6 +135,6 @@ public final class GroovyConnectorTest extends AbstractGroovyConnectorTest {
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 }

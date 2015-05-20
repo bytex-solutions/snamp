@@ -5,5 +5,5 @@ type INT32
 slurper = new JsonSlurper()
 
 def getValue(){
-    return slurper.parseText('56')
+    slurper.parseText('56')
 }
