@@ -31,16 +31,16 @@ SNMP Resource Connector recognizes the following parameters:
 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
-community | String | true (for SNMPv2) | The _SNMP Community string_ is like a user id or password and allowed for SNMPv2 only | `public`
-engineID | HEX | true (for SNMPv3) | Authoritative engine ID (for SNMPv3 only) in hexadecimal format | `80:00:13:70:01:7f:00:01:01:be:1e:8b:35`
-userName | String | true (for SNMPv3) | Security name used for authentication on SNMPv3 agent
-authenticationProtocol | Enum | true (for SNMPv3) | Authentication protocol (password hashing algorithm) | `sha`
-encryptionProtocol | Enum | true (for SNMPv3) | SNMP packet encryption protocol (payload encryption algorithm) | `aes128`
-password | String | true (for SNMPv3) | Password used to authenticate on SNMPv3 agent | `pwd`
-encryptionKey | String | true (for SNMPv3) | Secret string used as a encryption key for symmetric encryption algorithm specified in `encryptionProtocol` parameter | `secret`
-securityContext | String | false | The context name of the scoped PDU (for SNMPv3 only) | `context`
-socketTimeout | Integer | false | UDP socket timeout, in millis. It is used as a maximum time interval for receiving and sending PDU packets over network. This parameter must be specified if your network has high latency | `2000`
-localAddress | `udp://<ip-address>/<port>` | false | UDP outgoing address and port. Usually, you should not specify this parameter. But it is very useful for testing purposes when you QA team wants to capture data packet traces between SNAMP and SNMP agent | `udp://127.0.0.1/44495`
+community | String | Yes (for SNMPv2) | The _SNMP Community string_ is like a user id or password and allowed for SNMPv2 only | `public`
+engineID | HEX | Yes (for SNMPv3) | Authoritative engine ID (for SNMPv3 only) in hexadecimal format | `80:00:13:70:01:7f:00:01:01:be:1e:8b:35`
+userName | String | Yes (for SNMPv3) | Security name used for authentication on SNMPv3 agent
+authenticationProtocol | Enum | Yes (for SNMPv3) | Authentication protocol (password hashing algorithm) | `sha`
+encryptionProtocol | Enum | Yes (for SNMPv3) | SNMP packet encryption protocol (payload encryption algorithm) | `aes128`
+password | String | Yes (for SNMPv3) | Password used to authenticate on SNMPv3 agent | `pwd`
+encryptionKey | String | Yes (for SNMPv3) | Secret string used as a encryption key for symmetric encryption algorithm specified in `encryptionProtocol` parameter | `secret`
+securityContext | String | No | The context name of the scoped PDU (for SNMPv3 only) | `context`
+socketTimeout | Integer | No | UDP socket timeout, in millis. It is used as a maximum time interval for receiving and sending PDU packets over network. This parameter must be specified if your network has high latency | `2000`
+localAddress | `udp://<ip-address>/<port>` | No | UDP outgoing address and port. Usually, you should not specify this parameter. But it is very useful for testing purposes when you QA team wants to capture data packet traces between SNAMP and SNMP agent | `udp://127.0.0.1/44495`
 
 Note that resource connector cannot determine SNMP protocol version automatically. Moreover, it cannot automatically discover values of security parameters such as `community`, `authenticationProtocol`, `userName`, `password` and etc.
 
@@ -81,8 +81,8 @@ Each attribute configured in SNMP Resource Connector has the following configura
 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
-snmpConversionFormat | Enum | false | Specifies mapping between ASN.1 and SNAMP type system | `text`
-responseTimeout | Integer | false | Specifies timeout (in millis) when waiting SNMP GET/SET response from agent | `2000`
+snmpConversionFormat | Enum | No | Specifies mapping between ASN.1 and SNAMP type system | `text`
+responseTimeout | Integer | No | Specifies timeout (in millis) when waiting SNMP GET/SET response from agent | `2000`
 
 ### Conversion format
 Some ASN.1 data types can be mapped into more than one SNAMP data type (see **SNAMP Management Information Model** for more information). This behavior can be specified manually using `snmpConversionFormat` configuration parameter.
@@ -104,3 +104,54 @@ TIME_TICKS | raw | int64
 IP_ADDRESS | _Default_ (if not specified) | int8 array
 IP_ADDRESS | text | string (human-readable address, for example `127.0.0.1`)
 IP_ADDRESS | raw | int8 array
+
+## Configuring notifications
+Each event configured in JMX Resource Connector has the following configuration schema:
+* `Category` - OID of the SNMP Trap
+* Configuration parameters:
+
+Parameter | Type | Required | Meaning | Example
+---- | ---- | ---- | ---- | ----
+severity | String | No | Overrides severity level of the emitted notification | `warning`
+messageTemplate | String | No | Message template used to convert SNMP trap into its textual representation (not compatible with `messageOID` parameter) | `Hello from {1.0} object. ID is {2.0}``
+messageOID | OID | No | Message OID postfix which contains the notification message text | `1.1.2.0`
+
+If `messageTemplate` and `messageOID` parameters are not specified then notification message will be constructed using concatenation of all variables in the Trap.
+
+All variables will be placed into `userData` part of the SNMP Notification. The mapping between ASN.1 and SNAMP Management Information Model will be performed according with table described in **Configuring attributes** section.
+
+### Message template
+SNMP Traps doesn' contain human-readable message implicitly. But it is possible to construct this message using textual pattern.
+
+Each SNMP variable binding in the Trap identifier by its unique OID. This variable can be placed into the textual pattern instead of `{O.I.D}` placeholder. For example, SNMP Trap consits of the following variables:
+```
+OID(1.1) = OCTET_STRING('Hello')
+OID(1.2) = INTEGER32(42)
+```
+
+`messageTemplate` is specified as follows:
+```
+{1.1} associated with {1.2}
+```
+
+The final human-readable message placed into SNAMP Notification:
+```
+Hello associated with 42
+```
+
+### Message OID
+There is alternative way to extract human-readable message from SNMP Trap using `messageOID` configuration parameter. This parameter must contain OID of the variable in the Trap that will be interpreted as a textual message. For example, SNMP Trap consits of the following variables:
+```
+OID(1.1) = OCTET_STRING('Hello')
+OID(1.2) = INTEGER32(42)
+```
+
+`messageOID` is specified as follows:
+```
+1.1
+```
+
+The final human-readable message placed into SNAMP Notification:
+```
+Hello
+```
