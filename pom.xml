@@ -34,6 +34,7 @@
     <snamp.adapters.ssh.version>1.0.0</snamp.adapters.ssh.version>
     <snamp.adapters.syslog.version>1.0.0</snamp.adapters.syslog.version>
     <snamp.adapters.xmpp.version>1.0.0</snamp.adapters.xmpp.version>
+    <snamp.adapters.groovy.version>1.0.0</snamp.adapters.groovy.version>
 
     <snamp.jmxhelper.version>1.0.0</snamp.jmxhelper.version>
     <snamp.jaasconfig.version>1.0.0</snamp.jaasconfig.version>

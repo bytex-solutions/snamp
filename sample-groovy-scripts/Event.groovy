@@ -1,5 +1,3 @@
-import com.itworks.snamp.concurrent.Repeater
-
 println resourceName
 
 def action = { emitNotification('Dummy event') }

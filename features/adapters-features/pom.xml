@@ -21,6 +21,7 @@
         <module>nagios-adapter-feature</module>
         <module>syslog-adapter-feature</module>
         <module>xmpp-adapter-feature</module>
+        <module>groovy-adapter-feature</module>
     </modules>
 
 </project>

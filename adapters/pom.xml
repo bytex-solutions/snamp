@@ -42,5 +42,6 @@
       <module>nagios-adapter</module>
       <module>syslog-adapter</module>
       <module>xmpp-adapter</module>
+      <module>groovy-adapter</module>
   </modules>
 </project>

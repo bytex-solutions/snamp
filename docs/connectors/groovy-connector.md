@@ -77,7 +77,7 @@ println customParam
 
 Groovy connector provides the following DSL extensions accessible from any type of scripts:
 * Global variables:
-  * `resourceName` - contains the name of the managed resource as it specified in the SNAMP configuration
+  * `resourceName` - contains the name of the managed resource as it specified in the SNAMP configuration. This variable is not available in discovery mode
 * Logging subrouties (these routines written on top of OSGi logging infrastructure)
   * `void error(String message)` - report about error
   * `void warning(String message)` - report warning
@@ -144,9 +144,11 @@ As the best practice, initialization script can be used to declare references to
 import groovy.json.JsonSlurper
 ```
 
-> Note that `@GrabConfig(initContextClassLoader = true)` must be used in conjuction with every `@Grab` annotation
+> Note that `@GrabConfig(initContextClassLoader = true)` must be used in conjunction with every `@Grab` annotation
 
 Initialization script supports additional DSL extensions:
+* Global variables:
+  * `discovery` - determines whether initialization script is in discovery mode
 * Discovery services
   * `void attribute(String name, Map parameters)` - declares a new attribute with the specified name and default configuration parameters. This declaration will be displayed in the SNAMP Management Console when you discover the available attributes. The functionality of the attribute doesn't depend on this declaration
   * `void event(String category, Map parameters)` - declares a new event with the specified category and default configuration parameters. This declaration will be displayed in the SNAMP Management Console when you discover the available events. The functionality of the event doesn't depend on this declaration

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="snamp">
+    <feature name="${project.artifactId}" description="Groovy Resource Adapter" version="${project.version}">
+        <details>Represents Groovy Resource Adapter as Apache Karaf Feature</details>
+        <bundle>mvn:org.codehaus.groovy/groovy/${groovy.version}/jar/indy</bundle>
+        <bundle>mvn:org.apache.ivy/ivy/${apache.ivy.version}</bundle>
+        <bundle>mvn:com.itworks.snamp/groovy-adapter/${project.version}</bundle>
+    </feature>
+</features>

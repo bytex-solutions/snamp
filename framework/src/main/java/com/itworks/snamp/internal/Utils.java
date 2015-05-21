@@ -6,7 +6,6 @@ import com.itworks.snamp.Consumer;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.Wrapper;
 import com.itworks.snamp.internal.annotations.Internal;
-import com.itworks.snamp.internal.annotations.MethodStub;
 import org.osgi.framework.*;
 import org.osgi.service.event.Event;
 
@@ -19,9 +18,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.Collection;
-import java.util.Dictionary;
-import java.util.Map;
+import java.util.*;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 
@@ -38,7 +35,6 @@ import static org.osgi.framework.Constants.OBJECTCLASS;
  */
 @Internal
 public final class Utils {
-
     private static final class WeakInvocationHandler<T> extends WeakReference<T> implements InvocationHandler, Wrapper<T>{
         private WeakInvocationHandler(final T obj){
             super(obj);
@@ -421,21 +417,9 @@ public final class Utils {
         }
     }
 
-    /**
-     * Used to ignore return value of the method invocation.
-     * @param retval Return value of the method invocation.
-     */
-    @MethodStub
-    public static void blackhole(@SuppressWarnings("UnusedParameters") final Object retval){
-
-    }
-
-    /**
-     * Used to ignore return value of the method invocation.
-     * @param retval Return value of the method invocation.
-     */
-    @MethodStub
-    public static void blackhole(@SuppressWarnings("UnusedParameters") final boolean retval){
-
+    public static Properties toProperties(final Map<String, String> params){
+        final Properties props = new Properties();
+        props.putAll(params);
+        return props;
     }
 }

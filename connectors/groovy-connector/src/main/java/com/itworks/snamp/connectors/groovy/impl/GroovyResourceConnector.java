@@ -276,7 +276,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         }
     }
 
-    private static final String RESOURCE_NAME_VAR = "resourceName";
+    private static final String RESOURCE_NAME_VAR = ManagedResourceScriptBase.RESOURCE_NAME_VAR;
     private final GroovyAttributeSupport attributes;
     private static final Splitter PATH_SPLITTER;
     private final ManagedResourceInfo groovyConnector;

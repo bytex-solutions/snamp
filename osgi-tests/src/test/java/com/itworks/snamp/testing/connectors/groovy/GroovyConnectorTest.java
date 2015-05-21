@@ -104,7 +104,7 @@ public final class GroovyConnectorTest extends AbstractGroovyConnectorTest {
             final SynchronizationListener listener = new SynchronizationListener("ev");
             final Awaitor<Notification, ExceptionPlaceholder> awaitor = listener.getAwaitor();
             notificationSupport.addNotificationListener(listener, listener, null);
-            final Notification notif = awaitor.await(new TimeSpan(1000));
+            final Notification notif = awaitor.await(new TimeSpan(2000));
             assertNotNull(notif);
             assertEquals("Dummy event", notif.getMessage());
         }

@@ -19,9 +19,13 @@ This is a top-level page of SNAMP technical documentation. Here you can found al
 * [Troubleshooting](troubleshooting.md) - how to fix the most common troubles
 * [Release Notes](ReleaseNotes.md) - what's new in the current version of SNAMP
 
+## Developer's Guide
+
+* [Connecting resources using Groovy](connectors/groovy-connector.md) - how to connect IT resource to SNAMP using Groovy scripts
+* [Monitoring connected resources using Groovy](adapters/groovy-adapter.md) - how to collect management information from SNAMP using Groovy scripts
+
 ## Advanced Topics
 
 * [Management Information Model](inform_model.md) - how SNAMP represents and interprets management information
 * [Authentication & Authorization](jaas.md) - how to configure Java Authentication & Authorization Service
 * [Install SNAMP license](install-license.md) - how to install SNAMP license if you have purchased subscription
-* [Automation with Groovy scripts](connectors/groovy-connector.md) - how to monitor your managed resources with Groovy scripting

@@ -31,7 +31,7 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResource
  * @version 1.0
  * @since 1.0
  */
-abstract class ManagedResourceScript extends Script {
+abstract class ManagedResourceScript extends Script implements ManagedResourceScriptBase {
     private static final String LOGGER_NAME = ResourceConnectorInfo.getLoggerName();
 
     private static abstract class NotificationOperation<E extends JMException> implements Consumer<ManagedResourceConnector, E> {
@@ -172,7 +172,8 @@ abstract class ManagedResourceScript extends Script {
 
     /**
      * Creates a new timer which executes the specified action.
-     * @param job The action to execute periodically. Cannot be {@literal null}.
+     *
+     * @param job    The action to execute periodically. Cannot be {@literal null}.
      * @param period Execution period, in millis.
      * @return A new timer.
      */
@@ -188,12 +189,13 @@ abstract class ManagedResourceScript extends Script {
 
     /**
      * Schedules a new periodic task
-     * @param job The action to execute periodically. Cannot be {@literal null}.
+     *
+     * @param job    The action to execute periodically. Cannot be {@literal null}.
      * @param period Execution period, in millis.
      * @return Executed timer.
      */
     @SpecialUse
-    protected static Repeater schedule(final Closure<?> job, final long period){
+    protected static Repeater schedule(final Closure<?> job, final long period) {
         final Repeater timer = createTimer(job, period);
         timer.run();
         return timer;
@@ -254,13 +256,12 @@ abstract class ManagedResourceScript extends Script {
     }
 
     private static <E extends Throwable> void processResourceConnector(final String resourceName,
-                                                              final Consumer<ManagedResourceConnector, E> consumer) throws E, InstanceNotFoundException {
+                                                                       final Consumer<ManagedResourceConnector, E> consumer) throws E, InstanceNotFoundException {
         final BundleContext context = getBundleContext();
         final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(context, resourceName);
-        try{
+        try {
             consumer.accept(client.getService());
-        }
-        finally {
+        } finally {
             client.release(context);
         }
     }
@@ -275,7 +276,7 @@ abstract class ManagedResourceScript extends Script {
      */
     @SpecialUse
     protected static Object getResourceAttribute(final String resourceName,
-                                                final String attributeName) throws JMException {
+                                                 final String attributeName) throws JMException {
         final AttributeValueReader reader = new AttributeValueReader(attributeName);
         processResourceConnector(resourceName, reader);
         return reader.get();
@@ -291,7 +292,7 @@ abstract class ManagedResourceScript extends Script {
      */
     @SpecialUse
     protected static Dictionary<String, ?> getResourceAttributeInfo(final String resourceName,
-                                                                   final String attributeName) throws AttributeNotFoundException, InstanceNotFoundException {
+                                                                    final String attributeName) throws AttributeNotFoundException, InstanceNotFoundException {
         final AttributeMetaReader reader = new AttributeMetaReader(attributeName);
         processResourceConnector(resourceName, reader);
         return reader.get();
@@ -307,8 +308,8 @@ abstract class ManagedResourceScript extends Script {
      */
     @SpecialUse
     protected static void setResourceAttribute(final String resourceName,
-                                              final String attributeName,
-                                              final Object value) throws JMException {
+                                               final String attributeName,
+                                               final Object value) throws JMException {
         processResourceConnector(resourceName, new AttributeValueWriter(attributeName, value));
     }
 
@@ -322,7 +323,7 @@ abstract class ManagedResourceScript extends Script {
      */
     @SpecialUse
     protected static Dictionary<String, ?> getResourceNotificationInfo(final String resourceName,
-                                                                      final String notifType) throws MBeanException, InstanceNotFoundException {
+                                                                       final String notifType) throws MBeanException, InstanceNotFoundException {
         final NotificationMetaReader reader = new NotificationMetaReader(notifType);
         processResourceConnector(resourceName, reader);
         return reader.get();
@@ -330,21 +331,21 @@ abstract class ManagedResourceScript extends Script {
 
     @SpecialUse
     protected static void addNotificationListener(final String resourceName,
-                                                 final NotificationListener listener) throws MBeanException, InstanceNotFoundException {
+                                                  final NotificationListener listener) throws MBeanException, InstanceNotFoundException {
         addNotificationListener(resourceName, listener, null, null);
     }
 
     @SpecialUse
     protected static void addNotificationListener(final String resourceName,
-                                                 final NotificationListener listener,
-                                                 final NotificationFilter filter,
-                                                 final Objects handback) throws MBeanException, InstanceNotFoundException {
+                                                  final NotificationListener listener,
+                                                  final NotificationFilter filter,
+                                                  final Objects handback) throws MBeanException, InstanceNotFoundException {
         processResourceConnector(resourceName, new NotificationAddListener(listener, filter, handback));
     }
 
     @SpecialUse
     protected static void removeNotificationListener(final String resourceName,
-                                                    final NotificationListener listener) throws ListenerNotFoundException, InstanceNotFoundException {
+                                                     final NotificationListener listener) throws ListenerNotFoundException, InstanceNotFoundException {
         processResourceConnector(resourceName, new NotificationRemoveListener(listener));
     }
 

@@ -2,6 +2,7 @@ package com.itworks.snamp.connectors.groovy;
 
 import com.google.common.collect.ImmutableList;
 import com.itworks.snamp.internal.annotations.SpecialUse;
+import groovy.lang.Binding;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -63,5 +64,11 @@ public abstract class ManagedResourceInitializationScript extends ManagedResourc
     public void close() throws Exception {
         attributes.clear();
         events.clear();
+    }
+
+    @SpecialUse
+    protected final boolean isDiscovery() {
+        final Binding b = getBinding();
+        return b == null || !b.hasVariable(RESOURCE_NAME_VAR);
     }
 }

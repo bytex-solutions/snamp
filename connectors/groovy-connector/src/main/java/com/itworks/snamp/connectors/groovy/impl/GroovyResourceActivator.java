@@ -15,6 +15,7 @@ import java.util.Map;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
 
+
 /**
  * @author Roman Sakno
  * @version 1.0

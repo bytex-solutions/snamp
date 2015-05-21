@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>adapters</artifactId>
+        <groupId>com.itworks.snamp</groupId>
+        <version>1.0.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <name>Groovy Resource Adapter</name>
+    <description>Groovy-based scripting engine for writing Resource Adapters</description>
+    <artifactId>groovy-adapter</artifactId>
+    <version>${snamp.adapters.groovy.version}</version>
+    <packaging>bundle</packaging>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>com.itworks.snamp.adapters.groovy</Bundle-SymbolicName>
+                        <Bundle-Activator>com.itworks.snamp.adapters.groovy.impl.GroovyResourceAdapterActivator</Bundle-Activator>
+                        <Export-Package/>
+                        <!--SNAMP specific header-->
+                        <SNAMP-Resource-Adapter>groovy</SNAMP-Resource-Adapter>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <dependencies>
+        <dependency>
+            <scope>provided</scope>
+            <groupId>com.itworks.snamp</groupId>
+            <artifactId>framework</artifactId>
+            <version>${snamp.framework.version}</version>
+        </dependency>
+        <dependency>
+            <scope>provided</scope>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.core</artifactId>
+            <version>${osgi.version}</version>
+        </dependency>
+        <dependency>
+            <scope>provided</scope>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.compendium</artifactId>
+            <version>${osgi.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- Groovy Dependencies -->
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy</artifactId>
+            <version>${groovy.version}</version>
+            <classifier>indy</classifier>
+            <scope>provided</scope>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.ivy</groupId>
+            <artifactId>ivy</artifactId>
+            <version>${apache.ivy.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+</project>

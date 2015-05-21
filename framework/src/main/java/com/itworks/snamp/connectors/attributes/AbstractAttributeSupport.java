@@ -22,8 +22,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.itworks.snamp.internal.Utils.blackhole;
-
 /**
  * Provides a base support of management attributes.
  * @param <M> Type of the attribute metadata.
@@ -178,7 +176,7 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
                 synchronizedList(Lists.<Attribute>newArrayListWithExpectedSize(attributes.length));
         final CountDownLatch synchronizer = new CountDownLatch(attributes.length);
         for (final String attributeID : attributes)
-            blackhole(executor.submit(new Callable<Object>() {
+            executor.submit(new Callable<Object>() {
                 @Override
                 public Object call() throws JMException {
                     try {
@@ -190,7 +188,7 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
                         synchronizer.countDown();
                     }
                 }
-            }));
+            });
         if (timeout == null)
             synchronizer.await();
         else if (!synchronizer.await(timeout.duration, timeout.unit))
@@ -251,7 +249,7 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
                 Collections.synchronizedList(Lists.<Attribute>newArrayListWithExpectedSize(attributes.size()));
         final CountDownLatch synchronizer = new CountDownLatch(attributes.size());
         for (final Attribute attr : attributes.asList())
-            blackhole(executor.submit(new Callable<Object>() {
+            executor.submit(new Callable<Object>() {
                 @Override
                 public Object call() throws Exception {
                     try {
@@ -266,7 +264,7 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
                         synchronizer.countDown();
                     }
                 }
-            }));
+            });
         if(timeout == null)
             synchronizer.await();
         else if(!synchronizer.await(timeout.duration, timeout.unit))

@@ -11,8 +11,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static com.itworks.snamp.internal.Utils.blackhole;
-
 /**
  * @author Roman Sakno
  * @version 1.0
@@ -29,14 +27,14 @@ final class ConcurrentSyslogMessageSender extends AbstractSyslogMessageSender im
 
     private static void sendMessage(final SyslogMessageSender sender,
                                     final ExecutorService executor,
-                                    final SyslogMessage message){
-        blackhole(executor.submit(new Callable<Void>() {
+                                    final SyslogMessage message) {
+        executor.submit(new Callable<Void>() {
             @Override
             public Void call() throws IOException {
                 sender.sendMessage(message);
                 return null;
             }
-        }));
+        });
     }
 
     @Override
