@@ -34,7 +34,7 @@ public abstract class EventScript extends ManagementScript implements Notificati
             emitter.emitNotification(message, userData);
     }
 
-    public final void setEmitter(final NotificationEmitter value){
+    final void setEmitter(final NotificationEmitter value){
         this.emitter = new WeakReference<>(value);
     }
 

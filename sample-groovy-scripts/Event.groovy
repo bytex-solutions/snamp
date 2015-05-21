@@ -2,15 +2,11 @@ import com.itworks.snamp.concurrent.Repeater
 
 println resourceName
 
-emitter = new Repeater(300){
-    void doAction(){
-        emitNotification('Dummy event')
-    }
-}
+def action = { emitNotification('Dummy event') }
 
-emitter.run()
+job = schedule action, 300
 
 void close(){
     super.close()
-    emitter.close()
+    job.close()
 }

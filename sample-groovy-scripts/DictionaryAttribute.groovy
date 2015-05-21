@@ -5,5 +5,5 @@ def getValue(){
 }
 
 def setValue(value){
-    asDictionary value
+    println asDictionary(value)
 }

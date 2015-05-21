@@ -245,4 +245,29 @@ public final class ArrayUtils {
             firstArray = ObjectArrays.concat(firstArray, ar, elementType);
         return firstArray;
     }
+
+    private static <T> boolean oneOf(final T first, final T... other){
+        for(final T item: other)
+            if(Objects.equals(first, item)) return true;
+        return false;
+    }
+
+    private static <T> ArrayType<T[]> createArrayType(final SimpleType<T> elementType) throws OpenDataException{
+        final boolean primitive = oneOf(elementType,
+                SimpleType.BOOLEAN,
+                SimpleType.CHARACTER,
+                SimpleType.BYTE,
+                SimpleType.SHORT,
+                SimpleType.INTEGER,
+                SimpleType.LONG,
+                SimpleType.FLOAT,
+                SimpleType.DOUBLE);
+        return new ArrayType<>(elementType, primitive);
+    }
+
+    public static <T> ArrayType<T[]> createArrayType(final OpenType<T> elementType) throws OpenDataException {
+        if(elementType instanceof SimpleType<?>)
+            return createArrayType((SimpleType<T>)elementType);
+        else return ArrayType.getArrayType(elementType);
+    }
 }

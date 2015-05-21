@@ -1,6 +1,8 @@
 package com.itworks.snamp.connectors.groovy;
 
+import com.google.common.base.*;
 import com.google.common.collect.Maps;
+import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.connectors.attributes.AttributeSpecifier;
 import com.itworks.snamp.internal.annotations.SpecialUse;
@@ -15,6 +17,7 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
+import java.util.Objects;
 
 /**
  * Represents an abstract class for attribute handling script
@@ -52,6 +55,8 @@ public abstract class AttributeScript extends ResourceFeatureScript implements A
     protected static final SimpleType<BigDecimal> BIGDECIMAL = SimpleType.BIGDECIMAL;
     @SpecialUse
     protected static final SimpleType<Character> CHAR = SimpleType.CHARACTER;
+    @SpecialUse
+    protected static final SimpleType<Date> DATE = SimpleType.DATE;
 
     private OpenType<?> openType = STRING;
 
@@ -80,6 +85,11 @@ public abstract class AttributeScript extends ResourceFeatureScript implements A
     }
 
     //<editor-fold desc="Script helpers">
+
+    @SpecialUse
+    protected static <T> ArrayType<T[]> ARRAY(final OpenType<T> elementType) throws OpenDataException {
+        return ArrayUtils.createArrayType(elementType);
+    }
 
     /**
      * Declares dictionary type.

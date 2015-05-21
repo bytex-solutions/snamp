@@ -4,6 +4,7 @@ import com.google.common.base.Supplier;
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.Consumer;
 import com.itworks.snamp.SafeConsumer;
+import com.itworks.snamp.concurrent.Repeater;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.connectors.notifications.NotificationSupport;
@@ -12,6 +13,7 @@ import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.SpecialUse;
 import com.itworks.snamp.jmx.DescriptorUtils;
 import com.itworks.snamp.jmx.JMExceptionUtils;
+import groovy.lang.Closure;
 import groovy.lang.Script;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
@@ -166,8 +168,37 @@ abstract class ManagementScript extends Script {
         }
     }
 
+    /**
+     * Creates a new timer which executes the specified action.
+     * @param job The action to execute periodically. Cannot be {@literal null}.
+     * @param period Execution period, in millis.
+     * @return A new timer.
+     */
     @SpecialUse
-    protected final void error(final String message) {
+    protected static Repeater createTimer(final Closure<?> job, final long period) {
+        return new Repeater(period) {
+            @Override
+            protected void doAction() {
+                job.call();
+            }
+        };
+    }
+
+    /**
+     * Schedules a new periodic task
+     * @param job The action to execute periodically. Cannot be {@literal null}.
+     * @param period Execution period, in millis.
+     * @return Executed timer.
+     */
+    @SpecialUse
+    protected static Repeater schedule(final Closure<?> job, final long period){
+        final Repeater timer = createTimer(job, period);
+        timer.run();
+        return timer;
+    }
+
+    @SpecialUse
+    protected static void error(final String message) {
         OSGiLoggingContext.within(LOGGER_NAME, new SafeConsumer<Logger>() {
             @Override
             public void accept(final Logger logger) {
@@ -177,7 +208,7 @@ abstract class ManagementScript extends Script {
     }
 
     @SpecialUse
-    protected final void warning(final String message) {
+    protected static void warning(final String message) {
         OSGiLoggingContext.within(LOGGER_NAME, new SafeConsumer<Logger>() {
             @Override
             public void accept(final Logger logger) {
@@ -187,7 +218,7 @@ abstract class ManagementScript extends Script {
     }
 
     @SpecialUse
-    protected final void info(final String message) {
+    protected static void info(final String message) {
         OSGiLoggingContext.within(LOGGER_NAME, new SafeConsumer<Logger>() {
             @Override
             public void accept(final Logger logger) {
@@ -197,7 +228,7 @@ abstract class ManagementScript extends Script {
     }
 
     @SpecialUse
-    protected final void debug(final String message) {
+    protected static void debug(final String message) {
         OSGiLoggingContext.within(LOGGER_NAME, new SafeConsumer<Logger>() {
             @Override
             public void accept(final Logger logger) {
@@ -207,7 +238,7 @@ abstract class ManagementScript extends Script {
     }
 
     @SpecialUse
-    protected final void fine(final String message) {
+    protected static void fine(final String message) {
         OSGiLoggingContext.within(LOGGER_NAME, new SafeConsumer<Logger>() {
             @Override
             public void accept(final Logger logger) {
