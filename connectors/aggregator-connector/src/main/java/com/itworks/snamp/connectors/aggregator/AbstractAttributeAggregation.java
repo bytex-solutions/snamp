@@ -1,16 +1,16 @@
 package com.itworks.snamp.connectors.aggregator;
 
-import com.itworks.snamp.ServiceReferenceHolder;
-import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.attributes.AttributeSpecifier;
 import com.itworks.snamp.connectors.attributes.OpenAttributeAccessor;
 import com.itworks.snamp.internal.Utils;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
 
-import javax.management.*;
+import javax.management.DynamicMBean;
+import javax.management.JMException;
+import javax.management.MBeanException;
+import javax.management.ReflectionException;
 import javax.management.openmbean.OpenType;
 
 /**
@@ -45,14 +45,6 @@ abstract class AbstractAttributeAggregation<T> extends OpenAttributeAccessor<T> 
         return source;
     }
 
-    private ServiceReferenceHolder<ManagedResourceConnector> getResource(final BundleContext context) throws InstanceNotFoundException {
-        final ServiceReference<ManagedResourceConnector> resourceRef =
-                ManagedResourceConnectorClient.getResourceConnector(context, getResourceName());
-        if(resourceRef != null)
-            return new ServiceReferenceHolder<>(context, resourceRef);
-        else throw new InstanceNotFoundException(String.format("Managed resource %s not found", getResourceName()));
-    }
-
     /**
      * Sets value of this attribute.
      *
@@ -67,15 +59,15 @@ abstract class AbstractAttributeAggregation<T> extends OpenAttributeAccessor<T> 
     protected abstract T compute(final DynamicMBean attributeSupport) throws Exception;
 
     private T compute(final BundleContext context) throws JMException {
-        final ServiceReferenceHolder<ManagedResourceConnector> connector = getResource(context);
+        final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(context, getResourceName());
         try{
-            return compute(connector.get());
+            return compute(client.get());
         } catch (final UnsupportedOperationException e){
             throw new ReflectionException(e);
         } catch (final Exception e) {
             throw new MBeanException(e);
         } finally {
-            connector.release(context);
+            client.release(context);
         }
     }
 

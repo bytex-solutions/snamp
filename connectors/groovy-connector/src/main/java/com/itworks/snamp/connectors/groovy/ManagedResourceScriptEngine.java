@@ -24,23 +24,23 @@ import java.util.StringTokenizer;
  * @version 1.0
  * @since 1.0
  */
-public final class ManagementScriptEngine extends GroovyScriptEngine implements AttributeConnector, EventConnector {
+public final class ManagedResourceScriptEngine extends GroovyScriptEngine implements AttributeConnector, EventConnector {
     private static final String GROOVY_FILE_EXT = ".groovy";
 
     private final Binding rootBinding;
 
-    public ManagementScriptEngine(final ClassLoader rootClassLoader,
-                                  final Properties properties,
-                                  final String... paths) throws IOException {
+    public ManagedResourceScriptEngine(final ClassLoader rootClassLoader,
+                                       final Properties properties,
+                                       final String... paths) throws IOException {
         super(paths, rootClassLoader);
         getConfig().configure(properties);
-        getConfig().setScriptBaseClass(ManagementScript.class.getName());
+        getConfig().setScriptBaseClass(ManagedResourceScript.class.getName());
         setupClassPath(getConfig());
         rootBinding = new Binding();
     }
 
-    public ManagementScriptEngine(final ClassLoader rootClassLoader,
-                                  final String... paths) throws IOException {
+    public ManagedResourceScriptEngine(final ClassLoader rootClassLoader,
+                                       final String... paths) throws IOException {
         this(rootClassLoader, new Properties(), paths);
     }
 
@@ -74,7 +74,7 @@ public final class ManagementScriptEngine extends GroovyScriptEngine implements 
         }
     }
 
-    private synchronized <T extends ManagementScript> T createScript(final String scriptFile,
+    private synchronized <T extends ManagedResourceScript> T createScript(final String scriptFile,
                                                                  final Map<String, ?> environment,
                                                                  final Class<T> scriptBaseClass) throws ResourceException, ScriptException{
         final Thread currentThread = Thread.currentThread();
@@ -91,17 +91,17 @@ public final class ManagementScriptEngine extends GroovyScriptEngine implements 
         }
     }
 
-    private AttributeScript loadAttribute(final String scriptFile,
+    private ManagedResourceAttributeScript loadAttribute(final String scriptFile,
                                           final Map<String, ?> environment) throws ResourceException, ScriptException {
-        final AttributeScript result = createScript(scriptFile, environment, AttributeScript.class);
+        final ManagedResourceAttributeScript result = createScript(scriptFile, environment, ManagedResourceAttributeScript.class);
         result.run();
         return result;
     }
 
-    private EventScript loadEvent(final String scriptFile,
+    private ManagedResourceEventScript loadEvent(final String scriptFile,
                                   final NotificationEmitter emitter,
                                   final Map<String, ?> environment) throws ResourceException, ScriptException{
-        final EventScript result = createScript(scriptFile, environment, EventScript.class);
+        final ManagedResourceEventScript result = createScript(scriptFile, environment, ManagedResourceEventScript.class);
         result.setEmitter(emitter);
         result.run();
         return result;
@@ -135,7 +135,7 @@ public final class ManagementScriptEngine extends GroovyScriptEngine implements 
 
     public ManagedResourceInfo init(final String initScript,
                      final Map<String, ?> initParams) throws ResourceException, ScriptException {
-        final InitializationScript result = createScript(initScript, initParams, InitializationScript.class);
+        final ManagedResourceInitializationScript result = createScript(initScript, initParams, ManagedResourceInitializationScript.class);
         result.run();
         return result;
     }

@@ -17,7 +17,7 @@ import static com.itworks.snamp.configuration.SerializableAgentConfiguration.Ser
  * @version 1.0
  * @since 1.0
  */
-public abstract class InitializationScript extends ManagementScript implements ManagedResourceInfo {
+public abstract class ManagedResourceInitializationScript extends ManagedResourceScript implements ManagedResourceInfo {
     private final Collection<AttributeConfiguration> attributes = new LinkedList<>();
     private final Collection<EventConfiguration> events = new LinkedList<>();
 

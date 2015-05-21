@@ -6,5 +6,5 @@ package com.itworks.snamp.connectors.groovy;
  * @version 1.0
  * @since 1.0
  */
-abstract class ResourceFeatureScript extends ManagementScript implements AutoCloseable {
+abstract class ManagedResourceFeatureScript extends ManagedResourceScript implements AutoCloseable {
 }

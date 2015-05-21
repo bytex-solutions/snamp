@@ -9,19 +9,21 @@ import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.connectors.notifications.NotificationSupport;
 import com.itworks.snamp.core.OSGiLoggingContext;
-import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.SpecialUse;
 import com.itworks.snamp.jmx.DescriptorUtils;
 import com.itworks.snamp.jmx.JMExceptionUtils;
 import groovy.lang.Closure;
 import groovy.lang.Script;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
+import org.osgi.framework.FrameworkUtil;
 
 import javax.management.*;
+import java.io.IOException;
 import java.util.Dictionary;
 import java.util.Objects;
 import java.util.logging.Logger;
+
+import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 
 /**
  * Represents an abstract class for all Groovy-bases scenarios.
@@ -29,7 +31,7 @@ import java.util.logging.Logger;
  * @version 1.0
  * @since 1.0
  */
-abstract class ManagementScript extends Script {
+abstract class ManagedResourceScript extends Script {
     private static final String LOGGER_NAME = ResourceConnectorInfo.getLoggerName();
 
     private static abstract class NotificationOperation<E extends JMException> implements Consumer<ManagedResourceConnector, E> {
@@ -247,25 +249,20 @@ abstract class ManagementScript extends Script {
         });
     }
 
-    private BundleContext getBundleContext() {
-        return Utils.getBundleContextByObject(this);
+    private static BundleContext getBundleContext() {
+        return FrameworkUtil.getBundle(ManagedResourceScript.class).getBundleContext();
     }
 
-    private <E extends Throwable> void processResourceConnector(final String resourceName,
-                                                              final Consumer<ManagedResourceConnector, E> consumer) throws E {
+    private static <E extends Throwable> void processResourceConnector(final String resourceName,
+                                                              final Consumer<ManagedResourceConnector, E> consumer) throws E, InstanceNotFoundException {
         final BundleContext context = getBundleContext();
-        final ServiceReference<ManagedResourceConnector> connectorRef =
-                ManagedResourceConnectorClient.getResourceConnector(context, resourceName);
-        if (connectorRef != null) {
-            final ManagedResourceConnector connector = context.getService(connectorRef);
-            if (connector != null)
-                try {
-                    consumer.accept(connector);
-                } finally {
-                    context.ungetService(connectorRef);
-                }
+        final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(context, resourceName);
+        try{
+            consumer.accept(client.getService());
         }
-        throw new IllegalArgumentException(String.format("Managed resource %s doesn't exist", resourceName));
+        finally {
+            client.release(context);
+        }
     }
 
     /**
@@ -277,7 +274,7 @@ abstract class ManagementScript extends Script {
      * @throws JMException Unable to
      */
     @SpecialUse
-    protected final Object getResourceAttribute(final String resourceName,
+    protected static Object getResourceAttribute(final String resourceName,
                                                 final String attributeName) throws JMException {
         final AttributeValueReader reader = new AttributeValueReader(attributeName);
         processResourceConnector(resourceName, reader);
@@ -293,8 +290,8 @@ abstract class ManagementScript extends Script {
      * @throws AttributeNotFoundException The attribute doesn't exist in the specified managed resource.
      */
     @SpecialUse
-    protected final Dictionary<String, ?> getResourceAttributeInfo(final String resourceName,
-                                                                   final String attributeName) throws AttributeNotFoundException {
+    protected static Dictionary<String, ?> getResourceAttributeInfo(final String resourceName,
+                                                                   final String attributeName) throws AttributeNotFoundException, InstanceNotFoundException {
         final AttributeMetaReader reader = new AttributeMetaReader(attributeName);
         processResourceConnector(resourceName, reader);
         return reader.get();
@@ -309,7 +306,7 @@ abstract class ManagementScript extends Script {
      * @throws JMException Unable to set attribute value.
      */
     @SpecialUse
-    protected final void setResourceAttribute(final String resourceName,
+    protected static void setResourceAttribute(final String resourceName,
                                               final String attributeName,
                                               final Object value) throws JMException {
         processResourceConnector(resourceName, new AttributeValueWriter(attributeName, value));
@@ -324,30 +321,36 @@ abstract class ManagementScript extends Script {
      * @throws MBeanException Notification is not declared by managed resource.
      */
     @SpecialUse
-    protected final Dictionary<String, ?> getResourceNotificationInfo(final String resourceName,
-                                                                      final String notifType) throws MBeanException {
+    protected static Dictionary<String, ?> getResourceNotificationInfo(final String resourceName,
+                                                                      final String notifType) throws MBeanException, InstanceNotFoundException {
         final NotificationMetaReader reader = new NotificationMetaReader(notifType);
         processResourceConnector(resourceName, reader);
         return reader.get();
     }
 
     @SpecialUse
-    protected final void addNotificationListener(final String resourceName,
-                                                 final NotificationListener listener) throws MBeanException {
+    protected static void addNotificationListener(final String resourceName,
+                                                 final NotificationListener listener) throws MBeanException, InstanceNotFoundException {
         addNotificationListener(resourceName, listener, null, null);
     }
 
     @SpecialUse
-    protected final void addNotificationListener(final String resourceName,
+    protected static void addNotificationListener(final String resourceName,
                                                  final NotificationListener listener,
                                                  final NotificationFilter filter,
-                                                 final Objects handback) throws MBeanException {
+                                                 final Objects handback) throws MBeanException, InstanceNotFoundException {
         processResourceConnector(resourceName, new NotificationAddListener(listener, filter, handback));
     }
 
     @SpecialUse
-    protected final void removeNotificationListener(final String resourceName,
-                                                    final NotificationListener listener) throws ListenerNotFoundException {
+    protected static void removeNotificationListener(final String resourceName,
+                                                    final NotificationListener listener) throws ListenerNotFoundException, InstanceNotFoundException {
         processResourceConnector(resourceName, new NotificationRemoveListener(listener));
+    }
+
+    @SpecialUse
+    protected static ManagedResourceConfiguration getResourceConfiguration(final String resourceName) throws IOException {
+
+        return ManagedResourceConnectorClient.getResourceConfiguration(getBundleContext(), resourceName);
     }
 }

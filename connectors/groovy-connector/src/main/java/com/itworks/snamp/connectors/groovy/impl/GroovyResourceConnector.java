@@ -302,7 +302,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
                             final String connectionString,
                             final Map<String, String> params) throws IOException, ResourceException, ScriptException {
         final String[] paths = getPaths(connectionString);
-        final ManagementScriptEngine engine = new ManagementScriptEngine(getClass().getClassLoader(),
+        final ManagedResourceScriptEngine engine = new ManagedResourceScriptEngine(getClass().getClassLoader(),
                 toProperties(params),
                 paths);
         engine.setGlobalVariable(RESOURCE_NAME_VAR, resourceName);

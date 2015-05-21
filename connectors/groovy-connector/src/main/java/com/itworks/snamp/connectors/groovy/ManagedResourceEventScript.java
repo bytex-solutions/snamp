@@ -10,7 +10,7 @@ import java.lang.ref.WeakReference;
  * @version 1.0
  * @since 1.0
  */
-public abstract class EventScript extends ManagementScript implements NotificationEmitter {
+public abstract class ManagedResourceEventScript extends ManagedResourceScript implements NotificationEmitter {
     private WeakReference<NotificationEmitter> emitter;
 
     @Override

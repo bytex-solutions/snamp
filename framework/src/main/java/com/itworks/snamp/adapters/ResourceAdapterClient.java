@@ -1,5 +1,6 @@
 package com.itworks.snamp.adapters;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
@@ -24,8 +25,16 @@ import static com.itworks.snamp.configuration.AgentConfiguration.EntityConfigura
 public final class ResourceAdapterClient {
     private static final String LOGGER_NAME = "com.itworks.snamp.adapters.ResourceAdapterClient";
 
-    private ResourceAdapterClient(){
+    private final String adapterName;
 
+    /**
+     * Initializes a new resource adapter client.
+     * @param adapterName The system name of the resource adapter. Cannot be {@literal null} or empty.
+     */
+    public ResourceAdapterClient(final String adapterName){
+        if(Strings.isNullOrEmpty(adapterName))
+            throw new IllegalArgumentException("Adapter system name is not defined");
+        else this.adapterName = adapterName;
     }
 
     /**
@@ -44,6 +53,10 @@ public final class ResourceAdapterClient {
         return AbstractResourceAdapter.addEventListener(adapterName, listener);
     }
 
+    public boolean addEventListener(final ResourceAdapterEventListener listener){
+        return addEventListener(adapterName, listener);
+    }
+
     /**
      * Removes the listener for events related to resource adapter lifecycle.
      * @param adapterName The system name of the adapter.
@@ -54,6 +67,10 @@ public final class ResourceAdapterClient {
     public static boolean removeEventListener(final String adapterName,
                                            final ResourceAdapterEventListener listener){
         return AbstractResourceAdapter.removeEventListener(adapterName, listener);
+    }
+
+    public boolean removeEventListener(final ResourceAdapterEventListener listener){
+        return removeEventListener(adapterName, listener);
     }
 
     private static UnsupportedOperationException unsupportedServiceRequest(final String connectorType,
@@ -88,6 +105,12 @@ public final class ResourceAdapterClient {
         return refs.isEmpty() ? null : refs.iterator().next();
     }
 
+    public <S extends FrameworkService> ServiceReference<S> getServiceReference(final BundleContext context,
+                                                                                       final String filter,
+                                                                                       final Class<S> serviceType) throws InvalidSyntaxException{
+        return getServiceReference(context, adapterName, filter, serviceType);
+    }
+
     /**
      * Gets configuration descriptor for the specified adapter.
      * @param context The context of the caller bundle. Cannot be {@literal null}.
@@ -118,6 +141,11 @@ public final class ResourceAdapterClient {
         finally {
             if(ref != null) context.ungetService(ref);
         }
+    }
+
+    public <T extends EntityConfiguration> ConfigurationEntityDescription<T> getConfigurationEntityDescriptor(final BundleContext context,
+                                                                                                              final Class<T> configurationEntity) throws UnsupportedOperationException{
+        return getConfigurationEntityDescriptor(context, adapterName, configurationEntity);
     }
 
     /**
@@ -156,6 +184,11 @@ public final class ResourceAdapterClient {
         }
     }
 
+    public Map<String, String> getMaintenanceActions(final BundleContext context,
+                                                            final Locale loc) throws UnsupportedOperationException{
+        return getMaintenanceActions(context, adapterName, loc);
+    }
+
     /**
      * Invokes maintenance action.
      * <p>
@@ -186,6 +219,13 @@ public final class ResourceAdapterClient {
         }
     }
 
+    public Future<String> invokeMaintenanceAction(final BundleContext context,
+                                                         final String actionName,
+                                                         final String arguments,
+                                                         final Locale resultLocale) throws UnsupportedOperationException{
+        return invokeMaintenanceAction(context, adapterName, actionName, arguments, resultLocale);
+    }
+
     /**
      * Gets bundle state of the specified adapter.
      * @param context The context of the caller bundle. Cannot be {@literal null}.
@@ -197,6 +237,10 @@ public final class ResourceAdapterClient {
         return bnds.isEmpty() ? Bundle.UNINSTALLED : bnds.get(0).getState();
     }
 
+    public int getState(final BundleContext context){
+        return getState(context, adapterName);
+    }
+
     /**
      * Gets version of the specified resource adapter.
      * @param context The context of the caller bundle. Cannot be {@literal null}.
@@ -205,6 +249,10 @@ public final class ResourceAdapterClient {
      */
     public static Version getVersion(final BundleContext context, final String adapterName){
         return new Version(getAdapterBundleHeader(context, adapterName, Constants.BUNDLE_VERSION, null));
+    }
+
+    public Version getVersion(final BundleContext context){
+        return getVersion(context, adapterName);
     }
 
     /**
@@ -218,14 +266,31 @@ public final class ResourceAdapterClient {
         return getAdapterBundleHeader(context, adapterName, Constants.BUNDLE_DESCRIPTION, loc);
     }
 
-    /**
-     * Gets localized display name of the resource adapter.
-     * @param context The context of the caller bundle. Cannot be {@literal null}.
-     * @param adapterName The system name of the adapter.
-     * @param loc The locale of the display name. May be {@literal null}.
-     * @return The display name of the adapter.
-     */
+    public String getDescription(final BundleContext context, final Locale loc) {
+        return getDescription(context, adapterName, loc);
+    }
+
+        /**
+         * Gets localized display name of the resource adapter.
+         * @param context The context of the caller bundle. Cannot be {@literal null}.
+         * @param adapterName The system name of the adapter.
+         * @param loc The locale of the display name. May be {@literal null}.
+         * @return The display name of the adapter.
+         */
     public static String getDisplayName(final BundleContext context, final String adapterName, final Locale loc) {
         return getAdapterBundleHeader(context, adapterName, Constants.BUNDLE_NAME, loc);
+    }
+
+    public String getDisplayName(final BundleContext context, final Locale loc){
+        return getDisplayName(context, adapterName, loc);
+    }
+
+    /**
+     * Returns system name of this adapter.
+     * @return The system name of this adapter.
+     */
+    @Override
+    public String toString() {
+        return adapterName;
     }
 }

@@ -1,7 +1,9 @@
 package com.itworks.snamp;
 
+import com.google.common.collect.Maps;
 import org.osgi.framework.*;
 
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -20,7 +22,7 @@ public class ServiceReferenceHolder<S> implements ServiceProvider<S> {
      * @param serviceRef The service reference to wrap. Cannot be {@literal null}.
      * @throws java.lang.IllegalArgumentException context or serviceRef is {@literal null}.
      */
-    public ServiceReferenceHolder(final BundleContext context, final ServiceReference<S> serviceRef){
+    public ServiceReferenceHolder(final BundleContext context, final ServiceReference<S> serviceRef) throws IllegalArgumentException{
         if(context == null) throw new IllegalArgumentException("context is null.");
         else if(serviceRef == null) throw new IllegalArgumentException("serviceRef is null.");
         else serviceImpl = context.getService(this.serviceRef = serviceRef);
@@ -31,7 +33,7 @@ public class ServiceReferenceHolder<S> implements ServiceProvider<S> {
      * @param context The context of the bundle which holds this reference. Cannot be {@literal null}.
      * @param serviceType The requested service type. Cannot be {@literal null}.
      */
-    public ServiceReferenceHolder(final BundleContext context, final Class<S> serviceType){
+    public ServiceReferenceHolder(final BundleContext context, final Class<S> serviceType) throws IllegalArgumentException{
         this(context, context.getServiceReference(serviceType));
     }
 
@@ -59,7 +61,8 @@ public class ServiceReferenceHolder<S> implements ServiceProvider<S> {
      *         is zero or if the service has been unregistered; {@literal true}
      *         otherwise.
      */
-    public final boolean release(final BundleContext context){
+    public final boolean release(final BundleContext context) {
+        serviceImpl = null;
         return context.ungetService(serviceRef);
     }
 
@@ -108,6 +111,18 @@ public class ServiceReferenceHolder<S> implements ServiceProvider<S> {
     @Override
     public final String[] getPropertyKeys() {
         return serviceRef.getPropertyKeys();
+    }
+
+    /**
+     * Get all properties associated with this reference.
+     * @return All properties associated with this reference.
+     */
+    public final Map<String, ?> getProperties(){
+        final String[] keys = getPropertyKeys();
+        final Map<String, Object> result = Maps.newHashMapWithExpectedSize(keys.length);
+        for(final String key: keys)
+            result.put(key, getProperty(key));
+        return result;
     }
 
     /**

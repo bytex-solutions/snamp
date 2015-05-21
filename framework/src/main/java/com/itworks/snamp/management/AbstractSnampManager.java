@@ -10,10 +10,12 @@ import com.itworks.snamp.adapters.ResourceAdapterClient;
 import com.itworks.snamp.connectors.ManagedResourceActivator;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.core.SupportService;
-import com.itworks.snamp.internal.Utils;
 import org.osgi.framework.*;
 
 import java.util.*;
+
+import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
+import static com.itworks.snamp.internal.Utils.isInstanceOf;
 
 /**
  * Represents partial implementation of {@link com.itworks.snamp.management.SnampManager} service.
@@ -34,8 +36,8 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
             return Long.parseLong(get(BUNDLE_ID_PROPERTY));
         }
 
-        private BundleContext getItselfContext(){
-            return Utils.getBundleContextByObject(AbstractSnampManager.this);
+        private BundleContext getItselfContext() {
+            return getBundleContextByObject(AbstractSnampManager.this);
         }
 
         /**
@@ -95,7 +97,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
             boolean result = false;
             final ServiceReference<?>[] refs = bnd.getRegisteredServices();
             for (final ServiceReference<?> candidate : refs != null ? refs : new ServiceReference<?>[0])
-                if (Utils.isInstanceOf(candidate, serviceType))
+                if (isInstanceOf(candidate, serviceType))
                     try {
                         serviceInvoker.accept(serviceType.cast(context.getService(candidate)));
                     } finally {
@@ -138,24 +140,17 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
     protected static abstract class ResourceAdapterDescriptor extends HashMap<String, String> implements SnampComponentDescriptor{
         private static final long serialVersionUID = 5641114150847940779L;
 
+        protected final ResourceAdapterClient adapterClient;
+
         protected ResourceAdapterDescriptor(final String systemName){
             super(1);
+            this.adapterClient = new ResourceAdapterClient(systemName);
             put(ADAPTER_SYSTEM_NAME_PROPERTY, systemName);
         }
 
-        protected final String getSystemName(){
-            return get(ADAPTER_SYSTEM_NAME_PROPERTY);
+        private BundleContext getItselfContext(){
+            return getBundleContextByObject(this);
         }
-
-        /**
-         * Represents the bundle context of the derived class.
-         * <p>
-         *     Use {@link com.itworks.snamp.internal.Utils#getBundleContextByObject(Object)} with
-         *     {@literal this} parameter to implement this method.
-         * </p>
-         * @return The bundle context of the derived class.
-         */
-        protected abstract BundleContext getItselfContext();
 
         /**
          * Gets state of the component.
@@ -170,7 +165,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          */
         @Override
         public int getState() {
-            return ResourceAdapterClient.getState(getItselfContext(), getSystemName());
+            return adapterClient.getState(getItselfContext());
         }
 
         /**
@@ -181,7 +176,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          */
         @Override
         public String getName(final Locale loc) {
-            return ResourceAdapterClient.getDisplayName(getItselfContext(), getSystemName(), loc);
+            return adapterClient.getDisplayName(getItselfContext(), loc);
         }
 
         /**
@@ -191,7 +186,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          */
         @Override
         public Version getVersion() {
-            return ResourceAdapterClient.getVersion(getItselfContext(), getSystemName());
+            return adapterClient.getVersion(getItselfContext());
         }
 
         /**
@@ -205,7 +200,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
         public final  <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Consumer<S, E> serviceInvoker) throws E {
             ServiceReference<S> ref = null;
             try {
-                ref = ResourceAdapterClient.getServiceReference(getItselfContext(), getSystemName(), null, serviceType);
+                ref = adapterClient.getServiceReference(getItselfContext(), null, serviceType);
                 if (ref == null) return false;
                 serviceInvoker.accept(getItselfContext().getService(ref));
             } catch (final InvalidSyntaxException ignored) {
@@ -225,7 +220,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          */
         @Override
         public String getDescription(final Locale locale) {
-            return ResourceAdapterClient.getDescription(getItselfContext(), getSystemName(), locale);
+            return adapterClient.getDescription(getItselfContext(), locale);
         }
 
         /**
@@ -234,7 +229,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          */
         @Override
         public String toString() {
-            return getSystemName();
+            return adapterClient.toString();
         }
     }
 
@@ -256,15 +251,9 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
             return get(CONNECTOR_SYSTEM_NAME_PROPERTY);
         }
 
-        /**
-         * Represents the bundle context of the derived class.
-         * <p>
-         *     Use {@link com.itworks.snamp.internal.Utils#getBundleContextByObject(Object)} with
-         *     {@literal this} parameter to implement this method.
-         * </p>
-         * @return The bundle context of the derived class.
-         */
-        protected abstract BundleContext getItselfContext();
+        private BundleContext getItselfContext(){
+            return getBundleContextByObject(this);
+        }
 
         /**
          * Gets state of the component.
@@ -361,7 +350,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      */
     @Override
     public final Collection<? extends ResourceConnectorDescriptor> getInstalledResourceConnectors() {
-        final Collection<String> systemNames = ManagedResourceActivator.getInstalledResourceConnectors(Utils.getBundleContextByObject(this));
+        final Collection<String> systemNames = ManagedResourceActivator.getInstalledResourceConnectors(getBundleContextByObject(this));
         final Collection<ResourceConnectorDescriptor> result = new ArrayList<>(systemNames.size());
         for(final String systemName: systemNames)
             result.add(createResourceConnectorDescriptor(systemName));
@@ -382,7 +371,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      */
     @Override
     public final Collection<? extends ResourceAdapterDescriptor> getInstalledResourceAdapters() {
-        final Collection<String> systemNames = ResourceAdapterActivator.getInstalledResourceAdapters(Utils.getBundleContextByObject(this));
+        final Collection<String> systemNames = ResourceAdapterActivator.getInstalledResourceAdapters(getBundleContextByObject(this));
         final Collection<ResourceAdapterDescriptor> result = new ArrayList<>(systemNames.size());
         for(final String systemName: systemNames)
             result.add(createResourceAdapterDescriptor(systemName));
@@ -410,7 +399,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      */
     @Override
     public final Collection<InternalSnampComponentDescriptor> getInstalledComponents() {
-        final BundleContext context = Utils.getBundleContextByObject(this);
+        final BundleContext context = getBundleContextByObject(this);
         final Collection<InternalSnampComponentDescriptor> result = new ArrayList<>(10);
         for(final Bundle bnd: context.getBundles())
             if(isSnampComponent(bnd))

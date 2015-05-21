@@ -3,7 +3,7 @@ package com.itworks.snamp.connectors.groovy.impl;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.ManagedResourceActivator;
 import com.itworks.snamp.connectors.groovy.ManagedResourceInfo;
-import com.itworks.snamp.connectors.groovy.ManagementScriptEngine;
+import com.itworks.snamp.connectors.groovy.ManagedResourceScriptEngine;
 import com.itworks.snamp.internal.annotations.SpecialUse;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
@@ -60,7 +60,7 @@ public final class GroovyResourceActivator extends ManagedResourceActivator<Groo
                                                                            final Map<String, String> connectionOptions,
                                                                            final RequiredService<?>... dependencies) throws IOException, ResourceException, ScriptException {
             final String[] paths = GroovyResourceConnector.getPaths(connectionString);
-            final ManagementScriptEngine engine = new ManagementScriptEngine(
+            final ManagedResourceScriptEngine engine = new ManagedResourceScriptEngine(
                     getClass().getClassLoader(),
                     GroovyResourceConnector.toProperties(connectionOptions),
                     paths);

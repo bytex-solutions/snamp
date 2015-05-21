@@ -1,6 +1,5 @@
 package com.itworks.snamp.connectors.groovy;
 
-import com.google.common.base.*;
 import com.google.common.collect.Maps;
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.SafeConsumer;
@@ -25,7 +24,7 @@ import java.util.Objects;
  * @version 1.0
  * @since 1.0
  */
-public abstract class AttributeScript extends ResourceFeatureScript implements AttributeAccessor {
+public abstract class ManagedResourceAttributeScript extends ManagedResourceFeatureScript implements AttributeAccessor {
     private static final String GET_VALUE_METHOD = "getValue";
     private static final String SET_VALUE_METHOD = "setValue";
     private static final String ITEM_DESCR = "description";

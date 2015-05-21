@@ -12,5 +12,11 @@ import groovy.util.slurpersupport.GPathResult
 
 println initScript
 
+def config = getResourceConfiguration resourceName
+
+println config.connectionString
+println config.connectionType
+println config.parameters.initScript
+
 //attributes
 attribute "DummyAttribute", [config: "a"]

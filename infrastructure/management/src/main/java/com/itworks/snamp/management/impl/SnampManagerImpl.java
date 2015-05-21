@@ -1,12 +1,8 @@
 package com.itworks.snamp.management.impl;
 
-import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.management.AbstractSnampManager;
-import org.osgi.framework.BundleContext;
 
 import java.util.logging.Logger;
-
-import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
 
 /**
  * The type Snamp manager impl.
@@ -26,20 +22,6 @@ final class SnampManagerImpl extends AbstractSnampManager {
         protected ResourceConnectorDescriptorImpl(final String connectorName) {
             super(connectorName);
         }
-
-        /**
-         * Represents the bundle context of the derived class.
-         * <p>
-         * Use {@link com.itworks.snamp.internal.Utils#getBundleContextByObject(Object)} with
-         * {@literal this} parameter to implement this method.
-         * </p>
-         *
-         * @return The bundle context of the derived class.
-         */
-        @Override
-        protected BundleContext getItselfContext() {
-            return getBundleContextByObject(this);
-        }
     }
 
     private final static class ResourceAdapterDescriptorImpl extends ResourceAdapterDescriptor{
@@ -52,20 +34,6 @@ final class SnampManagerImpl extends AbstractSnampManager {
          */
         public ResourceAdapterDescriptorImpl(final String systemName) {
             super(systemName);
-        }
-
-        /**
-         * Represents the bundle context of the derived class.
-         * <p>
-         * Use {@link com.itworks.snamp.internal.Utils#getBundleContextByObject(Object)} with
-         * {@literal this} parameter to implement this method.
-         * </p>
-         *
-         * @return The bundle context of the derived class.
-         */
-        @Override
-        protected BundleContext getItselfContext() {
-            return Utils.getBundleContextByObject(this);
         }
     }
 

@@ -13,11 +13,11 @@ import static com.itworks.snamp.configuration.SerializableAgentConfiguration.Ser
  * @version 1.0
  * @since 1.0
  */
-public final class ManagementScriptEngineTest extends Assert {
-    private final ManagementScriptEngine engine;
+public final class ManagedResourceScriptEngineTest extends Assert {
+    private final ManagedResourceScriptEngine engine;
 
-    public ManagementScriptEngineTest() throws IOException {
-        engine = new ManagementScriptEngine(getClass().getClassLoader(), "sample-groovy-scripts/");
+    public ManagedResourceScriptEngineTest() throws IOException {
+        engine = new ManagedResourceScriptEngine(getClass().getClassLoader(), "sample-groovy-scripts/");
     }
 
     @Test
@@ -27,7 +27,7 @@ public final class ManagementScriptEngineTest extends Assert {
         config.setReadWriteTimeout(TimeSpan.fromSeconds(2));
 
         final AttributeAccessor scr = engine.loadAttribute(new AttributeDescriptor(config));
-        assertEquals(AttributeScript.INT32, scr.type());
+        assertEquals(ManagedResourceAttributeScript.INT32, scr.type());
         assertTrue(scr.specifier().canRead());
         assertTrue(scr.specifier().canWrite());
 

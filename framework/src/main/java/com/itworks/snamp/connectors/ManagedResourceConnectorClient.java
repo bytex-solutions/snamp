@@ -2,6 +2,7 @@ package com.itworks.snamp.connectors;
 
 import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.Futures;
+import com.itworks.snamp.Aggregator;
 import com.itworks.snamp.ServiceReferenceHolder;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
@@ -16,6 +17,7 @@ import com.itworks.snamp.management.Maintainable;
 import org.osgi.framework.*;
 import org.osgi.service.cm.ConfigurationAdmin;
 
+import javax.management.*;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Future;
@@ -30,11 +32,27 @@ import static com.itworks.snamp.configuration.AgentConfiguration.EntityConfigura
  * @version 1.0
  * @since 1.0
  */
-public final class ManagedResourceConnectorClient {
+public final class ManagedResourceConnectorClient extends ServiceReferenceHolder<ManagedResourceConnector> implements Aggregator, DynamicMBean {
     private static final String LOGGER_NAME = "com.itworks.snamp.connectors.ManagedResourceConnectorClient";
 
-    private ManagedResourceConnectorClient(){
+    /**
+     * Initializes a new client of the specified managed resource.
+     * @param resourceName The name of the managed resource. Cannot be {@literal null} or empty.
+     * @throws InstanceNotFoundException The specified resource doesn't exist.
+     */
+    public ManagedResourceConnectorClient(final BundleContext context,
+                                          final String resourceName) throws InstanceNotFoundException {
+        super(context, getResourceConnectorAndCheck(context, resourceName));
+    }
 
+    private static ServiceReference<ManagedResourceConnector> getResourceConnectorAndCheck(final BundleContext context,
+                                                                                           final String resourceName) throws InstanceNotFoundException {
+        try{
+            return getResourceConnector(context, resourceName);
+        }
+        catch (final IllegalArgumentException ignored){
+            throw new InstanceNotFoundException(String.format("Managed resource '%s' doesn't exist", resourceName));
+        }
     }
 
     private static UnsupportedOperationException unsupportedServiceRequest(final String connectorType,
@@ -295,6 +313,10 @@ public final class ManagedResourceConnectorClient {
         return ManagedResourceActivator.getConnectorType(connectorRef);
     }
 
+    public String getConnectorType(){
+        return getConnectorType(this);
+    }
+
     /**
      * Gets connection string used by management connector by its reference.
      * @param connectorRef The reference to the management connector.
@@ -302,6 +324,10 @@ public final class ManagedResourceConnectorClient {
      */
     public static String getConnectionString(final ServiceReference<ManagedResourceConnector> connectorRef){
         return ManagedResourceActivator.getConnectionString(connectorRef);
+    }
+
+    public String getConnectionString(){
+        return getConnectionString(this);
     }
 
     /**
@@ -375,5 +401,115 @@ public final class ManagedResourceConnectorClient {
         } finally {
             admin.release(context);
         }
+    }
+
+    public ManagedResourceConfiguration getResourceConfiguration(final BundleContext context) throws IOException {
+        return getResourceConfiguration(context, this);
+    }
+
+    /**
+     * Retrieves the aggregated object.
+     *
+     * @param objectType Type of the requested object.
+     * @return An instance of the aggregated object; or {@literal null} if object is not available.
+     */
+    @Override
+    public <T> T queryObject(final Class<T> objectType) {
+        return getService().queryObject(objectType);
+    }
+
+    /**
+     * Obtain the value of a specific attribute of the Dynamic MBean.
+     *
+     * @param attribute The name of the attribute to be retrieved
+     * @return The value of the attribute retrieved.
+     * @throws AttributeNotFoundException
+     * @throws MBeanException             Wraps a <CODE>java.lang.Exception</CODE> thrown by the MBean's getter.
+     * @throws ReflectionException        Wraps a <CODE>java.lang.Exception</CODE> thrown while trying to invoke the getter.
+     * @see #setAttribute
+     */
+    @Override
+    public Object getAttribute(final String attribute) throws AttributeNotFoundException, MBeanException, ReflectionException {
+        return getService().getAttribute(attribute);
+    }
+
+    /**
+     * Set the value of a specific attribute of the Dynamic MBean.
+     *
+     * @param attribute The identification of the attribute to
+     *                  be set and  the value it is to be set to.
+     * @throws AttributeNotFoundException
+     * @throws InvalidAttributeValueException
+     * @throws MBeanException                 Wraps a <CODE>java.lang.Exception</CODE> thrown by the MBean's setter.
+     * @throws ReflectionException            Wraps a <CODE>java.lang.Exception</CODE> thrown while trying to invoke the MBean's setter.
+     * @see #getAttribute
+     */
+    @Override
+    public void setAttribute(final Attribute attribute) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
+        getService().setAttribute(attribute);
+    }
+
+    /**
+     * Get the values of several attributes of the Dynamic MBean.
+     *
+     * @param attributes A list of the attributes to be retrieved.
+     * @return The list of attributes retrieved.
+     * @see #setAttributes
+     */
+    @Override
+    public AttributeList getAttributes(final String[] attributes) {
+        return getService().getAttributes(attributes);
+    }
+
+    /**
+     * Sets the values of several attributes of the Dynamic MBean.
+     *
+     * @param attributes A list of attributes: The identification of the
+     *                   attributes to be set and  the values they are to be set to.
+     * @return The list of attributes that were set, with their new values.
+     * @see #getAttributes
+     */
+    @Override
+    public AttributeList setAttributes(final AttributeList attributes) {
+        return getService().setAttributes(attributes);
+    }
+
+    /**
+     * Allows an action to be invoked on the Dynamic MBean.
+     *
+     * @param actionName The name of the action to be invoked.
+     * @param params     An array containing the parameters to be set when the action is
+     *                   invoked.
+     * @param signature  An array containing the signature of the action. The class objects will
+     *                   be loaded through the same class loader as the one used for loading the
+     *                   MBean on which the action is invoked.
+     * @return The object returned by the action, which represents the result of
+     * invoking the action on the MBean specified.
+     * @throws MBeanException      Wraps a <CODE>java.lang.Exception</CODE> thrown by the MBean's invoked method.
+     * @throws ReflectionException Wraps a <CODE>java.lang.Exception</CODE> thrown while trying to invoke the method
+     */
+    @Override
+    public Object invoke(final String actionName, final Object[] params, final String[] signature) throws MBeanException, ReflectionException {
+        return getService().invoke(actionName, params, signature);
+    }
+
+    /**
+     * Provides the exposed attributes and actions of the Dynamic MBean using an MBeanInfo object.
+     *
+     * @return An instance of <CODE>MBeanInfo</CODE> allowing all attributes and actions
+     * exposed by this Dynamic MBean to be retrieved.
+     */
+    @Override
+    public MBeanInfo getMBeanInfo() {
+        return getService().getMBeanInfo();
+    }
+
+    /**
+     * Returns resource name.
+     * @return The name of the resource.
+     */
+    @Override
+    public String toString() {
+        return getManagedResourceName(this);
     }
 }

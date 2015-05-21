@@ -1,8 +1,6 @@
 package com.itworks.snamp.connectors.aggregator;
 
-import com.itworks.snamp.ServiceReferenceHolder;
 import com.itworks.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableEventConfiguration;
-import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.notifications.CustomNotificationInfo;
@@ -10,7 +8,6 @@ import com.itworks.snamp.connectors.notifications.NotificationDescriptor;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.jmx.DescriptorUtils;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
 
 import javax.management.*;
 import java.io.IOException;
@@ -42,14 +39,6 @@ final class PeriodicAttributeQuery extends CustomNotificationInfo {
         return foreignAttribute;
     }
 
-    private ServiceReferenceHolder<ManagedResourceConnector> getResource(final BundleContext context) throws InstanceNotFoundException {
-        final ServiceReference<ManagedResourceConnector> resourceRef =
-                ManagedResourceConnectorClient.getResourceConnector(context, source);
-        if(resourceRef != null)
-            return new ServiceReferenceHolder<>(context, resourceRef);
-        else throw new InstanceNotFoundException(String.format("Managed resource %s not found", source));
-    }
-
     private NotificationSurrogate createNotification(final AttributeSupport connector) throws MBeanException, AttributeNotFoundException, ReflectionException, IOException {
         if(connector == null) return null;
         final MBeanAttributeInfo metadata = connector.getAttributeInfo(foreignAttribute);
@@ -61,11 +50,11 @@ final class PeriodicAttributeQuery extends CustomNotificationInfo {
 
     NotificationSurrogate createNotification() throws InstanceNotFoundException, MBeanException, AttributeNotFoundException, ReflectionException, IOException {
         final BundleContext context = Utils.getBundleContextByObject(this);
-        final ServiceReferenceHolder<ManagedResourceConnector> connector = getResource(context);
+        final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(context, source);
         try{
-            return createNotification(connector.get().queryObject(AttributeSupport.class));
+            return createNotification(client.queryObject(AttributeSupport.class));
         } finally {
-            connector.release(context);
+            client.release(context);
         }
     }
 
