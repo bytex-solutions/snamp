@@ -11,6 +11,7 @@ SNAMP Platform | 1.0.0 | First production release
 SNMP Resource Connector | 1.0.0 | First production release
 JMX Resource Connector | 1.0.0 | First production release
 RShell Resource Connector | 1.0.0 | First production release
+Groovy Resource Connector | 1.0.0 | First production release
 Aggregator Resource Connector | 1.0.0 | First production release
 IBM WebSphere MQ Resource Connector | 1.0.0 | First production release
 IBM WebSphere Integration Bus (Message Broker) | 1.0.0 | First production release

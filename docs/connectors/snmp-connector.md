@@ -42,6 +42,8 @@ securityContext | String | No | The context name of the scoped PDU (for SNMPv3 o
 socketTimeout | Integer | No | UDP socket timeout, in millis. It is used as a maximum time interval for receiving and sending PDU packets over network. This parameter must be specified if your network has high latency | `2000`
 localAddress | `udp://<ip-address>/<port>` | No | UDP outgoing address and port. Usually, you should not specify this parameter. But it is very useful for testing purposes when you QA team wants to capture data packet traces between SNAMP and SNMP agent | `udp://127.0.0.1/44495`
 
+Any other parameters will be ignored.
+
 Note that resource connector cannot determine SNMP protocol version automatically. Moreover, it cannot automatically discover values of security parameters such as `community`, `authenticationProtocol`, `userName`, `password` and etc.
 
 ### SNMPv2 configuration
@@ -105,7 +107,7 @@ IP_ADDRESS | _Default_ (if not specified) | int8 array
 IP_ADDRESS | text | string (human-readable address, for example `127.0.0.1`)
 IP_ADDRESS | raw | int8 array
 
-## Configuring notifications
+## Configuring events
 Each event configured in JMX Resource Connector has the following configuration schema:
 * `Category` - OID of the SNMP Trap
 * Configuration parameters:

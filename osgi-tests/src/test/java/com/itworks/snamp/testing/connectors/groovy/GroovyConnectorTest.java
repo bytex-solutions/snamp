@@ -135,6 +135,6 @@ public final class GroovyConnectorTest extends AbstractGroovyConnectorTest {
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return true;
+        return false;
     }
 }

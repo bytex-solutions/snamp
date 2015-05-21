@@ -10,5 +10,7 @@ import groovyx.net.http.RESTClient
 @GrabConfig(initContextClassLoader = true)
 import groovy.util.slurpersupport.GPathResult
 
+println initScript
+
 //attributes
 attribute "DummyAttribute", [config: "a"]

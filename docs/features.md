@@ -38,3 +38,4 @@ snmp | SNMPv2, SNMPv3 | Yes | Yes | No
 ibm-wmq | Proprietary | Yes | No | No
 ibm-wmb | Proprietary | Yes | Yes | No
 aggregator | _Not Applicable_ | Yes | Yes | No
+groovy | _Any_ | Yes | Yes | No

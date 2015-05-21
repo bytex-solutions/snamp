@@ -39,10 +39,27 @@ public final class ManagementScriptEngine extends GroovyScriptEngine implements 
         rootBinding = new Binding();
     }
 
+    public ManagementScriptEngine(final ClassLoader rootClassLoader,
+                                  final String... paths) throws IOException {
+        this(rootClassLoader, new Properties(), paths);
+    }
+
+    /**
+     * Sets value of the global variable visible to all scripts.
+     * @param name The name of the global variable.
+     * @param value The value of the global variable.
+     * @see #getGlobalVariable(String)
+     */
     public void setGlobalVariable(final String name, final Object value){
         rootBinding.setVariable(name, value);
     }
 
+    /**
+     * Gets value of the global variable.
+     * @param name The name of the global variable.
+     * @return The value of the global variable.
+     * @see #setGlobalVariable(String, Object)
+     */
     public Object getGlobalVariable(final String name){
         return rootBinding.getVariable(name);
     }
@@ -55,11 +72,6 @@ public final class ManagementScriptEngine extends GroovyScriptEngine implements 
             while (tokenizer.hasMoreTokens())
                 classPath.add(tokenizer.nextToken());
         }
-    }
-
-    public ManagementScriptEngine(final ClassLoader rootClassLoader,
-                                  final String... paths) throws IOException {
-        this(rootClassLoader, new Properties(), paths);
     }
 
     private synchronized <T extends ManagementScript> T createScript(final String scriptFile,
