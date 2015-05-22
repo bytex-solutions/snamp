@@ -22,7 +22,7 @@ This is a top-level page of SNAMP technical documentation. Here you can found al
 ## Developer's Guide
 
 * [Connecting resources using Groovy](connectors/groovy-connector.md) - how to connect IT resource to SNAMP using Groovy scripts
-* [Monitoring connected resources using Groovy](adapters/groovy-adapter.md) - how to collect management information from SNAMP using Groovy scripts
+* [Monitoring connected resources using Groovy](adapters/groovy-adapter.md) - how to collect and process management information from SNAMP using Groovy scripts
 
 ## Advanced Topics
 
