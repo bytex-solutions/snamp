@@ -33,9 +33,7 @@ public final class ManagedResourceScriptEngine extends GroovyScriptEngine implem
                                        final Properties properties,
                                        final String... paths) throws IOException {
         super(paths, rootClassLoader);
-        getConfig().configure(properties);
-        getConfig().setScriptBaseClass(ManagedResourceScript.class.getName());
-        setupClassPath(getConfig());
+        setupCompilerConfiguration(getConfig(), properties);
         rootBinding = new Binding();
     }
 
@@ -62,6 +60,14 @@ public final class ManagedResourceScriptEngine extends GroovyScriptEngine implem
      */
     public Object getGlobalVariable(final String name){
         return rootBinding.getVariable(name);
+    }
+
+    private static void setupCompilerConfiguration(final CompilerConfiguration config,
+                                                   final Properties properties){
+        config.configure(properties);
+        config.setScriptBaseClass(ManagedResourceScript.class.getName());
+        config.getOptimizationOptions().put("indy", true);
+        setupClassPath(config);
     }
 
     private static void setupClassPath(final CompilerConfiguration config) {
