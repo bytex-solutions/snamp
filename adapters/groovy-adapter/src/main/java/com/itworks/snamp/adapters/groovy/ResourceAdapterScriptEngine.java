@@ -31,9 +31,7 @@ public final class ResourceAdapterScriptEngine extends GroovyScriptEngine {
                                        final Properties properties,
                                        final String... paths) throws IOException {
         super(paths, rootClassLoader);
-        getConfig().configure(properties);
-        getConfig().setScriptBaseClass(BASE_SCRIPT_CLASS.getName());
-        setupClassPath(getConfig());
+        setupCompilerConfiguration(getConfig(), properties);
         rootBinding = new Binding();
     }
 
@@ -60,6 +58,14 @@ public final class ResourceAdapterScriptEngine extends GroovyScriptEngine {
      */
     public Object getGlobalVariable(final String name){
         return rootBinding.getVariable(name);
+    }
+
+    private static void setupCompilerConfiguration(final CompilerConfiguration config,
+                                                   final Properties properties){
+        config.configure(properties);
+        config.setScriptBaseClass(BASE_SCRIPT_CLASS.getName());
+        config.getOptimizationOptions().put("indy", true);
+        setupClassPath(config);
     }
 
     private static void setupClassPath(final CompilerConfiguration config) {

@@ -6,3 +6,4 @@ At this page you can find detailed description for each resource connector suppo
 
 * [JMX Resource Connector](jmx-connector.md)
 * [SNMP Resource Connector](snmp-connector.md)
+* [Groovy Resource Connector](groovy-connector.md)
