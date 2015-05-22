@@ -1,6 +1,8 @@
 package com.itworks.snamp.connectors.groovy;
 
 import com.google.common.base.Supplier;
+import com.google.common.eventbus.AllowConcurrentEvents;
+import com.google.common.eventbus.Subscribe;
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.Consumer;
 import com.itworks.snamp.SafeConsumer;
@@ -10,6 +12,7 @@ import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.connectors.notifications.NotificationSupport;
 import com.itworks.snamp.core.OSGiLoggingContext;
 import com.itworks.snamp.internal.annotations.SpecialUse;
+import com.itworks.snamp.io.Communicator;
 import com.itworks.snamp.jmx.DescriptorUtils;
 import com.itworks.snamp.jmx.JMExceptionUtils;
 import groovy.lang.Closure;
@@ -21,6 +24,7 @@ import javax.management.*;
 import java.io.IOException;
 import java.util.Dictionary;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
@@ -353,5 +357,22 @@ abstract class ManagedResourceScript extends Script implements ManagedResourceSc
     protected static ManagedResourceConfiguration getResourceConfiguration(final String resourceName) throws IOException {
 
         return ManagedResourceConnectorClient.getResourceConfiguration(getBundleContext(), resourceName);
+    }
+
+    @SpecialUse
+    protected static Communicator getCommunicator(final String sessionName) throws ExecutionException {
+        return Communicator.getSession(sessionName);
+    }
+
+    @SpecialUse
+    protected static Object asListener(final Closure<?> closure){
+        return new Object(){
+
+            @Subscribe
+            @SpecialUse
+            public void accept(final Object message){
+                closure.call(message);
+            }
+        };
     }
 }

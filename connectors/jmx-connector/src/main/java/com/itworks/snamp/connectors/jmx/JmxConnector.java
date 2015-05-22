@@ -306,6 +306,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
         }
 
         private void enableListening(final ObjectName target) throws Exception {
+
             connectionManager.handleConnection(new MBeanServerConnectionHandler<Void>() {
 
                 @Override
@@ -319,8 +320,11 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
         private void disableListening(final ObjectName target) throws Exception {
             connectionManager.handleConnection(new MBeanServerConnectionHandler<Void>() {
                 @Override
-                public final Void handle(final MBeanServerConnection connection) throws IOException, JMException {
-                    connection.removeNotificationListener(target, JmxNotificationSupport.this);
+                public final Void handle(final MBeanServerConnection connection) throws IOException, InstanceNotFoundException {
+                    try {
+                        connection.removeNotificationListener(target, JmxNotificationSupport.this);
+                    }catch (final ListenerNotFoundException ignored) {
+                    }
                     return null;
                 }
             });

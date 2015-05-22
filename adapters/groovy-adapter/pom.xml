@@ -23,7 +23,12 @@
                     <instructions>
                         <Bundle-SymbolicName>com.itworks.snamp.adapters.groovy</Bundle-SymbolicName>
                         <Bundle-Activator>com.itworks.snamp.adapters.groovy.impl.GroovyResourceAdapterActivator</Bundle-Activator>
-                        <Export-Package/>
+                        <Export-Package>
+                            com.itworks.snamp.adapters.groovy
+                        </Export-Package>
+                        <DynamicImport-Package>
+                            *
+                        </DynamicImport-Package>
                         <!--SNAMP specific header-->
                         <SNAMP-Resource-Adapter>groovy</SNAMP-Resource-Adapter>
                     </instructions>

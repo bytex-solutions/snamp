@@ -93,6 +93,9 @@ Groovy connector provides the following DSL extensions accessible from any type 
   * `void addNotificationListener(String resourceName, NotificationListener listener, NotificationFilter filter, Objects handback)` - subscribe to the event of the managed resource using additional options, such as filter and handback object
   * `void removeNotificationListener(String resourceName, NotificationListener listener)` - remove subscription to the event of the managed resource
   * `ManagedResourceConfiguration getResourceConfiguration(String resourceName)` - read configuration of the connected managed resource
+* Inter-script communication
+  * `Communicator getCommunicator(String sessionName)` - get or create a new communication session
+  * `MessageListener asListener(Closure listener)` - wraps Groovy closure into communication message listener
 * Other functions
   * `Repeater createTimer(Closure task, long period)` - creates a new timer that execute the specified task periodically
   * `Repeater schedule(Closure task, long period)` - execute the specified task periodically in the background.
@@ -130,6 +133,15 @@ def config = getResourceConfiguration 'app-server'
 println config.connectionString
 println config.connectionType
 println config.parameters.socketTimeout //socketTimeout is the name of configuration property
+```
+
+Simple messaging using communicator:
+```groovy
+def communicator = getCommunicator 'test-communicator'
+communicator.register(asListener { msg -> println msg})
+//in other script file
+def communicator = getCommunicator 'test-communicator'
+communicator.post 'Hello, world!'
 ```
 
 > Read **SNAMP Management Information Model** before you continue

@@ -15,7 +15,7 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
  * @version 1.0
  * @since 1.0
  */
-public class SynchronizationEvent<T> extends ThreadSafeObject {
+public class SynchronizationEvent<T> {
     /**
      * Represents synchronization event awaitor.
      * @param <T> Type of the event.
@@ -107,7 +107,7 @@ public class SynchronizationEvent<T> extends ThreadSafeObject {
         }
     }
 
-    private EventState<T> state;
+    private volatile EventState<T> state;
     private final boolean autoReset;
     private static boolean DEFAULT_AUTO_RESET = false;
 
@@ -132,10 +132,8 @@ public class SynchronizationEvent<T> extends ThreadSafeObject {
     /**
      * Resets state of this event to initial.
      */
-    public final void reset() {
-        try (final LockScope ignored = beginWrite()) {
-            state = new EventState<>();
-        }
+    public synchronized final void reset() {
+        state = new EventState<>();
     }
 
     /**
@@ -144,13 +142,11 @@ public class SynchronizationEvent<T> extends ThreadSafeObject {
      * @param eventObj The raised event data.
      * @return {@literal true}, if this event is not in signalled state; otherwise, {@literal false}.
      */
-    public final boolean fire(final T eventObj) {
-        try (final LockScope ignored = beginWrite()) {
-            final boolean result = state.set(eventObj);
-            if (autoReset)
-                state = new EventState<>();
-            return result;
-        }
+    public synchronized final boolean fire(final T eventObj) {
+        final boolean result = state.set(eventObj);
+        if (autoReset)
+            state = new EventState<>();
+        return result;
     }
 
     /**
@@ -159,9 +155,7 @@ public class SynchronizationEvent<T> extends ThreadSafeObject {
      * @return {@literal true}, if this event is in signalled state; otherwise, {@literal false}.
      */
     protected final boolean signalled() {
-        try(final LockScope ignored = beginRead()){
-            return state.isSignalled();
-        }
+        return state.isSignalled();
     }
 
     /**
@@ -170,9 +164,7 @@ public class SynchronizationEvent<T> extends ThreadSafeObject {
      * @return A new awaitor for this event.
      */
     public final EventAwaitor<T> getAwaitor() {
-        try(final LockScope ignored = beginRead()){
-            return state;
-        }
+        return state;
     }
 
     protected final <E extends Throwable> EventAwaitor<T> getAwaitor(final Consumer<? super SynchronizationEvent<T>, E> handler) throws E{

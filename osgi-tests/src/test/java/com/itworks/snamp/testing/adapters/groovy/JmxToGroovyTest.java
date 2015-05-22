@@ -1,19 +1,29 @@
 package com.itworks.snamp.testing.adapters.groovy;
 
 import com.google.common.base.Supplier;
+import com.itworks.snamp.ExceptionalCallable;
+import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.adapters.ResourceAdapterActivator;
+import com.itworks.snamp.io.Communicator;
 import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
+import org.junit.Test;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
 
 import javax.management.AttributeChangeNotification;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
+import java.io.File;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
-import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
+import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
-
 import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
 
 /**
@@ -24,9 +34,27 @@ import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
 @SnampDependencies(SnampFeature.GROOVY_ADAPTER)
 public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final String ADAPTER_NAME = "groovy";
+    private static final String COMMUNICATION_CHANNEL = "test-communication-channel";
 
     public JmxToGroovyTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(), new ObjectName(BEAN_NAME));
+    }
+
+    private static String getGroovyScriptPath(){
+        return getProjectRootDir() + File.separator + "sample-groovy-scripts/";
+    }
+
+    @Override
+    protected boolean enableRemoteDebugging() {
+        return true;
+    }
+
+    @Test
+    public void stringAttributeTest() throws ExecutionException, TimeoutException, InterruptedException {
+        final Communicator channel = Communicator.getSession(COMMUNICATION_CHANNEL);
+        final Object result = channel.post("changeStringAttribute", TimeSpan.fromSeconds(10));
+        assertTrue(result instanceof String);
+        assertEquals("Frank Underwood", result);
     }
 
     @Override
@@ -34,6 +62,10 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
                                 final Supplier<ResourceAdapterConfiguration> adapterFactory) {
         final ResourceAdapterConfiguration groovyAdapter = adapterFactory.get();
         groovyAdapter.setAdapterName(ADAPTER_NAME);
+        groovyAdapter.getParameters().put("scriptPath", getGroovyScriptPath());
+        groovyAdapter.getParameters().put("scriptFile", "Adapter.groovy");
+        groovyAdapter.getParameters().put("communicationChannel", COMMUNICATION_CHANNEL);
+        groovyAdapter.getParameters().put("resourceName", TEST_RESOURCE_NAME);
         adapters.put("groovy-adapter", groovyAdapter);
     }
 
@@ -106,5 +138,29 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
         event.getParameters().put("severity", "notice");
         event.getParameters().put("objectName", BEAN_NAME);
         events.put("21.1", event);
+    }
+
+    @Override
+    protected void beforeStartTest(final BundleContext context) throws Exception {
+        super.beforeStartTest(context);
+        beforeCleanupTest(context);
+    }
+
+    @Override
+    protected void afterStartTest(final BundleContext context) throws Exception {
+        startResourceConnector(context);
+        syncWithAdapterStartedEvent(ADAPTER_NAME, new ExceptionalCallable<Void, BundleException>() {
+            @Override
+            public Void call() throws BundleException {
+                ResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+                return null;
+            }
+        }, TimeSpan.fromSeconds(15));
+    }
+
+    @Override
+    protected void beforeCleanupTest(final BundleContext context) throws Exception {
+        ResourceAdapterActivator.stopResourceAdapter(context, ADAPTER_NAME);
+        stopResourceConnector(context);
     }
 }

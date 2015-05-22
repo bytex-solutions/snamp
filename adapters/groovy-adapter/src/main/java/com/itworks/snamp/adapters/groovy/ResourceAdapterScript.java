@@ -1,21 +1,24 @@
 package com.itworks.snamp.adapters.groovy;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.eventbus.Subscribe;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.adapters.NotificationEvent;
+import com.itworks.snamp.adapters.NotificationListener;
 import com.itworks.snamp.concurrent.Repeater;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.core.OSGiLoggingContext;
 import com.itworks.snamp.internal.annotations.SpecialUse;
+import com.itworks.snamp.io.Communicator;
 import com.itworks.snamp.jmx.JMExceptionUtils;
 import groovy.lang.Closure;
 import groovy.lang.Script;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
-import com.itworks.snamp.adapters.NotificationListener;
 
 import javax.management.*;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 
 /**
@@ -31,6 +34,23 @@ public abstract class ResourceAdapterScript extends Script implements AutoClosea
 
     private ManagementInformationRepository getRepository(){
         return (ManagementInformationRepository)super.getProperty(REPOSITORY_GLOBAL_VAR);
+    }
+
+    @SpecialUse
+    protected static Communicator getCommunicator(final String sessionName) throws ExecutionException {
+        return Communicator.getSession(sessionName);
+    }
+
+    @SpecialUse
+    protected static Object asListener(final Closure<?> closure){
+        return new Object(){
+
+            @Subscribe
+            @SpecialUse
+            public void accept(final Object message){
+                closure.call(message);
+            }
+        };
     }
 
     /**
