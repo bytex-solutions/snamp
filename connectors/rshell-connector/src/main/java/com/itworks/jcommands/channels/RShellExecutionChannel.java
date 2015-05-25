@@ -19,8 +19,8 @@ import java.util.Set;
  * @version 1.0
  * @since 1.0
  */
-final class RShellExecutionChannel extends HashMap<String, String> implements CommandExecutionChannel {
-    static final String CHANNEL_NAME = "rsh";
+public final class RShellExecutionChannel extends HashMap<String, String> implements CommandExecutionChannel {
+    public static final String CHANNEL_NAME = "rsh";
     private static final String LOCAL_USER_PROPERTY = "localUser";
     private static final String REMOTE_USER_PROPERTY = "remoteUser";
     private static final String REMOTE_HOST_PROPERTY = "host";

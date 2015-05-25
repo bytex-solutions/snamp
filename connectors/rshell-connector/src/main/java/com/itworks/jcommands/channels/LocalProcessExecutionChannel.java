@@ -24,18 +24,18 @@ import java.util.Set;
  * @version 1.0
  * @since 1.0
  */
-final class LocalProcessExecutionChannel extends HashMap<String, String> implements CommandExecutionChannel {
-    static final String CHANNEL_NAME = "process";
+public final class LocalProcessExecutionChannel extends HashMap<String, String> implements CommandExecutionChannel {
+    public static final String CHANNEL_NAME = "process";
     private static final String NORMAL_EXIT_CODE_PARAM = "normalExitCode";
     private static final long serialVersionUID = 5308027932652020638L;
 
     private transient final Runtime rt = Runtime.getRuntime();
 
-    LocalProcessExecutionChannel(final Map<String, String> params){
+    public LocalProcessExecutionChannel(final Map<String, String> params){
         super(params);
     }
 
-    LocalProcessExecutionChannel(final int normalExitCode) {
+    public LocalProcessExecutionChannel(final int normalExitCode) {
         this(ImmutableMap.of(NORMAL_EXIT_CODE_PARAM, Integer.toString(normalExitCode)));
     }
 

@@ -19,8 +19,8 @@ import java.util.Set;
  * @version 1.0
  * @since 1.0
  */
-final class RExecExecutionChannel extends HashMap<String, String> implements CommandExecutionChannel {
-    static final String CHANNEL_NAME = "rexec";
+public final class RExecExecutionChannel extends HashMap<String, String> implements CommandExecutionChannel {
+    public static final String CHANNEL_NAME = "rexec";
     private static final String LOCAL_USER_PROPERTY = "localUser";
     private static final String PASSWORD_PROPERTY = "password";
     private static final String REMOTE_HOST_PROPERTY = "host";

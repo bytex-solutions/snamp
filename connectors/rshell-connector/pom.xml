@@ -40,7 +40,9 @@
                             *,
                             org.antlr.stringtemplate;resolution:=optional
                         </Import-Package>
-                        <Export-Package/>
+                        <Export-Package>
+                            com.itworks.jcommands
+                        </Export-Package>
                         <!--SNAMP specific header-->
                         <SNAMP-Resource-Connector>rshell</SNAMP-Resource-Connector>
                     </instructions>

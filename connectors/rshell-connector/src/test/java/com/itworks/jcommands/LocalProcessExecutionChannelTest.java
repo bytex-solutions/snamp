@@ -2,6 +2,7 @@ package com.itworks.jcommands;
 
 import com.google.common.collect.ImmutableMap;
 import com.itworks.jcommands.channels.CommandExecutionChannels;
+import com.itworks.jcommands.channels.LocalProcessExecutionChannel;
 import com.itworks.jcommands.impl.XmlCommandLineTemplate;
 import com.itworks.jcommands.impl.XmlParserDefinition;
 import com.itworks.jcommands.impl.XmlParsingResultType;
@@ -21,6 +22,13 @@ import java.util.Map;
  * @since 1.0
  */
 public class LocalProcessExecutionChannelTest extends Assert {
+    @Test
+    public void instantationTest() throws Exception{
+        try(final CommandExecutionChannel channel = CommandExecutionChannels.createChannel(LocalProcessExecutionChannel.CHANNEL_NAME, Collections.<String, String>emptyMap())){
+            assertNotNull(channel);
+        }
+    }
+
     @Test
     public void echoTest() throws Exception {
         Assume.assumeTrue("Linux-specific test", Utils.IS_OS_LINUX);

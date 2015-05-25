@@ -24,10 +24,10 @@ import java.util.*;
  * @version 1.0
  * @since 1.0
  */
-final class SSHExecutionChannel extends SSHClient implements CommandExecutionChannel {
-    static final String CHANNEL_NAME = "ssh";
+public final class SSHExecutionChannel extends SSHClient implements CommandExecutionChannel {
+    public static final String CHANNEL_NAME = "ssh";
 
-    private static interface Authenticator{
+    private interface Authenticator{
         void authenticate(final SSHClient client) throws UserAuthException, TransportException;
     }
 
