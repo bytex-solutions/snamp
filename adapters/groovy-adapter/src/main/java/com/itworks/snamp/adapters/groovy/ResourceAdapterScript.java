@@ -1,5 +1,6 @@
 package com.itworks.snamp.adapters.groovy;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.eventbus.Subscribe;
 import com.itworks.snamp.SafeConsumer;
@@ -17,6 +18,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 
 import javax.management.*;
+import java.util.Collection;
 import java.util.EventListener;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -200,10 +202,22 @@ public abstract class ResourceAdapterScript extends Script implements AutoClosea
         handleNotification(event.getSource(), event.getNotification());
     }
 
-    @SpecialUse
-    protected void handleNotification(final MBeanNotificationInfo metadata,
-                                      final Notification notif){
+    @Override
+    public final Collection<MBeanAttributeInfo> getAttributes(final String resourceName) {
+        final ManagementInformationRepository repository = getRepository();
+        return repository == null ? ImmutableList.<MBeanAttributeInfo>of() : repository.getAttributes(resourceName);
+    }
 
+    @Override
+    public final Collection<MBeanNotificationInfo> getNotifications(final String resourceName) {
+        final ManagementInformationRepository repository = getRepository();
+        return repository == null ? ImmutableList.<MBeanNotificationInfo>of() : repository.getNotifications(resourceName);
+    }
+
+    @SpecialUse
+    protected Object handleNotification(final Object metadata,
+                                      final Object notif){
+        return null;
     }
 
     /**

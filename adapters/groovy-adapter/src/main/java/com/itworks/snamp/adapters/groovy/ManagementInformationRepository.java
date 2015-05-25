@@ -1,6 +1,7 @@
 package com.itworks.snamp.adapters.groovy;
 
 import javax.management.*;
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -13,5 +14,7 @@ public interface ManagementInformationRepository {
     Set<String> getHostedResources();
     Set<String> getResourceAttributes(final String resourceName);
     Object getAttributeValue(final String resourceName, final String attributeName) throws MBeanException, AttributeNotFoundException, ReflectionException;
+    Collection<MBeanAttributeInfo> getAttributes(final String resourceName);
+    Collection<MBeanNotificationInfo> getNotifications(final String resourceName);
     void setAttributeValue(final String resourceName, final String attributeName, final Object value) throws AttributeNotFoundException, MBeanException, ReflectionException, InvalidAttributeValueException;
 }

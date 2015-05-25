@@ -4,6 +4,7 @@ import com.google.common.base.Supplier;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
+import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.io.Communicator;
 import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
@@ -15,6 +16,7 @@ import org.osgi.framework.BundleException;
 
 import javax.management.AttributeChangeNotification;
 import javax.management.MalformedObjectNameException;
+import javax.management.Notification;
 import javax.management.ObjectName;
 import java.io.File;
 import java.math.BigInteger;
@@ -47,7 +49,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
     @Test
@@ -77,9 +79,19 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     @Test
     public void bigIntegerAttributeTest() throws ExecutionException, TimeoutException, InterruptedException {
         final Communicator channel = Communicator.getSession(COMMUNICATION_CHANNEL);
-        final Object result = channel.post("changeBigIntegerAttribute", 1000);
+        final Object result = channel.post("changeBigIntegerAttribute", 2000);
         assertTrue(result instanceof BigInteger);
         assertEquals(BigInteger.valueOf(1020L), result);
+    }
+
+    @Test
+    public void notificationTest() throws ExecutionException, TimeoutException, InterruptedException {
+        final Communicator channel = Communicator.getSession(COMMUNICATION_CHANNEL);
+        final String MESSAGE = "changeStringAttributeSilent";
+        final SynchronizationEvent<?> awaitor = channel.registerMessageSynchronizer(MESSAGE);
+        channel.post(MESSAGE);
+        final Object notification = awaitor.getAwaitor().await(TimeSpan.fromSeconds(3));
+        assertTrue(notification instanceof Notification);
     }
 
     @Override

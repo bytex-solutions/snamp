@@ -2,16 +2,14 @@ package com.itworks.snamp.adapters;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.itworks.snamp.Consumer;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.internal.RecordReader;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
 
 import javax.management.*;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents an abstract object that helps you to organize storage
@@ -132,6 +130,20 @@ public abstract class AbstractAttributesModel<TAccessor extends AttributeAccesso
             return attributes.containsKey(resourceName) ?
                     attributes.get(resourceName).keySet() :
                     ImmutableSet.<String>of();
+        }
+    }
+
+    @ThreadSafe
+    public final Collection<MBeanAttributeInfo> getResourceAttributesMetadata(final String resourceName){
+        try(final LockScope ignored = beginRead()){
+            final ResourceAttributeList<?> resource = attributes.get(resourceName);
+            if(resource != null){
+                final List<MBeanAttributeInfo> result = Lists.newArrayListWithExpectedSize(resource.size());
+                for(final FeatureAccessor<MBeanAttributeInfo, ?> accessor: resource.values())
+                    result.add(accessor.getMetadata());
+                return result;
+            }
+            else return ImmutableList.of();
         }
     }
 

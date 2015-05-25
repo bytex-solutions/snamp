@@ -72,8 +72,8 @@ public final class Communicator extends EventBus {
         return post(message, new TimeSpan(timeout));
     }
 
-    public SynchronizationEvent<?> registerMessageSynchronizer(){
-        final IncomingMessageEvent event = new IncomingMessageEvent(null);
+    public SynchronizationEvent<?> registerMessageSynchronizer(final Object except){
+        final IncomingMessageEvent event = new IncomingMessageEvent(except);
         register(event);
         return event;
     }

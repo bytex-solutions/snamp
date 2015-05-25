@@ -2,13 +2,14 @@ package com.itworks.snamp.adapters.groovy.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.itworks.snamp.adapters.*;
-import com.itworks.snamp.adapters.groovy.ManagementInformationRepository;
 import com.itworks.snamp.adapters.NotificationListener;
+import com.itworks.snamp.adapters.groovy.ManagementInformationRepository;
+import com.itworks.snamp.concurrent.ThreadSafeObject;
 
 import javax.management.*;
-import java.util.HashMap;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents repository of t
@@ -32,39 +33,61 @@ final class ManagementInformationRepositoryImpl implements ManagementInformation
         }
     }
 
-    private static final class ScriptNotificationsModel extends HashMap<String, ResourceNotificationList<UnicastNotificationRouter>> {
+    private static final class ScriptNotificationsModel extends ThreadSafeObject {
+        private final Map<String, ResourceNotificationList<UnicastNotificationRouter>> notifications =
+                new HashMap<>(10);
 
-        private synchronized Iterable<UnicastNotificationRouter> clear(final String resourceName) {
-                final ResourceNotificationList<UnicastNotificationRouter> list = remove(resourceName);
+        private Iterable<UnicastNotificationRouter> clear(final String resourceName) {
+            try(final LockScope ignored = beginWrite()) {
+                final ResourceNotificationList<UnicastNotificationRouter> list = notifications.remove(resourceName);
                 return list != null ? list.values() : ImmutableList.<UnicastNotificationRouter>of();
+            }
         }
 
-        @Override
-        public synchronized void clear(){
-            for(final ResourceNotificationList<?> list: values())
-                list.clear();
-            super.clear();
+        private void clear(){
+            try(final LockScope ignored = beginWrite()) {
+                for (final ResourceNotificationList<?> list : notifications.values())
+                    list.clear();
+                notifications.clear();
+            }
         }
 
-        private synchronized UnicastNotificationRouter put(final String resourceName,
+        private UnicastNotificationRouter put(final String resourceName,
                                                            final MBeanNotificationInfo metadata,
                                                            final NotificationListener listener) {
-            final ResourceNotificationList<UnicastNotificationRouter> list;
-            if(containsKey(resourceName))
-                list = get(resourceName);
-            else put(resourceName, list = new ResourceNotificationList<>());
-            final UnicastNotificationRouter result = new UnicastNotificationRouter(metadata, listener);
-            list.put(result);
-            return result;
+            try(final LockScope ignored = beginWrite()) {
+                final ResourceNotificationList<UnicastNotificationRouter> list;
+                if (notifications.containsKey(resourceName))
+                    list = notifications.get(resourceName);
+                else notifications.put(resourceName, list = new ResourceNotificationList<>());
+                final UnicastNotificationRouter result = new UnicastNotificationRouter(metadata, listener);
+                list.put(result);
+                return result;
+            }
         }
 
-        private synchronized UnicastNotificationRouter remove(final String resourceName,
+        private UnicastNotificationRouter remove(final String resourceName,
                                                               final MBeanNotificationInfo metadata){
-            final ResourceNotificationList<UnicastNotificationRouter> list = get(resourceName);
-            if(list == null) return null;
-            final UnicastNotificationRouter result = list.remove(metadata);
-            if(list.isEmpty()) remove(resourceName);
-            return result;
+            try(final LockScope ignored = beginWrite()) {
+                final ResourceNotificationList<UnicastNotificationRouter> list = notifications.get(resourceName);
+                if (list == null) return null;
+                final UnicastNotificationRouter result = list.remove(metadata);
+                if (list.isEmpty()) notifications.remove(resourceName);
+                return result;
+            }
+        }
+
+        private Collection<MBeanNotificationInfo> getNotifications(final String resourceName) {
+            try(final LockScope ignored = beginRead()){
+                final ResourceNotificationList<?> list = notifications.get(resourceName);
+                if(list != null){
+                    final List<MBeanNotificationInfo> result = Lists.newArrayListWithExpectedSize(list.size());
+                    for(final FeatureAccessor<MBeanNotificationInfo, ?> accessor: list.values())
+                        result.add(accessor.getMetadata());
+                    return result;
+                }
+                else return ImmutableList.of();
+            }
         }
     }
 
@@ -89,6 +112,16 @@ final class ManagementInformationRepositoryImpl implements ManagementInformation
     @Override
     public void setAttributeValue(final String resourceName, final String attributeName, final Object value) throws AttributeNotFoundException, MBeanException, ReflectionException, InvalidAttributeValueException {
         attributes.setValue(resourceName, attributeName, value);
+    }
+
+    @Override
+    public Collection<MBeanAttributeInfo> getAttributes(final String resourceName) {
+        return attributes.getResourceAttributesMetadata(resourceName);
+    }
+
+    @Override
+    public Collection<MBeanNotificationInfo> getNotifications(final String resourceName) {
+        return notifications.getNotifications(resourceName);
     }
 
     UnicastNotificationRouter addNotification(final String resourceName,
