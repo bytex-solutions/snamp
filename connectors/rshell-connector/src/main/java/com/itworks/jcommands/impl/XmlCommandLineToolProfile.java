@@ -6,8 +6,15 @@ import com.itworks.jcommands.CommandExecutionChannel;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.xml.bind.JAXB;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.SchemaOutputResolver;
 import javax.xml.bind.annotation.*;
+import javax.xml.transform.Result;
+import javax.xml.transform.stream.StreamResult;
 import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 
 /**
@@ -110,5 +117,16 @@ public class XmlCommandLineToolProfile {
             readerTemplate.setScriptManager(scriptManager);
         if(modifierTemplate != null)
             modifierTemplate.setScriptManager(scriptManager);
+    }
+
+    public static void exportXsdSchema(final String directory) throws JAXBException, IOException {
+        final JAXBContext jc = JAXBContext.newInstance(XmlCommandLineToolProfile.class);
+        jc.generateSchema(new SchemaOutputResolver() {
+            @Override
+            public Result createOutput(final String namespaceUri, String suggestedFileName) throws IOException {
+                final Path schemaPath = Paths.get(directory, suggestedFileName);
+                return new StreamResult(schemaPath.toFile());
+            }
+        });
     }
 }

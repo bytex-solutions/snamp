@@ -10,6 +10,6 @@ final class XmlConstants {
 
     }
 
-    static final String V1_NAMESPACE = "http://itworks.com/snamp/command-line-tool-profile/v1.0";
+    static final String V1_NAMESPACE = "http://snamp.itworks.com/schemas/command-line-tool-profile/v1.0";
     static final String NAMESPACE = V1_NAMESPACE;
 }

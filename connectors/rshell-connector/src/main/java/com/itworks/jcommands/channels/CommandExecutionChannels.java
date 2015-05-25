@@ -1,12 +1,11 @@
 package com.itworks.jcommands.channels;
 
 import com.itworks.jcommands.CommandExecutionChannel;
+import com.itworks.jcommands.channels.spi.CommandExecutionChannelSpi;
+import com.itworks.jcommands.channels.spi.URICommandExecutionChannelSpi;
 
-import java.io.IOException;
 import java.net.URI;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents consolidated factory of
@@ -16,91 +15,12 @@ import java.util.Map;
  * @since 1.0
  */
 public final class CommandExecutionChannels {
-    /**
-     * Represents producer of {@link com.itworks.jcommands.CommandExecutionChannel} implementation.
-     * @author Roman Sakno
-     * @version 1.0
-     * @since 1.0
-     */
-    public static interface ExecutionChannelProducer {
-        /**
-         * Creates a new instance of the execution channel.
-         * @param params Channel initialization parameters. Cannot be {@literal null}.
-         * @return A new instance of the execution channel.
-         * @throws java.lang.Exception Unable to instantiate channel.
-         */
-        CommandExecutionChannel produce(final Map<String, String> params) throws Exception;
+    private CommandExecutionChannels(){
+
     }
 
-    /**
-     * Represents producer for the execution channel that
-     * supports {@link java.net.URI} as one of the initialization parameters.
-     * @author Roman Sakno
-     * @since 1.0
-     * @version 1.0
-     */
-    public static interface URIExecutionChannelProducer extends ExecutionChannelProducer{
-        /**
-         * Creates a new instance of the execution channel.
-         * @param connectionString The connection string used to initialize the channel. Cannot be {@literal null}.
-         * @param params Additional channel parameters.
-         * @return A new instance of the channel.
-         * @throws Exception Unable to instantiate the channel.
-         */
-        CommandExecutionChannel produce(final URI connectionString,
-                                        final Map<String, String> params) throws Exception;
-    }
-
-    private static final Map<String, ExecutionChannelProducer> channels;
-
-    static {
-        channels = new HashMap<>(3);
-        channels.put(LocalProcessExecutionChannel.CHANNEL_NAME, new ExecutionChannelProducer() {
-            @Override
-            public CommandExecutionChannel produce(final Map<String, String> params) {
-                return new LocalProcessExecutionChannel(params);
-            }
-        });
-        channels.put(SSHExecutionChannel.CHANNEL_NAME, new URIExecutionChannelProducer() {
-            @Override
-            public CommandExecutionChannel produce(final Map<String, String> params) throws IOException {
-                return new SSHExecutionChannel(params);
-            }
-
-            @Override
-            public CommandExecutionChannel produce(final URI connectionString, final Map<String, String> params) throws IOException {
-                return new SSHExecutionChannel(connectionString, params);
-            }
-        });
-        channels.put(RShellExecutionChannel.CHANNEL_NAME, new URIExecutionChannelProducer() {
-            @Override
-            public RShellExecutionChannel produce(final Map<String, String> params) {
-                return new RShellExecutionChannel(params);
-            }
-
-            @Override
-            public RShellExecutionChannel produce(final URI connectionString, final Map<String, String> params) {
-                return new RShellExecutionChannel(connectionString, params);
-            }
-        });
-        channels.put(RExecExecutionChannel.CHANNEL_NAME, new URIExecutionChannelProducer() {
-            @Override
-            public RExecExecutionChannel produce(final Map<String, String> params) throws Exception {
-                return new RExecExecutionChannel(params);
-            }
-
-            @Override
-            public RExecExecutionChannel produce(final URI connectionString, final Map<String, String> params) throws Exception {
-                return new RExecExecutionChannel(connectionString, params);
-            }
-        });
-    }
-
-    public static void registerChannelFactory(final String[] channelTypes,
-                                                 final ExecutionChannelProducer channelFactory) {
-        if (channelFactory == null) throw new IllegalArgumentException("channelFactory is null.");
-        else for(final String type: channelTypes)
-            channels.put(type, channelFactory);
+    private static ServiceLoader<CommandExecutionChannelSpi> getFactories(){
+        return ServiceLoader.load(CommandExecutionChannelSpi.class, CommandExecutionChannels.class.getClassLoader());
     }
 
     /**
@@ -113,10 +33,10 @@ public final class CommandExecutionChannels {
      */
     public static CommandExecutionChannel createChannel(final String channelType,
                                                         final Map<String, String> params) throws Exception{
-        if (channels.containsKey(channelType)) {
-            final ExecutionChannelProducer producer = channels.get(channelType);
-            return producer != null ? producer.produce(params) : null;
-        } else return null;
+        for(final CommandExecutionChannelSpi factory: getFactories())
+            if(Objects.equals(channelType, factory.getType()))
+                return factory.create(params);
+        return null;
     }
 
     /**
@@ -128,11 +48,13 @@ public final class CommandExecutionChannels {
      */
     public static CommandExecutionChannel createChannel(final URI connectionString,
                                                         final Map<String, String> params) throws Exception {
-        if (channels.containsKey(connectionString.getScheme())) {
-            final ExecutionChannelProducer producer = channels.get(connectionString.getScheme());
-            return producer instanceof URIExecutionChannelProducer ?
-                    ((URIExecutionChannelProducer) producer).produce(connectionString, params) : null;
-        } else return null;
+        for(final CommandExecutionChannelSpi factory: getFactories())
+            if(Objects.equals(connectionString.getScheme(), factory.getType())){
+                return factory instanceof URICommandExecutionChannelSpi ?
+                        ((URICommandExecutionChannelSpi)factory).create(connectionString, params):
+                        factory.create(params);
+            }
+        return null;
     }
 
     public static CommandExecutionChannel createLocalProcessExecutionChannel() {
