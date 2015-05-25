@@ -9,6 +9,7 @@ import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.internal.annotations.SpecialUse;
 
+import java.util.EventListener;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -23,7 +24,7 @@ import java.util.concurrent.TimeoutException;
  * @since 1.0
  */
 public final class Communicator extends EventBus {
-    private static final class IncomingMessageEvent extends SynchronizationEvent<Object> {
+    private static final class IncomingMessageEvent extends SynchronizationEvent<Object> implements EventListener {
         private final int exclusionHashCode;
 
         private IncomingMessageEvent(final Object exclusion) {
@@ -69,5 +70,11 @@ public final class Communicator extends EventBus {
 
     public Object post(final Object message, final long timeout) throws TimeoutException, InterruptedException {
         return post(message, new TimeSpan(timeout));
+    }
+
+    public SynchronizationEvent<?> registerMessageSynchronizer(){
+        final IncomingMessageEvent event = new IncomingMessageEvent(null);
+        register(event);
+        return event;
     }
 }

@@ -144,6 +144,21 @@ def communicator = getCommunicator 'test-communicator'
 communicator.post 'Hello, world!'
 ```
 
+Synchronous messaging using communicator:
+```groovy
+//script1.groovy
+communicator = getCommunicator 'test-communicator'
+def listen(message){
+    communicator.post('pong')
+}
+
+communicator.register(asListener this.&listen)
+//script2.groovy
+communicator = getCommunicator 'test-communicator'
+def response = communicator.post('ping', 2000)  //2 seconds for response timeout
+println response  //pong
+```
+
 > Read **SNAMP Management Information Model** before you continue
 
 ### Initialization script

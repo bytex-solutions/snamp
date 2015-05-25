@@ -17,6 +17,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 
 import javax.management.*;
+import java.util.EventListener;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
@@ -42,8 +43,8 @@ public abstract class ResourceAdapterScript extends Script implements AutoClosea
     }
 
     @SpecialUse
-    protected static Object asListener(final Closure<?> closure){
-        return new Object(){
+    protected static EventListener asListener(final Closure<?> closure){
+        return new EventListener(){
 
             @Subscribe
             @SpecialUse

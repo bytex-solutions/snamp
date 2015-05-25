@@ -1,7 +1,6 @@
 package com.itworks.snamp.connectors.groovy;
 
 import com.google.common.base.Supplier;
-import com.google.common.eventbus.AllowConcurrentEvents;
 import com.google.common.eventbus.Subscribe;
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.Consumer;
@@ -23,6 +22,7 @@ import org.osgi.framework.FrameworkUtil;
 import javax.management.*;
 import java.io.IOException;
 import java.util.Dictionary;
+import java.util.EventListener;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
@@ -365,8 +365,8 @@ abstract class ManagedResourceScript extends Script implements ManagedResourceSc
     }
 
     @SpecialUse
-    protected static Object asListener(final Closure<?> closure){
-        return new Object(){
+    protected static EventListener asListener(final Closure<?> closure){
+        return new EventListener(){
 
             @Subscribe
             @SpecialUse

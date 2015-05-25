@@ -17,6 +17,7 @@ import javax.management.AttributeChangeNotification;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import java.io.File;
+import java.math.BigInteger;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -46,7 +47,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return true;
+        return false;
     }
 
     @Test
@@ -55,6 +56,30 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
         final Object result = channel.post("changeStringAttribute", TimeSpan.fromSeconds(10));
         assertTrue(result instanceof String);
         assertEquals("Frank Underwood", result);
+    }
+
+    @Test
+    public void booleanAttributeTest() throws ExecutionException, TimeoutException, InterruptedException {
+        final Communicator channel = Communicator.getSession(COMMUNICATION_CHANNEL);
+        final Object result = channel.post("changeBooleanAttribute", TimeSpan.fromSeconds(10));
+        assertTrue(result instanceof Boolean);
+        assertEquals(Boolean.TRUE, result);
+    }
+
+    @Test
+    public void integerAttributeTest() throws ExecutionException, TimeoutException, InterruptedException {
+        final Communicator channel = Communicator.getSession(COMMUNICATION_CHANNEL);
+        final Object result = channel.post("changeIntegerAttribute", TimeSpan.fromSeconds(10));
+        assertTrue(result instanceof Integer);
+        assertEquals(1020, result);
+    }
+
+    @Test
+    public void bigIntegerAttributeTest() throws ExecutionException, TimeoutException, InterruptedException {
+        final Communicator channel = Communicator.getSession(COMMUNICATION_CHANNEL);
+        final Object result = channel.post("changeBigIntegerAttribute", 1000);
+        assertTrue(result instanceof BigInteger);
+        assertEquals(BigInteger.valueOf(1020L), result);
     }
 
     @Override
