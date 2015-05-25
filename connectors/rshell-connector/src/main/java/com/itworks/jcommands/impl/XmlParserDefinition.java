@@ -119,11 +119,11 @@ public class XmlParserDefinition {
         }
     }
 
-    private static interface PatternBasedFormat extends Serializable, Cloneable{
+    private interface PatternBasedFormat extends Serializable, Cloneable{
         String toPattern();
     }
 
-    private static interface DateParser extends PatternBasedFormat{
+    private interface DateParser extends PatternBasedFormat{
         Date parse(final String input) throws ParseException;
     }
 
@@ -135,7 +135,7 @@ public class XmlParserDefinition {
         }
     }
 
-    private static interface NumberParser extends PatternBasedFormat{
+    private interface NumberParser extends PatternBasedFormat{
         Number parse(final String input) throws ParseException;
         byte parseAsByte(final String input) throws ParseException;
         short parseAsShort(final String input) throws ParseException;
@@ -498,6 +498,7 @@ public class XmlParserDefinition {
         numberFormatter = createNumberParser(value);
     }
 
+    @SpecialUse
     public final String getNumberParsingFormat(){
         return numberFormatter.toPattern();
     }

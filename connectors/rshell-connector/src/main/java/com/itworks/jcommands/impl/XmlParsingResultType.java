@@ -28,7 +28,7 @@ public enum XmlParsingResultType {
      * <p>
      *     Possible string values are 0, 1, true, false, yes, no.
      */
-    @XmlEnumValue("boolean")
+    @XmlEnumValue("bool")
     BOOLEAN(SimpleType.BOOLEAN) {
         @Override
         public boolean[] newArray(final int length) {
@@ -71,7 +71,7 @@ public enum XmlParsingResultType {
         }
     },
 
-    @XmlEnumValue("8bit")
+    @XmlEnumValue("int8")
     BYTE(SimpleType.BYTE) {
         @Override
         public byte[] newArray(final int length) {
@@ -79,7 +79,7 @@ public enum XmlParsingResultType {
         }
     },
 
-    @XmlEnumValue("16bit")
+    @XmlEnumValue("int16")
     SHORT(SimpleType.SHORT) {
         @Override
         public short[] newArray(final int length) {
@@ -87,7 +87,7 @@ public enum XmlParsingResultType {
         }
     },
 
-    @XmlEnumValue("32bit")
+    @XmlEnumValue("int32")
     INTEGER(SimpleType.INTEGER) {
         @Override
         public int[] newArray(final int length) {
@@ -95,7 +95,7 @@ public enum XmlParsingResultType {
         }
     },
 
-    @XmlEnumValue("64bit")
+    @XmlEnumValue("int64")
     LONG(SimpleType.LONG) {
         @Override
         public long[] newArray(final int length) {
@@ -103,7 +103,7 @@ public enum XmlParsingResultType {
         }
     },
 
-    @XmlEnumValue("integer")
+    @XmlEnumValue("bigint")
     BIG_INTEGER(SimpleType.BIGINTEGER) {
         @Override
         public BigInteger[] newArray(final int length) {
@@ -111,7 +111,7 @@ public enum XmlParsingResultType {
         }
     },
 
-    @XmlEnumValue("decimal")
+    @XmlEnumValue("bigdecimal")
     BIG_DECIMAL(SimpleType.BIGDECIMAL) {
         @Override
         public BigDecimal[] newArray(final int length) {
@@ -151,7 +151,7 @@ public enum XmlParsingResultType {
         }
     },
 
-    @XmlEnumValue("float")
+    @XmlEnumValue("float32")
     FLOAT(SimpleType.FLOAT) {
         @Override
         public float[] newArray(final int length) {
@@ -159,7 +159,7 @@ public enum XmlParsingResultType {
         }
     },
 
-    @XmlEnumValue("double")
+    @XmlEnumValue("float64")
     DOUBLE(SimpleType.DOUBLE) {
         @Override
         public double[] newArray(final int length) {
@@ -169,15 +169,15 @@ public enum XmlParsingResultType {
 
     private final OpenType<?> openType;
 
-    private XmlParsingResultType(final SimpleType<?> type){
+    XmlParsingResultType(final SimpleType<?> type){
         this.openType = type;
     }
 
-    private XmlParsingResultType(final ArrayType<?> type){
+    XmlParsingResultType(final ArrayType<?> type){
         this.openType = type;
     }
 
-    private XmlParsingResultType(){
+    XmlParsingResultType(){
         this.openType = null;
     }
 

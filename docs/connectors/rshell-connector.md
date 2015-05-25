@@ -26,15 +26,66 @@ The magic of this connector is hidden in XML-based `Tool Profile` (or Command-li
 * JavaScript
 * [StringTemplate](http://www.stringtemplate.org/) as an template for tool STDIN
 
+## Connection String
+Connection string specifies protocol and the host name:
+* _rexec://host-name-or-ip:port_ - `rexec` protocol will be used. Remote \*nix machine is identified by host name or IP address
+* _rsh://host-name-or-ip:port_ - `rsh` protocol will be used. Remote \*nix machine is identified by host name or IP address
+* _ssh://host-name-or-ip:port_ - `ssh` protocol will be used.
+* _process_ - local process execution will be used (_process_ is a keyword, not a name of the external program)
+
+## Configuration Parameters
+JMX Resource Connector recognizes the following parameters:
+* For local processes only:
+
+Parameter | Type | Required | Meaning | Example
+---- | ---- | ---- | ---- | ----
+normalExitCode | Integer | No | Indicating normal exit code of external program. By default, `0` is used for Linux and Windows OS. When external program returns any other exit code the it will be recognized as error | `1`
+
+* For _rexec_ protocol only:
+
+Parameter | Type | Required | Meaning | Example
+---- | ---- | ---- | ---- | ----
+remoteUser | String | Yes | The login name on the remote machine | `acme`
+password | String | Yes | The password of the user on the remote machine | `qwerty`
+
+* For _rsh_ protocol only:
+
+Parameter | Type | Required | Meaning | Example
+---- | ---- | ---- | ---- | ----
+localUser | String | Yes | The login name on the local machine | `acme`
+remoteUser | String | Yes | The login name on the remote machine | `acme`
+
+* For _ssh_ protocol only:
+
+Parameter | Type | Required | Meaning | Example
+---- | ---- | ---- | ---- | ----
+knownHosts | File name | No | Path to the `hosts` file | `/home/user/.ssh/known_hosts`
+socketTimeout | Integer | No | SSH connection timeout | 3000
+encoding | String | No | Encoding of the characters in SSH session | `UTF-8`
+userName | String | No | The login name of the remote | `acme`
+sshKeyFile | File name | No | Path to SSH key file (if `password` is not specified). Supported key formats: OpenSSH, PKCS8, PuTTY | `hostkey.ser`
+password | String | No | The password of the user on the remote machine | `qwerty`
+fingerprint | String | No | The fingerprint of the key | `e8:0d:af:84:bb:ec:05:03:b9:7c:f3:75:19:5a:2a:63`
+
+## Configuring attributes
+Behaviour of each configured attribute described in the XML file called Command-Line Tool Profile. So, each reading and writing of attribute will execute external program.
+
+Use the following attribute configuration scheme:
+
+* `Name` - full path to the Command-Line Tool Profile
+* Any configuration parameter will be visible to STDIN template specified in the Command-Line Tool Profile
+
 ## Command-line tool profile
 Tool Profile is an XML file that describes the following aspects of the textual stream parsing and formatting.
 
 * **Attribute Reader definition** - describes how to execute command-line program when reading attribute value. If this section is omitted then attribute is write-only
-  * _Input section_ - how to construct command-line. The template can be constructed using [StringTemplate](http://www.stringtemplate.org/) syntax
+  * _Input section_ - how to construct command-line (STDIN). The template can be constructed using [StringTemplate](http://www.stringtemplate.org/) syntax
   * _Output section_ - how to parse STDOUT from program. The parses can be described in declarative DSL using XML tags from `http://snamp.itworks.com/schemas/command-line-tool-profile/v1.0` namespace. Additionally, you can mix declarative syntax with regular expressions and JavaScript code.
 * **Attribute Writer definition** - describes how to execute command-line program when writing attribute value. If this section is omitted then attribute is read-only
-  * _Input section_ - how to construct command-line. The template can be constructed using [StringTemplate](http://www.stringtemplate.org/) syntax
+  * _Input section_ - how to construct command-line (STDIN). The template can be constructed using [StringTemplate](http://www.stringtemplate.org/) syntax
   * _Output section_ can be omitted
+
+All template parameters used in _Input section_ should be specified as attribute configuration parameters.
 
 XSD schema of the Tool Profile:
 ```xml
@@ -62,8 +113,8 @@ XSD schema of the Tool Profile:
 
   <xs:complexType name="XmlCommandLineToolProfile">
     <xs:sequence>
-      <xs:element name="modifier" type="tns:XmlCommandLineTemplate" minOccurs="0"/>
-      <xs:element name="reader" type="tns:XmlCommandLineTemplate" minOccurs="0"/>
+      <xs:element name="modifier" type="tns:XmlCommandLineTemplate" form="qualified" minOccurs="0"/>
+      <xs:element name="reader" type="tns:XmlCommandLineTemplate" form="qualified" minOccurs="0"/>
     </xs:sequence>
   </xs:complexType>
 
@@ -132,22 +183,22 @@ XSD schema of the Tool Profile:
 
   <xs:simpleType name="CommandLineToolReturnType">
     <xs:restriction base="xs:string">
-      <xs:enumeration value="boolean"/>
+      <xs:enumeration value="bool"/>
       <xs:enumeration value="string"/>
       <xs:enumeration value="char"/>
       <xs:enumeration value="blob"/>
-      <xs:enumeration value="8bit"/>
-      <xs:enumeration value="16bit"/>
-      <xs:enumeration value="32bit"/>
-      <xs:enumeration value="64bit"/>
-      <xs:enumeration value="integer"/>
-      <xs:enumeration value="decimal"/>
+      <xs:enumeration value="int8"/>
+      <xs:enumeration value="int16"/>
+      <xs:enumeration value="int32"/>
+      <xs:enumeration value="int64"/>
+      <xs:enumeration value="bigint"/>
+      <xs:enumeration value="bigdecimal"/>
       <xs:enumeration value="dictionary"/>
       <xs:enumeration value="array"/>
       <xs:enumeration value="table"/>
       <xs:enumeration value="date"/>
-      <xs:enumeration value="float"/>
-      <xs:enumeration value="double"/>
+      <xs:enumeration value="float32"/>
+      <xs:enumeration value="float64"/>
     </xs:restriction>
   </xs:simpleType>
 
@@ -162,13 +213,50 @@ XSD schema of the Tool Profile:
   <xs:attribute name="type" type="tns:CommandLineToolReturnType"/>
 </xs:schema>
 ```
+Additional information about semantics of some XML elements:
+* `blobFormat` is sensitive only when `type=blob`
+* `dateTimeFormat` is sensitive only when `type=date`
+* `elementType` is sensitive only when `type=array`
+* Primitive arrays supported ony
+* `key` attribute indicates key name for `dictionary` type
+* `indexed` indicates indexed column for `table` type only
+* `name` attribute indicates column name for `table` type
+* `numberFormat` only for numeric types (`int8`, `int16`, `int32`, `int64`, `float32`, `float64`, `bigint`, `bigdecimal`)
 
+Supported values of `language` attribute:
+* `regexp` - regular expressions used as a parsing language
+* `JavaScript` - JS used as a parsing language
+* _Any JSR-223_ compliant scripting language installed into JVM globally
+
+There are several special global variables available to parsing script (except `regexp`):
+* `scan` - an object of `java.util.Scanner` class which contains scanner of STDOUT
+* `parser` - data type converter with the following methods:
+  * `byte parseByte(String value)`
+  * `byte parseByte(String value, String format)` - with extended number format (see decimal formats in Java)
+  * `short parseShort(String value)`
+  * `short parseShort(String value, String format)`
+  * `int parseInt(String value)`
+  * `int parseInt(String value, String format)`
+  * `long parseLong(String value)`
+  * `long parseLong(String value, String format)`
+  * `float parseFloat(String value)`
+  * `float parseFloat(String value, String format)`
+  * `double parseDouble(String value)`
+  * `double parseDouble(String value, String format)`
+  * `BigInteger parseBigInteger(String value)`
+  * `BigInteger parseBigInteger(String value, String format)`
+  * `BigDecimal parseBigDecimal(String value)`
+  * `BigDecimal parseBigDecimal(String value, String format)`
+  * `Date parseDate(String value)`
+  * `Date parseDate(String value, String format)`
+
+### Example
 The following example demonstrates how to parse output from `free` Linux utility:
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ns1:profile xmlns:ns1="http://snamp.itworks.com/schemas/command-line-tool-profile/v1.0">
-    <reader>
-        <ns1:output ns1:language="regexp" ns1:type="dictionary">
+    <ns1:reader>
+        <ns1:output ns1:language="regexp" ns1:type="dictionary" language="">
             <ns1:skip>[a-z]+</ns1:skip>
             <ns1:skip>[a-z]+</ns1:skip>
             <ns1:skip>[a-z]+</ns1:skip>
@@ -176,12 +264,30 @@ The following example demonstrates how to parse output from `free` Linux utility
             <ns1:skip>[a-z]+</ns1:skip>
             <ns1:skip>[a-z]+</ns1:skip>
             <ns1:skip>[a-zA-Z]+\:</ns1:skip>
-            <ns1:entry ns1:key="total" ns1:type="64bit">[0-9]+</ns1:entry>
-            <ns1:entry ns1:key="used" ns1:type="64bit">[0-9]+</ns1:entry>
-            <ns1:entry ns1:key="free" ns1:type="64bit">[0-9]+</ns1:entry>
+            <ns1:entry ns1:key="total" ns1:type="int64">[0-9]+</ns1:entry>
+            <ns1:entry ns1:key="used" ns1:type="int64">[0-9]+</ns1:entry>
+            <ns1:entry ns1:key="free" ns1:type="int64">[0-9]+</ns1:entry>
         </ns1:output>
         <ns1:input>free {format}</ns1:input>
-    </reader>
+    </ns1:reader>
 </ns1:profile>
+
 ```
-The first `skip` strings indicating that the name of the columns in the `free` output should be omitted.
+Example of `free -m` output:
+```
+total       used       free     shared    buffers     cached
+Mem:          7884       6060       1824        274        486       2574
+-/+ buffers/cache:       3000       4884
+Swap:         4095          0       4095
+```
+As you can see `writer` section is omitted therefore the configured attribute is read-only.
+
+`language="regexp"` means that parsing is based on regular expressions.
+
+`type="dictionary"` indicating that the STDOUT should be transformed into _DICTIONARY_ data type (key/value pairs).
+
+The first six `skip` strings indicating that the name of the columns in the `free` output should be omitted: `total`, `used`, `free`, `shared`, `buffers`, `cached` and `Mem:`.
+
+Now position of the parsed placed on `7884` token. Semantically, this column contains amount of used memory, in MB. Therefore, we should use `[0-9]+` regular expression. The result of regexp match will be parsed as `int64` value and saved with `total` key in the dictionary (`ns1:entry ns1:key="total" ns1:type="int64"`).
+
+`free {format}` describes how to construct command line and execute the process. `{format}` is a template parameter which actual value comes from user-defined configuration parameters of attribute. It is possible to use any valid _StringTemplate_ expression in the command-line template.

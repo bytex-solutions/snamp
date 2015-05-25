@@ -46,7 +46,7 @@ public class XmlCommandLineToolProfile {
         modifierTemplate = null;
     }
 
-    @XmlElement(name = "reader")
+    @XmlElement(name = "reader", namespace = XmlConstants.NAMESPACE)
     public final XmlCommandLineTemplate getReaderTemplate() {
         return readerTemplate;
     }
@@ -67,7 +67,7 @@ public class XmlCommandLineToolProfile {
         readerTemplate = value != null ? value : new XmlCommandLineTemplate();
     }
 
-    @XmlElement(name = "modifier")
+    @XmlElement(name = "modifier", namespace = XmlConstants.NAMESPACE)
     public final XmlCommandLineTemplate getModifierTemplate() {
         return modifierTemplate;
     }

@@ -74,6 +74,35 @@ public final class SSHExecutionChannel extends SSHClient implements CommandExecu
         this(join(connectionString, params), false);
     }
 
+    private static Authenticator fromCredentials(final String userName,
+                                                 final String password) {
+        return new Authenticator() {
+            @Override
+            public void authenticate(final SSHClient client) throws UserAuthException, TransportException {
+                client.authPassword(userName, password);
+            }
+        };
+    }
+
+    private static Authenticator fromKeyFile(final String userName,
+                                             final String keyFile) {
+        return new Authenticator() {
+            @Override
+            public void authenticate(final SSHClient client) throws UserAuthException, TransportException {
+                client.authPublickey(userName, keyFile);
+            }
+        };
+    }
+
+    private static Authenticator fromUserName(final String userName) {
+        return new Authenticator() {
+            @Override
+            public void authenticate(final SSHClient client) throws UserAuthException, TransportException {
+                client.authPublickey(userName);
+            }
+        };
+    }
+
     private SSHExecutionChannel(final Map<String, String> params,
                                 final boolean copyParams) throws IOException {
         mode = ChannelProcessingMode.SINGLETON_CONNECTION;
@@ -99,33 +128,10 @@ public final class SSHExecutionChannel extends SSHClient implements CommandExecu
         encoding = Objects.toString(params.get(ENCODING_PROPERTY), Charset.defaultCharset().name());
         if (params.containsKey(USER_NAME_PROPERTY))
             if (params.containsKey(PASSWORD_PROPERTY))
-                auth = new Authenticator() {
-                    private final String userName = params.get(USER_NAME_PROPERTY);
-                    private final String password = params.get(PASSWORD_PROPERTY);
-
-                    @Override
-                    public void authenticate(final SSHClient client) throws UserAuthException, TransportException {
-                        client.authPassword(userName, password);
-                    }
-                };
+                auth = fromCredentials(params.get(USER_NAME_PROPERTY), params.get(PASSWORD_PROPERTY));
             else if (params.containsKey(SSH_KEY_FILE_PROPERTY))
-                auth = new Authenticator() {
-                    private final String userName = params.get(USER_NAME_PROPERTY);
-                    private final String keyFile = params.get(SSH_KEY_FILE_PROPERTY);
-
-                    @Override
-                    public void authenticate(final SSHClient client) throws UserAuthException, TransportException {
-                        client.authPublickey(userName, keyFile);
-                    }
-                };
-            else auth = new Authenticator() {
-                    private final String userName = params.get(USER_NAME_PROPERTY);
-
-                    @Override
-                    public void authenticate(final SSHClient client) throws UserAuthException, TransportException {
-                        client.authPublickey(userName);
-                    }
-                };
+                auth = fromKeyFile(params.get(USER_NAME_PROPERTY), params.get(SSH_KEY_FILE_PROPERTY));
+            else auth = fromUserName(params.get(USER_NAME_PROPERTY));
         else auth = null;
         this.channelParams = copyParams ? new HashMap<>(params) : params;
         this.channelParams.remove(PASSWORD_PROPERTY);

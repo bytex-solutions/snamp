@@ -34,7 +34,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.itworks.snamp.TypeTokens.safeCast;
-import static com.itworks.snamp.connectors.rshell.RShellConnectorConfigurationDescriptor.COMMAND_PROFILE_PATH_PARAM;
 
 /**
  * Represents RShell resource connector.
@@ -271,24 +270,20 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
         @Override
         protected RShellAttributeInfo connectAttribute(final String attributeID,
                                                        final AttributeDescriptor descriptor) throws Exception {
-            if (descriptor.hasField(COMMAND_PROFILE_PATH_PARAM)) {
-                final String commandProfileFilePath = descriptor.getField(COMMAND_PROFILE_PATH_PARAM, String.class);
-                final XmlCommandLineToolProfile profile = XmlCommandLineToolProfile.loadFrom(new File(commandProfileFilePath));
-                if (profile != null) {
-                    profile.setScriptManager(scriptEngineManager);
-                    switch (profile.getReaderTemplate().getCommandOutputParser().getParsingResultType()){
-                        case DICTIONARY:
-                            return new DictionaryAttributeInfo(attributeID, profile, descriptor);
-                        case TABLE:
-                            return new TableAttributeInfo(attributeID, profile, descriptor);
-                        default:
-                            return new SimpleAttributeInfo(attributeID, profile, descriptor);
-                    }
+            final String commandProfileFilePath = descriptor.getAttributeName();
+            final XmlCommandLineToolProfile profile = XmlCommandLineToolProfile.loadFrom(new File(commandProfileFilePath));
+            if (profile != null) {
+                profile.setScriptManager(scriptEngineManager);
+                switch (profile.getReaderTemplate().getCommandOutputParser().getParsingResultType()) {
+                    case DICTIONARY:
+                        return new DictionaryAttributeInfo(attributeID, profile, descriptor);
+                    case TABLE:
+                        return new TableAttributeInfo(attributeID, profile, descriptor);
+                    default:
+                        return new SimpleAttributeInfo(attributeID, profile, descriptor);
                 }
-                else
-                    throw new FileNotFoundException(commandProfileFilePath + " RShell command profile doesn't exist");
-            }
-            throw new RShellConnectorAbsentParameterException(COMMAND_PROFILE_PATH_PARAM);
+            } else
+                throw new FileNotFoundException(commandProfileFilePath + " RShell command profile doesn't exist");
         }
 
         /**

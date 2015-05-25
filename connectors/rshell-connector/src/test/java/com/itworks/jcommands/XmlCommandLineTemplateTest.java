@@ -44,7 +44,7 @@ public final class XmlCommandLineTemplateTest extends Assert {
         }
     }
 
-    @Test
+    //@Test
     public void schemaBuildTest() throws JAXBException, IOException {
         XmlCommandLineToolProfile.exportXsdSchema("schemas/");
     }

@@ -51,12 +51,6 @@ public final class RShellResourceConnectorActivator extends ManagedResourceActiv
     @SpecialUse
     public RShellResourceConnectorActivator() {
         super(RShellResourceConnector.NAME,
-                new RShellConnectorFactory(),
-                new ConfigurationEntityDescriptionManager<RShellConnectorConfigurationDescriptor>() {
-                    @Override
-                    protected RShellConnectorConfigurationDescriptor createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
-                        return new RShellConnectorConfigurationDescriptor();
-                    }
-                });
+                new RShellConnectorFactory());
     }
 }
