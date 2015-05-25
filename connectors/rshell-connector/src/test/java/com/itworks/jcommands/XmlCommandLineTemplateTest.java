@@ -17,6 +17,7 @@ import javax.management.openmbean.SimpleType;
 import javax.management.openmbean.TabularData;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+import javax.xml.bind.JAXBException;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -41,6 +42,11 @@ public final class XmlCommandLineTemplateTest extends Assert {
         try(final OutputStream s = new ByteArrayOutputStream(4096)){
             profile.saveTo(s);
         }
+    }
+
+    @Test
+    public void schemaBuildTest() throws JAXBException, IOException {
+        XmlCommandLineToolProfile.exportXsdSchema("schemas/");
     }
 
     @Test
