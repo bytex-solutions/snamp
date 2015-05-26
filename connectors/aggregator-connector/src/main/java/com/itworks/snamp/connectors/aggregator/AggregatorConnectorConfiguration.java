@@ -21,7 +21,6 @@ import java.util.Map;
 final class AggregatorConnectorConfiguration extends ConfigurationEntityDescriptionProviderImpl {
     static final String SOURCE_PARAM = "source";
     static final String FOREIGN_ATTRIBUTE_PARAM = "foreignAttribute";
-    static final String PATTERN_PARAM = "pattern";
     static final String FIRST_FOREIGN_ATTRIBUTE_PARAM = "firstForeignAttribute";
     static final String SECOND_FOREIGN_ATTRIBUTE_PARAM = "secondForeignAttribute";
     static final String COMPARER_PARAM = "comparer";
@@ -59,7 +58,6 @@ final class AggregatorConnectorConfiguration extends ConfigurationEntityDescript
                     AttributeConfiguration.class,
                     SOURCE_PARAM,
                     FOREIGN_ATTRIBUTE_PARAM,
-                    PATTERN_PARAM,
                     FIRST_FOREIGN_ATTRIBUTE_PARAM,
                     SECOND_FOREIGN_ATTRIBUTE_PARAM,
                     COMPARER_PARAM,
@@ -110,10 +108,6 @@ final class AggregatorConnectorConfiguration extends ConfigurationEntityDescript
 
     static String getSecondForeignAttributeName(final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException {
         return getAttributeParameter(descriptor, SECOND_FOREIGN_ATTRIBUTE_PARAM);
-    }
-
-    static String getPattern(final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException {
-        return getAttributeParameter(descriptor, PATTERN_PARAM);
     }
 
     static Comparison getComparisonType(final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException {

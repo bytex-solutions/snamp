@@ -26,7 +26,7 @@ final class PatternMatcher extends UnaryAttributeAggregation<Boolean> {
                 DESCRIPTION,
                 SimpleType.BOOLEAN,
                 descriptor);
-        pattern = Pattern.compile(AggregatorConnectorConfiguration.getPattern(descriptor));
+        pattern = Pattern.compile(AggregatorConnectorConfiguration.getUserDefinedValue(descriptor));
     }
 
     @Override
@@ -37,7 +37,7 @@ final class PatternMatcher extends UnaryAttributeAggregation<Boolean> {
     static SerializableAttributeConfiguration getConfiguration() {
         final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration(NAME);
         fillParameters(result.getParameters());
-        result.getParameters().put(AggregatorConnectorConfiguration.PATTERN_PARAM, "");
+        result.getParameters().put(AggregatorConnectorConfiguration.VALUE_PARAM, "");
         return result;
     }
 }

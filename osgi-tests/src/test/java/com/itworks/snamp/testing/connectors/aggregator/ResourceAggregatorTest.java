@@ -353,7 +353,7 @@ public final class ResourceAggregatorTest extends AbstractSnampIntegrationTest {
 
         attribute = connector.newElement(AttributeConfiguration.class);
         attribute.setAttributeName("matcher");
-        attribute.getParameters().put("pattern", "[0-9]");
+        attribute.getParameters().put("value", "[0-9]");
         attribute.getParameters().put("source", JMX_RESOURCE_NAME);
         attribute.getParameters().put("foreignAttribute", "1.0");
         connector.getElements(AttributeConfiguration.class).put("42", attribute);

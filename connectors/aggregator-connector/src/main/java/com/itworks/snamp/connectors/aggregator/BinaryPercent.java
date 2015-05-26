@@ -25,7 +25,7 @@ final class BinaryPercent extends BinaryAttributeAggregation<Double> {
 
     static double compute(final BigDecimal first,
                                   final BigDecimal second){
-        return 100 * first.divide(second, 5, BigDecimal.ROUND_CEILING).doubleValue();
+        return 100F * first.divide(second, 5, BigDecimal.ROUND_CEILING).doubleValue();
     }
 
     @Override

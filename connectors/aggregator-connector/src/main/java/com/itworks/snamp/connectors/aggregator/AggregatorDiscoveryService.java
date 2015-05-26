@@ -29,7 +29,8 @@ final class AggregatorDiscoveryService extends AbstractAggregator implements Dis
                 Counter.getConfiguration(),
                 Average.getConfiguratoin() ,
                 Peak.getConfiguration(),
-                Decomposer.getConfiguration()
+                Decomposer.getConfiguration(),
+                Stringifier.getConfiguration()
         );
     }
 
