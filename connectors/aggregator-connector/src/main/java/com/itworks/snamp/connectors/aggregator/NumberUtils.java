@@ -26,6 +26,8 @@ final class NumberUtils {
             return BigDecimal.valueOf(((Number)value).doubleValue());
         else if(value instanceof String)
             return new BigDecimal((String)value);
+        else if(value instanceof Boolean)
+            return ((Boolean)value) ? BigDecimal.ONE : BigDecimal.ZERO;
         else throw new NumberFormatException(String.format("Value %s is not a number", value));
     }
 
@@ -34,6 +36,8 @@ final class NumberUtils {
             return ((Number)value).longValue();
         else if(value instanceof String)
             return Long.parseLong((String)value);
+        else if(value instanceof Boolean)
+            return ((Boolean)value) ? 1L : 0L;
         else throw new NumberFormatException(String.format("Value %s is not a number", value));
     }
 }

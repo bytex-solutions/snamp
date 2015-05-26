@@ -34,13 +34,13 @@ final class ManagementInformationRepositoryImpl implements ManagementInformation
     }
 
     private static final class ScriptNotificationsModel extends ThreadSafeObject {
-        private final Map<String, ResourceNotificationList<UnicastNotificationRouter>> notifications =
+        private final Map<String, ResourceNotificationList<ScriptNotificationAccessor>> notifications =
                 new HashMap<>(10);
 
-        private Iterable<UnicastNotificationRouter> clear(final String resourceName) {
+        private Iterable<ScriptNotificationAccessor> clear(final String resourceName) {
             try(final LockScope ignored = beginWrite()) {
-                final ResourceNotificationList<UnicastNotificationRouter> list = notifications.remove(resourceName);
-                return list != null ? list.values() : ImmutableList.<UnicastNotificationRouter>of();
+                final ResourceNotificationList<ScriptNotificationAccessor> list = notifications.remove(resourceName);
+                return list != null ? list.values() : ImmutableList.<ScriptNotificationAccessor>of();
             }
         }
 
@@ -56,22 +56,22 @@ final class ManagementInformationRepositoryImpl implements ManagementInformation
                                                            final MBeanNotificationInfo metadata,
                                                            final NotificationListener listener) {
             try(final LockScope ignored = beginWrite()) {
-                final ResourceNotificationList<UnicastNotificationRouter> list;
+                final ResourceNotificationList<ScriptNotificationAccessor> list;
                 if (notifications.containsKey(resourceName))
                     list = notifications.get(resourceName);
                 else notifications.put(resourceName, list = new ResourceNotificationList<>());
-                final UnicastNotificationRouter result = new UnicastNotificationRouter(metadata, listener);
+                final ScriptNotificationAccessor result = new ScriptNotificationAccessor(resourceName, metadata, listener);
                 list.put(result);
                 return result;
             }
         }
 
-        private UnicastNotificationRouter remove(final String resourceName,
+        private ScriptNotificationAccessor remove(final String resourceName,
                                                               final MBeanNotificationInfo metadata){
             try(final LockScope ignored = beginWrite()) {
-                final ResourceNotificationList<UnicastNotificationRouter> list = notifications.get(resourceName);
+                final ResourceNotificationList<ScriptNotificationAccessor> list = notifications.get(resourceName);
                 if (list == null) return null;
-                final UnicastNotificationRouter result = list.remove(metadata);
+                final ScriptNotificationAccessor result = list.remove(metadata);
                 if (list.isEmpty()) notifications.remove(resourceName);
                 return result;
             }
