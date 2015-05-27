@@ -2,6 +2,9 @@
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="snamp">
     <feature name="${project.artifactId}" description="SNAMP JMX Adapter" version="${project.version}">
         <details>Represents SNAMP SSH Adapter as Apache Karaf Feature</details>
+        <bundle>mvn:org.bouncycastle/bcpg-jdk15on/${bouncycastle.version}</bundle>
+        <bundle>mvn:org.bouncycastle/bcpkix-jdk15on/${bouncycastle.version}</bundle>
+        <bundle>mvn:org.bouncycastle/bcprov-jdk15on/${bouncycastle.version}</bundle>
         <bundle>mvn:com.itworks.snamp/sshj/${sshj.version}</bundle>
         <bundle>mvn:com.itworks.snamp/ssh-adapter/${project.version}</bundle>
     </feature>
