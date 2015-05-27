@@ -14,6 +14,15 @@
     <packaging>karaf-assembly</packaging>
     <version>${project.parent.version}</version>
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/*</include>
+                </includes>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.karaf.tooling</groupId>
@@ -23,9 +32,6 @@
                     <finalName>${project.parent.name}-{$project.version}</finalName>
                     <ignoreScopeProvided>true</ignoreScopeProvided>
                     <addTransitiveFeatures>true</addTransitiveFeatures>
-                    <startupFeatures>
-
-                    </startupFeatures>
                     <bootFeatures>
                         <!--Karaf System features-->
                         <feature>standard</feature>
@@ -51,6 +57,22 @@
                         <feature>groovy-connector-feature</feature>
                     </bootFeatures>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>branding</id>
+                        <goals>
+                            <goal>resources</goal>
+                        </goals>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <outputDirectory>${basedir}/target/assembly</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
