@@ -14,18 +14,65 @@
     <packaging>karaf-assembly</packaging>
     <version>${project.parent.version}</version>
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/*</include>
+                </includes>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.karaf.tooling</groupId>
                 <artifactId>karaf-maven-plugin</artifactId>
                 <extensions>true</extensions>
                 <configuration>
-                    <finalName>snamp</finalName>
+                    <finalName>${project.parent.name}-{$project.version}</finalName>
                     <ignoreScopeProvided>true</ignoreScopeProvided>
+                    <addTransitiveFeatures>true</addTransitiveFeatures>
                     <bootFeatures>
+                        <!--Karaf System features-->
+                        <feature>standard</feature>
+                        <feature>management</feature>
+                        <feature>jndi</feature>
+                        <!--SNAMP features-->
                         <feature>platform-feature</feature>
+                        <feature>http-adapter-feature</feature>
+                        <feature>jmx-adapter-feature</feature>
+                        <feature>nagios-adapter-feature</feature>
+                        <feature>nrdp-adapter-feature</feature>
+                        <feature>nsca-adapter-feature</feature>
+                        <feature>snmp-adapter-feature</feature>
+                        <feature>ssh-adapter-feature</feature>
+                        <feature>syslog-adapter-feature</feature>
+                        <feature>xmpp-adapter-feature</feature>
+                        <feature>groovy-adapter-feature</feature>
+                        <feature>aggregator-connector-feature</feature>
+                        <feature>jmx-connector-feature</feature>
+                        <feature>rshell-connector-feature</feature>
+                        <feature>snmp-connector-feature</feature>
+                        <feature>ibmwmq-connector-feature</feature>
+                        <feature>groovy-connector-feature</feature>
                     </bootFeatures>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>branding</id>
+                        <goals>
+                            <goal>resources</goal>
+                        </goals>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <outputDirectory>${basedir}/target/assembly</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
@@ -35,110 +82,157 @@
             <groupId>org.apache.karaf.features</groupId>
             <artifactId>framework</artifactId>
             <version>${karaf.version}</version>
+            <scope>compile</scope>
             <type>kar</type>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>platform-feature</artifactId>
             <version>${project.version}</version>
-            <type>kar</type>
-            <scope>compile</scope>
+            <type>xml</type>
+            <classifier>features</classifier>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>http-adapter-feature</artifactId>
             <version>${snamp.adapters.http.version}</version>
-            <type>kar</type>
-            <scope>compile</scope>
+            <type>xml</type>
+            <classifier>features</classifier>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>jmx-adapter-feature</artifactId>
             <version>${snamp.adapters.jmx.version}</version>
-            <type>kar</type>
-            <scope>compile</scope>
+            <type>xml</type>
+            <classifier>features</classifier>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>nagios-adapter-feature</artifactId>
             <version>${snamp.adapters.nagios.version}</version>
-            <type>kar</type>
-            <scope>compile</scope>
+            <type>xml</type>
+            <classifier>features</classifier>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>nrdp-adapter-feature</artifactId>
             <version>${snamp.adapters.nrdp.version}</version>
-            <type>kar</type>
-            <scope>compile</scope>
+            <type>xml</type>
+            <classifier>features</classifier>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>nsca-adapter-feature</artifactId>
             <version>${snamp.adapters.nsca.version}</version>
-            <type>kar</type>
-            <scope>compile</scope>
+            <type>xml</type>
+            <classifier>features</classifier>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>snmp-adapter-feature</artifactId>
             <version>${snamp.adapters.snmp.version}</version>
-            <type>kar</type>
-            <scope>compile</scope>
+            <type>xml</type>
+            <classifier>features</classifier>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>ssh-adapter-feature</artifactId>
             <version>${snamp.adapters.ssh.version}</version>
-            <type>kar</type>
-            <scope>compile</scope>
+            <type>xml</type>
+            <classifier>features</classifier>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>syslog-adapter-feature</artifactId>
             <version>${snamp.adapters.syslog.version}</version>
-            <type>kar</type>
-            <scope>compile</scope>
+            <type>xml</type>
+            <classifier>features</classifier>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>xmpp-adapter-feature</artifactId>
             <version>${snamp.adapters.xmpp.version}</version>
-            <type>kar</type>
-            <scope>compile</scope>
+            <type>xml</type>
+            <classifier>features</classifier>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.itworks.snamp</groupId>
+            <artifactId>groovy-adapter-feature</artifactId>
+            <version>${snamp.adapters.groovy.version}</version>
+            <type>xml</type>
+            <classifier>features</classifier>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>aggregator-connector-feature</artifactId>
             <version>${snamp.connectors.aggregator.version}</version>
-            <type>kar</type>
-            <scope>compile</scope>
+            <type>xml</type>
+            <classifier>features</classifier>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>jmx-connector-feature</artifactId>
             <version>${snamp.connectors.jmx.version}</version>
-            <type>kar</type>
-            <scope>compile</scope>
+            <type>xml</type>
+            <classifier>features</classifier>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>rshell-connector-feature</artifactId>
             <version>${snamp.connectors.rshell.version}</version>
-            <type>kar</type>
-            <scope>compile</scope>
+            <type>xml</type>
+            <classifier>features</classifier>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.itworks.snamp</groupId>
             <artifactId>snmp-connector-feature</artifactId>
             <version>${snamp.connectors.snmp.version}</version>
-            <type>kar</type>
-            <scope>compile</scope>
+            <type>xml</type>
+            <classifier>features</classifier>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.itworks.snamp</groupId>
+            <artifactId>ibmwmq-connector-feature</artifactId>
+            <version>${snamp.connectors.ibmwmq.version}</version>
+            <type>xml</type>
+            <classifier>features</classifier>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.itworks.snamp</groupId>
+            <artifactId>groovy-connector-feature</artifactId>
+            <version>${snamp.connectors.groovy.version}</version>
+            <type>xml</type>
+            <classifier>features</classifier>
+            <scope>runtime</scope>
         </dependency>
 
         <dependency>
             <groupId>org.apache.karaf.features</groupId>
             <artifactId>standard</artifactId>
+            <classifier>features</classifier>
+            <version>${karaf.version}</version>
+            <type>xml</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.karaf.features</groupId>
+            <artifactId>enterprise</artifactId>
             <classifier>features</classifier>
             <version>${karaf.version}</version>
             <type>xml</type>

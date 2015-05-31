@@ -2,6 +2,8 @@
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="snamp">
     <feature name="${project.artifactId}" description="SNAMP RShell Connector" version="${project.version}">
         <details>Represents SNAMP RShell Resource Connector as Apache Karaf Feature</details>
+        <bundle>mvn:org.bouncycastle/bcpkix-jdk15on/${bouncycastle.version}</bundle>
+        <bundle>mvn:org.bouncycastle/bcprov-jdk15on/${bouncycastle.version}</bundle>
         <bundle>mvn:com.itworks.snamp/sshj/${sshj.version}</bundle>
         <bundle>mvn:com.itworks.snamp/rshell-connector/${project.version}</bundle>
     </feature>
