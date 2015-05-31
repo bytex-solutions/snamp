@@ -94,6 +94,9 @@ final class DiscoverManagementMetadataOperation extends OpenMBean.OpenOperation<
                     // append the r/w timeout
                     if(attribute.getReadWriteTimeout() != TimeSpan.INFINITE)
                         attrMap.put("ReadWriteTimeout", attribute.getReadWriteTimeout().convert(TimeUnit.MILLISECONDS).duration);
+                    else {
+                        attrMap.put("ReadWriteTimeout", Long.MAX_VALUE);
+                    }
                     //read other properties
                     if (!attribute.getParameters().keySet().isEmpty()) {
                         final TabularDataBuilderRowFill builder = new TabularDataBuilderRowFill(SIMPLE_MAP_TYPE);
@@ -122,7 +125,7 @@ final class DiscoverManagementMetadataOperation extends OpenMBean.OpenOperation<
                         // append additional properties
                         eventMap.put("AdditionalProperties", builder.get());
                     }
-                    eventsData.add(ATTRIBUTE_METADATA_BUILDER.build(eventMap));
+                    eventsData.add(EVENT_METADATA_BUILDER.build(eventMap));
                 }
                 schema.put("Attributes", attributesData.toArray(new CompositeData[attributesData.size()]));
                 schema.put("Events", eventsData.toArray(new CompositeData[eventsData.size()]));
