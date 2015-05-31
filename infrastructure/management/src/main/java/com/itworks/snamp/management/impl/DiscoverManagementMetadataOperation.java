@@ -98,7 +98,7 @@ final class DiscoverManagementMetadataOperation extends OpenMBean.OpenOperation<
                     if (!attribute.getParameters().keySet().isEmpty()) {
                         final TabularDataBuilderRowFill builder = new TabularDataBuilderRowFill(SIMPLE_MAP_TYPE);
                         for (final String parameter : attribute.getParameters().keySet()) {
-                            builder.newRow().cell("key", parameter).cell("value", attribute.getParameters().get(parameter)).flush();
+                            builder.newRow().cell("Key", parameter).cell("Value", attribute.getParameters().get(parameter)).flush();
                         }
                         // append additional properties
                         attrMap.put("AdditionalProperties", builder.get());
@@ -117,7 +117,7 @@ final class DiscoverManagementMetadataOperation extends OpenMBean.OpenOperation<
                     if (!event.getParameters().keySet().isEmpty()) {
                         final TabularDataBuilderRowFill builder = new TabularDataBuilderRowFill(SIMPLE_MAP_TYPE);
                         for (final String parameter : event.getParameters().keySet()) {
-                            builder.newRow().cell("key", parameter).cell("value", event.getParameters().get(parameter)).flush();
+                            builder.newRow().cell("Key", parameter).cell("Value", event.getParameters().get(parameter)).flush();
                         }
                         // append additional properties
                         eventMap.put("AdditionalProperties", builder.get());
