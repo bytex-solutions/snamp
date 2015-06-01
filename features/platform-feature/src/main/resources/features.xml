@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="snamp">
-    <repository>mvn:io.hawt/hawtio-karaf/${hawtio.version}/xml/features</repository>
-    <feature name="${project.artifactId}" description="SNAMP Platform" version="${project.version}">
-        <details>Basic set of features required to support SNAMP platform</details>
+    <feature name="${project.artifactId}" description="${project.name}" version="${project.version}">
+        <details>${project.description}</details>
         <!-- Third-party features -->
-        <feature>eventadmin</feature>
-        <feature>hawtio</feature>
+        <feature version="${karaf.version}">eventadmin</feature>
         <!-- Third-party bundles -->
         <bundle>mvn:com.google.code.gson/gson/${gson.version}</bundle>
         <bundle>mvn:com.google.guava/guava/${guava.version}</bundle>

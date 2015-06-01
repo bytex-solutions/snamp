@@ -13,14 +13,16 @@
     <description>Assembly of SNAMP Distribution Package</description>
     <packaging>karaf-assembly</packaging>
     <version>${project.parent.version}</version>
+    <properties>
+        <karaf.folder.root>${basedir}/target/assembly</karaf.folder.root>
+        <karaf.folder.deploy>${karaf.folder.root}/deploy</karaf.folder.deploy>
+        <karaf.folder.repo>${karaf.folder.root}/system</karaf.folder.repo>
+    </properties>
     <build>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
-                <includes>
-                    <include>**/*</include>
-                </includes>
             </resource>
         </resources>
         <plugins>
@@ -28,34 +30,44 @@
                 <groupId>org.apache.karaf.tooling</groupId>
                 <artifactId>karaf-maven-plugin</artifactId>
                 <extensions>true</extensions>
+                <executions>
+                    <execution>
+                        <id>deploy-features</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>features-add-to-repository</goal>
+                        </goals>
+                        <configuration>
+                            <!-- This is the only way to pre-install cellar in Karaf due to bug in karaf-maven-plugin.
+                            For more info, see http://karaf.apache.org/manual/latest/developers-guide/karaf-maven-plugin-features-add-to-repository.html-->
+                            <descriptors>
+                                <descriptor>mvn:org.apache.karaf.cellar/apache-karaf-cellar/3.0.3/xml/features</descriptor>
+                            </descriptors>
+                            <features>
+                                <feature>cellar</feature>
+                            </features>
+                            <repository>${karaf.folder.repo}</repository>
+                        </configuration>
+                    </execution>
+                </executions>
                 <configuration>
                     <finalName>${project.parent.name}-{$project.version}</finalName>
                     <ignoreScopeProvided>true</ignoreScopeProvided>
-                    <addTransitiveFeatures>true</addTransitiveFeatures>
                     <bootFeatures>
                         <!--Karaf System features-->
                         <feature>standard</feature>
                         <feature>management</feature>
+                        <feature>ssh</feature>
+                        <feature>region</feature>
+                        <feature>eventadmin</feature>
                         <feature>jndi</feature>
-                        <!--SNAMP features-->
-                        <feature>platform-feature</feature>
-                        <feature>http-adapter-feature</feature>
-                        <feature>jmx-adapter-feature</feature>
-                        <feature>nagios-adapter-feature</feature>
-                        <feature>nrdp-adapter-feature</feature>
-                        <feature>nsca-adapter-feature</feature>
-                        <feature>snmp-adapter-feature</feature>
-                        <feature>ssh-adapter-feature</feature>
-                        <feature>syslog-adapter-feature</feature>
-                        <feature>xmpp-adapter-feature</feature>
-                        <feature>groovy-adapter-feature</feature>
-                        <feature>aggregator-connector-feature</feature>
-                        <feature>jmx-connector-feature</feature>
-                        <feature>rshell-connector-feature</feature>
-                        <feature>snmp-connector-feature</feature>
-                        <feature>ibmwmq-connector-feature</feature>
-                        <feature>groovy-connector-feature</feature>
                     </bootFeatures>
+                    <installedFeatures>
+                        <feature>platform-feature</feature>
+                        <feature>wrapper</feature>
+                        <feature>http</feature>
+                        <feature>http-whiteboard</feature>
+                    </installedFeatures>
                 </configuration>
             </plugin>
             <plugin>
@@ -67,9 +79,154 @@
                         <goals>
                             <goal>resources</goal>
                         </goals>
+                        <phase>generate-resources</phase>
+                        <configuration>
+                            <outputDirectory>${karaf.folder.root}</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-to-deploy</id>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
                         <phase>prepare-package</phase>
                         <configuration>
-                            <outputDirectory>${basedir}/target/assembly</outputDirectory>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.itworks.snamp</groupId>
+                                    <artifactId>jmx-connector-feature</artifactId>
+                                    <version>${snamp.connectors.jmx.version}</version>
+                                    <type>kar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${karaf.folder.deploy}</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.itworks.snamp</groupId>
+                                    <artifactId>aggregator-connector-feature</artifactId>
+                                    <version>${snamp.connectors.aggregator.version}</version>
+                                    <type>kar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${karaf.folder.deploy}</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.itworks.snamp</groupId>
+                                    <artifactId>groovy-connector-feature</artifactId>
+                                    <version>${snamp.connectors.groovy.version}</version>
+                                    <type>kar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${karaf.folder.deploy}</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.itworks.snamp</groupId>
+                                    <artifactId>ibmwmq-connector-feature</artifactId>
+                                    <version>${snamp.connectors.ibmwmq.version}</version>
+                                    <type>kar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${karaf.folder.deploy}</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.itworks.snamp</groupId>
+                                    <artifactId>rshell-connector-feature</artifactId>
+                                    <version>${snamp.connectors.rshell.version}</version>
+                                    <type>kar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${karaf.folder.deploy}</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.itworks.snamp</groupId>
+                                    <artifactId>snmp-connector-feature</artifactId>
+                                    <version>${snamp.connectors.snmp.version}</version>
+                                    <type>kar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${karaf.folder.deploy}</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.itworks.snamp</groupId>
+                                    <artifactId>groovy-adapter-feature</artifactId>
+                                    <version>${snamp.adapters.groovy.version}</version>
+                                    <type>kar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${karaf.folder.deploy}</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.itworks.snamp</groupId>
+                                    <artifactId>http-adapter-feature</artifactId>
+                                    <version>${snamp.adapters.http.version}</version>
+                                    <type>kar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${karaf.folder.deploy}</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.itworks.snamp</groupId>
+                                    <artifactId>jmx-adapter-feature</artifactId>
+                                    <version>${snamp.adapters.jmx.version}</version>
+                                    <type>kar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${karaf.folder.deploy}</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.itworks.snamp</groupId>
+                                    <artifactId>nagios-adapter-feature</artifactId>
+                                    <version>${snamp.adapters.nagios.version}</version>
+                                    <type>kar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${karaf.folder.deploy}</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.itworks.snamp</groupId>
+                                    <artifactId>nrdp-adapter-feature</artifactId>
+                                    <version>${snamp.adapters.nrdp.version}</version>
+                                    <type>kar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${karaf.folder.deploy}</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.itworks.snamp</groupId>
+                                    <artifactId>nsca-adapter-feature</artifactId>
+                                    <version>${snamp.adapters.nsca.version}</version>
+                                    <type>kar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${karaf.folder.deploy}</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.itworks.snamp</groupId>
+                                    <artifactId>snmp-adapter-feature</artifactId>
+                                    <version>${snamp.adapters.snmp.version}</version>
+                                    <type>kar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${karaf.folder.deploy}</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.itworks.snamp</groupId>
+                                    <artifactId>ssh-adapter-feature</artifactId>
+                                    <version>${snamp.adapters.ssh.version}</version>
+                                    <type>kar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${karaf.folder.deploy}</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.itworks.snamp</groupId>
+                                    <artifactId>syslog-adapter-feature</artifactId>
+                                    <version>${snamp.adapters.syslog.version}</version>
+                                    <type>kar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${karaf.folder.deploy}</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.itworks.snamp</groupId>
+                                    <artifactId>xmpp-adapter-feature</artifactId>
+                                    <version>${snamp.adapters.xmpp.version}</version>
+                                    <type>kar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${karaf.folder.deploy}</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
                         </configuration>
                     </execution>
                 </executions>
@@ -94,134 +251,13 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>com.itworks.snamp</groupId>
-            <artifactId>http-adapter-feature</artifactId>
-            <version>${snamp.adapters.http.version}</version>
+            <groupId>org.apache.karaf.cellar</groupId>
+            <artifactId>apache-karaf-cellar</artifactId>
+            <version>${cellar.version}</version>
             <type>xml</type>
             <classifier>features</classifier>
             <scope>runtime</scope>
         </dependency>
-        <dependency>
-            <groupId>com.itworks.snamp</groupId>
-            <artifactId>jmx-adapter-feature</artifactId>
-            <version>${snamp.adapters.jmx.version}</version>
-            <type>xml</type>
-            <classifier>features</classifier>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.itworks.snamp</groupId>
-            <artifactId>nagios-adapter-feature</artifactId>
-            <version>${snamp.adapters.nagios.version}</version>
-            <type>xml</type>
-            <classifier>features</classifier>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.itworks.snamp</groupId>
-            <artifactId>nrdp-adapter-feature</artifactId>
-            <version>${snamp.adapters.nrdp.version}</version>
-            <type>xml</type>
-            <classifier>features</classifier>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.itworks.snamp</groupId>
-            <artifactId>nsca-adapter-feature</artifactId>
-            <version>${snamp.adapters.nsca.version}</version>
-            <type>xml</type>
-            <classifier>features</classifier>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.itworks.snamp</groupId>
-            <artifactId>snmp-adapter-feature</artifactId>
-            <version>${snamp.adapters.snmp.version}</version>
-            <type>xml</type>
-            <classifier>features</classifier>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.itworks.snamp</groupId>
-            <artifactId>ssh-adapter-feature</artifactId>
-            <version>${snamp.adapters.ssh.version}</version>
-            <type>xml</type>
-            <classifier>features</classifier>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.itworks.snamp</groupId>
-            <artifactId>syslog-adapter-feature</artifactId>
-            <version>${snamp.adapters.syslog.version}</version>
-            <type>xml</type>
-            <classifier>features</classifier>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.itworks.snamp</groupId>
-            <artifactId>xmpp-adapter-feature</artifactId>
-            <version>${snamp.adapters.xmpp.version}</version>
-            <type>xml</type>
-            <classifier>features</classifier>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.itworks.snamp</groupId>
-            <artifactId>groovy-adapter-feature</artifactId>
-            <version>${snamp.adapters.groovy.version}</version>
-            <type>xml</type>
-            <classifier>features</classifier>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.itworks.snamp</groupId>
-            <artifactId>aggregator-connector-feature</artifactId>
-            <version>${snamp.connectors.aggregator.version}</version>
-            <type>xml</type>
-            <classifier>features</classifier>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.itworks.snamp</groupId>
-            <artifactId>jmx-connector-feature</artifactId>
-            <version>${snamp.connectors.jmx.version}</version>
-            <type>xml</type>
-            <classifier>features</classifier>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.itworks.snamp</groupId>
-            <artifactId>rshell-connector-feature</artifactId>
-            <version>${snamp.connectors.rshell.version}</version>
-            <type>xml</type>
-            <classifier>features</classifier>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.itworks.snamp</groupId>
-            <artifactId>snmp-connector-feature</artifactId>
-            <version>${snamp.connectors.snmp.version}</version>
-            <type>xml</type>
-            <classifier>features</classifier>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.itworks.snamp</groupId>
-            <artifactId>ibmwmq-connector-feature</artifactId>
-            <version>${snamp.connectors.ibmwmq.version}</version>
-            <type>xml</type>
-            <classifier>features</classifier>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.itworks.snamp</groupId>
-            <artifactId>groovy-connector-feature</artifactId>
-            <version>${snamp.connectors.groovy.version}</version>
-            <type>xml</type>
-            <classifier>features</classifier>
-            <scope>runtime</scope>
-        </dependency>
-
         <dependency>
             <groupId>org.apache.karaf.features</groupId>
             <artifactId>standard</artifactId>

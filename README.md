@@ -16,6 +16,8 @@ for the complex IT infrastructure.
 * JDK 7 or higher (Oracle HotSpot or OpenJDK is recommended but not required)
 
 ## How to build
+First, you should build SNAMP using _Development_ profile. After, you can switch to _Release_ profile and build SNAMP Distribution Package.
+
 Not all dependencies located at the Maven Central. Some dependencies are proprietary libraries. Therefore,
 it is necessary to prepare your local Maven repository as follows.
 

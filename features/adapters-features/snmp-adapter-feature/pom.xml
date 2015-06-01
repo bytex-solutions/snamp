@@ -31,6 +31,9 @@
                         </goals>
                         <configuration>
                             <inputFile>${project.basedir}/src/main/resources/features.xml</inputFile>
+                            <excludedArtifactIds>
+                                <artifactId>platform-feature</artifactId>
+                            </excludedArtifactIds>
                         </configuration>
                     </execution>
                 </executions>

@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="snamp">
-    <feature name="${project.artifactId}" description="SNAMP SNMP Adapter" version="${project.version}">
-        <details>Represents SNAMP SNMP Adapter as Apache Karaf Feature</details>
-        <bundle>mvn:org.apache.aries.jndi/org.apache.aries.jndi/1.0.0</bundle>
-        <bundle>mvn:org.apache.aries.jndi/org.apache.aries.jndi.core/1.0.0</bundle>
-        <bundle>mvn:org.apache.aries.jndi/org.apache.aries.jndi.url/1.0.0</bundle>
-        <bundle>mvn:org.apache.aries.jndi/org.apache.aries.jndi.api/1.0.0</bundle>
-        <bundle>mvn:org.apache.aries.jndi/org.apache.aries.jndi.rmi/1.0.0</bundle>
-        <bundle>mvn:org.apache.aries/org.apache.aries.util/1.0.0</bundle>
-        <bundle>mvn:org.apache.aries.proxy/org.apache.aries.proxy.api/1.0.0</bundle>
-        <bundle>mvn:com.itworks.snamp/snmp4j/${snmp4j.version}</bundle>
-        <bundle>mvn:com.itworks.snamp/snmp-adapter/${project.version}</bundle>
+    <feature name="${project.artifactId}" description="${project.name}" version="${project.version}">
+        <details>${project.description}</details>
+        <feature version="${snamp.framework.version}">platform-feature</feature>
+        <bundle start="true">mvn:org.apache.aries.jndi/org.apache.aries.jndi/${aries.version}</bundle>
+        <bundle start="true">mvn:org.apache.aries.jndi/org.apache.aries.jndi.core/${aries.version}</bundle>
+        <bundle start="true">mvn:org.apache.aries.jndi/org.apache.aries.jndi.url/${aries.api.version}</bundle>
+        <bundle start="true">mvn:org.apache.aries.jndi/org.apache.aries.jndi.api/${aries.api.version}</bundle>
+        <bundle start="true">mvn:org.apache.aries.jndi/org.apache.aries.jndi.rmi/${aries.version}</bundle>
+        <bundle start="true">mvn:org.apache.aries/org.apache.aries.util/${aries.version}</bundle>
+        <bundle start="true">mvn:org.apache.aries.proxy/org.apache.aries.proxy.api/${aries.version}</bundle>
+        <bundle start="true">mvn:com.itworks.snamp/snmp4j/${snmp4j.version}</bundle>
+        <bundle start="true">mvn:com.itworks.snamp/snmp-adapter/${project.version}</bundle>
     </feature>
 </features>

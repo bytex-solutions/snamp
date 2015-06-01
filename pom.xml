@@ -21,9 +21,10 @@
     <groovy.version>2.4.3</groovy.version>
     <apache.ivy.version>2.4.0</apache.ivy.version>
     <cellar.version>${karaf.version}</cellar.version>
-    <hawtio.version>1.4.47</hawtio.version>
     <jline.version>2.12</jline.version>
     <bouncycastle.version>1.50</bouncycastle.version>
+    <aries.version>1.0.0</aries.version>
+    <aries.api.version>1.1.0</aries.api.version>
     <!--Versioning of SNAMP Components-->
     <snmp4j.version>2.3.4</snmp4j.version>
     <sshj.version>0.10.0</sshj.version>
@@ -59,6 +60,16 @@
   <build>
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>2.10</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>1.9.1</version>
+                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-resources-plugin</artifactId>
@@ -121,6 +132,11 @@
             <id>maven2</id>
             <name>Central Maven Repository</name>
             <url>http://repo2.maven.org/maven2/</url>
+        </repository>
+        <repository>
+            <id>servicemix</id>
+            <name>ServiceMix Maven Repository</name>
+            <url>http://svn.apache.org/repos/asf/servicemix/m2-repo/</url>
         </repository>
     </repositories>
 

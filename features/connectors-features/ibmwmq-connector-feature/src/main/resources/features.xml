@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="snamp">
-    <feature name="${project.artifactId}" description="IBM MQ Connector" version="${project.version}">
-        <details>Represents IBM MQ Resource Connector as Apache Karaf Feature</details>
-        <bundle>mvn:com.itworks.snamp/ibmwmq-connector/${project.version}</bundle>
+    <feature name="${project.artifactId}" description="${project.name}" version="${project.version}">
+        <details>${project.description}</details>
+        <feature version="${snamp.framework.version}">platform-feature</feature>
+        <bundle start="true">mvn:com.itworks.snamp/ibmwmq-connector/${project.version}</bundle>
     </feature>
 </features>
