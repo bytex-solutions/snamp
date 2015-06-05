@@ -6,7 +6,7 @@ SNAMP can be configured using different ways:
 * via HTTP
 * via command-line tools
 
-System configuration (JVM and Apache Karaf) can be changed via set of configuration files in `<snamp>/etc` folder.
+System configuration (JVM and Apache Karaf) can be changed via set of configuration files in `<snamp>/etc` folder or commands of Karaf shell console.
 
 See [Configuring Apache Karaf](http://karaf.apache.org/manual/latest/users-guide/configuration.html) for more information about Apache Karaf configuration model.
 
@@ -116,7 +116,35 @@ SNAMP Management Console build on top of powerful [hawt.io](http://hawt.io) web 
 There are the following ways to change the SNAMP configuration:
 * Using JMX tool such as JConsole or VisualVM
 * Using JMX command-line tool such as [jmxterm](http://wiki.cyclopsgroup.org/jmxterm/)
-* Using `curl` utility
+* Using HTTP protocol and `curl` or `wget` utility
+
+For JMX-compliant tool you need establish connection to SNAMP Managed Bean and read/write `configuration` attribute.
+
+For HTTP-based communication, use `curl` utility. The first, verify that JMX-HTTP bridge is accessible:
+
+```bash
+curl http://localhost:8181/jolokia
+{"timestamp":1433451551,"status":200,"request":{"type":"version"},"value":{"protocol":"7.2","config":{"useRestrictorService":"false","canonicalNaming":"true","includeStackTrace":"true","listenForHttpService":"true","historyMaxEntries":"10","agentId":"192.168.1.51-25946-69e862ec-osgi","debug":"false","realm":"jolokia","serializeException":"false","agentContext":"\/jolokia","agentType":"servlet","policyLocation":"classpath:\/jolokia-access.xml","debugMaxEntries":"100","authMode":"basic","mimeType":"text\/plain"},"agent":"1.3.0","info":{"product":"felix","vendor":"Apache","version":"4.2.1"}}}
+
+```
+If HawtIO is already installed then you should use http://localhost:8181/hawtio/jolokia path. Otherwise, Jolokia Basic Authentication need to be configured:
+1. Create `org.jolokia.osgi.cfg` file in `<snamp>/etc` directory
+2. Put the following configuration properties:
+```
+org.jolokia.agentContext=/jolokia
+org.jolokia.realm=karaf
+org.jolokia.user=karaf
+org.jolokia.authMode=jaas
+```
+3. Restart Jolokia bundle or SNAMP
+
+
+The second, obtain SNAMP configuration:
+```bash
+curl -u karaf:karaf http://localhost:8181/jolokia/read/com.itworks.snamp.management:type=SnampCore/configuration?maxDepth=20&maxCollectionSize=500&ignoreErrors=true&canonicalNaming=false
+{"timestamp":1433455091,"status":200,"request":{"mbean":"com.itworks.snamp.management:type=SnampCore","attribute":"configuration","type":"read"},"value":null}
+```
+> If you have 403 error then read [this](http://modio.io/jolokia-in-karaf-3-0-x-fixing-the-403-access-error/) article
 
 ## Predefined configuration parameters
 SNAMP Configuration Model provides a set of optional configuration parameters with predefined semantics.
@@ -152,6 +180,16 @@ Some Resource Connectors and Adapters supports explicit configuration of its int
 * If `priority` is not specified then SNAMP uses default OS priority for threads in pool
 * `priority` must be is in range _1..10_. Note that _1_ is the lowest priority.
 
+## Configuring OSGi
+All configuration files located in `<snamp>/etc` directory. These files supply a low-level access to Apache Karaf configuration.
+
+### Logging
+Apache Karaf and SNAMP logs located in `<snamp>/data/log` folder. You can configure log rotation, severity level and other logging settings using the following configurations files in `<snamp>/etc` directory:
+* `org.ops4j.pax.logging.cfg` - initial log configuration (appenders, levels, log message format)
+* `java.util.logging.properties` - advanced configuration properties for standard Java logging. It is not recommended to change this file
+* `org.apache.karaf.log.cfg` - display configuration of the log records in the shell console
+
+See [Karaf Log Configuration](http://karaf.apache.org/manual/latest/users-guide/log.html) for more details.
 
 ## Examples
 * [Monitoring JMX resources over SNMP](jmx-over-snmp.md)

@@ -226,6 +226,14 @@
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${karaf.folder.deploy}</outputDirectory>
                                 </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.jolokia</groupId>
+                                    <artifactId>jolokia-osgi</artifactId>
+                                    <version>${jolokia.version}</version>
+                                    <type>jar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${karaf.folder.deploy}</outputDirectory>
+                                </artifactItem>
                             </artifactItems>
                         </configuration>
                     </execution>

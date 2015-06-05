@@ -325,7 +325,7 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
             final AgentConfiguration configuration = manager.getCurrentConfiguration();
             if (configuration == null) throw new ConfigurationException("configuration admin",
                     "Configuration admin does not contain appropriate SNAMP configuration");
-            return snampConfigurationToJMX(configuration);
+            else return snampConfigurationToJMX(configuration);
         }
         finally {
             adminRef.release(bundleContext);

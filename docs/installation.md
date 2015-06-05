@@ -142,7 +142,18 @@ START LEVEL 30 , List Threshold: 50
 ```
 > Note that version of the SNAMP components may vary and depends on the installed SNAMP version.
 
-Sometimes, this example output does not match with what you see. This may happen for the first start of SNAMP, because SNAMP components installing asynchronously. Wait for 1-2 minutes and print `bundle:list` again. If nothing changed then go to `<snamp>/data/log/karaf.log` and inspect the log file. If log file contains errors then send a report to us.
+Sometimes, this example output does not match with what you see. This may happen for the first start of SNAMP, because SNAMP components installing asynchronously. Wait for 1-2 minutes and print `bundle:list` again.
+
+After that, print `log:exception-display` in the shell console and verify that the command has empty output. Sometimes, you might see the following message:
+```
+com.itworks.snamp.connectors.wmq.MQConnectorActivator$WMQJavaClassesNotInstalled: WebSphere MQ classes for Java are not installed into OSGi environment
+```
+
+This is not a fatal error but warning related to **IBM WMQ Connector** or **IBM WMB Connector**. The message informs that IBM WebSphere libraries are not installed into Apache Karaf correctly. You may choose the following ways to fix this problem:
+* Uninstall these resource connectors if you don't want to monitor IBM WebSphere Message Queue or Message Broker. See [Upgrading SNAMP components](updating.md) for uninstallation instructions
+* Install IBM WebSphere libraries for Java correctly. See [IBM WMQ Connector](connectors/wmq-connector.md) for more details.
+
+Or, you can ignore this warning if you have no plans to monitor IBM WebSphere Message Queue or Message Broker.
 
 ## Root privileges
 SNAMP doesn't require `root` privileges for running. But if you want to use standard ports in the configured resource adapters (161 for `SNMP` protocol and 80, 8080, 443 for `HTTP` protocol) then you should have `root` privileges.
@@ -237,3 +248,6 @@ Advanced learning materials:
 Load balancer should distribute requests between SNAMP nodes. The recommended ordering pattern is _Round-robin_. The load balancer must have access to each SNAMP node in the cluster. In the clustered configuration your Monitoring & Management Tool should interacts with SNAMP via load balancer only.
 
 Note that Load Balancer might require a special configuration because interaction between your Monitoring & Management Tool and SNAMP can be based on connectionless protocol, such as SNMP.
+
+## SNAMP Management Console
+How to install console.
