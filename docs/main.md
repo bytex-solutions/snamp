@@ -29,3 +29,8 @@ This is a top-level page of SNAMP technical documentation. Here you can found al
 * [Management Information Model](inform_model.md) - how SNAMP represents and interprets management information
 * [Authentication & Authorization](jaas.md) - how to configure Java Authentication & Authorization Service
 * [Install SNAMP license](install-license.md) - how to install SNAMP license if you have purchased subscription
+
+## Examples
+* [JMX over SNMP](examples/jmx-over-snmp.md)
+* [JMX over XMPP](examples/jmx-over-xmpp.md)
+* [SNMP over HTTP](examples/snmp-over-http.md)

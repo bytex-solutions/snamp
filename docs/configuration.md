@@ -334,6 +334,6 @@ Apache Karaf and SNAMP logs located in `<snamp>/data/log` folder. You can config
 See [Karaf Log Configuration](http://karaf.apache.org/manual/latest/users-guide/log.html) for more details.
 
 ## Examples
-* [Monitoring JMX resources over SNMP](jmx-over-snmp.md)
-* [Monitoring SNMP resources over HTTP](snmp-over-http.md)
-* [Monitoring JMX resources over XMPP](jmx-over-xmpp.md)
+* [Monitoring JMX resources over SNMP](examples/jmx-over-snmp.md)
+* [Monitoring SNMP resources over HTTP](examples/snmp-over-http.md)
+* [Monitoring JMX resources over XMPP](examples/jmx-over-xmpp.md)
