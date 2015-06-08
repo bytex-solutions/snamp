@@ -64,8 +64,8 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
             @Override
             public Collection<KarafFeaturesOption> getFeatures(final Class<? extends AbstractIntegrationTest> testType) {
                 final Collection<KarafFeaturesOption> result = new LinkedList<>();
-                for(final SnampDependencies deps: TestUtils.getAnnotations(testType, SnampDependencies.class))
-                    for(final SnampFeature feature: deps.value())
+                for (final SnampDependencies deps : TestUtils.getAnnotations(testType, SnampDependencies.class))
+                    for (final SnampFeature feature : deps.value())
                         try {
                             result.add(new SnampFeatureOption(feature));
                         } catch (final MalformedURLException e) {
@@ -126,7 +126,7 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
      * @throws IOException
      */
     @Before
-    public final void prepare() throws Exception{
+    public final void prepare() throws Exception {
         beforeStartTest(getTestBundleContext());
         //read SNAMP configuration
         setupTestConfiguration(getTestConfigurationManager().getCurrentConfiguration());

@@ -92,20 +92,21 @@ final class DiscoverManagementMetadataOperation extends OpenMBean.OpenOperation<
                     // append the name
                     attrMap.put("Name", attribute.getAttributeName());
                     // append the r/w timeout
-                    if(attribute.getReadWriteTimeout() != TimeSpan.INFINITE)
+                    if (attribute.getReadWriteTimeout() != TimeSpan.INFINITE)
                         attrMap.put("ReadWriteTimeout", attribute.getReadWriteTimeout().convert(TimeUnit.MILLISECONDS).duration);
                     else {
                         attrMap.put("ReadWriteTimeout", Long.MAX_VALUE);
                     }
                     //read other properties
-                    if (!attribute.getParameters().keySet().isEmpty()) {
-                        final TabularDataBuilderRowFill builder = new TabularDataBuilderRowFill(SIMPLE_MAP_TYPE);
-                        for (final String parameter : attribute.getParameters().keySet()) {
-                            builder.newRow().cell("Key", parameter).cell("Value", attribute.getParameters().get(parameter)).flush();
-                        }
-                        // append additional properties
-                        attrMap.put("AdditionalProperties", builder.get());
+                    final TabularDataBuilderRowFill builder = new TabularDataBuilderRowFill(SIMPLE_MAP_TYPE);
+                    for (final Map.Entry<String, String> parameter : attribute.getParameters().entrySet()) {
+                        builder.newRow()
+                                .cell("Key", parameter.getKey())
+                                .cell("Value", parameter.getValue())
+                                .flush();
                     }
+                    // append additional properties
+                    attrMap.put("AdditionalProperties", builder.get());
                     attributesData.add(ATTRIBUTE_METADATA_BUILDER.build(attrMap));
                 }
                 // Events
@@ -117,14 +118,15 @@ final class DiscoverManagementMetadataOperation extends OpenMBean.OpenOperation<
                     // append the category
                     eventMap.put("Category", event.getCategory());
                     //read other properties
-                    if (!event.getParameters().keySet().isEmpty()) {
-                        final TabularDataBuilderRowFill builder = new TabularDataBuilderRowFill(SIMPLE_MAP_TYPE);
-                        for (final String parameter : event.getParameters().keySet()) {
-                            builder.newRow().cell("Key", parameter).cell("Value", event.getParameters().get(parameter)).flush();
-                        }
-                        // append additional properties
-                        eventMap.put("AdditionalProperties", builder.get());
+                    final TabularDataBuilderRowFill builder = new TabularDataBuilderRowFill(SIMPLE_MAP_TYPE);
+                    for (final Map.Entry<String, String> parameter : event.getParameters().entrySet()) {
+                        builder.newRow()
+                                .cell("Key", parameter.getKey())
+                                .cell("Value", parameter.getValue())
+                                .flush();
                     }
+                    // append additional properties
+                    eventMap.put("AdditionalProperties", builder.get());
                     eventsData.add(EVENT_METADATA_BUILDER.build(eventMap));
                 }
                 schema.put("Attributes", attributesData.toArray(new CompositeData[attributesData.size()]));

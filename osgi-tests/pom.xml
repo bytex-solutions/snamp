@@ -362,5 +362,11 @@
             <version>2.0.0</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.jolokia</groupId>
+            <artifactId>jolokia-osgi</artifactId>
+            <version>${jolokia.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

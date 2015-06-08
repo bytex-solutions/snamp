@@ -8,10 +8,7 @@ import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.PersistentConfigurationManager;
 import com.itworks.snamp.configuration.SerializableAgentConfiguration;
 import com.itworks.snamp.configuration.diff.ConfigurationDiffEngine;
-import com.itworks.snamp.jmx.CompositeTypeBuilder;
-import com.itworks.snamp.jmx.OpenMBean;
-import com.itworks.snamp.jmx.TabularDataBuilderRowFill;
-import com.itworks.snamp.jmx.TabularTypeBuilder;
+import com.itworks.snamp.jmx.*;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.cm.ConfigurationException;
@@ -22,6 +19,8 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import static com.itworks.snamp.jmx.CompositeDataUtils.getString;
+import static com.itworks.snamp.jmx.CompositeDataUtils.getLong;
 
 import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
 
@@ -214,17 +213,15 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
                         new SerializableAgentConfiguration.SerializableResourceAdapterConfiguration();
                 if (adapterDataCurrent.containsKey("Adapter")) {
                     final CompositeData adapterInstance = ((CompositeData) adapterDataCurrent.get("Adapter"));
-                    if (adapterInstance.containsKey("UserDefinedName")) {
-                        agentConfiguration.setAdapterName((String) adapterInstance.get("UserDefinedName"));
-                    }
+                    agentConfiguration.setAdapterName(getString(adapterInstance, "Name", ""));
                     if (adapterInstance.containsKey("Parameters") && adapterInstance.get("Parameters") instanceof TabularData) {
                         final TabularData params = (TabularData) adapterInstance.get("Parameters");
                         for (final CompositeData keyParam : (Collection<CompositeData>) params.values()) {
-                            agentConfiguration.setParameter((String) keyParam.get("Key"), (String) keyParam.get("Value"));
+                            agentConfiguration.setParameter(getString(keyParam, "Key", ""), getString(keyParam, "Value", ""));
                         }
                     }
                 }
-                configuration.getResourceAdapters().put((String) adapterDataCurrent.get("UserDefinedName"), agentConfiguration);
+                configuration.getResourceAdapters().put(getString(adapterDataCurrent, "UserDefinedName", ""), agentConfiguration);
             }
         }
         // parse connectors
@@ -236,13 +233,9 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
 
                 if (connectorDataCurrent.containsKey("Connector")) {
                     final CompositeData connectorInstance = (CompositeData) connectorDataCurrent.get("Connector");
-                    if (connectorInstance.containsKey("ConnectionString")) {
-                        connectorConfiguration.setConnectionString((String) connectorInstance.get("ConnectionString"));
-                    }
+                        connectorConfiguration.setConnectionString(getString(connectorInstance, "ConnectionString", ""));
 
-                    if (connectorInstance.containsKey("ConnectionType")) {
-                        connectorConfiguration.setConnectionType((String) connectorInstance.get("ConnectionType"));
-                    }
+                        connectorConfiguration.setConnectionType(getString(connectorInstance, "ConnectionType", ""));
 
                     // attributes parsing
                     if (connectorInstance.containsKey("Attributes") && connectorInstance.get("Attributes") instanceof TabularData) {
@@ -255,22 +248,22 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
 
                                 final CompositeData attributeData = (CompositeData) attributeInstance.get("Attribute");
                                 if (attributeData.containsKey("Name")) {
-                                    config.setAttributeName((String) attributeData.get("Name"));
+                                    config.setAttributeName(getString(attributeData, "Name", ""));
                                 }
                                 if (attributeData.containsKey("ReadWriteTimeout")) {
-                                    config.setReadWriteTimeout(new TimeSpan((Long) attributeData.get("ReadWriteTimeout"), TimeUnit.MILLISECONDS));
+                                    config.setReadWriteTimeout(new TimeSpan(getLong(attributeData, "ReadWriteTimeout", Long.MAX_VALUE), TimeUnit.MILLISECONDS));
                                 } else {
-                                    config.setReadWriteTimeout(new TimeSpan(Long.MAX_VALUE));
+                                    config.setReadWriteTimeout(TimeSpan.INFINITE);
                                 }
 
                                 if (attributeData.containsKey("AdditionalProperties") && attributeData.get("AdditionalProperties") instanceof TabularData) {
                                     final TabularData params = (TabularData) attributeData.get("AdditionalProperties");
                                     for (final CompositeData keyParam : (Collection<CompositeData>) params.values()) {
-                                        config.getParameters().put((String) keyParam.get("Key"), (String) keyParam.get("Value"));
+                                        config.getParameters().put(getString(keyParam, "Key", ""), getString(keyParam, "Value", ""));
                                     }
                                 }
                             }
-                            attributesConfigMap.put((String) attributeInstance.get("UserDefinedName"), config);
+                            attributesConfigMap.put(getString(attributeInstance, "UserDefinedName", ""), config);
                         }
                         connectorConfiguration.setAttributes(attributesConfigMap);
                     }
@@ -284,18 +277,16 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
                             AgentConfiguration.ManagedResourceConfiguration.EventConfiguration config = connectorConfiguration.newEventConfiguration();
                             if (eventInstance.containsKey("Event") && eventInstance.get("Event") instanceof CompositeData) {
                                 final CompositeData attributeData = (CompositeData) eventInstance.get("Event");
-                                if (attributeData.containsKey("Category")) {
-                                    config.setCategory((String) attributeData.get("Category"));
-                                }
+                                config.setCategory(getString(attributeData, "Category", ""));
 
                                 if (attributeData.containsKey("AdditionalProperties") && attributeData.get("AdditionalProperties") instanceof TabularData) {
                                     final TabularData params = (TabularData) attributeData.get("AdditionalProperties");
                                     for (final CompositeData keyParam : (Collection<CompositeData>) params.values()) {
-                                        config.getParameters().put((String) keyParam.get("Key"), (String) keyParam.get("Value"));
+                                        config.getParameters().put(getString(keyParam, "Key", ""), getString(keyParam, "Value", ""));
                                     }
                                 }
                             }
-                            eventsConfigMap.put((String) eventInstance.get("UserDefinedName"), config);
+                            eventsConfigMap.put(getString(eventInstance, "UserDefinedName", ""), config);
                         }
                         connectorConfiguration.setEvents(eventsConfigMap);
                     }
@@ -303,12 +294,12 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
                     if (connectorInstance.containsKey("Parameters") && connectorInstance.get("Parameters") instanceof TabularData) {
                         final TabularData params = (TabularData) connectorInstance.get("Parameters");
                         for (final CompositeData keyParam : (Collection<CompositeData>) params.values()) {
-                            connectorConfiguration.setParameter((String) keyParam.get("Key"), (String) keyParam.get("Value"));
+                            connectorConfiguration.setParameter(getString(keyParam, "Key", ""), getString(keyParam, "Value", ""));
                         }
                     }
                 }
 
-                configuration.getManagedResources().put((String) connectorDataCurrent.get("UserDefinedName"), connectorConfiguration);
+                configuration.getManagedResources().put(getString(connectorDataCurrent, "UserDefinedName", ""), connectorConfiguration);
             }
         }
         return configuration;

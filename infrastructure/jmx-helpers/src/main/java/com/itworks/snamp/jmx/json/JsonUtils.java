@@ -111,6 +111,19 @@ public final class JsonUtils {
         return result;
     }
 
+    public static JsonObject toJsonObject(final String name1, final JsonElement value1,
+                                          final String name2, final JsonElement value2,
+                                          final String name3, final JsonElement value3,
+                                          final String name4, final JsonElement value4,
+                                          final String name5, final JsonElement value5){
+        final JsonObject result = toJsonObject(name1, value1,
+                name2, value2,
+                name3, value3,
+                name4, value4);
+        result.add(name5, value5);
+        return result;
+    }
+
     public static String[] parseStringArray(final JsonArray jsonArray) {
         final String[] result = new String[jsonArray.size()];
         for(int i = 0; i < jsonArray.size(); i++)

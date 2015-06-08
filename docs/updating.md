@@ -2,9 +2,9 @@ Upgrading SNAMP components
 ====
 
 There are following updating scenarios available:
-* Install a new version of SNAMP Resource Adapter or Resource Connector | Possible
-* Install a new version of SNAMP Platform | Not Possible
-* Install a new version of SNAMP Management Console | Possible
+* Install a new version of SNAMP Resource Adapter or Resource Connector
+* Install a new version of SNAMP Platform
+* Install a new version of SNAMP Management Console
 
 Some of these scenarios supporting Hot Upgrade without influence on availability.
 
@@ -57,9 +57,8 @@ syslog-adapter-feature       | 1.0.0            | x         | snamp             
 Select SNAMP Resource Adapter which you want to upgrade. For example, you want to update `SNMP Resource Adapter`.
 
 The first, you should uninstall it:
-1. Print `feature:uninstall snmp-adapter-feature` in the shell console and press ENTER
-2. Go to `<snamp>/deploy` folder and delete `snmp-adapter-feature-1.0.0.kar` file
-3. Verify that SNMP Resource Adapter is uninstalled with `feature:list -i` command
+1. Go to `<snamp>/deploy` folder and delete `snmp-adapter-feature-1.0.0.kar` file
+2. Verify that SNMP Resource Adapter is uninstalled with `feature:list -i` command
 
 The second, you should install a new version of SNAMP Resource Adapter:
 1. Download a new version of SNAMP Resource Adapter. The name of the downloaded file must have name similar to this: `snmp-adapter-feature-1.1.0.kar`
@@ -67,7 +66,7 @@ The second, you should install a new version of SNAMP Resource Adapter:
 3. Verify installation with `feature:list -i` command. Make sure that _snmp-adapter-feature_ is presented in the command output and its version equal to `1.1.0`:
 
 ```
-snmp-adapter-feature         | 1.0.0            | x         | snamp                   | SNMP Adapter Karaf Feature
+snmp-adapter-feature         | 1.1.0            | x         | snamp                   | SNMP Adapter Karaf Feature
 
 ```
 

@@ -113,7 +113,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
 
 
     private final ConfigurationAdmin admin;
-    private SerializableAgentConfiguration configuration;
+    private volatile SerializableAgentConfiguration configuration;
     private final Logger logger;
 
     /**
@@ -574,7 +574,21 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     @Override
     @Aggregation
     public SerializableAgentConfiguration getCurrentConfiguration() {
-        return configuration;
+        SerializableAgentConfiguration result = configuration;
+        if (result == null)
+            synchronized (this) {
+                result = configuration;
+                if (result == null)
+                    result = configuration = new SerializableAgentConfiguration();
+            }
+        return result;
+    }
+
+    public synchronized <E extends Throwable> void processConfiguration(final Consumer<? super SerializableAgentConfiguration, E> handler,
+                                                                        final boolean saveChanges) throws E, IOException {
+        handler.accept(getCurrentConfiguration());
+        if (saveChanges)
+            save();
     }
 
     /**
@@ -604,8 +618,8 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
      * Saves SNAMP configuration into OSGi persistent storage.
      * @throws IOException Some I/O error occurs.
      */
-    public synchronized void save() throws IOException{
-        if(configuration != null)
+    public synchronized void save() throws IOException {
+        if (configuration != null)
             save(configuration, admin);
     }
 
@@ -615,7 +629,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
      */
     @Override
     @Deprecated
-    public synchronized void sync() {
+    public void sync() {
         try {
             save();
         } catch (final IOException e) {

@@ -66,6 +66,7 @@
                         <feature>platform-feature</feature>
                         <feature>wrapper</feature>
                         <feature>http</feature>
+                        <feature>war</feature>
                         <feature>http-whiteboard</feature>
                     </installedFeatures>
                 </configuration>

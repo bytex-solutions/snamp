@@ -81,6 +81,14 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
                 Collections.addAll(systemProperties, prop.value());
             return systemProperties.toArray(new String[systemProperties.size()]);
         }
+
+        public Map<String, String> getFrameworkProperties(final Class<? extends AbstractIntegrationTest> testType){
+            final Map<String, String> frameworkProperties = new HashMap<>(20);
+            for(final FrameworkProperties properties: TestUtils.getAnnotations(testType, FrameworkProperties.class))
+                for(final FrameworkProperty prop: properties.value())
+                    frameworkProperties.put(prop.name(), prop.value());
+            return frameworkProperties;
+        }
     }
 
     private static final String TEST_CONTAINER_INDICATOR = "com.itworks.snamp.testing.isInContainer";
@@ -129,6 +137,8 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
         result.add(systemProperty(TEST_CONTAINER_INDICATOR).value("true"));
         for(final Map.Entry<String, String> sp: builder.getSystemProperties(getClass()).entrySet())
             result.add(systemProperty(sp.getKey()).value(sp.getValue()));
+        for(final Map.Entry<String, String> fp: builder.getFrameworkProperties(getClass()).entrySet())
+            result.add(frameworkProperty(fp.getKey()).value(fp.getValue()));
         result.add(systemProperty(PROJECT_DIR).value(StandardSystemProperty.USER_DIR.value()));
         result.add(getPropagatedProperties());
         // https://ops4j1.jira.com/wiki/display/PAXEXAM3/Configuration+Options

@@ -146,6 +146,8 @@ curl -u karaf:karaf http://localhost:8181/jolokia/read/com.itworks.snamp.managem
 ```
 > If you have 403 error then read [this](http://modio.io/jolokia-in-karaf-3-0-x-fixing-the-403-access-error/) article
 
+`value` field in the resulting JSON holds SNAMP configuration in the form of the JSON tree. `null` means
+
 ## Predefined configuration parameters
 SNAMP Configuration Model provides a set of optional configuration parameters with predefined semantics.
 
