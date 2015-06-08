@@ -138,15 +138,155 @@ org.jolokia.authMode=jaas
 ```
 3. Restart Jolokia bundle or SNAMP
 
-
 The second, obtain SNAMP configuration:
 ```bash
 curl -u karaf:karaf http://localhost:8181/jolokia/read/com.itworks.snamp.management:type=SnampCore/configuration?maxDepth=20&maxCollectionSize=500&ignoreErrors=true&canonicalNaming=false
+
 {"timestamp":1433455091,"status":200,"request":{"mbean":"com.itworks.snamp.management:type=SnampCore","attribute":"configuration","type":"read"},"value":null}
 ```
 > If you have 403 error then read [this](http://modio.io/jolokia-in-karaf-3-0-x-fixing-the-403-access-error/) article
 
-`value` field in the resulting JSON holds SNAMP configuration in the form of the JSON tree. `null` means
+`value` field in the resulting JSON holds SNAMP configuration in the form of the JSON tree. `null` means that SNAMP configuration is empty. JSON structure of the SNAMP configuration repeats its logical structure described above.
+
+The following example shows setup of JMX-to-SNMP bridge:
+```javascript
+{
+  "ResourceAdapters": {
+    "test-snmp": {  //adapter instance name
+      "UserDefinedName": "test-snmp", //adapter instance name
+      "Adapter": {
+        "Name": "snmp",   //adapter's system name
+        "Parameters": { //adapter-level configuration parameters
+          "port": {
+            "Value": "3222",
+            "Key": "port"
+          },
+          "host": {
+            "Value": "127.0.0.1",
+            "Key": "host"
+          },
+          "socketTimeout": {
+            "Value": "5000",
+            "Key": "socketTimeout"
+          },
+          "context": {
+            "Value": "1.1",
+            "Key": "context"
+          }
+        }
+      }
+    }
+  },
+  "ManagedResources": {
+    "test-target": {  //managed resource name
+      "Connector": {
+        "Parameters": { //managed resource configuration parameters
+          "login": {
+            "Value": "karaf",
+            "Key": "login"
+          },
+          "password": {
+            "Value": "karaf",
+            "Key": "password"
+          }
+        },
+        "ConnectionString": "service:jmx:rmi:///jndi/rmi://localhost:1099/karaf-root",
+        "Attributes": { //a set of connected attributes
+          "attribute1": { //user-defined attribute name
+            "Attribute": {
+              "Name": "int32",  //name of the attribute in remote MBean
+              "AdditionalProperties": {
+                "objectName": {
+                  "Value": "com.snampy.impl:type=com.itworks.snamp.adapters.TestManagementBean",
+                  "Key": "objectName"
+                },
+                "oid": {
+                  "Value": "1.1.3.0",
+                  "Key": "oid"
+                }
+              },
+              "ReadWriteTimeout": 9223372036854776000
+            },
+            "UserDefinedName": "attribute1"
+          },
+          "attribute2": {
+            "Attribute": {
+              "Name": "dictionary",
+              "AdditionalProperties": {
+                "objectName": {
+                  "Value": "com.snampy.impl:type=com.itworks.snamp.adapters.TestManagementBean",
+                  "Key": "objectName"
+                },
+                "oid": {
+                  "Value": "1.1.6.1",
+                  "Key": "oid"
+                }
+              },
+              "ReadWriteTimeout": 9223372036854776000
+            },
+            "UserDefinedName": "attribute2"
+          },
+          "attribute3": {
+            "Attribute": {
+              "Name": "bigint",
+              "AdditionalProperties": {
+                "objectName": {
+                  "Value": "com.snampy.impl:type=com.itworks.snamp.adapters.TestManagementBean",
+                  "Key": "objectName"
+                },
+                "oid": {
+                  "Value": "1.1.4.0",
+                  "Key": "oid"
+                }
+              },
+              "ReadWriteTimeout": 9223372036854776000
+            },
+            "UserDefinedName": "attribute3"
+          }
+        },
+        "Events": {
+          "19.1": { //user-defined name of the notification
+            "Event": {
+              "Category": "jmx.attribute.change", //name of the JMX notification in MBean
+              "AdditionalProperties": {//event configuration parameters
+                "objectName": {
+                  "Value": "com.snampy.impl:type=com.itworks.snamp.adapters.TestManagementBean",
+                  "Key": "objectName"
+                },
+                "oid": {
+                  "Value": "1.1.19.1",
+                  "Key": "oid"
+                },
+                "receiverName": {
+                  "Value": "test-receiver-1",
+                  "Key": "receiverName"
+                },
+                "severity": {
+                  "Value": "notice",
+                  "Key": "severity"
+                },
+                "receiverAddress": {
+                  "Value": "127.0.0.1/63778",
+                  "Key": "receiverAddress"
+                }
+              }
+            },
+            "UserDefinedName": "19.1" //user-defined name of the notification
+          },
+        },
+        "ConnectionType": "jmx"   //type of the managed resource connector
+      },
+      "UserDefinedName": "test-target"  //managed resource name
+    }
+  }
+}
+```
+JSON format of SNAMP configuration is just a mapping between JMX data type and JSON. This mapping is implemented using [Jolokia](https://jolokia.org/) library. JMX-to-JSON mapping protocol is described [here](https://jolokia.org/reference/html/protocol.html).
+
+If your SNAMP configuration is ready then save JSON into the file and use `curl` utility to setup a new configuration:
+```bash
+curl -u karaf:karaf -X POST -d @config.json http://localhost:8181/jolokia/read/com.itworks.snamp.management:type=SnampCore/configuration?maxDepth=20&maxCollectionSize=500&ignoreErrors=true&canonicalNaming=false
+```
 
 ## Predefined configuration parameters
 SNAMP Configuration Model provides a set of optional configuration parameters with predefined semantics.

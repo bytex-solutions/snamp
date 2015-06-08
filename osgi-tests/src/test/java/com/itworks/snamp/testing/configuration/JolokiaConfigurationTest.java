@@ -1,6 +1,7 @@
 package com.itworks.snamp.testing.configuration;
 
 import com.google.gson.*;
+import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.io.IOUtils;
 import com.itworks.snamp.testing.AbstractSnampIntegrationTest;
@@ -18,6 +19,7 @@ import java.net.HttpURLConnection;
 import java.net.PasswordAuthentication;
 import java.net.URL;
 
+import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import static com.itworks.snamp.jmx.json.JsonUtils.toJsonObject;
 import static com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest.JMX_LOGIN;
 import static com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest.JMX_PASSWORD;
@@ -76,15 +78,30 @@ public final class JolokiaConfigurationTest extends AbstractSnampIntegrationTest
 
     @Test
     public void processConfigViaJolokia() throws IOException {
-        final JsonElement config =
+        JsonElement config =
                 readAttribute("com.itworks.snamp.management:type=SnampCore", "configuration");
+        assertTrue(config.isJsonObject());
+        assertEquals(JsonNull.INSTANCE, config.getAsJsonObject().get("value"));
+        //change config
+        processConfiguration(new SafeConsumer<AgentConfiguration>() {
+            @Override
+            public void accept(final AgentConfiguration config) {
+                final ManagedResourceConfiguration resource =
+                        config.newConfigurationEntity(ManagedResourceConfiguration.class);
+                resource.getParameters().put("param1", "value");
+                resource.setConnectionType("snmp");
+                resource.setConnectionString("udp://127.0.0.1/161");
+                config.getManagedResources().put("res1", resource);
+            }
+        }, true);
+        config = readAttribute("com.itworks.snamp.management:type=SnampCore", "configuration");
         assertTrue(config.isJsonObject());
         assertNotEquals(JsonNull.INSTANCE, config.getAsJsonObject().get("value"));
     }
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return true;
+        return false;
     }
 
     @Override

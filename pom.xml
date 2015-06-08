@@ -12,6 +12,7 @@
     <maven.compiler.target>1.7</maven.compiler.target>
     <!--Global dependencies-->
     <karaf.version>3.0.3</karaf.version>
+    <karaf.maxVersion>4</karaf.maxVersion>
     <osgi.version>4.3.1</osgi.version>
     <junit.version>4.11</junit.version>
     <jetty.version>8.1.15.v20140411</jetty.version>
@@ -30,6 +31,7 @@
     <snmp4j.version>2.3.4</snmp4j.version>
     <sshj.version>0.10.0</sshj.version>
     <snamp.framework.version>1.0.0</snamp.framework.version>
+    <snamp.framework.maxVersion>2</snamp.framework.maxVersion>
 
     <snamp.adapters.http.version>1.0.0</snamp.adapters.http.version>
     <snamp.adapters.jmx.version>1.0.0</snamp.adapters.jmx.version>

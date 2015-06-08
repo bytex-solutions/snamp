@@ -718,7 +718,9 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
             @Override
             public final void setReadWriteTimeout(final TimeSpan timeout) {
                 markAsModified();
-                this.readWriteTimeout = timeout;
+                this.readWriteTimeout = (timeout == TimeSpan.INFINITE || timeout.duration == Long.MAX_VALUE) ?
+                        TimeSpan.INFINITE :
+                        timeout;
             }
 
             /**

@@ -73,3 +73,20 @@ snmp-adapter-feature         | 1.1.0            | x         | snamp             
 There is alternative ways to verify Resource Adapter update:
 * Print `bundle:list` and verify that `SNMP Resource Adapter` bundle exist
 * Inspect log using `log:display -n 10` or ` log:exception-display ` command in the shell console
+
+## Update Resource Connector
+Resource Connector can be updated in the same way as Resource Adapter. See instructions above for more details.
+
+Note that Resource Connector or Resource Adapter can be updated without shutting down SNAMP. Updating component on the single node in cluster causes cascade update on all nodes. Therefore, there is no influence on availability.
+
+## Update SNAMP Platform
+SNAMP Platform is a core set of OSGi bundles with basic SNAMP functionality.
+1. Download `platform-feature-X.Y.Z.kar` archive.
+2. Print `feature:uninstall platform-feature` in the shell console
+3. Copy downloaded platform into `<snamp>/deploy` folder
+
+Verify your installation using `feature:list -i`, `bundle:list` and `log:exception-display` shell commands.
+
+Note that updating of SNAMP Platform might affects availability. But you can detach node from the cluster and update SNAMP Platform, setup balancer for this updated node, repeat updating actions for each detached node and restore balancer configuration.
+
+## Update Management Console

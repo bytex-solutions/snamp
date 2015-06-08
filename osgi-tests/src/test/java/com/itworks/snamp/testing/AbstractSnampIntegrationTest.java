@@ -1,5 +1,6 @@
 package com.itworks.snamp.testing;
 
+import com.itworks.snamp.Consumer;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.*;
@@ -89,7 +90,7 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    private PersistentConfigurationManager getTestConfigurationManager() throws Exception{
+    private PersistentConfigurationManager getTestConfigurationManager() throws IOException{
         if(configManager == null){
             configManager = new PersistentConfigurationManager(configAdmin);
             configManager.load();
@@ -103,14 +104,9 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
      */
     protected abstract void setupTestConfiguration(final AgentConfiguration config);
 
-
-    /**
-     * Reads SNAMP configuration from temporary storage.
-     * @return Deserialized SNAMP configuration.
-     * @throws IOException
-     */
-    protected final AgentConfiguration readSnampConfiguration() throws Exception{
-        return getTestConfigurationManager().getCurrentConfiguration();
+    protected final <E extends Throwable> void processConfiguration(final Consumer<? super AgentConfiguration, E> handler,
+                                                                    final boolean saveChanges) throws E, IOException {
+        getTestConfigurationManager().processConfiguration(handler, saveChanges);
     }
 
     protected void beforeStartTest(final BundleContext context) throws Exception{

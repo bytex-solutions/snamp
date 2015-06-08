@@ -2,7 +2,7 @@
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="snamp">
     <feature name="${project.artifactId}" description="${project.name}" version="${project.version}">
         <details>${project.description}</details>
-        <feature version="${snamp.framework.version}">platform-feature</feature>
+        <feature version="[${snamp.framework.version}, ${snamp.framework.maxVersion})">platform-feature</feature>
         <bundle start="true">mvn:com.itworks.snamp/jmx-adapter/${project.version}</bundle>
     </feature>
 </features>
