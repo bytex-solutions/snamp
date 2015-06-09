@@ -144,7 +144,7 @@ START LEVEL 30 , List Threshold: 50
 
 Sometimes, this example output does not match with what you see. This may happen for the first start of SNAMP, because SNAMP components installing asynchronously. Wait for 1-2 minutes and print `bundle:list` again.
 
-After that, print `log:exception-display` in the shell console and verify that the command has empty output. Sometimes, you might see the following message:
+After that, print `log:exception-display` in the shell console and verify that the command has empty output. But you might see the following message:
 ```
 com.itworks.snamp.connectors.wmq.MQConnectorActivator$WMQJavaClassesNotInstalled: WebSphere MQ classes for Java are not installed into OSGi environment
 ```

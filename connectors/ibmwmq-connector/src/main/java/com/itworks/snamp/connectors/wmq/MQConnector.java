@@ -238,8 +238,7 @@ final class MQConnector extends ManagedResourceConnectorBean implements CMQC, CM
     }
 
     /**
-     * Gets the integer attribute selector is used with an MQINQ call to determine the number of messages
-     * currently on the queue.
+     * Gets the number of messages currently on the queue.
      * @return The number of messages currently on the queue.
      * @throws MQException Invalid MQ parameters.
      * @throws IOException Network connection problems.
@@ -338,7 +337,7 @@ final class MQConnector extends ManagedResourceConnectorBean implements CMQC, CM
     }
 
     /**
-     * Gets the number of bytes received through the channel for the last hour.
+     * Gets the number of bytes received through the channel for the last day.
      * @return The number of bytes received through the channel for the last hour.
      * @throws MQException Invalid MQ parameters.
      * @throws IOException Network connection problems.

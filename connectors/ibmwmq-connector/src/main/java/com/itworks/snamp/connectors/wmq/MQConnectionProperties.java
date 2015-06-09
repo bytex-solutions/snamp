@@ -1,5 +1,6 @@
 package com.itworks.snamp.connectors.wmq;
 
+import com.google.common.base.Splitter;
 import com.ibm.mq.MQEnvironment;
 import com.ibm.mq.MQException;
 import com.ibm.mq.MQQueueManager;
@@ -7,6 +8,7 @@ import com.ibm.mq.pcf.PCFMessageAgent;
 
 import java.net.URI;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -24,6 +26,7 @@ final class MQConnectionProperties extends HashMap<String, String> {
 
     private static final long serialVersionUID = -4622612002025780031L;
 
+    private static final Splitter QUEUE_SPLITTER = Splitter.on('/').omitEmptyStrings().trimResults();
     private final String hostName;
     private final int port;
     private final String userID;
@@ -55,13 +58,13 @@ final class MQConnectionProperties extends HashMap<String, String> {
         String path = connectionString.getPath();
         if(path.length() < 2) throw new IllegalArgumentException("Channel name and queue name expected");
         else path = path.substring(1);
-        final String[] pathComponents = path.split("\\/");
-        switch (pathComponents.length){
-            case 3:
+        final List<String> pathComponents = QUEUE_SPLITTER.splitToList(path);
+        switch (pathComponents.size()){
+            case 2:
                 //channel name
-                channelName = pathComponents[0];
+                channelName = pathComponents.get(0);
                 //queue name
-                queueName = pathComponents[1];
+                queueName = pathComponents.get(1);
                 break;
             default: throw new IllegalArgumentException("Invalid specification of channel and queue name.");
         }

@@ -64,7 +64,7 @@ Copy WebSphere the following libraries to `third-party-libs/binaries/ibm/websphe
 * `com.ibm.mq.jmqi.jar`
 * `com.ibm.mq.headers.jar`
 
-WebSphere MQ classes for Java located in `MQ_INSTALLATION_PATH/java/lib` repository on Linux and
+WebSphere MQ classes for Java located in `MQ_INSTALLATION_PATH/java/lib` repository on Linux or
 `MQ_INSTALLATION_PATH\java\lib` on Windows.
 
 > See [WebSphere MQ classes for Java](http://www-01.ibm.com/support/knowledgecenter/SSFKSJ_7.5.0/com.ibm.mq.dev.doc/q030520_.htm)
