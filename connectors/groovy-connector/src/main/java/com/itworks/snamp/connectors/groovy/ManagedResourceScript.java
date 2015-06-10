@@ -4,7 +4,6 @@ import com.google.common.base.Supplier;
 import com.google.common.eventbus.Subscribe;
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.Consumer;
-import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.concurrent.Repeater;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
@@ -36,7 +35,6 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResource
  * @since 1.0
  */
 abstract class ManagedResourceScript extends Script implements ManagedResourceScriptBase {
-    private static final String LOGGER_NAME = ResourceConnectorInfo.getLoggerName();
 
     private static abstract class NotificationOperation<E extends JMException> implements Consumer<ManagedResourceConnector, E> {
         protected abstract void accept(final NotificationSupport connector) throws E;
@@ -205,54 +203,43 @@ abstract class ManagedResourceScript extends Script implements ManagedResourceSc
         return timer;
     }
 
+    private static Logger getLogger(){
+        return ResourceConnectorInfo.getLogger();
+    }
+
     @SpecialUse
     protected static void error(final String message) {
-        OSGiLoggingContext.within(LOGGER_NAME, new SafeConsumer<Logger>() {
-            @Override
-            public void accept(final Logger logger) {
-                logger.severe(message);
-            }
-        });
+        try(final OSGiLoggingContext logger = OSGiLoggingContext.get(getLogger(), getBundleContext())){
+            logger.severe(message);
+        }
     }
 
     @SpecialUse
     protected static void warning(final String message) {
-        OSGiLoggingContext.within(LOGGER_NAME, new SafeConsumer<Logger>() {
-            @Override
-            public void accept(final Logger logger) {
-                logger.warning(message);
-            }
-        });
+        try(final OSGiLoggingContext logger = OSGiLoggingContext.get(getLogger(), getBundleContext())){
+            logger.warning(message);
+        }
     }
 
     @SpecialUse
     protected static void info(final String message) {
-        OSGiLoggingContext.within(LOGGER_NAME, new SafeConsumer<Logger>() {
-            @Override
-            public void accept(final Logger logger) {
-                logger.info(message);
-            }
-        });
+        try(final OSGiLoggingContext logger = OSGiLoggingContext.get(getLogger(), getBundleContext())){
+            logger.info(message);
+        }
     }
 
     @SpecialUse
     protected static void debug(final String message) {
-        OSGiLoggingContext.within(LOGGER_NAME, new SafeConsumer<Logger>() {
-            @Override
-            public void accept(final Logger logger) {
-                logger.config(message);
-            }
-        });
+        try(final OSGiLoggingContext logger = OSGiLoggingContext.get(getLogger(), getBundleContext())){
+            logger.config(message);
+        }
     }
 
     @SpecialUse
     protected static void fine(final String message) {
-        OSGiLoggingContext.within(LOGGER_NAME, new SafeConsumer<Logger>() {
-            @Override
-            public void accept(final Logger logger) {
-                logger.fine(message);
-            }
-        });
+        try(final OSGiLoggingContext logger = OSGiLoggingContext.get(getLogger(), getBundleContext())){
+            logger.fine(message);
+        }
     }
 
     private static BundleContext getBundleContext() {

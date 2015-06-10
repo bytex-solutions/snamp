@@ -28,10 +28,6 @@ public final class ResourceAdapterInfo {
         return AbstractManagedResourceConnector.getLogger(NAME);
     }
 
-    static String getLoggerName(){
-        return AbstractManagedResourceConnector.getLoggerName(NAME);
-    }
-
     @SpecialUse
     private static Class<Ivy> apacheIvyDependency(){
         return Ivy.class;

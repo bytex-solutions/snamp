@@ -4,7 +4,9 @@ import com.google.common.base.Supplier;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
+import com.itworks.snamp.adapters.ResourceAdapterClient;
 import com.itworks.snamp.concurrent.SynchronizationEvent;
+import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.io.Communicator;
 import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
@@ -20,6 +22,7 @@ import javax.management.Notification;
 import javax.management.ObjectName;
 import java.io.File;
 import java.math.BigInteger;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -49,7 +52,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return true;
+        return false;
     }
 
     @Test
@@ -92,6 +95,18 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
         channel.post(MESSAGE);
         final Object notification = awaitor.getAwaitor().await(TimeSpan.fromSeconds(3));
         assertTrue(notification instanceof Notification);
+    }
+
+    @Test
+    public void configurationTest(){
+        final ResourceAdapterClient client = new ResourceAdapterClient(ADAPTER_NAME);
+        final ConfigurationEntityDescription<?> descr =
+                client.getConfigurationEntityDescriptor(getTestBundleContext(), ResourceAdapterConfiguration.class);
+        assertNotNull(descr);
+        final ConfigurationEntityDescription.ParameterDescription parameter = descr.getParameterDescriptor("scriptFile");
+        assertNotNull(parameter);
+        assertTrue(parameter.isRequired());
+        assertFalse(parameter.getDescription(Locale.getDefault()).isEmpty());
     }
 
     @Override
