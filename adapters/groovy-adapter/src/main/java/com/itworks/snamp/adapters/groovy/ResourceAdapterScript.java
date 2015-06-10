@@ -141,6 +141,13 @@ public abstract class ResourceAdapterScript extends Script implements AutoClosea
 
     @Override
     @SpecialUse
+    public final Set<String> getResourceEvents(final String resourceName) {
+        final ManagementInformationRepository provider = getRepository();
+        return provider != null ? provider.getResourceEvents(resourceName) : ImmutableSet.<String>of();
+    }
+
+    @Override
+    @SpecialUse
     public final Object getAttributeValue(final String resourceName, final String attributeName) throws MBeanException, AttributeNotFoundException, ReflectionException {
         final ManagementInformationRepository provider = getRepository();
         if(provider != null)
@@ -149,11 +156,28 @@ public abstract class ResourceAdapterScript extends Script implements AutoClosea
     }
 
     @Override
+    @SpecialUse
     public final void setAttributeValue(final String resourceName, final String attributeName, final Object value) throws AttributeNotFoundException, MBeanException, ReflectionException, InvalidAttributeValueException {
         final ManagementInformationRepository provider = getRepository();
         if(provider != null)
             provider.setAttributeValue(resourceName, attributeName, value);
         else throw JMExceptionUtils.attributeNotFound(attributeName);
+    }
+
+    @Override
+    @SpecialUse
+    public final void processAttributes(final Closure<?> closure) throws JMException {
+        final ManagementInformationRepository provider = getRepository();
+        if(provider != null)
+            provider.processAttributes(closure);
+    }
+
+    @Override
+    @SpecialUse
+    public final void processEvents(final Closure<?> closure) throws JMException {
+        final ManagementInformationRepository provider = getRepository();
+        if(provider != null)
+            provider.processEvents(closure);
     }
 
     /**

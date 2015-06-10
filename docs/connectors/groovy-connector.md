@@ -97,8 +97,8 @@ Groovy connector provides the following DSL extensions accessible from any type 
   * `Communicator getCommunicator(String sessionName)` - get or create a new communication session
   * `MessageListener asListener(Closure listener)` - wraps Groovy closure into communication message listener
 * Other functions
-  * `Repeater createTimer(Closure task, long period)` - creates a new timer that execute the specified task periodically
-  * `Repeater schedule(Closure task, long period)` - execute the specified task periodically in the background.
+  * `Job createTimer(Closure task, long period)` - creates a new timer that execute the specified task periodically
+  * `Job schedule(Closure task, long period)` - execute the specified task periodically in the background.
 
 The following example demonstrates how to read attribute of the connected managed resource:
 ```groovy

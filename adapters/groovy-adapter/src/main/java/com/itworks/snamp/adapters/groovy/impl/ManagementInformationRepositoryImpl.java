@@ -1,12 +1,15 @@
 package com.itworks.snamp.adapters.groovy.impl;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.adapters.NotificationListener;
 import com.itworks.snamp.adapters.groovy.ManagementInformationRepository;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
+import com.itworks.snamp.internal.RecordReader;
+import groovy.lang.Closure;
 
 import javax.management.*;
 import java.util.*;
@@ -38,14 +41,14 @@ final class ManagementInformationRepositoryImpl implements ManagementInformation
                 new HashMap<>(10);
 
         private Iterable<ScriptNotificationAccessor> clear(final String resourceName) {
-            try(final LockScope ignored = beginWrite()) {
+            try (final LockScope ignored = beginWrite()) {
                 final ResourceNotificationList<ScriptNotificationAccessor> list = notifications.remove(resourceName);
                 return list != null ? list.values() : ImmutableList.<ScriptNotificationAccessor>of();
             }
         }
 
-        private void clear(){
-            try(final LockScope ignored = beginWrite()) {
+        private void clear() {
+            try (final LockScope ignored = beginWrite()) {
                 for (final ResourceNotificationList<?> list : notifications.values())
                     list.clear();
                 notifications.clear();
@@ -53,9 +56,9 @@ final class ManagementInformationRepositoryImpl implements ManagementInformation
         }
 
         private UnicastNotificationRouter put(final String resourceName,
-                                                           final MBeanNotificationInfo metadata,
-                                                           final NotificationListener listener) {
-            try(final LockScope ignored = beginWrite()) {
+                                              final MBeanNotificationInfo metadata,
+                                              final NotificationListener listener) {
+            try (final LockScope ignored = beginWrite()) {
                 final ResourceNotificationList<ScriptNotificationAccessor> list;
                 if (notifications.containsKey(resourceName))
                     list = notifications.get(resourceName);
@@ -67,8 +70,8 @@ final class ManagementInformationRepositoryImpl implements ManagementInformation
         }
 
         private ScriptNotificationAccessor remove(final String resourceName,
-                                                              final MBeanNotificationInfo metadata){
-            try(final LockScope ignored = beginWrite()) {
+                                                  final MBeanNotificationInfo metadata) {
+            try (final LockScope ignored = beginWrite()) {
                 final ResourceNotificationList<ScriptNotificationAccessor> list = notifications.get(resourceName);
                 if (list == null) return null;
                 final ScriptNotificationAccessor result = list.remove(metadata);
@@ -78,15 +81,34 @@ final class ManagementInformationRepositoryImpl implements ManagementInformation
         }
 
         private Collection<MBeanNotificationInfo> getNotifications(final String resourceName) {
-            try(final LockScope ignored = beginRead()){
+            try (final LockScope ignored = beginRead()) {
                 final ResourceNotificationList<?> list = notifications.get(resourceName);
-                if(list != null){
+                if (list != null) {
                     final List<MBeanNotificationInfo> result = Lists.newArrayListWithExpectedSize(list.size());
-                    for(final FeatureAccessor<MBeanNotificationInfo, ?> accessor: list.values())
+                    for (final FeatureAccessor<MBeanNotificationInfo, ?> accessor : list.values())
                         result.add(accessor.getMetadata());
                     return result;
-                }
-                else return ImmutableList.of();
+                } else return ImmutableList.of();
+            }
+        }
+
+        private Set<String> getResourceEvents(final String resourceName) {
+
+            try (final LockScope ignored = beginRead()) {
+                if (notifications.containsKey(resourceName)) {
+                    final Set<String> result = new HashSet<>(20);
+                    for (final FeatureAccessor<MBeanNotificationInfo, ?> accessor : notifications.get(resourceName).values())
+                        Collections.addAll(result, accessor.getMetadata().getNotifTypes());
+                    return result;
+                } else return ImmutableSet.of();
+            }
+        }
+
+        private <E extends Exception> void forEachEvent(final RecordReader<String, NotificationAccessor, E> handler) throws E {
+            try(final LockScope ignored = beginRead()){
+                for(final Map.Entry<String, ? extends ResourceNotificationList<? extends NotificationAccessor>> entry: notifications.entrySet())
+                    for(final NotificationAccessor accessor: entry.getValue().values())
+                        handler.read(entry.getKey(), accessor);
             }
         }
     }
@@ -102,6 +124,31 @@ final class ManagementInformationRepositoryImpl implements ManagementInformation
     @Override
     public Set<String> getResourceAttributes(final String resourceName) {
         return attributes.getResourceAttributes(resourceName);
+    }
+
+    @Override
+    public Set<String> getResourceEvents(final String resourceName) {
+        return notifications.getResourceEvents(resourceName);
+    }
+
+    @Override
+    public void processAttributes(final Closure<?> closure) throws JMException {
+        attributes.forEachAttribute(new RecordReader<String, ScriptAttributeAccessor, JMException>() {
+            @Override
+            public void read(final String resourceName, final ScriptAttributeAccessor accessor) throws JMException{
+                closure.call(resourceName, accessor.getMetadata(), accessor.getValue());
+            }
+        });
+    }
+
+    @Override
+    public void processEvents(final Closure<?> closure) throws JMException {
+        notifications.forEachEvent(new RecordReader<String, NotificationAccessor, JMException>() {
+            @Override
+            public void read(final String resourceName, final NotificationAccessor accessor) throws JMException {
+                closure.call(resourceName, accessor.getMetadata());
+            }
+        });
     }
 
     @Override

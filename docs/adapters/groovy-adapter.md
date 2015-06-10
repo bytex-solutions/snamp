@@ -63,7 +63,7 @@ def handleNotification(metadata, notif){
 ### Predefined functions
 Predefined functions allows you to interact with connected managed resources, log events, communicate with other scripts and etc.
 
-Logging API:
+### Logging API:
 
 Function | Description
 ---- | ----
@@ -72,3 +72,78 @@ warning(String msg) | Reports about warning
 info(String msg) | Emits informational message
 debug(String msg) | Emits debug message
 fine(String msg) | Emits trace message
+
+### Access to Managed Resources
+
+Function | Description
+---- | ----
+Set&lt;String&gt; getResourceAttributes(String resourceName) | Gets resource attributes
+Set&lt;String&gt; getResourceEvents(String resourceName) | Gets resource events
+Object getAttributeValue(String resourceName, String attributeName) | Gets value of the attribute
+setAttributeValue(String resourceName, String attributeName, Object value) | Sets value of the attribute
+ManagedResourceConnectorClient getManagedResource(String resourceName) | Gets a reference to the connected managed resource
+void releaseManagedResource(ManagedResourceConnectorClient resource) | Releases a reference to the connected managed resource
+Collection&lt;MBeanAttributeInfo&gt; getAttributes(String resourceName) | Gets metadata of resource attributes
+Collection&lt;MBeanNotificationInfo&gt; getNotifications(String resourceName) | Gets metadata of resource events
+void processAttributes(Closure action) | Processes all attributes sequentially
+void processEvents(Closure action) | Processes all events sequentially
+
+Read attribute value using resoure client:
+```groovy
+def resource = getManagedResource 'java-app-server'
+def memory = resource.getAttribute 'memory'
+releaseManagedResource resource
+```
+
+Read all attributes:
+```groovy
+processAttributes({resourceName, metadata, value -> println "${metadata.name} = ${value}" })
+```
+
+Read all events:
+```groovy
+processEvents({resourceName, metadata -> println "${metadata.notifTypes}"})
+```
+
+### Miscellaneous API
+
+Function | Description
+---- | ----
+Communicator getCommunicator(String name) | Gets or creates communication session. The communicator is very useful for inter-script lightweight communication
+MessageListener asListener(Closure action) | Wraps Groovy closure into communication message listener
+Timer createTimer(Closure action, long period) | Creates a new timer that execute the specified task periodically
+Timer schedule(Closure action, long period) | Execute the specified task periodically in the background
+
+Working with timers:
+```groovy
+def timer = createTimer({ println 'Tick' }, 300)  //will print 'Tick' every 300 milliseconds
+timer.run() //start printing
+timer.close() //stop printing
+//the code above is equivalent to
+def timer = schedule({ println 'Tick' }, 300)
+timer.close()
+```
+
+Simple messaging using communicator:
+```groovy
+def communicator = getCommunicator 'test-communicator'
+communicator.register(asListener { msg -> println msg})
+//in other script file
+def communicator = getCommunicator 'test-communicator'
+communicator.post 'Hello, world!'
+```
+
+Synchronous messaging using communicator:
+```groovy
+//script1.groovy
+communicator = getCommunicator 'test-communicator'
+def listen(message){
+    communicator.post('pong')
+}
+
+communicator.register(asListener this.&listen)
+//script2.groovy
+communicator = getCommunicator 'test-communicator'
+def response = communicator.post('ping', 2000)  //2 seconds for response timeout
+println response  //pong
+```
