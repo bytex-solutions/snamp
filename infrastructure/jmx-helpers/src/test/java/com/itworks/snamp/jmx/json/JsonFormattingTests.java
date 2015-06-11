@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.itworks.snamp.io.Buffers;
 import com.itworks.snamp.jmx.CompositeDataBuilder;
+import com.itworks.snamp.jmx.TabularDataBuilder;
 import com.itworks.snamp.jmx.TabularTypeBuilder;
 import org.junit.Assert;
 import org.junit.Test;
@@ -24,6 +25,7 @@ import java.nio.LongBuffer;
  * @since 1.0
  */
 public final class JsonFormattingTests extends Assert {
+
     @Test
     public void byteBufferTest(){
         final ByteBuffer buffer = Buffers.wrap((byte) 1, (byte) 2, (byte) 3);
@@ -112,5 +114,25 @@ public final class JsonFormattingTests extends Assert {
                 .build();
         final JsonObject json = OpenTypeFormatter.serialize(type);
         assertEquals(type, OpenTypeFormatter.deserialize(json));
+    }
+
+    @Test
+    public void tabularDataTest() throws OpenDataException {
+        final TabularData data = new TabularDataBuilder()
+                .setTypeName("TestTable", true)
+                .setTypeDescription("Descr", true)
+                .columns()
+                .addColumn("column1", "column1 descr", SimpleType.INTEGER, true)
+                .addColumn("column2", "column2 descr", SimpleType.STRING, false)
+                .queryObject(TabularDataBuilder.class)
+                .add(42, "String1")
+                .add(43, "String2")
+                .build();
+        final Gson formatter = new GsonBuilder()
+                .registerTypeHierarchyAdapter(TabularData.class, new TabularDataFormatter())
+                .create();
+        final JsonElement elem = formatter.toJsonTree(data);
+        assertTrue(elem.isJsonObject());
+        assertEquals(data, formatter.fromJson(elem, TabularData.class));
     }
 }
