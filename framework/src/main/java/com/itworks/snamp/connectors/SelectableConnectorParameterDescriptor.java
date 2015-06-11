@@ -1,11 +1,5 @@
 package com.itworks.snamp.connectors;
 
-/**
- * @author Roman Sakno
- * @version 1.0
- * @since 1.0
- */
-
 import com.itworks.snamp.configuration.ConfigurationEntityDescription.ParameterDescription;
 
 import java.util.Locale;

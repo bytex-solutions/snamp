@@ -13,7 +13,7 @@ import java.util.Objects;
  * @version 1.0
  * @since 1.0
  */
-public abstract class PeriodicPassiveCheckSender<TAccessor extends AttributeAccessor> extends Repeater {
+public abstract class PeriodicPassiveChecker<TAccessor extends AttributeAccessor> extends Repeater {
     private final AbstractAttributesModel<TAccessor> attributes;
 
     /**
@@ -23,12 +23,11 @@ public abstract class PeriodicPassiveCheckSender<TAccessor extends AttributeAcce
      * @param attributes A collection of attributes. Cannot be {@literal null}.
      * @throws IllegalArgumentException period is {@literal null}.
      */
-    protected PeriodicPassiveCheckSender(final TimeSpan period,
-                               final AbstractAttributesModel<TAccessor> attributes) {
+    protected PeriodicPassiveChecker(final TimeSpan period,
+                                     final AbstractAttributesModel<TAccessor> attributes) {
         super(period);
         this.attributes = Objects.requireNonNull(attributes);
     }
-
 
     /**
      * Processes attribute.

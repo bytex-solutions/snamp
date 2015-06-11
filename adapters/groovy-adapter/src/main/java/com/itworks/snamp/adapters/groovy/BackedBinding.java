@@ -1,6 +1,7 @@
 package com.itworks.snamp.adapters.groovy;
 
 import groovy.lang.Binding;
+import groovy.lang.Closure;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

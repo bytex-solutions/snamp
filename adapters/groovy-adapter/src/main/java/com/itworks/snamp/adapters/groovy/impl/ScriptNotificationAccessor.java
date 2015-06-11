@@ -1,7 +1,7 @@
 package com.itworks.snamp.adapters.groovy.impl;
 
 import com.itworks.snamp.adapters.NotificationListener;
-import com.itworks.snamp.adapters.UnicastNotificationRouter;
+import com.itworks.snamp.adapters.NotificationRouter;
 
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
@@ -11,7 +11,7 @@ import javax.management.Notification;
  * @version 1.0
  * @since 1.0
  */
-final class ScriptNotificationAccessor extends UnicastNotificationRouter {
+final class ScriptNotificationAccessor extends NotificationRouter {
     private final String resourceName;
 
     ScriptNotificationAccessor(final String resourceName,

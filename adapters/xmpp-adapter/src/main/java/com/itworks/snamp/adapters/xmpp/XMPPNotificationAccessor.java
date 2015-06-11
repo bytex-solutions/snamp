@@ -3,7 +3,7 @@ package com.itworks.snamp.adapters.xmpp;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.itworks.snamp.adapters.NotificationListener;
-import com.itworks.snamp.adapters.UnicastNotificationRouter;
+import com.itworks.snamp.adapters.NotificationRouter;
 import com.itworks.snamp.jmx.json.Formatters;
 import org.jivesoftware.smack.packet.ExtensionElement;
 import org.jivesoftware.smackx.jiveproperties.packet.JivePropertiesExtension;
@@ -19,7 +19,7 @@ import java.util.Collection;
  * @version 1.0
  * @since 1.0
  */
-final class XMPPNotificationAccessor extends UnicastNotificationRouter {
+final class XMPPNotificationAccessor extends NotificationRouter {
     private final String resourceName;
     private static Gson FORMATTER = Formatters.enableAll(new GsonBuilder())
             .serializeSpecialFloatingPointValues()

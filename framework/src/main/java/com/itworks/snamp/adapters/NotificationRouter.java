@@ -11,7 +11,7 @@ import java.lang.ref.WeakReference;
  * @version 1.0
  * @since 1.0
  */
-public class UnicastNotificationRouter extends NotificationAccessor {
+public class NotificationRouter extends NotificationAccessor {
     private final WeakReference<NotificationListener> weakListener;
 
     /**
@@ -21,8 +21,8 @@ public class UnicastNotificationRouter extends NotificationAccessor {
      * @param metadata The metadata of the notification. Cannot be {@literal null}.
      * @param destination The notification acceptor.
      */
-    public UnicastNotificationRouter(final MBeanNotificationInfo metadata,
-                                     final NotificationListener destination) {
+    public NotificationRouter(final MBeanNotificationInfo metadata,
+                              final NotificationListener destination) {
         super(metadata);
         this.weakListener = new WeakReference<>(destination);
     }

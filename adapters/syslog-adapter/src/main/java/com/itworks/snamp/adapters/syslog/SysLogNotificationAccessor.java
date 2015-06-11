@@ -3,7 +3,7 @@ package com.itworks.snamp.adapters.syslog;
 import com.cloudbees.syslog.Facility;
 import com.cloudbees.syslog.Severity;
 import com.itworks.snamp.adapters.NotificationListener;
-import com.itworks.snamp.adapters.UnicastNotificationRouter;
+import com.itworks.snamp.adapters.NotificationRouter;
 import com.itworks.snamp.connectors.notifications.NotificationDescriptor;
 
 import javax.management.MBeanNotificationInfo;
@@ -14,7 +14,7 @@ import javax.management.Notification;
  * @version 1.0
  * @since 1.0
  */
-final class SysLogNotificationAccessor extends UnicastNotificationRouter {
+final class SysLogNotificationAccessor extends NotificationRouter {
     private final String resourceName;
 
     SysLogNotificationAccessor(final String resourceName,

@@ -78,7 +78,7 @@ final class NRDPAdapter extends AbstractResourceAdapter {
         }
     }
 
-    private static final class NRDPNotificationAccessor extends UnicastNotificationRouter {
+    private static final class NRDPNotificationAccessor extends NotificationRouter {
         private final String resourceName;
 
         private <L extends ThreadSafeObject & NotificationListener> NRDPNotificationAccessor(final String resourceName,
@@ -187,7 +187,7 @@ final class NRDPAdapter extends AbstractResourceAdapter {
         }
     }
 
-    private static final class NSCAPeriodPassiveCheckSender extends PeriodicPassiveCheckSender<NRDPAttributeAccessor>{
+    private static final class NSCAPeriodPassiveCheckSender extends PeriodicPassiveChecker<NRDPAttributeAccessor> {
         private final ConcurrentPassiveCheckSender checkSender;
 
         NSCAPeriodPassiveCheckSender(final TimeSpan period,

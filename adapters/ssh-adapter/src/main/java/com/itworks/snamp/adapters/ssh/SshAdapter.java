@@ -59,7 +59,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
             .serializeNulls()
             .create();
 
-    private static final class SshNotificationMappingImpl extends UnicastNotificationRouter implements SshNotificationMapping {
+    private static final class SshNotificationMappingImpl extends NotificationRouter implements SshNotificationMapping {
         private final String resourceName;
 
         private SshNotificationMappingImpl(final MBeanNotificationInfo metadata,

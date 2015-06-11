@@ -2,7 +2,7 @@ package com.itworks.snamp.adapters.syslog;
 
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.AbstractAttributesModel;
-import com.itworks.snamp.adapters.PeriodicPassiveCheckSender;
+import com.itworks.snamp.adapters.PeriodicPassiveChecker;
 
 import java.util.Objects;
 
@@ -11,7 +11,7 @@ import java.util.Objects;
  * @version 1.0
  * @since 1.0
  */
-final class SysLogAttributeSender extends PeriodicPassiveCheckSender<SysLogAttributeAccessor> {
+final class SysLogAttributeSender extends PeriodicPassiveChecker<SysLogAttributeAccessor> {
     private final ConcurrentSyslogMessageSender messageSender;
 
     SysLogAttributeSender(final TimeSpan period,

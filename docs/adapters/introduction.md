@@ -4,3 +4,4 @@ SNAMP Resource Adapters
 
 At this page you can find detailed description for each resource adapter supported by SNAMP:
 * [Groovy Resource Adapter](groovy-adapter.md) - how to write a custom bridge using Groovy between your Monitoring & Management Tool and management data provided by SNAMP
+* [HTTP Resource Adapter](groovy-adapter.md) - monitor and manage connected resource via HTTP/JSON

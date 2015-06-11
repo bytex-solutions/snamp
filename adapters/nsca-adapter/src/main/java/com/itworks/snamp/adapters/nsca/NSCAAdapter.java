@@ -79,7 +79,7 @@ final class NSCAAdapter extends AbstractResourceAdapter {
         }
     }
 
-    private static final class NSCANotificationAccessor extends UnicastNotificationRouter {
+    private static final class NSCANotificationAccessor extends NotificationRouter {
         private final String resourceName;
 
         private <L extends ThreadSafeObject & NotificationListener> NSCANotificationAccessor(final String resourceName,
@@ -190,7 +190,7 @@ final class NSCAAdapter extends AbstractResourceAdapter {
         }
     }
 
-    private static final class NSCAPeriodPassiveCheckSender extends PeriodicPassiveCheckSender<NSCAAttributeAccessor>{
+    private static final class NSCAPeriodPassiveCheckSender extends PeriodicPassiveChecker<NSCAAttributeAccessor> {
         private final ConcurrentPassiveCheckSender checkSender;
 
         NSCAPeriodPassiveCheckSender(final TimeSpan period,

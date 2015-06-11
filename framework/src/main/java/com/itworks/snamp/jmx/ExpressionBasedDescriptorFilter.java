@@ -9,12 +9,11 @@ import java.util.Objects;
 
 /**
  * Represents RFC 1960-based filter for management entities.
- * This class cannot be inherited.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-public final class ExpressionBasedDescriptorFilter {
+public class ExpressionBasedDescriptorFilter {
     private final Filter filter;
 
     /**
@@ -44,7 +43,7 @@ public final class ExpressionBasedDescriptorFilter {
      * @return The filter expression.
      */
     @Override
-    public final String toString() {
+    public String toString() {
         return filter.toString();
     }
 

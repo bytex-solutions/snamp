@@ -1,7 +1,7 @@
 package com.itworks.snamp.adapters.xmpp;
 
 import com.google.common.collect.ImmutableList;
-import com.itworks.snamp.adapters.AbstractNotificationBus;
+import com.itworks.snamp.adapters.MulticastNotificationListener;
 import com.itworks.snamp.adapters.ResourceNotificationList;
 
 import javax.management.MBeanNotificationInfo;
@@ -13,7 +13,7 @@ import java.util.Map;
  * @version 1.0
  * @since 1.0
  */
-final class XMPPNotificationModel extends AbstractNotificationBus {
+final class XMPPNotificationModel extends MulticastNotificationListener {
     private enum XNMResource{
         LISTENERS,
         NOTIFICATIONS
@@ -63,7 +63,7 @@ final class XMPPNotificationModel extends AbstractNotificationBus {
     }
 
     void clear(){
-        removeAllListeners();
+        removeAll();
         try(final LockScope ignored = beginWrite(XNMResource.NOTIFICATIONS)){
             for(final ResourceNotificationList<?> list: notifications.values())
                 list.clear();

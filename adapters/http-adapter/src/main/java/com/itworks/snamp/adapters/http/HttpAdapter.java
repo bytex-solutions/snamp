@@ -106,7 +106,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
         }
     }
 
-    private static final class HttpNotificationRouter extends UnicastNotificationRouter {
+    private static final class HttpNotificationRouter extends NotificationRouter {
         private final String resourceName;
 
         private HttpNotificationRouter(final String resourceName,
@@ -166,7 +166,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
             if (isInitialized()) super.destroy();
         }
 
-        private UnicastNotificationRouter addNotification(final MBeanNotificationInfo metadata) {
+        private NotificationRouter addNotification(final MBeanNotificationInfo metadata) {
             final HttpNotificationRouter emitter = new HttpNotificationRouter(resourceName,
                     metadata,
                     this);
@@ -174,7 +174,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
             return emitter;
         }
 
-        private UnicastNotificationRouter removeNotification(final MBeanNotificationInfo metadata) {
+        private NotificationRouter removeNotification(final MBeanNotificationInfo metadata) {
             return notifications.remove(metadata);
         }
 
@@ -220,7 +220,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
             };
         }
 
-        private UnicastNotificationRouter addNotification(final String resourceName,
+        private NotificationRouter addNotification(final String resourceName,
                                     final MBeanNotificationInfo metadata) {
             try (final LockScope ignored = beginWrite()) {
                 final NotificationBroadcaster broadcaster;

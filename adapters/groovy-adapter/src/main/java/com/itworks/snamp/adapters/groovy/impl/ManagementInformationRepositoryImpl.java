@@ -55,7 +55,7 @@ final class ManagementInformationRepositoryImpl implements ManagementInformation
             }
         }
 
-        private UnicastNotificationRouter put(final String resourceName,
+        private NotificationRouter put(final String resourceName,
                                               final MBeanNotificationInfo metadata,
                                               final NotificationListener listener) {
             try (final LockScope ignored = beginWrite()) {
@@ -171,13 +171,13 @@ final class ManagementInformationRepositoryImpl implements ManagementInformation
         return notifications.getNotifications(resourceName);
     }
 
-    UnicastNotificationRouter addNotification(final String resourceName,
+    NotificationRouter addNotification(final String resourceName,
                                               final MBeanNotificationInfo metadata,
                                               final NotificationListener listener){
         return notifications.put(resourceName, metadata, listener);
     }
 
-    UnicastNotificationRouter removeNotification(final String resourceName,
+    NotificationRouter removeNotification(final String resourceName,
                                                  final MBeanNotificationInfo metadata){
         return notifications.remove(resourceName, metadata);
     }

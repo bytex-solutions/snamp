@@ -1,5 +1,7 @@
 package com.itworks.snamp.adapters;
 
+import com.google.common.base.Supplier;
+
 import javax.management.MBeanFeatureInfo;
 import java.util.Objects;
 
@@ -9,7 +11,7 @@ import java.util.Objects;
  * @param <M> The type of the managed resource feature.
  * @param <S> The type of the feature supporter.
  */
-public abstract class FeatureAccessor<M extends MBeanFeatureInfo, S> {
+public abstract class FeatureAccessor<M extends MBeanFeatureInfo, S> implements Supplier<M> {
     private final M metadata;
 
     FeatureAccessor(final M metadata){
@@ -22,6 +24,15 @@ public abstract class FeatureAccessor<M extends MBeanFeatureInfo, S> {
      */
     public final M getMetadata(){
         return metadata;
+    }
+
+    /**
+     * Gets metadata of the feature associated with this accessor.
+     * @return The metadata of the feature associated with this accessor.
+     */
+    @Override
+    public final M get() {
+        return getMetadata();
     }
 
     /**
