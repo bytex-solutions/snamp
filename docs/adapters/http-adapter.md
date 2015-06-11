@@ -31,7 +31,7 @@ Content-Type: application/json
 ```
 
 Also, Web client may receive notifications using one of the supported technologies:
-* WebSockets
+* WebSocket
 * Comet (long-polling)
 * Server Sent Events
 * Streaming (Forever frame)
@@ -42,8 +42,15 @@ HTTP GET http://<snamp-host>:8181/snamp/adapters/http/<adapter-instance-name>/no
 ```
 
 ## Configuration Parameters
+HTTP Resource Adapters recognizes the following configuration parameters:
 
-## Protocol
+Parameter | Type | Required | Meaning | Example
+---- | ---- | ---- | ---- | ----
+dateFormat | String | false | Configures adapter to serialize Date objects into JSON string according to the pattern provided | `yyyy-MM-dd'T'HH:mm:ss.SSSZ`
+
+Any other configuration parameters will be ignored by adapter.
+
+## Data formats
 HTTP Resource Adapter uses JSON as representation of management information. The following table describes mapping between types of **Management Information Model** and JSON:
 
 Management Information Model | JSON data type
@@ -58,10 +65,13 @@ objectname | String
 char | String
 bigint | Number
 bigdecimal | Number
+date | String
 
 ### Array
+An array data that comes from managed resource will be converted into appropriate JSON array type. For example, array of `int32` values will be converted into array of Numbers (`[1, 5, 7.8, 42]`).
 
 ### Table
+Table is represented in JSON format as follows:
 ```json
 {
   "type":{
@@ -84,21 +94,67 @@ bigdecimal | Number
 }
 ```
 
+`type` element describes metadata information about table:
+* `typeName` - table name
+* `description` - human-readable description of the table
+* `rowType` - definition of columns (name, type and description)
+* `index` element contains an array of columns which are the part of table index
+
+`rows` element contains an array of table rows.
+
+> When you change table rows (via POST request) you should not modify anything in `type` element.
+
+The possible values of `type` element: `void`, `bool`, `int8`, `int16`, `int32`, `int64`, `char`, `string`, `objectname`, `float32`, `float64`, `bigint`, `bigdec`, `date`.
+
 ### Dictionary
+Dictionary is represented in JSON format as follows:
 ```json
 {
   "type":{
-    "typeName":"dict",
-    "description":"dict",
+    "typeName":"Dictionary",
+    "description":"Description stub",
     "items":{
-      "item1":{
+      "key1":{
         "description":"Dummy item",
         "type":"int32"
+      },
+      "key2":{
+        "description":"Dummy item",
+        "type":"string"
       }
     }
   },
-  "value":{"item1":2}
+  "value":{"item1":2, "item2": "Hello, world"}
 }
 ```
 
+`type` element describes metadata information about dictionary:
+* `typeName` - table name
+* `description` - human-readable description of the dictionary
+* `items` - definition of dictionary keys (name, type and description)
+
+`value` element contains a dictionary key/value pairs.
+
 ### Notification
+Notification received through WebSocket/Comet/SSE channel can be represented in JSON format as follows:
+```json
+{
+  "source":"java-app-server",
+  "type":"jmx.attribute.change",
+  "sequenceNumber":5,
+  "timeStamp":"Jun 11, 2015 12:26:54 PM",
+  "message":"Log level changed",
+  "userData":{
+    "type":{
+      "typeName":"dict",
+      "description":"dict",
+      "items":{
+        "item1":{"description":"Dummy item","type":"int32"}
+      }
+    },
+    "value":{"item1":2}
+  }
+}
+```
+
+The information model of the notification described in **Management Information Model** page.

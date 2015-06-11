@@ -11,7 +11,9 @@ import com.itworks.snamp.jmx.TabularTypeBuilder;
 import org.junit.Assert;
 import org.junit.Test;
 
+import javax.management.AttributeChangeNotification;
 import javax.management.MalformedObjectNameException;
+import javax.management.Notification;
 import javax.management.ObjectName;
 import javax.management.openmbean.*;
 import java.lang.reflect.Field;
@@ -134,5 +136,25 @@ public final class JsonFormattingTests extends Assert {
         final JsonElement elem = formatter.toJsonTree(data);
         assertTrue(elem.isJsonObject());
         assertEquals(data, formatter.fromJson(elem, TabularData.class));
+    }
+
+    @Test
+    public void notificationTest() throws OpenDataException {
+        final Gson formatter = new GsonBuilder()
+                .registerTypeHierarchyAdapter(CompositeData.class, new CompositeDataFormatter())
+                .registerTypeHierarchyAdapter(Notification.class, new NotificationSerializer())
+                .create();
+        final Notification notif = new Notification(AttributeChangeNotification.ATTRIBUTE_CHANGE,
+                "java-app-server",
+                5L,
+                System.currentTimeMillis(),
+                "Log level changed");
+        notif.setUserData(new CompositeDataBuilder()
+                .setTypeName("dict")
+                .setTypeDescription("dict")
+                .put("item1", "Dummy item", 2)
+                .build());
+        final JsonElement elem = formatter.toJsonTree(notif);
+        assertTrue(elem.isJsonObject());
     }
 }
