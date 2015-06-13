@@ -1,10 +1,15 @@
-package com.itworks.snamp.adapters;
+package com.itworks.snamp.adapters.groovy;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.adapters.AbstractAttributesModel;
+import com.itworks.snamp.adapters.AttributeAccessor;
+import com.itworks.snamp.adapters.PeriodicPassiveChecker;
 import com.itworks.snamp.concurrent.WriteOnceRef;
+import com.itworks.snamp.internal.annotations.SpecialUse;
 import com.itworks.snamp.jmx.ExpressionBasedDescriptorFilter;
+import groovy.lang.Closure;
 import org.osgi.framework.InvalidSyntaxException;
 
 import javax.management.JMException;
@@ -22,12 +27,6 @@ import java.util.Set;
  */
 public class PeriodicPassiveAnalyzer<TAccessor extends AttributeAccessor> extends PeriodicPassiveChecker<TAccessor> {
     private interface AttributeStatement{
-    }
-
-    public interface AttributeValueHandler<I, E extends Throwable>{
-        void handle(final String resourceName,
-                    final MBeanAttributeInfo metadata,
-                    final I attributeValue) throws E;
     }
 
     private static <I, E extends Throwable> AttributeValueHandler<I, E> handlerStub(){
@@ -48,12 +47,12 @@ public class PeriodicPassiveAnalyzer<TAccessor extends AttributeAccessor> extend
     public static class CheckAndProcessAttributeStatement implements Predicate, AttributeStatement{
         private final Predicate checker;
         private final WriteOnceRef<AttributeValueHandler<Object, ?>> successHandler;
-        private final WriteOnceRef<AttributeValueHandler<Throwable, ?>> errorHandler;
+        private final WriteOnceRef<AttributeValueHandler<? super Throwable, ? extends RuntimeException>> errorHandler;
 
         protected CheckAndProcessAttributeStatement(final Predicate checker){
             this.checker = Objects.requireNonNull(checker);
             this.successHandler = new WriteOnceRef<AttributeValueHandler<Object, ?>>(handlerStub());
-            this.errorHandler = new WriteOnceRef<AttributeValueHandler<Throwable, ?>>(PeriodicPassiveAnalyzer.<Throwable, Throwable>handlerStub());
+            this.errorHandler = new WriteOnceRef<AttributeValueHandler<? super Throwable, ? extends RuntimeException>>(PeriodicPassiveAnalyzer.<Throwable, RuntimeException>handlerStub());
         }
 
         /**
@@ -67,16 +66,42 @@ public class PeriodicPassiveAnalyzer<TAccessor extends AttributeAccessor> extend
             return checker.apply(attributeValue);
         }
 
+        public final CheckAndProcessAttributeStatement error(final AttributeValueHandler<? super Throwable, ? extends RuntimeException> handler){
+            errorHandler.set(Objects.requireNonNull(handler));
+            return this;
+        }
+
+        @SpecialUse
+        public final CheckAndProcessAttributeStatement error(final Closure<?> handler){
+            return error(Closures.<Throwable, RuntimeException>toHandler(handler));
+        }
+
+        public final CheckAndProcessAttributeStatement success(final AttributeValueHandler<Object, ?> handler){
+            successHandler.set(Objects.requireNonNull(handler));
+            return this;
+        }
+
+        @SpecialUse
+        public final CheckAndProcessAttributeStatement success(final Closure<?> handler){
+            return success(Closures.toHandler(handler));
+        }
+
         private void onError(final String resourceName,
                              final MBeanAttributeInfo metadata,
                              final Throwable e) {
-
+            final AttributeValueHandler<? super Throwable, ? extends RuntimeException> handler = errorHandler.get();
+            handler.handle(resourceName, metadata, e);
         }
 
         private void onSuccess(final String resourceName,
                                final MBeanAttributeInfo metadata,
                                final Object attributeValue) {
-
+            final AttributeValueHandler<Object, ?> hander = successHandler.get();
+            try {
+                hander.handle(resourceName, metadata, attributeValue);
+            }catch (final Throwable e){
+                onError(resourceName, metadata, e);
+            }
         }
     }
 
@@ -98,33 +123,38 @@ public class PeriodicPassiveAnalyzer<TAccessor extends AttributeAccessor> extend
             return match(accessor.get());
         }
 
-        protected CheckAndProcessAttributeStatement createValueHandler(final Predicate valueChecker){
+        protected CheckAndProcessAttributeStatement createValueHandler(final Predicate valueChecker) {
             return new CheckAndProcessAttributeStatement(valueChecker);
         }
 
-        public final CheckAndProcessAttributeStatement when(final Predicate valueChecker){
+        public final CheckAndProcessAttributeStatement when(final Predicate valueChecker) {
             final CheckAndProcessAttributeStatement result = createValueHandler(valueChecker);
             handlers.add(result);
             return result;
         }
 
+        @SpecialUse
+        public final CheckAndProcessAttributeStatement when(final Closure<Boolean> valueChecker){
+            return when(Closures.toPredicate(valueChecker));
+        }
+
         private void process(final String resourceName,
                              final AttributeAccessor accessor) {
             final Object attributeValue;
-            try{
+            try {
                 attributeValue = accessor.getValue();
-            } catch (final JMException e){
-                for(final CheckAndProcessAttributeStatement handler: handlers)
+            } catch (final JMException e) {
+                for (final CheckAndProcessAttributeStatement handler : handlers)
                     handler.onError(resourceName, accessor.getMetadata(), e);
                 return;
             }
-            for(final CheckAndProcessAttributeStatement handler: handlers)
-                if(handler.apply(attributeValue))
+            for (final CheckAndProcessAttributeStatement handler : handlers)
+                if (handler.apply(attributeValue))
                     handler.onSuccess(resourceName, accessor.getMetadata(), attributeValue);
         }
     }
 
-    private final Set<AttributeSelectStatement> groups;
+    private final Set<AttributeSelectStatement> selectionStatements;
 
     /**
      * Initializes a new attribute value sender.
@@ -136,7 +166,7 @@ public class PeriodicPassiveAnalyzer<TAccessor extends AttributeAccessor> extend
     public PeriodicPassiveAnalyzer(final TimeSpan period,
                                    final AbstractAttributesModel<TAccessor> attributes) {
         super(period, attributes);
-        groups = new LinkedHashSet<>(10);
+        selectionStatements = new LinkedHashSet<>(10);
     }
 
     protected AttributeSelectStatement createSelector(final String expression) throws InvalidSyntaxException {
@@ -145,14 +175,14 @@ public class PeriodicPassiveAnalyzer<TAccessor extends AttributeAccessor> extend
 
     public final AttributeSelectStatement select(final String expression) throws InvalidSyntaxException {
         final AttributeSelectStatement selector = createSelector(expression);
-        groups.add(selector);
+        selectionStatements.add(selector);
         return selector;
     }
 
     @Override
     public final void processAttribute(final String resourceName, final TAccessor accessor) {
-        for (final AttributeSelectStatement group : groups)
-            if(group.match(accessor))
+        for (final AttributeSelectStatement group : selectionStatements)
+            if (group.match(accessor))
                 group.process(resourceName, accessor);
     }
 }
