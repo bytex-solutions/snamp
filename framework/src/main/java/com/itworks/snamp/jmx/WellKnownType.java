@@ -24,7 +24,7 @@ import java.util.concurrent.ExecutionException;
  * @version 1.0
  * @since 1.0
  */
-public enum  WellKnownType implements Serializable, Type {
+public enum  WellKnownType implements Serializable, Type, Predicate {
     /**
      * Represents {@link java.lang.Void} data type.
      */
@@ -442,6 +442,17 @@ public enum  WellKnownType implements Serializable, Type {
      */
     public boolean isInstance(final Object value){
         return openType != null ? openType.isValue(value) : javaType.isInstance(value);
+    }
+
+    /**
+     * Determines whether the specified object is an instance of this well-known type.
+     * @param value The value to check.
+     * @return {@literal true}, if the specified object is an instance of this type;
+     *      otherwise, {@literal false}.
+     */
+    @Override
+    public boolean apply(final Object value){
+        return isInstance(value);
     }
 
     /**
