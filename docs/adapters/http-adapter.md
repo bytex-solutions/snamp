@@ -1,7 +1,7 @@
 HTTP Resource Adapter
 ====
 
-HTTP Resource Adapter allows to managed and monitor connected resources via HTTP protocol. The adapter exposes REST service which uses JSON data exchange format.
+HTTP Resource Adapter allows to manage and monitor connected resources via HTTP protocol. The adapter exposes REST service which uses JSON data exchange format.
 
 By default, REST service is available at the following URL:
 ```
@@ -10,7 +10,7 @@ http://<snamp-host>:8181/snamp/adapters/http/<adapter-instance-name>
 
 You can change HTTP port in `<snamp>/etc/org.ops4j.pax.web.cfg` file or by typing `config:property-set -p org.ops4j.pax.web org.osgi.service.http.port 8080` in the shell console. See [Apache Karaf HTTP Service](http://karaf.apache.org/manual/latest/users-guide/http.html) for more details.
 
-HTTP Resource Adapter supports the following features:
+HTTP Resource Adapter supports the following features (if they are supported by managed resources too):
 
 Feature | Description
 ---- | ----
@@ -46,7 +46,7 @@ HTTP Resource Adapters recognizes the following configuration parameters:
 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
-dateFormat | String | false | Configures adapter to serialize Date objects into JSON string according to the pattern provided | `yyyy-MM-dd'T'HH:mm:ss.SSSZ`
+dateFormat | String | No | Configures adapter to serialize Date objects into JSON string according to the pattern provided | `yyyy-MM-dd'T'HH:mm:ss.SSSZ`
 
 Any other configuration parameters will be ignored by adapter.
 

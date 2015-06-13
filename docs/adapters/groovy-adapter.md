@@ -12,8 +12,8 @@ Groovy Resource Adapter recognizes the following configuration parameters:
 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
-scriptFile | string | true | The name of the boot script | `Adapter.groovy`
-scriptPath | string | true | A collection of paths with groovy scripts | `/usr/local/snamp/groovy:/usr/local/snamp/scripts`
+scriptFile | string | Yes | The name of the boot script | `Adapter.groovy`
+scriptPath | string | Yes | A collection of paths with groovy scripts | `/usr/local/snamp/groovy:/usr/local/snamp/scripts`
 
 You may specify more than one path in `scriptPath` parameter using OS-specific path separator symbol:
 * `:` for Linux
