@@ -3,6 +3,7 @@ package com.itworks.snamp.adapters.groovy;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.eventbus.Subscribe;
+import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.NotificationEvent;
 import com.itworks.snamp.adapters.NotificationListener;
 import com.itworks.snamp.concurrent.Repeater;
@@ -213,12 +214,14 @@ public abstract class ResourceAdapterScript extends Script implements AutoClosea
     }
 
     @Override
+    @SpecialUse
     public final Collection<MBeanAttributeInfo> getAttributes(final String resourceName) {
         final ManagementInformationRepository repository = getRepository();
         return repository == null ? ImmutableList.<MBeanAttributeInfo>of() : repository.getAttributes(resourceName);
     }
 
     @Override
+    @SpecialUse
     public final Collection<MBeanNotificationInfo> getNotifications(final String resourceName) {
         final ManagementInformationRepository repository = getRepository();
         return repository == null ? ImmutableList.<MBeanNotificationInfo>of() : repository.getNotifications(resourceName);
@@ -228,6 +231,13 @@ public abstract class ResourceAdapterScript extends Script implements AutoClosea
     protected Object handleNotification(final Object metadata,
                                       final Object notif){
         return null;
+    }
+
+    @Override
+    @SpecialUse
+    public final PeriodicPassiveAnalyzer<?> analyzer(final TimeSpan checkPeriod) {
+        final ManagementInformationRepository repository = getRepository();
+        return repository != null ? repository.analyzer(checkPeriod) : null;
     }
 
     /**

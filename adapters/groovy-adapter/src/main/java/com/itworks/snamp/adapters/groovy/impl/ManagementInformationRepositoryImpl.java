@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.adapters.NotificationListener;
 import com.itworks.snamp.adapters.groovy.ManagementInformationRepository;
@@ -169,6 +170,11 @@ final class ManagementInformationRepositoryImpl implements ManagementInformation
     @Override
     public Collection<MBeanNotificationInfo> getNotifications(final String resourceName) {
         return notifications.getNotifications(resourceName);
+    }
+
+    @Override
+    public ScriptAnalyzer analyzer(final TimeSpan checkPeriod) {
+        return new ScriptAnalyzer(checkPeriod, this.attributes);
     }
 
     NotificationRouter addNotification(final String resourceName,

@@ -1,5 +1,6 @@
 package com.itworks.snamp.adapters.groovy;
 
+import com.itworks.snamp.TimeSpan;
 import groovy.lang.Closure;
 
 import javax.management.*;
@@ -22,4 +23,5 @@ public interface ManagementInformationRepository {
     Collection<MBeanAttributeInfo> getAttributes(final String resourceName);
     Collection<MBeanNotificationInfo> getNotifications(final String resourceName);
     void setAttributeValue(final String resourceName, final String attributeName, final Object value) throws AttributeNotFoundException, MBeanException, ReflectionException, InvalidAttributeValueException;
+    PeriodicPassiveAnalyzer<?> analyzer(final TimeSpan checkPeriod);
 }

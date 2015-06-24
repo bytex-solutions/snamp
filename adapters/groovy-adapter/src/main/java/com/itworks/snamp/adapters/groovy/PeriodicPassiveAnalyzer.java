@@ -127,15 +127,15 @@ public class PeriodicPassiveAnalyzer<TAccessor extends AttributeAccessor> extend
             return new CheckAndProcessAttributeStatement(valueChecker);
         }
 
-        public final CheckAndProcessAttributeStatement when(final Predicate valueChecker) {
+        public final CheckAndProcessAttributeStatement filter(final Predicate valueChecker) {
             final CheckAndProcessAttributeStatement result = createValueHandler(valueChecker);
             handlers.add(result);
             return result;
         }
 
         @SpecialUse
-        public final CheckAndProcessAttributeStatement when(final Closure<Boolean> valueChecker){
-            return when(Closures.toPredicate(valueChecker));
+        public final CheckAndProcessAttributeStatement filter(final Closure<Boolean> valueChecker){
+            return filter(Closures.toPredicate(valueChecker));
         }
 
         private void process(final String resourceName,
