@@ -156,7 +156,7 @@ Groovy Resource Adapter provides two declarative analyzers:
 The following example demonstrates how to enable periodic collection and analysis of attributes:
 ```groovy
 def analyzer = attributesAnalyzer 4000 //creates analyzer for attributes with 4 sec check period
-with analyzer{
+analyzer.with {
   //filter by configuration parameter and actual attribute value
   select "(type=adminDefined)" when {value -> value > 10} then {println it} failure {println it}
   //fallback condition
@@ -173,7 +173,11 @@ _RFC 1960_-based filter used to filter attributes by its configuration parameter
 The following example demonstrates how to enable events analyzer
 ```groovy
 def analyzer = eventsAnalyzer()
-with analyzer{
+analyzer.with {
   select "(severity=warning)" when {notif -> notif.source == "resource"} then {metadata, notif -> println notif.message}
+}
+
+def handleNotification(metadata, notif){
+  analyzer.handleNotification(metadata, notif)
 }
 ```

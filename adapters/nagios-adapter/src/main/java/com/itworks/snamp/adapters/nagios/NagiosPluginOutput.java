@@ -21,7 +21,7 @@ final class NagiosPluginOutput {
     //http://nagios.sourceforge.net/docs/3_0/pluginapi.html
     //https://nagios-plugins.org/doc/guidelines.html#PLUGOUTPUT
 
-    //SERVICE STATUS: VALUE
+    //SERVICE STATUS: VALUE[UOM]
     private static final String SIMPLE_OUTPUT = "%s %s: %s%s";
     //'label'=value[UOM];[warn];[crit];[min];[max]
     private static final String EXTENDED_OUTPUT = SIMPLE_OUTPUT + " | %s=%s%s;%s;%s;%s;%s";
