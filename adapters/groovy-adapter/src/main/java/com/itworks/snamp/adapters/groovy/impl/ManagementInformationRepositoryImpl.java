@@ -173,8 +173,13 @@ final class ManagementInformationRepositoryImpl implements ManagementInformation
     }
 
     @Override
-    public ScriptAnalyzer analyzer(final TimeSpan checkPeriod) {
-        return new ScriptAnalyzer(checkPeriod, this.attributes);
+    public ScriptAttributesAnalyzer attributesAnalyzer(final TimeSpan checkPeriod) {
+        return new ScriptAttributesAnalyzer(checkPeriod, this.attributes);
+    }
+
+    @Override
+    public ScriptNotificationsAnalyzer eventsAnalyzer() {
+        return new ScriptNotificationsAnalyzer();
     }
 
     NotificationRouter addNotification(final String resourceName,

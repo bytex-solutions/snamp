@@ -2,7 +2,7 @@ package com.itworks.snamp.adapters.groovy.impl;
 
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.AbstractAttributesModel;
-import com.itworks.snamp.adapters.groovy.PeriodicPassiveAnalyzer;
+import com.itworks.snamp.adapters.groovy.ResourceAttributesAnalyzer;
 
 /**
  * Represents script-based periodic analyzer of attributes.
@@ -11,7 +11,7 @@ import com.itworks.snamp.adapters.groovy.PeriodicPassiveAnalyzer;
  * @version 1.0
  * @since 1.0
  */
-final class ScriptAnalyzer extends PeriodicPassiveAnalyzer<ScriptAttributeAccessor> {
+final class ScriptAttributesAnalyzer extends ResourceAttributesAnalyzer<ScriptAttributeAccessor> {
     /**
      * Initializes a new attribute value sender.
      *
@@ -19,7 +19,7 @@ final class ScriptAnalyzer extends PeriodicPassiveAnalyzer<ScriptAttributeAccess
      * @param attributes A collection of attributes. Cannot be {@literal null}.
      * @throws IllegalArgumentException period is {@literal null}.
      */
-    ScriptAnalyzer(final TimeSpan period, final AbstractAttributesModel<ScriptAttributeAccessor> attributes) {
+    ScriptAttributesAnalyzer(final TimeSpan period, final AbstractAttributesModel<ScriptAttributeAccessor> attributes) {
         super(period, attributes);
     }
 }

@@ -34,7 +34,7 @@ public class ExpressionBasedDescriptorFilter {
      * @param metadata The metadata of the management feature. Cannot be {@literal null}.
      * @return {@literal true}, if the specified feature matches to the underlying compiled expression; otherwise, {@literal false}.
      */
-    public boolean match(final DescriptorRead metadata) {
+    public final boolean match(final DescriptorRead metadata) {
         return filter.matchCase(DescriptorUtils.asDictionary(metadata.getDescriptor()));
     }
 

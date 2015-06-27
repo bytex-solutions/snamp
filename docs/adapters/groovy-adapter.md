@@ -85,7 +85,7 @@ ManagedResourceConnectorClient getManagedResource(String resourceName) | Gets a 
 void releaseManagedResource(ManagedResourceConnectorClient resource) | Releases a reference to the connected managed resource
 Collection&lt;MBeanAttributeInfo&gt; getAttributes(String resourceName) | Gets metadata of resource attributes
 Collection&lt;MBeanNotificationInfo&gt; getNotifications(String resourceName) | Gets metadata of resource events
-void processAttributes(Closure action) | Processes all attributes sequentially
+void processAttributes(Closure action) | Processes all attributes sequentially. May be used for map/reduce.
 void processEvents(Closure action) | Processes all events sequentially
 
 Read attribute value using resoure client:
@@ -146,4 +146,34 @@ communicator.register(asListener this.&listen)
 communicator = getCommunicator 'test-communicator'
 def response = communicator.post('ping', 2000)  //2 seconds for response timeout
 println response  //pong
+```
+
+### Real-time analysis
+Groovy Resource Adapter provides two declarative analyzers:
+* Attributes analyzer used to analyze attribute values in periodically manner
+* Events analyzer used to analyze notifications on-the-fly
+
+The following example demonstrates how to enable periodic collection and analysis of attributes:
+```groovy
+def analyzer = attributesAnalyzer 4000 //creates analyzer for attributes with 4 sec check period
+with analyzer{
+  //filter by configuration parameter and actual attribute value
+  select "(type=adminDefined)" when {value -> value > 10} then {println it} failure {println it}
+  //fallback condition
+  select "(type=*)" when {value -> true} then {println it}
+}
+analyzer.run()  //execute analysis
+
+void close(){
+  analyzer.close()  //it is recommended to release all resources associated with analyzer
+}
+```
+_RFC 1960_-based filter used to filter attributes by its configuration parameters.
+
+The following example demonstrates how to enable events analyzer
+```groovy
+def analyzer = eventsAnalyzer()
+with analyzer{
+  select "(severity=warning)" when {notif -> notif.source == "resource"} then {metadata, notif -> println notif.message}
+}
 ```

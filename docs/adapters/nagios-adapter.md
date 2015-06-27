@@ -8,6 +8,8 @@ Feature | Description
 ---- | ----
 Attributes | The attribute and its value will be converted into _Nagios Plugin Format_ and placed into HTTP response
 
+Notifications are not supported by Nagios Resource Adapter.
+
 Use the following URL for retrieving attributes:
 ```
 HTTP GET

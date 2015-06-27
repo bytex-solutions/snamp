@@ -33,12 +33,12 @@ import java.util.logging.Logger;
 public abstract class ResourceAdapterScript extends Script implements AutoCloseable, ManagementInformationRepository, NotificationListener {
     public static final String REPOSITORY_GLOBAL_VAR = "repository";
 
-    private static Logger getLogger(){
+    private static Logger getLogger() {
         return ResourceAdapterInfo.getLogger();
     }
 
-    private ManagementInformationRepository getRepository(){
-        return (ManagementInformationRepository)super.getProperty(REPOSITORY_GLOBAL_VAR);
+    private ManagementInformationRepository getRepository() {
+        return (ManagementInformationRepository) super.getProperty(REPOSITORY_GLOBAL_VAR);
     }
 
     @SpecialUse
@@ -47,12 +47,12 @@ public abstract class ResourceAdapterScript extends Script implements AutoClosea
     }
 
     @SpecialUse
-    protected static EventListener asListener(final Closure<?> closure){
-        return new EventListener(){
+    protected static EventListener asListener(final Closure<?> closure) {
+        return new EventListener() {
 
             @Subscribe
             @SpecialUse
-            public void accept(final Object message){
+            public void accept(final Object message) {
                 closure.call(message);
             }
         };
@@ -60,7 +60,8 @@ public abstract class ResourceAdapterScript extends Script implements AutoClosea
 
     /**
      * Creates a new timer which executes the specified action.
-     * @param job The action to execute periodically. Cannot be {@literal null}.
+     *
+     * @param job    The action to execute periodically. Cannot be {@literal null}.
      * @param period Execution period, in millis.
      * @return A new timer.
      */
@@ -76,12 +77,13 @@ public abstract class ResourceAdapterScript extends Script implements AutoClosea
 
     /**
      * Schedules a new periodic task
-     * @param job The action to execute periodically. Cannot be {@literal null}.
+     *
+     * @param job    The action to execute periodically. Cannot be {@literal null}.
      * @param period Execution period, in millis.
      * @return Executed timer.
      */
     @SpecialUse
-    protected static Repeater schedule(final Closure<?> job, final long period){
+    protected static Repeater schedule(final Closure<?> job, final long period) {
         final Repeater timer = createTimer(job, period);
         timer.run();
         return timer;
@@ -89,35 +91,35 @@ public abstract class ResourceAdapterScript extends Script implements AutoClosea
 
     @SpecialUse
     protected static void error(final String message) {
-        try(final OSGiLoggingContext logger = OSGiLoggingContext.get(ResourceAdapterInfo.getLogger(), getBundleContext())){
+        try (final OSGiLoggingContext logger = OSGiLoggingContext.get(ResourceAdapterInfo.getLogger(), getBundleContext())) {
             logger.severe(message);
         }
     }
 
     @SpecialUse
     protected static void warning(final String message) {
-        try(final OSGiLoggingContext logger = OSGiLoggingContext.get(getLogger(), getBundleContext())){
+        try (final OSGiLoggingContext logger = OSGiLoggingContext.get(getLogger(), getBundleContext())) {
             logger.warning(message);
         }
     }
 
     @SpecialUse
     protected static void info(final String message) {
-        try(final OSGiLoggingContext logger = OSGiLoggingContext.get(getLogger(), getBundleContext())){
+        try (final OSGiLoggingContext logger = OSGiLoggingContext.get(getLogger(), getBundleContext())) {
             logger.info(message);
         }
     }
 
     @SpecialUse
     protected static void debug(final String message) {
-        try(final OSGiLoggingContext logger = OSGiLoggingContext.get(getLogger(), getBundleContext())){
+        try (final OSGiLoggingContext logger = OSGiLoggingContext.get(getLogger(), getBundleContext())) {
             logger.config(message);
         }
     }
 
     @SpecialUse
     protected static void fine(final String message) {
-        try(final OSGiLoggingContext logger = OSGiLoggingContext.get(getLogger(), getBundleContext())){
+        try (final OSGiLoggingContext logger = OSGiLoggingContext.get(getLogger(), getBundleContext())) {
             logger.fine(message);
         }
     }
@@ -151,7 +153,7 @@ public abstract class ResourceAdapterScript extends Script implements AutoClosea
     @SpecialUse
     public final Object getAttributeValue(final String resourceName, final String attributeName) throws MBeanException, AttributeNotFoundException, ReflectionException {
         final ManagementInformationRepository provider = getRepository();
-        if(provider != null)
+        if (provider != null)
             return provider.getAttributeValue(resourceName, attributeName);
         else throw JMExceptionUtils.attributeNotFound(attributeName);
     }
@@ -160,7 +162,7 @@ public abstract class ResourceAdapterScript extends Script implements AutoClosea
     @SpecialUse
     public final void setAttributeValue(final String resourceName, final String attributeName, final Object value) throws AttributeNotFoundException, MBeanException, ReflectionException, InvalidAttributeValueException {
         final ManagementInformationRepository provider = getRepository();
-        if(provider != null)
+        if (provider != null)
             provider.setAttributeValue(resourceName, attributeName, value);
         else throw JMExceptionUtils.attributeNotFound(attributeName);
     }
@@ -169,7 +171,7 @@ public abstract class ResourceAdapterScript extends Script implements AutoClosea
     @SpecialUse
     public final void processAttributes(final Closure<?> closure) throws JMException {
         final ManagementInformationRepository provider = getRepository();
-        if(provider != null)
+        if (provider != null)
             provider.processAttributes(closure);
     }
 
@@ -177,12 +179,13 @@ public abstract class ResourceAdapterScript extends Script implements AutoClosea
     @SpecialUse
     public final void processEvents(final Closure<?> closure) throws JMException {
         final ManagementInformationRepository provider = getRepository();
-        if(provider != null)
+        if (provider != null)
             provider.processEvents(closure);
     }
 
     /**
      * Obtains direct reference to the specified managed resource.
+     *
      * @param resourceName The name of the connected resource. Cannot be {@literal null} or empty.
      * @return Direct reference to the managed resource.
      * @throws InstanceNotFoundException Managed resource with specified name doesn't exist.
@@ -195,11 +198,12 @@ public abstract class ResourceAdapterScript extends Script implements AutoClosea
 
     /**
      * Releases direct reference to the specified managed resource.
+     *
      * @param client Managed resource client. Cannot be {@literal null}.
      * @see #getManagedResource(String)
      */
     @SpecialUse
-    protected static void releaseManagedResource(final ManagedResourceConnectorClient client){
+    protected static void releaseManagedResource(final ManagedResourceConnectorClient client) {
         client.release(getBundleContext());
     }
 
@@ -229,19 +233,31 @@ public abstract class ResourceAdapterScript extends Script implements AutoClosea
 
     @SpecialUse
     protected Object handleNotification(final Object metadata,
-                                      final Object notif){
+                                        final Object notif) {
         return null;
     }
 
     @Override
     @SpecialUse
-    public final PeriodicPassiveAnalyzer<?> analyzer(final TimeSpan checkPeriod) {
+    public final ResourceAttributesAnalyzer<?> attributesAnalyzer(final TimeSpan checkPeriod) {
         final ManagementInformationRepository repository = getRepository();
-        return repository != null ? repository.analyzer(checkPeriod) : null;
+        return repository != null ? repository.attributesAnalyzer(checkPeriod) : null;
+    }
+
+    public final ResourceAttributesAnalyzer<?> attributesAnalyzer(final long checkPeriod){
+        return attributesAnalyzer(new TimeSpan(checkPeriod));
+    }
+
+    @Override
+    @SpecialUse
+    public final ResourceNotificationsAnalyzer eventsAnalyzer() {
+        final ManagementInformationRepository repository = getRepository();
+        return repository != null ? repository.eventsAnalyzer() : new ResourceNotificationsAnalyzer();
     }
 
     /**
      * Releases all resources associated with this script.
+     *
      * @throws Exception Unable to release resources.
      */
     @Override
