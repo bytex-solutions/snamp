@@ -1,8 +1,8 @@
 Nagios Resource Adapter
 ====
-Nagios Resource Adapter allows to collect monitoring and management information from all resources connected to SNAMP using **active check**. Simply, this adapter is just a HTTP endpoint that returns information in [Nagios Plugin Format](http://nagios.sourceforge.net/docs/3_0/pluginapi.html) about managed resource.
+Nagios Resource Adapter allows to collect monitoring and management information from all resources connected to SNAMP using [active check](http://nagios.sourceforge.net/docs/3_0/activechecks.html). Simply, this adapter is just a HTTP endpoint that returns information in [Nagios Plugin Format](http://nagios.sourceforge.net/docs/3_0/pluginapi.html) about managed resource.
 
-JMX Resource Adapter supports the following features (if they are supported by managed resources too):
+Nagios Resource Adapter supports the following features (if they are supported by managed resources too):
 
 Feature | Description
 ---- | ----
@@ -35,12 +35,13 @@ The following configuration parameters of the attributes have influence on Nagio
 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
-serviceName | String | No | Used to identify an external service. If it is not specified then attribute name will be used instead | `Laptop`
+serviceName | String | No | Used to identify an external service. If it is not specified then attribute name will be used instead. The service name helps to specify more informative name of the monitored resource in Nagios. | `Laptop`
 criticalThreshold | Threshold | No | Used to specify a threshold for a critical level of the service based on the attribute value. It should be specified in [Nagios Threshold Format](https://nagios-plugins.org/doc/guidelines.html#THRESHOLDFORMAT) | `~:10`
 warningThreshold | Threshold | No | Used to specify a threshold for a warning level of the service based on the attribute value It should be specified in [Nagios Threshold Format](https://nagios-plugins.org/doc/guidelines.html#THRESHOLDFORMAT) | `10:`
-minValue | String | No | A lower bound of the possible attribute values range | `10`
-maxValue | String | No | An upper bound of the possible attribute values range | `100`
+minValue | String | No | The minimum possible value (exclusive) of the attribute | `10`
+maxValue | String | No | The maximum possible value (exclusive) of the attribute | `100`
 label | String | No | A label of the metric. If it is not specified then user-defined attribute name will be used instead | `mem`
+units | String | No | Unit of measurement (UOM) of the attribute value. For example: `ms`, `m`, `kg`, `MB` | `MB`
 
 `criticalThreshold`, `warningThreshold`, `minValue` and `maxValue` parameters should be used together.
 

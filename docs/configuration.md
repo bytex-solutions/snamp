@@ -299,10 +299,10 @@ maxPoolSize | Managed Resource or Resource Adapter configuration | The maximum n
 queueSize | Managed Resource or Resource Adapter configuration | The maximum number of waiting input requests
 keepAliveTime | Managed Resource or Resource Adapter configuration | when the number of threads is greater than the `minPoolSize`, this is the maximum time (in millis) that excess idle threads will wait for new tasks before terminating
 priority | Managed Resource or Resource Adapter configuration | Priority of all threads in the thread pool
-units | Attribute configuration | Unit of measures (UOM) of the attribute value. For example: `ms`, `m`, `kg`, `MB`
+units | Attribute configuration | Unit of measurement (UOM) of the attribute value. For example: `ms`, `m`, `kg`, `MB`
 defaultValue | Attribute configuration | The default value of the attribute if the actual value is not available
-minValue | Attribute configuration | The minimum (inclusive) permitted value for the attribute
-maxValue | Attribute configuration | The maximum (inclusive) permitted value for the attribute
+minValue | Attribute configuration | The minimum (exclusive) permitted value for the attribute
+maxValue | Attribute configuration | The maximum (exclusive) permitted value for the attribute
 
 ### `severity` parameter
 The possible values of `severity` parameter (in descending order):

@@ -42,9 +42,9 @@ securityContext | String | No | The context name of the scoped PDU (for SNMPv3 o
 socketTimeout | Integer | No | UDP socket timeout, in millis. It is used as a maximum time interval for receiving and sending PDU packets over network. This parameter must be specified if your network has high latency | `2000`
 localAddress | `udp://<ip-address>/<port>` | No | UDP outgoing address and port. Usually, you should not specify this parameter. But it is very useful for testing purposes when you QA team wants to capture data packet traces between SNAMP and SNMP agent | `udp://127.0.0.1/44495`
 
-Any other parameters will be ignored.
+Note that parameters related to thread pool is omitted. See **SNAMP Configuration Guide** page for more information about thread pool configuration. All other parameters will be ignored.
 
-Note that resource connector cannot determine SNMP protocol version automatically. Moreover, it cannot automatically discover values of security parameters such as `community`, `authenticationProtocol`, `userName`, `password` and etc.
+The resource connector cannot determine SNMP protocol version automatically. Moreover, it cannot automatically discover values of security parameters such as `community`, `authenticationProtocol`, `userName`, `password` and etc.
 
 ### SNMPv2 configuration
 SNMP Resource Connector will choose SNMPv2 protocol if `userName` configuration parameter is undefined. In this case only `community` configuration parameter affecting SNMPv2 communication process. Any other SNMPv3-specific parameters will be ignored.
@@ -59,8 +59,6 @@ Enum value | Description
 ---- | ----
 md5 | The password will be hashed using MD5 algorithm
 sha | The password will be hashed using SHA algorithm
-
-Note that parameters related to thread pool is omitted. See **Configuration** page for more information about thread pool configuration.
 
 ### Encryption protocol
 SNMP Resource Connector supports the following encryption protocols:

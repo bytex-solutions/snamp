@@ -240,7 +240,7 @@ final class NRDPAdapter extends AbstractResourceAdapter {
         else return null;
     }
 
-    private void start(final TimeSpan checkPeriod,
+    private synchronized void start(final TimeSpan checkPeriod,
                        final NRDPServerConnectionSettings settings,
                        final Supplier<ExecutorService> threadPoolFactory) {
         final ConcurrentPassiveCheckSender checkSender = new ConcurrentPassiveCheckSender(settings, threadPoolFactory);
@@ -257,7 +257,7 @@ final class NRDPAdapter extends AbstractResourceAdapter {
     }
 
     @Override
-    protected void stop() {
+    protected synchronized void stop() {
         if(attributeChecker != null){
             attributeChecker.close();
         }
