@@ -1,10 +1,10 @@
 NRDP Resource Adapter
 ====
-NRDP Resource Adapter allows to collect monitoring and management information from all resources connected to SNAMP using [passive check](http://nagios.sourceforge.net/docs/3_0/passivechecks.html). It utilizes [Nagiod Remote Data Processing](https://assets.nagios.com/downloads/nrdp/docs/NRDP_Overview.pdf) technology. So, you need to configure NRDP agent to receive information in XML format from SNAMP.
+NRDP Resource Adapter allows to collect monitoring and management information from all resources connected to SNAMP using [passive check](http://nagios.sourceforge.net/docs/3_0/passivechecks.html). It utilizes [Nagiod Remote Data Processing](https://assets.nagios.com/downloads/nrdp/docs/NRDP_Overview.pdf) technology. So, you need to configure NRDP remote server to receive information in XML format from SNAMP.
 
-The resource adapter sends check information about connected resources in XML to NRDP agent at the specified period of time.
+The resource adapter sends check information about connected resources in XML format to NRDP agent at the specified period of time.
 
-Nagios Resource Adapter supports the following features (if they are supported by managed resources too):
+NRDP Resource Adapter supports the following features (if they are supported by managed resources too):
 
 Feature | Description
 ---- | ----
@@ -16,14 +16,14 @@ Note that this adapter utilizes **its own internal thread pool that can be confi
 For more information about NRDP and its XML format see [NRDP Overview](https://assets.nagios.com/downloads/nrdp/docs/NRDP_Overview.pdf).
 
 ## Configuration Parameters
-NRDP Resource Adapters recognizes the following configuration parameters:
+NRDP Resource Adapter recognizes the following configuration parameters:
 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
 serverURL | URL | Yes | An address for NRDP remote server | `http://nagios.mydomain.com/nrdp`
 connectionTimeout | Integer | No | HTTP connection timeout (in millis) used by SNAMP when connecting to NRDP server. By default it is equal to 4 seconds | `6000`
 token | String | Yes | Authentication token configured in NRDP server and required for authentication of passive check senders | `xyzterw`
-passiveCheckSendPeriod | Integer | No | The period of passive check sent to NRDP server by the resource adapter. This parameter affects only attributes because notifications will be delivered asynchronously. By default it is equal to 1 second | `2000`
+passiveCheckSendPeriod | Integer | No | The period of passive check (in millis) sent to NRDP server by the resource adapter. This parameter affects only attributes because notifications will be delivered asynchronously. By default it is equal to 1 second | `2000`
 
 Note that parameters related to thread pool is omitted. See **SNAMP Configuration Guide** page for more information about thread pool configuration. All other parameters will be ignored.
 
@@ -47,3 +47,6 @@ The following configuration parameters of the events have influence on NRDP Reso
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
 serviceName | String | No | The service name that will be specified in the passive check packet. If it is not specified then user-defined name of the connected resource will be used instead. The service name helps to specify more informative name of the monitored resource in Nagios. | `internet-bank-cluster-node-0`
+
+## Clustering
+NRDP Resource Adapter unless many other adapters is active component. This means that the Monitoring & Management Tool doesn't send request to it. The adapter sends information to the Tool asynchronously. If you have many nodes in your SNAMP cluster then NRDP remote server will accepts many duplicate requests. This happens because each node has its own configured copy of NRDP resource adapter instance. It is normal for low network latency.
