@@ -78,7 +78,7 @@ final class SysLogConfigurationDescriptor extends ConfigurationEntityDescription
                 new EventConfigurationInfo());
     }
 
-    static String getAppliationName(final Descriptor descr, final String defaultValue){
+    static String getApplicationName(final Descriptor descr, final String defaultValue){
         return getField(descr, APPLICATION_NAME_PARAM, String.class, defaultValue);
     }
 

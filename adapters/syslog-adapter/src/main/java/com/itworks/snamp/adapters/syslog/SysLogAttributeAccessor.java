@@ -13,7 +13,7 @@ import javax.management.ReflectionException;
 import java.io.CharArrayWriter;
 import java.util.Date;
 
-import static com.itworks.snamp.adapters.syslog.SysLogConfigurationDescriptor.getAppliationName;
+import static com.itworks.snamp.adapters.syslog.SysLogConfigurationDescriptor.getApplicationName;
 import static com.itworks.snamp.adapters.syslog.SysLogConfigurationDescriptor.getFacility;
 
 /**
@@ -37,7 +37,7 @@ final class SysLogAttributeAccessor extends AttributeAccessor {
     SyslogMessage toMessage(final String resourceName){
         final SyslogMessage message = new SyslogMessage()
                 .withTimestamp(new Date())
-                .withAppName(getAppliationName(getMetadata().getDescriptor(), resourceName))
+                .withAppName(getApplicationName(getMetadata().getDescriptor(), resourceName))
                 .withFacility(getFacility(getMetadata().getDescriptor(), Facility.AUDIT))
                 .withMsgId(AttributeDescriptor.getAttributeName(getMetadata().getDescriptor()))
                 .withProcId(SysLogUtils.getProcessId(resourceName));

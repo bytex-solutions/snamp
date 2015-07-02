@@ -50,6 +50,6 @@ final class SysLogNotificationAccessor extends NotificationRouter {
 
     static String getApplicationName(final MBeanNotificationInfo metadata,
                                      final String defaultValue){
-        return SysLogConfigurationDescriptor.getAppliationName(metadata.getDescriptor(), defaultValue);
+        return SysLogConfigurationDescriptor.getApplicationName(metadata.getDescriptor(), defaultValue);
     }
 }
