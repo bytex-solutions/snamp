@@ -23,7 +23,6 @@ import java.util.Objects;
 
 import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.parseDateTimeDisplayFormat;
 import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.parseOID;
-import static com.itworks.snamp.adapters.snmp.SnmpHelpers.DateTimeFormatter;
 
 /**
  * Represents SNMP notification with attachments.

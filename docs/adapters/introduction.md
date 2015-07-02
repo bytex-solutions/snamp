@@ -9,4 +9,7 @@ At this page you can find detailed description for each resource adapter support
 * [Nagios Resource Adapter](nagios-adapter.md) - using Nagios active check for connected resources
 * [NRDP Resource Adapter](nrdp-adapter.md) - using Nagios Remote Data Process for passive checks of connected resources
 * [NSCA Resource Adapter](nsca-adapter.md) - using Nagios Service Check Acceptor for passive checks of connected resources
+* [Syslog Resource Adapter](syslog-adapter.md) - using Syslog protocol for passive checks of connected resources
 * [XMPP Resource Adapter](xmpp-adapter.md) - monitoring and management of connected resources using Jabber client or any other XMPP-compliant software
+* [SNMP Resource Adapter](snmp-adapter.md) - monitoring and management of connected resources using SNMP v2/v3 protocol
+* [SSH Resource Adapter](ssh-adapter.md) - monitoring and management of connected resources using command line via SSH

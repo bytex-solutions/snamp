@@ -12,7 +12,6 @@ import java.text.ParseException;
 import java.util.Date;
 
 import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.parseDateTimeDisplayFormat;
-import static com.itworks.snamp.adapters.snmp.SnmpHelpers.DateTimeFormatter;
 
 final class SnmpUnixTimeObject extends SnmpScalarObject<OctetString>{
     static int SYNTAX = SMIConstants.SYNTAX_OCTET_STRING;

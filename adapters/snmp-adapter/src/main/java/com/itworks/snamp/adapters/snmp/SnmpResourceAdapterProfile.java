@@ -1,75 +1,32 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.google.common.primitives.Shorts;
-import com.itworks.snamp.ArrayUtils;
-import com.itworks.snamp.Consumer;
-import com.itworks.snamp.SafeConsumer;
-import com.itworks.snamp.adapters.AbstractResourceAdapter;
-import com.itworks.snamp.core.OSGiLoggingContext;
+import com.google.common.base.Supplier;
+import com.itworks.snamp.adapters.profiles.BasicResourceAdapterProfile;
 import com.itworks.snamp.io.IOUtils;
-import org.snmp4j.agent.MOAccess;
-import org.snmp4j.agent.mo.MOAccessImpl;
-import org.snmp4j.agent.mo.MOColumn;
-import org.snmp4j.agent.mo.MOTable;
-import org.snmp4j.smi.AssignableFromByteArray;
+import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
-import org.snmp4j.smi.Variable;
 
-import javax.management.MBeanAttributeInfo;
-import javax.management.ReflectionException;
-import javax.management.openmbean.ArrayType;
 import java.io.*;
-import java.lang.reflect.Array;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.concurrent.ExecutorService;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.*;
+import static com.itworks.snamp.adapters.snmp.SnmpHelpers.SNMP_ENCODING;
+
 /**
+ * Represents default profile for SNMP Resource Adapter.
+ * Other profiles should derive from the default profile.
  * @author Roman Sakno
+ * @version 1.0
+ * @since 1.0
  */
-final class SnmpHelpers {
-    static final Charset SNMP_ENCODING = StandardCharsets.UTF_8;
-    static final String ADAPTER_NAME = "snmp";
-    private static final String LOGGER_NAME = AbstractResourceAdapter.getLoggerName(ADAPTER_NAME);
+class SnmpResourceAdapterProfile extends BasicResourceAdapterProfile {
+    static final String PROFILE_NAME = DEFAULT_PROFILE_NAME;
     private static final TimeZone ZERO_TIME_ZONE = new SimpleTimeZone(0, "UTC");
-
-    private SnmpHelpers(){
-
-    }
-
-    static OctetString toOctetString(final String value) {
-        return new OctetString(value.getBytes(SNMP_ENCODING));
-    }
-
-    static String toString(final AssignableFromByteArray value){
-        return new String(value.toByteArray(), SNMP_ENCODING);
-    }
-
-    static byte toByte(final long value){
-        if(value > Byte.MAX_VALUE)
-            return Byte.MAX_VALUE;
-        else if(value < Byte.MIN_VALUE)
-            return Byte.MIN_VALUE;
-        else return (byte)value;
-    }
-
-    static short toShort(final long value){
-        return Shorts.saturatedCast(value);
-    }
-
-    static char toChar(final String value){
-        return value == null || value.isEmpty() ? '\0' : value.charAt(0);
-    }
-
-    private static Calendar createCalendar() {
-        return Calendar.getInstance(ZERO_TIME_ZONE, Locale.ROOT);
-    }
 
     /**
      * Provides date/time formatting using the custom pattern.
@@ -93,7 +50,7 @@ final class SnmpHelpers {
             return format(value).getBytes(IOUtils.DEFAULT_CHARSET);
         }
 
-        private Date convert(final String value) throws ParseException{
+        private Date convert(final String value) throws ParseException {
             return parse(value);
         }
 
@@ -302,73 +259,72 @@ final class SnmpHelpers {
         }
     }
 
-    static DateTimeFormatter createDateTimeFormatter(final String formatterName){
-        if(formatterName == null || formatterName.isEmpty()) return new Rfc1903BinaryDateTimeFormatter();
-        else switch (formatterName){
-            case CustomDateTimeFormatter.FORMATTER_NAME: return new CustomDateTimeFormatter();
-            case Rfc1903BinaryDateTimeFormatter.FORMATTER_NAME: return new Rfc1903BinaryDateTimeFormatter();
-            case Rfc1903HumanReadableDateTimeFormatter.FORMATTER_NAME: return new Rfc1903HumanReadableDateTimeFormatter();
-            default: return new CustomDateTimeFormatter(formatterName);
-        }
+    protected SnmpResourceAdapterProfile(final Map<String, String> parameters,
+                                         final boolean defaultProfile) {
+        super(parameters, defaultProfile);
     }
 
-    static MOAccess getAccessRestrictions(final MBeanAttributeInfo metadata, final boolean mayCreate){
-        switch ((metadata.isWritable() ? 1 : 0) << 1 | (metadata.isReadable() ? 1 : 0)){
-            //case 0: case 1:
-            default: return MOAccessImpl.ACCESS_READ_ONLY;
-            case 2: return mayCreate ? new MOAccessImpl(MOAccessImpl.ACCESSIBLE_FOR_WRITE | MOAccessImpl.ACCESSIBLE_FOR_CREATE) : MOAccessImpl.ACCESS_WRITE_ONLY;
-            case 3: return mayCreate ? new MOAccessImpl(MOAccessImpl.ACCESSIBLE_FOR_READ_WRITE | MOAccessImpl.ACCESSIBLE_FOR_CREATE) :  MOAccessImpl.ACCESS_READ_WRITE;
-        }
+    /**
+     * Creates a new instance of SNMP Agent.
+     * @param contextFactory JNDI context factory. Cannot be {@literal null}.
+     * @param threadPoolFactory Thread pool factory. Cannot be {@literal null}.
+     * @return A new instance of SNMP Agent.
+     * @throws IOException Unable to create an instance of SNMP Agent.
+     * @throws SnmpAdapterAbsentParameterException One of the required parameters is missing.
+     */
+    SnmpAgent createSnmpAgent(final DirContextFactory contextFactory,
+                                     final Supplier<ExecutorService> threadPoolFactory) throws IOException, SnmpAdapterAbsentParameterException {
+        return new SnmpAgent(getContext(),
+                getEngineID(),
+                getPort(),
+                getAddress(),
+                getSecurityConfiguration(contextFactory),
+                getSocketTimeout(),
+                threadPoolFactory.get());
     }
 
-    static MOAccess getAccessRestrictions(final MBeanAttributeInfo metadata){
-        return getAccessRestrictions(metadata, false);
+    /**
+     * Creates a new instance of thread pool factory.
+     * @param adapterInstanceName The name of resource adapter instance.
+     * @return A new instance of thread pool factory.
+     */
+    Supplier<ExecutorService> createThreadPoolFactory(final String adapterInstanceName){
+        return new SnmpThreadPoolConfig(this, adapterInstanceName);
     }
 
-    static <COLUMN extends MOColumn<?>> COLUMN findColumn(final MOTable<?, ? extends MOColumn<?>, ?> table, final Class<COLUMN> columnType){
-        for(final MOColumn<? extends Variable> column: table.getColumns())
-            if(columnType.isInstance(column)) return columnType.cast(column);
-        return null;
+    final int getSocketTimeout(){
+        return parseSocketTimeout(this);
     }
 
-    static int findColumnIndex(final MOTable<?, ? extends MOColumn<?>, ?> table, final Class<? extends MOColumn<?>> columnType){
-        final MOColumn<? extends Variable> column = findColumn(table, columnType);
-        return column != null ? column.getColumnID() : -1;
+    final SecurityConfiguration getSecurityConfiguration(final DirContextFactory contextFactory){
+        return parseSecurityConfiguration(this, contextFactory);
     }
 
-    static Object toArray(final List<?> lst, final ArrayType<?> arrayType) throws ReflectionException {
-        final Object result = ArrayUtils.newArray(arrayType, lst.size());
-        for(int i = 0; i < lst.size(); i++)
-            Array.set(result, i, lst.get(i));
-        return result;
+    final String getAddress(){
+        return parseAddress(this);
     }
 
-    static <E extends Exception> void withLogger(final Consumer<Logger, E> contextBody) throws E {
-        OSGiLoggingContext.within(LOGGER_NAME, contextBody);
+    final OID getContext() throws SnmpAdapterAbsentParameterException {
+        return new OID(parseContext(this));
     }
 
-    private static void log(final Level lvl, final String message, final Object[] args, final Throwable e){
-        withLogger(new SafeConsumer<Logger>() {
-            @Override
-            public void accept(final Logger logger) {
-                logger.log(lvl, String.format(message, args), e);
-            }
-        });
+    final OctetString getEngineID(){
+        return parseEngineID(this);
     }
 
-    static void log(final Level lvl, final String message, final Throwable e){
-        log(lvl, message, new Object[0], e);
+    final int getPort(){
+        return parsePort(this);
     }
 
-    static void log(final Level lvl, final String message, final Object arg0, final Throwable e){
-        log(lvl, message, new Object[]{arg0}, e);
+    final long getRestartTimeout(){
+        return parseRestartTimeout(this);
     }
 
-    static void log(final Level lvl, final String message, final Object arg0, final Object arg1, final Throwable e){
-        log(lvl, message, new Object[]{arg0, arg1}, e);
+    static SnmpResourceAdapterProfile createDefault(final Map<String, String> parameters){
+        return new SnmpResourceAdapterProfile(parameters, true);
     }
 
-    static void log(final Level lvl, final String message, final Object arg0, final Object arg1, final Object arg2, final Throwable e){
-        log(lvl, message, new Object[]{arg0, arg1, arg2}, e);
+    private static Calendar createCalendar() {
+        return Calendar.getInstance(ZERO_TIME_ZONE, Locale.ROOT);
     }
 }

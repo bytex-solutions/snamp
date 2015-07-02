@@ -17,5 +17,5 @@ interface DirContextFactory {
      * @return A new instance of JNDI context.
      * @throws NamingException Unable to create JNDI context.
      */
-    DirContext create(final Hashtable<?, ?> env) throws NamingException;
+    DirContext create(final Hashtable<String, ?> env) throws NamingException;
 }

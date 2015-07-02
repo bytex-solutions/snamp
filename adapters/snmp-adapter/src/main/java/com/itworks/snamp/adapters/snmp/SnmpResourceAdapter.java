@@ -1,10 +1,10 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.google.common.base.Supplier;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.itworks.snamp.adapters.*;
+import com.itworks.snamp.adapters.profiles.PolymorphicResourceAdapter;
 import org.osgi.service.jndi.JNDIContextManager;
 import org.snmp4j.agent.DuplicateRegistrationException;
 import org.snmp4j.agent.NotificationOriginator;
@@ -23,7 +23,6 @@ import javax.naming.directory.DirContext;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
@@ -34,7 +33,7 @@ import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor
  * @version 1.0
  * @since 1.0
  */
-final class SnmpResourceAdapter extends AbstractResourceAdapter {
+final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceAdapterProfile> {
     static final String NAME = SnmpHelpers.ADAPTER_NAME;
 
     private static final class SnmpNotificationMappingImpl extends NotificationAccessor implements SnmpNotificationMapping{
@@ -172,43 +171,38 @@ final class SnmpResourceAdapter extends AbstractResourceAdapter {
     private static DirContextFactory createFactory(final JNDIContextManager contextManager){
         return new DirContextFactory() {
             @Override
-            public DirContext create(final Hashtable<?, ?> env) throws NamingException {
+            public DirContext create(final Hashtable<String, ?> env) throws NamingException {
                 return contextManager.newInitialDirContext(env);
             }
         };
     }
 
-    private void start(final OID prefix,
-                       final OctetString engineID,
-                       final int port,
-                       final String address,
-                       final SecurityConfiguration security,
-                       final int socketTimeout,
-                       final long restartTimeout,
-                       final Supplier<ExecutorService> threadPoolFactory) throws IOException, DuplicateRegistrationException {
-        final SnmpAgent agent = new SnmpAgent(prefix,
-                engineID,
-                port,
-                address,
-                security,
-                socketTimeout,
-                threadPoolFactory.get());
-        //start SNMP agent
-        agent.start(attributes.values(), notifications.values());
-        //initialize restart manager
-        updateManager = new SnmpAdapterUpdateManager(getInstanceName(), restartTimeout, agent);
+    /**
+     * Creates a new instance of the profile using its name and configuration parameters.
+     *
+     * @param profileName The name of the profile.
+     * @param parameters  A set of configuration parameters.
+     * @return A new instance of the profile. Cannot be {@literal null}.
+     */
+    @Override
+    protected SnmpResourceAdapterProfile createProfile(final String profileName,
+                                                       final Map<String, String> parameters) {
+        switch (profileName) {
+            case SnmpResourceAdapterProfile.PROFILE_NAME:
+            default:
+                return SnmpResourceAdapterProfile.createDefault(parameters);
+        }
     }
 
     @Override
-    protected synchronized void start(final Map<String, String> parameters) throws IOException, DuplicateRegistrationException, SnmpAdapterAbsentParameterException {
-        start(new OID(parseContext(parameters)),
-                parseEngineID(parameters),
-                parsePort(parameters),
-                parseAddress(parameters),
-                parseSecurityConfiguration(parameters, contextFactory),
-                parseSocketTimeout(parameters),
-                parseRestartTimeout(parameters),
-                new SnmpThreadPoolConfig(parameters, getInstanceName()));
+    protected synchronized void start(final SnmpResourceAdapterProfile profile) throws IOException, DuplicateRegistrationException, SnmpAdapterAbsentParameterException {
+        final SnmpAgent agent = profile.createSnmpAgent(contextFactory,
+                profile.createThreadPoolFactory(getInstanceName()));
+        agent.start(attributes.values(), notifications.values());
+        //start SNMP agent
+        agent.start(attributes.values(), notifications.values());
+        //initialize restart manager
+        updateManager = new SnmpAdapterUpdateManager(getInstanceName(), profile.getRestartTimeout(), agent);
     }
 
     private SnmpNotificationMappingImpl addNotification(final String resourceName,

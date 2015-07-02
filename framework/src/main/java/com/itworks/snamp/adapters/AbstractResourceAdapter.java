@@ -308,14 +308,22 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * </p>
      * @param current The current configuration parameters.
      * @param newParameters A new configuration parameters.
-     * @throws Exception
+     * @throws Exception Unable to update this adapter.
      */
-    protected synchronized void update(final Map<String, String> current,
+    protected void update(final Map<String, String> current,
                           final Map<String, String> newParameters) throws Exception{
-        if(!Utils.mapsAreEqual(current, newParameters)) {
-            tryStop();
-            tryStart(newParameters);
-        }
+        if(!Utils.mapsAreEqual(current, newParameters))
+            restart(newParameters);
+    }
+
+    /**
+     * Restarts this resource adapter.
+     * @param parameters A new parameters for adapter start.
+     * @throws Exception Unable to restart adapter. This is inconsistent exception.
+     */
+    protected synchronized final void restart(final Map<String, String> parameters) throws Exception{
+        tryStop();
+        tryStart(parameters);
     }
 
     final synchronized boolean tryUpdate(final Map<String, String> newParameters) throws Exception{

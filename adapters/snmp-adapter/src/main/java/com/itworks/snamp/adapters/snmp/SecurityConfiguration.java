@@ -78,15 +78,21 @@ final class SecurityConfiguration {
      */
     private static final String LDAP_PASSWORD_HOLDER_PARAM = "ldap-user-password-attribute-name";
 
+    private static final class DefaultDirContextFactory implements DirContextFactory{
+        @Override
+        public DirContext create(final Hashtable<String, ?> env) throws NamingException {
+            return new InitialDirContext(env);
+        }
+    }
 
-    public static enum LdapAuthenticationType{
+    public enum LdapAuthenticationType{
         NONE("none"),
         SIMPLE("simple"),
         MD5("DIGEST-MD5"),
         KERBEROS("GSSAPI");
         private final String name;
 
-        private LdapAuthenticationType(final String jndiName){
+        LdapAuthenticationType(final String jndiName){
             this.name = jndiName;
         }
 
@@ -330,12 +336,7 @@ final class SecurityConfiguration {
     public SecurityConfiguration(final byte[] securityEngine, final DirContextFactory contextFactory){
         this.securityEngineID = new OctetString(securityEngine);
         this.groups = new HashMap<>(10);
-        this.contextFactory = contextFactory != null ? contextFactory : new DirContextFactory() {
-            @Override
-            public DirContext create(final Hashtable<?, ?> env) throws NamingException{
-                return new InitialDirContext(env);
-            }
-        };
+        this.contextFactory = contextFactory != null ? contextFactory : new DefaultDirContextFactory();
     }
 
     private static Collection<String> splitAndTrim(final String value, final String separator){
