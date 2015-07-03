@@ -1,5 +1,6 @@
 package com.itworks.snamp.adapters.snmp;
 
+import com.google.common.base.Function;
 import com.itworks.snamp.jmx.WellKnownType;
 import org.snmp4j.agent.MOAccess;
 import org.snmp4j.agent.mo.MOMutableColumn;
@@ -47,15 +48,18 @@ class MONamedColumn extends MOMutableColumn<Variable> {
     protected MONamedColumn(final int columnID,
                             final String columnName,
                             final WellKnownType columnType,
+                            final Function<WellKnownType, SnmpType> mapper,
                             final MOAccess access,
                             final boolean isIndexed){
-        this(columnID, columnName, SnmpType.map(columnType), columnType, access, isIndexed);
+        this(columnID, columnName, mapper.apply(columnType), columnType, access, isIndexed);
     }
 
     MONamedColumn(final int columnID,
                   final ArrayType<?> arrayType,
+                  final Function<WellKnownType, SnmpType> typeMapper,
                   final MOAccess access) {
         this(columnID, ARRAY_VALUE_COLUMN, WellKnownType.getArrayElementType(arrayType),
+                typeMapper,
                 access,
                 false);
     }
@@ -63,17 +67,20 @@ class MONamedColumn extends MOMutableColumn<Variable> {
     MONamedColumn(final int columnID,
                   final CompositeType type,
                   final String itemName,
+                  final Function<WellKnownType, SnmpType> typeMapper,
                   final MOAccess access){
-        this(columnID, itemName, WellKnownType.getItemType(type, itemName), access, false);
+        this(columnID, itemName, WellKnownType.getItemType(type, itemName), typeMapper, access, false);
     }
 
     MONamedColumn(final int columnID,
                   final TabularType type,
                   final String columnName,
+                  final Function<WellKnownType, SnmpType> typeMapper,
                   final MOAccess access){
         this(columnID,
                 columnName,
                 WellKnownType.getColumnType(type, columnName),
+                typeMapper,
                 access,
                 type.getIndexNames().contains(columnName));
     }

@@ -2,20 +2,15 @@ package com.itworks.snamp.adapters.snmp;
 
 import com.google.common.base.Supplier;
 import com.itworks.snamp.adapters.profiles.BasicResourceAdapterProfile;
-import com.itworks.snamp.io.IOUtils;
+import com.itworks.snamp.jmx.WellKnownType;
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
 
-import java.io.*;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.*;
-import static com.itworks.snamp.adapters.snmp.SnmpHelpers.SNMP_ENCODING;
 
 /**
  * Represents default profile for SNMP Resource Adapter.
@@ -24,244 +19,76 @@ import static com.itworks.snamp.adapters.snmp.SnmpHelpers.SNMP_ENCODING;
  * @version 1.0
  * @since 1.0
  */
-class SnmpResourceAdapterProfile extends BasicResourceAdapterProfile {
+class SnmpResourceAdapterProfile extends BasicResourceAdapterProfile implements SnmpTypeMapper {
     static final String PROFILE_NAME = DEFAULT_PROFILE_NAME;
-    private static final TimeZone ZERO_TIME_ZONE = new SimpleTimeZone(0, "UTC");
-
-    /**
-     * Provides date/time formatting using the custom pattern.
-     * This class cannot be inherited.
-     */
-    private static class CustomDateTimeFormatter extends SimpleDateFormat implements DateTimeFormatter{
-        private static final String DEFAUT_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
-        public static final String FORMATTER_NAME = "default";
-        private static final long serialVersionUID = -4381345715692133371L;
-
-        public CustomDateTimeFormatter(){
-            this(DEFAUT_FORMAT);
-        }
-
-        public CustomDateTimeFormatter(final String pattern){
-            super(pattern);
-        }
-
-        @Override
-        public final byte[] convert(final Date value) {
-            return format(value).getBytes(IOUtils.DEFAULT_CHARSET);
-        }
-
-        private Date convert(final String value) throws ParseException {
-            return parse(value);
-        }
-
-        @Override
-        public final Date convert(final byte[] value) throws ParseException {
-            return convert(new String(value, SNMP_ENCODING));
-        }
-    }
-
-    private static final class Rfc1903BinaryDateTimeFormatter implements DateTimeFormatter{
-        public static final String FORMATTER_NAME = "rfc1903";
-
-        private static byte[] convert(final Calendar value){
-            try(final ByteArrayOutputStream output = new ByteArrayOutputStream(); final DataOutputStream dataStream = new DataOutputStream(output)){
-                dataStream.writeShort(value.get(Calendar.YEAR));
-                dataStream.writeByte(value.get(Calendar.MONTH)+1);
-                dataStream.writeByte(value.get(Calendar.DAY_OF_MONTH));
-                dataStream.writeByte(value.get(Calendar.HOUR_OF_DAY));
-                dataStream.writeByte(value.get(Calendar.MINUTE));
-                dataStream.writeByte(value.get(Calendar.SECOND));
-                dataStream.writeByte(value.get(Calendar.MILLISECOND) / 100);
-
-                int offsetInMillis = value.getTimeZone().getRawOffset();
-                char directionFromUTC = '+';
-                if (offsetInMillis < 0)
-                {
-                    directionFromUTC = '-';
-                    offsetInMillis = -offsetInMillis;
-                }
-
-                dataStream.writeByte(directionFromUTC);
-                dataStream.writeByte(offsetInMillis / 3600000); // hours
-                dataStream.writeByte((offsetInMillis % 3600000) / 60000); // minutes
-                dataStream.flush();
-                output.flush();
-                return output.toByteArray();
-            }
-            catch (final IOException e){
-                return new byte[0];
-            }
-        }
-
-        @Override
-        public byte[] convert(final Date value) {
-            final Calendar cal = createCalendar();
-            cal.setTime(value);
-            return convert(cal);
-        }
-
-        @Override
-        public Date convert(final byte[] value) throws ParseException {
-            try(final DataInputStream input = new DataInputStream(new ByteArrayInputStream(value))){
-                final CalendarBuilder builder = new CalendarBuilder();
-                builder.setYear(input.readShort());
-                builder.setMonth(input.readByte()-1);
-                builder.setDayOfMonth(input.readByte());
-                builder.setHourOfDay(input.readByte());
-                builder.setMinute(input.readByte());
-                builder.setSecond(input.readByte());
-                builder.setDeciseconds(input.readByte());
-                builder.setDirectionFromUTCPlus(input.readByte() == '+');
-                builder.setOffsetInHours(input.readByte());
-                builder.setOffsetInMinutes(input.readByte());
-                return builder.build().getTime();
-            }
-            catch (final IOException e){
-                throw new ParseException(e.getMessage(), 0);
-            }
-        }
-    }
-
-    private static final class CalendarBuilder{
-        private int year;
-        private int month;
-        private int dayOfMonth;
-        private int hourOfDay;
-        private int deciseconds;
-        private int minute;
-        private int second;
-        private int offsetInHours;
-        private int offsetInMinutes;
-        private boolean directionFromUTCPlus;
-
-        public final void setYear(final int year) {
-            this.year = year;
-        }
-
-        public final void setMonth(final int month) {
-            this.month = month;
-        }
-
-        public final void setDayOfMonth(final int dayOfMonth) {
-            this.dayOfMonth = dayOfMonth;
-        }
-
-        public final void setHourOfDay(final int hourOfDay) {
-            this.hourOfDay = hourOfDay;
-        }
-
-        public final void setDeciseconds(final int deciseconds) {
-            this.deciseconds = deciseconds;
-        }
-
-        public final void setMinute(final int minute) {
-            this.minute = minute;
-        }
-
-        public final void setSecond(final int second) {
-            this.second = second;
-        }
-
-        public final void setOffsetInHours(final int offsetInHours) {
-            this.offsetInHours = offsetInHours;
-        }
-
-        public final void setOffsetInMinutes(final int offsetInMinutes) {
-            this.offsetInMinutes = offsetInMinutes;
-        }
-
-        public final void setDirectionFromUTCPlus(final boolean directionFromUTCPlus) {
-            this.directionFromUTCPlus = directionFromUTCPlus;
-        }
-
-        public final Calendar build(){
-            final Calendar cal = createCalendar();
-            int offsetMills = offsetInHours * 3600000 + offsetInMinutes * 60000;
-            if(!directionFromUTCPlus) offsetMills = -offsetMills;
-            cal.setTimeZone(new SimpleTimeZone(offsetMills, "UTC"));
-
-            cal.set(year, month, dayOfMonth, hourOfDay, minute, second == 60 ? 0 : second);
-            cal.set(Calendar.MILLISECOND, deciseconds*100);
-            return cal;
-        }
-    }
-
-    private static final class Rfc1903HumanReadableDateTimeFormatter implements DateTimeFormatter{
-        public static final String FORMATTER_NAME = "rfc1903-human-readable";
-
-        private final Pattern pattern;
-
-        public Rfc1903HumanReadableDateTimeFormatter(){
-            pattern = Pattern.compile("(\\d{4})-(\\d{1,2})-(\\d{1,2}),([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])(?:\\.([0-9])),(\\+)(\\d{1,2}):(\\d{1,2})?");
-        }
-
-        private static String addLeadingZeroes(final String value, final int requiredLength){
-            if(value == null) return addLeadingZeroes("", requiredLength);
-            else if(value.length() < requiredLength) return addLeadingZeroes("0" + value, requiredLength);
-            else return value;
-        }
-
-        private static String convert(final Calendar value){
-            final String RFC1903_FORMAT = "%s-%s-%s,%s:%s:%s.%s,%s%s:%s";
-            //parse components of RFC1903
-            final String year = Integer.toString(value.get(Calendar.YEAR));
-            final String month = Integer.toString(value.get(Calendar.MONTH) + 1); //Month value is 0-based. e.g., 0 for January.
-            final String dayOfMonth = Integer.toString(value.get(Calendar.DAY_OF_MONTH));
-            final String hourOfDay = addLeadingZeroes(Integer.toString(value.get(Calendar.HOUR_OF_DAY)), 2);
-            final String minute = addLeadingZeroes(Integer.toString(value.get(Calendar.MINUTE)), 2);
-            final String second = addLeadingZeroes(Integer.toString(value.get(Calendar.SECOND)), 2);
-            final String deciseconds = Integer.toString(value.get(Calendar.MILLISECOND) / 100);
-            int offsetInMillis = value.getTimeZone().getRawOffset();
-            char directionFromUTC = '+';
-            if (offsetInMillis < 0)
-            {
-                directionFromUTC = '-';
-                offsetInMillis = -offsetInMillis;
-            }
-            final String offsetInHours = Integer.toString(offsetInMillis / 3600000);
-            final String offsetInMinutes = Integer.toString((offsetInMillis % 3600000) / 60000);
-            return String.format(RFC1903_FORMAT, year, month, dayOfMonth,
-                    hourOfDay, minute, second, deciseconds,
-                    directionFromUTC, offsetInHours, offsetInMinutes);
-        }
-
-        @Override
-        public byte[] convert(final Date value) {
-            final Calendar cal = createCalendar();
-            cal.setTime(value);
-            return convert(cal).getBytes(IOUtils.DEFAULT_CHARSET);
-        }
-
-        private Date convert(final String value) throws ParseException{
-            final Matcher matcher = pattern.matcher(value);
-            if (matcher.matches())
-            {
-                final CalendarBuilder builder = new CalendarBuilder();
-                builder.setYear(Integer.parseInt(matcher.group(1)));
-                builder.setMonth(Integer.parseInt(matcher.group(2))-1);
-                builder.setDayOfMonth(Integer.parseInt(matcher.group(3)));
-                builder.setHourOfDay(Integer.parseInt(matcher.group(4)));
-                builder.setMinute(Integer.parseInt(matcher.group(5)));
-                builder.setSecond(Integer.parseInt(matcher.group(6)));
-                builder.setDeciseconds(Integer.parseInt(matcher.group(7)));
-                builder.setDirectionFromUTCPlus(matcher.group(8).equals("+"));
-                builder.setOffsetInHours(Integer.parseInt(matcher.group(9)));
-                builder.setOffsetInMinutes(Integer.parseInt(matcher.group(10)));
-                return builder.build().getTime();
-            }
-            else
-                throw new ParseException(String.format("Unable to parse value %s to rfc1903 format", value), 0);
-        }
-
-        @Override
-        public Date convert(final byte[] value) throws ParseException {
-            return convert(new String(value, SNMP_ENCODING));
-        }
-    }
 
     protected SnmpResourceAdapterProfile(final Map<String, String> parameters,
                                          final boolean defaultProfile) {
         super(parameters, defaultProfile);
+    }
+
+    /**
+     * Clones this profile.
+     *
+     * @return A new cloned instance of this profile.
+     */
+    @SuppressWarnings("CloneDoesntCallSuperClone")
+    @Override
+    public SnmpResourceAdapterProfile clone() {
+        return new SnmpResourceAdapterProfile(this, isDefault());
+    }
+
+    private static SnmpType map(final WellKnownType type){
+        if(type != null)
+            switch (type){
+                case BOOL: return SnmpType.BOOLEAN;
+                case CHAR:
+                case OBJECT_NAME:
+                case STRING: return SnmpType.TEXT;
+                case BIG_DECIMAL:
+                case BIG_INT: return SnmpType.NUMBER;
+                case BYTE:
+                case INT:
+                case SHORT: return SnmpType.INTEGER;
+                case LONG: return SnmpType.LONG;
+                case FLOAT:
+                case DOUBLE: return SnmpType.FLOAT;
+                case DATE: return SnmpType.UNIX_TIME;
+                case BYTE_BUFFER:
+                case SHORT_BUFFER:
+                case CHAR_BUFFER:
+                case INT_BUFFER:
+                case LONG_BUFFER:
+                case FLOAT_BUFFER:
+                case DOUBLE_BUFFER: return SnmpType.BUFFER;
+                case BYTE_ARRAY:
+                case WRAPPED_BYTE_ARRAY: return SnmpType.BYTE_ARRAY;
+                case FLOAT_ARRAY:
+                case WRAPPED_FLOAT_ARRAY:
+                case SHORT_ARRAY:
+                case WRAPPED_SHORT_ARRAY:
+                case INT_ARRAY:
+                case WRAPPED_INT_ARRAY:
+                case LONG_ARRAY:
+                case WRAPPED_LONG_ARRAY:
+                case DICTIONARY:
+                case TABLE: return SnmpType.TABLE;
+            }
+        return SnmpType.FALLBACK;
+    }
+
+    static SnmpTypeMapper getDefaultTypeMapper(){
+        return new SnmpTypeMapper() {
+            @Override
+            public SnmpType apply(final WellKnownType type) {
+                return map(type);
+            }
+        };
+    }
+
+    @Override
+    public SnmpType apply(final WellKnownType type) {
+        return map(type);
     }
 
     /**
@@ -322,9 +149,5 @@ class SnmpResourceAdapterProfile extends BasicResourceAdapterProfile {
 
     static SnmpResourceAdapterProfile createDefault(final Map<String, String> parameters){
         return new SnmpResourceAdapterProfile(parameters, true);
-    }
-
-    private static Calendar createCalendar() {
-        return Calendar.getInstance(ZERO_TIME_ZONE, Locale.ROOT);
     }
 }

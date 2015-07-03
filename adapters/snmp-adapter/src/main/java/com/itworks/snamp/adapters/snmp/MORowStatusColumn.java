@@ -1,5 +1,6 @@
 package com.itworks.snamp.adapters.snmp;
 
+import com.google.common.base.Function;
 import com.itworks.snamp.jmx.WellKnownType;
 import org.snmp4j.agent.mo.MOAccessImpl;
 import org.snmp4j.agent.mo.MOMutableColumn;
@@ -17,6 +18,7 @@ import javax.management.DescriptorRead;
  * @see <a href="http://www.ietf.org/rfc/rfc1903.txt">RFC 1903</a>
  */
 final class MORowStatusColumn extends MONamedColumn {
+
     /**
      * Represents name of this column.
      */
@@ -25,9 +27,11 @@ final class MORowStatusColumn extends MONamedColumn {
     /**
      * Initializes a new RowStatus column.
      * @param columnId The column identifier.
+     * @param typeMapper A mapper between SNAMP and SNMP type system. Cannot be {@literal null}.
      */
-    MORowStatusColumn(final int columnId){
-        super(columnId, NAME, WellKnownType.INT, MOAccessImpl.ACCESS_READ_WRITE, false);
+    MORowStatusColumn(final int columnId,
+                      final Function<WellKnownType, SnmpType> typeMapper){
+        super(columnId, NAME, WellKnownType.INT, typeMapper, MOAccessImpl.ACCESS_READ_WRITE, false);
     }
 
     /**

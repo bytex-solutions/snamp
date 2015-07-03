@@ -340,4 +340,14 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo, Attri
             return false;
         else return true;
     }
+
+    public static int removeAll(final Iterable<? extends AttributeAccessor> attributes,
+                             final MBeanAttributeInfo metadata){
+        return FeatureAccessor.removeAll(attributes, metadata);
+    }
+
+    public static <A extends AttributeAccessor> A remove(final Iterable<A> attributes,
+                                                         final MBeanAttributeInfo metadata){
+        return FeatureAccessor.remove(attributes, metadata);
+    }
 }

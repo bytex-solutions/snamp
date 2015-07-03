@@ -34,6 +34,7 @@ import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor
 import static com.itworks.snamp.adapters.snmp.SnmpHelpers.getAccessRestrictions;
 import static com.itworks.snamp.jmx.DescriptorUtils.getField;
 import static com.itworks.snamp.jmx.DescriptorUtils.hasField;
+import static com.itworks.snamp.adapters.snmp.SnmpResourceAdapterProfile.getDefaultTypeMapper;
 
 /**
  * Represents SNMP table.
@@ -231,29 +232,32 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
     private final UpdateManager cacheManager;
 
     private static MONamedColumn[] createColumns(final ArrayType<?> tableType,
+                                                 final SnmpTypeMapper typeMapper,
                                                            final MOAccess access,
                                                            final boolean useRowStatus){
         int columnID = 2;
         final List<MONamedColumn> columns = Lists.newArrayListWithCapacity(2);
         //column with array values
-        columns.add(new MONamedColumn(columnID++, tableType, access));
+        columns.add(new MONamedColumn(columnID++, tableType, typeMapper, access));
         //add RowStatus column
         if(useRowStatus)
-            columns.add(new MORowStatusColumn(columnID));
+            columns.add(new MORowStatusColumn(columnID, typeMapper));
         return ArrayUtils.toArray(columns, MONamedColumn.class);
     }
 
     private static MONamedColumn[] createColumns(final CompositeType type,
+                                                 final SnmpTypeMapper typeMapper,
                                                     final MOAccess access){
         int columnID = 2;
         //each key is in separated column
         final List<MONamedColumn> columns = Lists.newArrayListWithCapacity(type.keySet().size());
         for(final String itemName: type.keySet())
-            columns.add(new MONamedColumn(columnID++, type, itemName, access));
+            columns.add(new MONamedColumn(columnID++, type, itemName, typeMapper, access));
         return ArrayUtils.toArray(columns, MONamedColumn.class);
     }
 
     private static MONamedColumn[] createColumns(final TabularType type,
+                                                 final SnmpTypeMapper typeMapper,
                                                   final MOAccess access,
                                                   final boolean useRowStatus){
         int columnID = 2;
@@ -262,22 +266,23 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
         final CompositeType rowType = type.getRowType();
         final List<MONamedColumn> columns = Lists.newArrayListWithCapacity(rowType.keySet().size() + 1);
         for(final String columnName: rowType.keySet())
-            columns.add(new MONamedColumn(columnID++, type, columnName, access));
+            columns.add(new MONamedColumn(columnID++, type, columnName, typeMapper, access));
         //add RowStatus column
         if(useRowStatus)
-            columns.add(new MORowStatusColumn(columnID));
+            columns.add(new MORowStatusColumn(columnID, typeMapper));
         return ArrayUtils.toArray(columns, MONamedColumn.class);
     }
 
     private static MONamedColumn[] createColumns(final OpenType<?> type,
+                                                 final SnmpTypeMapper typeMapper,
                                                            final MOAccess access,
                                                            final boolean useRowStatus){
         if(type instanceof ArrayType<?>)
-            return createColumns((ArrayType<?>)type, access, useRowStatus);
+            return createColumns((ArrayType<?>)type, typeMapper, access, useRowStatus);
         else if(type instanceof CompositeType)
-            return createColumns((CompositeType)type, access);
+            return createColumns((CompositeType)type, typeMapper, access);
         else if(type instanceof TabularType)
-            return createColumns((TabularType)type, access, useRowStatus);
+            return createColumns((TabularType)type, typeMapper, access, useRowStatus);
         else return new MONamedColumn[0];
     }
 
@@ -291,10 +296,11 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
     }
 
     private SnmpTableObject(final OID oid,
-                            final AttributeAccessor connector){
+                            final AttributeAccessor connector,
+                            final SnmpTypeMapper typeMapper){
         super(oid,
                 new MOTableIndex(new MOTableSubIndex[]{new MOTableSubIndex(null, SMIConstants.SYNTAX_INTEGER, 1, 1)}),
-                createColumns(connector.getOpenType(), getAccessRestrictions(connector.getMetadata(), true), shouldUseRowStatus(connector.getMetadata().getDescriptor()))
+                createColumns(connector.getOpenType(), typeMapper, getAccessRestrictions(connector.getMetadata(), true), shouldUseRowStatus(connector.getMetadata().getDescriptor()))
         );
         //setup table model
         final DefaultMOMutableTableModel<DefaultMOMutableRow2PC> tableModel = new DefaultMOMutableTableModel<>();
@@ -309,7 +315,9 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
 
     @SpecialUse
     SnmpTableObject(final AttributeAccessor connector){
-        this(new OID(SnmpAdapterConfigurationDescriptor.parseOID(connector.getMetadata())), connector);
+        this(new OID(SnmpAdapterConfigurationDescriptor.parseOID(connector.getMetadata())),
+                connector,
+                getDefaultTypeMapper());
     }
 
     /**

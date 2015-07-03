@@ -1,8 +1,10 @@
 package com.itworks.snamp.adapters.snmp;
 
+import com.google.common.base.Function;
 import com.itworks.snamp.adapters.AttributeAccessor;
 import com.itworks.snamp.jmx.DescriptorUtils;
 import com.itworks.snamp.jmx.WellKnownType;
+import org.snmp4j.agent.*;
 import org.snmp4j.smi.*;
 
 import javax.management.Descriptor;
@@ -12,6 +14,7 @@ import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.nio.Buffer;
 import java.util.Date;
+import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.parseOID;
 
 /**
  * Represents SNMP managed object factory.
@@ -24,17 +27,17 @@ enum SnmpType {
     NUMBER(true, SnmpBigNumberObject.SYNTAX) {
 
         @Override
-        SnmpBigNumberObject createManagedObject(final AttributeAccessor accessor) {
+        protected SnmpBigNumberObject createManagedObject(final AttributeAccessor accessor) {
             return new SnmpBigNumberObject(accessor);
         }
 
         @Override
-        OctetString convert(final Object value, final DescriptorRead options) {
+        protected OctetString convert(final Object value, final DescriptorRead options) {
             return SnmpBigNumberObject.toSnmpObject(value);
         }
 
         @Override
-        Number convert(final Variable value, final Type valueType, final DescriptorRead options) throws InvalidAttributeValueException {
+        protected Number convert(final Variable value, final Type valueType, final DescriptorRead options) throws InvalidAttributeValueException {
             return SnmpBigNumberObject.fromSnmpObject((AssignableFromByteArray)value, valueType);
         }
     },
@@ -45,7 +48,7 @@ enum SnmpType {
     UNIX_TIME(true, SnmpUnixTimeObject.SYNTAX) {
 
         @Override
-        SnmpUnixTimeObject createManagedObject(final AttributeAccessor accessor) {
+        protected SnmpUnixTimeObject createManagedObject(final AttributeAccessor accessor) {
             return new SnmpUnixTimeObject(accessor);
         }
 
@@ -65,7 +68,7 @@ enum SnmpType {
      */
     LONG(true, SnmpLongObject.SYNTAX) {
         @Override
-        SnmpLongObject createManagedObject(final AttributeAccessor accessor) {
+        protected SnmpLongObject createManagedObject(final AttributeAccessor accessor) {
             return new SnmpLongObject(accessor);
         }
 
@@ -85,7 +88,7 @@ enum SnmpType {
      */
     INTEGER(true, SnmpIntegerObject.SYNTAX) {
         @Override
-        SnmpIntegerObject createManagedObject(final AttributeAccessor accessor) {
+        protected SnmpIntegerObject createManagedObject(final AttributeAccessor accessor) {
             return new SnmpIntegerObject(accessor);
         }
 
@@ -105,7 +108,7 @@ enum SnmpType {
      */
     FLOAT(true, SnmpFloatObject.SYNTAX) {
         @Override
-        SnmpFloatObject createManagedObject(final AttributeAccessor accessor) {
+        protected SnmpFloatObject createManagedObject(final AttributeAccessor accessor) {
             return new SnmpFloatObject(accessor);
         }
 
@@ -125,7 +128,7 @@ enum SnmpType {
      */
     BOOLEAN(true, SnmpBooleanObject.SYNTAX) {
         @Override
-        SnmpBooleanObject createManagedObject(final AttributeAccessor accessor) {
+        protected SnmpBooleanObject createManagedObject(final AttributeAccessor accessor) {
             return new SnmpBooleanObject(accessor);
         }
 
@@ -145,7 +148,7 @@ enum SnmpType {
      */
     TEXT(true, SnmpStringObject.SYNTAX) {
         @Override
-        SnmpStringObject createManagedObject(final AttributeAccessor accessor) {
+        protected SnmpStringObject createManagedObject(final AttributeAccessor accessor) {
             return new SnmpStringObject(accessor);
         }
 
@@ -165,7 +168,7 @@ enum SnmpType {
      */
     BUFFER(true, SnmpBufferObject.SYNTAX) {
         @Override
-        SnmpBufferObject createManagedObject(final AttributeAccessor accessor) {
+        protected SnmpBufferObject createManagedObject(final AttributeAccessor accessor) {
             return new SnmpBufferObject(accessor);
         }
 
@@ -185,7 +188,7 @@ enum SnmpType {
      */
     BYTE_ARRAY(true, SnmpByteArrayObject.SYNTAX) {
         @Override
-        SnmpByteArrayObject createManagedObject(final AttributeAccessor accessor) {
+        protected SnmpByteArrayObject createManagedObject(final AttributeAccessor accessor) {
             return new SnmpByteArrayObject( accessor);
         }
 
@@ -205,7 +208,7 @@ enum SnmpType {
      */
     TABLE(false, SnmpTableObject.SYNTAX) {
         @Override
-        SnmpTableObject createManagedObject(final AttributeAccessor accessor) {
+        protected SnmpTableObject createManagedObject(final AttributeAccessor accessor) {
             return new SnmpTableObject(accessor);
         }
 
@@ -225,7 +228,7 @@ enum SnmpType {
      */
     FALLBACK(true, SnmpFallbackObject.SYNTAX) {
         @Override
-        SnmpFallbackObject createManagedObject(final AttributeAccessor accessor) {
+        protected SnmpFallbackObject createManagedObject(final AttributeAccessor accessor) {
             return new SnmpFallbackObject(accessor);
         }
 
@@ -259,12 +262,41 @@ enum SnmpType {
         return isScalar;
     }
 
+    protected abstract SnmpAttributeMapping createManagedObject(final AttributeAccessor accessor);
+
+    private static ManagedObject unregisterManagedObject(final OID attributeID,
+                                                         final MOServer server){
+        final MOQuery query = new DefaultMOQuery(new DefaultMOContextScope(null, attributeID, true, attributeID, true));
+        ManagedObject result = server.lookup(query);
+        if(result != null)
+            result = server.unregister(result, null);
+        return result;
+    }
+
+    static ManagedObject unregisterManagedObject(final AttributeAccessor accessor,
+                                                 final MOServer server){
+        final OID attributeID = new OID(parseOID(accessor));
+        return unregisterManagedObject(attributeID, server);
+    }
+
     /**
      * Creates a new instance of the SNMP managed object.
      * @param accessor An object that provides access to the individual management attribute.
      * @return A new mapping between resource attribute and its SNMP representation.
      */
-    abstract SnmpAttributeMapping createManagedObject(final AttributeAccessor accessor);
+    final SnmpAttributeMapping registerManagedObject(final AttributeAccessor accessor,
+                                                        final OID context,
+                                                        final MOServer server) throws DuplicateRegistrationException {
+        final OID attributeID = new OID(parseOID(accessor));
+        final SnmpAttributeMapping mapping;
+        //do not add the attribute with invalid prefix
+        if (attributeID.startsWith(context)) {
+            mapping = createManagedObject(accessor);
+            server.register(mapping, null);
+        }
+        else mapping = null;
+        return mapping;
+    }
 
     /**
      * Returns a value from {@link org.snmp4j.smi.SMIConstants} that represents value syntax type.
@@ -288,44 +320,5 @@ enum SnmpType {
 
     final Object convert(final Variable value, final Type valueType) throws InvalidAttributeValueException {
         return convert(value, valueType, EMPTY_DESCRIPTOR);
-    }
-
-    static SnmpType map(final WellKnownType attributeType){
-        if(attributeType != null)
-            switch (attributeType){
-                case BOOL: return BOOLEAN;
-                case CHAR:
-                case OBJECT_NAME:
-                case STRING: return TEXT;
-                case BIG_DECIMAL:
-                case BIG_INT: return NUMBER;
-                case BYTE:
-                case INT:
-                case SHORT: return INTEGER;
-                case LONG: return LONG;
-                case FLOAT:
-                case DOUBLE: return FLOAT;
-                case DATE: return UNIX_TIME;
-                case BYTE_BUFFER:
-                case SHORT_BUFFER:
-                case CHAR_BUFFER:
-                case INT_BUFFER:
-                case LONG_BUFFER:
-                case FLOAT_BUFFER:
-                case DOUBLE_BUFFER: return BUFFER;
-                case BYTE_ARRAY:
-                case WRAPPED_BYTE_ARRAY: return BYTE_ARRAY;
-                case FLOAT_ARRAY:
-                case WRAPPED_FLOAT_ARRAY:
-                case SHORT_ARRAY:
-                case WRAPPED_SHORT_ARRAY:
-                case INT_ARRAY:
-                case WRAPPED_INT_ARRAY:
-                case LONG_ARRAY:
-                case WRAPPED_LONG_ARRAY:
-                case DICTIONARY:
-                case TABLE: return TABLE;
-            }
-        return FALLBACK;
     }
 }

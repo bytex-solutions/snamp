@@ -4,9 +4,7 @@ import com.itworks.snamp.connectors.notifications.NotificationSupport;
 import com.itworks.snamp.connectors.notifications.TypeBasedNotificationFilter;
 import com.itworks.snamp.internal.annotations.MethodStub;
 
-import javax.management.ListenerNotFoundException;
-import javax.management.MBeanNotificationInfo;
-import javax.management.NotificationFilter;
+import javax.management.*;
 import javax.management.NotificationListener;
 
 /**
@@ -83,5 +81,15 @@ public abstract class NotificationAccessor extends FeatureAccessor<MBeanNotifica
      */
     public final NotificationFilter createFilter(){
         return new TypeBasedNotificationFilter(getMetadata());
+    }
+
+    public static int removeAll(final Iterable<? extends NotificationAccessor> notifications,
+                             final MBeanNotificationInfo metadata){
+        return FeatureAccessor.removeAll(notifications, metadata);
+    }
+
+    public static <N extends NotificationAccessor> N remove(final Iterable<N> attributes,
+                                                         final MBeanNotificationInfo metadata){
+        return FeatureAccessor.remove(attributes, metadata);
     }
 }

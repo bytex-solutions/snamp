@@ -2,7 +2,10 @@ package com.itworks.snamp.adapters;
 
 import com.google.common.base.Supplier;
 
+import javax.management.Descriptor;
+import javax.management.DescriptorRead;
 import javax.management.MBeanFeatureInfo;
+import java.util.Iterator;
 import java.util.Objects;
 
 /**
@@ -11,7 +14,7 @@ import java.util.Objects;
  * @param <M> The type of the managed resource feature.
  * @param <S> The type of the feature supporter.
  */
-public abstract class FeatureAccessor<M extends MBeanFeatureInfo, S> implements Supplier<M> {
+public abstract class FeatureAccessor<M extends MBeanFeatureInfo, S> implements Supplier<M>, DescriptorRead {
     private final M metadata;
 
     FeatureAccessor(final M metadata){
@@ -24,6 +27,17 @@ public abstract class FeatureAccessor<M extends MBeanFeatureInfo, S> implements 
      */
     public final M getMetadata(){
         return metadata;
+    }
+
+    /**
+     * Returns a copy of Descriptor.
+     *
+     * @return Descriptor associated with the component implementing this interface.
+     * The return value is never null, but the returned descriptor may be empty.
+     */
+    @Override
+    public final Descriptor getDescriptor() {
+        return getMetadata().getDescriptor();
     }
 
     /**
@@ -56,5 +70,44 @@ public abstract class FeatureAccessor<M extends MBeanFeatureInfo, S> implements 
     @Override
     public String toString() {
         return getMetadata().toString();
+    }
+
+    private static int removeAll(final Iterator<? extends FeatureAccessor<?, ?>> features,
+                                 final MBeanFeatureInfo metadata){
+        int result = 0;
+        while (features.hasNext())
+            if(metadata.equals(features.next().getMetadata())) {
+                features.remove();
+                result += 1;
+            }
+        return result;
+    }
+
+    private static <F extends FeatureAccessor<?, ?>> F remove(final Iterator<? extends F> features,
+                                 final MBeanFeatureInfo metadata){
+        while (features.hasNext()) {
+            final F feature = features.next();
+            if (metadata.equals(feature.getMetadata())) {
+                features.remove();
+                return feature;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Removes the accessor from the specified collection.
+     * @param features A collection of features to be modified.
+     * @param metadata The metadata of the feature that should be removed from the collection. Cannot be {@literal null}.
+     * @return A number of removed features.
+     */
+    protected static <M extends MBeanFeatureInfo> int removeAll(final Iterable<? extends FeatureAccessor<M, ?>> features,
+                                                                final M metadata){
+        return removeAll(features.iterator(), metadata);
+    }
+
+    protected static <M extends MBeanFeatureInfo, F extends FeatureAccessor<M, ?>> F remove(final Iterable<? extends F> features,
+                                                                                            final M metadata){
+        return remove(features.iterator(), metadata);
     }
 }

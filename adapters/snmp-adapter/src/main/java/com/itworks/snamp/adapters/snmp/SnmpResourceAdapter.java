@@ -2,7 +2,6 @@ package com.itworks.snamp.adapters.snmp;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.adapters.profiles.PolymorphicResourceAdapter;
 import org.osgi.service.jndi.JNDIContextManager;
@@ -40,6 +39,7 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
         private static final Pattern IPv4_PATTERN = Pattern.compile("^\\d+\\.\\d+\\.\\d+\\.\\d+/\\d+");
         private WeakReference<NotificationOriginator> notificationOriginator;
         private final String resourceName;
+        private SnmpTypeMapper typeMapper;
 
         private SnmpNotificationMappingImpl(final MBeanNotificationInfo metadata,
                                             final String resourceName) throws IllegalArgumentException{
@@ -49,6 +49,11 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
                 this.resourceName = resourceName;
             }
             else throw new IllegalArgumentException("Target address, target name and event OID parameters are not specified for SNMP trap");
+        }
+
+        @Override
+        public void setTypeMapper(final SnmpTypeMapper value) {
+            typeMapper = value;
         }
 
         @Override
@@ -77,17 +82,17 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
 
         @Override
         public int getTimeout() {
-            return parseNotificationTimeout(getMetadata());
+            return parseNotificationTimeout(this);
         }
 
         @Override
         public int getRetryCount() {
-            return parseRetryCount(getMetadata());
+            return parseRetryCount(this);
         }
 
         @Override
         public OID getID() {
-            return new OID(parseOID(getMetadata()));
+            return new OID(parseOID(this));
         }
 
         @Override
@@ -103,10 +108,11 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
         private static void handleNotification(final NotificationOriginator originator,
                                                final Notification notification,
                                                final String resourceName,
-                                               final MBeanNotificationInfo metadata){
+                                               final MBeanNotificationInfo metadata,
+                                               final SnmpTypeMapper mapper){
             notification.setSource(resourceName);
             @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
-            final SnmpNotification snmpTrap = new SnmpNotification(notification, metadata);
+            final SnmpNotification snmpTrap = new SnmpNotification(notification, metadata, mapper);
             originator.notify(new OctetString(), snmpTrap.notificationID, snmpTrap.getBindings()); //for SNMPv3 sending
             originator.notify(SnmpHelpers.toOctetString("public"), snmpTrap.notificationID, snmpTrap.getBindings()); //for SNMPv2 sending
         }
@@ -117,8 +123,8 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
             final NotificationOriginator originator = originatorRef != null ?
                     originatorRef.get() :
                     null;
-            if (originator != null)
-                handleNotification(originator, notification, resourceName, getMetadata());
+            if (originator != null && typeMapper != null)
+                handleNotification(originator, notification, resourceName, getMetadata(), typeMapper);
         }
 
         @Override
@@ -126,17 +132,26 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
             final WeakReference<NotificationOriginator> originatorRef = this.notificationOriginator;
             this.notificationOriginator = null;
             if(originatorRef != null) originatorRef.clear();
+            typeMapper = null;
         }
     }
 
     private static final class SnmpAdapterUpdateManager extends ResourceAdapterUpdateManager {
         private final SnmpAgent agent;
+        private final SnmpResourceAdapterProfile profile;
 
         private SnmpAdapterUpdateManager(final String adapterInstanceName,
-                                         final long restartTimeout,
-                                         final SnmpAgent agent){
-            super(adapterInstanceName, restartTimeout);
-            this.agent = Objects.requireNonNull(agent);
+                                         final SnmpResourceAdapterProfile profile,
+                                         final DirContextFactory contextFactory) throws IOException, SnmpAdapterAbsentParameterException{
+            super(adapterInstanceName, profile.getRestartTimeout());
+            this.profile = Objects.requireNonNull(profile);
+            agent = profile.createSnmpAgent(contextFactory,
+                    profile.createThreadPoolFactory(adapterInstanceName));
+        }
+
+        private void startAgent(final Iterable<? extends AttributeAccessor> attributes,
+                                final Iterable<? extends SnmpNotificationMapping> notifications) throws IOException, DuplicateRegistrationException {
+            agent.start(attributes, notifications, profile);
         }
 
         @Override
@@ -150,15 +165,35 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
 
         @Override
         public void close() throws Exception {
-            agent.stop();
-            super.close();
+            try {
+                agent.stop();
+            }
+            finally {
+                super.close();
+            }
+        }
+
+        private void registerManagedObject(final AttributeAccessor accessor) throws DuplicateRegistrationException {
+            agent.registerManagedObject(accessor, profile);
+        }
+
+        private void unregisterManagedObject(final AttributeAccessor accessor) {
+            agent.unregisterManagedObject(accessor);
+        }
+
+        private void registerNotificationTarget(final SnmpNotificationMappingImpl mapping) {
+            agent.registerNotificationTarget(mapping, profile);
+        }
+
+        private void unregisterNotificationTarget(final SnmpNotificationMapping mapping) {
+            agent.unregisterNotificationTarget(mapping);
         }
     }
 
     private SnmpAdapterUpdateManager updateManager;
     private final DirContextFactory contextFactory;
     private final HashMultimap<String, SnmpNotificationMappingImpl> notifications;
-    private final HashMultimap<String, SnmpAttributeMapping> attributes;
+    private final HashMultimap<String, AttributeAccessor> attributes;
 
     SnmpResourceAdapter(final String adapterInstanceName, final JNDIContextManager contextManager) {
         super(adapterInstanceName);
@@ -196,13 +231,11 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
 
     @Override
     protected synchronized void start(final SnmpResourceAdapterProfile profile) throws IOException, DuplicateRegistrationException, SnmpAdapterAbsentParameterException {
-        final SnmpAgent agent = profile.createSnmpAgent(contextFactory,
-                profile.createThreadPoolFactory(getInstanceName()));
-        agent.start(attributes.values(), notifications.values());
-        //start SNMP agent
-        agent.start(attributes.values(), notifications.values());
-        //initialize restart manager
-        updateManager = new SnmpAdapterUpdateManager(getInstanceName(), profile.getRestartTimeout(), agent);
+        //initialize restart manager and start SNMP agent
+        updateManager = new SnmpAdapterUpdateManager(getInstanceName(),
+                profile,
+                contextFactory);
+        updateManager.startAgent(attributes.values(), notifications.values());
     }
 
     private SnmpNotificationMappingImpl addNotification(final String resourceName,
@@ -210,18 +243,16 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
         final SnmpNotificationMappingImpl mapping = new SnmpNotificationMappingImpl(metadata, resourceName);
         notifications.put(resourceName, mapping);
         if(updateManager != null)
-            updateManager.agent.registerNotificationTarget(mapping);
+            updateManager.registerNotificationTarget(mapping);
         return mapping;
     }
 
     private AttributeAccessor addAttribute(final String resourceName,
                                            final MBeanAttributeInfo metadata) throws DuplicateRegistrationException {
         final AttributeAccessor accessor = new AttributeAccessor(metadata);
-        final SnmpType type = SnmpType.map(accessor.getType());
-        final SnmpAttributeMapping mapping;
-        attributes.put(resourceName, mapping = type.createManagedObject(accessor));
+        attributes.put(resourceName, accessor);
         if(updateManager != null)
-            updateManager.agent.registerManagedObject(mapping);
+            updateManager.registerManagedObject(accessor);
         return accessor;
     }
 
@@ -241,32 +272,24 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
     @Override
     protected synchronized Iterable<? extends FeatureAccessor<?, ?>> removeAllFeatures(final String resourceName) throws Exception {
         final Iterable<SnmpNotificationMappingImpl> notifs = notifications.removeAll(resourceName);
-        final Collection<SnmpAttributeMapping> attrs = attributes.removeAll(resourceName);
-        final Collection<AttributeAccessor> accessors = Lists.newArrayListWithExpectedSize(attrs.size());
+        final Collection<AttributeAccessor> accessors = attributes.removeAll(resourceName);
         final SnmpAdapterUpdateManager updateManager = this.updateManager;
         if(updateManager != null){
             beginUpdate(updateManager, updateManager.getCallback());
             for (final SnmpNotificationMapping mapping : notifs)
-                updateManager.agent.unregisterNotificationTarget(mapping);
-            for (final SnmpAttributeMapping mapping : attrs)
-                accessors.add(updateManager.agent.unregisterManagedObject(mapping));
+                updateManager.unregisterNotificationTarget(mapping);
+            for (final AttributeAccessor mapping : accessors)
+                updateManager.unregisterManagedObject(mapping);
         }
         return Iterables.concat(accessors, notifs);
     }
 
     private AttributeAccessor removeAttribute(final String resourceName,
                                               final MBeanAttributeInfo metadata){
-        final Iterator<SnmpAttributeMapping> attributes = this.attributes.get(resourceName).iterator();
-        while (attributes.hasNext()){
-            final SnmpAttributeMapping mapping = attributes.next();
-            if(mapping.equals(metadata)){
-                attributes.remove();
-                return updateManager != null ?
-                        updateManager.agent.unregisterManagedObject(mapping) :
-                        mapping.disconnect(null);
-            }
-        }
-        return null;
+        final AttributeAccessor accessor = AttributeAccessor.remove(this.attributes.get(resourceName), metadata);
+        if(accessor != null && updateManager != null)
+            updateManager.unregisterManagedObject(accessor);
+        return accessor;
     }
 
     private NotificationAccessor removeNotification(final String resourceName,
@@ -312,8 +335,8 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
             for (final FeatureAccessor<?, ?> mapping : notifications.values())
                 mapping.disconnect();
             //remove all attributes
-            for (final SnmpAttributeMapping mapping : attributes.values())
-                mapping.disconnect(null);
+            for (final FeatureAccessor<?, ?> mapping : attributes.values())
+                mapping.disconnect();
         } finally {
             updateManager = null;
             notifications.clear();
