@@ -77,7 +77,7 @@ class SnmpResourceAdapterProfile extends BasicResourceAdapterProfile implements 
         return SnmpType.FALLBACK;
     }
 
-    static SnmpTypeMapper getDefaultTypeMapper(){
+    static SnmpTypeMapper createDefaultTypeMapper(){
         return new SnmpTypeMapper() {
             @Override
             public SnmpType apply(final WellKnownType type) {

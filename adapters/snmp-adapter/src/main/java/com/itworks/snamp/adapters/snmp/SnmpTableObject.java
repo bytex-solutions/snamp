@@ -34,7 +34,7 @@ import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor
 import static com.itworks.snamp.adapters.snmp.SnmpHelpers.getAccessRestrictions;
 import static com.itworks.snamp.jmx.DescriptorUtils.getField;
 import static com.itworks.snamp.jmx.DescriptorUtils.hasField;
-import static com.itworks.snamp.adapters.snmp.SnmpResourceAdapterProfile.getDefaultTypeMapper;
+import static com.itworks.snamp.adapters.snmp.SnmpResourceAdapterProfile.createDefaultTypeMapper;
 
 /**
  * Represents SNMP table.
@@ -42,6 +42,7 @@ import static com.itworks.snamp.adapters.snmp.SnmpResourceAdapterProfile.getDefa
  */
 final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONamedColumn, MOTableModel<DefaultMOMutableRow2PC>> implements SnmpAttributeMapping, UpdatableManagedObject{
     static final int SYNTAX = SMIConstants.EXCEPTION_NO_SUCH_OBJECT;
+    private static final SnmpTypeMapper DEFAULT_MAPPER = createDefaultTypeMapper();
 
     /**
      * Represents transaction state.
@@ -317,7 +318,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
     SnmpTableObject(final AttributeAccessor connector){
         this(new OID(SnmpAdapterConfigurationDescriptor.parseOID(connector.getMetadata())),
                 connector,
-                getDefaultTypeMapper());
+                DEFAULT_MAPPER);
     }
 
     /**
