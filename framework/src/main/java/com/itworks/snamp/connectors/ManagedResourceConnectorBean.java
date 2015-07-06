@@ -130,7 +130,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
     }
 
     private static final class SelfDescriptor implements ManagedBeanDescriptor<ManagedResourceConnectorBean> {
-        private Reference<ManagedResourceConnectorBean> connectorRef;
+        private final Reference<ManagedResourceConnectorBean> connectorRef;
         private final BeanInfo metadata;
 
         private SelfDescriptor(final ManagedResourceConnectorBean instance) throws IntrospectionException {
@@ -155,7 +155,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
          */
         @Override
         public ManagedResourceConnectorBean getInstance() {
-            return connectorRef != null ? connectorRef.get() : null;
+            return connectorRef.get();
         }
     }
 

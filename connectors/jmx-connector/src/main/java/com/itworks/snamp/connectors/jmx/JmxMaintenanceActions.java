@@ -9,7 +9,7 @@ enum JmxMaintenanceActions implements MaintenanceActionInfo {
 
     private final String name;
 
-    private JmxMaintenanceActions(final String name){
+    JmxMaintenanceActions(final String name){
         this.name = name;
     }
 

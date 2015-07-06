@@ -127,7 +127,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
             final OID attributeId = new OID("1.1.1.0");
             client.writeAttribute(attributeId, valueToCheck, String.class);
             assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET, attributeId, String.class));
-            assertEquals(valueToCheck, client.readAttribute(ReadMethod.GETBULK, attributeId, String.class));
+            assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET_BULK, attributeId, String.class));
     }
 
     @Test
@@ -136,7 +136,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
         final OID oid = new OID("1.1.8.0");
         client.writeAttribute(oid, valueToCheck, Float.class);
         assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET, oid, Float.class), 0.000001);
-        assertEquals(valueToCheck, client.readAttribute(ReadMethod.GETBULK, oid, Float.class), 0.000001);
+        assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET_BULK, oid, Float.class), 0.000001);
     }
 
     @Test
@@ -148,7 +148,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
         final OID oid = new OID("1.1.9.0");
         client.writeAttribute(oid, valueToCheck, String.class);
         assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET, oid, String.class));
-        assertEquals(valueToCheck, client.readAttribute(ReadMethod.GETBULK, oid, String.class));
+        assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET_BULK, oid, String.class));
     }
 
     @Override
@@ -166,7 +166,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
         final OID oid = new OID("1.1.10.0");
         client.writeAttribute(oid, valueToCheck, String.class);
         assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET, oid, String.class));
-        assertEquals(valueToCheck, client.readAttribute(ReadMethod.GETBULK, oid, String.class));
+        assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET_BULK, oid, String.class));
     }
 
     @Test
@@ -181,7 +181,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
         client.writeAttribute(oid, byteString, byte[].class);
         final byte[] actual = client.readAttribute(ReadMethod.GET, oid, byte[].class);
         assertArrayEquals(byteString, actual);
-        assertArrayEquals(byteString, client.readAttribute(ReadMethod.GETBULK, oid, byte[].class));
+        assertArrayEquals(byteString, client.readAttribute(ReadMethod.GET_BULK, oid, byte[].class));
 
     }
 
@@ -203,7 +203,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
             final OID oid = new OID("1.1.2.0");
             client.writeAttribute(oid, valueToCheck, Boolean.class);
             assertTrue(client.readAttribute(ReadMethod.GET, oid, Boolean.class));
-            assertTrue(client.readAttribute(ReadMethod.GETBULK, oid, Boolean.class));
+            assertTrue(client.readAttribute(ReadMethod.GET_BULK, oid, Boolean.class));
     }
 
     @Test
@@ -212,7 +212,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
             final OID oid = new OID("1.1.3.0");
             client.writeAttribute(oid, valueToCheck, Integer.class);
             assertEquals(valueToCheck, (int) client.readAttribute(ReadMethod.GET, oid, Integer.class));
-            assertEquals(valueToCheck, (int) client.readAttribute(ReadMethod.GETBULK, oid, Integer.class));
+            assertEquals(valueToCheck, (int) client.readAttribute(ReadMethod.GET_BULK, oid, Integer.class));
     }
 
     @Test
@@ -221,7 +221,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
         final OID oid = new OID("1.1.4.0");
         client.writeAttribute(oid, valueToCheck, BigInteger.class);
         assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET, oid, BigInteger.class));
-        assertEquals(valueToCheck, client.readAttribute(ReadMethod.GETBULK, oid, BigInteger.class));
+        assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET_BULK, oid, BigInteger.class));
     }
 
     @Test
@@ -250,7 +250,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
             }
         };
         client.writeTable("1.1.7.1", table);
-        final SnmpTable result = client.readTable(ReadMethod.GETBULK, new OID("1.1.7.1"),
+        final SnmpTable result = client.readTable(ReadMethod.GET_BULK, new OID("1.1.7.1"),
                 Boolean.class,
             Integer.class,
             String.class
@@ -289,7 +289,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
             }
         };
         client.writeTable("1.1.5.1", array);
-        array = client.readTable(ReadMethod.GETBULK, new OID("1.1.5.1"), Integer.class);
+        array = client.readTable(ReadMethod.GET_BULK, new OID("1.1.5.1"), Integer.class);
         assertEquals(2, array.getRowCount());
         assertEquals(20, array.getCell(0, 0));
         assertEquals(30, array.getCell(0, 1));
@@ -320,7 +320,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
             }
         };
         client.writeTable("1.1.6.1", dict);
-        dict = client.readTable(ReadMethod.GETBULK, new OID("1.1.6.1"),
+        dict = client.readTable(ReadMethod.GET_BULK, new OID("1.1.6.1"),
             Boolean.class,
             Integer.class,
             String.class

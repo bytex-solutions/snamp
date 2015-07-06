@@ -8,7 +8,6 @@ import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.OpenType;
 import javax.management.openmbean.TabularData;
 import java.nio.*;
-import java.util.Formatter;
 
 /**
  * Represents a single entry point for all formatters provided by this library.

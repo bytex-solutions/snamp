@@ -61,9 +61,11 @@ public abstract class ThreadSafeObject {
     }
 
     private interface ReadWriteLockSlim extends ReadWriteLock{
+        @SuppressWarnings("NullableProblems")
         @Override
         LockScope readLock();
 
+        @SuppressWarnings("NullableProblems")
         @Override
         LockScope writeLock();
     }
@@ -78,11 +80,13 @@ public abstract class ThreadSafeObject {
             writeLock = new WriteLockScope(this);
         }
 
+        @SuppressWarnings("NullableProblems")
         @Override
         public ReadLockScope readLock() {
             return readLock;
         }
 
+        @SuppressWarnings("NullableProblems")
         @Override
         public WriteLockScope writeLock() {
             return writeLock;

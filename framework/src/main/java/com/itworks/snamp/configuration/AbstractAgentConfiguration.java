@@ -11,7 +11,7 @@ import java.util.*;
  * @version 1.0
  */
 public abstract class AbstractAgentConfiguration implements AgentConfiguration {
-    private static interface ConfigurationEntityCopier<T extends EntityConfiguration>{
+    private interface ConfigurationEntityCopier<T extends EntityConfiguration>{
         void copy(final T input, final T output);
     }
 

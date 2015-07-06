@@ -449,7 +449,7 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
      * @see #add(Object)
      */
     @Override
-    public final boolean addAll(final Collection<? extends String> c) {
+    public final boolean addAll(@SuppressWarnings("NullableProblems") final Collection<? extends String> c) {
         throw new UnsupportedOperationException();
     }
 
@@ -477,7 +477,7 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
      * @see #contains(Object)
      */
     @Override
-    public final boolean removeAll(final Collection<?> c) {
+    public final boolean removeAll(@SuppressWarnings("NullableProblems") final Collection<?> c) {
         throw new UnsupportedOperationException();
     }
 

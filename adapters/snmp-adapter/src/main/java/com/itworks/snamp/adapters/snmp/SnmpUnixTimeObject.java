@@ -14,7 +14,7 @@ import java.util.Date;
 import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.parseDateTimeDisplayFormat;
 
 final class SnmpUnixTimeObject extends SnmpScalarObject<OctetString>{
-    static int SYNTAX = SMIConstants.SYNTAX_OCTET_STRING;
+    static final int SYNTAX = SMIConstants.SYNTAX_OCTET_STRING;
     static final String DEFAULT_VALUE = "1970-1-1,00:00:00.0,+0:0";
 
     private final DateTimeFormatter formatter;

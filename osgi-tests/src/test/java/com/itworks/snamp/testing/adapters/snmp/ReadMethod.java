@@ -11,11 +11,11 @@ import org.snmp4j.util.PDUFactory;
  */
 enum ReadMethod{
     GET(PDU.GET),
-    GETBULK(PDU.GETBULK);
+    GET_BULK(PDU.GETBULK);
 
     private final int method;
 
-    private ReadMethod(final int m){
+    ReadMethod(final int m){
         method = m;
     }
 

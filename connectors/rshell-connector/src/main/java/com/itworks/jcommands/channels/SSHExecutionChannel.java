@@ -54,7 +54,7 @@ public final class SSHExecutionChannel extends SSHClient implements CommandExecu
     private final int localPort;
     private final Map<String, String> channelParams;
     private final String encoding;
-    private ChannelProcessingMode mode;
+    private final ChannelProcessingMode mode;
     private Session session;
     private final Authenticator auth;
 

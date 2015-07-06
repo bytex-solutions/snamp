@@ -7,6 +7,7 @@ import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.PersistentConfigurationManager;
+import com.itworks.snamp.internal.annotations.SpecialUse;
 import org.junit.After;
 import org.junit.Before;
 import org.ops4j.pax.exam.karaf.options.KarafFeaturesOption;
@@ -58,6 +59,7 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
 
     private PersistentConfigurationManager configManager = null;
     @Inject
+    @SpecialUse
     private ConfigurationAdmin configAdmin = null;
 
     protected AbstractSnampIntegrationTest(){

@@ -48,7 +48,7 @@ public abstract class AbstractAggregator implements Aggregator {
      */
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.METHOD, ElementType.FIELD})
-    protected static  @interface Aggregation{
+    protected @interface Aggregation{
 
     }
 

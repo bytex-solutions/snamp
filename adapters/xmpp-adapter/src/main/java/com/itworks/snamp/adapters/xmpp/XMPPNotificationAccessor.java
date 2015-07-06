@@ -21,7 +21,7 @@ import java.util.Collection;
  */
 final class XMPPNotificationAccessor extends NotificationRouter {
     private final String resourceName;
-    private static Gson FORMATTER = Formatters.enableAll(new GsonBuilder())
+    private static final Gson FORMATTER = Formatters.enableAll(new GsonBuilder())
             .serializeSpecialFloatingPointValues()
             .serializeNulls()
             .create();

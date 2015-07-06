@@ -1,9 +1,7 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.google.common.base.Function;
 import com.itworks.snamp.adapters.AttributeAccessor;
 import com.itworks.snamp.jmx.DescriptorUtils;
-import com.itworks.snamp.jmx.WellKnownType;
 import org.snmp4j.agent.*;
 import org.snmp4j.smi.*;
 
@@ -14,6 +12,7 @@ import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.nio.Buffer;
 import java.util.Date;
+
 import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.parseOID;
 
 /**
@@ -243,7 +242,7 @@ enum SnmpType {
         }
     };
 
-    private static DescriptorRead EMPTY_DESCRIPTOR = new DescriptorRead() {
+    private static final DescriptorRead EMPTY_DESCRIPTOR = new DescriptorRead() {
         @Override
         public Descriptor getDescriptor() {
             return DescriptorUtils.EMPTY;

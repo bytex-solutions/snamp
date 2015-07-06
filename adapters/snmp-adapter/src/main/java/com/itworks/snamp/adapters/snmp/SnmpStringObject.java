@@ -17,7 +17,7 @@ import java.util.Objects;
 import static org.snmp4j.smi.SMIConstants.SYNTAX_OCTET_STRING;
 
 final class SnmpStringObject extends SnmpScalarObject<OctetString>{
-    static int SYNTAX = SYNTAX_OCTET_STRING;
+    static final int SYNTAX = SYNTAX_OCTET_STRING;
     static final String DEFAULT_VALUE = "";
 
     @SpecialUse

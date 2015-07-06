@@ -101,7 +101,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      * @since 1.0
      * @version 1.0
      */
-    public static enum ProvidedServiceState{
+    public enum ProvidedServiceState{
         /**
          * Service is not published.
          */

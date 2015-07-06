@@ -30,7 +30,7 @@ import static com.itworks.snamp.adapters.nrdp.NRDPAdapterConfigurationDescriptor
  * @since 1.0
  */
 final class NRDPAdapter extends AbstractResourceAdapter {
-    static String NAME = "nrdp";
+    static final String NAME = "nrdp";
 
     private static final class NRDPAttributeAccessor extends AttributeAccessor {
         private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat();

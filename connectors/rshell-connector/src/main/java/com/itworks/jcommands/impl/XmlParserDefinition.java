@@ -877,7 +877,7 @@ public class XmlParserDefinition {
                 runPlaceholder((String) templateFragment, engine);
             else if (templateFragment instanceof ArrayItemParsingRule) {
                 final ArrayItemParsingRule rule = (ArrayItemParsingRule) templateFragment;
-                final Object element = parse(rule.getElementType(), Arrays.asList(rule.getItemParsingRule()), engine);
+                final Object element = parse(rule.getElementType(), Collections.singletonList(rule.getItemParsingRule()), engine);
                 builder.add(element);
                 builder.setElementType(rule.getElementType());
                 //...just continue parsing
@@ -908,7 +908,7 @@ public class XmlParserDefinition {
                 runPlaceholder((String)templateFragment, engine);
             else if(templateFragment instanceof DictionaryEntryParsingRule){
                 final DictionaryEntryParsingRule rule = (DictionaryEntryParsingRule)templateFragment;
-                result.put(rule.getKeyName(), parse(rule.getValueType(), Arrays.asList(rule.getValueParsingRule()), engine));
+                result.put(rule.getKeyName(), parse(rule.getValueType(), Collections.singletonList(rule.getValueParsingRule()), engine));
             }
             else if(templateFragment instanceof SkipTokenParsingRule)
                 runPlaceholder(((SkipTokenParsingRule)templateFragment).getRule(), engine);
@@ -934,7 +934,7 @@ public class XmlParserDefinition {
                 runPlaceholder((String)templateFragment, engine);
             else if(templateFragment instanceof TableColumnParsingRule){
                 final TableColumnParsingRule rule = (TableColumnParsingRule)templateFragment;
-                row.put(rule.getColumnName(), parse(rule.getColumnType(), Arrays.asList(rule.getColumnValueParsingRule()), engine));
+                row.put(rule.getColumnName(), parse(rule.getColumnType(), Collections.singletonList(rule.getColumnValueParsingRule()), engine));
             }
             else if(templateFragment instanceof LineTerminationParsingRule){
                 table.add(row);

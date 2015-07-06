@@ -20,7 +20,7 @@ import java.util.Collection;
  * @since 1.0
  */
 abstract class XMPPAttributeAccessor extends AttributeAccessor {
-    protected static Gson FORMATTER = Formatters.enableAll(new GsonBuilder())
+    protected static final Gson FORMATTER = Formatters.enableAll(new GsonBuilder())
                         .serializeSpecialFloatingPointValues()
                         .serializeNulls()
             .create();

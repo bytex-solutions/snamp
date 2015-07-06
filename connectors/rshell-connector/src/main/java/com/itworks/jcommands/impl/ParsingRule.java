@@ -13,7 +13,7 @@ import java.util.Set;
  */
 @XmlTransient
 public abstract class ParsingRule {
-    private Set<XmlParsingResultType> related;
+    private final Set<XmlParsingResultType> related;
 
     ParsingRule() {
         this(EnumSet.allOf(XmlParsingResultType.class));

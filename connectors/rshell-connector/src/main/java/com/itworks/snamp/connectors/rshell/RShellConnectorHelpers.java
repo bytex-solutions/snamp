@@ -16,7 +16,7 @@ final class RShellConnectorHelpers {
 
     }
 
-    static String CONNECTOR_NAME = "rshell";
+    static final String CONNECTOR_NAME = "rshell";
     private static final String LOGGER_NAME = AbstractManagedResourceConnector.getLoggerName(CONNECTOR_NAME);
 
     static <E extends Exception> void withLogger(final Consumer<Logger, E> contextBody) throws E {

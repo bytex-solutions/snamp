@@ -66,6 +66,7 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, Res
     void registerManagedObject(final AttributeAccessor accessor,
                                final SnmpTypeMapper mapper) throws DuplicateRegistrationException {
         final SnmpType type = mapper.apply(accessor.getType());
+        assert type != null;
         type.registerManagedObject(accessor, prefix, server);
     }
 

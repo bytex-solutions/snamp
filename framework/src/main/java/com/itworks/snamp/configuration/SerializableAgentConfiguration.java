@@ -32,7 +32,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
      * @since 1.0
      * @version 1.0
      */
-    public static interface SerializableEntityConfiguration extends EntityConfiguration, Modifiable, Externalizable{
+    public interface SerializableEntityConfiguration extends EntityConfiguration, Modifiable, Externalizable{
         /**
          * Determines whether this configuration entity is modified after deserialization.
          * @return {@literal true}, if this configuration entity is modified; otherwise, {@literal false}.

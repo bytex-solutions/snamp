@@ -252,7 +252,7 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
     @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
     private static ResponseEvent waitForResponseEvent(final SynchronizationEvent.EventAwaitor<ResponseEvent> awaitor, final TimeSpan timeout) throws TimeoutException, IOException, InterruptedException {
         final ResponseEvent response = awaitor.await(timeout);
-        if(response == null || response.getResponse() == null) throw new TimeoutException(String.format("PDU sending timeout."));
+        if(response == null || response.getResponse() == null) throw new TimeoutException("PDU sending timeout.");
         else if(response.getError() != null)
             if(response.getError() instanceof IOException)
                 throw (IOException)response.getError();

@@ -5,7 +5,6 @@ import com.google.gson.*;
 import javax.management.openmbean.TabularData;
 import javax.management.openmbean.TabularType;
 import java.lang.reflect.Type;
-import java.util.Objects;
 
 /**
  * Represents serialization/deserialization engine for {@link TabularData}.

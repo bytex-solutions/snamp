@@ -57,7 +57,7 @@ enum TableRowStatus {
 
     private final int value;
 
-    private TableRowStatus(final int v){
+    TableRowStatus(final int v){
         value = v;
     }
 

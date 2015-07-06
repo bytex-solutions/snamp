@@ -246,6 +246,7 @@ public final class ArrayUtils {
         return firstArray;
     }
 
+    @SafeVarargs
     private static <T> boolean oneOf(final T first, final T... other){
         for(final T item: other)
             if(Objects.equals(first, item)) return true;
@@ -253,6 +254,7 @@ public final class ArrayUtils {
     }
 
     private static <T> ArrayType<T[]> createArrayType(final SimpleType<T> elementType) throws OpenDataException{
+
         final boolean primitive = oneOf(elementType,
                 SimpleType.BOOLEAN,
                 SimpleType.CHARACTER,

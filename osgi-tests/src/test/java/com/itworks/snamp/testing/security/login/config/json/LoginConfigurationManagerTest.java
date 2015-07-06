@@ -1,6 +1,7 @@
 package com.itworks.snamp.testing.security.login.config.json;
 
 import com.itworks.snamp.configuration.AgentConfiguration;
+import com.itworks.snamp.internal.annotations.SpecialUse;
 import com.itworks.snamp.security.LoginConfigurationManager;
 import com.itworks.snamp.security.auth.login.json.JsonConfiguration;
 import com.itworks.snamp.testing.AbstractSnampIntegrationTest;
@@ -17,6 +18,7 @@ import java.util.concurrent.TimeoutException;
  */
 public final class LoginConfigurationManagerTest extends AbstractSnampIntegrationTest {
     @Inject
+    @SpecialUse
     private LoginConfigurationManager manager = null;
 
     @Test

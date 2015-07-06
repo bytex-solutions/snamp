@@ -19,21 +19,19 @@ import com.itworks.snamp.jmx.TabularDataUtils;
 import com.itworks.snamp.jmx.WellKnownType;
 import com.itworks.snamp.jmx.json.Formatters;
 import com.itworks.snamp.jmx.json.JsonSerializerFunction;
-import net.schmizz.sshj.userauth.keyprovider.*;
 import org.apache.sshd.SshServer;
+import org.apache.sshd.common.KeyPairProvider;
 import org.apache.sshd.server.Command;
 import org.apache.sshd.server.CommandFactory;
 import org.apache.sshd.server.PasswordAuthenticator;
 import org.apache.sshd.server.PublickeyAuthenticator;
 import org.apache.sshd.server.auth.CachingPublicKeyAuthenticator;
 import org.apache.sshd.server.jaas.JaasPasswordAuthenticator;
-import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.server.session.ServerSession;
 
 import javax.management.*;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.TabularData;
-import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
@@ -41,7 +39,6 @@ import java.nio.*;
 import java.security.PublicKey;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.itworks.snamp.adapters.ssh.SshAdapterConfigurationDescriptor.*;
@@ -54,7 +51,7 @@ import static com.itworks.snamp.adapters.ssh.SshAdapterConfigurationDescriptor.*
  */
 final class SshAdapter extends AbstractResourceAdapter implements AdapterController {
     static final String NAME = SshHelpers.ADAPTER_NAME;
-    private static Gson FORMATTER = Formatters.enableAll(new GsonBuilder())
+    private static final Gson FORMATTER = Formatters.enableAll(new GsonBuilder())
             .serializeSpecialFloatingPointValues()
             .serializeNulls()
             .create();
@@ -364,6 +361,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
             output.append(joinString(data.getTabularType().getRowType().keySet(), ITEM_FORMAT, COLUMN_SEPARATOR));
             //print rows
             TabularDataUtils.forEachRow(data, new Consumer<CompositeData, IOException>() {
+                @SuppressWarnings("unchecked")
                 @Override
                 public void accept(final CompositeData row) throws IOException{
                     final Collection<?> values = Collections2.transform(row.values(), new JsonSerializerFunction(FORMATTER));
@@ -443,93 +441,16 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         }
     }
 
-    private static SshSecuritySettings createSecuritySettings(final Map<String, String> parameters){
-        return new SshSecuritySettings() {
-            @Override
-            public String getUserName() {
-                return parameters.get(USER_NAME_PARAM);
-            }
-
-            @Override
-            public String getPassword() {
-                return parameters.get(PASSWORD_PARAM);
-            }
-
-            @Override
-            public boolean hasUserCredentials() {
-                return parameters.containsKey(USER_NAME_PARAM) && parameters.containsKey(PASSWORD_PARAM);
-            }
-
-            @Override
-            public String getJaasDomain() {
-                return parameters.get(JAAS_DOMAIN_PARAM);
-            }
-
-            @Override
-            public boolean hasJaasDomain() {
-                return parameters.containsKey(JAAS_DOMAIN_PARAM);
-            }
-
-            @Override
-            public boolean hasClientPublicKey() {
-                return parameters.containsKey(PUBLIC_KEY_FILE_PARAM);
-            }
-
-            @Override
-            public PublicKey getClientPublicKey() {
-                final File keyFile = new File(parameters.get(PUBLIC_KEY_FILE_PARAM));
-                KeyFormat format = getClientPublicKeyFormat();
-                try {
-                    if (format == KeyFormat.Unknown)
-                        format = KeyProviderUtil.detectKeyFileFormat(keyFile);
-                    final FileKeyProvider provider;
-                    switch (format) {
-                        case PKCS8:
-                            provider = new PKCS8KeyFile();
-                            break;
-                        case OpenSSH:
-                            provider = new OpenSSHKeyFile();
-                            break;
-                        case PuTTY:
-                            provider = new PuTTYKeyFile();
-                            break;
-                        default:
-                            throw new IOException("Unknown public key format.");
-                    }
-                    provider.init(keyFile);
-                    return provider.getPublic();
-                } catch (final IOException e) {
-                    SshHelpers.log(Level.WARNING, "Invalid SSH public key file.", e);
-                }
-                return null;
-            }
-
-            @Override
-            public KeyFormat getClientPublicKeyFormat() {
-                if (parameters.containsKey(PUBLIC_KEY_FILE_FORMAT_PARAM))
-                    switch (parameters.get(PUBLIC_KEY_FILE_FORMAT_PARAM).toLowerCase()) {
-                        case "pkcs8":
-                            return KeyFormat.PKCS8;
-                        case "openssh":
-                            return KeyFormat.OpenSSH;
-                        case "putty":
-                            return KeyFormat.PuTTY;
-                    }
-                return KeyFormat.Unknown;
-            }
-        };
-    }
-
     private void start(final String host,
                        final int port,
-                       final String serverCertificateFile,
+                       final KeyPairProvider hostKeyFile,
                        final SshSecuritySettings security,
                        final Supplier<ExecutorService> threadPoolFactory) throws Exception{
         final SshServer server = SshServer.setUpDefaultServer();
         final ExecutorService commandExecutors = threadPoolFactory.get();
         server.setHost(host);
         server.setPort(port);
-        server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(serverCertificateFile));
+        server.setKeyPairProvider(hostKeyFile);
         setupSecurity(server, security);
         server.setShellFactory(ManagementShell.createFactory(this, commandExecutors));
         server.setCommandFactory(new CommandFactory() {
@@ -555,12 +476,9 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         final int port = parameters.containsKey(PORT_PARAM) ?
                 Integer.parseInt(parameters.get(PORT_PARAM)) :
                 DEFAULT_PORT;
-        final String certificateFile = parameters.containsKey(CERTIFICATE_FILE_PARAM) ?
-                parameters.get(CERTIFICATE_FILE_PARAM) :
-                DEFAULT_CERTIFICATE;
         start(host,
                 port,
-                certificateFile,
+                createKeyPairProvider(parameters),
                 createSecuritySettings(parameters),
                 new SshThreadPoolConfig(getInstanceName(), parameters));
     }

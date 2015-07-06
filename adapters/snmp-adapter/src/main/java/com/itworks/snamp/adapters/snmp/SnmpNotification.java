@@ -86,6 +86,7 @@ final class SnmpNotification extends HashMap<OID, Variable> {
                                       final SnmpTypeMapper mapper) {
         if (attachment == null) return;
         final SnmpType type = mapper.apply(WellKnownType.fromValue(attachment));
+        assert type != null;
         if (type.isScalar()) {
             final Variable value = type.convert(attachment, options);
             output.put(new OID(notificationID).append(MAX_RESERVED_POSTFIX + 1), value != null ? value : new Null());
@@ -107,6 +108,7 @@ final class SnmpNotification extends HashMap<OID, Variable> {
             final WellKnownType itemType = WellKnownType.getType(attachment.getCompositeType().getType(itemName));
             if(itemType == null || !itemType.isPrimitive()) continue;
             final SnmpType snmpType = typeMapper.apply(itemType);
+            assert snmpType != null;
             handler.accept(new VariableBinding(new OID(new int[]{index++}), snmpType.convert(attachment.get(itemName), options)));
         }
     }
@@ -118,8 +120,10 @@ final class SnmpNotification extends HashMap<OID, Variable> {
         final WellKnownType elementType = WellKnownType.getType(array.getClass().getComponentType());
         if(elementType == null || !elementType.isPrimitive()) return;
         final SnmpType snmpType = typeMapper.apply(elementType);
-        for(int i = 0; i < Array.getLength(array); i++)
+        assert snmpType != null;
+        for(int i = 0; i < Array.getLength(array); i++) {
             handler.accept(new VariableBinding(new OID(new int[]{i}), snmpType.convert(Array.get(array, i), options)));
+        }
     }
 
     private static <E extends Exception> void forEachVariable(final TabularData attachment,
@@ -133,6 +137,7 @@ final class SnmpNotification extends HashMap<OID, Variable> {
                 int columnIndex = 0;
                 for(final String columnName: value.getCompositeType().keySet()){
                     final SnmpType columnType = typeMapper.apply(WellKnownType.getType(value.getCompositeType().getType(columnName)));
+                    assert columnType != null;
                     handler.accept(new VariableBinding(new OID(new int[]{columnIndex++, rowIndex.getAndIncrement()}), columnType.convert(value.get(columnName), options)));
                 }
             }

@@ -1,6 +1,5 @@
 package com.itworks.snamp.internal;
 
-import com.itworks.snamp.internal.Utils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -10,7 +9,7 @@ import org.junit.Test;
  * @since 1.0
  */
 public class UtilsTest extends Assert {
-    public static interface SampleInterface{
+    public interface SampleInterface{
         int sum(int a, int b);
     }
 

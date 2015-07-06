@@ -1,6 +1,5 @@
 package com.itworks.jcommands.channels.spi;
 
-import com.itworks.jcommands.CommandExecutionChannel;
 import com.itworks.jcommands.channels.RShellExecutionChannel;
 
 import java.net.URI;

@@ -267,6 +267,7 @@ final class XMPPAttributeModel extends AbstractAttributesModel<XMPPAttributeAcce
             result.append(joinString(data.getTabularType().getRowType().keySet(), ITEM_FORMAT, COLUMN_SEPARATOR));
             //print rows
             TabularDataUtils.forEachRow(data, new SafeConsumer<CompositeData>() {
+                @SuppressWarnings("unchecked")
                 @Override
                 public void accept(final CompositeData row) {
                     final Collection<?> values = Collections2.transform(row.values(), new JsonSerializerFunction(FORMATTER));

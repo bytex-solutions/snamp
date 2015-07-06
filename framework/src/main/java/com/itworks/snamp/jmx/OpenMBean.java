@@ -63,7 +63,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
          */
         @MethodStub
         protected Descriptor getDescriptor(){
-            return null;
+            return DescriptorUtils.EMPTY;
         }
 
         /**

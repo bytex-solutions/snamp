@@ -1,6 +1,5 @@
 package com.itworks.snamp.concurrent;
 
-import com.google.common.cache.CacheBuilder;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
 
 /**

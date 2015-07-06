@@ -38,7 +38,7 @@ final class ConcurrentSyslogMessageSender extends AbstractSyslogMessageSender im
     }
 
     @Override
-    public void sendMessage(final SyslogMessage message) {
+    public void sendMessage(@SuppressWarnings("NullableProblems") final SyslogMessage message) {
         sendMessage(messageSender, executor, message);
     }
 

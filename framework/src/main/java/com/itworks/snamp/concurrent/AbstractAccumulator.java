@@ -12,9 +12,9 @@ abstract class AbstractAccumulator extends Number {
     /**
      * Time-to-live of the value in this accumulator, in millis.
      */
-    protected final long timeToLive;
+    final long timeToLive;
 
-    protected AbstractAccumulator(final long ttl){
+    AbstractAccumulator(final long ttl){
         timer = System.currentTimeMillis();
         this.timeToLive = ttl;
     }

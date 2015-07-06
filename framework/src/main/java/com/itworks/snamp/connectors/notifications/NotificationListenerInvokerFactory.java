@@ -39,7 +39,7 @@ public final class NotificationListenerInvokerFactory {
      * @since 1.0
      * @version 1.0
      */
-    public static interface ExceptionHandler{
+    public interface ExceptionHandler{
         /**
          * Handles the exception raised by notification listener.
          * @param e An exception to handle.

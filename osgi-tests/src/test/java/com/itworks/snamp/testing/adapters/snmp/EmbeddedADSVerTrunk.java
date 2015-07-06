@@ -51,10 +51,7 @@ import org.apache.directory.server.ldap.LdapServer;
 import org.apache.directory.server.protocol.shared.transport.TcpTransport;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 
 /**
@@ -103,6 +100,7 @@ public class EmbeddedADSVerTrunk{
      * @param partition The partition on which we want to add index
      * @param attrs The list of attributes to index
      */
+    @SuppressWarnings("unchecked")
     private void addIndex( Partition partition, String... attrs )
     {
         // Index some attributes on the apache partition
@@ -119,7 +117,7 @@ public class EmbeddedADSVerTrunk{
     private static String addAttribute(final SchemaManager schema, final String attrName, final String typeName) throws LdapException {
         final LdapSyntax attrSyntax = new LdapSyntax("1.10.0.1.1." + Math.abs(typeName.hashCode()));
         attrSyntax.setHumanReadable(true);
-        attrSyntax.setNames(Arrays.asList(typeName));
+        attrSyntax.setNames(Collections.singletonList(typeName));
         attrSyntax.setSyntaxChecker(new SyntaxChecker() {
             @Override
             public boolean isValidSyntax(final Object o) {

@@ -109,7 +109,7 @@ public class SynchronizationEvent<T> {
 
     private volatile EventState<T> state;
     private final boolean autoReset;
-    private static boolean DEFAULT_AUTO_RESET = false;
+    private static final boolean DEFAULT_AUTO_RESET = false;
 
     /**
      * Initializes a new synchronization event.

@@ -57,7 +57,7 @@ final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
 
     private static final String CONTEXT_PARAM_NAME = "context";
 
-    private static String RESTART_TIMEOUT_PARAM = "restartTimeout";
+    private static final String RESTART_TIMEOUT_PARAM = "restartTimeout";
 
     /**
      * Represents name of the metadata property that specifies unix time display format.

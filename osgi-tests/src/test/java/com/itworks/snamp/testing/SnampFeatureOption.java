@@ -3,7 +3,6 @@ package com.itworks.snamp.testing;
 import org.ops4j.pax.exam.karaf.options.KarafFeaturesOption;
 
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.file.Paths;
 
 import static com.itworks.snamp.testing.TestUtils.getMavenLocalRepository;

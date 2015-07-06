@@ -250,7 +250,7 @@ final class SecurityConfiguration {
      * @since 1.0
      * @version 1.0
      */
-    public static enum AccessRights{
+    public enum AccessRights{
         /**
          * MO's value be obtained by SNMP manager.
          */
@@ -347,7 +347,7 @@ final class SecurityConfiguration {
     }
 
 
-    private static boolean fillGroups(final Map<String, String> adapterSettings, final Iterable<String> groups, final Map<String, UserGroup> output){
+    private static void fillGroups(final Map<String, String> adapterSettings, final Iterable<String> groups, final Map<String, UserGroup> output){
         final String SECURITY_LEVEL_TEMPLATE = "%s-security-level";
         final String ACCESS_RIGHTS_TEMPLATE = "%s-access-rights";
         final String USERS_TEMPLATE = "%s-users";
@@ -360,7 +360,6 @@ final class SecurityConfiguration {
             groupInfo.setAccessRights(adapterSettings.get(String.format(ACCESS_RIGHTS_TEMPLATE, groupName)));
             fillUsers(adapterSettings, groupInfo, splitAndTrim(adapterSettings.get(String.format(USERS_TEMPLATE, groupName)), ";"));
         }
-        return true;
     }
 
     private static void fillUsers(final Map<String,String> adapterSettings, final UserGroup groupInfo, final Collection<String> userNames) {
@@ -529,7 +528,7 @@ final class SecurityConfiguration {
         userGroup.put(userInfo.getName(), u);
     }
 
-    public static interface UserSelector{
+    public interface UserSelector{
         boolean match(final String userName, final User user, final UserGroup owner);
     }
 

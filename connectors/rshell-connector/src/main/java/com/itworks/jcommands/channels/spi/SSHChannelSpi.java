@@ -1,6 +1,5 @@
 package com.itworks.jcommands.channels.spi;
 
-import com.itworks.jcommands.CommandExecutionChannel;
 import com.itworks.jcommands.channels.SSHExecutionChannel;
 
 import java.net.URI;

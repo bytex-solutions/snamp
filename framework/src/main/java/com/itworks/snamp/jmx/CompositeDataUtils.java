@@ -30,9 +30,9 @@ import java.util.Map;
  */
 public final class CompositeDataUtils {
     private static final class CompositeDataInvocationHandler implements InvocationHandler{
-        private static String GET_METHOD_PREFIX = "get";
-        private static String IS_METHOD_PREFIX = "is";
-        private static String SET_METHOD_PREFIX = "set";
+        private final static String GET_METHOD_PREFIX = "get";
+        private final static String IS_METHOD_PREFIX = "is";
+        private final static String SET_METHOD_PREFIX = "set";
 
         private CompositeData data;
 
