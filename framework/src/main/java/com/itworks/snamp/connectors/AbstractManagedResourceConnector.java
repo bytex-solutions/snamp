@@ -149,7 +149,10 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      */
     @Override
     public Object invoke(final String actionName, final Object[] params, final String[] signature) throws MBeanException, ReflectionException {
-        throw new MBeanException(new UnsupportedOperationException("Operation invocation is not supported."));
+        final OperationSupport ops = queryObject(OperationSupport.class);
+        if(ops != null)
+            return ops.invoke(actionName, params, signature);
+        else throw new MBeanException(new UnsupportedOperationException("Operation invocation is not supported."));
     }
 
     private String getClassName(){
@@ -203,6 +206,11 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
     public MBeanOperationInfo[] getOperationInfo(){
         final OperationSupport ops = queryObject(OperationSupport.class);
         return ops != null ? ops.getOperationInfo() : new MBeanOperationInfo[0];
+    }
+
+    public MBeanOperationInfo getOperationInfo(final String operationName){
+        final OperationSupport ops = queryObject(OperationSupport.class);
+        return ops != null ? ops.getOperationInfo(operationName) : null;
     }
 
     /**

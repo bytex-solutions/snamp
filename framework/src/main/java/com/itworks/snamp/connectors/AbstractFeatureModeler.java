@@ -3,6 +3,7 @@ package com.itworks.snamp.connectors;
 import com.google.common.collect.ObjectArrays;
 import com.itworks.snamp.WeakEventListenerList;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
+import com.itworks.snamp.io.IOUtils;
 
 import javax.management.MBeanFeatureInfo;
 import java.math.BigInteger;
@@ -74,6 +75,12 @@ public abstract class AbstractFeatureModeler<F extends MBeanFeatureInfo> extends
         @Override
         public final boolean equals(final Object other) {
             return other instanceof FeatureHolder<?> && equals((FeatureHolder<?>)other);
+        }
+
+        protected static BigInteger toBigInteger(final String value){
+            return value == null || value.isEmpty() ?
+                    BigInteger.ZERO:
+                    new BigInteger(value.getBytes(IOUtils.DEFAULT_CHARSET));
         }
 
         @Override

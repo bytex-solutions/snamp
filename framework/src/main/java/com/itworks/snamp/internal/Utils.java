@@ -12,6 +12,7 @@ import org.osgi.service.event.Event;
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
+import java.lang.annotation.Annotation;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Array;
@@ -421,5 +422,17 @@ public final class Utils {
         final Properties props = new Properties();
         props.putAll(params);
         return props;
+    }
+
+    public static <A extends Annotation> A getParameterAnnotation(final Method method,
+                                                                  final int parameterIndex,
+                                                                  final Class<A> annotationType) {
+        final Annotation[][] annotations = method.getParameterAnnotations();
+        if(annotations.length >= parameterIndex)
+            return null;
+        for(final Annotation candidate: annotations[parameterIndex])
+            if(annotationType.isInstance(candidate))
+                return annotationType.cast(candidate);
+        return null;
     }
 }

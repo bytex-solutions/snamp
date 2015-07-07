@@ -17,6 +17,7 @@ import org.junit.Test;
 
 import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
+import javax.management.MBeanOperationInfo;
 import javax.management.Notification;
 import javax.management.openmbean.OpenType;
 import javax.management.openmbean.SimpleType;
@@ -53,10 +54,10 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
             }
         }
 
-        static final class Property1Formatter implements ManagementAttributeFormatter<String>{
+        static final class Property1Marshaller implements ManagementAttributeMarshaller<String> {
 
             @Override
-            public SimpleType<String> getAttributeType() {
+            public SimpleType<String> getOpenType() {
                 return SimpleType.STRING;
             }
 
@@ -92,7 +93,7 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         }
 
         @SpecialUse
-        @ManagementAttribute(formatter = Property1Formatter.class)
+        @ManagementAttribute(marshaller = Property1Marshaller.class)
         public final String getProperty1() {
             return field1;
         }
@@ -127,6 +128,12 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
 
         protected final void emitPropertyChanged(final String propertyName) {
             emitNotification(TestNotificationType.PROPERTY_CHANGED, String.format("Property %s is changed", propertyName), "Attachment string");
+        }
+
+        @ManagementOperation(description = "Computes sum of two integers", impact = MBeanOperationInfo.INFO)
+        public int computeSum(@OperationParameter(name = "x", description = "First operand") final int x,
+                              final int y){
+            return x + y;
         }
     }
 
@@ -164,6 +171,11 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         assertTrue(md.isWritable());
         assertEquals("property1", AttributeDescriptor.getAttributeName(md));
         assertEquals(SimpleType.STRING, AttributeDescriptor.getOpenType(md));
+        //enables operations
+        assertNotNull(connector.enableOperation("sum", "computeSum", ConfigParameters.empty()));
+        final Object result = connector.invoke("sum", new Object[]{4, 5}, new String[0]);
+        assertTrue(result instanceof Integer);
+        assertEquals(9, result);
     }
 
     @Test

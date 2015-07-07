@@ -7,7 +7,6 @@ import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
 import com.itworks.snamp.internal.KeyedObjects;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
-import com.itworks.snamp.io.IOUtils;
 import com.itworks.snamp.jmx.JMExceptionUtils;
 
 import javax.management.*;
@@ -47,12 +46,6 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
                                final TimeSpan readWriteTimeout,
                                final CompositeData options){
             return identity.equals(computeIdentity(attributeName, readWriteTimeout, options));
-        }
-
-        private static BigInteger toBigInteger(final String value){
-            return value == null || value.isEmpty() ?
-                    BigInteger.ZERO:
-                    new BigInteger(value.getBytes(IOUtils.DEFAULT_CHARSET));
         }
 
         private static BigInteger computeIdentity(final String attributeName,

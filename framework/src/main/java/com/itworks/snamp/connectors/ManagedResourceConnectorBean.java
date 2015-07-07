@@ -2,6 +2,7 @@ package com.itworks.snamp.connectors;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
+import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.itworks.snamp.AbstractAggregator;
@@ -11,22 +12,18 @@ import com.itworks.snamp.connectors.attributes.*;
 import com.itworks.snamp.connectors.discovery.DiscoveryResultBuilder;
 import com.itworks.snamp.connectors.discovery.DiscoveryService;
 import com.itworks.snamp.connectors.notifications.*;
+import com.itworks.snamp.connectors.operations.AbstractOperationSupport;
+import com.itworks.snamp.connectors.operations.OperationDescriptor;
+import com.itworks.snamp.connectors.operations.OperationSupport;
+import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.jmx.JMExceptionUtils;
 import com.itworks.snamp.jmx.WellKnownType;
 
 import javax.management.*;
-import javax.management.openmbean.CompositeData;
-import javax.management.openmbean.OpenDataException;
-import javax.management.openmbean.OpenMBeanAttributeInfo;
-import javax.management.openmbean.OpenType;
-import java.beans.BeanInfo;
+import javax.management.openmbean.*;
+import java.beans.*;
 import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.ref.Reference;
@@ -72,7 +69,7 @@ import static com.itworks.snamp.configuration.SerializableAgentConfiguration.Ser
  * @version 1.0
  */
 public abstract class ManagedResourceConnectorBean extends AbstractManagedResourceConnector
-        implements NotificationSupport, AttributeSupport {
+        implements NotificationSupport, AttributeSupport, OperationSupport {
 
     /**
      * Represents description of the bean to be managed by this connector.
@@ -200,18 +197,30 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
     }
 
     /**
-     * Represents attribute formatter for custom attribute types.
+     * Represents provider of JMX Open Type.
+     * @param <T> Underlying Java native type.
+     */
+    protected interface OpenTypeProvider<T>{
+        /**
+         * Gets open type.
+         * @return JMX Open Type.
+         */
+        OpenType<T> getOpenType();
+    }
+
+    /**
+     * Represents attribute marshaller for custom attribute types.
      * @param <T> JMX-compliant type.
      * @author Roman Sakno
      * @since 1.0
      * @version 1.0
      */
-    protected interface ManagementAttributeFormatter<T>{
+    protected interface ManagementAttributeMarshaller<T> extends OpenTypeProvider<T>{
         /**
          * Gets JMX-compliant type of the attribute.
          * @return JMX-compliant type of the attribute.
          */
-        OpenType<T> getAttributeType();
+        OpenType<T> getOpenType();
 
         /**
          * Converts attribute value to the JMX-compliant type.
@@ -230,9 +239,9 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         Object fromJmxValue(final T jmxValue, final CustomAttributeInfo metadata);
     }
 
-    private static final class DefaultManagementAttributeFormatter implements ManagementAttributeFormatter<Object>{
+    private static final class DefaultManagementAttributeMarshaller implements ManagementAttributeMarshaller<Object> {
         @Override
-        public OpenType<Object> getAttributeType() {
+        public OpenType<Object> getOpenType() {
             return null;
         }
 
@@ -250,7 +259,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
     }
 
     /**
-     * Associated additional attribute info with the bean property getter and setter.
+     * Marks getter or setter as a management attribute.
      * @author Roman Sakno
      * @since 1.0
      * @version 1.0
@@ -271,14 +280,54 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         String description() default "";
 
         /**
-         * Represents attribute formatter that is used to convert custom Java type to
+         * Represents attribute marshaller that is used to convert custom Java type to
          * JMX-compliant value and vice versa.
          * @return The attribute formatter.
          */
-        Class<? extends ManagementAttributeFormatter<?>> formatter() default DefaultManagementAttributeFormatter.class;
+        Class<? extends ManagementAttributeMarshaller<?>> marshaller() default DefaultManagementAttributeMarshaller.class;
     }
 
+    /**
+     * Associates additional information with parameter of the management operation.
+     */
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.PARAMETER)
+    protected @interface OperationParameter{
+        /**
+         * Gets description of the parameter.
+         * @return The description of the parameter.
+         */
+        String description() default "";
 
+        /**
+         * Gets name of the parameter.
+         * @return The name of the parameter.
+         */
+        String name();
+    }
+
+    /**
+     * Marks method as a management operation. Marked operation should be public non-static.
+     */
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.METHOD)
+    protected @interface ManagementOperation{
+        /**
+         * Gets description of the management operation.
+         * @return The description of the management operation.
+         */
+        String description() default "";
+
+        /**
+         * The impact of the method.
+         * @return The impact of the method.
+         * @see MBeanOperationInfo#UNKNOWN
+         * @see MBeanOperationInfo#ACTION
+         * @see MBeanOperationInfo#ACTION_INFO
+         * @see MBeanOperationInfo#INFO
+         */
+        int impact() default MBeanOperationInfo.UNKNOWN;
+    }
 
     /**
      * Provides introspection for the specified bean type.
@@ -320,6 +369,110 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         }
     }
 
+    private static final class JavaBeanOperationInfo extends OpenMBeanOperationInfoSupport{
+        private final MethodHandle handle;
+
+        private JavaBeanOperationInfo(final String operationName,
+                                      final MethodDescriptor method,
+                                      final OperationDescriptor descriptor,
+                                      final Object owner) throws ReflectionException{
+            super(operationName,
+                    getDescription(method),
+                    getParameters(method),
+                    getReturnType(method),
+                    getImpact(method),
+                    descriptor);
+            try {
+                handle = MethodHandles.publicLookup().unreflect(method.getMethod()).bindTo(owner);
+            } catch (final IllegalAccessException e) {
+                throw new ReflectionException(e);
+            }
+        }
+
+        private static String getDescription(final MethodDescriptor method){
+            final ManagementOperation operationInfo = method.getMethod().getAnnotation(ManagementOperation.class);
+            return operationInfo != null ? operationInfo.description() : method.getShortDescription();
+        }
+
+        private static int getImpact(final MethodDescriptor method){
+            final ManagementOperation operationInfo = method.getMethod().getAnnotation(ManagementOperation.class);
+            return operationInfo != null ? operationInfo.impact() : MBeanOperationInfo.UNKNOWN;
+        }
+
+        private static OpenType<?> getReturnType(final MethodDescriptor method) throws ReflectionException {
+            return getType(method.getMethod().getReturnType());
+        }
+
+        private static OpenMBeanParameterInfoSupport[] getParameters(final MethodDescriptor method) throws ReflectionException {
+            final Class<?>[] parameters = method.getMethod().getParameterTypes();
+            final OpenMBeanParameterInfoSupport[] result = new OpenMBeanParameterInfoSupport[parameters.length];
+            for (int i = 0; i < parameters.length; i++) {
+                final OperationParameter metadata = Utils.getParameterAnnotation(method.getMethod(), i, OperationParameter.class);
+                final String name;
+                final String description;
+                if (metadata == null)
+                    description = name = Integer.toString(i);
+                else {
+                    name = metadata.name();
+                    description = Strings.isNullOrEmpty(metadata.description()) ?
+                            Integer.toString(i) :
+                            metadata.description();
+                }
+                result[i] = new OpenMBeanParameterInfoSupport(name,
+                        description,
+                        getType(parameters[i]));
+            }
+            return result;
+        }
+
+        private static OpenType<?> getType(final Class<?> type) throws ReflectionException{
+            final WellKnownType knownType = WellKnownType.getType(type);
+            if(knownType == null || !knownType.isOpenType())
+                throw new ReflectionException(new Exception(String.format("Invalid parameter type '%s'", type)));
+            else return knownType.getOpenType();
+        }
+    }
+
+    private static final class JavaBeanOperationSupport extends AbstractOperationSupport<JavaBeanOperationInfo>{
+        private final Logger logger;
+        private final ManagedBeanDescriptor<?> descriptor;
+
+        private JavaBeanOperationSupport(final String resourceName,
+                                      final ManagedBeanDescriptor<?> descriptor,
+                                      final Logger logger){
+            super(resourceName, JavaBeanOperationInfo.class);
+            this.logger = logger;
+            this.descriptor = descriptor;
+        }
+
+        @Override
+        protected JavaBeanOperationInfo enableOperation(final String userDefinedName,
+                                                        final OperationDescriptor descriptor) throws ReflectionException, MBeanException {
+            for(final MethodDescriptor method: this.descriptor.getBeanInfo().getMethodDescriptors())
+                if(Objects.equals(method.getName(), descriptor.getOperationName()) &&
+                        method.getMethod().isAnnotationPresent(ManagementOperation.class)){
+                    return new JavaBeanOperationInfo(userDefinedName, method, descriptor, this.descriptor.getInstance());
+                }
+            throw new MBeanException(new IllegalArgumentException(String.format("Operation '%s' doesn't exist", descriptor.getOperationName())));
+        }
+
+        @Override
+        protected void failedToEnableOperation(final String userDefinedName, final String operationName, final Exception e) {
+            failedToEnableOperation(logger, Level.SEVERE, userDefinedName, operationName, e);
+        }
+
+        @Override
+        protected Object invoke(final OperationCallInfo<JavaBeanOperationInfo> callInfo) throws Exception {
+            try {
+                return callInfo.invoke(callInfo.getMetadata().handle);
+            } catch (final Exception | Error e) {
+                throw e;
+            } catch (final Throwable e) {
+                throw new UndeclaredThrowableException(e);
+            }
+        }
+    }
+
     /**
      * Represents an attribute declared as a Java property in this resource connector.
      * This class cannot be inherited or instantiated directly in your code.
@@ -335,7 +488,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         /**
          * Represents attribute formatter.
          */
-        protected final ManagementAttributeFormatter formatter;
+        protected final ManagementAttributeMarshaller formatter;
 
         private JavaBeanAttributeInfo(final String attributeName,
                                       final PropertyDescriptor property,
@@ -351,15 +504,15 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             final ManagementAttribute info = getAdditionalInfo(getter, setter);
             if(info != null)
                 try {
-                    final Class<? extends ManagementAttributeFormatter> formatterClass =
-                            info.formatter();
-                    this.formatter = Objects.equals(formatterClass, DefaultManagementAttributeFormatter.class) ?
-                            new DefaultManagementAttributeFormatter():
+                    final Class<? extends ManagementAttributeMarshaller> formatterClass =
+                            info.marshaller();
+                    this.formatter = Objects.equals(formatterClass, DefaultManagementAttributeMarshaller.class) ?
+                            new DefaultManagementAttributeMarshaller():
                             formatterClass.newInstance();
                 } catch (final ReflectiveOperationException e){
                     throw new ReflectionException(e);
                 }
-            else formatter = new DefaultManagementAttributeFormatter();
+            else formatter = new DefaultManagementAttributeMarshaller();
             final MethodHandles.Lookup lookup = MethodHandles.publicLookup();
             try{
                 this.setter = setter != null ? lookup.unreflect(setter).bindTo(owner): null;
@@ -441,7 +594,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                                           final AttributeDescriptor descriptor,
                                           final Object owner) throws ReflectionException, OpenDataException {
             super(attributeName, property, descriptor, owner);
-            OpenType<?> type = formatter.getAttributeType();
+            OpenType<?> type = formatter.getOpenType();
             //tries to detect open type via WellKnownType
             if(type == null){
                 final WellKnownType knownType = WellKnownType.getType(property.getPropertyType());
@@ -694,6 +847,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
 
     private final JavaBeanAttributeSupport attributes;
     private final JavaBeanNotificationSupport notifications;
+    private final JavaBeanOperationSupport operations;
 
     private ManagedResourceConnectorBean(final String resourceName,
                                          ManagedBeanDescriptor<?> descriptor,
@@ -701,6 +855,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         if(descriptor == null) descriptor = new SelfDescriptor(this);
         attributes = new JavaBeanAttributeSupport(resourceName, descriptor, getLogger());
         notifications = new JavaBeanNotificationSupport(resourceName, notifTypes, getLogger());
+        operations = new JavaBeanOperationSupport(resourceName, descriptor, getLogger());
     }
 
     /**
@@ -895,6 +1050,26 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         return attributes.addAttribute(id, attributeName, readWriteTimeout, options);
     }
 
+    public final MBeanOperationInfo enableOperation(final String userDefinedName,
+                                                    final String operationName,
+                                                    final CompositeData options){
+        verifyInitialization();
+        return operations.enableOperation(userDefinedName, operationName, options);
+    }
+
+    public final boolean disableOperation(final String userDefinedName){
+        verifyInitialization();
+        return operations.disableOperation(userDefinedName);
+    }
+
+    /**
+     * Removes all operations from this connector.
+     */
+    public final void removeAllOperations(){
+        verifyInitialization();
+        operations.clear(false);
+    }
+
     /**
      * Removes all attributes from this connector.
      */
@@ -962,7 +1137,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             public T apply(final Class<T> objectType) {
                 return ManagedResourceConnectorBean.super.queryObject(objectType);
             }
-        }, attributes, notifications);
+        }, attributes, notifications, operations);
     }
 
     protected static BeanInfo reflect(final Class<? extends ManagedResourceConnectorBean> connectorType) throws IntrospectionException {

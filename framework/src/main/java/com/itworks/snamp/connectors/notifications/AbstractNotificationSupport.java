@@ -5,7 +5,6 @@ import com.itworks.snamp.connectors.AbstractFeatureModeler;
 import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
 import com.itworks.snamp.internal.KeyedObjects;
-import com.itworks.snamp.io.IOUtils;
 
 import javax.management.*;
 import javax.management.openmbean.CompositeData;
@@ -37,6 +36,10 @@ public abstract class AbstractNotificationSupport<M extends MBeanNotificationInf
             super(metadata, computeIdentity(category, options));
         }
 
+        private String getNotifType(){
+            return getMetadata().getNotifTypes()[0];
+        }
+
         private boolean equals(final String category, final CompositeData options){
             return super.identity.equals(computeIdentity(category, options));
         }
@@ -48,12 +51,6 @@ public abstract class AbstractNotificationSupport<M extends MBeanNotificationInf
                 result = result.xor(toBigInteger(propertyName))
                         .xor(BigInteger.valueOf(options.get(propertyName).hashCode()));
             return result;
-        }
-
-        private static BigInteger toBigInteger(final String value){
-            return value == null || value.isEmpty() ?
-                    BigInteger.ZERO:
-                    new BigInteger(value.getBytes(IOUtils.DEFAULT_CHARSET));
         }
     }
 
@@ -110,7 +107,7 @@ public abstract class AbstractNotificationSupport<M extends MBeanNotificationInf
 
             @Override
             public String getKey(final NotificationHolder<M> holder) {
-                return holder.getMetadata().getNotifTypes()[0];
+                return holder.getNotifType();
             }
         };
     }
@@ -366,7 +363,7 @@ public abstract class AbstractNotificationSupport<M extends MBeanNotificationInf
                                                       final String listID,
                                                       final String category,
                                                       final Exception e){
-        logger.log(logLevel, String.format("Failed to enable notifications %s for %s subscription list. Context: %s",
+        logger.log(logLevel, String.format("Failed to enable notifications '%s' for %s subscription list. Context: %s",
                 category, listID, LogicalOperation.current()), e);
     }
 
