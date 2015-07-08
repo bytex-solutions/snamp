@@ -396,7 +396,10 @@ final class MQConnector extends ManagedResourceConnectorBean implements CMQC, CM
 
     @Override
     public void close() throws Exception {
-        mqmonitor.disconnect();
-        super.close();
+        try {
+            mqmonitor.disconnect();
+        } finally {
+            super.close();
+        }
     }
 }

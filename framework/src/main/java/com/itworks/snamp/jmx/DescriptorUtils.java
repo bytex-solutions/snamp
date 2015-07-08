@@ -6,6 +6,7 @@ import com.google.common.collect.Maps;
 import com.itworks.snamp.ArrayUtils;
 
 import javax.management.Descriptor;
+import javax.management.DescriptorRead;
 import javax.management.ImmutableDescriptor;
 import javax.management.JMX;
 import java.io.ByteArrayOutputStream;
@@ -27,10 +28,12 @@ public final class DescriptorUtils {
     public static final String MAX_VALUE_FIELD = JMX.MAX_VALUE_FIELD;
     public static final String UNIT_OF_MEASUREMENT_FIELD = "units";
 
-    /**
-     * Represents empty immutable descriptor.
-     */
-    public static final Descriptor EMPTY = new ImmutableDescriptor();
+    public static final DescriptorRead EMPTY_DESCRIPTOR = new DescriptorRead() {
+        @Override
+        public Descriptor getDescriptor() {
+            return ImmutableDescriptor.EMPTY_DESCRIPTOR;
+        }
+    };
 
     private DescriptorUtils(){
     }

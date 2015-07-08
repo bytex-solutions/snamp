@@ -1,5 +1,6 @@
 package com.itworks.snamp.connectors.operations;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.itworks.snamp.configuration.ConfigParameters;
 import com.itworks.snamp.connectors.ConfigurationEntityRuntimeMetadata;
@@ -16,8 +17,6 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResource
 import static com.itworks.snamp.connectors.operations.OperationSupport.ASYNC_FIELD;
 import static com.itworks.snamp.connectors.operations.OperationSupport.OPERATION_NAME_FIELD;
 import static com.itworks.snamp.jmx.CompositeDataUtils.fillMap;
-import static com.itworks.snamp.jmx.DescriptorUtils.getField;
-import static com.itworks.snamp.jmx.DescriptorUtils.hasField;
 
 /**
  * Represents descriptor of the managed resource operation.
@@ -27,6 +26,7 @@ import static com.itworks.snamp.jmx.DescriptorUtils.hasField;
  */
 public class OperationDescriptor extends ImmutableDescriptor implements ConfigurationEntityRuntimeMetadata<OperationConfiguration> {
     private static final long serialVersionUID = -6350507145892936614L;
+    public static final OperationDescriptor EMPTY_DESCRIPTOR = new OperationDescriptor(ImmutableMap.<String, String>of());
 
     private OperationDescriptor(final Map<String, ?> fields){
         super(fields);
@@ -92,7 +92,7 @@ public class OperationDescriptor extends ImmutableDescriptor implements Configur
     }
 
     public static boolean isAsynchronous(final Descriptor descriptor){
-        if(hasField(descriptor, ASYNC_FIELD)){
+        if(DescriptorUtils.hasField(descriptor, ASYNC_FIELD)){
             final Object result = descriptor.getFieldValue(ASYNC_FIELD);
             if(result instanceof Boolean)
                 return (Boolean)result;
@@ -111,7 +111,7 @@ public class OperationDescriptor extends ImmutableDescriptor implements Configur
     }
 
     public static String getOperationName(final Descriptor descriptor){
-        return getField(descriptor, OPERATION_NAME_FIELD, String.class);
+        return DescriptorUtils.getField(descriptor, OPERATION_NAME_FIELD, String.class);
     }
 
     public static String getOperationName(final MBeanOperationInfo metadata){
@@ -120,5 +120,18 @@ public class OperationDescriptor extends ImmutableDescriptor implements Configur
 
     public final String getOperationName(){
         return getOperationName(this);
+    }
+
+    /**
+     * Determines whether the field with the specified name is defined in this descriptor.
+     * @param fieldName The name of the field to check.
+     * @return {@literal true}, if the specified field exists in this descriptor; otherwise, {@literal false}.
+     */
+    public final boolean hasField(final String fieldName){
+        return DescriptorUtils.hasField(this, fieldName);
+    }
+
+    public final  <T> T getField(final String fieldName, final Class<T> fieldType){
+        return DescriptorUtils.getField(this, fieldName, fieldType);
     }
 }

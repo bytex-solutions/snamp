@@ -1,9 +1,11 @@
 package com.itworks.snamp.connectors.notifications;
 
+import com.google.common.base.MoreObjects;
 import com.itworks.snamp.internal.Utils;
 
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
+import java.util.Objects;
 
 /**
  * Represents simplified version of {@link javax.management.MBeanNotificationInfo}.
@@ -13,16 +15,7 @@ import javax.management.Notification;
  */
 public class CustomNotificationInfo extends MBeanNotificationInfo implements NotificationDescriptorRead {
     private static final long serialVersionUID = 414016119605849730L;
-
-    /**
-     * Constructs an <CODE>CustomNotificationInfo</CODE> object.
-     *
-     * @param notifType  The name of the notification that can be produced by managed resource.
-     * @param description A human readable description of the data.
-     */
-    public CustomNotificationInfo(final String notifType, final String description) {
-        super(new String[]{notifType}, Notification.class.getName(), description);
-    }
+    private final NotificationDescriptor descriptor;
 
     /**
      * Constructs an <CODE>MBeanNotificationInfo</CODE> object.
@@ -36,6 +29,7 @@ public class CustomNotificationInfo extends MBeanNotificationInfo implements Not
                                   final String description,
                                   final NotificationDescriptor descriptor) {
         super(new String[]{notifType}, Notification.class.getName(), description, descriptor);
+        this.descriptor = Objects.requireNonNull(descriptor);
     }
 
     /**
@@ -43,10 +37,9 @@ public class CustomNotificationInfo extends MBeanNotificationInfo implements Not
      * will have no affect on the original descriptor.
      *
      * @return a descriptor that is either immutable or a copy of the original.
-     * @since 1.6
      */
     @Override
     public final NotificationDescriptor getDescriptor() {
-        return Utils.safeCast(super.getDescriptor(), NotificationDescriptor.class);
+        return MoreObjects.firstNonNull(descriptor, NotificationDescriptor.EMPTY_DESCRIPTOR);
     }
 }

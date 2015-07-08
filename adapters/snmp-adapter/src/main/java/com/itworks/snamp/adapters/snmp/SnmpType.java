@@ -5,7 +5,6 @@ import com.itworks.snamp.jmx.DescriptorUtils;
 import org.snmp4j.agent.*;
 import org.snmp4j.smi.*;
 
-import javax.management.Descriptor;
 import javax.management.DescriptorRead;
 import javax.management.InvalidAttributeValueException;
 import java.io.Serializable;
@@ -242,13 +241,6 @@ enum SnmpType {
         }
     };
 
-    private static final DescriptorRead EMPTY_DESCRIPTOR = new DescriptorRead() {
-        @Override
-        public Descriptor getDescriptor() {
-            return DescriptorUtils.EMPTY;
-        }
-    };
-
     private final boolean isScalar;
     private final int syntax;
 
@@ -312,12 +304,12 @@ enum SnmpType {
      * @return SNMP-compliant value.
      */
     final Variable convert(final Object value)  {
-        return convert(value, EMPTY_DESCRIPTOR);
+        return convert(value, DescriptorUtils.EMPTY_DESCRIPTOR);
     }
 
     abstract Object convert(final Variable value, final Type valueType, final DescriptorRead options) throws InvalidAttributeValueException;
 
     final Object convert(final Variable value, final Type valueType) throws InvalidAttributeValueException {
-        return convert(value, valueType, EMPTY_DESCRIPTOR);
+        return convert(value, valueType, DescriptorUtils.EMPTY_DESCRIPTOR);
     }
 }

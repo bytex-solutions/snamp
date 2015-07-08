@@ -20,22 +20,6 @@ public class OpenTypeAttributeInfo extends CustomAttributeInfo implements OpenMB
      * @param type        The type or class name of the attribute.
      * @param description A human readable description of the attribute.
      * @param specifier   Attribute access specifier. Cannot be {@literal null}.
-     */
-    public OpenTypeAttributeInfo(final String name,
-                                 final OpenType<?> type,
-                                 final String description,
-                                 final AttributeSpecifier specifier) {
-        super(name, type.getClassName(), description, specifier);
-        this.openType = type;
-    }
-
-    /**
-     * Constructs an <CODE>MBeanAttributeInfo</CODE> object.
-     *
-     * @param name        The name of the attribute.
-     * @param type        The type or class name of the attribute.
-     * @param description A human readable description of the attribute.
-     * @param specifier   Attribute access specifier. Cannot be {@literal null}.
      * @param descriptor  The descriptor for the attribute.  This may be null
      */
     public OpenTypeAttributeInfo(final String name,

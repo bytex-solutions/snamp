@@ -3,13 +3,17 @@ package com.itworks.snamp.testing.connectors.jmx;
 import com.google.common.base.Supplier;
 import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.TypeTokens;
-import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import com.itworks.snamp.configuration.AgentConfiguration;
+import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
+import com.itworks.snamp.connectors.operations.OperationSupport;
 import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 
+import javax.management.MBeanException;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
+import javax.management.ReflectionException;
 import javax.management.openmbean.CompositeData;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
@@ -24,6 +28,15 @@ public final class JmxConnectorWithMXBeanTest extends AbstractJmxConnectorTest<M
 
     public JmxConnectorWithMXBeanTest() throws MalformedObjectNameException {
         super(ManagementFactory.getMemoryMXBean(), new ObjectName(ManagementFactory.MEMORY_MXBEAN_NAME));
+    }
+
+    @Override
+    protected void fillOperations(final Map<String, OperationConfiguration> operations,
+                                  final Supplier<OperationConfiguration> operationFactory) {
+        OperationConfiguration operation = operationFactory.get();
+        operation.setOperationName("gc");
+        operation.getParameters().put("objectName", ManagementFactory.MEMORY_MXBEAN_NAME);
+        operations.put("forceGC", operation);
     }
 
     @Override
@@ -53,5 +66,17 @@ public final class JmxConnectorWithMXBeanTest extends AbstractJmxConnectorTest<M
                 null,
                 AbstractResourceConnectorTest.<CompositeData>successEquator(),
                 true);
+    }
+
+    @Test
+    public void operationTest() throws ReflectionException, MBeanException {
+        final OperationSupport operationSupport = getManagementConnector(getTestBundleContext()).queryObject(OperationSupport.class);
+        try{
+            final Object result = operationSupport.invoke("forceGC", new Object[0], new String[0]);
+            assertNull(result);
+        }
+        finally {
+            releaseManagementConnector();
+        }
     }
 }

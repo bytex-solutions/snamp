@@ -41,7 +41,7 @@ public final class GroovyResourceActivator extends ManagedResourceActivator<Groo
         }
 
         @Override
-        protected void addOperation(final GroovyResourceConnector connector, final String operationID, final String operationName, final CompositeData options) {
+        protected void enableOperation(final GroovyResourceConnector connector, final String operationID, final String operationName, final CompositeData options) {
             //not supported
         }
 

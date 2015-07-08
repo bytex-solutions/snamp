@@ -37,7 +37,7 @@ public final class AggregatorResourceConnectorActivator extends ManagedResourceA
         }
 
         @Override
-        protected void addOperation(final AggregatorResourceConnector connector, final String operationID, final String operationName, final CompositeData options) {
+        protected void enableOperation(final AggregatorResourceConnector connector, final String operationID, final String operationName, final CompositeData options) {
             //not supported
         }
 

@@ -282,17 +282,17 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
             }
         }
 
-        protected abstract void addOperation(final TConnector connector,
-                                             final String operationID,
-                                             final String operationName,
-                                             final CompositeData options);
+        protected abstract void enableOperation(final TConnector connector,
+                                                final String operationID,
+                                                final String operationName,
+                                                final CompositeData options);
 
         private void updateOperations(final TConnector connector,
                                       final Map<String, OperationConfiguration> operations){
             for(final Map.Entry<String, OperationConfiguration> op: operations.entrySet()){
                 final String operationID = op.getKey();
                 final OperationConfiguration config = op.getValue();
-                addOperation(connector, operationID, config.getOperationName(), new ConfigParameters(config));
+                enableOperation(connector, operationID, config.getOperationName(), new ConfigParameters(config));
             }
         }
 

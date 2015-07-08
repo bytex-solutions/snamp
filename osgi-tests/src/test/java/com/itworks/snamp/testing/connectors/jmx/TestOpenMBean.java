@@ -63,6 +63,13 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
             true,
             false);
 
+    private static final MBeanOperationInfo REVERSE_METHOD = new MBeanOperationInfo("reverse",
+            "Reverse byte array",
+            new MBeanParameterInfo[]{new OpenMBeanParameterInfoSupport("array", "desc", ArrayType.getPrimitiveArrayType(byte[].class))},
+            byte[].class.getName(),
+            MBeanOperationInfo.INFO
+    );
+
     private static CompositeType createCompositeType(){
         try {
             return new CompositeType("dictionary", "Test dictionary",
@@ -127,7 +134,7 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
                     DATE_PROPERTY
             },
             new MBeanConstructorInfo[0],
-            new MBeanOperationInfo[0],
+            new MBeanOperationInfo[]{REVERSE_METHOD},
             new MBeanNotificationInfo[]{PROPERTY_CHANGED_EVENT, TIMER_EVENT, PLAIN_EVENT});
 
     private String chosenString;
@@ -417,6 +424,13 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
         return result;
     }
 
+    private static byte[] reverse(final byte[] array){
+        final byte[] result = new byte[array.length];
+        for(int i = 0; i < result.length; i++)
+            result[result.length - i - 1] = array[i];
+        return result;
+    }
+
     /**
      * Allows an action to be invoked on the Dynamic MBean.
      *
@@ -435,7 +449,9 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
      */
     @Override
     public Object invoke(final String actionName, final Object[] params, final String[] signature) throws MBeanException, ReflectionException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        if(REVERSE_METHOD.getName().equals(actionName))
+            return reverse((byte[])params[0]);
+        else return null;
     }
 
     /**

@@ -926,7 +926,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      */
     @Override
     public final void addResourceEventListener(final ResourceEventListener listener) {
-        addResourceEventListener(listener, attributes, notifications);
+        addResourceEventListener(listener, attributes, notifications, operations);
     }
 
     /**
@@ -936,7 +936,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      */
     @Override
     public final void removeResourceEventListener(final ResourceEventListener listener) {
-        removeResourceEventListener(listener, attributes, notifications);
+        removeResourceEventListener(listener, attributes, notifications, operations);
     }
 
     /**
@@ -1146,5 +1146,17 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
 
     private static boolean isReservedProperty(final PropertyDescriptor property){
         return Objects.equals(property.getName(), "logger");
+    }
+
+    /**
+     * Releases all resources associated with this connector.
+     *
+     * @throws Exception Unable to release resources associated with this connector.
+     */
+    @Override
+    public void close() throws Exception {
+        operations.clear(true);
+        notifications.clear(true, true);
+        attributes.clear(true);
     }
 }

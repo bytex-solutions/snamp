@@ -1,6 +1,7 @@
 package com.itworks.snamp.connectors.operations;
 
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.itworks.snamp.connectors.AbstractFeatureModeler;
@@ -420,6 +421,10 @@ public abstract class AbstractOperationSupport<M extends MBeanOperationInfo> ext
         }
     }
 
+    /**
+     * Disables all operation registered in this collection.
+     * @param removeResourceListeners {@literal true} to remove all resource listeners; otherwise, {@literal false}.
+     */
     public final void clear(final boolean removeResourceListeners) {
         try (final LockScope ignored = beginWrite(AOSResource.OPERATIONS)) {
             for (final OperationHolder<M> holder : operations.values())

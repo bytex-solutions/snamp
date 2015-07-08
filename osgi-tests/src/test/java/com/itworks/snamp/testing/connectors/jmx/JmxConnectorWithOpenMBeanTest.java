@@ -6,12 +6,14 @@ import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.TypeTokens;
 import com.itworks.snamp.concurrent.SynchronizationEvent;
+import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.notifications.NotificationSupport;
 import com.itworks.snamp.connectors.notifications.SynchronizationListener;
+import com.itworks.snamp.connectors.operations.OperationSupport;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.jmx.CompositeDataBuilder;
 import com.itworks.snamp.jmx.TabularDataBuilder;
@@ -33,8 +35,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
-import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
+import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
 
 /**
  * @author Roman Sakno
@@ -47,6 +48,14 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         super(new TestOpenMBean(), new ObjectName(TestOpenMBean.BEAN_NAME));
     }
 
+    @Override
+    protected void fillOperations(final Map<String, OperationConfiguration> operations,
+                                  final Supplier<OperationConfiguration> operationFactory) {
+        OperationConfiguration operation = operationFactory.get();
+        operation.setOperationName("reverse");
+        operation.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
+        operations.put("res", operation);
+    }
 
     @Override
     protected final void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory) {
@@ -146,7 +155,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
     @Test
@@ -179,6 +188,20 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         final Notification notif2 = awaitor2.await(TimeSpan.fromSeconds(5L));
         assertNotNull(notif2);
         assertEquals("Property changed", notif2.getMessage());
+    }
+
+    @Test
+    public final void operationTest() throws Exception{
+        final OperationSupport operationSupport = getManagementConnector(getTestBundleContext()).queryObject(OperationSupport.class);
+        try{
+            final byte[] array = new byte[]{1, 4, 9};
+            final Object result = operationSupport.invoke("res", new Object[]{array}, new String[]{byte[].class.getName()});
+            assertTrue(result instanceof byte[]);
+            assertArrayEquals(new byte[]{9, 4, 1}, (byte[])result);
+        }
+        finally {
+            releaseManagementConnector();
+        }
     }
 
     @Test

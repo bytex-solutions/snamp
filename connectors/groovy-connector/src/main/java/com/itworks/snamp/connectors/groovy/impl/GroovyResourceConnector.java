@@ -166,7 +166,8 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
             super(attributeID,
                     accessor.type(),
                     getDescription(descriptor, attributeID),
-                    accessor.specifier());
+                    accessor.specifier(),
+                    descriptor);
             this.accessor = accessor;
         }
 

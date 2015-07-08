@@ -1,6 +1,7 @@
 package com.itworks.snamp.connectors.jmx;
 
 import com.google.common.base.Functions;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Collections2;
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
@@ -8,12 +9,17 @@ import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProviderImp
 import com.itworks.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import com.itworks.snamp.connectors.SelectableConnectorParameterDescriptor;
 import com.itworks.snamp.connectors.notifications.NotificationDescriptor;
+import com.itworks.snamp.jmx.DescriptorUtils;
 
+import javax.management.Descriptor;
+import javax.management.MBeanParameterInfo;
 import javax.management.MBeanServerConnection;
 import javax.management.remote.JMXConnector;
 import java.io.IOException;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
@@ -33,7 +39,10 @@ final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescr
     static final String CONNECTION_CHECK_PERIOD = "connectionCheckPeriod";
     static final String OBJECT_NAME_PROPERTY = "objectName";
     static final String SEVERITY_PARAM = NotificationDescriptor.SEVERITY_PARAM;
-    static final String USE_REGEXP_PARAM = "useRegexp";
+    private static final String USE_REGEXP_PARAM = "useRegexp";
+
+    private static final Splitter SIGNATURE_SPLITTER = Splitter.on(',').omitEmptyStrings().trimResults();
+    private static final String SIGNATURE_PARAM = "signature";
 
     private static final class EventConfigurationInfo extends ResourceBasedConfigurationEntityDescription<EventConfiguration>{
         private static final String RESOURCE_NAME = "JmxEventConfig";
@@ -42,7 +51,8 @@ final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescr
             super(RESOURCE_NAME,
                     EventConfiguration.class,
                     OBJECT_NAME_PROPERTY,
-                    SEVERITY_PARAM);
+                    SEVERITY_PARAM,
+                    USE_REGEXP_PARAM);
         }
     }
 
@@ -111,5 +121,25 @@ final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescr
 
     JmxConnectorConfigurationDescriptor(){
         super(new AttributeConfigurationInfo(), new ConnectorConfigurationInfo(), new EventConfigurationInfo());
+    }
+
+    static boolean useRegexpOption(final Descriptor options) {
+        return DescriptorUtils.hasField(options, USE_REGEXP_PARAM) &&
+                Objects.equals(Boolean.TRUE.toString(), DescriptorUtils.getField(options, USE_REGEXP_PARAM, String.class));
+    }
+
+    static boolean checkSignature(final Descriptor options,
+                                  final MBeanParameterInfo[] parameters){
+        if(DescriptorUtils.hasField(options, SIGNATURE_PARAM)){
+            final List<String> expectedSignature = SIGNATURE_SPLITTER.splitToList(DescriptorUtils.getField(options, SIGNATURE_PARAM, String.class));
+            if(parameters.length == expectedSignature.size()){
+                for(int i =0; i < parameters.length; i++)
+                    if(!Objects.equals(expectedSignature.get(i), parameters[i].getType()))
+                        return false;
+                return true;
+            }
+            else return false;
+        }
+        else return true;
     }
 }

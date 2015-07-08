@@ -31,6 +31,7 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
      */
     public static final String SEVERITY_PARAM = NotificationSupport.SEVERITY_FIELD;
     private static final long serialVersionUID = 6447489441284228878L;
+    public static final NotificationDescriptor EMPTY_DESCRIPTOR = new NotificationDescriptor(ImmutableMap.<String, String>of());
 
     private NotificationDescriptor(final Map<String, ?> fields){
         super(fields);

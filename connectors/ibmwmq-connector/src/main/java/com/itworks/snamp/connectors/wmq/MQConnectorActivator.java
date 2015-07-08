@@ -43,7 +43,7 @@ public final class MQConnectorActivator extends ManagedResourceActivator<MQConne
         }
 
         @Override
-        protected void addOperation(final MQConnector connector, final String operationID, final String operationName, final CompositeData options) {
+        protected void enableOperation(final MQConnector connector, final String operationID, final String operationName, final CompositeData options) {
             //not supported
         }
 

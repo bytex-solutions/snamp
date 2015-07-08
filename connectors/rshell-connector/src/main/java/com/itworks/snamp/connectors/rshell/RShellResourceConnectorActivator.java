@@ -40,7 +40,7 @@ public final class RShellResourceConnectorActivator extends ManagedResourceActiv
         }
 
         @Override
-        protected void addOperation(final RShellResourceConnector connector, final String operationID, final String operationName, final CompositeData options) {
+        protected void enableOperation(final RShellResourceConnector connector, final String operationID, final String operationName, final CompositeData options) {
             //not supported
         }
     }

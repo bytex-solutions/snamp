@@ -72,7 +72,7 @@ Each attribute configured in JMX Resource Connector has the following configurat
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
 objectName | String | Yes | The name of the MBean on remote JMX server. This MBean provides access to the JMX attribute so the `Name` of the SNAMP Attribute must be configured properly | `java.lang:type=OperatingSystem`
-useRegexp | Boolean (`true`/`false`) | No | Indicating that the `objectName` parameter defines regular expression used to find the appropriate MBean. The default value is `false`
+useRegexp | Boolean (`true`/`false`) | No | Indicating that the `objectName` parameter defines regular expression used to find the appropriate MBean. The default value is `false` | `true`
 
 ## Configuring events
 Each event configured in JMX Resource Connector has the following configuration schema:
@@ -83,6 +83,7 @@ Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
 severity | String | No | Overrides severity level of the emitted notification | `warning`
 objectName | String | Yes | The name of the MBean on remote JMX server. This MBean emits JMX notifications to be routed to resource adapter | `java.lang:type=OperatingSystem`
+useRegexp | Boolean (`true`/`false`) | No | Indicating that the `objectName` parameter defines regular expression used to find the appropriate MBean. The default value is `false` | `true`
 
 You may `severity` parameter in the following cases:
 1. Severity level supplied by JMX is not valid

@@ -16,18 +16,6 @@ public class BufferTypedAttributeInfo<B extends Buffer> extends CustomAttributeI
      * @param type        The type or class name of the attribute.
      * @param description A human readable description of the attribute.
      * @param specifier   Attribute access specifier. Cannot be {@literal null}.
-     */
-    public BufferTypedAttributeInfo(final String name, final Class<B> type, final String description, final AttributeSpecifier specifier) {
-        super(name, type, description, specifier);
-    }
-
-    /**
-     * Constructs an <CODE>MBeanAttributeInfo</CODE> object.
-     *
-     * @param name        The name of the attribute.
-     * @param type        The type or class name of the attribute.
-     * @param description A human readable description of the attribute.
-     * @param specifier   Attribute access specifier. Cannot be {@literal null}.
      * @param descriptor  The descriptor for the attribute.  This may be null
      */
     public BufferTypedAttributeInfo(final String name, final Class<B> type, final String description, final AttributeSpecifier specifier, final AttributeDescriptor descriptor) {

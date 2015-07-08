@@ -1,6 +1,8 @@
 package com.itworks.snamp.connectors.attributes;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.itworks.snamp.Attribute;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.configuration.ConfigParameters;
 import com.itworks.snamp.connectors.ConfigurationEntityRuntimeMetadata;
@@ -29,6 +31,7 @@ import static com.itworks.snamp.jmx.CompositeDataUtils.fillMap;
  */
 public class AttributeDescriptor extends ImmutableDescriptor implements ConfigurationEntityRuntimeMetadata<AttributeConfiguration> {
     private static final long serialVersionUID = -516459089021572254L;
+    public static final AttributeDescriptor EMPTY_DESCRIPTOR = new AttributeDescriptor(ImmutableMap.<String, String>of());
 
     /**
      * Initializes a new attribute descriptor using attribute configuration.

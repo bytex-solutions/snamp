@@ -1,10 +1,13 @@
 package com.itworks.snamp.connectors.attributes;
 
+import com.google.common.base.MoreObjects;
+import com.itworks.snamp.Attribute;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.jmx.WellKnownType;
 
 import javax.management.MBeanAttributeInfo;
 import javax.management.openmbean.OpenType;
+import java.util.Objects;
 
 /**
  * Represents simplified version of {@link javax.management.MBeanAttributeInfo}.
@@ -14,21 +17,7 @@ import javax.management.openmbean.OpenType;
  */
 public class CustomAttributeInfo extends MBeanAttributeInfo implements AttributeDescriptorRead {
     private static final long serialVersionUID = 340660963081078107L;
-
-    /**
-     * Constructs an <CODE>MBeanAttributeInfo</CODE> object.
-     *
-     * @param name        The name of the attribute.
-     * @param type        The type or class name of the attribute.
-     * @param description A human readable description of the attribute.
-     * @param specifier Attribute access specifier. Cannot be {@literal null}.
-     */
-    public CustomAttributeInfo(final String name,
-                               final Class<?> type,
-                               final String description,
-                               final AttributeSpecifier specifier) {
-        this(name, type.getName(), description, specifier);
-    }
+    private final AttributeDescriptor descriptor;
 
     /**
      * Constructs an <CODE>MBeanAttributeInfo</CODE> object.
@@ -48,13 +37,6 @@ public class CustomAttributeInfo extends MBeanAttributeInfo implements Attribute
         this(name, type.getName(), description, specifier, descriptor);
     }
 
-    CustomAttributeInfo(final String name,
-                        final String type,
-                        final String description,
-                        final AttributeSpecifier specifier) {
-        super(name, type, description, specifier.canRead(), specifier.canWrite(), specifier.isFlag());
-    }
-
 
     CustomAttributeInfo(final String name,
                         final String type,
@@ -62,6 +44,7 @@ public class CustomAttributeInfo extends MBeanAttributeInfo implements Attribute
                         final AttributeSpecifier specifier,
                         final AttributeDescriptor descriptor) {
         super(name, type, description, specifier.canRead(), specifier.canWrite(), specifier.isFlag(), descriptor);
+        this.descriptor = Objects.requireNonNull(descriptor);
     }
 
     /**
@@ -83,6 +66,6 @@ public class CustomAttributeInfo extends MBeanAttributeInfo implements Attribute
      */
     @Override
     public final AttributeDescriptor getDescriptor() {
-        return Utils.safeCast(super.getDescriptor(), AttributeDescriptor.class);
+        return MoreObjects.firstNonNull(descriptor, AttributeDescriptor.EMPTY_DESCRIPTOR);
     }
 }

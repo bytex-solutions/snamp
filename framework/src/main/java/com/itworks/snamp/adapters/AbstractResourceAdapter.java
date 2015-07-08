@@ -18,6 +18,9 @@ import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.notifications.NotificationAddedEvent;
 import com.itworks.snamp.connectors.notifications.NotificationRemovingEvent;
 import com.itworks.snamp.connectors.notifications.NotificationSupport;
+import com.itworks.snamp.connectors.operations.OperationAddedEvent;
+import com.itworks.snamp.connectors.operations.OperationRemovingEvent;
+import com.itworks.snamp.connectors.operations.OperationSupport;
 import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.core.OSGiLoggingContext;
 import com.itworks.snamp.core.RichLogicalOperation;
@@ -30,6 +33,7 @@ import org.osgi.framework.ServiceReference;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanNotificationInfo;
+import javax.management.MBeanOperationInfo;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.Collection;
@@ -180,6 +184,19 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
             accessor.disconnect();
     }
 
+    private void operationAdded(final OperationAddedEvent event){
+        final FeatureAccessor<MBeanOperationInfo, OperationSupport> accessor =
+                addFeatureImpl(event.getResourceName(), event.getFeature());
+        if(accessor != null)
+            accessor.connect(event.getSource());
+    }
+
+    private void operationRemoved(final OperationRemovingEvent event){
+        final FeatureAccessor<MBeanOperationInfo, ?> accessor = removeFeatureImpl(event.getResourceName(), event.getFeature());
+        if(accessor != null)
+            accessor.disconnect();
+    }
+
     /**
      * Handles resource event.
      *
@@ -197,6 +214,10 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
             notificationAdded((NotificationAddedEvent)event);
         else if(event instanceof NotificationRemovingEvent)
             notificationRemoved((NotificationRemovingEvent)event);
+        else if(event instanceof OperationAddedEvent)
+            operationAdded((OperationAddedEvent)event);
+        else if(event instanceof OperationRemovingEvent)
+            operationRemoved((OperationRemovingEvent)event);
     }
 
     /**

@@ -1,20 +1,19 @@
 package com.itworks.snamp.connectors.jmx;
 
+import com.google.common.collect.Iterables;
 import com.itworks.snamp.concurrent.Repeater;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.internal.annotations.Internal;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
 
-import javax.management.JMException;
-import javax.management.MBeanServerConnection;
-import javax.management.Notification;
-import javax.management.NotificationListener;
+import javax.management.*;
 import javax.management.remote.JMXConnectionNotification;
 import javax.management.remote.JMXConnector;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
@@ -175,7 +174,7 @@ final class JmxConnectionManager implements AutoCloseable {
     }
 
     @ThreadSafe
-    public final <T> T handleConnection(final MBeanServerConnectionHandler<T> handler) throws Exception {
+    final <T> T handleConnection(final MBeanServerConnectionHandler<T> handler) throws Exception {
         readLock.lockInterruptibly();
         try {
             if (connectionHolder.isInitialized()) {
@@ -192,13 +191,13 @@ final class JmxConnectionManager implements AutoCloseable {
     }
 
     @ThreadSafe
-    public final void addReconnectionHandler(final ConnectionEstablishedEventHandler handler) {
+    final void addReconnectionHandler(final ConnectionEstablishedEventHandler handler) {
         watchDog.reconnectionHandlers.add(handler);
     }
 
     @SuppressWarnings("UnusedDeclaration")
     @ThreadSafe
-    public final void removeReconnectionHandler(final ConnectionEstablishedEventHandler handler) {
+    final void removeReconnectionHandler(final ConnectionEstablishedEventHandler handler) {
         watchDog.reconnectionHandlers.add(handler);
     }
 
@@ -211,7 +210,7 @@ final class JmxConnectionManager implements AutoCloseable {
      * @throws java.io.IOException Unable to simulate connectionHolder abort.
      */
     @Internal
-    public final void simulateConnectionAbort() throws IOException, InterruptedException {
+    final void simulateConnectionAbort() throws IOException, InterruptedException {
         JMXConnector con = connectionHolder.connection;
         if (con != null)
             try {
@@ -219,6 +218,16 @@ final class JmxConnectionManager implements AutoCloseable {
             } finally {
                 watchDog.reportProblemAndWait(new IOException("Simulate connection abort"));
             }
+    }
+
+    ObjectName resolveName(final ObjectName name) throws Exception {
+        return handleConnection(new MBeanServerConnectionHandler<ObjectName>() {
+            @Override
+            public ObjectName handle(final MBeanServerConnection connection) throws IOException, JMException {
+                final Set<ObjectInstance> beans = connection.queryMBeans(name, null);
+                return beans.size() > 0 ? beans.iterator().next().getObjectName() : null;
+            }
+        });
     }
 
     @Override

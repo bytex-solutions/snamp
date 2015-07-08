@@ -45,7 +45,7 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
         }
 
         @Override
-        protected void addOperation(final SnmpResourceConnector connector, final String operationID, final String operationName, final CompositeData options) {
+        protected void enableOperation(final SnmpResourceConnector connector, final String operationID, final String operationName, final CompositeData options) {
             //not supported
         }
     }
