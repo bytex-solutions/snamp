@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>connectors</artifactId>
+        <groupId>com.itworks.snamp</groupId>
+        <version>1.0.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <name>OpenStack Connector</name>
+    <artifactId>openstack-connector</artifactId>
+    <description>Connector for managing virtual resources via OpenStack</description>
+    <version>${snamp.connectors.openstack.version}</version>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>com.itworks.snamp.connectors.openstack</Bundle-SymbolicName>
+                        <Bundle-Activator>com.itworks.snamp.connectors.openstack.OpenStackResourceConnectorActivator</Bundle-Activator>
+                        <Export-Package/>
+                        <!--SNAMP specific header-->
+                        <SNAMP-Resource-Connector>jmx</SNAMP-Resource-Connector>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <dependencies>
+        <dependency>
+            <scope>provided</scope>
+            <groupId>com.itworks.snamp</groupId>
+            <artifactId>framework</artifactId>
+            <version>${snamp.framework.version}</version>
+        </dependency>
+        <dependency>
+            <scope>provided</scope>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.core</artifactId>
+            <version>${osgi.version}</version>
+        </dependency>
+        <dependency>
+            <scope>provided</scope>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.compendium</artifactId>
+            <version>${osgi.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.pacesys</groupId>
+            <artifactId>openstack4j</artifactId>
+            <version>${openstack4j.version}</version>
+            <classifier>withdeps</classifier>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>17.0</version>
+            <classifier>sources</classifier>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+</project>

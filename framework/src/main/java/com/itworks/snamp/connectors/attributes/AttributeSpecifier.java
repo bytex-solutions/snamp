@@ -55,7 +55,8 @@ public enum  AttributeSpecifier implements Serializable {
     }
 
     public AttributeSpecifier writable(final boolean value) {
-        for(final AttributeSpecifier spec: values())
+        if(isWritable == value) return this;
+        else for(final AttributeSpecifier spec: values())
             if(spec.isWritable == value &&
                     spec.isReadable == isReadable &&
                     spec.isFlag == isFlag) return spec;
@@ -63,7 +64,8 @@ public enum  AttributeSpecifier implements Serializable {
     }
 
     public AttributeSpecifier readable(final boolean value){
-        for(final AttributeSpecifier spec: values())
+        if(isReadable == value) return this;
+        else for(final AttributeSpecifier spec: values())
             if(spec.isReadable == value &&
                     spec.isWritable == isWritable &&
                     spec.isFlag == isFlag) return spec;
@@ -71,7 +73,8 @@ public enum  AttributeSpecifier implements Serializable {
     }
 
     public AttributeSpecifier flag(final boolean value){
-        for(final AttributeSpecifier spec: values())
+        if(value == isFlag) return this;
+        else for(final AttributeSpecifier spec: values())
             if(spec.isReadable == isReadable &&
                     spec.isWritable == isWritable &&
                     spec.isFlag == value) return spec;

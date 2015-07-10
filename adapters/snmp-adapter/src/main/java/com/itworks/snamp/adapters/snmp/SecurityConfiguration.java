@@ -35,17 +35,17 @@ final class SecurityConfiguration {
     /**
      * Represents LDAP DN of the admin user that is used to read security configuration structure.
      */
-    private static final String LDAP_ADMINDN_PARAM = "ldap-user";
+    static final String LDAP_ADMINDN_PARAM = "ldap-user";
 
     /**
      * Represents LDAP admin user password.
      */
-    private static final String LDAP_ADMIN_PASSWORD_PARAM = "ldap-password";
+    static final String LDAP_ADMIN_PASSWORD_PARAM = "ldap-password";
 
     /**
      * Represents type of the LDAP authentication.
      */
-    private static final String LDAP_ADMIN_AUTH_TYPE_PARAM = "ldap-auth-protocol";
+    static final String LDAP_ADMIN_AUTH_TYPE_PARAM = "ldap-auth-protocol";
 
     /**
      * Represents user search filter template that is used to find users in the group.
@@ -53,7 +53,7 @@ final class SecurityConfiguration {
      *     $GROUPNAME$ string inside of the filter will be replaced with group name.
      * </p>
      */
-    private static final String LDAP_USER_SEARCH_FILTER_PARAM = "ldap-user-search-filter";
+    static final String LDAP_USER_SEARCH_FILTER_PARAM = "ldap-user-search-filter";
 
     /**
      * Represents semicolon delimiter string of group DNs.
@@ -63,7 +63,7 @@ final class SecurityConfiguration {
     /**
      * Represents search base DN.
      */
-    private static final String LDAP_BASE_DN_PARAM = "ldap-base-dn";
+    static final String LDAP_BASE_DN_PARAM = "ldap-base-dn";
 
     /**
      * Represents JNDI/LDAP factory name.

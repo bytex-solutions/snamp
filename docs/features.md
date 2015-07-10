@@ -22,6 +22,7 @@ syslog | RFC-3164, RFC-5424 | Binary | Yes | Yes | No
 nagios | HTTP | [Nagios Plugin Format](https://nagios-plugins.org/doc/guidelines.html#PLUGOUTPUT) | Yes | Yes | No
 nsca | TCP | Binary (Nagios NSCA format) | Yes | Yes | No
 nrdp | HTTP | XML (Nagios NRDP format) | Yes | Yes | No
+groovy | _Any_ | _Any_ | Yes | Yes | No
 
 ## Resource Connectors
 Feature list of **Resource Connector** consists of the following items:
@@ -32,7 +33,7 @@ Feature list of **Resource Connector** consists of the following items:
 
 Name | Supported Protocols | Attributes | Notifications | Operations
 ---- | ---- | ---- | ---- | ----
-jmx | JMX | Yes | Yes | No
+jmx | JMX | Yes | Yes | Yes
 rshell | SSH, REXEC, RSHELL, Local Process Execution | Yes | No | No
 snmp | SNMPv2, SNMPv3 | Yes | Yes | No
 ibm-wmq | Proprietary | Yes | No | No

@@ -1,11 +1,13 @@
 package com.itworks.snamp.connectors.attributes;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import com.itworks.snamp.internal.Utils;
 
 import javax.management.MBeanAttributeInfo;
 import javax.management.openmbean.OpenMBeanAttributeInfo;
 import javax.management.openmbean.OpenType;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -17,6 +19,7 @@ import java.util.Set;
 public abstract class OpenAttributeAccessor<T> extends MBeanAttributeInfo implements OpenMBeanAttributeInfo, AttributeDescriptorRead {
     private static final long serialVersionUID = 9200767724267121006L;
     private final OpenType<T> attributeType;
+    private final AttributeDescriptor descriptor;
 
     protected OpenAttributeAccessor(final String attributeID,
                                     final String description,
@@ -31,6 +34,7 @@ public abstract class OpenAttributeAccessor<T> extends MBeanAttributeInfo implem
                 specifier.isFlag(),
                 descriptor);
         this.attributeType = attributeType;
+        this.descriptor = Objects.requireNonNull(descriptor);
     }
 
     /**
@@ -42,7 +46,7 @@ public abstract class OpenAttributeAccessor<T> extends MBeanAttributeInfo implem
      */
     @Override
     public final AttributeDescriptor getDescriptor() {
-        return Utils.safeCast(super.getDescriptor(), AttributeDescriptor.class);
+        return MoreObjects.firstNonNull(descriptor, AttributeDescriptor.EMPTY_DESCRIPTOR);
     }
 
     /**

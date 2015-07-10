@@ -44,6 +44,11 @@ final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
      */
     private static final String LDAP_GROUPS_PARAM = SecurityConfiguration.LDAP_GROUPS_PARAM;
 
+    private static final String LDAP_ADMINDN_PARAM = SecurityConfiguration.LDAP_ADMINDN_PARAM;
+    private static final String LDAP_ADMIN_PASSWORD_PARAM = SecurityConfiguration.LDAP_ADMIN_PASSWORD_PARAM;
+    private static final String LDAP_ADMIN_AUTH_TYPE_PARAM = SecurityConfiguration.LDAP_ADMIN_AUTH_TYPE_PARAM;
+    private static final String LDAP_BASE_DN_PARAM = SecurityConfiguration.LDAP_BASE_DN_PARAM;
+
     /**
      * Represents configuration property that contains UDP socket timeout, in milliseconds.
      */
@@ -86,7 +91,11 @@ final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
                     QUEUE_SIZE_PROPERTY,
                     KEEP_ALIVE_TIME_PROPERTY,
                     PRIORITY_PROPERTY,
-                    RESTART_TIMEOUT_PARAM);
+                    RESTART_TIMEOUT_PARAM,
+                    LDAP_ADMINDN_PARAM,
+                    LDAP_ADMIN_PASSWORD_PARAM,
+                    LDAP_ADMIN_AUTH_TYPE_PARAM,
+                    LDAP_BASE_DN_PARAM);
         }
     }
 
