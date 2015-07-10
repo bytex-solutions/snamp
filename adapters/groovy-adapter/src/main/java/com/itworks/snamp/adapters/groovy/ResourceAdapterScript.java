@@ -1,17 +1,18 @@
 package com.itworks.snamp.adapters.groovy;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.eventbus.Subscribe;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.adapters.AttributeAccessor;
+import com.itworks.snamp.adapters.NotificationAccessor;
 import com.itworks.snamp.adapters.NotificationEvent;
 import com.itworks.snamp.adapters.NotificationListener;
+import com.itworks.snamp.adapters.groovy.dsl.GroovyManagementModel;
 import com.itworks.snamp.concurrent.Repeater;
-import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.core.OSGiLoggingContext;
+import com.itworks.snamp.internal.RecordReader;
 import com.itworks.snamp.internal.annotations.SpecialUse;
 import com.itworks.snamp.io.Communicator;
-import com.itworks.snamp.jmx.JMExceptionUtils;
 import groovy.lang.Closure;
 import groovy.lang.Script;
 import org.osgi.framework.BundleContext;
@@ -20,7 +21,6 @@ import org.osgi.framework.FrameworkUtil;
 import javax.management.*;
 import java.util.Collection;
 import java.util.EventListener;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 
@@ -30,15 +30,20 @@ import java.util.logging.Logger;
  * @version 1.0
  * @since 1.0
  */
-public abstract class ResourceAdapterScript extends Script implements AutoCloseable, ManagementInformationRepository, NotificationListener {
-    public static final String REPOSITORY_GLOBAL_VAR = "repository";
+public abstract class ResourceAdapterScript extends Script implements AutoCloseable, NotificationListener {
+    public static final String MODEL_GLOBAL_VAR = "resources";
 
     private static Logger getLogger() {
         return ResourceAdapterInfo.getLogger();
     }
 
-    private ManagementInformationRepository getRepository() {
-        return (ManagementInformationRepository) super.getProperty(REPOSITORY_GLOBAL_VAR);
+    private GroovyManagementModel getModel() {
+        return (GroovyManagementModel) super.getProperty(MODEL_GLOBAL_VAR);
+    }
+
+    private <T> T queryModelObject(final Class<T> objectType){
+        final GroovyManagementModel model = getModel();
+        return model != null ? model.queryObject(objectType) : null;
     }
 
     @SpecialUse
@@ -49,7 +54,6 @@ public abstract class ResourceAdapterScript extends Script implements AutoClosea
     @SpecialUse
     protected static EventListener asListener(final Closure<?> closure) {
         return new EventListener() {
-
             @Subscribe
             @SpecialUse
             public void accept(final Object message) {
@@ -128,83 +132,54 @@ public abstract class ResourceAdapterScript extends Script implements AutoClosea
         return FrameworkUtil.getBundle(ResourceAdapterScript.class).getBundleContext();
     }
 
-    @Override
-    @SpecialUse
-    public final Set<String> getHostedResources() {
-        final ManagementInformationRepository provider = getRepository();
-        return provider != null ? provider.getHostedResources() : ImmutableSet.<String>of();
+    private static void processAttributes(final AttributesRootAPI model, final Closure<?> closure) throws JMException {
+        model.processAttributes(new RecordReader<String, AttributeAccessor, JMException>() {
+            @Override
+            public void read(final String resourceName, final AttributeAccessor accessor) throws JMException {
+                switch (closure.getMaximumNumberOfParameters()) {
+                    case 0:
+                        closure.call();
+                        return;
+                    case 1:
+                        closure.call(accessor.getMetadata());
+                        return;
+                    case 2:
+                        closure.call(resourceName, accessor.getMetadata());
+                }
+            }
+        });
     }
 
-    @Override
     @SpecialUse
-    public final Set<String> getResourceAttributes(final String resourceName) {
-        final ManagementInformationRepository provider = getRepository();
-        return provider != null ? provider.getResourceAttributes(resourceName) : ImmutableSet.<String>of();
+    protected final void processAttributes(final Closure<?> closure) throws JMException {
+        final AttributesRootAPI model = queryModelObject(AttributesRootAPI.class);
+        if (model != null)
+            processAttributes(model, closure);
     }
 
-    @Override
-    @SpecialUse
-    public final Set<String> getResourceEvents(final String resourceName) {
-        final ManagementInformationRepository provider = getRepository();
-        return provider != null ? provider.getResourceEvents(resourceName) : ImmutableSet.<String>of();
+    private static void processEvents(final EventsRootAPI model, final Closure<?> closure) throws JMException {
+        model.processEvents(new RecordReader<String, NotificationAccessor, JMException>() {
+            @Override
+            public void read(final String resourceName, final NotificationAccessor accessor) throws JMException {
+                switch (closure.getMaximumNumberOfParameters()) {
+                    case 0:
+                        closure.call();
+                        return;
+                    case 1:
+                        closure.call(accessor.getMetadata());
+                        return;
+                    case 2:
+                        closure.call(resourceName, accessor.getMetadata());
+                }
+            }
+        });
     }
 
-    @Override
     @SpecialUse
-    public final Object getAttributeValue(final String resourceName, final String attributeName) throws MBeanException, AttributeNotFoundException, ReflectionException {
-        final ManagementInformationRepository provider = getRepository();
-        if (provider != null)
-            return provider.getAttributeValue(resourceName, attributeName);
-        else throw JMExceptionUtils.attributeNotFound(attributeName);
-    }
-
-    @Override
-    @SpecialUse
-    public final void setAttributeValue(final String resourceName, final String attributeName, final Object value) throws AttributeNotFoundException, MBeanException, ReflectionException, InvalidAttributeValueException {
-        final ManagementInformationRepository provider = getRepository();
-        if (provider != null)
-            provider.setAttributeValue(resourceName, attributeName, value);
-        else throw JMExceptionUtils.attributeNotFound(attributeName);
-    }
-
-    @Override
-    @SpecialUse
-    public final void processAttributes(final Closure<?> closure) throws JMException {
-        final ManagementInformationRepository provider = getRepository();
-        if (provider != null)
-            provider.processAttributes(closure);
-    }
-
-    @Override
-    @SpecialUse
-    public final void processEvents(final Closure<?> closure) throws JMException {
-        final ManagementInformationRepository provider = getRepository();
-        if (provider != null)
-            provider.processEvents(closure);
-    }
-
-    /**
-     * Obtains direct reference to the specified managed resource.
-     *
-     * @param resourceName The name of the connected resource. Cannot be {@literal null} or empty.
-     * @return Direct reference to the managed resource.
-     * @throws InstanceNotFoundException Managed resource with specified name doesn't exist.
-     * @see #releaseManagedResource(ManagedResourceConnectorClient)
-     */
-    @SpecialUse
-    protected static ManagedResourceConnectorClient getManagedResource(final String resourceName) throws InstanceNotFoundException {
-        return new ManagedResourceConnectorClient(getBundleContext(), resourceName);
-    }
-
-    /**
-     * Releases direct reference to the specified managed resource.
-     *
-     * @param client Managed resource client. Cannot be {@literal null}.
-     * @see #getManagedResource(String)
-     */
-    @SpecialUse
-    protected static void releaseManagedResource(final ManagedResourceConnectorClient client) {
-        client.release(getBundleContext());
+    protected final void processEvents(final Closure<?> closure) throws JMException {
+        final EventsRootAPI model = queryModelObject(EventsRootAPI.class);
+        if(model != null)
+            processEvents(model, closure);
     }
 
     /**
@@ -217,42 +192,27 @@ public abstract class ResourceAdapterScript extends Script implements AutoClosea
         handleNotification(event.getSource(), event.getNotification());
     }
 
-    @Override
-    @SpecialUse
-    public final Collection<MBeanAttributeInfo> getAttributes(final String resourceName) {
-        final ManagementInformationRepository repository = getRepository();
-        return repository == null ? ImmutableList.<MBeanAttributeInfo>of() : repository.getAttributes(resourceName);
-    }
-
-    @Override
-    @SpecialUse
-    public final Collection<MBeanNotificationInfo> getNotifications(final String resourceName) {
-        final ManagementInformationRepository repository = getRepository();
-        return repository == null ? ImmutableList.<MBeanNotificationInfo>of() : repository.getNotifications(resourceName);
-    }
-
     @SpecialUse
     protected Object handleNotification(final Object metadata,
                                         final Object notif) {
         return null;
     }
 
-    @Override
     @SpecialUse
-    public final ResourceAttributesAnalyzer<?> attributesAnalyzer(final TimeSpan checkPeriod) {
-        final ManagementInformationRepository repository = getRepository();
-        return repository != null ? repository.attributesAnalyzer(checkPeriod) : null;
+    protected final ResourceAttributesAnalyzer<?> attributesAnalyzer(final TimeSpan checkPeriod) {
+        final AttributesRootAPI model = queryModelObject(AttributesRootAPI.class);
+        return model != null ? model.attributesAnalyzer(checkPeriod) : null;
     }
 
-    public final ResourceAttributesAnalyzer<?> attributesAnalyzer(final long checkPeriod){
+    @SpecialUse
+    protected final ResourceAttributesAnalyzer<?> attributesAnalyzer(final long checkPeriod){
         return attributesAnalyzer(new TimeSpan(checkPeriod));
     }
 
-    @Override
     @SpecialUse
-    public final ResourceNotificationsAnalyzer eventsAnalyzer() {
-        final ManagementInformationRepository repository = getRepository();
-        return repository != null ? repository.eventsAnalyzer() : new ResourceNotificationsAnalyzer();
+    protected final ResourceNotificationsAnalyzer eventsAnalyzer() {
+        final EventsRootAPI model = queryModelObject(EventsRootAPI.class);
+        return model != null ? model.eventsAnalyzer() : null;
     }
 
     /**
@@ -262,6 +222,6 @@ public abstract class ResourceAdapterScript extends Script implements AutoClosea
      */
     @Override
     public void close() throws Exception {
-        setProperty(REPOSITORY_GLOBAL_VAR, null);
+        setProperty(MODEL_GLOBAL_VAR, null);
     }
 }

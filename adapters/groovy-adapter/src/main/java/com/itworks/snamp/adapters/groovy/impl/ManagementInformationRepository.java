@@ -7,7 +7,11 @@ import com.google.common.collect.Lists;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.adapters.NotificationListener;
-import com.itworks.snamp.adapters.groovy.ManagementInformationRepository;
+import com.itworks.snamp.adapters.groovy.AttributesRootAPI;
+import com.itworks.snamp.adapters.groovy.EventsRootAPI;
+import com.itworks.snamp.adapters.groovy.ResourceAttributesAnalyzer;
+import com.itworks.snamp.adapters.groovy.ResourceNotificationsAnalyzer;
+import com.itworks.snamp.adapters.groovy.dsl.GroovyManagementModel;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.internal.RecordReader;
 import groovy.lang.Closure;
@@ -21,7 +25,7 @@ import java.util.*;
  * @version 1.0
  * @since 1.0
  */
-final class ManagementInformationRepositoryImpl implements ManagementInformationRepository {
+final class ManagementInformationRepository extends GroovyManagementModel implements AttributesRootAPI, EventsRootAPI {
     private static final class ScriptAttributesModel extends AbstractAttributesModel<ScriptAttributeAccessor> {
         @Override
         protected ScriptAttributeAccessor createAccessor(final MBeanAttributeInfo metadata) {
@@ -105,10 +109,10 @@ final class ManagementInformationRepositoryImpl implements ManagementInformation
             }
         }
 
-        private <E extends Exception> void forEachEvent(final RecordReader<String, NotificationAccessor, E> handler) throws E {
+        private <E extends Exception> void forEachEvent(final RecordReader<String, ? super ScriptNotificationAccessor, E> handler) throws E {
             try(final LockScope ignored = beginRead()){
-                for(final Map.Entry<String, ? extends ResourceNotificationList<? extends NotificationAccessor>> entry: notifications.entrySet())
-                    for(final NotificationAccessor accessor: entry.getValue().values())
+                for(final Map.Entry<String, ? extends ResourceNotificationList<ScriptNotificationAccessor>> entry: notifications.entrySet())
+                    for(final ScriptNotificationAccessor accessor: entry.getValue().values())
                         handler.read(entry.getKey(), accessor);
             }
         }
@@ -118,38 +122,23 @@ final class ManagementInformationRepositoryImpl implements ManagementInformation
     private final ScriptNotificationsModel notifications = new ScriptNotificationsModel();
 
     @Override
-    public Set<String> getHostedResources() {
+    public Set<String> list() {
         return attributes.getHostedResources();
     }
 
     @Override
-    public Set<String> getResourceAttributes(final String resourceName) {
+    public Set<String> getAttributes(final String resourceName) {
         return attributes.getResourceAttributes(resourceName);
     }
 
     @Override
-    public Set<String> getResourceEvents(final String resourceName) {
+    public Collection<MBeanAttributeInfo> getAttributesMetadata(final String resourceName) {
+        return attributes.getResourceAttributesMetadata(resourceName);
+    }
+
+    @Override
+    public Set<String> getEvents(final String resourceName) {
         return notifications.getResourceEvents(resourceName);
-    }
-
-    @Override
-    public void processAttributes(final Closure<?> closure) throws JMException {
-        attributes.forEachAttribute(new RecordReader<String, ScriptAttributeAccessor, JMException>() {
-            @Override
-            public void read(final String resourceName, final ScriptAttributeAccessor accessor) throws JMException{
-                closure.call(resourceName, accessor.getMetadata(), accessor.getValue());
-            }
-        });
-    }
-
-    @Override
-    public void processEvents(final Closure<?> closure) throws JMException {
-        notifications.forEachEvent(new RecordReader<String, NotificationAccessor, JMException>() {
-            @Override
-            public void read(final String resourceName, final NotificationAccessor accessor) throws JMException {
-                closure.call(resourceName, accessor.getMetadata());
-            }
-        });
     }
 
     @Override
@@ -163,23 +152,28 @@ final class ManagementInformationRepositoryImpl implements ManagementInformation
     }
 
     @Override
-    public Collection<MBeanAttributeInfo> getAttributes(final String resourceName) {
-        return attributes.getResourceAttributesMetadata(resourceName);
+    public <E extends Exception> void processAttributes(final RecordReader<String, AttributeAccessor, E> handler) throws E {
+        attributes.forEachAttribute(handler);
     }
 
     @Override
-    public Collection<MBeanNotificationInfo> getNotifications(final String resourceName) {
-        return notifications.getNotifications(resourceName);
-    }
-
-    @Override
-    public ScriptAttributesAnalyzer attributesAnalyzer(final TimeSpan checkPeriod) {
-        return new ScriptAttributesAnalyzer(checkPeriod, this.attributes);
+    public ResourceAttributesAnalyzer<?> attributesAnalyzer(final TimeSpan checkPeriod) {
+        return new ScriptAttributesAnalyzer(checkPeriod, attributes);
     }
 
     @Override
     public ScriptNotificationsAnalyzer eventsAnalyzer() {
         return new ScriptNotificationsAnalyzer();
+    }
+
+    @Override
+    public <E extends Exception> void processEvents(final RecordReader<String, NotificationAccessor, E> closure) throws E {
+        notifications.forEachEvent(closure);
+    }
+
+    @Override
+    public Collection<MBeanNotificationInfo> getEventsMetadata(final String resourceName) {
+        return notifications.getNotifications(resourceName);
     }
 
     NotificationRouter addNotification(final String resourceName,

@@ -26,7 +26,7 @@ final class GroovyResourceAdapter extends AbstractResourceAdapter {
     static final String NAME = ResourceAdapterInfo.NAME;
     private static final String ADAPTER_INSTANCE_NAME = "adapterInstanceName";
     private final ScriptHolder holder;
-    private final ManagementInformationRepositoryImpl repository;
+    private final ManagementInformationRepository repository;
 
     /**
      * Initializes a new resource adapter.
@@ -35,7 +35,7 @@ final class GroovyResourceAdapter extends AbstractResourceAdapter {
      */
     GroovyResourceAdapter(final String instanceName) {
         super(instanceName);
-        repository = new ManagementInformationRepositoryImpl();
+        repository = new ManagementInformationRepository();
         holder = new ScriptHolder();
     }
 
@@ -96,7 +96,7 @@ final class GroovyResourceAdapter extends AbstractResourceAdapter {
                 Utils.toProperties(parameters),
                 GroovyResourceAdapterConfigurationProvider.getScriptPath(parameters));
         engine.setGlobalVariable(ADAPTER_INSTANCE_NAME, getInstanceName());
-        engine.setGlobalVariable(ResourceAdapterScript.REPOSITORY_GLOBAL_VAR, repository);
+        engine.setGlobalVariable(ResourceAdapterScript.MODEL_GLOBAL_VAR, repository);
         final ResourceAdapterScript script = engine.createScript(GroovyResourceAdapterConfigurationProvider.getScriptFile(parameters),
                 parameters);
         script.run();

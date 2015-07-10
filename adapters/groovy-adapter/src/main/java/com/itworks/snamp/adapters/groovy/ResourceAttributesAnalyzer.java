@@ -10,6 +10,7 @@ import com.itworks.snamp.internal.annotations.SpecialUse;
 import groovy.lang.Closure;
 import org.osgi.framework.InvalidSyntaxException;
 
+import javax.management.DescriptorRead;
 import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
 import java.util.*;
@@ -175,7 +176,7 @@ public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> ext
     @Override
     public final void processAttribute(final String resourceName, final TAccessor accessor) {
         for (final AttributeSelectStatement group : selectionStatements)
-            if (group.match(accessor))
+            if (group.match((DescriptorRead) accessor))
                 group.process(resourceName, accessor);
     }
 }

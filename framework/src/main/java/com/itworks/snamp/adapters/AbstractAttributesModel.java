@@ -167,7 +167,7 @@ public abstract class AbstractAttributesModel<TAccessor extends AttributeAccesso
      * @param <E> Type of the exception that may be produced by reader.
      * @throws E Unable to process attribute.
      */
-    public final <E extends Exception> void forEachAttribute(final RecordReader<String, TAccessor, E> attributeReader) throws E{
+    public final <E extends Exception> void forEachAttribute(final RecordReader<String, ? super TAccessor, E> attributeReader) throws E{
         try(final LockScope ignored = beginRead()) {
             for (final Map.Entry<String, ResourceAttributeList<TAccessor>> entry: attributes.entrySet())
                 for(final TAccessor accessor: entry.getValue().values())
