@@ -1,22 +1,24 @@
 package com.itworks.snamp.adapters.groovy.dsl;
 
 import com.itworks.snamp.internal.annotations.SpecialUse;
+import groovy.lang.GroovyObjectSupport;
 
 import javax.management.*;
 import java.util.Objects;
+import static com.itworks.snamp.jmx.DescriptorUtils.*;
 
 /**
  * Represents attribute of the managed resource.
- * This class cannot be inherited.
+ * This class cannot be inherited directly from your code.
  * @author Roman Sakno
  * @since 1.0
  * @version 1.0
  */
-public final class GroovyResourceAttribute {
+public final class GroovyResourceAttribute extends GroovyObjectSupport {
     private final AttributesView attributes;
     private final String attributeName;
     private final String resourceName;
-    private volatile MBeanAttributeInfo metadata;
+    private volatile GroovyFeatureMetadata<MBeanAttributeInfo> metadata;
 
     GroovyResourceAttribute(final AttributesView attributes,
                             final String resourceName,
@@ -36,16 +38,16 @@ public final class GroovyResourceAttribute {
         return attributes.getAttributeValue(resourceName, attributeName);
     }
 
-    private synchronized MBeanAttributeInfo getMetadataSync(){
+    private synchronized GroovyFeatureMetadata<MBeanAttributeInfo> getMetadataSync(){
         if(metadata == null)
             for (final MBeanAttributeInfo metadata : attributes.getAttributesMetadata(resourceName))
                 if (Objects.equals(attributeName, metadata.getName()))
-                    return this.metadata = metadata;
+                    return this.metadata = new GroovyFeatureMetadata<>(metadata);
         return metadata;
     }
 
     @SpecialUse
-    public MBeanAttributeInfo getMetadata() {
+    public GroovyFeatureMetadata<MBeanAttributeInfo> getMetadata() {
         return metadata == null ? getMetadataSync() : metadata;
     }
 

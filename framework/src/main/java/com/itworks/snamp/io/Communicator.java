@@ -1,5 +1,7 @@
 package com.itworks.snamp.io;
 
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.eventbus.AllowConcurrentEvents;
@@ -25,26 +27,27 @@ import java.util.concurrent.TimeoutException;
  */
 public final class Communicator extends EventBus {
     private static final class IncomingMessageEvent extends SynchronizationEvent<Object> implements EventListener {
-        private final int exclusionHashCode;
+        private final Predicate<Object> responseFilter;
 
-        private IncomingMessageEvent(final Object exclusion) {
+        private IncomingMessageEvent(final Predicate<Object> filter) {
             super(false);
-            this.exclusionHashCode = System.identityHashCode(exclusion);
+            this.responseFilter = filter != null ? filter : Predicates.alwaysTrue();
         }
 
         @Subscribe
         @SpecialUse
         @AllowConcurrentEvents
         public void accept(final Object message) {
-            if(exclusionHashCode != System.identityHashCode(message))
+            if (responseFilter.apply(message))
                 fire(message);
         }
     }
+
     //communication sessions
     private static final Cache<String, Communicator> communicators =
             CacheBuilder.newBuilder().weakValues().build();
 
-    private Communicator(){
+    private Communicator() {
     }
 
     public static Communicator getSession(final String name) throws ExecutionException {
@@ -56,8 +59,27 @@ public final class Communicator extends EventBus {
         });
     }
 
+    private static Predicate<Object> exceptIncoming(final Object incomingMessage) {
+        final int incomingIdentity = System.identityHashCode(incomingMessage);
+        return new Predicate<Object>() {
+            @Override
+            public boolean apply(final Object actualMessage) {
+                return incomingIdentity != System.identityHashCode(actualMessage);
+            }
+        };
+    }
+
     public Object post(final Object message, final TimeSpan timeout) throws TimeoutException, InterruptedException {
-        final IncomingMessageEvent event = new IncomingMessageEvent(message);
+        return post(message, null, timeout);
+    }
+
+    public Object post(final Object message, final long timeout) throws TimeoutException, InterruptedException {
+        return post(message, null, timeout);
+    }
+
+    public Object post(final Object message, Predicate<Object> responseFilter, final TimeSpan timeout) throws TimeoutException, InterruptedException {
+        responseFilter = Predicates.and(exceptIncoming(message), responseFilter);
+        final IncomingMessageEvent event = new IncomingMessageEvent(responseFilter);
         final IncomingMessageEvent.EventAwaitor<Object> awaitor = event.getAwaitor();
         register(event);
         post(message);
@@ -68,12 +90,16 @@ public final class Communicator extends EventBus {
         }
     }
 
-    public Object post(final Object message, final long timeout) throws TimeoutException, InterruptedException {
-        return post(message, new TimeSpan(timeout));
+    public Object post(final Object message, final Predicate<Object> responseFilter, final long timeout) throws TimeoutException, InterruptedException {
+        return post(message, responseFilter, new TimeSpan(timeout));
     }
 
-    public SynchronizationEvent<?> registerMessageSynchronizer(final Object except){
-        final IncomingMessageEvent event = new IncomingMessageEvent(except);
+    public SynchronizationEvent<?> registerMessageSynchronizer(final Object except) {
+        return registerMessageSynchronizer(exceptIncoming(except));
+    }
+
+    public SynchronizationEvent<?> registerMessageSynchronizer(final Predicate<Object> responseFilter) {
+        final IncomingMessageEvent event = new IncomingMessageEvent(responseFilter);
         register(event);
         return event;
     }

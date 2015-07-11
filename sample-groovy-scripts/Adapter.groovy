@@ -1,27 +1,32 @@
 communicator = getCommunicator communicationChannel
 
 def changeStringAttribute(){
-    setAttributeValue resourceName, '1.0', 'Frank Underwood'
-    communicator.post getAttributeValue(resourceName, '1.0')
+    resources.setAttributeValue resourceName, '1.0', 'Frank Underwood'
+    communicator.post resources.getAttributeValue(resourceName, '1.0')
 }
 
 def changeStringAttributeSilent(){
-    setAttributeValue resourceName, '1.0', 'Barry Burton'
+    def res = resources.getResource resourceName
+    res./1.0/.value = 'Barry Burton'
 }
 
 def changeBooleanAttribute(){
-    setAttributeValue resourceName, '2.0', true
-    communicator.post getAttributeValue(resourceName, '2.0')
+    def res = resources.getResource(resourceName)
+    res.getAttribute('2.0').value = true
+    assert res./2.0/.metadata.objectName instanceof String
+    assert res./2.0/.metadata.readable
+    assert res./2.0/.metadata.writable
+    communicator.post res./2.0/.value
 }
 
 def changeIntegerAttribute(){
-    setAttributeValue resourceName, '3.0', 1020
-    communicator.post getAttributeValue(resourceName, '3.0')
+    resources.setAttributeValue resourceName, '3.0', 1020
+    communicator.post resources.getAttributeValue(resourceName, '3.0')
 }
 
 def changeBigIntegerAttribute(){
-    setAttributeValue resourceName, '3.0', 1020G
-    communicator.post getAttributeValue(resourceName, '3.0')
+    resources./test-target/.bi.value = 1020G
+    communicator.post resources./test-target/.bi.value
 }
 
 def listen(message){

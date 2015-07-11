@@ -1,9 +1,6 @@
 package com.itworks.snamp.adapters.groovy.impl;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
+import com.google.common.collect.*;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.adapters.NotificationListener;
@@ -13,10 +10,14 @@ import com.itworks.snamp.adapters.groovy.ResourceAttributesAnalyzer;
 import com.itworks.snamp.adapters.groovy.ResourceNotificationsAnalyzer;
 import com.itworks.snamp.adapters.groovy.dsl.GroovyManagementModel;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
+import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
+import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.internal.RecordReader;
 import groovy.lang.Closure;
+import org.osgi.framework.BundleContext;
 
 import javax.management.*;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -120,9 +121,24 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
 
     private final ScriptAttributesModel attributes = new ScriptAttributesModel();
     private final ScriptNotificationsModel notifications = new ScriptNotificationsModel();
+    private final BundleContext context;
+
+    ManagementInformationRepository(final BundleContext context){
+        this.context = Objects.requireNonNull(context);
+    }
 
     @Override
-    public Set<String> list() {
+    public Map<String, ?> getResourceParameters(final String resourceName) {
+        try {
+            final ManagedResourceConfiguration config = ManagedResourceConnectorClient.getResourceConfiguration(context, resourceName);
+            return config != null ? ImmutableMap.<String, String>copyOf(config.getParameters()) : ImmutableMap.<String, String>of();
+        } catch (final IOException ignored) {
+            return ImmutableMap.of();
+        }
+    }
+
+    @Override
+    public Set<String> getList() {
         return attributes.getHostedResources();
     }
 

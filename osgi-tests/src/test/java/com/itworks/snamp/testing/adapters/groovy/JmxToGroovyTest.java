@@ -1,5 +1,6 @@
 package com.itworks.snamp.testing.adapters.groovy;
 
+import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
@@ -41,6 +42,12 @@ import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
 public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final String ADAPTER_NAME = "groovy";
     private static final String COMMUNICATION_CHANNEL = "test-communication-channel";
+    private static final Predicate<Object> NON_NOTIF = new Predicate<Object>() {
+        @Override
+        public boolean apply(final Object responseMessage) {
+            return !(responseMessage instanceof Notification);
+        }
+    };
 
     public JmxToGroovyTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(), new ObjectName(BEAN_NAME));
@@ -58,7 +65,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     @Test
     public void stringAttributeTest() throws ExecutionException, TimeoutException, InterruptedException {
         final Communicator channel = Communicator.getSession(COMMUNICATION_CHANNEL);
-        final Object result = channel.post("changeStringAttribute", TimeSpan.fromSeconds(10));
+        final Object result = channel.post("changeStringAttribute", NON_NOTIF, TimeSpan.fromSeconds(10));
         assertTrue(result instanceof String);
         assertEquals("Frank Underwood", result);
     }
@@ -66,7 +73,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     @Test
     public void booleanAttributeTest() throws ExecutionException, TimeoutException, InterruptedException {
         final Communicator channel = Communicator.getSession(COMMUNICATION_CHANNEL);
-        final Object result = channel.post("changeBooleanAttribute", TimeSpan.fromSeconds(10));
+        final Object result = channel.post("changeBooleanAttribute", NON_NOTIF, TimeSpan.fromSeconds(10));
         assertTrue(result instanceof Boolean);
         assertEquals(Boolean.TRUE, result);
     }
@@ -74,7 +81,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     @Test
     public void integerAttributeTest() throws ExecutionException, TimeoutException, InterruptedException {
         final Communicator channel = Communicator.getSession(COMMUNICATION_CHANNEL);
-        final Object result = channel.post("changeIntegerAttribute", TimeSpan.fromSeconds(10));
+        final Object result = channel.post("changeIntegerAttribute", NON_NOTIF, TimeSpan.fromSeconds(10));
         assertTrue(result instanceof Integer);
         assertEquals(1020, result);
     }
@@ -82,7 +89,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     @Test
     public void bigIntegerAttributeTest() throws ExecutionException, TimeoutException, InterruptedException {
         final Communicator channel = Communicator.getSession(COMMUNICATION_CHANNEL);
-        final Object result = channel.post("changeBigIntegerAttribute", 2000);
+        final Object result = channel.post("changeBigIntegerAttribute", NON_NOTIF, 2000);
         assertTrue(result instanceof BigInteger);
         assertEquals(BigInteger.valueOf(1020L), result);
     }
@@ -141,7 +148,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
         attribute = attributeFactory.get();
         attribute.setAttributeName("bigint");
         attribute.getParameters().put("objectName", BEAN_NAME);
-        attributes.put("4.0", attribute);
+        attributes.put("bi", attribute);
 
         attribute = attributeFactory.get();
         attribute.setAttributeName("array");

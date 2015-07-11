@@ -23,26 +23,13 @@ Any other user-defined configuration property will be visible inside from Groovy
 
 ## Scripting
 Groovy Resource Adapter provides the following features for Groovy scripting:
-* Simple DSL extensions of Groovy language
+* DSL extensions of Groovy language
 * Accessing to attributes and notifications of all connected managed resources
 * Full [Grape](http://www.groovy-lang.org/Grape) support so you can use any Groovy module or Java library published in Maven repository
 
 Each instance of the Groovy Resource Adapter has isolated sandbox with its own Java class loader used for Groovy scripts.
 
-### Global variables
-All configuration parameters specified at adapter-level will be visible to all scripts. For example, you have configured `scriptFile` and `customParam` parameters. The value of these parameters can be obtained as follows:
-```groovy
-println scriptFile
-println customParam
-```
-
-Other useful predefined global variables:
-
-Name | Type | Description
----- | ---- | ----
-hostedResources | Set of strings | A collection of connected managed resources
-
-### Special functions
+### API
 Special functions that you can declare in your script:
 
 Declaration | Description
@@ -60,10 +47,20 @@ def handleNotification(metadata, notif){
 }
 ```
 
-### Predefined functions
-Predefined functions allows you to interact with connected managed resources, log events, communicate with other scripts and etc.
+#### Global variables
+All configuration parameters specified at adapter-level will be visible to all scripts. For example, you have configured `scriptFile` and `customParam` parameters. The value of these parameters can be obtained as follows:
+```groovy
+println scriptFile
+println customParam
+```
 
-### Logging API:
+Other useful predefined global variables:
+
+Name | Type | Description
+---- | ---- | ----
+resources | Groovy object | A root object that exposes access to all connected resources. It is a root of all DSL extensions
+
+#### Logging
 
 Function | Description
 ---- | ----
@@ -73,27 +70,14 @@ info(String msg) | Emits informational message
 debug(String msg) | Emits debug message
 fine(String msg) | Emits trace message
 
-### Access to Managed Resources
+#### Batch processing
 
 Function | Description
 ---- | ----
-Set&lt;String&gt; getResourceAttributes(String resourceName) | Gets resource attributes
-Set&lt;String&gt; getResourceEvents(String resourceName) | Gets resource events
-Object getAttributeValue(String resourceName, String attributeName) | Gets value of the attribute
-setAttributeValue(String resourceName, String attributeName, Object value) | Sets value of the attribute
-ManagedResourceConnectorClient getManagedResource(String resourceName) | Gets a reference to the connected managed resource
-void releaseManagedResource(ManagedResourceConnectorClient resource) | Releases a reference to the connected managed resource
-Collection&lt;MBeanAttributeInfo&gt; getAttributes(String resourceName) | Gets metadata of resource attributes
-Collection&lt;MBeanNotificationInfo&gt; getNotifications(String resourceName) | Gets metadata of resource events
 void processAttributes(Closure action) | Processes all attributes sequentially. May be used for map/reduce.
 void processEvents(Closure action) | Processes all events sequentially
-
-Read attribute value using resoure client:
-```groovy
-def resource = getManagedResource 'java-app-server'
-def memory = resource.getAttribute 'memory'
-releaseManagedResource resource
-```
+Object eventsAnalyzer() | Creates a new instance of real-time analyzer for all incoming notifications
+Object attributesAnalyzer(long checkPeriod) | Creates a new instance of real-time analyzer for all attributes
 
 Read all attributes:
 ```groovy
@@ -105,7 +89,36 @@ Read all events:
 processEvents({resourceName, metadata -> println "${metadata.notifTypes}"})
 ```
 
-### Miscellaneous API
+The following example demonstrates how to enable periodic collection and analysis of attributes:
+```groovy
+def analyzer = attributesAnalyzer 4000 //creates analyzer for attributes with 4 sec check period
+analyzer.with {
+  //filter by configuration parameter and actual attribute value
+  select "(type=adminDefined)" when {value -> value > 10} then {println it} failure {println it}
+  //fallback condition
+  select "(type=*)" when {value -> true} then {println it}
+}
+analyzer.run()  //execute analysis
+
+void close(){
+  analyzer.close()  //it is recommended to release all resources associated with analyzer
+}
+```
+_RFC 1960_-based filter used to filter attributes by its configuration parameters.
+
+The following example demonstrates how to enable events analyzer
+```groovy
+def analyzer = eventsAnalyzer()
+analyzer.with {
+  select "(severity=warning)" when {notif -> notif.source == "resource"} then {metadata, notif -> println notif.message}
+}
+
+def handleNotification(metadata, notif){
+  analyzer.handleNotification(metadata, notif)
+}
+```
+
+#### Miscellaneous
 
 Function | Description
 ---- | ----
@@ -148,36 +161,29 @@ def response = communicator.post('ping', 2000)  //2 seconds for response timeout
 println response  //pong
 ```
 
-### Real-time analysis
-Groovy Resource Adapter provides two declarative analyzers:
-* Attributes analyzer used to analyze attribute values in periodically manner
-* Events analyzer used to analyze notifications on-the-fly
+### DSL
+Groovy Resource Adapter provides very convenient way to work with connected resources and its features. Each resource and its features available as properties of Groovy objects:
 
-The following example demonstrates how to enable periodic collection and analysis of attributes:
+* `resources.resName` - gets access to the connected resource named as `resName` is SNAMP configuration
+* `resources.getResource("resName")` - the same as above
+* `resources.resName.metadata.configProperty` - gets value of the configuration parameter declared in the configuration section for resource with user-defined name `resName`
+* `resources.resName.entityName` - gets access to the feature of resource `resName`. The property can return attribute or event and this behavior depends on the user-defined name of the attribute or event used in SNAMP configuration
+* `resources.resName.attributes` - gets collection of all attributes exposed by resource `resName`
+* `resources.resName.events` - gets collection of all events exposed by resource `resName`
+* `resources.resName.getAttribute("attrName")` - gets access to the attribute `attrName`. The same as `resources.resName.attrName`
+* `resources.resName.getEvent("eventName")` - gets access to the event `eventName`. The same as `resources.resName.eventName`
+* `resources.resName.attrName.value` - gets or sets value of the attribute if `aatrName` is a name of the attribute (not event)
+* `resources.resName.attrName.metadata.configProperty` - gets value of the configuration parameter declared in the configuration section for attribute `attrName`
+* `resources.resName.eventName.configProperty` - gets value of the configuration parameter declared in the configuration section for attribute `attrName`
+
+The following example demonstrates how to DSL extensions:
 ```groovy
-def analyzer = attributesAnalyzer 4000 //creates analyzer for attributes with 4 sec check period
-analyzer.with {
-  //filter by configuration parameter and actual attribute value
-  select "(type=adminDefined)" when {value -> value > 10} then {println it} failure {println it}
-  //fallback condition
-  select "(type=*)" when {value -> true} then {println it}
-}
-analyzer.run()  //execute analysis
-
-void close(){
-  analyzer.close()  //it is recommended to release all resources associated with analyzer
-}
-```
-_RFC 1960_-based filter used to filter attributes by its configuration parameters.
-
-The following example demonstrates how to enable events analyzer
-```groovy
-def analyzer = eventsAnalyzer()
-analyzer.with {
-  select "(severity=warning)" when {notif -> notif.source == "resource"} then {metadata, notif -> println notif.message}
+def appServer = resources.appServer
+if(appServer.availableMemory.value < 10000) {
+    smtp.sendEmail(appServer.metadata.adminAddress, "Not enough memory on app server!")
 }
 
-def handleNotification(metadata, notif){
-  analyzer.handleNotification(metadata, notif)
+if(appServer.logLevel.metadata.writable){
+  appServer.logLevel.value = "SEVERE"
 }
 ```
