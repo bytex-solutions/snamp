@@ -2,9 +2,7 @@ package com.itworks.snamp.connectors.openstack;
 
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.openstack.flavor.*;
-import com.itworks.snamp.connectors.openstack.hypervisor.HypervisorFreeDiskAttribute;
-import com.itworks.snamp.connectors.openstack.hypervisor.HypervisorFreeRamAttribute;
-import com.itworks.snamp.connectors.openstack.hypervisor.HypervisorWorkloadAttribute;
+import com.itworks.snamp.connectors.openstack.hypervisor.*;
 import com.itworks.snamp.jmx.JMExceptionUtils;
 import org.openstack4j.api.OSClient;
 
@@ -60,6 +58,10 @@ enum OpenStackResourceType {
                     return new HypervisorFreeDiskAttribute(attributeID, descriptor, openStackClient);
                 case HypervisorWorkloadAttribute.NAME:
                     return new HypervisorWorkloadAttribute(attributeID, descriptor, openStackClient);
+                case HypervisorHostIpAttribute.NAME:
+                    return new HypervisorHostIpAttribute(attributeID, descriptor, openStackClient);
+                case HypervisorHostnameAttribute.NAME:
+                    return new HypervisorHostnameAttribute(attributeID, descriptor, openStackClient);
                 default:
                     throw JMExceptionUtils.attributeNotFound(descriptor.getAttributeName());
             }
