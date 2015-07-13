@@ -1,4 +1,4 @@
-package com.itworks.snamp.connectors.openstack.computeQuota;
+package com.itworks.snamp.connectors.openstack.quotaSet;
 
 import com.google.common.base.MoreObjects;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
@@ -11,15 +11,15 @@ import java.math.BigDecimal;
 /**
  * The total Virtual CPU Usage
  */
-public final class UsageVCPUAttribute extends AbstractTenantUsageAttribute<BigDecimal> {
+public final class ServerUsageVCPUAttribute extends AbstractServerUsageAttribute<BigDecimal> {
     public static final String NAME = "totalVcpusUsage";
     static final String DESCRIPTION = "The total Virtual CPU Usage";
     static final SimpleType<BigDecimal> TYPE = SimpleType.BIGDECIMAL;
 
-    public UsageVCPUAttribute(final String tenantID,
-                                          final String attributeID,
-                                          final AttributeDescriptor descriptor,
-                                          final OSClient client){
+    public ServerUsageVCPUAttribute(final String tenantID,
+                                    final String attributeID,
+                                    final AttributeDescriptor descriptor,
+                                    final OSClient client){
         super(tenantID, attributeID, DESCRIPTION, TYPE, descriptor, client);
     }
 

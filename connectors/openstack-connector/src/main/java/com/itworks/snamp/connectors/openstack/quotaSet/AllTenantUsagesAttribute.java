@@ -1,4 +1,4 @@
-package com.itworks.snamp.connectors.openstack.computeQuota;
+package com.itworks.snamp.connectors.openstack.quotaSet;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
@@ -10,7 +10,7 @@ import com.itworks.snamp.internal.Utils;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.api.compute.QuotaSetService;
 import org.openstack4j.api.identity.TenantService;
-import org.openstack4j.model.compute.QuotaSet;
+import org.openstack4j.model.compute.SimpleTenantUsage;
 import org.openstack4j.model.identity.Tenant;
 
 import javax.management.openmbean.ArrayType;
@@ -20,46 +20,46 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
- * Information about all quotas.
+ * Information about all usages.
  */
-public final class AllQuotasAttribute extends OpenStackResourceAttribute<CompositeData[], QuotaSetService> {
-    public static final String NAME = "computeQuotaSet";
-    private static final String DESCRIPTION = "All available quotas over tenant groups";
+public final class AllTenantUsagesAttribute extends OpenStackResourceAttribute<CompositeData[], QuotaSetService> {
+    public static final String NAME = "tenantUsages";
+    private static final String DESCRIPTION = "All available quota usages over tenant groups";
     private static final ArrayType<CompositeData[]> TYPE = Utils.interfaceStaticInitialize(new Callable<ArrayType<CompositeData[]>>() {
         @Override
         public ArrayType<CompositeData[]> call() throws OpenDataException {
-            return new ArrayType<>(1, QuotaAttribute.TYPE);
+            return new ArrayType<>(1, ServerUsageAttribute.TYPE);
         }
     });
     private final TenantService identityService;
 
-    public AllQuotasAttribute(final String attributeId,
-                              final AttributeDescriptor descriptor,
-                              final OSClient client) {
+    public AllTenantUsagesAttribute(final String attributeId,
+                                    final AttributeDescriptor descriptor,
+                                    final OSClient client) {
         super(attributeId, DESCRIPTION, TYPE, AttributeSpecifier.READ_ONLY, descriptor, client.compute().quotaSets());
         if (client.supportsIdentity())
             identityService = client.identity().tenants();
         else identityService = null;
     }
 
-    private List<QuotaSet> getQuotas() {
+    private List<SimpleTenantUsage> getUsages() {
         if (identityService == null) return ImmutableList.of();
         List<? extends Tenant> tenants = identityService.list();
         if (tenants == null) tenants = ImmutableList.of();
-        return Lists.transform(tenants, new Function<Tenant, QuotaSet>() {
+        return Lists.transform(tenants, new Function<Tenant, SimpleTenantUsage>() {
             @Override
-            public QuotaSet apply(final Tenant tenant) {
-                return openStackService.get(tenant.getId());
+            public SimpleTenantUsage apply(final Tenant tenant) {
+                return openStackService.getTenantUsage(tenant.getId());
             }
         });
     }
 
     @Override
     public CompositeData[] getValue() throws OpenDataException {
-        final List<QuotaSet> quotas = getQuotas();
-        final CompositeData[] result = new CompositeData[quotas.size()];
-        for(int i = 0; i < quotas.size(); i++)
-            result[i] = QuotaAttribute.getValueCore(quotas.get(i));
+        final List<SimpleTenantUsage> usages = getUsages();
+        final CompositeData[] result = new CompositeData[usages.size()];
+        for(int i = 0; i < usages.size(); i++)
+            result[i] = ServerUsageAttribute.getValueCore(usages.get(i));
         return result;
     }
 }

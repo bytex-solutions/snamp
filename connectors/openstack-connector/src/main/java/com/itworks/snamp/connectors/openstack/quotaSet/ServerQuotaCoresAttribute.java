@@ -1,4 +1,4 @@
-package com.itworks.snamp.connectors.openstack.computeQuota;
+package com.itworks.snamp.connectors.openstack.quotaSet;
 
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import org.openstack4j.api.OSClient;
@@ -12,15 +12,15 @@ import javax.management.openmbean.SimpleType;
  * @since 1.0
  * @version 1.0
  */
-public final class QuotaCoresAttribute extends AbstractQuotaAttribute<Integer> {
+public final class ServerQuotaCoresAttribute extends AbstractServerQuotaAttribute<Integer> {
     public static final String NAME = "cores";
     static final String DESCRIPTION = "Number of instanceable cores";
     static final SimpleType<Integer> TYPE = SimpleType.INTEGER;
 
-    public QuotaCoresAttribute(final String tenantID,
-                               final String attributeID,
-                               final AttributeDescriptor descriptor,
-                               final OSClient client){
+    public ServerQuotaCoresAttribute(final String tenantID,
+                                     final String attributeID,
+                                     final AttributeDescriptor descriptor,
+                                     final OSClient client){
         super(tenantID, attributeID, DESCRIPTION, TYPE, descriptor, client);
     }
 

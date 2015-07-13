@@ -1,4 +1,4 @@
-package com.itworks.snamp.connectors.openstack.computeQuota;
+package com.itworks.snamp.connectors.openstack.quotaSet;
 
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.attributes.AttributeSpecifier;
@@ -13,17 +13,14 @@ import javax.management.openmbean.OpenType;
 /**
  * Represents a superclass for quota usages.
  */
-abstract class AbstractTenantUsageAttribute<T> extends OpenStackResourceAttribute<T, QuotaSetService> {
-    protected final String tenantID;
-
-    AbstractTenantUsageAttribute(final String tenantID,
-                           final String attributeID,
-                           final String description,
-                           final OpenType<T> attributeType,
-                           final AttributeDescriptor descriptor,
-                           final OSClient openStackService) {
-        super(attributeID, description, attributeType, AttributeSpecifier.READ_ONLY, descriptor, openStackService.compute().quotaSets());
-        this.tenantID = tenantID;
+abstract class AbstractServerUsageAttribute<T> extends AbstractQuotaAttribute<T, QuotaSetService> {
+    AbstractServerUsageAttribute(final String tenantID,
+                                 final String attributeID,
+                                 final String description,
+                                 final OpenType<T> attributeType,
+                                 final AttributeDescriptor descriptor,
+                                 final OSClient openStackService) {
+        super(tenantID, attributeID, description, attributeType, descriptor, openStackService.compute().quotaSets());
     }
 
     private final SimpleTenantUsage getTenantUsage() {
@@ -45,15 +42,4 @@ abstract class AbstractTenantUsageAttribute<T> extends OpenStackResourceAttribut
     }
 
     protected abstract T getValue(final SimpleTenantUsage usage) throws Exception;
-
-    /**
-     * Sets value of this attribute.
-     *
-     * @param value The value of this attribute.
-     * @throws Exception Unable to write attribute value.
-     */
-    @Override
-    public final void setValue(final T value) throws Exception {
-        throw new MBeanException(new UnsupportedOperationException("Attribute is read-only"));
-    }
 }

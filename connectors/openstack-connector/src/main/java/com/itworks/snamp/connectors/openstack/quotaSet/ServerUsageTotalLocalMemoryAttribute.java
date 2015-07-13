@@ -1,4 +1,4 @@
-package com.itworks.snamp.connectors.openstack.computeQuota;
+package com.itworks.snamp.connectors.openstack.quotaSet;
 
 import com.google.common.base.MoreObjects;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
@@ -11,15 +11,15 @@ import java.math.BigDecimal;
 /**
  * The total local GB of data used
  */
-public final class UsageTotalLocalMemoryAttribute extends AbstractTenantUsageAttribute<BigDecimal> {
+public final class ServerUsageTotalLocalMemoryAttribute extends AbstractServerUsageAttribute<BigDecimal> {
     public static final String NAME = "totalLocalMemoryUsage";
     static final String DESCRIPTION = "the total memory usage in MB";
     static final SimpleType<BigDecimal> TYPE = SimpleType.BIGDECIMAL;
 
-    public UsageTotalLocalMemoryAttribute(final String tenantID,
-                                        final String attributeID,
-                                        final AttributeDescriptor descriptor,
-                                        final OSClient client){
+    public ServerUsageTotalLocalMemoryAttribute(final String tenantID,
+                                                final String attributeID,
+                                                final AttributeDescriptor descriptor,
+                                                final OSClient client){
         super(tenantID, attributeID, DESCRIPTION, TYPE, descriptor.setUnit("MB"), client);
     }
 

@@ -51,10 +51,10 @@ public final class ServerAttribute extends AbstractServerAttribute<CompositeData
         super(serverID, attributeID, DESCRIPTION, TYPE, descriptor, client);
     }
 
-    static CompositeData getValueCore(final ServerService sevice,
+    static CompositeData getValueCore(final ServerService service,
                                       final Server srv) throws OpenDataException {
         final Map<String, Object> result = Maps.newHashMapWithExpectedSize(TYPE.keySet().size());
-        result.put(ServerAllDiagnosticsAttribute.NAME, ServerAllDiagnosticsAttribute.getValueCore(sevice, srv.getId()));
+        result.put(ServerAllDiagnosticsAttribute.NAME, ServerAllDiagnosticsAttribute.getValueCore(service, srv.getId()));
         result.put(ServerFaultAttribute.NAME, ServerFaultAttribute.getValueCore(srv));
         result.put(ServerFlavorAttribute.NAME, ServerFlavorAttribute.getValueCore(srv));
         result.put(ServerHostAttribute.NAME, ServerHostAttribute.getValueCore(srv));

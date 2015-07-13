@@ -1,4 +1,4 @@
-package com.itworks.snamp.connectors.openstack.computeQuota;
+package com.itworks.snamp.connectors.openstack.quotaSet;
 
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import org.openstack4j.api.OSClient;
@@ -12,15 +12,15 @@ import javax.management.openmbean.SimpleType;
  * @since 1.0
  * @version 1.0
  */
-public final class QuotaFloatingIPsAttribute extends AbstractQuotaAttribute<Integer> {
+public final class ServerQuotaFloatingIPsAttribute extends AbstractServerQuotaAttribute<Integer> {
     public static final String NAME = "floatingIPs";
     static final String DESCRIPTION = "Number of floating IP addresses";
     static final SimpleType<Integer> TYPE = SimpleType.INTEGER;
 
-    public QuotaFloatingIPsAttribute(final String tenantID,
-                                     final String attributeID,
-                                     final AttributeDescriptor descriptor,
-                                     final OSClient client) {
+    public ServerQuotaFloatingIPsAttribute(final String tenantID,
+                                           final String attributeID,
+                                           final AttributeDescriptor descriptor,
+                                           final OSClient client) {
         super(tenantID, attributeID, DESCRIPTION, TYPE, descriptor, client);
     }
 
