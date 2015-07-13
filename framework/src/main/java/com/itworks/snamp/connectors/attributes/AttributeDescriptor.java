@@ -186,4 +186,21 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
     public final  <T> T getField(final String fieldName, final Class<T> fieldType){
         return DescriptorUtils.getField(this, fieldName, fieldType);
     }
+
+    /**
+     * Sets unit of measurement for this attribute.
+     * @param value UOM
+     * @return A new instance of modified descriptor.
+     */
+    public AttributeDescriptor setUnit(final String value) {
+        return setFields(ImmutableMap.of(DescriptorUtils.UNIT_OF_MEASUREMENT_FIELD, value));
+    }
+
+    /**
+     * Gets unit of measurement for this attribute.
+     * @return UOM.
+     */
+    public String getUnit(){
+        return getField(DescriptorUtils.UNIT_OF_MEASUREMENT_FIELD, String.class);
+    }
 }

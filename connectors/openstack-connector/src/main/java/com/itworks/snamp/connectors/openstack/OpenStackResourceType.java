@@ -3,6 +3,7 @@ package com.itworks.snamp.connectors.openstack;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.openstack.flavor.*;
 import com.itworks.snamp.connectors.openstack.hypervisor.*;
+import com.itworks.snamp.connectors.openstack.quota.*;
 import com.itworks.snamp.connectors.openstack.server.*;
 import com.itworks.snamp.jmx.JMExceptionUtils;
 import org.openstack4j.api.OSClient;
@@ -141,6 +142,48 @@ enum OpenStackResourceType {
         }
     },
 
+    QUOTA_SET("quotaSet"){
+        @Override
+        boolean checkCapability(final OSClient client) {
+            return client.supportsCompute();
+        }
+
+        @Override
+        OpenStackResourceAttribute<?, ?> connectAttribute(final String tenantID,
+                                                          final String attributeID,
+                                                          final AttributeDescriptor descriptor,
+                                                          final OSClient openStackClient) throws AttributeNotFoundException {
+            switch (descriptor.getAttributeName()){
+                case QuotaCoresAttribute.NAME:
+                    return new QuotaCoresAttribute(tenantID, attributeID, descriptor, openStackClient);
+                case QuotaFloatingIPsAttribute.NAME:
+                    return new QuotaFloatingIPsAttribute(tenantID, attributeID, descriptor, openStackClient);
+                case QuotaGigabytesAttribute.NAME:
+                    return new QuotaGigabytesAttribute(tenantID, attributeID, descriptor, openStackClient);
+                case QuotaInstancesAttribute.NAME:
+                    return new QuotaInstancesAttribute(tenantID, attributeID, descriptor, openStackClient);
+                case QuotaRamAttribute.NAME:
+                    return new QuotaRamAttribute(tenantID, attributeID, descriptor, openStackClient);
+                case QuotaVolumesAttribute.NAME:
+                    return new QuotaVolumesAttribute(tenantID, attributeID, descriptor, openStackClient);
+                case QuotaAttribute.NAME:
+                    return new QuotaAttribute(tenantID, attributeID, descriptor, openStackClient);
+                case UsageTotalHoursAttribute.NAME:
+                    return new UsageTotalHoursAttribute(tenantID, attributeID, descriptor, openStackClient);
+                case UsageTotalLocalDiskAttribute.NAME:
+                    return new UsageTotalLocalDiskAttribute(tenantID, attributeID, descriptor, openStackClient);
+                case UsageTotalLocalMemoryAttribute.NAME:
+                    return new UsageTotalLocalMemoryAttribute(tenantID, attributeID, descriptor, openStackClient);
+                case UsageVCPUAttribute.NAME:
+                    return new UsageVCPUAttribute(tenantID, attributeID, descriptor, openStackClient);
+                case UsageAttribute.NAME:
+                    return new UsageAttribute(tenantID, attributeID, descriptor, openStackClient);
+                default:
+                    throw JMExceptionUtils.attributeNotFound(descriptor.getAttributeName());
+            }
+        }
+    },
+
     ALL("all") {
         @Override
         boolean checkCapability(final OSClient client) {
@@ -160,6 +203,10 @@ enum OpenStackResourceType {
                         return new AllHypervisorsAttribute(attributeID, descriptor, openStackClient);
                     case AllServersAttribute.NAME:
                         return new AllServersAttribute(attributeID, descriptor, openStackClient);
+                    case AllQuotasAttribute.NAME:
+                        return new AllQuotasAttribute(attributeID, descriptor, openStackClient);
+                    case AllUsagesAttribute.NAME:
+                        return new AllUsagesAttribute(attributeID, descriptor, openStackClient);
                 }
             throw JMExceptionUtils.attributeNotFound(descriptor.getAttributeName());
         }

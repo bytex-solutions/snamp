@@ -53,7 +53,7 @@ abstract class AbstractFlavorAttribute<T> extends OpenStackResourceAttribute<T, 
         final Flavor f = getFlavor();
         if (f == null)
             throw new MBeanException(new IllegalArgumentException(String.format("Flavor '%s' doesn't exist", flavorID)));
-        else return getValue(getFlavor());
+        else return getValue(f);
     }
 
     protected abstract T getValue(final Flavor flavor) throws Exception;
