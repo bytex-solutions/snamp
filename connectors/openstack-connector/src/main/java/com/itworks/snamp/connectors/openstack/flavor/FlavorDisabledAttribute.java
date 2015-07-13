@@ -1,7 +1,6 @@
 package com.itworks.snamp.connectors.openstack.flavor;
 
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
-import com.itworks.snamp.connectors.openstack.OpenStackAbsentConfigurationParameterException;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.model.compute.Flavor;
 
@@ -18,14 +17,19 @@ public final class FlavorDisabledAttribute extends AbstractFlavorAttribute<Boole
     static final String DESCRIPTION = "Determines whether the Flavor is disabled";
     static final SimpleType<Boolean> TYPE = SimpleType.BOOLEAN;
 
-    public FlavorDisabledAttribute(final String attributeID,
+    public FlavorDisabledAttribute(final String entityID,
+                                   final String attributeID,
                             final AttributeDescriptor descriptor,
-                            final OSClient openStackService) throws OpenStackAbsentConfigurationParameterException {
-        super(attributeID, DESCRIPTION, TYPE, descriptor, true, openStackService);
+                            final OSClient openStackService) {
+        super(entityID, attributeID, DESCRIPTION, TYPE, descriptor, true, openStackService);
+    }
+
+    static boolean getValueCore(final Flavor flavor){
+        return flavor.isDisabled();
     }
 
     @Override
     protected Boolean getValue(final Flavor flavor) {
-        return flavor.isDisabled();
+        return getValueCore(flavor);
     }
 }

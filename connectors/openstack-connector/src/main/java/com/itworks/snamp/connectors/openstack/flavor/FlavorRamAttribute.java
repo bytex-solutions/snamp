@@ -1,7 +1,6 @@
 package com.itworks.snamp.connectors.openstack.flavor;
 
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
-import com.itworks.snamp.connectors.openstack.OpenStackAbsentConfigurationParameterException;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.model.compute.Flavor;
 
@@ -17,14 +16,19 @@ public final class FlavorRamAttribute extends AbstractFlavorAttribute<Integer> {
     static final String DESCRIPTION = "Available Random Access Memory";
     static final SimpleType<Integer> TYPE = SimpleType.INTEGER;
 
-    public FlavorRamAttribute(final String attributeID,
+    public FlavorRamAttribute(final String entityID,
+                              final String attributeID,
                               final AttributeDescriptor descriptor,
-                              final OSClient client) throws OpenStackAbsentConfigurationParameterException{
-        super(attributeID, DESCRIPTION, TYPE, descriptor, client);
+                              final OSClient client){
+        super(entityID, attributeID, DESCRIPTION, TYPE, descriptor, client);
+    }
+
+    static int getValueCore(final Flavor flavor){
+        return flavor.getRam();
     }
 
     @Override
     protected Integer getValue(final Flavor flavor) {
-        return flavor.getRam();
+        return getValueCore(flavor);
     }
 }

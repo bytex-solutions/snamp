@@ -1,15 +1,15 @@
-package com.itworks.snamp.connectors.openstack.hypervisor;
+package com.itworks.snamp.connectors.openstack.image;
 
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.attributes.AttributeSpecifier;
 import com.itworks.snamp.connectors.openstack.OpenStackResourceAttribute;
 import org.openstack4j.api.OSClient;
-import org.openstack4j.api.compute.ext.HypervisorService;
+import org.openstack4j.api.image.ImageService;
 import org.openstack4j.model.compute.ext.Hypervisor;
+import org.openstack4j.model.image.Image;
 
 import javax.management.MBeanException;
 import javax.management.openmbean.OpenType;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -17,27 +17,20 @@ import java.util.Objects;
  * @version 1.0
  * @since 1.0
  */
-abstract class AbstractHypervisorAttribute<T> extends OpenStackResourceAttribute<T, HypervisorService> {
-    protected final String hypervisorID;
+abstract class AbstractImageAttribute<T> extends OpenStackResourceAttribute<T, ImageService> {
+    protected final String imageID;
 
-    AbstractHypervisorAttribute(final String hypervisorID,
+    AbstractImageAttribute(final String imageID,
                                 final String attributeID,
                                 final String description,
                                 final OpenType<T> attributeType,
                                 final AttributeDescriptor descriptor,
                                 final OSClient client) {
-        super(attributeID, description, attributeType, AttributeSpecifier.READ_ONLY, descriptor, client.compute().hypervisors());
-        this.hypervisorID = hypervisorID;
+        super(attributeID, description, attributeType, AttributeSpecifier.READ_ONLY, descriptor, client.images());
+        this.imageID = imageID;
     }
 
-    private Hypervisor getHypervisor(final String hypervisorID){
-        for(final Hypervisor hv: openStackService.list())
-            if(Objects.equals(hypervisorID, hv.getId()))
-                return hv;
-        return null;
-    }
-
-    protected abstract T getValue(final Hypervisor hv) throws Exception;
+    protected abstract T getValue(final Image img) throws Exception;
 
     /**
      * Gets value of this attribute.
@@ -47,9 +40,9 @@ abstract class AbstractHypervisorAttribute<T> extends OpenStackResourceAttribute
      */
     @Override
     public final T getValue() throws Exception {
-        final Hypervisor hv = getHypervisor(hypervisorID);
-        if(hv == null) throw new MBeanException(new IllegalArgumentException(String.format("Hypervisor '%s' doesn't exist", hypervisorID)));
-        else return getValue(hv);
+        final Image im = openStackService.get(imageID);
+        if(im == null) throw new MBeanException(new IllegalArgumentException(String.format("Image '%s' doesn't exist", imageID)));
+        else return getValue(im);
     }
 
     /**

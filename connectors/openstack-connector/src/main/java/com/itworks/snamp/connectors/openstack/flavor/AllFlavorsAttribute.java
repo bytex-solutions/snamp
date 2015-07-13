@@ -23,19 +23,11 @@ import java.util.Map;
 public final class AllFlavorsAttribute extends OpenStackResourceAttribute<CompositeData[], FlavorService> {
     public static final String NAME = "flavors";
     private static final String DESCRIPTION = "Gets information about all flavors";
-    private static final CompositeType FLAVOR_TYPE;
     private static final ArrayType<CompositeData[]> TYPE;
 
     static {
         try {
-            FLAVOR_TYPE = new CompositeTypeBuilder("Flavor", "OpenStack Flavor")
-                    .addItem(FlavorCpuCountAttribute.NAME, FlavorCpuCountAttribute.DESCRIPTION, FlavorCpuCountAttribute.TYPE)
-                    .addItem(FlavorDisabledAttribute.NAME, FlavorDisabledAttribute.DESCRIPTION, FlavorDisabledAttribute.TYPE)
-                    .addItem(FlavorDiskAttribute.NAME, FlavorDiskAttribute.DESCRIPTION, FlavorDiskAttribute.TYPE)
-                    .addItem(FlavorPublicAttribute.NAME, FlavorPublicAttribute.DESCRIPTION, FlavorPublicAttribute.TYPE)
-                    .addItem(FlavorRamAttribute.NAME, FlavorRamAttribute.DESCRIPTION, FlavorRamAttribute.TYPE)
-                    .build();
-            TYPE = new ArrayType<>(1, FLAVOR_TYPE);
+            TYPE = new ArrayType<>(1, FlavorAttribute.TYPE);
         } catch (final OpenDataException e) {
             throw new ExceptionInInitializerError(e);
         }
@@ -47,29 +39,18 @@ public final class AllFlavorsAttribute extends OpenStackResourceAttribute<Compos
         super(attributeID, DESCRIPTION, TYPE, AttributeSpecifier.READ_ONLY, descriptor, client.compute().flavors());
     }
 
-    private static CompositeData toCompositeData(final Flavor flavor) throws OpenDataException {
-        final Map<String, Object> result = ImmutableMap.<String, Object>of(
-                FlavorCpuCountAttribute.NAME, flavor.getVcpus(),
-                FlavorDisabledAttribute.NAME, flavor.isDisabled(),
-                FlavorDiskAttribute.NAME, flavor.getDisk(),
-                FlavorPublicAttribute.NAME, flavor.isPublic(),
-                FlavorRamAttribute.NAME, flavor.getRam()
-        );
-        return new CompositeDataSupport(FLAVOR_TYPE, result);
-    }
-
     /**
      * Gets value of this attribute.
      *
      * @return The value of this attribute.
-     * @throws Exception Unable to read attribute value.
+     * @throws OpenDataException Unable to read attribute value.
      */
     @Override
     public CompositeData[] getValue() throws OpenDataException {
         final List<? extends Flavor> flavors = openStackService.list();
         final CompositeData[] result = new CompositeData[flavors.size()];
-        for(int i = 0; i < flavors.size(); i++)
-            result[i] = toCompositeData(flavors.get(i));
+        for (int i = 0; i < flavors.size(); i++)
+            result[i] = FlavorAttribute.getValueCore(flavors.get(i));
         return result;
     }
 
@@ -77,7 +58,7 @@ public final class AllFlavorsAttribute extends OpenStackResourceAttribute<Compos
      * Sets value of this attribute.
      *
      * @param value The value of this attribute.
-     * @throws Exception Unable to write attribute value.
+     * @throws MBeanException Unable to write attribute value.
      */
     @Override
     public void setValue(final CompositeData[] value) throws MBeanException {

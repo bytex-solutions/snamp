@@ -11,20 +11,20 @@ import javax.management.openmbean.SimpleType;
  * @version 1.0
  * @since 1.0
  */
-public final class HypervisorFreeDiskAttribute extends AbstractHypervisorAttribute<Integer> {
-    public static final String NAME = "freeDisk";
-    static final String DESCRIPTION = "Amount of free disk space";
+public final class HypervisorCpuCoresAttribute extends AbstractHypervisorAttribute<Integer> {
+    public static final String NAME = "cpuCores";
+    static final String DESCRIPTION = "Number of physical CPU cores";
     static final SimpleType<Integer> TYPE = SimpleType.INTEGER;
 
-    public HypervisorFreeDiskAttribute(final String entityID,
+    public HypervisorCpuCoresAttribute(final String hypervisorID,
                                        final String attributeID,
                                        final AttributeDescriptor descriptor,
-                                       final OSClient client) {
-        super(entityID, attributeID, DESCRIPTION, TYPE, descriptor, client);
+                                       final OSClient client){
+        super(hypervisorID, attributeID, DESCRIPTION, TYPE, descriptor, client);
     }
 
     static int getValueCore(final Hypervisor hv){
-        return hv.getFreeDisk();
+        return hv.getCPUInfo().getTopology().getCores();
     }
 
     @Override

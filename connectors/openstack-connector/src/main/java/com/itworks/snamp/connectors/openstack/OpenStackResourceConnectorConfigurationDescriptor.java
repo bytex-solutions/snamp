@@ -35,15 +35,8 @@ public final class OpenStackResourceConnectorConfigurationDescriptor {
         else throw new OpenStackAbsentConfigurationParameterException(paramName);
     }
 
-    private static String getRequiredParam(final Descriptor descriptor,
-                                           final String paramName) throws OpenStackAbsentConfigurationParameterException {
-        if (hasField(descriptor, paramName))
-            return getField(descriptor, paramName, String.class);
-        else throw new OpenStackAbsentConfigurationParameterException(paramName);
-    }
-
-    public static String getEntityID(final AttributeDescriptor descriptor) throws OpenStackAbsentConfigurationParameterException {
-        return getRequiredParam(descriptor, ENTITY_ID_PARAM);
+    static String getEntityID(final Map<String, String> parameters) throws OpenStackAbsentConfigurationParameterException {
+        return getRequiredParam(parameters, ENTITY_ID_PARAM);
     }
 
     static OSClient createClient(final Map<String, String> params) throws OpenStackAbsentConfigurationParameterException {

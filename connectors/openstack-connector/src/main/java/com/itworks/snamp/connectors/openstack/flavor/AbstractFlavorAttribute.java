@@ -2,7 +2,6 @@ package com.itworks.snamp.connectors.openstack.flavor;
 
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.attributes.AttributeSpecifier;
-import com.itworks.snamp.connectors.openstack.OpenStackAbsentConfigurationParameterException;
 import com.itworks.snamp.connectors.openstack.OpenStackResourceAttribute;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.api.compute.FlavorService;
@@ -10,7 +9,6 @@ import org.openstack4j.model.compute.Flavor;
 
 import javax.management.MBeanException;
 import javax.management.openmbean.OpenType;
-import static com.itworks.snamp.connectors.openstack.OpenStackResourceConnectorConfigurationDescriptor.getEntityID;
 
 /**
  * @author Roman Sakno
@@ -18,27 +16,29 @@ import static com.itworks.snamp.connectors.openstack.OpenStackResourceConnectorC
  * @since 1.0
  */
 abstract class AbstractFlavorAttribute<T> extends OpenStackResourceAttribute<T, FlavorService> {
-    private final String flavorID;
+    protected final String flavorID;
 
-    AbstractFlavorAttribute(final String attributeID,
+    AbstractFlavorAttribute(final String flavorID,
+                            final String attributeID,
                             final String description,
                             final OpenType<T> attributeType,
                             final AttributeDescriptor descriptor,
-                            final OSClient openStackService) throws OpenStackAbsentConfigurationParameterException {
-        this(attributeID, description, attributeType, descriptor, false, openStackService);
+                            final OSClient openStackService) {
+        this(flavorID, attributeID, description, attributeType, descriptor, false, openStackService);
     }
 
-    AbstractFlavorAttribute(final String attributeID,
+    AbstractFlavorAttribute(final String flavorID,
+                            final String attributeID,
                             final String description,
                             final OpenType<T> attributeType,
                             final AttributeDescriptor descriptor,
                             final boolean isIs,
-                            final OSClient openStackService) throws OpenStackAbsentConfigurationParameterException {
+                            final OSClient openStackService) {
         super(attributeID, description, attributeType, AttributeSpecifier.READ_ONLY.flag(isIs), descriptor, openStackService.compute().flavors());
-        flavorID = getEntityID(descriptor);
+        this.flavorID = flavorID;
     }
 
-    private final Flavor getFlavor(){
+    private final Flavor getFlavor() {
         return openStackService.get(flavorID);
     }
 
@@ -51,7 +51,8 @@ abstract class AbstractFlavorAttribute<T> extends OpenStackResourceAttribute<T, 
     @Override
     public final T getValue() throws Exception {
         final Flavor f = getFlavor();
-        if(f == null) throw new MBeanException(new IllegalArgumentException(String.format("Flavor '%s' doesn't exist", flavorID)));
+        if (f == null)
+            throw new MBeanException(new IllegalArgumentException(String.format("Flavor '%s' doesn't exist", flavorID)));
         else return getValue(getFlavor());
     }
 

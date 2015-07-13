@@ -1,7 +1,6 @@
 package com.itworks.snamp.connectors.openstack.flavor;
 
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
-import com.itworks.snamp.connectors.openstack.OpenStackAbsentConfigurationParameterException;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.model.compute.Flavor;
 
@@ -18,14 +17,19 @@ public final class FlavorCpuCountAttribute extends AbstractFlavorAttribute<Integ
     static final String DESCRIPTION = "Number of reserved virtual CPUs";
     static final SimpleType<Integer> TYPE = SimpleType.INTEGER;
 
-    public FlavorCpuCountAttribute(final String attributeID,
-                              final AttributeDescriptor descriptor,
-                              final OSClient client) throws OpenStackAbsentConfigurationParameterException{
-        super(attributeID, DESCRIPTION, TYPE, descriptor, client);
+    public FlavorCpuCountAttribute(final String entityID,
+                                   final String attributeID,
+                                   final AttributeDescriptor descriptor,
+                                   final OSClient client) {
+        super(entityID, attributeID, DESCRIPTION, TYPE, descriptor, client);
+    }
+
+    static int getValueCore(final Flavor flavor){
+        return flavor.getVcpus();
     }
 
     @Override
     protected Integer getValue(final Flavor flavor) {
-        return flavor.getVcpus();
+        return getValueCore(flavor);
     }
 }

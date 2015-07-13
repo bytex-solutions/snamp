@@ -28,19 +28,22 @@ final class OpenStackResourceConnector extends AbstractManagedResourceConnector 
         OSFactory.useJDKLogger();
     }
 
-    private static final class OpenStackAttributeSupport extends AbstractAttributeSupport<OpenStackResourceAttribute>{
+    private static final class OpenStackAttributeSupport extends AbstractAttributeSupport<OpenStackResourceAttribute> {
         private final Logger logger;
         private final OpenStackResourceType resourceType;
         private final OSClient client;
+        private final String entityID;
 
         private OpenStackAttributeSupport(final String resourceName,
-                                           final OpenStackResourceType resourceType,
-                                           final OSClient client,
-                                           final Logger logger){
+                                          final String entityID,
+                                          final OpenStackResourceType resourceType,
+                                          final OSClient client,
+                                          final Logger logger) {
             super(resourceName, OpenStackResourceAttribute.class);
             this.logger = logger;
             this.resourceType = resourceType;
             this.client = client;
+            this.entityID = entityID;
         }
 
         /**
@@ -53,7 +56,7 @@ final class OpenStackResourceConnector extends AbstractManagedResourceConnector 
          */
         @Override
         protected OpenStackResourceAttribute connectAttribute(final String attributeID, final AttributeDescriptor descriptor) throws Exception {
-            return resourceType.connectAttribute(attributeID, descriptor, client);
+            return resourceType.connectAttribute(entityID, attributeID, descriptor, client);
         }
 
         /**
@@ -130,17 +133,33 @@ final class OpenStackResourceConnector extends AbstractManagedResourceConnector 
             attributeInfo.disconnect();
             return true;
         }
+
+        @Override
+        public String toString() {
+            return "resource = " + getResourceName() +
+                    "entity = " + entityID +
+                    "type = " + resourceType;
+        }
     }
 
     private final OpenStackAttributeSupport attributes;
 
     OpenStackResourceConnector(final String resourceName,
-                               final Map<String, String> parameters) throws OpenStackAbsentConfigurationParameterException, UnsupportedOpenStackFeatureException {
-        final OSClient client = createClient(parameters);
-        final OpenStackResourceType resourceType = getResourceType(parameters);
-        if(!resourceType.checkCapability(client))
+                               final OpenStackResourceType resourceType,
+                               final String entityID,
+                               final OSClient client) throws UnsupportedOpenStackFeatureException {
+        if (!resourceType.checkCapability(client))
             throw new UnsupportedOpenStackFeatureException(resourceType);
-        attributes = new OpenStackAttributeSupport(resourceName, resourceType, client, getLoggerImpl());
+        attributes = new OpenStackAttributeSupport(resourceName,
+                entityID,
+                resourceType,
+                client,
+                getLoggerImpl());
+    }
+
+    OpenStackResourceConnector(final String resourceName,
+                               final Map<String, String> parameters) throws OpenStackAbsentConfigurationParameterException, UnsupportedOpenStackFeatureException {
+        this(resourceName, getResourceType(parameters), getEntityID(parameters), createClient(parameters));
     }
 
     private static Logger getLoggerImpl(){

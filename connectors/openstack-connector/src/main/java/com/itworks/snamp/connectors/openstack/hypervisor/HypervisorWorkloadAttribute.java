@@ -1,7 +1,6 @@
 package com.itworks.snamp.connectors.openstack.hypervisor;
 
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
-import com.itworks.snamp.connectors.openstack.OpenStackAbsentConfigurationParameterException;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.model.compute.ext.Hypervisor;
 
@@ -17,14 +16,19 @@ public final class HypervisorWorkloadAttribute extends AbstractHypervisorAttribu
     static final String DESCRIPTION = "The current workload";
     static final SimpleType<Integer> TYPE = SimpleType.INTEGER;
 
-    public HypervisorWorkloadAttribute(final String attributeID,
+    public HypervisorWorkloadAttribute(final String entityID,
+                                       final String attributeID,
                                        final AttributeDescriptor descriptor,
-                                       final OSClient client) throws OpenStackAbsentConfigurationParameterException{
-        super(attributeID, DESCRIPTION, TYPE, descriptor, client);
+                                       final OSClient client) {
+        super(entityID, attributeID, DESCRIPTION, TYPE, descriptor, client);
+    }
+
+    static int getValueCore(final Hypervisor hv){
+        return hv.getCurrentWorkload();
     }
 
     @Override
     protected Integer getValue(final Hypervisor hv) {
-        return hv.getCurrentWorkload();
+        return getValueCore(hv);
     }
 }

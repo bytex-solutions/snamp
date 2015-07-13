@@ -20,6 +20,10 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
+                        <Import-Package>
+                            *,
+                            com.google.guava.*
+                        </Import-Package>
                         <Bundle-SymbolicName>com.itworks.snamp.connectors.openstack</Bundle-SymbolicName>
                         <Bundle-Activator>com.itworks.snamp.connectors.openstack.OpenStackResourceConnectorActivator</Bundle-Activator>
                         <Export-Package/>
@@ -53,14 +57,19 @@
             <groupId>org.pacesys</groupId>
             <artifactId>openstack4j</artifactId>
             <version>${openstack4j.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+            </exclusions>
             <classifier>withdeps</classifier>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>17.0</version>
-            <classifier>sources</classifier>
+            <version>${guava.version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

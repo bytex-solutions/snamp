@@ -1,7 +1,6 @@
 package com.itworks.snamp.connectors.openstack.flavor;
 
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
-import com.itworks.snamp.connectors.openstack.OpenStackAbsentConfigurationParameterException;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.model.compute.Flavor;
 
@@ -17,14 +16,19 @@ public final class FlavorDiskAttribute extends AbstractFlavorAttribute<Integer> 
     static final String DESCRIPTION = "Reserved disk space";
     static final SimpleType<Integer> TYPE = SimpleType.INTEGER;
 
-    public FlavorDiskAttribute(final String attributeID,
+    public FlavorDiskAttribute(final String entityID,
+                               final String attributeID,
                                final AttributeDescriptor descriptor,
-                               final OSClient client) throws OpenStackAbsentConfigurationParameterException{
-        super(attributeID, DESCRIPTION, TYPE, descriptor, client);
+                               final OSClient client) {
+        super(entityID, attributeID, DESCRIPTION, TYPE, descriptor, client);
+    }
+
+    static int getValueCore(final Flavor flavor){
+        return flavor.getDisk();
     }
 
     @Override
     protected Integer getValue(final Flavor flavor) {
-        return flavor.getDisk();
+        return getValueCore(flavor);
     }
 }

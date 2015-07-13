@@ -11,20 +11,20 @@ import javax.management.openmbean.SimpleType;
  * @version 1.0
  * @since 1.0
  */
-public final class HypervisorHostnameAttribute extends AbstractHypervisorAttribute<String> {
-    public static final String NAME = "hostname";
-    static final String DESCRIPTION = "Name of the host with hypervisor";
+public final class HypervisorCpuModelAttribute extends AbstractHypervisorAttribute<String> {
+    public static final String NAME = "cpuModel";
+    static final String DESCRIPTION = "Model of the physical CPU";
     static final SimpleType<String> TYPE = SimpleType.STRING;
 
-    public HypervisorHostnameAttribute(final String entityID,
+    public HypervisorCpuModelAttribute(final String hypervisorID,
                                        final String attributeID,
                                        final AttributeDescriptor descriptor,
-                                       final OSClient client) {
-        super(entityID, attributeID, DESCRIPTION, TYPE, descriptor, client);
+                                       final OSClient client){
+        super(hypervisorID, attributeID, DESCRIPTION, TYPE, descriptor, client);
     }
 
     static String getValueCore(final Hypervisor hv){
-        return hv.getHypervisorHostname();
+        return hv.getCPUInfo().getModel();
     }
 
     @Override

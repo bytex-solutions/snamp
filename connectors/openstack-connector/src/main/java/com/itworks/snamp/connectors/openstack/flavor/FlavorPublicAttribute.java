@@ -1,7 +1,6 @@
 package com.itworks.snamp.connectors.openstack.flavor;
 
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
-import com.itworks.snamp.connectors.openstack.OpenStackAbsentConfigurationParameterException;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.model.compute.Flavor;
 
@@ -17,14 +16,19 @@ public final class FlavorPublicAttribute extends AbstractFlavorAttribute<Boolean
     static final String DESCRIPTION = "Determines whether the flavor is public";
     static final SimpleType<Boolean> TYPE = SimpleType.BOOLEAN;
 
-    public FlavorPublicAttribute(final String attributeID,
+    public FlavorPublicAttribute(final String entityID,
+                                 final String attributeID,
                                  final AttributeDescriptor descriptor,
-                                 final OSClient client) throws OpenStackAbsentConfigurationParameterException{
-        super(attributeID, DESCRIPTION, TYPE, descriptor, true, client);
+                                 final OSClient client) {
+        super(entityID, attributeID, DESCRIPTION, TYPE, descriptor, true, client);
+    }
+
+    static boolean getValueCore(final Flavor flavor){
+        return flavor.isPublic();
     }
 
     @Override
     protected Boolean getValue(final Flavor flavor) {
-        return flavor.isPublic();
+        return getValueCore(flavor);
     }
 }
