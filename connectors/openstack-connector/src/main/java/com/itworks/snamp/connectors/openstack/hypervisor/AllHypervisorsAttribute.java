@@ -53,15 +53,4 @@ public final class AllHypervisorsAttribute extends OpenStackResourceAttribute<Co
             result[i] = HypervisorAttribute.getValueCore(visors.get(i));
         return result;
     }
-
-    /**
-     * Sets value of this attribute.
-     *
-     * @param value The value of this attribute.
-     * @throws MBeanException Unable to write attribute value.
-     */
-    @Override
-    public void setValue(final CompositeData[] value) throws MBeanException {
-        throw new MBeanException(new UnsupportedOperationException("Attribute is read-only"));
-    }
 }

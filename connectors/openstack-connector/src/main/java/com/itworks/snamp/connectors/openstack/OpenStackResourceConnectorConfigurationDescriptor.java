@@ -1,6 +1,7 @@
 package com.itworks.snamp.connectors.openstack;
 
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
+import com.itworks.snamp.jmx.DescriptorUtils;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.model.common.Identifier;
 import org.openstack4j.openstack.OSFactory;
@@ -27,6 +28,8 @@ public final class OpenStackResourceConnectorConfigurationDescriptor {
     private static final String TOKEN_ID_PARAM = "tokenID";
 
     private static final String ENTITY_ID_PARAM = "entityID";
+
+    private static final String METRIC_NAME_PARAM = "metricName";
 
     private static String getRequiredParam(final Map<String, String> params,
                                            final String paramName) throws OpenStackAbsentConfigurationParameterException {
@@ -76,5 +79,15 @@ public final class OpenStackResourceConnectorConfigurationDescriptor {
         final OpenStackResourceType result = OpenStackResourceType.parse(resourceType);
         if (result == null) throw new OpenStackAbsentConfigurationParameterException(RESOURCE_TYPE_PARAM);
         else return result;
+    }
+
+    private static String getRequiredParam(final Descriptor descriptor, final String paramName) throws OpenStackAbsentConfigurationParameterException {
+        if (DescriptorUtils.hasField(descriptor, paramName))
+            return DescriptorUtils.getField(descriptor, paramName, String.class);
+        else throw new OpenStackAbsentConfigurationParameterException(paramName);
+    }
+
+    public static String getMetricName(final AttributeDescriptor descriptor) throws OpenStackAbsentConfigurationParameterException {
+        return getRequiredParam(descriptor, METRIC_NAME_PARAM);
     }
 }

@@ -8,6 +8,8 @@ import org.openstack4j.api.OSClient;
 import org.openstack4j.common.RestService;
 
 import javax.management.Descriptor;
+import javax.management.MBeanException;
+import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.OpenMBeanAttributeInfoSupport;
 import javax.management.openmbean.OpenType;
 import java.util.Objects;
@@ -54,7 +56,9 @@ public abstract class OpenStackResourceAttribute<T, A extends RestService> exten
      * @throws Exception Unable to write attribute value.
      */
     @Override
-    public abstract void setValue(final T value) throws Exception;
+    public void setValue(final T value) throws Exception {
+        throw new MBeanException(new UnsupportedOperationException("Attribute is read-only"));
+    }
 
     /**
      * Releases all resources associated with this attribute.

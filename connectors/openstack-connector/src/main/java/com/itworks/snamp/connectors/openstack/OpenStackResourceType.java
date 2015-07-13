@@ -107,12 +107,34 @@ enum OpenStackResourceType {
         }
 
         @Override
-        OpenStackResourceAttribute<?, ?> connectAttribute(final String serverID, final String attributeID, final AttributeDescriptor descriptor, final OSClient openStackClient) throws AttributeNotFoundException {
+        OpenStackResourceAttribute<?, ?> connectAttribute(final String serverID, final String attributeID, final AttributeDescriptor descriptor, final OSClient openStackClient) throws AttributeNotFoundException, OpenStackAbsentConfigurationParameterException {
             switch (descriptor.getAttributeName()){
                 case ServerStatusAttribute.NAME:
                     return new ServerStatusAttribute(serverID, attributeID, descriptor, openStackClient);
                 case ServerFaultAttribute.NAME:
                     return new ServerFaultAttribute(serverID, attributeID, descriptor, openStackClient);
+                case ServerAllDiagnosticsAttribute.NAME:
+                    return new ServerAllDiagnosticsAttribute(serverID, attributeID, descriptor, openStackClient);
+                case ServerDiagnosticsAttribute.NAME:
+                    return new ServerDiagnosticsAttribute(serverID, attributeID, descriptor, openStackClient);
+                case ServerHostAttribute.NAME:
+                    return new ServerHostAttribute(serverID, attributeID, descriptor, openStackClient);
+                case ServerFlavorAttribute.NAME:
+                    return new ServerFlavorAttribute(serverID, attributeID, descriptor, openStackClient);
+                case ServerPowerStateAttribute.NAME:
+                    return new ServerPowerStateAttribute(serverID, attributeID, descriptor, openStackClient);
+                case ServerVmStateAttribute.NAME:
+                    return new ServerVmStateAttribute(serverID, attributeID, descriptor, openStackClient);
+                case ServerTerminatedAtAttribute.NAME:
+                    return new ServerTerminatedAtAttribute(serverID, attributeID, descriptor, openStackClient);
+                case ServerLaunchedAtAttribute.NAME:
+                    return new ServerLaunchedAtAttribute(serverID, attributeID, descriptor, openStackClient);
+                case ServerNameAttribute.NAME:
+                    return new ServerNameAttribute(serverID, attributeID, descriptor, openStackClient);
+                case ServerInstanceNameAttribute.NAME:
+                    return new ServerInstanceNameAttribute(serverID, attributeID, descriptor, openStackClient);
+                case ServerAttribute.NAME:
+                    return new ServerAttribute(serverID, attributeID, descriptor, openStackClient);
                 default:
                     throw JMExceptionUtils.attributeNotFound(descriptor.getAttributeName());
             }
@@ -136,6 +158,8 @@ enum OpenStackResourceType {
                         return new AllFlavorsAttribute(attributeID, descriptor, openStackClient);
                     case AllHypervisorsAttribute.NAME:
                         return new AllHypervisorsAttribute(attributeID, descriptor, openStackClient);
+                    case AllServersAttribute.NAME:
+                        return new AllServersAttribute(attributeID, descriptor, openStackClient);
                 }
             throw JMExceptionUtils.attributeNotFound(descriptor.getAttributeName());
         }
@@ -152,7 +176,7 @@ enum OpenStackResourceType {
     abstract OpenStackResourceAttribute<?, ?> connectAttribute(final String entityID,
                                                                final String attributeID,
                                                                final AttributeDescriptor descriptor,
-                                                               final OSClient openStackClient) throws AttributeNotFoundException;
+                                                               final OSClient openStackClient) throws AttributeNotFoundException, OpenStackAbsentConfigurationParameterException;
 
     @Override
     public final String toString() {

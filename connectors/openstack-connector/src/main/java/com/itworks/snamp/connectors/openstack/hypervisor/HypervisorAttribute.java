@@ -6,10 +6,7 @@ import com.itworks.snamp.jmx.CompositeTypeBuilder;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.model.compute.ext.Hypervisor;
 
-import javax.management.openmbean.CompositeData;
-import javax.management.openmbean.CompositeDataSupport;
-import javax.management.openmbean.CompositeType;
-import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.*;
 import java.util.Map;
 
 /**
@@ -21,6 +18,8 @@ public final class HypervisorAttribute extends AbstractHypervisorAttribute<Compo
     public static final String NAME = "hypervisorInfo";
     private static final String DESCRIPTION = "Information about hypervisor";
     static final CompositeType TYPE;
+    private static final String ID_NAME = "hypervisorID";
+    private static final String ID_DESCR = "ID of the hypervisor";
 
     static {
         try {
@@ -43,6 +42,7 @@ public final class HypervisorAttribute extends AbstractHypervisorAttribute<Compo
                     .addItem(HypervisorRunningVmAttribute.NAME, HypervisorRunningVmAttribute.DESCRIPTION, HypervisorRunningVmAttribute.TYPE)
                     .addItem(HypervisorTypeAttribute.NAME, HypervisorTypeAttribute.DESCRIPTION, HypervisorTypeAttribute.TYPE)
                     .addItem(HypervisorWorkloadAttribute.NAME, HypervisorWorkloadAttribute.DESCRIPTION, HypervisorWorkloadAttribute.TYPE)
+                    .addItem(ID_NAME, ID_DESCR, SimpleType.STRING)
                     .build();
         } catch (final OpenDataException e) {
             throw new ExceptionInInitializerError(e);
@@ -76,6 +76,7 @@ public final class HypervisorAttribute extends AbstractHypervisorAttribute<Compo
         result.put(HypervisorRunningVmAttribute.NAME, HypervisorRunningVmAttribute.getValueCore(hv));
         result.put(HypervisorTypeAttribute.NAME, HypervisorTypeAttribute.getValueCore(hv));
         result.put(HypervisorWorkloadAttribute.NAME, HypervisorWorkloadAttribute.getValueCore(hv));
+        result.put(ID_NAME, hv.getId());
         return new CompositeDataSupport(TYPE, result);
     }
 

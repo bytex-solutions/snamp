@@ -52,7 +52,7 @@ abstract class AbstractServerAttribute<T> extends OpenStackResourceAttribute<T, 
      * @throws Exception Unable to write attribute value.
      */
     @Override
-    public void setValue(final T value) throws Exception {
+    public final void setValue(final T value) throws Exception {
         throw new MBeanException(new UnsupportedOperationException("Attribute is read-only"));
     }
 }
