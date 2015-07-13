@@ -11,6 +11,7 @@ import org.osgi.framework.BundleContext;
 
 import javax.management.*;
 import java.io.IOException;
+import java.util.logging.Logger;
 
 import static com.itworks.snamp.connectors.aggregator.AggregatorConnectorConfiguration.getForeignAttributeName;
 import static com.itworks.snamp.connectors.aggregator.AggregatorConnectorConfiguration.getSourceManagedResource;
@@ -20,42 +21,31 @@ import static com.itworks.snamp.connectors.aggregator.AggregatorConnectorConfigu
  * @version 1.0
  * @since 1.0
  */
-final class PeriodicAttributeQuery extends CustomNotificationInfo {
+final class PeriodicAttributeQuery extends AbstractAggregatorNotification {
     private static final String DESCRIPTION = "Broadcasts attribute value in periodic manner";
     static final String CATEGORY = "periodicAttributeQuery";
     private static final long serialVersionUID = -3815002481131666409L;
 
-    private final String source;
-    private final String foreignAttribute;
 
     PeriodicAttributeQuery(final String notifType,
-                                  final NotificationDescriptor descriptor) throws AbsentAggregatorNotificationParameterException {
-        super(notifType, DESCRIPTION, descriptor);
-        source = getSourceManagedResource(descriptor);
-        foreignAttribute = getForeignAttributeName(descriptor);
+                           final NotificationDescriptor descriptor,
+                           final Logger logger) throws AbsentAggregatorNotificationParameterException {
+        super(notifType, DESCRIPTION, descriptor, logger);
     }
 
-    public String getForeignAttribute(){
-        return foreignAttribute;
-    }
-
-    private NotificationSurrogate createNotification(final AttributeSupport connector) throws MBeanException, AttributeNotFoundException, ReflectionException, IOException {
-        if(connector == null) return null;
-        final MBeanAttributeInfo metadata = connector.getAttributeInfo(foreignAttribute);
-        if(metadata == null) return null;
-        return new NotificationSurrogate(DescriptorUtils.toString(metadata.getDescriptor(), "Source attribute properties"),
-                        connector.getAttribute(foreignAttribute)
-                );
-    }
-
-    NotificationSurrogate createNotification() throws InstanceNotFoundException, MBeanException, AttributeNotFoundException, ReflectionException, IOException {
-        final BundleContext context = Utils.getBundleContextByObject(this);
-        final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(context, source);
-        try{
-            return createNotification(client.queryObject(AttributeSupport.class));
-        } finally {
-            client.release(context);
+    @Override
+    protected void process(final AttributeSupport attributes, final NotificationEnqueue sender) {
+        final Object attributeValue;
+        try {
+            attributeValue = attributes.getAttribute(foreignAttribute);
+        } catch (final AttributeNotFoundException e) {
+            attributeNotFound(foreignAttribute, e);
+            return;
+        } catch (final JMException e) {
+            failedToGetAttribute(foreignAttribute, e);
+            return; //any exception must be ignored
         }
+        sender.sendNotification(this, "Attribute value = " + attributeValue, attributeValue);
     }
 
     static SerializableEventConfiguration getConfiguration() {

@@ -16,10 +16,7 @@ import com.itworks.snamp.core.OSGiLoggingContext;
 import com.itworks.snamp.internal.Utils;
 import org.osgi.framework.BundleContext;
 
-import javax.management.AttributeNotFoundException;
-import javax.management.InstanceNotFoundException;
-import javax.management.MBeanException;
-import javax.management.ReflectionException;
+import javax.management.*;
 import javax.management.openmbean.CompositeData;
 import java.beans.IntrospectionException;
 import java.io.IOException;
@@ -74,11 +71,11 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
         }
     }
 
-    private static final class NotificationAggregationSupport extends AbstractNotificationSupport<PeriodicAttributeQuery>{
+    private static final class NotificationAggregationSupport extends AbstractNotificationSupport<AbstractAggregatorNotification>{
         private final NotificationListenerInvoker invoker;
 
         private NotificationAggregationSupport(final String resourceName) {
-            super(resourceName, PeriodicAttributeQuery.class);
+            super(resourceName, AbstractAggregatorNotification.class);
             invoker = NotificationListenerInvokerFactory.createSequentialInvoker();
         }
 
@@ -88,11 +85,13 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
         }
 
         @Override
-        protected PeriodicAttributeQuery enableNotifications(final String notifType,
+        protected AbstractAggregatorNotification enableNotifications(final String notifType,
                                                              final NotificationDescriptor metadata) throws AbsentAggregatorNotificationParameterException {
             switch (metadata.getNotificationCategory()){
                 case PeriodicAttributeQuery.CATEGORY:
-                    return new PeriodicAttributeQuery(notifType, metadata);
+                    return new PeriodicAttributeQuery(notifType, metadata, getLoggerImpl());
+                case HealthCheckNotification.CATEGORY:
+                    return new HealthCheckNotification(notifType, metadata, getLoggerImpl());
                 default: return null;
             }
         }
@@ -108,41 +107,26 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
             return Utils.getBundleContextByObject(this);
         }
 
-        private void attributeNotFound(final String attributeName, final AttributeNotFoundException e){
-            try(final OSGiLoggingContext logger = OSGiLoggingContext.get(getLoggerImpl(), getBundleContext())){
-                logger.log(Level.WARNING, String.format("Unknown attribute '%s'", attributeName), e);
-            }
-        }
+        private final class NotificationEnqueueImpl extends NotificationCollector implements NotificationEnqueue{
+            private static final long serialVersionUID = -3816463826583470313L;
 
-        private void failedToGetAttribute(final String attributeName,
-                                          final Exception e){
-            try(final OSGiLoggingContext logger = OSGiLoggingContext.get(getLoggerImpl(), getBundleContext())){
-                logger.log(Level.SEVERE, String.format("Can't read '%s' attribute", attributeName), e);
-            }
-        }
-
-        private void emitAll(){
-            fire(new NotificationCollector() {
-                private static final long serialVersionUID = -3816463826583470313L;
-
-                @Override
-                protected void process(final PeriodicAttributeQuery metadata) {
-                    NotificationSurrogate surrogate;
-                    try {
-                        surrogate = metadata.createNotification();
-                    } catch (final AttributeNotFoundException e) {
-                        attributeNotFound(metadata.getForeignAttribute(), e);
-                        surrogate = null;
-                    } catch (final MBeanException | ReflectionException | IOException e) {
-                        failedToGetAttribute(metadata.getForeignAttribute(), e);
-                        surrogate = null;
-                    } catch (final InstanceNotFoundException ignored) {
-                        surrogate = null;
-                    }
-                    if (surrogate != null)
-                        enqueue(metadata, surrogate.message, surrogate.userData);
+            @Override
+            protected void process(final AbstractAggregatorNotification metadata) {
+                try {
+                    metadata.process(this);
+                } catch (InstanceNotFoundException e) {
+                    e.printStackTrace();
                 }
-            });
+            }
+
+            @Override
+            public void sendNotification(final MBeanNotificationInfo metadata, final String message, final Object userData) {
+                enqueue(metadata, message, userData);
+            }
+        }
+
+        private void emitAll() {
+            fire(new NotificationEnqueueImpl());
         }
     }
 

@@ -390,15 +390,27 @@ public final class Utils {
         else return defaultValue;
     }
 
+    private static String getStackTrace(StackTraceElement[] stackTrace) {
+        if (stackTrace.length > 0)
+            stackTrace = ArrayUtils.remove(stackTrace, 0);
+        return Joiner.on(System.lineSeparator()).join(stackTrace);
+    }
+
     /**
      * Gets the stack trace in the form of the single string.
      * @return The current stack trace.
      */
     public static String getStackTrace(){
-        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-        if(stackTrace.length > 0)
-            stackTrace = ArrayUtils.remove(stackTrace, 0);
-        return Joiner.on(System.lineSeparator()).join(stackTrace);
+        return getStackTrace(Thread.currentThread().getStackTrace());
+    }
+
+    /**
+     * Gets the stack trace in the form of the single string.
+     * @param e An exception that holds its stack trace.
+     * @return The stack trace associated with exception.
+     */
+    public static String getStackTrace(final Throwable e){
+        return getStackTrace(e.getStackTrace());
     }
 
     /**
