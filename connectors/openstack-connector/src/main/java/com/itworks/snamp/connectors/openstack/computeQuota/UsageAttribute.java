@@ -1,4 +1,4 @@
-package com.itworks.snamp.connectors.openstack.quota;
+package com.itworks.snamp.connectors.openstack.computeQuota;
 
 import com.google.common.collect.Maps;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;

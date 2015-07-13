@@ -1,4 +1,4 @@
-package com.itworks.snamp.connectors.openstack.quota;
+package com.itworks.snamp.connectors.openstack.computeQuota;
 
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.attributes.AttributeSpecifier;

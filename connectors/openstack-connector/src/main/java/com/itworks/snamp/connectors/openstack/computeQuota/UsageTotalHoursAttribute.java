@@ -1,8 +1,7 @@
-package com.itworks.snamp.connectors.openstack.quota;
+package com.itworks.snamp.connectors.openstack.computeQuota;
 
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import org.openstack4j.api.OSClient;
-import org.openstack4j.api.identity.TenantService;
 import org.openstack4j.model.compute.SimpleTenantUsage;
 
 import javax.management.openmbean.SimpleType;

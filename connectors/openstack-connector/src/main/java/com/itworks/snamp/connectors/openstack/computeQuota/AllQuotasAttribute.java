@@ -1,4 +1,4 @@
-package com.itworks.snamp.connectors.openstack.quota;
+package com.itworks.snamp.connectors.openstack.computeQuota;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
@@ -9,12 +9,10 @@ import com.itworks.snamp.connectors.openstack.OpenStackResourceAttribute;
 import com.itworks.snamp.internal.Utils;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.api.compute.QuotaSetService;
-import org.openstack4j.api.identity.IdentityService;
 import org.openstack4j.api.identity.TenantService;
 import org.openstack4j.model.compute.QuotaSet;
 import org.openstack4j.model.identity.Tenant;
 
-import javax.annotation.Nullable;
 import javax.management.openmbean.ArrayType;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.OpenDataException;
@@ -25,7 +23,7 @@ import java.util.concurrent.Callable;
  * Information about all quotas.
  */
 public final class AllQuotasAttribute extends OpenStackResourceAttribute<CompositeData[], QuotaSetService> {
-    public static final String NAME = "quotaSet";
+    public static final String NAME = "computeQuotaSet";
     private static final String DESCRIPTION = "All available quotas over tenant groups";
     private static final ArrayType<CompositeData[]> TYPE = Utils.interfaceStaticInitialize(new Callable<ArrayType<CompositeData[]>>() {
         @Override

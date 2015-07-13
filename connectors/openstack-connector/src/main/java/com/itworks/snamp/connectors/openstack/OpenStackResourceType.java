@@ -1,9 +1,10 @@
 package com.itworks.snamp.connectors.openstack;
 
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
+import com.itworks.snamp.connectors.openstack.blockStorage.*;
 import com.itworks.snamp.connectors.openstack.flavor.*;
 import com.itworks.snamp.connectors.openstack.hypervisor.*;
-import com.itworks.snamp.connectors.openstack.quota.*;
+import com.itworks.snamp.connectors.openstack.computeQuota.*;
 import com.itworks.snamp.connectors.openstack.server.*;
 import com.itworks.snamp.jmx.JMExceptionUtils;
 import org.openstack4j.api.OSClient;
@@ -142,7 +143,7 @@ enum OpenStackResourceType {
         }
     },
 
-    QUOTA_SET("quotaSet"){
+    COMPUTE_QUOTA("computeQuota"){
         @Override
         boolean checkCapability(final OSClient client) {
             return client.supportsCompute();
@@ -178,6 +179,28 @@ enum OpenStackResourceType {
                     return new UsageVCPUAttribute(tenantID, attributeID, descriptor, openStackClient);
                 case UsageAttribute.NAME:
                     return new UsageAttribute(tenantID, attributeID, descriptor, openStackClient);
+                default:
+                    throw JMExceptionUtils.attributeNotFound(descriptor.getAttributeName());
+            }
+        }
+    },
+
+    VOLUME("blockVolume"){
+        @Override
+        boolean checkCapability(final OSClient client) {
+            return client.supportsBlockStorage();
+        }
+
+        @Override
+        OpenStackResourceAttribute<?, ?> connectAttribute(final String volumeID,
+                                                          final String attributeID,
+                                                          final AttributeDescriptor descriptor,
+                                                          final OSClient openStackClient) throws AttributeNotFoundException {
+            switch (descriptor.getAttributeName()){
+                case VolumeSizeAttribute.NAME:
+                    return new VolumeSizeAttribute(volumeID, attributeID, descriptor, openStackClient);
+                case VolumeStatusAttribute.NAME:
+                    return new VolumeStatusAttribute(volumeID, attributeID, descriptor, openStackClient);
                 default:
                     throw JMExceptionUtils.attributeNotFound(descriptor.getAttributeName());
             }

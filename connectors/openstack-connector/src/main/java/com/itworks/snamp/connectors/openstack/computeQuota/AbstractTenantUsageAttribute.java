@@ -1,11 +1,10 @@
-package com.itworks.snamp.connectors.openstack.quota;
+package com.itworks.snamp.connectors.openstack.computeQuota;
 
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.attributes.AttributeSpecifier;
 import com.itworks.snamp.connectors.openstack.OpenStackResourceAttribute;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.api.compute.QuotaSetService;
-import org.openstack4j.model.compute.QuotaSet;
 import org.openstack4j.model.compute.SimpleTenantUsage;
 
 import javax.management.MBeanException;
