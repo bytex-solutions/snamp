@@ -4,6 +4,8 @@ import com.itworks.snamp.core.FrameworkService;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
 
 import javax.management.DynamicMBean;
+import javax.management.MBeanFeatureInfo;
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -23,6 +25,11 @@ import java.util.Map;
  * @version 1.0
  */
 public interface ManagedResourceConnector extends AutoCloseable, FrameworkService, DynamicMBean {
+    /**
+     * Represents name of the configuration parameter that holds
+     */
+    String SMART_MODE_PARAM = "smartMode";
+
     /**
      * Represents an exception indicating that the resource connector cannot be updated
      * without it recreation. This class cannot be inherited.
@@ -69,4 +76,19 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
      */
     @ThreadSafe
     void removeResourceEventListener(final ResourceEventListener listener);
+
+    /**
+     * Determines whether the connector may automatically expanded with features without predefined configuration.
+     * @param featureType Type of the feature. Cannot be {@literal null}.
+     * @return {@literal true}, if this connector supports automatic registration of its features; otherwise, {@literal false}.
+     */
+    boolean canExpandWith(final Class<? extends MBeanFeatureInfo> featureType);
+
+    /**
+     * Expands this connector with features of the specified type.
+     * @param featureType The type of the feature that this connector may automatically registers.
+     * @param <F> Type of the feature class.
+     * @return A collection of registered features; or empty collection if the specified feature type is not supported.
+     */
+    <F extends MBeanFeatureInfo> Collection<? extends F> expand(final Class<F> featureType);
 }

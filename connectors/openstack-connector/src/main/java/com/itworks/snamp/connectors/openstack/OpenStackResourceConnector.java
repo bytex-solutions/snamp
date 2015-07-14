@@ -2,6 +2,8 @@ package com.itworks.snamp.connectors.openstack;
 
 import com.google.common.base.Function;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.configuration.ConfigParameters;
+import com.itworks.snamp.connectors.AbstractFeatureModeler;
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
 import com.itworks.snamp.connectors.ResourceEventListener;
 import com.itworks.snamp.connectors.attributes.AbstractAttributeSupport;
@@ -10,8 +12,9 @@ import org.openstack4j.api.OSClient;
 import org.openstack4j.openstack.OSFactory;
 
 import javax.annotation.Nullable;
+import javax.management.MBeanFeatureInfo;
 import javax.management.openmbean.CompositeData;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import static com.itworks.snamp.connectors.openstack.OpenStackResourceConnectorConfigurationDescriptor.*;
@@ -33,17 +36,32 @@ final class OpenStackResourceConnector extends AbstractManagedResourceConnector 
         private final OpenStackResourceType resourceType;
         private final OSClient client;
         private final String entityID;
+        private static final Class<OpenStackResourceAttribute> FEATURE_TYPE = OpenStackResourceAttribute.class;
 
         private OpenStackAttributeSupport(final String resourceName,
                                           final String entityID,
                                           final OpenStackResourceType resourceType,
                                           final OSClient client,
                                           final Logger logger) {
-            super(resourceName, OpenStackResourceAttribute.class);
+            super(resourceName, FEATURE_TYPE);
             this.logger = logger;
             this.resourceType = resourceType;
             this.client = client;
             this.entityID = entityID;
+        }
+
+        @Override
+        public Collection<OpenStackResourceAttribute> expand() {
+            final List<OpenStackResourceAttribute> result = new LinkedList<>();
+            for(final String attributeName: resourceType.getAttributes()) {
+                final OpenStackResourceAttribute attr = addAttribute(attributeName, attributeName, TimeSpan.INFINITE, ConfigParameters.empty());
+                if(attr != null) result.add(attr);
+            }
+            return result;
+        }
+
+        private static boolean canExpandWith(final Class<? extends MBeanFeatureInfo> featureType){
+            return featureType.isAssignableFrom(FEATURE_TYPE);
         }
 
         /**
@@ -102,8 +120,8 @@ final class OpenStackResourceConnector extends AbstractManagedResourceConnector 
          * @param attribute The attribute of to set.
          * @param value     The value of the attribute.
          * @throws Exception                      Internal connector error.
-         * @throws InvalidAttributeValueException Incompatible attribute type.
          */
+        @SuppressWarnings("unchecked")
         @Override
         protected void setAttribute(final OpenStackResourceAttribute attribute, final Object value) throws Exception {
             attribute.setValue(value);
@@ -143,8 +161,10 @@ final class OpenStackResourceConnector extends AbstractManagedResourceConnector 
     }
 
     private final OpenStackAttributeSupport attributes;
+    private final boolean smartMode;
 
     OpenStackResourceConnector(final String resourceName,
+                               final boolean smartMode,
                                final OpenStackResourceType resourceType,
                                final String entityID,
                                final OSClient client) throws UnsupportedOpenStackFeatureException {
@@ -155,11 +175,12 @@ final class OpenStackResourceConnector extends AbstractManagedResourceConnector 
                 resourceType,
                 client,
                 getLoggerImpl());
+        this.smartMode = smartMode;
     }
 
     OpenStackResourceConnector(final String resourceName,
                                final Map<String, String> parameters) throws OpenStackAbsentConfigurationParameterException, UnsupportedOpenStackFeatureException {
-        this(resourceName, getResourceType(parameters), getEntityID(parameters), createClient(parameters));
+        this(resourceName, isSmartModeEnabled(parameters), getResourceType(parameters), getEntityID(parameters), createClient(parameters));
     }
 
     private static Logger getLoggerImpl(){
@@ -232,5 +253,19 @@ final class OpenStackResourceConnector extends AbstractManagedResourceConnector 
     public void close() throws Exception {
         super.close();
         attributes.clear(true);
+    }
+
+    @Override
+    public boolean canExpandWith(final Class<? extends MBeanFeatureInfo> featureType) {
+        return smartMode && (OpenStackAttributeSupport.canExpandWith(featureType));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <F extends MBeanFeatureInfo> Collection<? extends F> expand(final Class<F> featureType) {
+        if(smartMode)
+            if(attributes.canExpandWith(featureType))
+                return (Collection<F>)attributes.expand();
+        return Collections.emptyList();
     }
 }

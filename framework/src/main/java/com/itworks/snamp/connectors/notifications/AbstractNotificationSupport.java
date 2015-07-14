@@ -10,6 +10,7 @@ import javax.management.*;
 import javax.management.openmbean.CompositeData;
 import java.math.BigInteger;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
@@ -395,5 +396,29 @@ public abstract class AbstractNotificationSupport<M extends MBeanNotificationInf
             listeners.clear();
         if(removeResourceEventListeners)
             super.removeAllResourceEventListeners();
+    }
+
+    @Override
+    public final boolean isRegistered(final String notifType) {
+        try(final LockScope ignored = beginWrite(ANSResource.NOTIFICATIONS)){
+            return notifications.containsKey(notifType);
+        }
+    }
+
+    @Override
+    public final M get(final String notifType) {
+        return getNotificationInfo(notifType);
+    }
+
+    @Override
+    public final int size() {
+        try(final LockScope ignored = beginWrite(ANSResource.NOTIFICATIONS)){
+            return notifications.size();
+        }
+    }
+
+    @Override
+    public final Iterator<M> iterator() {
+        return iterator(notifications.values());
     }
 }

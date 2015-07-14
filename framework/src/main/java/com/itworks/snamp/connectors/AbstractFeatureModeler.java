@@ -1,13 +1,18 @@
 package com.itworks.snamp.connectors;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.ObjectArrays;
 import com.itworks.snamp.WeakEventListenerList;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
+import com.itworks.snamp.internal.annotations.ThreadSafe;
 import com.itworks.snamp.io.IOUtils;
 
 import javax.management.MBeanFeatureInfo;
 import java.math.BigInteger;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Objects;
 
 /**
@@ -18,7 +23,7 @@ import java.util.Objects;
  * @since 1.0
  * @version 1.0
  */
-public abstract class AbstractFeatureModeler<F extends MBeanFeatureInfo> extends ThreadSafeObject {
+public abstract class AbstractFeatureModeler<F extends MBeanFeatureInfo> extends ThreadSafeObject implements Iterable<F> {
 
     private static final class ResourceEventListenerList extends WeakEventListenerList<ResourceEventListener, ResourceEvent> {
         private static final long serialVersionUID = -9139754747382955308L;
@@ -162,5 +167,45 @@ public abstract class AbstractFeatureModeler<F extends MBeanFeatureInfo> extends
         try (final LockScope ignored = beginWrite(resourceEventListenerSyncGroup)) {
             resourceEventListeners.clear();
         }
+    }
+
+    /**
+     * Determines whether the specified feature is already registered in this model.
+     * @param featureID ID of the registered feature.
+     * @return {@literal true}, if the feature is already registered; otherwise, {@literal false}.
+     */
+    @ThreadSafe
+    public abstract boolean isRegistered(final String featureID);
+
+    /**
+     * Gets feature by its ID.
+     * @param featureID ID of the feature.
+     * @return Feature instance; or {@literal null}, if feature with the specified ID doesn't exist.
+     */
+    @ThreadSafe
+    public abstract F get(final String featureID);
+
+    /**
+     * Gets the size of this model.
+     * @return The size of this model.
+     */
+    public abstract int size();
+
+    /**
+     * Expands this model.
+     * @return A list of expanded features; or empty list if this model doesn't support expansion.
+     * @see ManagedResourceConnector#expand(Class)
+     */
+    public Collection<F> expand(){
+        return Collections.emptyList();
+    }
+
+    protected static  <F extends MBeanFeatureInfo> Iterator<F> iterator(final Iterable<? extends FeatureHolder<F>> holders){
+        return Iterators.transform(holders.iterator(), new Function<FeatureHolder<F>, F>() {
+            @Override
+            public F apply(final FeatureHolder<F> input) {
+                return input.getMetadata();
+            }
+        });
     }
 }

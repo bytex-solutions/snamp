@@ -290,4 +290,49 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
     public static Logger getLogger(final String connectorName){
         return Logger.getLogger(getLoggerName(connectorName));
     }
+
+    /**
+     * Determines whether the connector may automatically expanded with features without predefined configuration.
+     * @param featureType Type of the feature. Cannot be {@literal null}.
+     * @return {@literal true}, if this connector supports automatic registration of its features; otherwise, {@literal false}.
+     */
+    @Override
+    public boolean canExpandWith(final Class<? extends MBeanFeatureInfo> featureType) {
+        return false;
+    }
+
+    /**
+     * Expands this connector with features of the specified type.
+     * @param featureType The type of the feature that this connector may automatically registers.
+     * @param <F> Type of the feature class.
+     * @return A collection of registered features.
+     */
+    @Override
+    public <F extends MBeanFeatureInfo> Collection<? extends F> expand(final Class<F> featureType){
+        return Collections.emptyList();
+    }
+
+    /**
+     * Fully expands connector with all possible features.
+     * @param connector An instance of the connector to expand.
+     * @return A list of features that automatically discovered and registered by connector itself.
+     */
+    public static List<MBeanFeatureInfo> expandAll(final ManagedResourceConnector connector) {
+        final List<MBeanFeatureInfo> result = new LinkedList<>();
+        if (connector.canExpandWith(MBeanAttributeInfo.class))
+            result.addAll(connector.expand(MBeanAttributeInfo.class));
+        if (connector.canExpandWith(MBeanNotificationInfo.class))
+            result.addAll(connector.expand(MBeanNotificationInfo.class));
+        if (connector.canExpandWith(MBeanOperationInfo.class))
+            result.addAll(connector.expand(MBeanOperationInfo.class));
+        return result;
+    }
+
+    public static boolean isSmartModeEnabled(final Map<String, ?> parameters) {
+        if(parameters.containsKey(SMART_MODE_PARAM)){
+            final Object smartMode = parameters.get(SMART_MODE_PARAM);
+            return Objects.equals(smartMode, Boolean.TRUE) || Objects.equals(smartMode, Boolean.TRUE.toString());
+        }
+        else return false;
+    }
 }

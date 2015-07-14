@@ -1,5 +1,6 @@
 package com.itworks.snamp.connectors.attributes;
 
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.AbstractFeatureModeler;
@@ -13,6 +14,7 @@ import javax.management.*;
 import javax.management.openmbean.CompositeData;
 import java.math.BigInteger;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -29,32 +31,32 @@ import java.util.logging.Logger;
  * @version 1.0
  */
 public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> extends AbstractFeatureModeler<M> implements AttributeSupport {
-    private enum AASResource{
+    private enum AASResource {
         ATTRIBUTES,
         RESOURCE_EVENT_LISTENERS
     }
 
-    private static final class AttributeHolder<M extends MBeanAttributeInfo> extends FeatureHolder<M>{
+    private static final class AttributeHolder<M extends MBeanAttributeInfo> extends FeatureHolder<M> {
         private AttributeHolder(final M metadata,
                                 final String attributeName,
                                 final TimeSpan readWriteTimeout,
-                                final CompositeData options){
+                                final CompositeData options) {
             super(metadata, computeIdentity(attributeName, readWriteTimeout, options));
         }
 
         private boolean equals(final String attributeName,
                                final TimeSpan readWriteTimeout,
-                               final CompositeData options){
+                               final CompositeData options) {
             return identity.equals(computeIdentity(attributeName, readWriteTimeout, options));
         }
 
         private static BigInteger computeIdentity(final String attributeName,
                                                   final TimeSpan readWriteTimeout,
-                                                  final CompositeData options){
+                                                  final CompositeData options) {
             BigInteger result = toBigInteger(attributeName);
-            if(readWriteTimeout != null)
+            if (readWriteTimeout != null)
                 result = result.xor(BigInteger.valueOf(readWriteTimeout.toNanos()));
-            for(final String propertyName: options.getCompositeType().keySet())
+            for (final String propertyName : options.getCompositeType().keySet())
                 result = result
                         .xor(toBigInteger(propertyName))
                         .xor(BigInteger.valueOf(options.get(propertyName).hashCode()));
@@ -66,7 +68,8 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
 
     /**
      * Initializes a new support of management attributes.
-     * @param resourceName The name of the managed resource.
+     *
+     * @param resourceName          The name of the managed resource.
      * @param attributeMetadataType The type of the attribute metadata.
      */
     protected AbstractAttributeSupport(final String resourceName,
@@ -78,7 +81,7 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
         attributes = createAttributes();
     }
 
-    private static <M extends MBeanAttributeInfo> AbstractKeyedObjects<String, AttributeHolder<M>> createAttributes(){
+    private static <M extends MBeanAttributeInfo> AbstractKeyedObjects<String, AttributeHolder<M>> createAttributes() {
         return new AbstractKeyedObjects<String, AttributeHolder<M>>(10) {
             private static final long serialVersionUID = 6284468803876344036L;
 
@@ -95,7 +98,7 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
     }
 
     //this method should be called before removing attribute from this manager
-    private void attributeRemoved(final M metadata){
+    private void attributeRemoved(final M metadata) {
         super.fireResourceEvent(new AttributeRemovingEvent(this, getResourceName(), metadata));
     }
 
@@ -105,7 +108,8 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
      * @return The count of connected managementAttributes.
      */
     @ThreadSafe
-    public final int attributesCount() {
+    @Override
+    public final int size() {
         try (final LockScope ignored = beginRead(AASResource.ATTRIBUTES)) {
             return attributes.size();
         }
@@ -118,7 +122,7 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
      */
     @Override
     public final M[] getAttributeInfo() {
-        try(final LockScope ignored = beginRead(AASResource.ATTRIBUTES)) {
+        try (final LockScope ignored = beginRead(AASResource.ATTRIBUTES)) {
             return toArray(attributes.values());
         }
     }
@@ -131,7 +135,7 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
      */
     @Override
     public final M getAttributeInfo(final String attributeName) {
-        try(final LockScope ignored = beginRead(AASResource.ATTRIBUTES)){
+        try (final LockScope ignored = beginRead(AASResource.ATTRIBUTES)) {
             final AttributeHolder<M> holder = attributes.get(attributeName);
             return holder != null ? holder.getMetadata() : null;
         }
@@ -139,12 +143,13 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
 
     /**
      * Gets a set of attributes in sequential manner.
+     *
      * @param attributes A set of attributes to read. Cannot be {@literal null}.
      * @return output A list of obtained attributes.
      */
     protected final AttributeList getAttributesSequential(final String[] attributes) {
         final List<Attribute> result = Lists.newArrayListWithExpectedSize(attributes.length);
-        for(final String attributeID: attributes)
+        for (final String attributeID : attributes)
             try {
                 result.add(new Attribute(attributeID, getAttribute(attributeID)));
             } catch (final JMException e) {
@@ -155,12 +160,13 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
 
     /**
      * Gets a set of attributes in parallel manner.
-     * @param executor The executor used to schedule attribute reader. Cannot be {@literal null}.
+     *
+     * @param executor   The executor used to schedule attribute reader. Cannot be {@literal null}.
      * @param attributes A set of attributes to read. Cannot be {@literal null}.
-     * @param timeout Synchronization timeout. May be {@link TimeSpan#INFINITE}.
-     * @return  A list of obtained attributes.
+     * @param timeout    Synchronization timeout. May be {@link TimeSpan#INFINITE}.
+     * @return A list of obtained attributes.
      * @throws InterruptedException Operation is interrupted.
-     * @throws TimeoutException Unable to read attributes in the specified time duration.
+     * @throws TimeoutException     Unable to read attributes in the specified time duration.
      */
     protected final AttributeList getAttributesParallel(final ExecutorService executor,
                                                         final String[] attributes,
@@ -211,12 +217,11 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
      */
     protected final AttributeList setAttributesSequential(final AttributeList attributes) {
         final List<Attribute> result = Lists.newArrayListWithExpectedSize(attributes.size());
-        for(final Attribute attr: attributes.asList()) {
+        for (final Attribute attr : attributes.asList()) {
             try {
                 setAttribute(attr);
                 result.add(attr);
-            }
-            catch (final JMException e){
+            } catch (final JMException e) {
                 failedToSetAttribute(attr.getName(), attr.getValue(), e);
             }
         }
@@ -226,18 +231,18 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
     /**
      * Sets the values of several attributes of the managed resource in sequential manner.
      *
-     * @param executor The executor used to schedule attribute writer. Cannot be {@literal null}.
+     * @param executor   The executor used to schedule attribute writer. Cannot be {@literal null}.
      * @param attributes A list of attributes: The identification of the
      *                   attributes to be set and  the values they are to be set to.
-     * @param timeout Synchronization timeout. May be {@link TimeSpan#INFINITE}.
+     * @param timeout    Synchronization timeout. May be {@link TimeSpan#INFINITE}.
      * @return The list of attributes that were set, with their new values.
      * @throws InterruptedException Operation is interrupted.
-     * @throws TimeoutException Unable to set attributes in the specified time duration.
+     * @throws TimeoutException     Unable to set attributes in the specified time duration.
      */
     protected final AttributeList setAttributesParallel(final ExecutorService executor,
                                                         final AttributeList attributes,
                                                         final TimeSpan timeout) throws TimeoutException, InterruptedException {
-        if(attributes.isEmpty()) return attributes;
+        if (attributes.isEmpty()) return attributes;
         final List<Attribute> result =
                 Collections.synchronizedList(Lists.<Attribute>newArrayListWithExpectedSize(attributes.size()));
         final CountDownLatch synchronizer = new CountDownLatch(attributes.size());
@@ -248,19 +253,17 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
                     try {
                         setAttribute(attr);
                         return result.add(new Attribute(attr.getName(), attr.getValue()));
-                    }
-                    catch (final JMException e){
+                    } catch (final JMException e) {
                         failedToSetAttribute(attr.getName(), attr.getValue(), e);
                         return null;
-                    }
-                    finally {
+                    } finally {
                         synchronizer.countDown();
                     }
                 }
             });
-        if(timeout == null)
+        if (timeout == null)
             synchronizer.await();
-        else if(!synchronizer.await(timeout.duration, timeout.unit))
+        else if (!synchronizer.await(timeout.duration, timeout.unit))
             throw new TimeoutException();
         return new AttributeList(result);
     }
@@ -283,17 +286,17 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
      * Connects to the specified attribute.
      *
      * @param attributeID The id of the attribute.
-     * @param descriptor Attribute descriptor.
+     * @param descriptor  Attribute descriptor.
      * @return The description of the attribute; or {@literal null},
      * @throws Exception Internal connector error.
      */
     protected abstract M connectAttribute(final String attributeID,
-                                                           final AttributeDescriptor descriptor) throws Exception;
+                                          final AttributeDescriptor descriptor) throws Exception;
 
     /**
      * Registers a new attribute in this manager.
      *
-     * @param attributeID               A key string that is used to invoke attribute from this connector.
+     * @param attributeID      A key string that is used to invoke attribute from this connector.
      * @param attributeName    The name of the attribute.
      * @param readWriteTimeout A read/write timeout using for attribute read/write operation.
      * @param options          The attribute discovery options.
@@ -328,11 +331,10 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
             //this is a new attribute, just connect it
             else {
                 final M metadata = connectAttribute(attributeID, new AttributeDescriptor(attributeName, readWriteTimeout, options));
-                if(metadata != null) {
+                if (metadata != null) {
                     attributes.put(holder = new AttributeHolder<>(metadata, attributeName, readWriteTimeout, options));
                     attributeAdded(holder.getMetadata());
-                }
-                else throw JMExceptionUtils.attributeNotFound(attributeName);
+                } else throw JMExceptionUtils.attributeNotFound(attributeName);
             }
         } catch (final Exception e) {
             failedToConnectAttribute(attributeID, attributeName, e);
@@ -343,26 +345,28 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
 
     /**
      * Reports an error when connecting attribute.
-     * @param logger The logger instance. Cannot be {@literal null}.
-     * @param logLevel Logging level.
-     * @param attributeID The attribute identifier.
+     *
+     * @param logger        The logger instance. Cannot be {@literal null}.
+     * @param logLevel      Logging level.
+     * @param attributeID   The attribute identifier.
      * @param attributeName The name of the attribute.
-     * @param e Internal connector error.
+     * @param e             Internal connector error.
      */
     protected static void failedToConnectAttribute(final Logger logger,
                                                    final Level logLevel,
                                                    final String attributeID,
                                                    final String attributeName,
-                                                   final Exception e){
+                                                   final Exception e) {
         logger.log(logLevel, String.format("Failed to connect attribute %s with ID %s. Context: %s",
                 attributeName, attributeID, LogicalOperation.current()), e);
     }
 
     /**
      * Reports an error when connecting attribute.
-     * @param attributeID The attribute identifier.
+     *
+     * @param attributeID   The attribute identifier.
      * @param attributeName The name of the attribute.
-     * @param e Internal connector error.
+     * @param e             Internal connector error.
      * @see #failedToConnectAttribute(Logger, Level, String, String, Exception)
      */
     protected abstract void failedToConnectAttribute(final String attributeID,
@@ -371,13 +375,14 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
 
     /**
      * Obtains the value of a specific attribute of the managed resource.
+     *
      * @param metadata The metadata of the attribute.
      * @return The value of the attribute retrieved.
      * @throws Exception Internal connector error.
      */
     protected abstract Object getAttribute(final M metadata) throws Exception;
 
-    private Object getAttribute(final AttributeHolder<M> holder) throws Exception{
+    private Object getAttribute(final AttributeHolder<M> holder) throws Exception {
         return getAttribute(holder.getMetadata());
     }
 
@@ -388,7 +393,7 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
      * @return The value of the attribute retrieved.
      * @throws javax.management.AttributeNotFoundException
      * @throws javax.management.MBeanException             Wraps a {@link Exception} thrown by the MBean's getter.
-     * @throws javax.management.ReflectionException Wraps any exception associated with Java Reflection.
+     * @throws javax.management.ReflectionException        Wraps any exception associated with Java Reflection.
      * @see #setAttribute
      */
     @Override
@@ -410,23 +415,25 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
 
     /**
      * Reports an error when getting attribute.
-     * @param logger The logger instance. Cannot be {@literal null}.
-     * @param logLevel Logging level.
+     *
+     * @param logger      The logger instance. Cannot be {@literal null}.
+     * @param logLevel    Logging level.
      * @param attributeID The attribute identifier.
-     * @param e Internal connector error.
+     * @param e           Internal connector error.
      */
     protected static void failedToGetAttribute(final Logger logger,
                                                final Level logLevel,
                                                final String attributeID,
-                                               final Exception e){
+                                               final Exception e) {
         logger.log(logLevel, String.format("Failed to get attribute %s. Context: %s",
                 attributeID, LogicalOperation.current()), e);
     }
 
     /**
      * Reports an error when getting attribute.
+     *
      * @param attributeID The attribute identifier.
-     * @param e Internal connector error.
+     * @param e           Internal connector error.
      * @see #failedToGetAttribute(Logger, Level, String, Exception)
      */
     protected abstract void failedToGetAttribute(final String attributeID,
@@ -434,16 +441,17 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
 
     /**
      * Set the value of a specific attribute of the managed resource.
+     *
      * @param attribute The attribute of to set.
-     * @param value The value of the attribute.
-     * @throws Exception Internal connector error.
+     * @param value     The value of the attribute.
+     * @throws Exception                      Internal connector error.
      * @throws InvalidAttributeValueException Incompatible attribute type.
      */
     protected abstract void setAttribute(final M attribute,
                                          final Object value) throws Exception;
 
     private void setAttribute(final AttributeHolder<M> holder,
-                              final Object value) throws Exception{
+                              final Object value) throws Exception {
         setAttribute(holder.getMetadata(), value);
     }
 
@@ -460,19 +468,16 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
      */
     @Override
     public final void setAttribute(final Attribute attribute) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
-        try(final LockScope ignored = beginRead(AASResource.ATTRIBUTES)){
-            if(attributes.containsKey(attribute.getName()))
+        try (final LockScope ignored = beginRead(AASResource.ATTRIBUTES)) {
+            if (attributes.containsKey(attribute.getName()))
                 setAttribute(attributes.get(attribute.getName()), attribute.getValue());
             else throw JMExceptionUtils.attributeNotFound(attribute.getName());
-        }
-        catch (final AttributeNotFoundException e){
+        } catch (final AttributeNotFoundException e) {
             throw e;
-        }
-        catch (final InvalidAttributeValueException | MBeanException | ReflectionException e){
+        } catch (final InvalidAttributeValueException | MBeanException | ReflectionException e) {
             failedToSetAttribute(attribute.getName(), attribute.getValue(), e);
             throw e;
-        }
-        catch (final Exception e){
+        } catch (final Exception e) {
             failedToSetAttribute(attribute.getName(), attribute.getValue(), e);
             throw new MBeanException(e);
         }
@@ -480,26 +485,28 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
 
     /**
      * Reports an error when updating attribute.
-     * @param logger The logger instance. Cannot be {@literal null}.
-     * @param logLevel Logging level.
+     *
+     * @param logger      The logger instance. Cannot be {@literal null}.
+     * @param logLevel    Logging level.
      * @param attributeID The attribute identifier.
-     * @param value The value of the attribute.
-     * @param e Internal connector error.
+     * @param value       The value of the attribute.
+     * @param e           Internal connector error.
      */
     protected static void failedToSetAttribute(final Logger logger,
                                                final Level logLevel,
                                                final String attributeID,
                                                final Object value,
-                                               final Exception e){
+                                               final Exception e) {
         logger.log(logLevel, String.format("Failed to update attribute %s with %s value. Context: %s",
                 attributeID, value, LogicalOperation.current()), e);
     }
 
     /**
      * Reports an error when updating attribute.
+     *
      * @param attributeID The attribute identifier.
-     * @param value The value of the attribute.
-     * @param e Internal connector error.
+     * @param value       The value of the attribute.
+     * @param e           Internal connector error.
      * @see #failedToSetAttribute(Logger, Level, String, Object, Exception)
      */
     protected abstract void failedToSetAttribute(final String attributeID,
@@ -527,7 +534,7 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
         AttributeHolder<M> holder;
         try (final LockScope ignored = beginWrite(AASResource.ATTRIBUTES)) {
             holder = attributes.get(attributeID);
-            if(holder != null) {
+            if (holder != null) {
                 attributeRemoved(holder.getMetadata());
                 attributes.remove(attributeID);
             }
@@ -537,6 +544,7 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
 
     /**
      * Removes all attributes.
+     *
      * @param removeAttributeEventListeners {@literal true} to remove all attribute listeners; otherwise, {@literal false}.
      */
     public final void clear(final boolean removeAttributeEventListeners) {
@@ -548,5 +556,22 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
         }
         if (removeAttributeEventListeners)
             super.removeAllResourceEventListeners();
+    }
+
+    @Override
+    public final boolean isRegistered(final String attributeID) {
+        try (final LockScope ignored = beginRead(AASResource.ATTRIBUTES)) {
+            return attributes.containsKey(attributeID);
+        }
+    }
+
+    @Override
+    public final M get(final String attributeID) {
+        return getAttributeInfo(attributeID);
+    }
+
+    @Override
+    public final Iterator<M> iterator() {
+        return iterator(attributes.values());
     }
 }

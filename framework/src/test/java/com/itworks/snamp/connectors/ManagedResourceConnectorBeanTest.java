@@ -15,14 +15,12 @@ import com.itworks.snamp.internal.annotations.SpecialUse;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.management.JMException;
-import javax.management.MBeanAttributeInfo;
-import javax.management.MBeanOperationInfo;
-import javax.management.Notification;
+import javax.management.*;
 import javax.management.openmbean.OpenType;
 import javax.management.openmbean.SimpleType;
 import java.beans.IntrospectionException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -160,13 +158,13 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         final SynchronizationListener listener = new SynchronizationListener();
         final Awaitor<Notification, ExceptionPlaceholder> notifAwaitor = listener.getAwaitor();
         connector.addNotificationListener(listener, null, null);
-        assertEquals(connector.field1, connector.getAttribute("0"));
+        assertEquals(connector.getProperty1(), connector.getAttribute("0"));
         connector.setAttribute(new AttributeValue("0", "1234567890", SimpleType.STRING));
         final Notification n = notifAwaitor.await(new TimeSpan(10, TimeUnit.SECONDS));
         assertNotNull(n);
         assertEquals("Property property1 is changed", n.getMessage());
         assertEquals("Attachment string", n.getUserData());
-        assertEquals(connector.field1, connector.getAttribute("0"));
+        assertEquals(connector.getProperty1(), connector.getAttribute("0"));
         assertTrue(md.isReadable());
         assertTrue(md.isWritable());
         assertEquals("property1", AttributeDescriptor.getAttributeName(md));
@@ -186,5 +184,15 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         assertEquals(params1, params2);
         assertEquals(ManagedResourceActivator.computeConnectionParamsHashCode(connectionString, params1),
                 ManagedResourceActivator.computeConnectionParamsHashCode(connectionString, params2));
+    }
+
+    @Test
+    public void smartModeTest() throws IntrospectionException, JMException {
+        final TestManagementConnectorBean connector = new TestManagementConnectorBean();
+        connector.expand(MBeanAttributeInfo.class);
+        connector.setAttribute(new Attribute("property1", "Frank Underwood"));
+        assertEquals("Frank Underwood", connector.getProperty1());
+        assertEquals("Frank Underwood", connector.getAttribute("property1"));
+        assertEquals(connector.getProperty1(), connector.getAttribute("property1"));
     }
 }

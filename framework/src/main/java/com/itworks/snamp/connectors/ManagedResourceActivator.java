@@ -1,5 +1,6 @@
 package com.itworks.snamp.connectors;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.TimeSpan;
@@ -18,6 +19,10 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.event.EventAdmin;
 
+import javax.management.MBeanAttributeInfo;
+import javax.management.MBeanFeatureInfo;
+import javax.management.MBeanNotificationInfo;
+import javax.management.MBeanOperationInfo;
 import javax.management.openmbean.CompositeData;
 import java.math.BigInteger;
 import java.util.*;
@@ -351,6 +356,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
         private void updateFeatures(final TConnector connector,
                             final Dictionary<String, ?> configuration) throws Exception {
+            AbstractManagedResourceConnector.expandAll(connector);
             controller.updateConnector(connector,
                     AttributeConfiguration.class,
                     PersistentConfigurationManager.getAttributes(configuration));
@@ -361,6 +367,8 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                     OperationConfiguration.class,
                     PersistentConfigurationManager.getOperations(configuration));
         }
+
+
 
         /**
          * Updates the service with a new configuration.
@@ -389,7 +397,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                         connectorParameters,
                         dependencies);
             }
-            //but we should update resource features
+            //but we should always update resource features
             updateFeatures(connector, configuration);
             return connector;
         }

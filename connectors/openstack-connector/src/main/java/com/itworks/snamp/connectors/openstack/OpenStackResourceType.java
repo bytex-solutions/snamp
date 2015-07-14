@@ -1,5 +1,7 @@
 package com.itworks.snamp.connectors.openstack;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.openstack.blockStorage.*;
 import com.itworks.snamp.connectors.openstack.flavor.*;
@@ -11,6 +13,7 @@ import com.itworks.snamp.jmx.JMExceptionUtils;
 import org.openstack4j.api.OSClient;
 
 import javax.management.AttributeNotFoundException;
+import java.util.Set;
 
 /**
  * @author Roman Sakno
@@ -48,6 +51,16 @@ enum OpenStackResourceType {
                 default:
                     throw JMExceptionUtils.attributeNotFound(descriptor.getAttributeName());
             }
+        }
+
+        @Override
+        Set<String> getAttributes() {
+            return ImmutableSet.of(FlavorDisabledAttribute.NAME,
+                    FlavorRamAttribute.NAME,
+                    FlavorCpuCountAttribute.NAME,
+                    FlavorDiskAttribute.NAME,
+                    FlavorPublicAttribute.NAME,
+                    FlavorAttribute.NAME);
         }
     },
 
@@ -106,6 +119,30 @@ enum OpenStackResourceType {
                 default:
                     throw JMExceptionUtils.attributeNotFound(descriptor.getAttributeName());
             }
+        }
+
+        @Override
+        Set<String> getAttributes() {
+            return ImmutableSet.<String>builder()
+                    .add(HypervisorFreeRamAttribute.NAME)
+                    .add(HypervisorFreeDiskAttribute.NAME)
+                    .add(HypervisorWorkloadAttribute.NAME)
+                    .add(HypervisorHostIpAttribute.NAME)
+                    .add(HypervisorHostnameAttribute.NAME)
+                    .add(HypervisorLocalMemoryAttribute.NAME)
+                    .add(HypervisorLocalMemoryUsedAttribute.NAME)
+                    .add(HypervisorRunningVmAttribute.NAME)
+                    .add(HypervisorCpuCoresAttribute.NAME)
+                    .add(HypervisorCpuModelAttribute.NAME)
+                    .add(HypervisorCpuVendorAttribute.NAME)
+                    .add(HypervisorCpuArchAttribute.NAME)
+                    .add(HypervisorLocalDiskAttribute.NAME)
+                    .add(HypervisorLocalDiskUsedAttribute.NAME)
+                    .add(HypervisorCpuVirtualAttribute.NAME)
+                    .add(HypervisorCpuVirtualUsedAttribute.NAME)
+                    .add(HypervisorTypeAttribute.NAME)
+                    .add(HypervisorAttribute.NAME)
+                    .build();
         }
     },
 
@@ -340,6 +377,8 @@ enum OpenStackResourceType {
                                                                final String attributeID,
                                                                final AttributeDescriptor descriptor,
                                                                final OSClient openStackClient) throws AttributeNotFoundException, OpenStackAbsentConfigurationParameterException;
+
+    abstract Set<String> getAttributes();
 
     @Override
     public final String toString() {

@@ -15,10 +15,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
-import java.util.AbstractList;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -367,13 +364,13 @@ public abstract class AbstractOperationSupport<M extends MBeanOperationInfo> ext
     /**
      * Returns a metadata of the operation.
      *
-     * @param operationName The name of the operation.
+     * @param operationID The name of the operation.
      * @return The operation metadata; or {@literal null}, if operation doesn't exist.
      */
     @Override
-    public final M getOperationInfo(final String operationName) {
+    public final M getOperationInfo(final String operationID) {
         try(final LockScope ignored = beginRead(AOSResource.OPERATIONS)){
-            final OperationHolder<M> holder = operations.get(operationName);
+            final OperationHolder<M> holder = operations.get(operationID);
             return holder != null ? holder.getMetadata() : null;
         }
     }
@@ -434,5 +431,29 @@ public abstract class AbstractOperationSupport<M extends MBeanOperationInfo> ext
         }
         if (removeResourceListeners)
             removeAllResourceEventListeners();
+    }
+
+    @Override
+    public final boolean isRegistered(final String operationID) {
+        try (final LockScope ignored = beginWrite(AOSResource.OPERATIONS)) {
+            return operations.containsKey(operationID);
+        }
+    }
+
+    @Override
+    public final M get(final String operationID) {
+        return getOperationInfo(operationID);
+    }
+
+    @Override
+    public final int size() {
+        try (final LockScope ignored = beginWrite(AOSResource.OPERATIONS)) {
+            return operations.size();
+        }
+    }
+
+    @Override
+    public final Iterator<M> iterator() {
+        return iterator(operations.values());
     }
 }

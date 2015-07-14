@@ -6,8 +6,10 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.itworks.snamp.AbstractAggregator;
+import com.itworks.snamp.Consumer;
 import com.itworks.snamp.Descriptive;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.configuration.ConfigParameters;
 import com.itworks.snamp.connectors.attributes.*;
 import com.itworks.snamp.connectors.discovery.DiscoveryResultBuilder;
 import com.itworks.snamp.connectors.discovery.DiscoveryService;
@@ -20,6 +22,7 @@ import com.itworks.snamp.jmx.JMExceptionUtils;
 import com.itworks.snamp.jmx.WellKnownType;
 
 import javax.management.*;
+import javax.management.loading.ClassLoaderRepository;
 import javax.management.openmbean.*;
 import java.beans.*;
 import java.beans.IntrospectionException;
@@ -436,11 +439,12 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
     private static final class JavaBeanOperationSupport extends AbstractOperationSupport<JavaBeanOperationInfo>{
         private final Logger logger;
         private final ManagedBeanDescriptor<?> descriptor;
+        private static final Class<JavaBeanOperationInfo> FEATURE_TYPE = JavaBeanOperationInfo.class;
 
         private JavaBeanOperationSupport(final String resourceName,
                                       final ManagedBeanDescriptor<?> descriptor,
                                       final Logger logger){
-            super(resourceName, JavaBeanOperationInfo.class);
+            super(resourceName, FEATURE_TYPE);
             this.logger = logger;
             this.descriptor = descriptor;
         }
@@ -457,6 +461,17 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         }
 
         @Override
+        public Collection<JavaBeanOperationInfo> expand() {
+            final List<JavaBeanOperationInfo> result = new LinkedList<>();
+            for(final MethodDescriptor method: this.descriptor.getBeanInfo().getMethodDescriptors())
+                if(method.getMethod().isAnnotationPresent(ManagementOperation.class)){
+                    final JavaBeanOperationInfo operation = enableOperation(method.getDisplayName(), method.getName(), ConfigParameters.empty());
+                    if(operation != null) result.add(operation);
+                }
+            return result;
+        }
+
+        @Override
         protected void failedToEnableOperation(final String userDefinedName, final String operationName, final Exception e) {
             failedToEnableOperation(logger, Level.SEVERE, userDefinedName, operationName, e);
         }
@@ -470,6 +485,10 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             } catch (final Throwable e) {
                 throw new UndeclaredThrowableException(e);
             }
+        }
+
+        private static boolean canExpandWith(final Class<? extends MBeanFeatureInfo> featureType) {
+            return featureType.isAssignableFrom(FEATURE_TYPE);
         }
     }
 
@@ -659,13 +678,32 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
     private static final class JavaBeanAttributeSupport extends AbstractAttributeSupport<JavaBeanAttributeInfo> {
         private final Logger logger;
         private final ManagedBeanDescriptor<?> bean;
+        private static final Class<JavaBeanAttributeInfo> FEATURE_TYPE = JavaBeanAttributeInfo.class;
 
         private JavaBeanAttributeSupport(final String resourceName,
                                          final ManagedBeanDescriptor<?> beanDesc,
                                          final Logger logger){
-            super(resourceName, JavaBeanAttributeInfo.class);
+            super(resourceName, FEATURE_TYPE);
             this.logger = Objects.requireNonNull(logger);
             this.bean = Objects.requireNonNull(beanDesc);
+        }
+
+        private static boolean canExpandWith(final Class<? extends MBeanFeatureInfo> featureType){
+            return featureType.isAssignableFrom(featureType);
+        }
+
+        private static JavaBeanAttributeInfo createAttribute(final String attributeID,
+                                                             final PropertyDescriptor property,
+                                                             final AttributeDescriptor descriptor,
+                                                             final Object beanInstance) throws ReflectionException {
+            try{
+                //try to connect as Open Type attribute
+                return new JavaBeanOpenAttributeInfo(attributeID, property, descriptor, beanInstance);
+            }
+            catch (final OpenDataException e){
+                //bean property type is not Open Type
+                return new JavaBeanAttributeInfo(attributeID, property, descriptor, beanInstance);
+            }
         }
 
         @Override
@@ -675,15 +713,21 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             for(final PropertyDescriptor property: info.getPropertyDescriptors())
                 if(isReservedProperty(property)) continue;
                 else if(Objects.equals(property.getName(), descriptor.getAttributeName()))
-                    try{
-                        //try to connect as Open Type attribute
-                        return new JavaBeanOpenAttributeInfo(attributeID, property, descriptor, bean.getInstance());
-                    }
-                    catch (final OpenDataException e){
-                        //bean property type is not Open Type
-                        return new JavaBeanAttributeInfo(attributeID, property, descriptor, bean.getInstance());
-                    }
+                    return createAttribute(attributeID, property, descriptor, bean.getInstance());
             throw JMExceptionUtils.attributeNotFound(descriptor.getAttributeName());
+        }
+
+        @Override
+        public Collection<JavaBeanAttributeInfo> expand() {
+            final List<JavaBeanAttributeInfo> result = new LinkedList<>();
+            final BeanInfo info = bean.getBeanInfo();
+            for (final PropertyDescriptor property : info.getPropertyDescriptors())
+                if (!isReservedProperty(property)) {
+                    final JavaBeanAttributeInfo attr =
+                            addAttribute(property.getDisplayName(), property.getName(), TimeSpan.INFINITE, ConfigParameters.empty());
+                    if (attr != null) result.add(attr);
+                }
+            return result;
         }
 
         @Override
@@ -716,11 +760,12 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         private final Logger logger;
         private final Set<? extends ManagementNotificationType<?>> notifTypes;
         private final NotificationListenerInvoker listenerInvoker;
+        private static Class<CustomNotificationInfo> FEATURE_TYPE = CustomNotificationInfo.class;
 
         private JavaBeanNotificationSupport(final String resourceName,
                                             final Set<? extends ManagementNotificationType<?>> notifTypes,
                                             final Logger logger) {
-            super(resourceName, CustomNotificationInfo.class);
+            super(resourceName, FEATURE_TYPE);
             this.logger = Objects.requireNonNull(logger);
             this.notifTypes = Objects.requireNonNull(notifTypes);
             this.listenerInvoker = NotificationListenerInvokerFactory.createSequentialInvoker();
@@ -1158,5 +1203,21 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         operations.clear(true);
         notifications.clear(true, true);
         attributes.clear(true);
+    }
+
+    @Override
+    public boolean canExpandWith(final Class<? extends MBeanFeatureInfo> featureType) {
+        return JavaBeanAttributeSupport.canExpandWith(featureType) ||
+                JavaBeanOperationSupport.canExpandWith(featureType);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <F extends MBeanFeatureInfo> Collection<? extends F> expand(final Class<F> featureType) {
+        if (attributes.canExpandWith(featureType))
+            return (Collection<F>) attributes.expand();
+        else if(operations.canExpandWith(featureType))
+            return (Collection<F>) operations.expand();
+        else return Collections.emptyList();
     }
 }
