@@ -317,7 +317,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      * @param connector An instance of the connector to expand.
      * @return A list of features that automatically discovered and registered by connector itself.
      */
-    public static List<MBeanFeatureInfo> expandAll(final ManagedResourceConnector connector) {
+    public static Collection<? extends MBeanFeatureInfo> expandAll(final ManagedResourceConnector connector) {
         final List<MBeanFeatureInfo> result = new LinkedList<>();
         if (connector.canExpandWith(MBeanAttributeInfo.class))
             result.addAll(connector.expand(MBeanAttributeInfo.class));
@@ -326,6 +326,33 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
         if (connector.canExpandWith(MBeanOperationInfo.class))
             result.addAll(connector.expand(MBeanOperationInfo.class));
         return result;
+    }
+
+    /**
+     * Fully expands this connector with all possible features.
+     * @return A list of features that automatically discovered and registered by connector itself.
+     */
+    public final Collection<? extends MBeanFeatureInfo> expandAll(){
+        return expandAll(this);
+    }
+
+    /**
+     * Determines whether the Smart-mode is supported by the specified connector.
+     * @param connector An instance of the connector. Cannot be {@literal null}.
+     * @return {@literal true}, if Smart-mode is supported; otherwise, {@literal false}.
+     */
+    public static boolean isSmartModeSupported(final ManagedResourceConnector connector){
+        return connector.canExpandWith(MBeanAttributeInfo.class) ||
+                connector.canExpandWith(MBeanNotificationInfo.class) ||
+                connector.canExpandWith(MBeanOperationInfo.class);
+    }
+
+    /**
+     * Determines whether the Smart-mode is supported by the this connector.
+     * @return {@literal true}, if Smart-mode is supported; otherwise, {@literal false}.
+     */
+    public final boolean isSmartModeSupported(){
+        return isSmartModeSupported(this);
     }
 
     public static boolean isSmartModeEnabled(final Map<String, ?> parameters) {
