@@ -36,7 +36,12 @@ Examples:
 * `wsmq://192.168.0.1:1414/channel/topic2` for insecure connection
 
 ## Configuration Parameters
-WMQ Connector doesn't support any configuration parameters. All specified configuration parameters will be ignored.
+WMQ Resource Connector recognizes the following parameters:
+
+Parameter | Type | Required | Meaning | Example
+---- | ---- | ---- | ---- | ----
+queueManager | String | No | Name of the Queue Manager | `mq1`
+smartMode | Boolean | No | Enable or disable smart mode | `true`
 
 ## Configuring attributes
 Each attribute configured in WMQ Resource Connector has the following configuration schema:

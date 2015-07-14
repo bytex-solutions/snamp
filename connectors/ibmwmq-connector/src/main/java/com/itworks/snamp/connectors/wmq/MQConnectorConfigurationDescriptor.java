@@ -1,6 +1,9 @@
 package com.itworks.snamp.connectors.wmq;
 
+import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
+import com.itworks.snamp.configuration.ResourceBasedConfigurationEntityDescription;
+import static com.itworks.snamp.connectors.ManagedResourceConnector.SMART_MODE_PARAM;
 
 import java.net.URI;
 import java.util.Map;
@@ -15,6 +18,14 @@ final class MQConnectorConfigurationDescriptor extends ConfigurationEntityDescri
      * The name of the MQ manager.
      */
     private static final String QUEUE_MANAGER_PARAM = "queueManager";
+
+    private static final class ConnectorConfigurationDescriptor extends ResourceBasedConfigurationEntityDescription<ManagedResourceConfiguration>{
+        private static final String RESOURCE_NAME = "ConnectorParameters";
+
+        private ConnectorConfigurationDescriptor(){
+            super(RESOURCE_NAME, ManagedResourceConfiguration.class, QUEUE_MANAGER_PARAM, SMART_MODE_PARAM);
+        }
+    }
 
     static int getPort(final URI connectionString){
         return connectionString.getPort() > 0 ? connectionString.getPort() : 1414;
