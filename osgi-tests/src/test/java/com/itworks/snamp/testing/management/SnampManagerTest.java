@@ -44,6 +44,7 @@ import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
  */
 @SnampDependencies(SnampFeature.SNMP_ADAPTER)
 public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBean> {
+    private static final String SNAMP_MBEAN = "com.itworks.snamp.management:type=SnampCore";
     private static final String ADAPTER_NAME = "snmp";
     private static final String SNMP_PORT = "3222";
     private static final String SNMP_HOST = "127.0.0.1";
@@ -55,6 +56,17 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
      */
     public SnampManagerTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(), new ObjectName(TestOpenMBean.BEAN_NAME));
+    }
+
+    @Test
+    public void availableAttributesTest() throws IOException, JMException {
+        try(final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
+            final MBeanServerConnection connection = connector.getMBeanServerConnection();
+            final ObjectName commonsObj = new ObjectName(SNAMP_MBEAN);
+            final Object attrs =
+                    connection.invoke(commonsObj, "getAvailableAttributes", new Object[]{TEST_RESOURCE_NAME}, new String[]{String.class.getName()});
+            assertTrue(attrs instanceof TabularData);
+        }
     }
 
     /**
@@ -69,7 +81,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
     public void jmxMonitoringTest() throws IOException, JMException, InterruptedException, TimeoutException {
         try(final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))){
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
-            final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
+            final ObjectName commonsObj = new ObjectName(SNAMP_MBEAN);
             assertNotNull(connection.getMBeanInfo(commonsObj));
             assertTrue(connection.getMBeanCount() > 0);
             assertTrue(connection.getMBeanInfo(commonsObj).getAttributes().length > 0);
@@ -133,7 +145,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
     public void configurationGetTest() throws IOException, JMException, InterruptedException, TimeoutException {
         try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
-            final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
+            final ObjectName commonsObj = new ObjectName(SNAMP_MBEAN);
             Object configurationContent = connection.getAttribute(commonsObj, "configuration");
             assertNotNull(configurationContent);
             assertTrue(configurationContent instanceof CompositeData);
@@ -351,7 +363,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
     public void configurationSetTest() throws Exception {
         try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
-            final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
+            final ObjectName commonsObj = new ObjectName(SNAMP_MBEAN);
 
             Object configurationContent = connection.getAttribute(commonsObj, "configuration");
             assertNotNull(configurationContent);
@@ -421,7 +433,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
     public void adapterSnmpRunned() throws IOException, MalformedObjectNameException, AttributeNotFoundException, MBeanException, ReflectionException, InstanceNotFoundException {
         try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
-            final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
+            final ObjectName commonsObj = new ObjectName(SNAMP_MBEAN);
 
             // checking if the we have SNMP adapter installed
             Object installedAdapters = connection.getAttribute(commonsObj, "InstalledAdapters");
@@ -452,7 +464,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
     public void connectorJmxRunned() throws IOException, MalformedObjectNameException, AttributeNotFoundException, MBeanException, ReflectionException, InstanceNotFoundException {
         try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
-            final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
+            final ObjectName commonsObj = new ObjectName(SNAMP_MBEAN);
 
             // checking if the we have SNMP adapter installed
             Object installedConnectors = connection.getAttribute(commonsObj, "InstalledConnectors");
@@ -483,7 +495,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
     public void adapterManagementTest() throws IOException, MalformedObjectNameException, MBeanException, InstanceNotFoundException, ReflectionException, AttributeNotFoundException {
         try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
-            final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
+            final ObjectName commonsObj = new ObjectName(SNAMP_MBEAN);
 
             // checking if the we have SNMP adapter installed
             Object installedAdapters = connection.getAttribute(commonsObj, "InstalledAdapters");
@@ -537,7 +549,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
     public void connectorsManagementTest() throws IOException, MalformedObjectNameException, MBeanException, InstanceNotFoundException, ReflectionException, AttributeNotFoundException {
         try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
-            final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
+            final ObjectName commonsObj = new ObjectName(SNAMP_MBEAN);
 
             // checking if the we have JMX connector installed
             Object installedConnectors = connection.getAttribute(commonsObj, "InstalledConnectors");
@@ -587,7 +599,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
     public void restartTest() throws IOException, JMException, InterruptedException, TimeoutException {
         try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
-            final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
+            final ObjectName commonsObj = new ObjectName(SNAMP_MBEAN);
             Object voidReturn = connection.invoke(commonsObj, "restart", null, null);
             assertTrue(voidReturn instanceof Void);
         }
@@ -605,7 +617,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
     public void getConnectorConfigurationSchemaTest() throws IOException, JMException, InterruptedException, TimeoutException {
         try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
-            final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
+            final ObjectName commonsObj = new ObjectName(SNAMP_MBEAN);
             final Object result = connection.invoke(commonsObj,
                     "getConnectorConfigurationSchema",
                     new Object[]{"jmx", ""},
@@ -626,7 +638,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
     public void getAdapterConfigurationSchemaTest() throws IOException, JMException, InterruptedException, TimeoutException {
         try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
-            final ObjectName commonsObj = new ObjectName("com.itworks.snamp.management:type=SnampCore");
+            final ObjectName commonsObj = new ObjectName(SNAMP_MBEAN);
             final Object result = connection.invoke(commonsObj,
                     "getAdapterConfigurationSchema",
                     new Object[]{"snmp", ""},
@@ -666,6 +678,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
         snmpAdapter.getParameters().put("port", SNMP_PORT);
         snmpAdapter.getParameters().put("host", SNMP_HOST);
         snmpAdapter.getParameters().put("socketTimeout", "5000");
+        snmpAdapter.getParameters().put("context", "1.1");
         adapters.put("test-snmp", snmpAdapter);
     }
 

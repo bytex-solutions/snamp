@@ -117,7 +117,8 @@ public final class TabularDataUtils {
         assert !Strings.isNullOrEmpty(valueName.get()) : valueName;
         final TabularDataSupport result = new TabularDataSupport(type);
         for (final Map.Entry<?, ?> entry : pairs.entrySet())
-            result.put(new CompositeDataSupport(type.getRowType(), ImmutableMap.of(indexName.get(), entry.getKey(), valueName.get(), entry.getValue())));
+            if (entry.getValue() != null)
+                result.put(new CompositeDataSupport(type.getRowType(), ImmutableMap.of(indexName.get(), entry.getKey(), valueName.get(), entry.getValue())));
         return result;
     }
 
