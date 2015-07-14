@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <name>OpenStack Connector</name>
     <artifactId>openstack-connector</artifactId>
-    <description>Connector for managing virtual resources via OpenStack</description>
+    <description>Connector for managing cloud resources via OpenStack</description>
     <version>${snamp.connectors.openstack.version}</version>
     <build>
         <plugins>

@@ -18,6 +18,9 @@ import javax.management.AttributeNotFoundException;
  * @since 1.0
  */
 enum OpenStackResourceType {
+    /**
+     * Represents flavor.
+     */
     FLAVOR("flavor") {
         @Override
         boolean checkCapability(final OSClient client) {
@@ -48,6 +51,9 @@ enum OpenStackResourceType {
         }
     },
 
+    /**
+     * Represents hypervisor.
+     */
     HYPERVISOR("hypervisor") {
         @Override
         boolean checkCapability(final OSClient client) {
@@ -103,6 +109,9 @@ enum OpenStackResourceType {
         }
     },
 
+    /**
+     * Represents server instance.
+     */
     SERVER("server") {
         @Override
         boolean checkCapability(final OSClient client) {
@@ -147,6 +156,9 @@ enum OpenStackResourceType {
         }
     },
 
+    /**
+     * Represents access to quotas.
+     */
     QUOTA_SET("quotaSet"){
         @Override
         boolean checkCapability(final OSClient client) {
@@ -208,7 +220,10 @@ enum OpenStackResourceType {
         }
     },
 
-    VOLUME("blockVolume"){
+    /**
+     * Represents volume.
+     */
+    VOLUME("volume"){
         @Override
         boolean checkCapability(final OSClient client) {
             return client.supportsBlockStorage();
@@ -238,6 +253,9 @@ enum OpenStackResourceType {
         }
     },
 
+    /**
+     * Represents snapshot of the block storage.
+     */
     SNAPSHOT("snapshot"){
         @Override
         boolean checkCapability(final OSClient client) {
@@ -268,7 +286,10 @@ enum OpenStackResourceType {
         }
     },
 
-    ALL("all") {
+    /**
+     * Represents entire stack.
+     */
+    STACK("stack") {
         @Override
         boolean checkCapability(final OSClient client) {
             return true;
@@ -328,6 +349,6 @@ enum OpenStackResourceType {
     static OpenStackResourceType parse(final String resourceType) {
         for (final OpenStackResourceType type : values())
             if (type.resourceType.equals(resourceType)) return type;
-        return ALL;
+        return STACK;
     }
 }
