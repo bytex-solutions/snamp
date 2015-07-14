@@ -1,5 +1,6 @@
 package com.itworks.snamp.connectors.openstack;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
@@ -54,7 +55,7 @@ enum OpenStackResourceType {
         }
 
         @Override
-        Set<String> getAttributes() {
+        Set<String> getAttributes(final OSClient client) {
             return ImmutableSet.of(FlavorDisabledAttribute.NAME,
                     FlavorRamAttribute.NAME,
                     FlavorCpuCountAttribute.NAME,
@@ -122,7 +123,7 @@ enum OpenStackResourceType {
         }
 
         @Override
-        Set<String> getAttributes() {
+        Set<String> getAttributes(final OSClient client) {
             return ImmutableSet.<String>builder()
                     .add(HypervisorFreeRamAttribute.NAME)
                     .add(HypervisorFreeDiskAttribute.NAME)
@@ -191,6 +192,24 @@ enum OpenStackResourceType {
                     throw JMExceptionUtils.attributeNotFound(descriptor.getAttributeName());
             }
         }
+
+        @Override
+        Set<String> getAttributes(final OSClient client) {
+            return ImmutableSet.<String>builder()
+                    .add(ServerStatusAttribute.NAME)
+                    .add(ServerFaultAttribute.NAME)
+                    .add(ServerAllDiagnosticsAttribute.NAME)
+                    .add(ServerHostAttribute.NAME)
+                    .add(ServerFlavorAttribute.NAME)
+                    .add(ServerPowerStateAttribute.NAME)
+                    .add(ServerVmStateAttribute.NAME)
+                    .add(ServerTerminatedAtAttribute.NAME)
+                    .add(ServerLaunchedAtAttribute.NAME)
+                    .add(ServerNameAttribute.NAME)
+                    .add(ServerInstanceNameAttribute.NAME)
+                    .add(ServerAttribute.NAME)
+                    .build();
+        }
     },
 
     /**
@@ -255,6 +274,36 @@ enum OpenStackResourceType {
                 }
             throw JMExceptionUtils.attributeNotFound(descriptor.getAttributeName());
         }
+
+        @Override
+        Set<String> getAttributes(final OSClient client) {
+            ImmutableSet.Builder<String> result = ImmutableSet.builder();
+            if(client.supportsCompute())
+                result = result
+                        .add(ServerQuotaCoresAttribute.NAME)
+                        .add(ServerQuotaFloatingIPsAttribute.NAME)
+                        .add(ServerQuotaGigabytesAttribute.NAME)
+                        .add(ServerQuotaInstancesAttribute.NAME)
+                        .add(ServerQuotaRamAttribute.NAME)
+                        .add(ServerQuotaVolumesAttribute.NAME)
+                        .add(ServerQuotaAttribute.NAME)
+                        .add(ServerUsageTotalHoursAttribute.NAME)
+                        .add(ServerUsageTotalLocalDiskAttribute.NAME)
+                        .add(ServerUsageTotalLocalMemoryAttribute.NAME)
+                        .add(ServerUsageVCPUAttribute.NAME)
+                        .add(ServerUsageAttribute.NAME);
+            if(client.supportsBlockStorage())
+                result = result
+                        .add(BlockQuotaGigabytesAttribute.NAME)
+                        .add(BlockQuotaSnapshotsAttribute.NAME)
+                        .add(BlockQuotaVolumesAttribute.NAME)
+                        .add(BlockQuotaAttribute.NAME)
+                        .add(BlockUsageGigabytesAttribute.NAME)
+                        .add(BlockUsageVolumesAttribute.NAME)
+                        .add(BlockUsageSnapshotsAttribute.NAME)
+                        .add(BlockUsageAttribute.NAME);
+            return result.build();
+        }
     },
 
     /**
@@ -288,6 +337,16 @@ enum OpenStackResourceType {
                     throw JMExceptionUtils.attributeNotFound(descriptor.getAttributeName());
             }
         }
+
+        @Override
+        Set<String> getAttributes(final OSClient client) {
+            return ImmutableSet.of(VolumeSizeAttribute.NAME,
+                    VolumeStatusAttribute.NAME,
+                    VolumeDescriptionAttribute.NAME,
+                    VolumeTypeAttribute.NAME,
+                    VolumeMigrationStatusAttribute.NAME,
+                    VolumeAttribute.NAME);
+        }
     },
 
     /**
@@ -320,6 +379,18 @@ enum OpenStackResourceType {
                 default:
                     throw JMExceptionUtils.attributeNotFound(descriptor.getAttributeName());
             }
+        }
+
+        @Override
+        Set<String> getAttributes(final OSClient client) {
+            return ImmutableSet.of(
+                    SnapshotStatusAttribute.NAME,
+                    SnapshotSizeAttribute.NAME,
+                    SnapshotCreatedAtAttribute.NAME,
+                    SnapshotNameAttribute.NAME,
+                    SnapshotDescriptionAttribute.NAME,
+                    SnapshotAttribute.NAME
+            );
         }
     },
 
@@ -363,6 +434,25 @@ enum OpenStackResourceType {
                 }
             throw JMExceptionUtils.attributeNotFound(descriptor.getAttributeName());
         }
+
+        @Override
+        Set<String> getAttributes(final OSClient client) {
+            ImmutableSet.Builder<String> result = ImmutableSet.builder();
+            if(client.supportsCompute())
+                result = result
+                        .add(AllFlavorsAttribute.NAME)
+                        .add(AllHypervisorsAttribute.NAME)
+                        .add(AllServersAttribute.NAME)
+                        .add(AllServerQuotasAttribute.NAME)
+                        .add(AllTenantUsagesAttribute.NAME);
+            if(client.supportsBlockStorage())
+                result = result
+                        .add(AllVolumesAttribute.NAME)
+                        .add(AllSnapshotsAttribute.NAME)
+                        .add(AllBlockQuotasAttribute.NAME)
+                        .add(AllBlockUsagesAttribute.NAME);
+            return result.build();
+        }
     };
 
     private final String resourceType;
@@ -378,7 +468,7 @@ enum OpenStackResourceType {
                                                                final AttributeDescriptor descriptor,
                                                                final OSClient openStackClient) throws AttributeNotFoundException, OpenStackAbsentConfigurationParameterException;
 
-    abstract Set<String> getAttributes();
+    abstract Set<String> getAttributes(final OSClient client);
 
     @Override
     public final String toString() {
