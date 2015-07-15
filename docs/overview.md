@@ -23,7 +23,7 @@ Example configuration consists of:
 
 In this configuration, Nagios can monitor Java Application, Linux Server, Network Switch via single HTTP protocol. Microsoft SCOM can monitor Java Application, Linux Server, Network Switch via single SNMP protocol.  
 
-Full set of supported management protocols listed [here](features.md).
+Full set of supported management protocols listed [here](adapters/introduction.md) and [here](connectors/introduction.md).
 
 # Concepts
 SNAMP functionality based on the two main components:
@@ -125,8 +125,6 @@ Resource Adapter uses resource connector to extract management information and e
 Resource Adapter has the following characteristics:
 * _System Name_ (or _Adapter Name_) - the name of the Resource Adapter. Typically, system name represents the provided management protocol
 * _Configuration_ - a set of configuration properties controlling behavior and network accessibility of the adapter
-
-See [Feature List](features.md) for more information about provided Resource Adapters.
 
 
 # Technology Stack

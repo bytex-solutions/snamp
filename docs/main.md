@@ -5,7 +5,8 @@ This is a top-level page of SNAMP technical documentation. Here you can found al
 ## Fundamentals
 
 * [Overview](overview.md) - basic terms and concepts. This is a first page for all newbees
-* [Feature List](features.md) - short description of supported management protocols and features
+* [Resource Adapters](adapters/introduction.md) - features of resource adapters
+* [Resource Connectors](connectors/introduction.md) - features of resource connectors
 
 ## Administrator's Guide
 

@@ -155,3 +155,10 @@ The final human-readable message placed into SNAMP Notification:
 ```
 Hello
 ```
+
+## System-level configuration parameters
+These parameters can be specified at JVM level and affects all instances of SNMP Resource Connector:
+
+Parameter | Type | Required | Meaning | Example
+---- | ---- | ---- | ---- | ----
+com.itworks.snamp.connectors.snmp.discoveryTimeout | Integer | No | A timeout value (in millis) used when walking through available OIDs. This walking will be performed if you use discovery functionality or smart mode | `3000`
