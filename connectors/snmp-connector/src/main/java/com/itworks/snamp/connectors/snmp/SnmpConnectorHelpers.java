@@ -2,6 +2,7 @@ package com.itworks.snamp.connectors.snmp;
 
 import com.itworks.snamp.Consumer;
 import com.itworks.snamp.SafeConsumer;
+import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
 import com.itworks.snamp.core.OSGiLoggingContext;
 import org.snmp4j.smi.OID;
@@ -19,6 +20,7 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 final class SnmpConnectorHelpers {
+    private static final String DISCOVERY_TIMEOUT_PROPERTY = "com.itworks.snamp.connectors.snmp.discoveryTimeout";
     static final String CONNECTOR_NAME = "snmp";
     private static final String LOGGER_NAME = AbstractManagedResourceConnector.getLoggerName(CONNECTOR_NAME);
 
@@ -53,6 +55,10 @@ final class SnmpConnectorHelpers {
         log(lvl, message, new Object[0], e);
     }
 
+    static void log(final Level lvl, final String message){
+        log(lvl, message, null);
+    }
+
     static void log(final Level lvl, final String message, final Object arg0, final Throwable e){
         log(lvl, message, new Object[]{arg0}, e);
     }
@@ -72,5 +78,9 @@ final class SnmpConnectorHelpers {
         } catch (final OpenDataException e) {
             throw new ExceptionInInitializerError(e);
         }
+    }
+
+    static TimeSpan getDiscoveryTimeout(){
+        return new TimeSpan(Long.parseLong(System.getProperty(DISCOVERY_TIMEOUT_PROPERTY, "5000")));
     }
 }

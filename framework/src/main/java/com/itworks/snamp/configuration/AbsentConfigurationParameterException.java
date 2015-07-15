@@ -1,7 +1,7 @@
 package com.itworks.snamp.configuration;
 
 /**
- * Indicating that the required parameter is not specified in the configuration.
+ * Indicating that the required parameter is not defined in the configuration.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0

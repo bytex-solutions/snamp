@@ -465,7 +465,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             final List<JavaBeanOperationInfo> result = new LinkedList<>();
             for(final MethodDescriptor method: this.descriptor.getBeanInfo().getMethodDescriptors())
                 if(method.getMethod().isAnnotationPresent(ManagementOperation.class)){
-                    final JavaBeanOperationInfo operation = enableOperation(method.getDisplayName(), method.getName(), ConfigParameters.empty());
+                    final JavaBeanOperationInfo operation = enableOperation(method.getDisplayName(), method.getName(), TIMEOUT_FOR_SMART_MODE, ConfigParameters.empty());
                     if(operation != null) result.add(operation);
                 }
             return result;
@@ -724,7 +724,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             for (final PropertyDescriptor property : info.getPropertyDescriptors())
                 if (!isReservedProperty(property)) {
                     final JavaBeanAttributeInfo attr =
-                            addAttribute(property.getDisplayName(), property.getName(), TimeSpan.INFINITE, ConfigParameters.empty());
+                            addAttribute(property.getDisplayName(), property.getName(), TIMEOUT_FOR_SMART_MODE, ConfigParameters.empty());
                     if (attr != null) result.add(attr);
                 }
             return result;
@@ -1097,9 +1097,10 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
 
     public final MBeanOperationInfo enableOperation(final String userDefinedName,
                                                     final String operationName,
+                                                    final TimeSpan invocationTimeout,
                                                     final CompositeData options){
         verifyInitialization();
-        return operations.enableOperation(userDefinedName, operationName, options);
+        return operations.enableOperation(userDefinedName, operationName, invocationTimeout, options);
     }
 
     public final boolean disableOperation(final String userDefinedName){

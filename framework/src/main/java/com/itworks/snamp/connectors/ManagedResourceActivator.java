@@ -290,6 +290,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         protected abstract void enableOperation(final TConnector connector,
                                                 final String operationID,
                                                 final String operationName,
+                                                final TimeSpan invocationTimeout,
                                                 final CompositeData options);
 
         private void updateOperations(final TConnector connector,
@@ -297,7 +298,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
             for(final Map.Entry<String, OperationConfiguration> op: operations.entrySet()){
                 final String operationID = op.getKey();
                 final OperationConfiguration config = op.getValue();
-                enableOperation(connector, operationID, config.getOperationName(), new ConfigParameters(config));
+                enableOperation(connector, operationID, config.getOperationName(), config.getInvocationTimeout(), new ConfigParameters(config));
             }
         }
 

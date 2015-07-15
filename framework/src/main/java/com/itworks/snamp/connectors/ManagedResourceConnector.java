@@ -1,5 +1,6 @@
 package com.itworks.snamp.connectors;
 
+import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.core.FrameworkService;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
 
@@ -29,6 +30,10 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
      * Represents name of the configuration parameter that holds
      */
     String SMART_MODE_PARAM = "smartMode";
+    /**
+     * Recommended timeout for invocation of operations and attributes in smart mode.
+     */
+    TimeSpan TIMEOUT_FOR_SMART_MODE = TimeSpan.fromSeconds(10);
 
     /**
      * Represents an exception indicating that the resource connector cannot be updated

@@ -2,6 +2,7 @@ package com.itworks.snamp.connectors.operations;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.configuration.ConfigParameters;
 import com.itworks.snamp.connectors.ConfigurationEntityRuntimeMetadata;
 import com.itworks.snamp.jmx.DescriptorUtils;
@@ -15,6 +16,7 @@ import java.util.Objects;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.OperationConfiguration;
 import static com.itworks.snamp.connectors.operations.OperationSupport.ASYNC_FIELD;
+import static com.itworks.snamp.connectors.operations.OperationSupport.INVOCATION_TIMEOUT_FIELD;
 import static com.itworks.snamp.connectors.operations.OperationSupport.OPERATION_NAME_FIELD;
 import static com.itworks.snamp.jmx.CompositeDataUtils.fillMap;
 
@@ -33,18 +35,21 @@ public class OperationDescriptor extends ImmutableDescriptor implements Configur
     }
 
     public OperationDescriptor(final OperationConfiguration config){
-        this(config.getOperationName(), new ConfigParameters(config));
+        this(config.getOperationName(), config.getInvocationTimeout(), new ConfigParameters(config));
     }
 
     public OperationDescriptor(final String operationName,
+                               final TimeSpan invocationTimeout,
                                final CompositeData options){
-        this(getFields(operationName, options));
+        this(getFields(operationName, invocationTimeout, options));
     }
 
     private static Map<String, ?> getFields(final String operationName,
+                                            final TimeSpan invocationTimeout,
                                             final CompositeData options){
         final Map<String, Object> fields = Maps.newHashMapWithExpectedSize(options.values().size() + 1);
         fields.put(OPERATION_NAME_FIELD, operationName);
+        fields.put(INVOCATION_TIMEOUT_FIELD, invocationTimeout);
         fillMap(options, fields);
         return fields;
     }
@@ -133,5 +138,18 @@ public class OperationDescriptor extends ImmutableDescriptor implements Configur
 
     public final  <T> T getField(final String fieldName, final Class<T> fieldType){
         return DescriptorUtils.getField(this, fieldName, fieldType);
+    }
+
+    public static TimeSpan getInvocationTimeout(final Descriptor descriptor){
+        final Object fieldValue = descriptor.getFieldValue(INVOCATION_TIMEOUT_FIELD);
+        if(fieldValue instanceof Number)
+            return new TimeSpan(((Number)fieldValue).longValue());
+        else if(fieldValue instanceof TimeSpan)
+            return (TimeSpan)fieldValue;
+        else return TimeSpan.INFINITE;
+    }
+
+    public final TimeSpan getInvocationTimeout(){
+        return getInvocationTimeout(this);
     }
 }

@@ -13,6 +13,7 @@ import java.util.Map;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
+import static com.itworks.snamp.connectors.ManagedResourceConnector.SMART_MODE_PARAM;
 
 /**
  * Represents SNMP connector configuration descriptor.
@@ -81,7 +82,8 @@ final class SnmpConnectorConfigurationProvider extends ConfigurationEntityDescri
                     PRIORITY_PROPERTY,
                     KEEP_ALIVE_TIME_PROPERTY,
                     MIN_POOL_SIZE_PROPERTY,
-                    MAX_POOL_SIZE_PROPERTY);
+                    MAX_POOL_SIZE_PROPERTY,
+                    SMART_MODE_PARAM);
         }
     }
 

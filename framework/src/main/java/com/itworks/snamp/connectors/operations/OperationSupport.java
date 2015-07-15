@@ -25,6 +25,12 @@ public interface OperationSupport {
     String OPERATION_NAME_FIELD = "operationName";
 
     /**
+     * The name of the field in {@link javax.management.Descriptor} which
+     * contains {@link com.itworks.snamp.TimeSpan} value.
+     */
+    String INVOCATION_TIMEOUT_FIELD = "invocationTimeout";
+
+    /**
      * Allows an operation to be invoked on the managed resource.
      *
      * @param operationName The name of the operation to be invoked.

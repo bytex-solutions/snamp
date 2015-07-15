@@ -1,6 +1,7 @@
 package com.itworks.snamp.connectors.snmp;
 
 import com.google.common.base.Supplier;
+import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
 import org.snmp4j.security.*;
 import org.snmp4j.smi.Address;
 import org.snmp4j.smi.GenericAddress;
@@ -32,6 +33,7 @@ final class SnmpConnectionOptions {
     private final OctetString securityContext;
     private final int socketTimeout;
     private final Supplier<ExecutorService> threadPoolConfig;
+    private final boolean smartMode;
 
     SnmpConnectionOptions(final String connectionString,
                                  final Map<String, String> parameters) {
@@ -39,6 +41,7 @@ final class SnmpConnectionOptions {
         threadPoolConfig = new SnmpThreadPoolConfig(parameters, connectionString);
         engineID = parseEngineID(parameters);
         community = parseCommunity(parameters);
+        this.smartMode = AbstractManagedResourceConnector.isSmartModeEnabled(parameters);
         userName = parameters.containsKey(USER_NAME_PARAM) ?
                 new OctetString(parameters.get(USER_NAME_PARAM)) :
                 null;
@@ -106,13 +109,7 @@ final class SnmpConnectionOptions {
                 SnmpClient.create(connectionAddress, engineID, userName, authProtocol, password, encryptionProtocol, encryptionKey, securityContext, localAddress, socketTimeout, threadPoolConfig);
     }
 
-    static boolean authenticationRequred(final Map<String, String> connectionOptions) {
-        return connectionOptions.containsKey(ENGINE_ID_PARAM) ||
-                connectionOptions.containsKey(USER_NAME_PARAM) ||
-                connectionOptions.containsKey(PASSWORD_PARAM) ||
-                connectionOptions.containsKey(ENCRYPTION_KEY_PARAM) ||
-                connectionOptions.containsKey(ENCRYPTION_PROTOCOL_PARAM) ||
-                connectionOptions.containsKey(AUTH_PROTOCOL_PARAM) ||
-                connectionOptions.containsKey(SECURITY_CONTEXT_PARAM);
+    boolean isSmartModeEnabled(){
+        return smartMode;
     }
 }

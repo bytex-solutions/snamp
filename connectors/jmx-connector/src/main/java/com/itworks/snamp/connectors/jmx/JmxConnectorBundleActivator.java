@@ -14,6 +14,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
 import javax.management.JMException;
+import javax.management.MalformedObjectNameException;
 import javax.management.openmbean.CompositeData;
 import javax.management.remote.JMXConnector;
 import java.io.IOException;
@@ -127,7 +128,7 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
         public JmxConnector createConnector(final String resourceName,
                                             final String connectionString,
                                             final Map<String, String> connectionOptions,
-                                            final RequiredService<?>... dependencies) throws MalformedURLException {
+                                            final RequiredService<?>... dependencies) throws MalformedURLException, MalformedObjectNameException {
             return new JmxConnector(resourceName, connectionString, connectionOptions);
         }
 
@@ -146,8 +147,12 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
         }
 
         @Override
-        protected void enableOperation(final JmxConnector connector, final String operationID, final String operationName, final CompositeData options) {
-            connector.enableOperation(operationID, operationName, options);
+        protected void enableOperation(final JmxConnector connector,
+                                       final String operationID,
+                                       final String operationName,
+                                       final TimeSpan invocationTimeout,
+                                       final CompositeData options) {
+            connector.enableOperation(operationID, operationName, invocationTimeout, options);
         }
 
         @Override
@@ -173,7 +178,7 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
                 new SimpleDiscoveryServiceManager<JMXConnector>() {
 
                     @Override
-                    protected JMXConnector createManagementInformationProvider(final String connectionString, final Map<String, String> connectionOptions, final RequiredService<?>... dependencies) throws IOException {
+                    protected JMXConnector createManagementInformationProvider(final String connectionString, final Map<String, String> connectionOptions, final RequiredService<?>... dependencies) throws MalformedObjectNameException, IOException {
                         return new JmxConnectionOptions(connectionString, connectionOptions).createConnection();
                     }
 

@@ -54,7 +54,7 @@ final class OpenStackResourceConnector extends AbstractManagedResourceConnector 
         public Collection<OpenStackResourceAttribute> expand() {
             final List<OpenStackResourceAttribute> result = new LinkedList<>();
             for(final String attributeName: resourceType.getAttributes(client)) {
-                final OpenStackResourceAttribute attr = addAttribute(attributeName, attributeName, TimeSpan.INFINITE, ConfigParameters.empty());
+                final OpenStackResourceAttribute attr = addAttribute(attributeName, attributeName, TIMEOUT_FOR_SMART_MODE, ConfigParameters.empty());
                 if(attr != null) result.add(attr);
             }
             return result;

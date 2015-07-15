@@ -2,7 +2,6 @@ package com.itworks.snamp.connectors.snmp;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
-import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
 import com.itworks.snamp.configuration.SerializableAgentConfiguration;
@@ -26,14 +25,8 @@ import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvid
  * @since 1.0
  */
 final class SnmpDiscoveryService {
-    private static final String DISCOVERY_TIMEOUT_PROPERTY = "com.itworks.snamp.connectors.snmp.discoveryTimeout";
-
     private SnmpDiscoveryService(){
 
-    }
-
-    private static TimeSpan getDiscoveryTimeout(){
-        return new TimeSpan(Long.parseLong(System.getProperty(DISCOVERY_TIMEOUT_PROPERTY, "5000")));
     }
 
     private static void setupAttributeOptions(final Variable v, final Map<String, String> options){
@@ -42,7 +35,7 @@ final class SnmpDiscoveryService {
     }
 
     private static Collection<AttributeConfiguration> discoverAttributes(final SnmpClient client) throws TimeoutException, InterruptedException, ExecutionException {
-        return Collections2.transform(client.walk(getDiscoveryTimeout()), new Function<VariableBinding, AttributeConfiguration>() {
+        return Collections2.transform(client.walk(SnmpConnectorHelpers.getDiscoveryTimeout()), new Function<VariableBinding, AttributeConfiguration>() {
             @Override
             public AttributeConfiguration apply(final VariableBinding input) {
                 final SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration config = new SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration();

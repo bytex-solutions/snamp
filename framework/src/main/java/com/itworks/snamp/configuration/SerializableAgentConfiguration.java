@@ -474,6 +474,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
         public static final class SerializableOperationConfiguration extends AbstractFeatureConfiguration implements OperationConfiguration{
             private static final long serialVersionUID = 8267389949041604889L;
             private String operationName = "";
+            private TimeSpan timeout = TimeSpan.INFINITE;
 
             /**
              * The object implements the writeExternal method to save its contents
@@ -531,6 +532,19 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
             @Override
             public void setOperationName(final String operationName) {
                 this.operationName = operationName != null ? operationName : "";
+            }
+
+            @Override
+            public TimeSpan getInvocationTimeout() {
+                return timeout;
+            }
+
+            @Override
+            public void setInvocationTimeout(final TimeSpan value) {
+                markAsModified();
+                this.timeout = (value == TimeSpan.INFINITE || value.duration == Long.MAX_VALUE) ?
+                        TimeSpan.INFINITE :
+                        value;
             }
         }
 

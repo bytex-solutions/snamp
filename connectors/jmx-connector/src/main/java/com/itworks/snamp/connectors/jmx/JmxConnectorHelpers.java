@@ -48,6 +48,10 @@ final class JmxConnectorHelpers {
         });
     }
 
+    static void log(final Level lvl, final String message){
+        log(lvl, message, new Object[0], null);
+    }
+
     static void log(final Level lvl, final String message, final Throwable e){
         log(lvl, message, new Object[0], e);
     }

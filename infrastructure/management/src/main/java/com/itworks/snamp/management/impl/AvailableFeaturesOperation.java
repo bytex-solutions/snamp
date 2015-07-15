@@ -98,7 +98,7 @@ abstract class AvailableFeaturesOperation<F extends MBeanFeatureInfo> extends Op
     }
 
     @Override
-    public TabularData invoke(final Map<String, ?> arguments) throws InstanceNotFoundException, OpenDataException {
+    public final TabularData invoke(final Map<String, ?> arguments) throws InstanceNotFoundException, OpenDataException {
         return invoke(getArgument(RESOURCE_NAME_PARAM.getName(), String.class, arguments));
     }
 }

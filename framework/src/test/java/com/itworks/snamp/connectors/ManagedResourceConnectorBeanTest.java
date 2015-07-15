@@ -170,7 +170,7 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         assertEquals("property1", AttributeDescriptor.getAttributeName(md));
         assertEquals(SimpleType.STRING, AttributeDescriptor.getOpenType(md));
         //enables operations
-        assertNotNull(connector.enableOperation("sum", "computeSum", ConfigParameters.empty()));
+        assertNotNull(connector.enableOperation("sum", "computeSum", TimeSpan.INFINITE, ConfigParameters.empty()));
         final Object result = connector.invoke("sum", new Object[]{4, 5}, new String[0]);
         assertTrue(result instanceof Integer);
         assertEquals(9, result);

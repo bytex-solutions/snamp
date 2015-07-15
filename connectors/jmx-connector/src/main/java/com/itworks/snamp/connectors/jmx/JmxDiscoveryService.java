@@ -29,7 +29,7 @@ final class JmxDiscoveryService{
         for (final ObjectName objectName : connection.queryNames(null, null))
             for (final MBeanAttributeInfo attr : connection.getMBeanInfo(objectName).getAttributes()) {
                 final SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration config = new SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration();
-                config.getParameters().put(OBJECT_NAME_PROPERTY, objectName.toString());
+                config.getParameters().put(OBJECT_NAME_PROPERTY, objectName.getCanonicalName());
                 config.setAttributeName(attr.getName());
                 config.getParameters().put("description", attr.getDescription());
                 result.add(config);
@@ -44,7 +44,7 @@ final class JmxDiscoveryService{
                 for (final String category : notif.getNotifTypes()) {
                     final SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableEventConfiguration config = new SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableEventConfiguration();
                     config.setCategory(category);
-                    config.getParameters().put(OBJECT_NAME_PROPERTY, objectName.toString());
+                    config.getParameters().put(OBJECT_NAME_PROPERTY, objectName.getCanonicalName());
                     config.getParameters().put("description", notif.getDescription());
                     result.add(config);
                 }

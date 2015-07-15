@@ -16,6 +16,7 @@ import com.itworks.snamp.connectors.attributes.*;
 import com.itworks.snamp.connectors.notifications.*;
 import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.io.Buffers;
+import com.itworks.snamp.jmx.CompositeDataUtils;
 import com.itworks.snamp.jmx.JMExceptionUtils;
 import org.snmp4j.CommandResponder;
 import org.snmp4j.CommandResponderEvent;
@@ -28,6 +29,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
@@ -38,6 +40,7 @@ import static com.itworks.snamp.concurrent.AbstractConcurrentResourceAccessor.Ac
 import static com.itworks.snamp.concurrent.AbstractConcurrentResourceAccessor.ConsistentAction;
 import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.MESSAGE_OID_PARAM;
 import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.MESSAGE_TEMPLATE_PARAM;
+import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.SNMP_CONVERSION_FORMAT_PARAM;
 
 /**
  * Represents SNMP-compliant managed resource.
@@ -550,10 +553,11 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         private static final TimeSpan BATCH_READ_WRITE_TIMEOUT = TimeSpan.fromSeconds(30);
         private final AbstractConcurrentResourceAccessor<SnmpClient> client;
         private final ExecutorService executor;
+        private static final Class<SnmpAttributeInfo> FEATURE_TYPE = SnmpAttributeInfo.class;
 
         private SnmpAttributeSupport(final String resourceName,
                                      final AbstractConcurrentResourceAccessor<SnmpClient> client){
-            super(resourceName, SnmpAttributeInfo.class);
+            super(resourceName, FEATURE_TYPE);
             this.client = client;
             this.executor = client.read(new ConsistentAction<SnmpClient, ExecutorService>() {
                 @Override
@@ -753,17 +757,49 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
                 return new AttributeList();
             }
         }
+
+        private static boolean canExpandWith(final Class<? extends MBeanFeatureInfo> featureType) {
+            return featureType.isAssignableFrom(FEATURE_TYPE);
+        }
+
+        @Override
+        public List<SnmpAttributeInfo> expand() {
+            try {
+                return client.read(new Action<SnmpClient, List<SnmpAttributeInfo>, Exception>() {
+                    @Override
+                    public LinkedList<SnmpAttributeInfo> invoke(final SnmpClient client) throws InterruptedException, ExecutionException, TimeoutException, OpenDataException {
+                        final LinkedList<SnmpAttributeInfo> result = new LinkedList<>();
+                        for(final VariableBinding binding: client.walk(SnmpConnectorHelpers.getDiscoveryTimeout())){
+                            final Map<String, String> parameters = new HashMap<>(5);
+                            if(binding.getVariable() instanceof OctetString)
+                                parameters.put(SNMP_CONVERSION_FORMAT_PARAM, OctetStringConversionFormat.adviceFormat((OctetString) binding.getVariable()));
+                            final SnmpAttributeInfo attr = addAttribute(binding.getOid().toDottedString(),
+                                    binding.getOid().toDottedString(),
+                                    TIMEOUT_FOR_SMART_MODE,
+                                    CompositeDataUtils.create(parameters, SimpleType.STRING));
+                            if(attr != null) result.add(attr);
+                        }
+                        return result;
+                    }
+                });
+            } catch (final Exception e) {
+                SnmpConnectorHelpers.log(Level.WARNING, String.format("Unable to expand attributes of '%s' resource", getResourceName()));
+                return Collections.emptyList();
+            }
+        }
     }
 
     private final SnmpAttributeSupport attributes;
     private final SnmpNotificationSupport notifications;
     private final AbstractConcurrentResourceAccessor<SnmpClient> client;
+    private final boolean smartMode;
 
     SnmpResourceConnector(final String resourceName,
                           final SnmpConnectionOptions snmpConnectionOptions) throws IOException {
         client = new ConcurrentResourceAccessor<>(snmpConnectionOptions.createSnmpClient());
         attributes = new SnmpAttributeSupport(resourceName, client);
         notifications = new SnmpNotificationSupport(resourceName, client);
+        smartMode = snmpConnectionOptions.isSmartModeEnabled();
     }
 
     SnmpResourceConnector(final String resourceName,
@@ -911,5 +947,19 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
                     }
                 },
                 attributes, attributes.getClientAddresses(), notifications);
+    }
+
+    @Override
+    public boolean canExpandWith(final Class<? extends MBeanFeatureInfo> featureType) {
+        return smartMode && SnmpAttributeSupport.canExpandWith(featureType);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <F extends MBeanFeatureInfo> Collection<? extends F> expand(final Class<F> featureType) {
+        if(smartMode)
+            if(attributes.canExpandWith(featureType))
+                return (Collection<F>)attributes.expand();
+        return Collections.emptyList();
     }
 }

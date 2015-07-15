@@ -1,8 +1,11 @@
 package com.itworks.snamp.connectors.jmx;
 
 import com.itworks.snamp.ExceptionalCallable;
+import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
 import com.itworks.snamp.internal.Utils;
 
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
@@ -27,18 +30,19 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
     private final String login;
     private final String password;
     private final long watchDogPeriod;
+    private final boolean smartMode;
+    private final ObjectName globalNamespace;
 
     /**
      * Initializes a new JMX connection parameters.
      * @param connectionString JMX-compliant URL that identifies remote managed bean.
      * @throws MalformedURLException The specified URL is not JMX-compliant.
      */
-    @SuppressWarnings("UnusedDeclaration")
-    JmxConnectionOptions(final String connectionString) throws MalformedURLException {
+    JmxConnectionOptions(final String connectionString) throws MalformedURLException, MalformedObjectNameException {
         this(connectionString, Collections.<String, String>emptyMap());
     }
 
-    JmxConnectionOptions(final String connectionString, final Map<String, String> options) throws MalformedURLException{
+    JmxConnectionOptions(final String connectionString, final Map<String, String> options) throws MalformedURLException, MalformedObjectNameException {
         super(connectionString);
         if(options.containsKey(JMX_LOGIN) && options.containsKey(JMX_PASSWORD)){
             login = options.get(JMX_LOGIN);
@@ -47,6 +51,8 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
         else login = password = "";
         this.watchDogPeriod = options.containsKey(CONNECTION_CHECK_PERIOD) ?
                 Integer.parseInt(options.get(CONNECTION_CHECK_PERIOD)) : 3000L;
+        this.smartMode = AbstractManagedResourceConnector.isSmartModeEnabled(options);
+        this.globalNamespace = getObjectName(options);
     }
 
     private Map<String, Object> getJmxOptions(){
@@ -59,11 +65,19 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
         return jmxOptions;
     }
 
+    ObjectName getGlobalObjectName(){
+        return globalNamespace;
+    }
+
+    boolean isSmartModeEnabled(){
+        return smartMode;
+    }
+
     /**
      * Creates a new instance of the connection manager.
      * @return A new instance of the connection manager.
      */
-    public final JmxConnectionManager createConnectionManager(){
+    final JmxConnectionManager createConnectionManager(){
         return new JmxConnectionManager(this, watchDogPeriod);
     }
 

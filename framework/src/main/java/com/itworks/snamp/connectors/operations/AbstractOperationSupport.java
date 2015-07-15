@@ -4,6 +4,7 @@ import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.AbstractFeatureModeler;
 import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
@@ -281,11 +282,13 @@ public abstract class AbstractOperationSupport<M extends MBeanOperationInfo> ext
      * Enables management operation.
      * @param userDefinedName Custom-defined name of the management operation
      * @param operationName The name of the operation as it is declared in the resource.
+     * @param invocationTimeout Max duration operation invocation.
      * @param options Operation execution options.
      * @return The metadata of enabled operation; or {@literal null}, if operation is not available.
      */
     public final M enableOperation(final String userDefinedName,
                                    final String operationName,
+                                   final TimeSpan invocationTimeout,
                                    final CompositeData options){
         OperationHolder<M> holder;
         try(final LockScope ignored = beginWrite(AOSResource.OPERATIONS)){
@@ -298,7 +301,7 @@ public abstract class AbstractOperationSupport<M extends MBeanOperationInfo> ext
                     holder = operations.remove(userDefinedName);
                     //and register again
                     if (disableOperation(holder.getMetadata())) {
-                        final M metadata = enableOperation(userDefinedName, new OperationDescriptor(operationName, options));
+                        final M metadata = enableOperation(userDefinedName, new OperationDescriptor(operationName, invocationTimeout, options));
                         if (metadata != null) {
                             operations.put(holder = new OperationHolder<>(metadata, operationName, options));
                             operationAdded(holder.getMetadata());
@@ -306,7 +309,7 @@ public abstract class AbstractOperationSupport<M extends MBeanOperationInfo> ext
                     } else holder = null;
                 }
             else {
-                final M metadata = enableOperation(userDefinedName, new OperationDescriptor(operationName, options));
+                final M metadata = enableOperation(userDefinedName, new OperationDescriptor(operationName, invocationTimeout, options));
                 if(metadata != null) {
                     operations.put(holder = new OperationHolder<>(metadata, operationName, options));
                     operationAdded(holder.getMetadata());

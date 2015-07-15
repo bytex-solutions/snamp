@@ -128,8 +128,9 @@ public interface AgentConfiguration extends Cloneable {
 
             /**
              * Sets attribute value invoke/write operation timeout.
+             * @param value A new value of the timeout.
              */
-            void setReadWriteTimeout(final TimeSpan time);
+            void setReadWriteTimeout(final TimeSpan value);
 
             /**
              * Returns the attribute name.
@@ -156,6 +157,18 @@ public interface AgentConfiguration extends Cloneable {
              * @return The name of the managed resource operation.
              */
             String getOperationName();
+
+            /**
+             * Gets timeout of operation invocation.
+             * @return Timeout value.
+             */
+            TimeSpan getInvocationTimeout();
+
+            /**
+             * Sets timeout of operation invocation.
+             * @param value A new timeout value.
+             */
+            void setInvocationTimeout(final TimeSpan value);
 
             /**
              * Sets name of the managed resource operation.

@@ -3,26 +3,36 @@ package com.itworks.snamp.connectors.jmx;
 import com.google.common.base.Functions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableMap;
 import com.itworks.snamp.ArrayUtils;
+import com.itworks.snamp.configuration.AbsentConfigurationParameterException;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.itworks.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import com.itworks.snamp.connectors.SelectableConnectorParameterDescriptor;
 import com.itworks.snamp.connectors.notifications.NotificationDescriptor;
+import com.itworks.snamp.internal.Utils;
+import com.itworks.snamp.jmx.AbstractCompositeData;
+import com.itworks.snamp.jmx.CompositeDataUtils;
+import com.itworks.snamp.jmx.CompositeTypeBuilder;
 import com.itworks.snamp.jmx.DescriptorUtils;
 
-import javax.management.Descriptor;
-import javax.management.MBeanParameterInfo;
-import javax.management.MBeanServerConnection;
+import javax.management.*;
+import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.CompositeType;
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.SimpleType;
 import javax.management.remote.JMXConnector;
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.Callable;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
+import static com.itworks.snamp.connectors.ManagedResourceConnector.SMART_MODE_PARAM;
 
 /**
  * Represents JMX connector configuration descriptor.
@@ -64,7 +74,9 @@ final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescr
                     ManagedResourceConfiguration.class,
                     JMX_LOGIN,
                     JMX_PASSWORD,
-                    CONNECTION_CHECK_PERIOD);
+                    CONNECTION_CHECK_PERIOD,
+                    SMART_MODE_PARAM,
+                    OBJECT_NAME_PROPERTY);
         }
     }
 
@@ -84,7 +96,7 @@ final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescr
             @Override
             public String[] suggestValues(final String connectionString,
                                           final Map<String, String> connectionOptions,
-                                          final Locale loc) throws IOException {
+                                          final Locale loc) throws IOException, MalformedObjectNameException {
                 final JmxConnectionOptions options = new JmxConnectionOptions(connectionString, connectionOptions);
                 try (final JMXConnector connection = options.createConnection()) {
                     final MBeanServerConnection server = connection.getMBeanServerConnection();
@@ -141,5 +153,21 @@ final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescr
             else return false;
         }
         else return true;
+    }
+
+    static ObjectName getObjectName(final Descriptor descriptor) throws MalformedObjectNameException, JmxAbsentConfigurationParameterException {
+        if(DescriptorUtils.hasField(descriptor, OBJECT_NAME_PROPERTY))
+            return new ObjectName(DescriptorUtils.getField(descriptor, OBJECT_NAME_PROPERTY, String.class));
+        else throw new JmxAbsentConfigurationParameterException(OBJECT_NAME_PROPERTY);
+    }
+
+    static ObjectName getObjectName(final Map<String, String> parameters) throws MalformedObjectNameException{
+        if(parameters.containsKey(OBJECT_NAME_PROPERTY))
+            return new ObjectName(parameters.get(OBJECT_NAME_PROPERTY));
+        else return null;
+    }
+
+    static CompositeData toConfigurationParameters(final ObjectName name) throws OpenDataException {
+        return CompositeDataUtils.create(ImmutableMap.of(OBJECT_NAME_PROPERTY, name.getCanonicalName()), SimpleType.STRING);
     }
 }
