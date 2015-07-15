@@ -1,21 +1,29 @@
 package com.itworks.snamp.connectors.openstack;
 
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableMap;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.configuration.ConfigParameters;
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
 import com.itworks.snamp.connectors.ResourceEventListener;
 import com.itworks.snamp.connectors.attributes.AbstractAttributeSupport;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
+import com.itworks.snamp.internal.Utils;
+import com.itworks.snamp.jmx.CompositeDataUtils;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.openstack.OSFactory;
 
 import javax.annotation.Nullable;
 import javax.management.MBeanFeatureInfo;
 import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.SimpleType;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static com.itworks.snamp.connectors.ConfigurationEntityRuntimeMetadata.AUTOMATICALLY_ADDED_FIELD;
 import static com.itworks.snamp.connectors.openstack.OpenStackResourceConnectorConfigurationDescriptor.*;
 
 /**
@@ -25,6 +33,12 @@ import static com.itworks.snamp.connectors.openstack.OpenStackResourceConnectorC
  */
 final class OpenStackResourceConnector extends AbstractManagedResourceConnector {
     static final String NAME = "openstack";
+    private static final CompositeData AUTO_PROPS = Utils.interfaceStaticInitialize(new Callable<CompositeData>() {
+        @Override
+        public CompositeData call() throws OpenDataException {
+            return CompositeDataUtils.create(ImmutableMap.of(AUTOMATICALLY_ADDED_FIELD, Boolean.TRUE.toString()), SimpleType.STRING);
+        }
+    });
 
     static {
         OSFactory.useJDKLogger();
@@ -53,7 +67,7 @@ final class OpenStackResourceConnector extends AbstractManagedResourceConnector 
         public Collection<OpenStackResourceAttribute> expand() {
             final List<OpenStackResourceAttribute> result = new LinkedList<>();
             for(final String attributeName: resourceType.getAttributes(client)) {
-                final OpenStackResourceAttribute attr = addAttribute(attributeName, attributeName, TIMEOUT_FOR_SMART_MODE, ConfigParameters.empty());
+                final OpenStackResourceAttribute attr = addAttribute(attributeName, attributeName, TIMEOUT_FOR_SMART_MODE, AUTO_PROPS);
                 if(attr != null) result.add(attr);
             }
             return result;

@@ -14,6 +14,8 @@ import static com.itworks.snamp.configuration.AgentConfiguration.EntityConfigura
  * @since 1.0
  */
 public interface ConfigurationEntityRuntimeMetadata<E extends EntityConfiguration> extends CopyOnWriteDescriptor {
+    String AUTOMATICALLY_ADDED_FIELD = "automaticallyAdded";
+
     /**
      * The type of the configuration entity.
      * @return The type of the configuration entity.

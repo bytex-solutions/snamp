@@ -195,4 +195,13 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
     public final  <T> T getField(final String fieldName, final Class<T> fieldType){
         return DescriptorUtils.getField(this, fieldName, fieldType);
     }
+
+    /**
+     * Indicating that the notification with this descriptor will be added automatically by connector itself.
+     * This can be happened because connector is in Smart mode.
+     * @return {@literal true}, if the attribute with this notification will be added automatically by connector itself; otherwise, {@literal false}.
+     */
+    public final boolean isAutomaticallyAdded(){
+        return hasField(AUTOMATICALLY_ADDED_FIELD);
+    }
 }

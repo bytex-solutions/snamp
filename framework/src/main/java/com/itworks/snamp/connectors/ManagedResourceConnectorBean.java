@@ -3,6 +3,7 @@ package com.itworks.snamp.connectors;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.itworks.snamp.AbstractAggregator;
@@ -17,6 +18,7 @@ import com.itworks.snamp.connectors.operations.AbstractOperationSupport;
 import com.itworks.snamp.connectors.operations.OperationDescriptor;
 import com.itworks.snamp.connectors.operations.OperationSupport;
 import com.itworks.snamp.internal.Utils;
+import com.itworks.snamp.jmx.CompositeDataUtils;
 import com.itworks.snamp.jmx.JMExceptionUtils;
 import com.itworks.snamp.jmx.WellKnownType;
 
@@ -32,10 +34,12 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.itworks.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.*;
+import static com.itworks.snamp.connectors.ConfigurationEntityRuntimeMetadata.AUTOMATICALLY_ADDED_FIELD;
 
 /**
  * Represents SNAMP in-process management connector that exposes
@@ -71,6 +75,12 @@ import static com.itworks.snamp.configuration.SerializableAgentConfiguration.Ser
  */
 public abstract class ManagedResourceConnectorBean extends AbstractManagedResourceConnector
         implements NotificationSupport, AttributeSupport, OperationSupport {
+    private static final CompositeData AUTO_PROPS = Utils.interfaceStaticInitialize(new Callable<CompositeData>() {
+        @Override
+        public CompositeData call() throws OpenDataException {
+            return CompositeDataUtils.create(ImmutableMap.of(AUTOMATICALLY_ADDED_FIELD, Boolean.TRUE.toString()), SimpleType.STRING);
+        }
+    });
 
     /**
      * Represents description of the bean to be managed by this connector.
@@ -463,7 +473,10 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             final List<JavaBeanOperationInfo> result = new LinkedList<>();
             for(final MethodDescriptor method: this.descriptor.getBeanInfo().getMethodDescriptors())
                 if(method.getMethod().isAnnotationPresent(ManagementOperation.class)){
-                    final JavaBeanOperationInfo operation = enableOperation(method.getDisplayName(), method.getName(), TIMEOUT_FOR_SMART_MODE, ConfigParameters.empty());
+                    final JavaBeanOperationInfo operation = enableOperation(method.getDisplayName(),
+                            method.getName(),
+                            TIMEOUT_FOR_SMART_MODE,
+                            AUTO_PROPS);
                     if(operation != null) result.add(operation);
                 }
             return result;
@@ -722,7 +735,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             for (final PropertyDescriptor property : info.getPropertyDescriptors())
                 if (!isReservedProperty(property)) {
                     final JavaBeanAttributeInfo attr =
-                            addAttribute(property.getDisplayName(), property.getName(), TIMEOUT_FOR_SMART_MODE, ConfigParameters.empty());
+                            addAttribute(property.getDisplayName(), property.getName(), TIMEOUT_FOR_SMART_MODE, AUTO_PROPS);
                     if (attr != null) result.add(attr);
                 }
             return result;

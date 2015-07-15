@@ -41,6 +41,7 @@ import static com.itworks.snamp.concurrent.AbstractConcurrentResourceAccessor.Co
 import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.MESSAGE_OID_PARAM;
 import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.MESSAGE_TEMPLATE_PARAM;
 import static com.itworks.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.SNMP_CONVERSION_FORMAT_PARAM;
+import static com.itworks.snamp.connectors.ConfigurationEntityRuntimeMetadata.AUTOMATICALLY_ADDED_FIELD;
 
 /**
  * Represents SNMP-compliant managed resource.
@@ -768,6 +769,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
                         final LinkedList<SnmpAttributeInfo> result = new LinkedList<>();
                         for(final VariableBinding binding: client.walk(SnmpConnectorHelpers.getDiscoveryTimeout())){
                             final Map<String, String> parameters = new HashMap<>(5);
+                            parameters.put(AUTOMATICALLY_ADDED_FIELD, Boolean.TRUE.toString());
                             if(binding.getVariable() instanceof OctetString)
                                 parameters.put(SNMP_CONVERSION_FORMAT_PARAM, OctetStringConversionFormat.adviceFormat((OctetString) binding.getVariable()));
                             final SnmpAttributeInfo attr = addAttribute(binding.getOid().toDottedString(),

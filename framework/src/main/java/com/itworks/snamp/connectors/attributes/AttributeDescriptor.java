@@ -2,7 +2,6 @@ package com.itworks.snamp.connectors.attributes;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.itworks.snamp.Attribute;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.configuration.ConfigParameters;
 import com.itworks.snamp.connectors.ConfigurationEntityRuntimeMetadata;
@@ -197,10 +196,19 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
     }
 
     /**
+     * Indicating that the attribute with this descriptor will be added automatically by connector itself.
+     * This can be happened because connector is in Smart mode.
+     * @return {@literal true}, if the attribute with this descriptor will be added automatically by connector itself; otherwise, {@literal false}.
+     */
+    public final boolean isAutomaticallyAdded(){
+        return hasField(AUTOMATICALLY_ADDED_FIELD);
+    }
+
+    /**
      * Gets unit of measurement for this attribute.
      * @return UOM.
      */
-    public String getUnit(){
+    public final String getUnit(){
         return getField(DescriptorUtils.UNIT_OF_MEASUREMENT_FIELD, String.class);
     }
 }

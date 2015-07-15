@@ -152,4 +152,13 @@ public class OperationDescriptor extends ImmutableDescriptor implements Configur
     public final TimeSpan getInvocationTimeout(){
         return getInvocationTimeout(this);
     }
+
+    /**
+     * Indicating that the operation with this descriptor will be added automatically by connector itself.
+     * This can be happened because connector is in Smart mode.
+     * @return {@literal true}, if the operation with this descriptor will be added automatically by connector itself; otherwise, {@literal false}.
+     */
+    public final boolean isAutomaticallyAdded(){
+        return hasField(AUTOMATICALLY_ADDED_FIELD);
+    }
 }

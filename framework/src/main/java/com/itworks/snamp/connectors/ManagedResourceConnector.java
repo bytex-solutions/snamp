@@ -27,9 +27,10 @@ import java.util.Map;
  */
 public interface ManagedResourceConnector extends AutoCloseable, FrameworkService, DynamicMBean {
     /**
-     * Represents name of the configuration parameter that holds
+     * Represents name of the configuration parameter that can be used to enable Smart mode of the connector.
      */
     String SMART_MODE_PARAM = "smartMode";
+
     /**
      * Recommended timeout for invocation of operations and attributes in smart mode.
      */
