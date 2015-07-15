@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -329,8 +330,8 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
         this(resourceName, new RShellConnectionOptions(connectionString, connectionOptions));
     }
 
-    MBeanAttributeInfo addAttribute(final String id, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
-        return attributes.addAttribute(id, attributeName, readWriteTimeout, options);
+    boolean addAttribute(final String id, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+        return attributes.addAttribute(id, attributeName, readWriteTimeout, options) != null;
     }
 
     /**
@@ -382,6 +383,10 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
                 }, attributes);
     }
 
+    void removeAttributesExcept(final Set<String> attributes) {
+        this.attributes.removeAllExcept(attributes);
+    }
+
     /**
      * Releases all resources associated with this connector.
      *
@@ -389,7 +394,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
      */
     @Override
     public void close() throws Exception {
-        attributes.clear(true);
+        attributes.removeAll(true);
         super.close();
         executionChannel.close();
     }

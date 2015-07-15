@@ -41,6 +41,7 @@ encryptionKey | String | Yes (for SNMPv3) | Secret string used as a encryption k
 securityContext | String | No | The context name of the scoped PDU (for SNMPv3 only) | `context`
 socketTimeout | Integer | No | UDP socket timeout, in millis. It is used as a maximum time interval for receiving and sending PDU packets over network. This parameter must be specified if your network has high latency | `2000`
 localAddress | `udp://<ip-address>/<port>` | No | UDP outgoing address and port. Usually, you should not specify this parameter. But it is very useful for testing purposes when you QA team wants to capture data packet traces between SNAMP and SNMP agent | `udp://127.0.0.1/44495`
+smartMode | Boolean | No | Enables or disables smart mode | `true`
 
 Note that parameters related to thread pool is omitted. See **SNAMP Configuration Guide** page for more information about thread pool configuration. All other parameters will be ignored.
 

@@ -1,5 +1,6 @@
 package com.itworks.snamp.connectors.attributes;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.itworks.snamp.TimeSpan;
@@ -13,9 +14,7 @@ import com.itworks.snamp.jmx.JMExceptionUtils;
 import javax.management.*;
 import javax.management.openmbean.CompositeData;
 import java.math.BigInteger;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -319,13 +318,12 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
                     attributeRemoved(holder.getMetadata());
                     holder = attributes.remove(attributeID);
                     //...and register again
-                    if (disconnectAttribute(holder.getMetadata())) {
-                        final M metadata = connectAttribute(attributeID, new AttributeDescriptor(attributeName, readWriteTimeout, options));
-                        if (metadata != null) {
-                            attributes.put(holder = new AttributeHolder<>(metadata, attributeName, readWriteTimeout, options));
-                            attributeAdded(holder.getMetadata());
-                        }
-                    } else holder = null;
+                    disconnectAttribute(holder.getMetadata());
+                    final M metadata = connectAttribute(attributeID, new AttributeDescriptor(attributeName, readWriteTimeout, options));
+                    if (metadata != null) {
+                        attributes.put(holder = new AttributeHolder<>(metadata, attributeName, readWriteTimeout, options));
+                        attributeAdded(holder.getMetadata());
+                    }
                 }
             }
             //this is a new attribute, just connect it
@@ -519,27 +517,34 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
      * @param attributeInfo An attribute metadata.
      * @return {@literal true}, if the attribute successfully disconnected; otherwise, {@literal false}.
      */
-    protected boolean disconnectAttribute(final M attributeInfo) {
-        return true;
+    protected void disconnectAttribute(final M attributeInfo) {
+    }
+
+    private AttributeHolder<M> removeImpl(final String attributeID) {
+        AttributeHolder<M> holder = attributes.get(attributeID);
+        if (holder != null) {
+            attributeRemoved(holder.getMetadata());
+            holder = attributes.remove(attributeID);
+        }
+        return holder;
     }
 
     /**
      * Removes the attribute from the connector.
      *
      * @param attributeID The unique identifier of the attribute.
-     * @return {@literal true}, if the attribute successfully disconnected; otherwise, {@literal false}.
+     * @return The metadata of deleted attribute.
      */
-    @ThreadSafe
-    public final boolean removeAttribute(final String attributeID) {
-        AttributeHolder<M> holder;
+    @Override
+    public final M remove(final String attributeID) {
+        final AttributeHolder<M> holder;
         try (final LockScope ignored = beginWrite(AASResource.ATTRIBUTES)) {
-            holder = attributes.get(attributeID);
-            if (holder != null) {
-                attributeRemoved(holder.getMetadata());
-                attributes.remove(attributeID);
-            }
+            holder = removeImpl(attributeID);
         }
-        return holder != null && disconnectAttribute(holder.getMetadata());
+        if (holder != null) {
+            disconnectAttribute(holder.getMetadata());
+            return holder.getMetadata();
+        } else return null;
     }
 
     /**
@@ -547,15 +552,28 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
      *
      * @param removeAttributeEventListeners {@literal true} to remove all attribute listeners; otherwise, {@literal false}.
      */
-    public final void clear(final boolean removeAttributeEventListeners) {
+    public final void removeAll(final boolean removeAttributeEventListeners) {
         try (final LockScope ignored = beginWrite(AASResource.ATTRIBUTES)) {
-            for (final AttributeHolder<M> holder : attributes.values())
-                if (disconnectAttribute(holder.getMetadata()))
-                    attributeRemoved(holder.getMetadata());
+            for (final AttributeHolder<M> holder : attributes.values()) {
+                attributeRemoved(holder.getMetadata());
+                disconnectAttribute(holder.getMetadata());
+            }
             attributes.clear();
         }
         if (removeAttributeEventListeners)
             super.removeAllResourceEventListeners();
+    }
+
+    /**
+     * Gets a set of identifiers.
+     *
+     * @return A set of identifiers.
+     */
+    @Override
+    public final ImmutableSet<String> getIDs() {
+        try(final LockScope ignored = beginRead(AASResource.ATTRIBUTES)){
+            return ImmutableSet.copyOf(attributes.keySet());
+        }
     }
 
     @Override

@@ -540,17 +540,14 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
         }
 
         @Override
-        protected boolean disableNotifications(final JmxNotificationInfo metadata) {
+        protected void disableNotifications(final JmxNotificationInfo metadata) {
             final Set<ObjectName> targets = getNotificationTargets();
             if (!targets.contains(metadata.getOwner()))
                 try {
                     disableListening(metadata.getOwner());
-                    return true;
                 } catch (final Exception e) {
                     JmxConnectorHelpers.log(Level.WARNING, String.format("Unable to unsubscribe from %s", metadata.getOwner()), e);
-                    return false;
                 }
-            else return false;
         }
 
         private JmxNotificationInfo enableNotifications(final String listID,
@@ -793,27 +790,27 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
         this(resourceName, new JmxConnectionOptions(connectionString, connectionOptions));
     }
 
-    MBeanAttributeInfo addAttribute(final String id,
+    boolean addAttribute(final String id,
                                     final String attributeName,
                                     final TimeSpan readWriteTimeout,
                                     final CompositeData options) {
         verifyInitialization();
-        return attributes.addAttribute(id, attributeName, readWriteTimeout, options);
+        return attributes.addAttribute(id, attributeName, readWriteTimeout, options) != null;
     }
 
-    MBeanNotificationInfo enableNotifications(final String listId,
+    boolean enableNotifications(final String listId,
                                               final String category,
                                               final CompositeData options) {
         verifyInitialization();
-        return notifications.enableNotifications(listId, category, options);
+        return notifications.enableNotifications(listId, category, options) != null;
     }
 
-    MBeanOperationInfo enableOperation(final String operationID,
+    boolean enableOperation(final String operationID,
                                        final String operationName,
                                        final TimeSpan invocationTimeout,
                                        final CompositeData options){
         verifyInitialization();
-        return operations.enableOperation(operationID, operationName, invocationTimeout, options);
+        return operations.enableOperation(operationID, operationName, invocationTimeout, options) != null;
     }
 
     /**
@@ -924,6 +921,18 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
         return Collections.emptyList();
     }
 
+    void removeAttributesExcept(final Set<String> attributes) {
+        this.attributes.removeAllExcept(attributes);
+    }
+
+    void disableNotificationsExcept(final Set<String> events) {
+        this.notifications.removeAllExcept(events);
+    }
+
+    void disableOperationsExcept(final Set<String> operations) {
+        this.operations.removeAllExcept(operations);
+    }
+
     /**
      * Gets a logger associated with this platform service.
      *
@@ -944,10 +953,10 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
      */
     @Override
     public final void close() throws Exception{
-        attributes.clear(true);
+        attributes.removeAll(true);
         notifications.unsubscribeAll();
-        notifications.clear(true, true);
-        operations.clear(true);
+        notifications.removeAll(true, true);
+        operations.removeAll(true);
         super.close();
         connectionManager.close();
     }

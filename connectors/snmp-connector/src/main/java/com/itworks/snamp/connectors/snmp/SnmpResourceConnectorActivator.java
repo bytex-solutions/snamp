@@ -10,6 +10,7 @@ import javax.management.openmbean.CompositeData;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents SNMP connector activator.
@@ -35,17 +36,33 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
             return result;
         }
         @Override
-        protected void addAttribute(final SnmpResourceConnector connector, final String attributeID, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
-            connector.addAttribute(attributeID, attributeName, readWriteTimeout, options);
+        protected boolean addAttribute(final SnmpResourceConnector connector, final String attributeID, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+            return connector.addAttribute(attributeID, attributeName, readWriteTimeout, options);
         }
 
         @Override
-        protected void enableNotifications(final SnmpResourceConnector connector, final String listId, final String category, final CompositeData options) {
-            connector.enableNotifications(listId, category, options);
+        protected void removeAttributesExcept(final SnmpResourceConnector connector, final Set<String> attributes) {
+            connector.removeAttributesExcept(attributes);
         }
 
         @Override
-        protected void enableOperation(final SnmpResourceConnector connector, final String operationID, final String operationName, final CompositeData options) {
+        protected boolean enableNotifications(final SnmpResourceConnector connector, final String listId, final String category, final CompositeData options) {
+            return connector.enableNotifications(listId, category, options);
+        }
+
+        @Override
+        protected void disableNotificationsExcept(final SnmpResourceConnector connector, final Set<String> events) {
+            connector.disableNotificationsExcept(events);
+        }
+
+        @Override
+        protected boolean enableOperation(final SnmpResourceConnector connector, final String operationID, final String operationName, final TimeSpan timeout, final CompositeData options) {
+            //not supported
+            return false;
+        }
+
+        @Override
+        protected void disableOperationsExcept(final SnmpResourceConnector connector, final Set<String> operations) {
             //not supported
         }
     }

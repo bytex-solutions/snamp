@@ -41,7 +41,7 @@ WMQ Resource Connector recognizes the following parameters:
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
 queueManager | String | No | Name of the Queue Manager | `mq1`
-smartMode | Boolean | No | Enable or disable smart mode | `true`
+smartMode | Boolean | No | Enables or disables smart mode | `true`
 
 ## Configuring attributes
 Each attribute configured in WMQ Resource Connector has the following configuration schema:

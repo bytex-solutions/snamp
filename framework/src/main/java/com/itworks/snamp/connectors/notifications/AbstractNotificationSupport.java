@@ -1,18 +1,17 @@
 package com.itworks.snamp.connectors.notifications;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.itworks.snamp.connectors.AbstractFeatureModeler;
 import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
 import com.itworks.snamp.internal.KeyedObjects;
+import com.itworks.snamp.internal.annotations.MethodStub;
 
 import javax.management.*;
 import javax.management.openmbean.CompositeData;
 import java.math.BigInteger;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -227,13 +226,12 @@ public abstract class AbstractNotificationSupport<M extends MBeanNotificationInf
                     notificationRemoved(holder.getMetadata());
                     holder = notifications.remove(listId);
                     //and register again
-                    if (disableNotifications(holder.getMetadata())) {
-                        final M metadata = enableNotifications(listId, new NotificationDescriptor(category, getSubscriptionModel(), options));
-                        if (metadata != null) {
-                            notifications.put(holder = new NotificationHolder<>(metadata, category, options));
-                            notificationAdded(holder.getMetadata());
-                        }
-                    } else holder = null;
+                    disableNotifications(holder.getMetadata());
+                    final M metadata = enableNotifications(listId, new NotificationDescriptor(category, getSubscriptionModel(), options));
+                    if (metadata != null) {
+                        notifications.put(holder = new NotificationHolder<>(metadata, category, options));
+                        notificationAdded(holder.getMetadata());
+                    }
                 }
             }
             else {
@@ -253,6 +251,40 @@ public abstract class AbstractNotificationSupport<M extends MBeanNotificationInf
     }
 
     /**
+     * Disables event listening for the specified subscription list.
+     *
+     * @param listId The identifier of the subscription list.
+     * @return Metadata of deleted notification.
+     */
+    @Override
+    public final M remove(final String listId) {
+        final NotificationHolder<M> holder;
+        try (final LockScope ignored = beginWrite(ANSResource.NOTIFICATIONS)) {
+            holder = notifications.get(listId);
+            if (holder != null) {
+                notificationRemoved(holder.getMetadata());
+                notifications.remove(listId);
+            }
+        }
+        if (holder != null) {
+            disableNotifications(holder.getMetadata());
+            return holder.getMetadata();
+        } else return null;
+    }
+
+    /**
+     * Gets a set of identifiers.
+     *
+     * @return A set of identifiers.
+     */
+    @Override
+    public final ImmutableSet<String> getIDs() {
+        try (final LockScope ignored = beginRead(ANSResource.NOTIFICATIONS)) {
+            return ImmutableSet.copyOf(notifications.keySet());
+        }
+    }
+
+    /**
      * Determines whether all notifications disabled.
      * @return {@literal true}, if all notifications disabled; otherwise, {@literal false}.
      */
@@ -262,29 +294,8 @@ public abstract class AbstractNotificationSupport<M extends MBeanNotificationInf
         }
     }
 
-    protected boolean disableNotifications(final M metadata){
-        return true;
-    }
-
-    /**
-     * Disables event listening for the specified category of events.
-     * <p>
-     * This method removes all listeners associated with the specified subscription list.
-     * </p>
-     *
-     * @param listId The identifier of the subscription list.
-     * @return {@literal true}, if notifications for the specified category is previously enabled; otherwise, {@literal false}.
-     */
-    public final boolean disableNotifications(final String listId) {
-        NotificationHolder<M> holder;
-        try (final LockScope ignored = beginWrite(ANSResource.NOTIFICATIONS)) {
-            holder = notifications.get(listId);
-            if(holder != null){
-                notificationRemoved(holder.getMetadata());
-                notifications.remove(listId);
-            }
-        }
-        return holder != null && disableNotifications(holder.getMetadata());
+    @MethodStub
+    protected void disableNotifications(final M metadata){
     }
 
     /**
@@ -384,12 +395,13 @@ public abstract class AbstractNotificationSupport<M extends MBeanNotificationInf
      * @param removeNotificationListeners {@literal true} to remove all notification listeners.
      * @param removeResourceEventListeners {@literal true} to remove all notification model listeners.
      */
-    public final void clear(final boolean removeNotificationListeners,
-                            final boolean removeResourceEventListeners){
+    public final void removeAll(final boolean removeNotificationListeners,
+                                final boolean removeResourceEventListeners){
         try(final LockScope ignored = beginWrite(ANSResource.NOTIFICATIONS)){
-            for(final NotificationHolder<M> holder: notifications.values())
-                if(disableNotifications(holder.getMetadata()))
-                    notificationRemoved(holder.getMetadata());
+            for(final NotificationHolder<M> holder: notifications.values()) {
+                notificationRemoved(holder.getMetadata());
+                disableNotifications(holder.getMetadata());
+            }
             notifications.clear();
         }
         if(removeNotificationListeners)

@@ -3,7 +3,6 @@ package com.itworks.snamp.connectors.openstack;
 import com.google.common.base.Function;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.configuration.ConfigParameters;
-import com.itworks.snamp.connectors.AbstractFeatureModeler;
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
 import com.itworks.snamp.connectors.ResourceEventListener;
 import com.itworks.snamp.connectors.attributes.AbstractAttributeSupport;
@@ -144,12 +143,10 @@ final class OpenStackResourceConnector extends AbstractManagedResourceConnector 
          * Removes the attribute from the connector.
          *
          * @param attributeInfo An attribute metadata.
-         * @return {@literal true}, if the attribute successfully disconnected; otherwise, {@literal false}.
          */
         @Override
-        protected boolean disconnectAttribute(final OpenStackResourceAttribute attributeInfo) {
+        protected void disconnectAttribute(final OpenStackResourceAttribute attributeInfo) {
             attributeInfo.disconnect();
-            return true;
         }
 
         @Override
@@ -252,7 +249,7 @@ final class OpenStackResourceConnector extends AbstractManagedResourceConnector 
     @Override
     public void close() throws Exception {
         super.close();
-        attributes.clear(true);
+        attributes.removeAll(true);
     }
 
     @Override

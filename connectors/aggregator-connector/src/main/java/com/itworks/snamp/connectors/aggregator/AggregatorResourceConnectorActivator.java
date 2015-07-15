@@ -6,6 +6,7 @@ import com.itworks.snamp.connectors.ManagedResourceActivator;
 import javax.management.openmbean.CompositeData;
 import java.beans.IntrospectionException;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents activator of {@link AggregatorResourceConnector} resource connector.
@@ -20,24 +21,43 @@ public final class AggregatorResourceConnectorActivator extends ManagedResourceA
     private static final class ConnectorController extends ManagedResourceConnectorModeler<AggregatorResourceConnector>{
 
         @Override
-        protected void addAttribute(final AggregatorResourceConnector connector,
+        protected boolean addAttribute(final AggregatorResourceConnector connector,
                                     final String attributeID,
                                     final String attributeName,
                                     final TimeSpan readWriteTimeout,
                                     final CompositeData options) {
-            connector.addAttribute(attributeID, attributeName, readWriteTimeout, options);
+            return connector.addAttribute(attributeID, attributeName, readWriteTimeout, options);
         }
 
         @Override
-        protected void enableNotifications(final AggregatorResourceConnector connector,
+        protected boolean enableNotifications(final AggregatorResourceConnector connector,
                                            final String listId,
                                            final String category,
                                            final CompositeData options) {
-            connector.enableNotifications(listId, category, options);
+            return connector.enableNotifications(listId, category, options);
         }
 
         @Override
-        protected void enableOperation(final AggregatorResourceConnector connector, final String operationID, final String operationName, final CompositeData options) {
+        protected boolean enableOperation(final AggregatorResourceConnector connector, final String operationID, final String operationName, final TimeSpan timeout, final CompositeData options) {
+            //not supported
+            return false;
+        }
+
+        @Override
+        protected void removeAttributesExcept(final AggregatorResourceConnector connector,
+                                              final Set<String> attributes) {
+            connector.removeAttributesExcept(attributes);
+        }
+
+        @Override
+        protected void disableNotificationsExcept(final AggregatorResourceConnector connector,
+                                                  final Set<String> events) {
+            connector.disableNotificationsExcept(events);
+        }
+
+        @Override
+        protected void disableOperationsExcept(final AggregatorResourceConnector connector,
+                                               final Set<String> operations) {
             //not supported
         }
 

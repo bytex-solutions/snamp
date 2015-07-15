@@ -1,8 +1,7 @@
 package com.itworks.snamp.connectors;
 
 import com.google.common.base.Function;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.ObjectArrays;
+import com.google.common.collect.*;
 import com.itworks.snamp.WeakEventListenerList;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
@@ -10,10 +9,7 @@ import com.itworks.snamp.io.IOUtils;
 
 import javax.management.MBeanFeatureInfo;
 import java.math.BigInteger;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Represents an abstract class for all modelers of managed resource features.
@@ -190,6 +186,44 @@ public abstract class AbstractFeatureModeler<F extends MBeanFeatureInfo> extends
      * @return The size of this model.
      */
     public abstract int size();
+
+    /**
+     * Unregisters feature by its ID.
+     * @param featureID ID of the feature to remove.
+     * @return Metadata of the removed feature.
+     */
+    public abstract F remove(final String featureID);
+
+    /**
+     * Gets a set of identifiers.
+     * @return A set of identifiers.
+     */
+    public abstract Set<String> getIDs();
+
+    /**
+     * Removes all features which IDs are not present in the specified set.
+     * @param featureIDs A set of features which cannot be deleted.
+     * @return Collection of removes features.
+     */
+    public Collection<F> removeAllExcept(final Set<String> featureIDs) {
+        final Set<String> featuresToRemove = Sets.difference(getIDs(), featureIDs);
+        final List<F> result = Lists.newArrayListWithCapacity(featuresToRemove.size());
+        for (final String removingFeatureID : featuresToRemove) {
+            final F removedFeature = remove(removingFeatureID);
+            if (removedFeature != null)
+                result.add(removedFeature);
+        }
+        return result;
+    }
+
+    /**
+     * Removes all features which IDs are not present in the specified set.
+     * @param featureIDs A set of features which cannot be deleted.
+     * @return Collection of removes features.
+     */
+    public final Collection<F> removeAllExcept(final String... featureIDs){
+        return removeAllExcept(ImmutableSet.copyOf(featureIDs));
+    }
 
     /**
      * Expands this model.

@@ -133,8 +133,8 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         }
 
         @Override
-        protected boolean disableNotifications(final SnmpNotificationInfo metadata) {
-            if(hasNoNotifications())
+        protected void disableNotifications(final SnmpNotificationInfo metadata) {
+            if (hasNoNotifications())
                 try {
                     client.write(new ConsistentAction<SnmpClient, Void>() {
                         @Override
@@ -143,13 +143,10 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
                             return null;
                         }
                     });
-                }
-                catch (final Exception e) {
+                } catch (final Exception e) {
                     SnmpConnectorHelpers.log(Level.WARNING, "Subscription to SNMP event %s failed. Context: %s",
                             metadata.getNotificationID(), LogicalOperation.current(), e);
-                    return false;
                 }
-            return true;
         }
 
         /**
@@ -811,21 +808,21 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
     void listen() throws IOException{
         client.write(new Action<SnmpClient, Void, IOException>() {
             @Override
-            public Void invoke(final SnmpClient client) throws IOException{
+            public Void invoke(final SnmpClient client) throws IOException {
                 client.listen();
                 return null;
             }
         });
     }
 
-    MBeanAttributeInfo addAttribute(final String id, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+    boolean addAttribute(final String id, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
         verifyInitialization();
-        return attributes.addAttribute(id, attributeName, readWriteTimeout, options);
+        return attributes.addAttribute(id, attributeName, readWriteTimeout, options) != null;
     }
 
-    MBeanNotificationInfo enableNotifications(final String listId, final String category, final CompositeData options) {
+    boolean enableNotifications(final String listId, final String category, final CompositeData options) {
         verifyInitialization();
-        return notifications.enableNotifications(listId, category, options);
+        return notifications.enableNotifications(listId, category, options) != null;
     }
 
     /**
@@ -898,6 +895,15 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         verifyInitialization();
         notifications.removeNotificationListener(listener);
     }
+
+    void removeAttributesExcept(final Set<String> attributes) {
+        this.attributes.removeAllExcept(attributes);
+    }
+
+    void disableNotificationsExcept(final Set<String> events) {
+        this.notifications.removeAllExcept(events);
+    }
+
     /**
      * Gets a logger associated with this platform service.
      *
@@ -920,8 +926,8 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
     @Override
     public void close() throws Exception {
         super.close();
-        attributes.clear(true);
-        notifications.clear(true, true);
+        attributes.removeAll(true);
+        notifications.removeAll(true, true);
         client.write(new Action<SnmpClient, Void, IOException>() {
             @Override
             public Void invoke(final SnmpClient client) throws IOException {

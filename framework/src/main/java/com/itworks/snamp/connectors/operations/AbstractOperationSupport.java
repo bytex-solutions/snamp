@@ -2,6 +2,7 @@ package com.itworks.snamp.connectors.operations;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.itworks.snamp.TimeSpan;
@@ -9,6 +10,7 @@ import com.itworks.snamp.connectors.AbstractFeatureModeler;
 import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
 import com.itworks.snamp.internal.KeyedObjects;
+import com.itworks.snamp.internal.annotations.MethodStub;
 
 import javax.management.*;
 import javax.management.openmbean.CompositeData;
@@ -254,25 +256,30 @@ public abstract class AbstractOperationSupport<M extends MBeanOperationInfo> ext
         fireResourceEvent(new OperationRemovingEvent(this, getResourceName(), metadata));
     }
 
-    protected boolean disableOperation(final M metadata){
-        return true;
+    @MethodStub
+    protected void disableOperation(final M metadata){
     }
 
     /**
      * Disables management operation.
-     * @param userDefinedName The custom-defined name of the operation.
-     * @return {@literal true}, if operation disabled successfully; otherwise, {@literal false}.
+     * @param operationID The custom-defined name of the operation.
+     * @return The metadata of deleted operation.
      */
-    public final boolean disableOperation(final String userDefinedName){
-        OperationHolder<M> holder;
+    @Override
+    public final M remove(final String operationID) {
+        final OperationHolder<M> holder;
         try (final LockScope ignored = beginWrite(AOSResource.OPERATIONS)) {
-            holder = operations.get(userDefinedName);
+            holder = operations.get(operationID);
             if(holder != null){
                 operationRemoved(holder.getMetadata());
-                operations.remove(userDefinedName);
+                operations.remove(operationID);
             }
         }
-        return holder != null && disableOperation(holder.getMetadata());
+        if(holder != null){
+            disableOperation(holder.getMetadata());
+            return holder.getMetadata();
+        }
+        else return null;
     }
 
     protected abstract M enableOperation(final String userDefinedName,
@@ -300,13 +307,12 @@ public abstract class AbstractOperationSupport<M extends MBeanOperationInfo> ext
                     operationRemoved(holder.getMetadata());
                     holder = operations.remove(userDefinedName);
                     //and register again
-                    if (disableOperation(holder.getMetadata())) {
-                        final M metadata = enableOperation(userDefinedName, new OperationDescriptor(operationName, invocationTimeout, options));
-                        if (metadata != null) {
-                            operations.put(holder = new OperationHolder<>(metadata, operationName, options));
-                            operationAdded(holder.getMetadata());
-                        }
-                    } else holder = null;
+                    disableOperation(holder.getMetadata());
+                    final M metadata = enableOperation(userDefinedName, new OperationDescriptor(operationName, invocationTimeout, options));
+                    if (metadata != null) {
+                        operations.put(holder = new OperationHolder<>(metadata, operationName, options));
+                        operationAdded(holder.getMetadata());
+                    }
                 }
             else {
                 final M metadata = enableOperation(userDefinedName, new OperationDescriptor(operationName, invocationTimeout, options));
@@ -425,11 +431,12 @@ public abstract class AbstractOperationSupport<M extends MBeanOperationInfo> ext
      * Disables all operation registered in this collection.
      * @param removeResourceListeners {@literal true} to remove all resource listeners; otherwise, {@literal false}.
      */
-    public final void clear(final boolean removeResourceListeners) {
+    public final void removeAll(final boolean removeResourceListeners) {
         try (final LockScope ignored = beginWrite(AOSResource.OPERATIONS)) {
-            for (final OperationHolder<M> holder : operations.values())
-                if (disableOperation(holder.getMetadata()))
-                    operationRemoved(holder.getMetadata());
+            for (final OperationHolder<M> holder : operations.values()) {
+                operationRemoved(holder.getMetadata());
+                disableOperation(holder.getMetadata());
+            }
             operations.clear();
         }
         if (removeResourceListeners)
@@ -440,6 +447,18 @@ public abstract class AbstractOperationSupport<M extends MBeanOperationInfo> ext
     public final boolean isRegistered(final String operationID) {
         try (final LockScope ignored = beginWrite(AOSResource.OPERATIONS)) {
             return operations.containsKey(operationID);
+        }
+    }
+
+    /**
+     * Gets a set of identifiers.
+     *
+     * @return A set of identifiers.
+     */
+    @Override
+    public final ImmutableSet<String> getIDs() {
+        try(final LockScope ignored = beginRead(AOSResource.OPERATIONS)){
+            return ImmutableSet.copyOf(operations.keySet());
         }
     }
 

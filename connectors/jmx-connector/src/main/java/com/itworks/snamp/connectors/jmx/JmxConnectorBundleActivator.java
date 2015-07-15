@@ -133,26 +133,41 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
         }
 
         @Override
-        protected void addAttribute(final JmxConnector connector,
+        protected boolean addAttribute(final JmxConnector connector,
                                     final String attributeID,
                                     final String attributeName,
                                     final TimeSpan readWriteTimeout,
                                     final CompositeData options) {
-            connector.addAttribute(attributeID, attributeName, readWriteTimeout, options);
+            return connector.addAttribute(attributeID, attributeName, readWriteTimeout, options);
         }
 
         @Override
-        protected void enableNotifications(final JmxConnector connector, final String listId, final String category, final CompositeData options) {
-            connector.enableNotifications(listId, category, options);
+        protected boolean enableNotifications(final JmxConnector connector, final String listId, final String category, final CompositeData options) {
+            return connector.enableNotifications(listId, category, options);
         }
 
         @Override
-        protected void enableOperation(final JmxConnector connector,
+        protected boolean enableOperation(final JmxConnector connector,
                                        final String operationID,
                                        final String operationName,
                                        final TimeSpan invocationTimeout,
                                        final CompositeData options) {
-            connector.enableOperation(operationID, operationName, invocationTimeout, options);
+            return connector.enableOperation(operationID, operationName, invocationTimeout, options);
+        }
+
+        @Override
+        protected void removeAttributesExcept(final JmxConnector connector, final Set<String> attributes) {
+            connector.removeAttributesExcept(attributes);
+        }
+
+        @Override
+        protected void disableNotificationsExcept(final JmxConnector connector, final Set<String> events) {
+            connector.disableNotificationsExcept(events);
+        }
+
+        @Override
+        protected void disableOperationsExcept(final JmxConnector connector, final Set<String> operations) {
+            connector.disableOperationsExcept(operations);
         }
 
         @Override

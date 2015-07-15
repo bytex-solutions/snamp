@@ -6,7 +6,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.itworks.snamp.AbstractAggregator;
-import com.itworks.snamp.Consumer;
 import com.itworks.snamp.Descriptive;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.configuration.ConfigParameters;
@@ -22,7 +21,6 @@ import com.itworks.snamp.jmx.JMExceptionUtils;
 import com.itworks.snamp.jmx.WellKnownType;
 
 import javax.management.*;
-import javax.management.loading.ClassLoaderRepository;
 import javax.management.openmbean.*;
 import java.beans.*;
 import java.beans.IntrospectionException;
@@ -799,11 +797,6 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         }
 
         @Override
-        protected boolean disableNotifications(final CustomNotificationInfo metadata) {
-            return true;
-        }
-
-        @Override
         protected void failedToEnableNotifications(final String listID, final String category, final Exception e) {
             failedToEnableNotifications(logger, Level.WARNING, listID, category, e);
         }
@@ -1040,11 +1033,11 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * </p>
      *
      * @param listId The identifier of the subscription list.
-     * @return {@literal true}, if notifications for the specified category is previously enabled; otherwise, {@literal false}.
+     * @return Metadata of deleted notification.
      */
-    public final boolean disableNotifications(final String listId) {
+    public final MBeanNotificationInfo disableNotifications(final String listId) {
         verifyInitialization();
-        return notifications.disableNotifications(listId);
+        return notifications.remove(listId);
     }
 
     /**
@@ -1071,11 +1064,11 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
     /**
      * Removes the attribute from the connector.
      *
-     * @param id The unique identifier of the attribute.
-     * @return {@literal true}, if the attribute successfully disconnected; otherwise, {@literal false}.
+     * @param attributeID The unique identifier of the attribute.
+     * @return The metadata of deleted attribute.
      */
-    public final boolean removeAttribute(final String id) {
-        return attributes.removeAttribute(id);
+    public final MBeanAttributeInfo removeAttribute(final String attributeID) {
+        return attributes.remove(attributeID);
     }
 
     /**
@@ -1103,9 +1096,9 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         return operations.enableOperation(userDefinedName, operationName, invocationTimeout, options);
     }
 
-    public final boolean disableOperation(final String userDefinedName){
+    public final MBeanOperationInfo disableOperation(final String userDefinedName){
         verifyInitialization();
-        return operations.disableOperation(userDefinedName);
+        return operations.remove(userDefinedName);
     }
 
     /**
@@ -1113,7 +1106,12 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      */
     public final void removeAllOperations(){
         verifyInitialization();
-        operations.clear(false);
+        operations.removeAll(false);
+    }
+
+    public final Collection<? extends MBeanOperationInfo> disableOperationsExcept(final Set<String> operations){
+        verifyInitialization();
+        return this.operations.removeAllExcept(operations);
     }
 
     /**
@@ -1121,7 +1119,12 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      */
     public final void removeAllAttributes(){
         verifyInitialization();
-        attributes.clear(false);
+        attributes.removeAll(false);
+    }
+
+    public final Collection<? extends MBeanAttributeInfo> removeAttributesExcept(final Set<String> attributes){
+        verifyInitialization();
+        return this.attributes.removeAllExcept(attributes);
     }
 
     /**
@@ -1129,7 +1132,12 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      */
     public final void removeAllNotifications(){
         verifyInitialization();
-        notifications.clear(true, false);
+        notifications.removeAll(true, false);
+    }
+
+    public final Collection<? extends MBeanNotificationInfo> disableNotificationsExcept(final Set<String> events){
+        verifyInitialization();
+        return this.notifications.removeAllExcept(events);
     }
 
     private void emitNotificationImpl(final ManagementNotificationType<?> category,
@@ -1201,9 +1209,9 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      */
     @Override
     public void close() throws Exception {
-        operations.clear(true);
-        notifications.clear(true, true);
-        attributes.clear(true);
+        operations.removeAll(true);
+        notifications.removeAll(true, true);
+        attributes.removeAll(true);
     }
 
     @Override

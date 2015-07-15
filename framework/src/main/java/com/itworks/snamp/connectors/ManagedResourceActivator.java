@@ -2,6 +2,7 @@ package com.itworks.snamp.connectors;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.configuration.*;
@@ -239,23 +240,35 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          * @param attributeName The name of the attribute in the managed resource.
          * @param readWriteTimeout The attribute read/write timeout.
          * @param options The attribute configuration options.
+         * @return {@literal true}, if attribute registered successfully; otherwise, {@literal false}.
          */
-        protected abstract void addAttribute(final TConnector connector,
+        protected abstract boolean addAttribute(final TConnector connector,
                                              final String attributeID,
                                              final String attributeName,
                                              final TimeSpan readWriteTimeout,
                                              final CompositeData options);
 
+        /**
+         * Removes all attributes except specified in the collection.
+         * @param connector The connector to modify.
+         * @param attributes A set of attributes which should not be deleted.
+         */
+        protected abstract void removeAttributesExcept(final TConnector connector,
+                                                       final Set<String> attributes);
+
         private void updateAttributes(final TConnector connector,
                                       final Map<String, AttributeConfiguration> attributes){
-            for(final Map.Entry<String, AttributeConfiguration> attr: attributes.entrySet()){
+            final Set<String> addedAttributes = Sets.newHashSetWithExpectedSize(attributes.size());
+            for(final Map.Entry<String, AttributeConfiguration> attr: attributes.entrySet()) {
                 final String attributeID = attr.getKey();
                 final AttributeConfiguration config = attr.getValue();
-                addAttribute(connector, attributeID,
+                if (addAttribute(connector, attributeID,
                         config.getAttributeName(),
                         config.getReadWriteTimeout(),
-                        new ConfigParameters(config));
+                        new ConfigParameters(config)))
+                    addedAttributes.add(attributeID);
             }
+            removeAttributesExcept(connector, addedAttributes);
         }
 
         /**
@@ -269,37 +282,60 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          * @param listId The notification subscription identifier.
          * @param category The notification category.
          * @param options The notification configuration options.
+         * @return {@literal true}, if the specified notification is enabled; otherwise, {@literal false}.
          */
-        protected abstract void enableNotifications(final TConnector connector,
+        protected abstract boolean enableNotifications(final TConnector connector,
                                                     final String listId,
                                                     final String category,
                                                     final CompositeData options);
 
+        /**
+         * Disables all notifications except specified in the collection.
+         * @param connector The connector to modify.
+         * @param events A set of subscription lists which should not be disabled.
+         */
+        protected abstract void disableNotificationsExcept(final TConnector connector,
+                                                           final Set<String> events);
+
         private void updateEvents(final TConnector connector,
                                   final Map<String, EventConfiguration> events){
+            final Set<String> enabledEvents = Sets.newHashSetWithExpectedSize(events.size());
             for(final Map.Entry<String, EventConfiguration> event: events.entrySet()){
                 final String listID = event.getKey();
                 final EventConfiguration config = event.getValue();
-                enableNotifications(connector,
+                if(enableNotifications(connector,
                         listID,
                         config.getCategory(),
-                        new ConfigParameters(config));
+                        new ConfigParameters(config)))
+                    enabledEvents.add(listID);
             }
+            disableNotificationsExcept(connector, enabledEvents);
         }
 
-        protected abstract void enableOperation(final TConnector connector,
+        protected abstract boolean enableOperation(final TConnector connector,
                                                 final String operationID,
                                                 final String operationName,
                                                 final TimeSpan invocationTimeout,
                                                 final CompositeData options);
 
+        /**
+         * Disables all operations except specified in the collection.
+         * @param connector The connector to modify.
+         * @param operations A set of operations which should not be disabled.
+         */
+        protected abstract void disableOperationsExcept(final TConnector connector,
+                                                        final Set<String> operations);
+
         private void updateOperations(final TConnector connector,
                                       final Map<String, OperationConfiguration> operations){
+            final Set<String> enabledOperations = Sets.newHashSetWithExpectedSize(operations.size());
             for(final Map.Entry<String, OperationConfiguration> op: operations.entrySet()){
                 final String operationID = op.getKey();
                 final OperationConfiguration config = op.getValue();
-                enableOperation(connector, operationID, config.getOperationName(), config.getInvocationTimeout(), new ConfigParameters(config));
+                if(enableOperation(connector, operationID, config.getOperationName(), config.getInvocationTimeout(), new ConfigParameters(config)))
+                    enabledOperations.add(operationID);
             }
+            disableOperationsExcept(connector, enabledOperations);
         }
 
         /**
@@ -357,7 +393,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
         private void updateFeatures(final TConnector connector,
                             final Dictionary<String, ?> configuration) throws Exception {
-            AbstractManagedResourceConnector.expandAll(connector);
             controller.updateConnector(connector,
                     AttributeConfiguration.class,
                     PersistentConfigurationManager.getAttributes(configuration));
@@ -367,6 +402,9 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
             controller.updateConnector(connector,
                     OperationConfiguration.class,
                     PersistentConfigurationManager.getOperations(configuration));
+            //expansion should be the last instruction in this method because updating procedure
+            //may remove all automatically added attributes
+            AbstractManagedResourceConnector.expandAll(connector);
         }
 
 

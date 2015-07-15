@@ -12,6 +12,7 @@ import javax.management.openmbean.CompositeData;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
 
@@ -27,21 +28,37 @@ public final class GroovyResourceActivator extends ManagedResourceActivator<Groo
     private static final class GroovyResourceConnectorFactory extends ManagedResourceConnectorModeler<GroovyResourceConnector>{
 
         @Override
-        protected void addAttribute(final GroovyResourceConnector connector,
+        protected boolean addAttribute(final GroovyResourceConnector connector,
                                     final String attributeID,
                                     final String attributeName,
                                     final TimeSpan readWriteTimeout,
                                     final CompositeData options) {
-            connector.addAttribute(attributeID, attributeName, readWriteTimeout, options);
+            return connector.addAttribute(attributeID, attributeName, readWriteTimeout, options);
         }
 
         @Override
-        protected void enableNotifications(final GroovyResourceConnector connector, final String listId, final String category, final CompositeData options) {
-            connector.enableNotifications(listId, category, options);
+        protected boolean enableNotifications(final GroovyResourceConnector connector, final String listId, final String category, final CompositeData options) {
+            return connector.enableNotifications(listId, category, options);
         }
 
         @Override
-        protected void enableOperation(final GroovyResourceConnector connector, final String operationID, final String operationName, final CompositeData options) {
+        protected boolean enableOperation(final GroovyResourceConnector connector, final String operationID, final String operationName, final TimeSpan timeout, final CompositeData options) {
+            //not supported
+            return false;
+        }
+
+        @Override
+        protected void removeAttributesExcept(final GroovyResourceConnector connector, final Set<String> attributes) {
+            connector.removeAttributesExcept(attributes);
+        }
+
+        @Override
+        protected void disableNotificationsExcept(final GroovyResourceConnector connector, final Set<String> events) {
+            connector.disableNotificationsExcept(events);
+        }
+
+        @Override
+        protected void disableOperationsExcept(final GroovyResourceConnector connector, final Set<String> operations) {
             //not supported
         }
 

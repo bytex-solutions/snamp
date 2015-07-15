@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -134,12 +135,10 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         }
 
         @Override
-        protected boolean disableNotifications(final GroovyNotificationInfo metadata) {
+        protected void disableNotifications(final GroovyNotificationInfo metadata) {
             try {
                 metadata.close();
-                return true;
             } catch (final Exception ignored) {
-                return false;
             }
         }
 
@@ -254,22 +253,16 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
          * Removes the attribute from the connector.
          *
          * @param attributeInfo An attribute metadata.
-         * @return {@literal true}, if the attribute successfully disconnected; otherwise, {@literal false}.
          */
         @Override
-        protected boolean disconnectAttribute(final GroovyAttributeInfo attributeInfo) {
-            boolean success = true;
+        protected void disconnectAttribute(final GroovyAttributeInfo attributeInfo) {
             try {
                 attributeInfo.close();
             } catch (final Exception e) {
-                try(final OSGiLoggingContext logger = OSGiLoggingContext.get(getLoggerImpl(), getBundleContext())){
+                try (final OSGiLoggingContext logger = OSGiLoggingContext.get(getLoggerImpl(), getBundleContext())) {
                     logger.log(Level.WARNING, String.format("Unable to disconnect attribute %s", attributeInfo.getName()), e);
                 }
-                finally {
-                    success = false;
-                }
             }
-            return success;
         }
 
         private BundleContext getBundleContext(){
@@ -351,16 +344,24 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         removeResourceEventListener(listener, attributes);
     }
 
-    void addAttribute(final String attributeID, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+    boolean addAttribute(final String attributeID, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
         verifyInitialization();
-        attributes.addAttribute(attributeID, attributeName, readWriteTimeout, options);
+        return attributes.addAttribute(attributeID, attributeName, readWriteTimeout, options) != null;
     }
 
-    void enableNotifications(final String listID,
+    boolean enableNotifications(final String listID,
                              final String category,
                              final CompositeData options){
         verifyInitialization();
-        events.enableNotifications(listID, category, options);
+        return events.enableNotifications(listID, category, options) != null;
+    }
+
+    void removeAttributesExcept(final Set<String> attributes) {
+        this.attributes.removeAllExcept(attributes);
+    }
+
+    void disableNotificationsExcept(final Set<String> events) {
+        this.events.removeAllExcept(events);
     }
 
     /**
@@ -388,8 +389,8 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
     @Override
     public void close() throws Exception {
         super.close();
-        attributes.clear(true);
-        events.clear(true, true);
+        attributes.removeAll(true);
+        events.removeAll(true, true);
         if(groovyConnector != null)
             groovyConnector.close();
     }

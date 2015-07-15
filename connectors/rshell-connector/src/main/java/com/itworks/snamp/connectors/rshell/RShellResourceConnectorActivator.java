@@ -7,6 +7,7 @@ import com.itworks.snamp.internal.annotations.SpecialUse;
 
 import javax.management.openmbean.CompositeData;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents an activator of the rshell resource connector.
@@ -29,18 +30,34 @@ public final class RShellResourceConnectorActivator extends ManagedResourceActiv
         }
 
         @Override
-        protected void addAttribute(final RShellResourceConnector connector, final String attributeID, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
-            connector.addAttribute(attributeID, attributeName, readWriteTimeout, options);
+        protected boolean addAttribute(final RShellResourceConnector connector, final String attributeID, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+            return connector.addAttribute(attributeID, attributeName, readWriteTimeout, options);
+        }
+        @Override
+        protected void removeAttributesExcept(final RShellResourceConnector connector, final Set<String> attributes) {
+            connector.removeAttributesExcept(attributes);
         }
 
         @MethodStub
         @Override
-        protected void enableNotifications(final RShellResourceConnector connector, final String listId, final String category, final CompositeData options) {
+        protected boolean enableNotifications(final RShellResourceConnector connector, final String listId, final String category, final CompositeData options) {
+            //not supported
+            return false;
+        }
+
+        @Override
+        protected void disableNotificationsExcept(final RShellResourceConnector connector, final Set<String> events) {
             //not supported
         }
 
         @Override
-        protected void enableOperation(final RShellResourceConnector connector, final String operationID, final String operationName, final CompositeData options) {
+        protected boolean enableOperation(final RShellResourceConnector connector, final String operationID, final String operationName, final TimeSpan timeout, final CompositeData options) {
+            //not supported
+            return false;
+        }
+
+        @Override
+        protected void disableOperationsExcept(final RShellResourceConnector connector, final Set<String> operations) {
             //not supported
         }
     }

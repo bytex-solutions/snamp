@@ -3,10 +3,12 @@ package com.itworks.snamp.testing.connectors.jmx;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
 import com.itworks.snamp.adapters.AttributeAccessor;
 import com.itworks.snamp.adapters.FeatureAccessor;
 import com.itworks.snamp.adapters.NotificationAccessor;
+import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
@@ -14,12 +16,10 @@ import org.osgi.framework.BundleContext;
 import javax.management.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Logger;
 
+import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 
@@ -92,9 +92,21 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
             }
         }
 
+        private AttributeAccessor removeAttribute(final MBeanAttributeInfo metadata){
+             return AttributeAccessor.remove(attributes, metadata);
+        }
+
+        private NotificationAccessor removeNotification(final MBeanNotificationInfo metadata){
+            return NotificationAccessor.remove(notifications, metadata);
+        }
+
         @Override
         protected <M extends MBeanFeatureInfo> FeatureAccessor<M, ?> removeFeature(final String resourceName, final M feature) throws Exception {
-            return null;
+            if(feature instanceof MBeanAttributeInfo)
+                return (FeatureAccessor<M, ?>)removeAttribute((MBeanAttributeInfo)feature);
+            else if(feature instanceof MBeanNotificationInfo)
+                return (FeatureAccessor<M, ?>)removeNotification((MBeanNotificationInfo)feature);
+            else return null;
         }
 
         @Override
@@ -137,6 +149,23 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
             Thread.sleep(2000);
             assertEquals(9, adapter.getAttributes().size());
             assertEquals(2, adapter.getNotifications().size());
+            //remove some attributes
+            processConfiguration(new SafeConsumer<AgentConfiguration>() {
+                @Override
+                public void accept(final AgentConfiguration config) {
+                    final ManagedResourceConfiguration testResource =
+                            config.getManagedResources().get(TEST_RESOURCE_NAME);
+                    assertNotNull(testResource);
+                    assertNotNull(testResource.getElements(AttributeConfiguration.class).remove("1.0"));
+                    assertNotNull(testResource.getElements(AttributeConfiguration.class).remove("2.0"));
+                    assertNotNull(testResource.getElements(AttributeConfiguration.class).remove("3.0"));
+                    assertNotNull(testResource.getElements(AttributeConfiguration.class).remove("4.0"));
+                    assertNotNull(testResource.getElements(EventConfiguration.class).remove("19.1"));
+                }
+            }, true);
+            Thread.sleep(2000);
+            assertEquals(5, adapter.getAttributes().size());
+            assertEquals(1, adapter.getNotifications().size());
         }
         finally {
             getTestBundleContext().removeServiceListener(adapter);

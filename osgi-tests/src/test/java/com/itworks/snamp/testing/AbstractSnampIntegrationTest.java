@@ -7,6 +7,7 @@ import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.PersistentConfigurationManager;
+import com.itworks.snamp.configuration.SerializableAgentConfiguration;
 import com.itworks.snamp.internal.annotations.SpecialUse;
 import org.junit.After;
 import org.junit.Before;
@@ -106,7 +107,7 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
      */
     protected abstract void setupTestConfiguration(final AgentConfiguration config);
 
-    protected final <E extends Throwable> void processConfiguration(final Consumer<? super AgentConfiguration, E> handler,
+    protected final <E extends Throwable> void processConfiguration(final Consumer<? super SerializableAgentConfiguration, E> handler,
                                                                     final boolean saveChanges) throws E, IOException {
         getTestConfigurationManager().processConfiguration(handler, saveChanges);
     }

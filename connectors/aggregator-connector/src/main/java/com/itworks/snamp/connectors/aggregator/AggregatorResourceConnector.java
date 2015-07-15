@@ -19,7 +19,7 @@ import org.osgi.framework.BundleContext;
 import javax.management.*;
 import javax.management.openmbean.CompositeData;
 import java.beans.IntrospectionException;
-import java.io.IOException;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -196,12 +196,20 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
                 }, attributes, notifications);
     }
 
-    void addAttribute(final String attributeID, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
-        attributes.addAttribute(attributeID, attributeName, readWriteTimeout, options);
+    boolean addAttribute(final String attributeID, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+        return attributes.addAttribute(attributeID, attributeName, readWriteTimeout, options) != null;
     }
 
-    void enableNotifications(final String listID, final String category, final CompositeData options){
-        notifications.enableNotifications(listID, category, options);
+    boolean enableNotifications(final String listID, final String category, final CompositeData options){
+        return notifications.enableNotifications(listID, category, options) != null;
+    }
+
+    void removeAttributesExcept(final Set<String> attributes) {
+        this.attributes.removeAllExcept(attributes);
+    }
+
+    void disableNotificationsExcept(final Set<String> events) {
+        this.notifications.removeAllExcept(events);
     }
 
     static Logger getLoggerImpl(){
@@ -217,7 +225,7 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
     public void close() throws Exception {
         super.close();
         sender.close();
-        attributes.clear(true);
-        notifications.clear(true, true);
+        attributes.removeAll(true);
+        notifications.removeAll(true, true);
     }
 }

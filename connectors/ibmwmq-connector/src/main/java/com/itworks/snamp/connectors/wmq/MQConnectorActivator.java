@@ -8,6 +8,7 @@ import com.itworks.snamp.internal.annotations.SpecialUse;
 import javax.management.openmbean.CompositeData;
 import java.beans.IntrospectionException;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Roman Sakno
@@ -33,17 +34,34 @@ public final class MQConnectorActivator extends ManagedResourceActivator<MQConne
     private static final class MQConnectorFactory extends ManagedResourceConnectorModeler<MQConnector> {
 
         @Override
-        protected void addAttribute(final MQConnector connector, final String attributeID, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
-            connector.addAttribute(attributeID, attributeName, readWriteTimeout, options);
+        protected boolean addAttribute(final MQConnector connector, final String attributeID, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+            return connector.addAttribute(attributeID, attributeName, readWriteTimeout, options) != null;
         }
 
         @Override
-        protected void enableNotifications(final MQConnector connector, final String listId, final String category, final CompositeData options) {
+        protected boolean enableNotifications(final MQConnector connector, final String listId, final String category, final CompositeData options) {
+            //not supported
+            return false;
+        }
+
+        @Override
+        protected boolean enableOperation(final MQConnector connector, final String operationID, final String operationName, final TimeSpan timeout, final CompositeData options) {
+            //not supported
+            return false;
+        }
+
+        @Override
+        protected void removeAttributesExcept(final MQConnector connector, final Set<String> attributes) {
+            connector.removeAttributesExcept(attributes);
+        }
+
+        @Override
+        protected void disableNotificationsExcept(final MQConnector connector, final Set<String> events) {
             //not supported
         }
 
         @Override
-        protected void enableOperation(final MQConnector connector, final String operationID, final String operationName, final CompositeData options) {
+        protected void disableOperationsExcept(final MQConnector connector, final Set<String> operations) {
             //not supported
         }
 

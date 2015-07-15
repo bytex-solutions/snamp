@@ -58,6 +58,8 @@ Parameter | Type | Required | Meaning | Example
 login | String | No | JMX login used for authentication on remote JMX server | `user`
 password | String | No | JMX password used for authentication on remote JMX server | `password`
 connectionCheckPeriod | Number | No | Time period used by JMX connection watchdog, in milliseconds. The default value is `3000` | `4000`
+objectName | String | No | The name of the managed bean used to discover all attributes, events and operations. If this parameter is defined then `objectName` configuration parameter in the attribute of event will be ignored | `java.lang:type=OperatingSystem`
+smartMode | Boolean | No | Enables or disables smart mode | `true`
 
 Any other parameters will be ignored.
 
