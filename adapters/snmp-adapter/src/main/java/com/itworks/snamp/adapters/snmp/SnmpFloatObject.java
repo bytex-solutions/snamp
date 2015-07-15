@@ -9,6 +9,7 @@ import org.snmp4j.smi.OctetString;
 import javax.management.InvalidAttributeValueException;
 import javax.management.ReflectionException;
 import java.lang.reflect.Type;
+import java.text.ParseException;
 import java.util.Objects;
 
 import static org.snmp4j.smi.SMIConstants.SYNTAX_OCTET_STRING;
@@ -18,7 +19,7 @@ final class SnmpFloatObject extends SnmpScalarObject<OctetString>{
     static final int SYNTAX = SYNTAX_OCTET_STRING;
 
     @SpecialUse
-    SnmpFloatObject(final AttributeAccessor connector){
+    SnmpFloatObject(final AttributeAccessor connector) throws ParseException {
         super(connector, SnmpHelpers.toOctetString(DEFAULT_VALUE.toString()));
     }
 

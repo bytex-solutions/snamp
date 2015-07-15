@@ -18,6 +18,7 @@ import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
 import javax.management.ReflectionException;
 import java.lang.reflect.Type;
+import java.text.ParseException;
 import java.util.Objects;
 import java.util.logging.Level;
 
@@ -47,14 +48,14 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
 
     private final AttributeAccessor accessor;
 
-    protected SnmpScalarObject(final AttributeAccessor attribute, final T defval){
+    protected SnmpScalarObject(final AttributeAccessor attribute, final T defval) throws ParseException {
         this(attribute, false, defval);
     }
 
     protected SnmpScalarObject(final AttributeAccessor attribute,
                                final boolean readOnly,
-                               final T defval){
-        super(new OID(parseOID(attribute.getMetadata())),
+                               final T defval) throws ParseException {
+        super(parseOID(attribute.getMetadata()),
                 readOnly ? MOAccessImpl.ACCESS_READ_ONLY : getAccessRestrictions(attribute.getMetadata()),
                 defval);
         this.accessor = attribute;
@@ -163,7 +164,11 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
 
     @Override
     public final boolean equals(final MBeanAttributeInfo metadata) {
-        return Objects.equals(getID(), new OID(parseOID(metadata)));
+        try {
+            return Objects.equals(getID(), parseOID(metadata));
+        } catch (final ParseException ignored) {
+            return false;
+        }
     }
 
     @Override

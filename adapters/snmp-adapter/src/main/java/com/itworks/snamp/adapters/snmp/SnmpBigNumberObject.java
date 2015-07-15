@@ -11,6 +11,7 @@ import javax.management.ReflectionException;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.text.ParseException;
 import java.util.Objects;
 
 import static org.snmp4j.smi.SMIConstants.SYNTAX_OCTET_STRING;
@@ -20,7 +21,7 @@ final class SnmpBigNumberObject extends SnmpScalarObject<OctetString>{
     static final Number DEFAULT_VALUE = 0;
 
     @SpecialUse
-    SnmpBigNumberObject(final AttributeAccessor attribute){
+    SnmpBigNumberObject(final AttributeAccessor attribute) throws ParseException {
         super(attribute, SnmpHelpers.toOctetString(DEFAULT_VALUE.toString()));
     }
 

@@ -10,6 +10,7 @@ import org.snmp4j.smi.Variable;
 import javax.management.InvalidAttributeValueException;
 import javax.management.ReflectionException;
 import java.lang.reflect.Type;
+import java.text.ParseException;
 
 import com.itworks.snamp.adapters.AttributeAccessor;
 
@@ -25,7 +26,7 @@ final class SnmpByteArrayObject extends SnmpScalarObject<OctetString> {
     private static final OctetString DEFAULT_VALUE = new OctetString();
 
     @SpecialUse
-    SnmpByteArrayObject(final AttributeAccessor attribute) {
+    SnmpByteArrayObject(final AttributeAccessor attribute) throws ParseException {
         super(attribute, DEFAULT_VALUE);
     }
 

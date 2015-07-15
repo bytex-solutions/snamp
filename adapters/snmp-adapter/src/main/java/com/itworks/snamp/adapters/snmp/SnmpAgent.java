@@ -21,6 +21,7 @@ import org.snmp4j.util.ConcurrentMessageDispatcher;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
@@ -64,13 +65,13 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, Res
 	}
 
     void registerManagedObject(final AttributeAccessor accessor,
-                               final SnmpTypeMapper mapper) throws DuplicateRegistrationException {
+                               final SnmpTypeMapper mapper) throws DuplicateRegistrationException, ParseException {
         final SnmpType type = mapper.apply(accessor.getType());
         assert type != null;
         type.registerManagedObject(accessor, prefix, server);
     }
 
-    ManagedObject unregisterManagedObject(final AttributeAccessor accessor){
+    ManagedObject unregisterManagedObject(final AttributeAccessor accessor) throws ParseException {
         return SnmpType.unregisterManagedObject(accessor, server);
     }
 
@@ -231,7 +232,7 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, Res
 
     private void finishInit(final Iterable<? extends AttributeAccessor> attributes,
                             final Iterable<? extends SnmpNotificationMapping> notifications,
-                            final SnmpTypeMapper mapper) throws DuplicateRegistrationException {
+                            final SnmpTypeMapper mapper) throws DuplicateRegistrationException, ParseException {
         for(final AttributeAccessor mapping: attributes)
             registerManagedObject(mapping, mapper);
         for(final SnmpNotificationMapping mapping: notifications)
@@ -241,7 +242,7 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, Res
 
     boolean start(final Iterable<? extends AttributeAccessor> attributes,
                   final Iterable<? extends SnmpNotificationMapping> notifications,
-                  final SnmpTypeMapper mapper) throws IOException, DuplicateRegistrationException {
+                  final SnmpTypeMapper mapper) throws IOException, DuplicateRegistrationException, ParseException {
 		switch (agentState){
             case STATE_STOPPED:
             case STATE_CREATED:

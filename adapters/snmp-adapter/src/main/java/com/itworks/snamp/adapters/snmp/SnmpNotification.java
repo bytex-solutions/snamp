@@ -66,8 +66,8 @@ final class SnmpNotification extends HashMap<OID, Variable> {
 
     SnmpNotification(final Notification n,
                      final MBeanNotificationInfo metadata,
-                     final SnmpTypeMapper mapper) {
-        this(new OID(parseOID(metadata)));
+                     final SnmpTypeMapper mapper) throws ParseException {
+        this(parseOID(metadata));
         put(messageId, SnmpHelpers.toOctetString(n.getMessage()));
         put(severityId, new Integer32(NotificationDescriptor.getSeverity(metadata).getLevel()));
         put(sequenceNumberId, new Counter64(n.getSequenceNumber()));

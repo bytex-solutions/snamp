@@ -5,6 +5,8 @@ import com.itworks.snamp.internal.annotations.SpecialUse;
 import org.snmp4j.smi.Integer32;
 import org.snmp4j.smi.Variable;
 
+import java.text.ParseException;
+
 import static org.snmp4j.smi.SMIConstants.SYNTAX_INTEGER32;
 
 final class SnmpBooleanObject extends SnmpScalarObject<Integer32>{
@@ -14,7 +16,7 @@ final class SnmpBooleanObject extends SnmpScalarObject<Integer32>{
     private static final Integer32 FALSE = new Integer32(0);
 
     @SpecialUse
-    SnmpBooleanObject(final AttributeAccessor connector){
+    SnmpBooleanObject(final AttributeAccessor connector) throws ParseException {
         super(connector, new Integer32(defaultValue));
     }
 

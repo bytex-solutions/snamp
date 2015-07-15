@@ -12,6 +12,7 @@ import javax.management.ObjectName;
 import javax.management.ReflectionException;
 import java.io.Serializable;
 import java.lang.reflect.Type;
+import java.text.ParseException;
 import java.util.Objects;
 
 import static org.snmp4j.smi.SMIConstants.SYNTAX_OCTET_STRING;
@@ -21,7 +22,7 @@ final class SnmpStringObject extends SnmpScalarObject<OctetString>{
     static final String DEFAULT_VALUE = "";
 
     @SpecialUse
-    SnmpStringObject(final AttributeAccessor connector){
+    SnmpStringObject(final AttributeAccessor connector) throws ParseException {
         super(connector, SnmpHelpers.toOctetString(DEFAULT_VALUE));
     }
 

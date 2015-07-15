@@ -6,6 +6,7 @@ import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.SMIConstants;
 
 import javax.management.InvalidAttributeValueException;
+import java.text.ParseException;
 import java.util.Objects;
 
 /**
@@ -20,7 +21,7 @@ final class SnmpFallbackObject extends SnmpScalarObject<OctetString> {
     private static final String DEFAULT_VALUE = "";
 
     @SpecialUse
-    SnmpFallbackObject(final AttributeAccessor attribute) {
+    SnmpFallbackObject(final AttributeAccessor attribute) throws ParseException {
         super(attribute, true, SnmpHelpers.toOctetString(DEFAULT_VALUE));
     }
 

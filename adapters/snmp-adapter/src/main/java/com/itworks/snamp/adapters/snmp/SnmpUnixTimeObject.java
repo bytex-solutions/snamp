@@ -20,7 +20,7 @@ final class SnmpUnixTimeObject extends SnmpScalarObject<OctetString>{
     private final DateTimeFormatter formatter;
 
     @SpecialUse
-    SnmpUnixTimeObject(final AttributeAccessor connector){
+    SnmpUnixTimeObject(final AttributeAccessor connector) throws ParseException {
         super(connector, SnmpHelpers.toOctetString(DEFAULT_VALUE));
         formatter = createFormatter(connector.getMetadata());
     }

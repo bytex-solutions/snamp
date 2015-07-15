@@ -11,6 +11,7 @@ import javax.management.InvalidAttributeValueException;
 import javax.management.ReflectionException;
 import java.lang.reflect.Type;
 import java.nio.*;
+import java.text.ParseException;
 
 import com.itworks.snamp.adapters.AttributeAccessor;
 
@@ -26,7 +27,7 @@ final class SnmpBufferObject extends SnmpScalarObject<OctetString> {
     private static final OctetString DEFAULT_VALUE = new OctetString();
 
     @SpecialUse
-    SnmpBufferObject(final AttributeAccessor attribute) {
+    SnmpBufferObject(final AttributeAccessor attribute) throws ParseException {
         super(attribute, DEFAULT_VALUE);
     }
 

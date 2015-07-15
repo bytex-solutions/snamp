@@ -5,10 +5,13 @@ import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfigu
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.itworks.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import com.itworks.snamp.configuration.ThreadPoolConfigurationDescriptor;
+import org.snmp4j.SNMP4JSettings;
 import org.snmp4j.mp.MPv3;
+import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
 
 import javax.management.DescriptorRead;
+import java.text.ParseException;
 import java.util.Map;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -135,8 +138,10 @@ final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
         else throw new SnmpAdapterAbsentParameterException(CONTEXT_PARAM_NAME);
     }
 
-    static String parseOID(final DescriptorRead info){
-        return getField(info.getDescriptor(), OID_PARAM_NAME, String.class);
+    static OID parseOID(final DescriptorRead info) throws ParseException {
+        if (hasField(info.getDescriptor(), OID_PARAM_NAME))
+            return new OID(SNMP4JSettings.getOIDTextFormat().parse(getField(info.getDescriptor(), OID_PARAM_NAME, String.class)));
+        else return SnmpHelpers.generateOID();
     }
 
     static String parseDateTimeDisplayFormat(final DescriptorRead info){

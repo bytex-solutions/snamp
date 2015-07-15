@@ -7,11 +7,13 @@ import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
 import com.itworks.snamp.core.OSGiLoggingContext;
 import com.itworks.snamp.io.IOUtils;
+import org.snmp4j.SNMP4JSettings;
 import org.snmp4j.agent.MOAccess;
 import org.snmp4j.agent.mo.MOAccessImpl;
 import org.snmp4j.agent.mo.MOColumn;
 import org.snmp4j.agent.mo.MOTable;
 import org.snmp4j.smi.AssignableFromByteArray;
+import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.Variable;
 
@@ -25,6 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -34,10 +37,12 @@ import java.util.regex.Pattern;
  * @author Roman Sakno
  */
 final class SnmpHelpers {
+    private static final String AUTO_PREFIX_PROPERTY = "com.itworks.snamp.adapters.snmp.oidPrefix";
     static final Charset SNMP_ENCODING = StandardCharsets.UTF_8;
     static final String ADAPTER_NAME = "snmp";
     private static final String LOGGER_NAME = AbstractResourceAdapter.getLoggerName(ADAPTER_NAME);
     private static final TimeZone ZERO_TIME_ZONE = new SimpleTimeZone(0, "UTC");
+    private static final AtomicInteger POSTFIX_COUNTER = new AtomicInteger(1);
 
     private SnmpHelpers(){
 
@@ -370,5 +375,14 @@ final class SnmpHelpers {
 
     static void log(final Level lvl, final String message, final Object arg0, final Object arg1, final Object arg2, final Throwable e){
         log(lvl, message, new Object[]{arg0, arg1, arg2}, e);
+    }
+
+    static OID generateOID(final OID prefix){
+        return new OID(prefix).append(POSTFIX_COUNTER.getAndIncrement());
+    }
+
+    static OID generateOID() throws ParseException {
+        final OID prefix = new OID(SNMP4JSettings.getOIDTextFormat().parse(System.getProperty(AUTO_PREFIX_PROPERTY, "1.1.1")));
+        return generateOID(prefix);
     }
 }

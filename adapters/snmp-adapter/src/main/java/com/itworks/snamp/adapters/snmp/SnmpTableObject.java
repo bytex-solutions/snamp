@@ -25,6 +25,7 @@ import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
 import javax.management.openmbean.*;
 import java.lang.reflect.Array;
+import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -315,8 +316,8 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
     }
 
     @SpecialUse
-    SnmpTableObject(final AttributeAccessor connector){
-        this(new OID(SnmpAdapterConfigurationDescriptor.parseOID(connector.getMetadata())),
+    SnmpTableObject(final AttributeAccessor connector) throws ParseException {
+        this(SnmpAdapterConfigurationDescriptor.parseOID(connector.getMetadata()),
                 connector,
                 DEFAULT_MAPPER);
     }
@@ -648,7 +649,11 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
 
     @Override
     public final boolean equals(final MBeanAttributeInfo metadata) {
-        return Objects.equals(getID(), new OID(parseOID(metadata)));
+        try {
+            return Objects.equals(getID(), new OID(parseOID(metadata)));
+        } catch (final ParseException ignored) {
+            return false;
+        }
     }
 
     @Override

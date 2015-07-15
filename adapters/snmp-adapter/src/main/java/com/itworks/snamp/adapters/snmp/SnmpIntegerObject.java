@@ -9,6 +9,7 @@ import org.snmp4j.smi.Variable;
 import javax.management.InvalidAttributeValueException;
 import javax.management.ReflectionException;
 import java.lang.reflect.Type;
+import java.text.ParseException;
 
 import static org.snmp4j.smi.SMIConstants.SYNTAX_INTEGER32;
 
@@ -20,7 +21,7 @@ final class SnmpIntegerObject extends SnmpScalarObject<Integer32>{
     static final int DEFAULT_VALUE = -1;
 
     @SpecialUse
-    SnmpIntegerObject(final AttributeAccessor connector){
+    SnmpIntegerObject(final AttributeAccessor connector) throws ParseException {
         super(connector, new Integer32(DEFAULT_VALUE));
     }
 

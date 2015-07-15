@@ -5,6 +5,8 @@ import com.itworks.snamp.internal.annotations.SpecialUse;
 import org.snmp4j.smi.Counter64;
 import org.snmp4j.smi.Variable;
 
+import java.text.ParseException;
+
 import static org.snmp4j.smi.SMIConstants.SYNTAX_COUNTER64;
 
 final class SnmpLongObject extends SnmpScalarObject<Counter64>{
@@ -12,7 +14,7 @@ final class SnmpLongObject extends SnmpScalarObject<Counter64>{
     static final long DEFAULT_VALUE = -1;
 
     @SpecialUse
-    SnmpLongObject(final AttributeAccessor connector){
+    SnmpLongObject(final AttributeAccessor connector) throws ParseException {
         super(connector, new Counter64(DEFAULT_VALUE));
     }
 

@@ -10,6 +10,7 @@ import javax.management.InvalidAttributeValueException;
 import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.nio.Buffer;
+import java.text.ParseException;
 import java.util.Date;
 
 import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.parseOID;
@@ -25,7 +26,7 @@ enum SnmpType {
     NUMBER(true, SnmpBigNumberObject.SYNTAX) {
 
         @Override
-        protected SnmpBigNumberObject createManagedObject(final AttributeAccessor accessor) {
+        protected SnmpBigNumberObject createManagedObject(final AttributeAccessor accessor) throws ParseException {
             return new SnmpBigNumberObject(accessor);
         }
 
@@ -46,7 +47,7 @@ enum SnmpType {
     UNIX_TIME(true, SnmpUnixTimeObject.SYNTAX) {
 
         @Override
-        protected SnmpUnixTimeObject createManagedObject(final AttributeAccessor accessor) {
+        protected SnmpUnixTimeObject createManagedObject(final AttributeAccessor accessor) throws ParseException {
             return new SnmpUnixTimeObject(accessor);
         }
 
@@ -66,7 +67,7 @@ enum SnmpType {
      */
     LONG(true, SnmpLongObject.SYNTAX) {
         @Override
-        protected SnmpLongObject createManagedObject(final AttributeAccessor accessor) {
+        protected SnmpLongObject createManagedObject(final AttributeAccessor accessor) throws ParseException {
             return new SnmpLongObject(accessor);
         }
 
@@ -86,7 +87,7 @@ enum SnmpType {
      */
     INTEGER(true, SnmpIntegerObject.SYNTAX) {
         @Override
-        protected SnmpIntegerObject createManagedObject(final AttributeAccessor accessor) {
+        protected SnmpIntegerObject createManagedObject(final AttributeAccessor accessor) throws ParseException {
             return new SnmpIntegerObject(accessor);
         }
 
@@ -106,7 +107,7 @@ enum SnmpType {
      */
     FLOAT(true, SnmpFloatObject.SYNTAX) {
         @Override
-        protected SnmpFloatObject createManagedObject(final AttributeAccessor accessor) {
+        protected SnmpFloatObject createManagedObject(final AttributeAccessor accessor) throws ParseException {
             return new SnmpFloatObject(accessor);
         }
 
@@ -126,7 +127,7 @@ enum SnmpType {
      */
     BOOLEAN(true, SnmpBooleanObject.SYNTAX) {
         @Override
-        protected SnmpBooleanObject createManagedObject(final AttributeAccessor accessor) {
+        protected SnmpBooleanObject createManagedObject(final AttributeAccessor accessor) throws ParseException {
             return new SnmpBooleanObject(accessor);
         }
 
@@ -146,7 +147,7 @@ enum SnmpType {
      */
     TEXT(true, SnmpStringObject.SYNTAX) {
         @Override
-        protected SnmpStringObject createManagedObject(final AttributeAccessor accessor) {
+        protected SnmpStringObject createManagedObject(final AttributeAccessor accessor) throws ParseException {
             return new SnmpStringObject(accessor);
         }
 
@@ -166,7 +167,7 @@ enum SnmpType {
      */
     BUFFER(true, SnmpBufferObject.SYNTAX) {
         @Override
-        protected SnmpBufferObject createManagedObject(final AttributeAccessor accessor) {
+        protected SnmpBufferObject createManagedObject(final AttributeAccessor accessor) throws ParseException {
             return new SnmpBufferObject(accessor);
         }
 
@@ -186,7 +187,7 @@ enum SnmpType {
      */
     BYTE_ARRAY(true, SnmpByteArrayObject.SYNTAX) {
         @Override
-        protected SnmpByteArrayObject createManagedObject(final AttributeAccessor accessor) {
+        protected SnmpByteArrayObject createManagedObject(final AttributeAccessor accessor) throws ParseException {
             return new SnmpByteArrayObject( accessor);
         }
 
@@ -206,7 +207,7 @@ enum SnmpType {
      */
     TABLE(false, SnmpTableObject.SYNTAX) {
         @Override
-        protected SnmpTableObject createManagedObject(final AttributeAccessor accessor) {
+        protected SnmpTableObject createManagedObject(final AttributeAccessor accessor) throws ParseException {
             return new SnmpTableObject(accessor);
         }
 
@@ -226,7 +227,7 @@ enum SnmpType {
      */
     FALLBACK(true, SnmpFallbackObject.SYNTAX) {
         @Override
-        protected SnmpFallbackObject createManagedObject(final AttributeAccessor accessor) {
+        protected SnmpFallbackObject createManagedObject(final AttributeAccessor accessor) throws ParseException {
             return new SnmpFallbackObject(accessor);
         }
 
@@ -253,7 +254,7 @@ enum SnmpType {
         return isScalar;
     }
 
-    protected abstract SnmpAttributeMapping createManagedObject(final AttributeAccessor accessor);
+    protected abstract SnmpAttributeMapping createManagedObject(final AttributeAccessor accessor) throws ParseException;
 
     private static ManagedObject unregisterManagedObject(final OID attributeID,
                                                          final MOServer server){
@@ -265,7 +266,7 @@ enum SnmpType {
     }
 
     static ManagedObject unregisterManagedObject(final AttributeAccessor accessor,
-                                                 final MOServer server){
+                                                 final MOServer server) throws ParseException {
         final OID attributeID = new OID(parseOID(accessor));
         return unregisterManagedObject(attributeID, server);
     }
@@ -277,7 +278,7 @@ enum SnmpType {
      */
     final SnmpAttributeMapping registerManagedObject(final AttributeAccessor accessor,
                                                         final OID context,
-                                                        final MOServer server) throws DuplicateRegistrationException {
+                                                        final MOServer server) throws DuplicateRegistrationException, ParseException {
         final OID attributeID = new OID(parseOID(accessor));
         final SnmpAttributeMapping mapping;
         //do not add the attribute with invalid prefix
