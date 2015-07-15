@@ -69,3 +69,6 @@ processedMessagesCountLastHour | int32 | The number of messages sent or received
 processedMessagesCountLast24Hours | int32 | The number of messages sent or received, or number of MQI calls handled for the last day
 
 * Configuration parameters are not supported. Any user-defined configuration parameter will be ignored.
+
+## Smart mode
+WMQ Resource Connector provides support of Smart mode. This means that the connector can automatically expose attributes without manual configuration. The attributes described above will be automatically exposed to adapters. The system name of the attribute will be used as user-defined name.

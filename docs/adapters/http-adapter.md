@@ -66,6 +66,8 @@ char | String
 bigint | Number
 bigdecimal | Number
 date | String
+float32 | Number
+float64 | Number
 
 ### Array
 An array data that comes from managed resource will be converted into appropriate JSON array type. For example, array of `int32` values will be converted into array of Numbers (`[1, 5, 7.8, 42]`).

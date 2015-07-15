@@ -1,5 +1,6 @@
 package com.itworks.snamp.adapters.snmp;
 
+import com.google.common.base.Splitter;
 import org.snmp4j.agent.mo.snmp.StorageType;
 import org.snmp4j.agent.mo.snmp.VacmMIB;
 import org.snmp4j.agent.security.MutableVACM;
@@ -22,6 +23,8 @@ import java.util.logging.Level;
  * @since 1.0
  */
 final class SecurityConfiguration {
+    private static final Splitter SEMICOLON_SPLITTER = Splitter.on(';').trimResults().omitEmptyStrings();
+
     /**
      * Represents configuration property that provides a set of user groups.
      */
@@ -321,7 +324,7 @@ final class SecurityConfiguration {
         }
 
         public final void setAccessRights(final String rights) {
-            setAccessRights(splitAndTrim(rights, ";"));
+            setAccessRights(SEMICOLON_SPLITTER.splitToList(rights));
         }
     }
 
@@ -339,14 +342,6 @@ final class SecurityConfiguration {
         this.contextFactory = contextFactory != null ? contextFactory : new DefaultDirContextFactory();
     }
 
-    private static Collection<String> splitAndTrim(final String value, final String separator){
-        final String[] result = value.split(separator);
-        for(int i = 0; i < result.length; i++)
-            result[i] = result[i].trim();
-        return Arrays.asList(result);
-    }
-
-
     private static void fillGroups(final Map<String, String> adapterSettings, final Iterable<String> groups, final Map<String, UserGroup> output){
         final String SECURITY_LEVEL_TEMPLATE = "%s-security-level";
         final String ACCESS_RIGHTS_TEMPLATE = "%s-access-rights";
@@ -358,7 +353,7 @@ final class SecurityConfiguration {
             groupInfo.setSecurityLevel(adapterSettings.get(String.format(SECURITY_LEVEL_TEMPLATE, groupName)));
             //process group's access rights
             groupInfo.setAccessRights(adapterSettings.get(String.format(ACCESS_RIGHTS_TEMPLATE, groupName)));
-            fillUsers(adapterSettings, groupInfo, splitAndTrim(adapterSettings.get(String.format(USERS_TEMPLATE, groupName)), ";"));
+            fillUsers(adapterSettings, groupInfo, SEMICOLON_SPLITTER.splitToList(adapterSettings.get(String.format(USERS_TEMPLATE, groupName))));
         }
     }
 
@@ -381,7 +376,7 @@ final class SecurityConfiguration {
         if(adapterSettings.containsKey(LDAP_URI_PARAM)) //import groups and users from LDAP
             return fillGroupsFromLdap(contextFactory, adapterSettings, adapterSettings.get(LDAP_URI_PARAM), groups);
         else if(adapterSettings.containsKey(SNMPv3_GROUPS_PARAM)){ //import groups and users from local configuration file
-            fillGroups(adapterSettings, splitAndTrim(adapterSettings.get(SNMPv3_GROUPS_PARAM), ";"), groups);
+            fillGroups(adapterSettings, SEMICOLON_SPLITTER.splitToList(adapterSettings.get(SNMPv3_GROUPS_PARAM)), groups);
             return true;
         }
         else return false;
@@ -419,7 +414,7 @@ final class SecurityConfiguration {
             final String userSearchFilter = adapterSettings.get(LDAP_USER_SEARCH_FILTER_PARAM);
             final String baseDn = adapterSettings.get(LDAP_BASE_DN_PARAM);
             final String userPasswordHolder = adapterSettings.get(LDAP_PASSWORD_HOLDER_PARAM);
-            fillGroupsFromLdap(ctx, splitAndTrim(ldapGroups, ";"), baseDn, userSearchFilter, groups, userPasswordHolder);
+            fillGroupsFromLdap(ctx, SEMICOLON_SPLITTER.splitToList(ldapGroups), baseDn, userSearchFilter, groups, userPasswordHolder);
             ctx.close();
             return true;
         }

@@ -157,6 +157,12 @@ The final human-readable message placed into SNAMP Notification:
 Hello
 ```
 
+## Smart mode
+SNMP Resource Connector provides support of Smart mode. This means that the connector can automatically expose attributes  without manual configuration.
+> Information about SNMP Traps cannot be discovered automatically so you need to configure events manually
+
+It discovers all available managed objects using SNMP walk mechanism. Each object with its OID will be registered in the connector automatically. OID of the managed object will be used as user-defined name of the attribute.
+
 ## System-level configuration parameters
 These parameters can be specified at JVM level and affects all instances of SNMP Resource Connector:
 

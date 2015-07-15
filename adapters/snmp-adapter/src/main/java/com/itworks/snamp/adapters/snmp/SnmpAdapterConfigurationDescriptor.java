@@ -51,6 +51,7 @@ final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
     private static final String LDAP_ADMIN_PASSWORD_PARAM = SecurityConfiguration.LDAP_ADMIN_PASSWORD_PARAM;
     private static final String LDAP_ADMIN_AUTH_TYPE_PARAM = SecurityConfiguration.LDAP_ADMIN_AUTH_TYPE_PARAM;
     private static final String LDAP_BASE_DN_PARAM = SecurityConfiguration.LDAP_BASE_DN_PARAM;
+    private static final String LDAP_USER_SEARCH_FILTER_PARAM = SecurityConfiguration.LDAP_USER_SEARCH_FILTER_PARAM;
 
     /**
      * Represents configuration property that contains UDP socket timeout, in milliseconds.
@@ -98,7 +99,8 @@ final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
                     LDAP_ADMINDN_PARAM,
                     LDAP_ADMIN_PASSWORD_PARAM,
                     LDAP_ADMIN_AUTH_TYPE_PARAM,
-                    LDAP_BASE_DN_PARAM);
+                    LDAP_BASE_DN_PARAM,
+                    LDAP_USER_SEARCH_FILTER_PARAM);
         }
     }
 
@@ -200,7 +202,7 @@ final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
     static int parseNotificationTimeout(final DescriptorRead metadata){
         return hasField(metadata.getDescriptor(), TARGET_NOTIF_TIMEOUT_PARAM) ?
                 Integer.parseInt(getField(metadata.getDescriptor(), TARGET_NOTIF_TIMEOUT_PARAM, String.class)) :
-                0;
+                2000;
     }
 
     static int parseRetryCount(final DescriptorRead metadata){

@@ -47,11 +47,8 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
         private SnmpNotificationMappingImpl(final MBeanNotificationInfo metadata,
                                             final String resourceName) throws IllegalArgumentException, ParseException {
             super(metadata);
-            if(isValidNotification(metadata)) {
-                this.notificationOriginator = null;
-                this.resourceName = resourceName;
-            }
-            else throw new IllegalArgumentException("Target address, target name and event OID parameters are not specified for SNMP trap");
+            this.notificationOriginator = null;
+            this.resourceName = resourceName;
             notificationID = parseOID(this);
         }
 
@@ -248,6 +245,7 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
 
     private SnmpNotificationMappingImpl addNotification(final String resourceName,
                                                         final MBeanNotificationInfo metadata) throws ParseException {
+        if(!isValidNotification(metadata)) return null;
         final SnmpNotificationMappingImpl mapping = new SnmpNotificationMappingImpl(metadata, resourceName);
         notifications.put(resourceName, mapping);
         if(updateManager != null)

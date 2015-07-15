@@ -127,4 +127,4 @@ See [JMX Notification](https://docs.oracle.com/javase/tutorial/jmx/notifs/) for 
 JMX Resource Connector set `Source` of the SNAMP Notification Object to the configured name of the managed resource, `Type` of the SNAMP Notification Object to the configured name of the event
 
 ## Smart mode
-JMX Resource Connector provides support of Smart mode. This means that the connector can automatically exposes attributes and notifications without manual configuration. It discovers all available attributes and notifications of the remote Managed Bean using JMX protocol. It is recommended to specify `objectName` configuration parameter in the resource configuration to avoid hundreds of attributes and notifications.
+JMX Resource Connector provides support of Smart mode. This means that the connector can automatically expose attributes and notifications without manual configuration. It discovers all available attributes and notifications of the remote Managed Bean using JMX protocol. It is recommended to specify `objectName` configuration parameter in the resource configuration to avoid hundreds of attributes and notifications.
