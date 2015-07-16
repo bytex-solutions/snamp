@@ -55,7 +55,7 @@ public abstract class ManagedResourceAttributeScript extends ManagedResourceFeat
     @SpecialUse
     protected static final SimpleType<Character> CHAR = SimpleType.CHARACTER;
     @SpecialUse
-    protected static final SimpleType<Date> DATE = SimpleType.DATE;
+    protected static final SimpleType<Date> DATETIME = SimpleType.DATE;
 
     private OpenType<?> openType = STRING;
 

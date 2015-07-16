@@ -1,13 +1,16 @@
 package com.itworks.snamp.adapters;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.ImmutableSet;
+import com.itworks.snamp.AbstractAggregator;
 import com.itworks.snamp.ArrayUtils;
+import com.itworks.snamp.adapters.runtime.FeatureBinding;
+import com.itworks.snamp.adapters.runtime.RuntimeInformationService;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.configuration.PersistentConfigurationManager;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
-import com.itworks.snamp.core.AbstractServiceLibrary;
-import com.itworks.snamp.core.FrameworkService;
-import com.itworks.snamp.core.LogicalOperation;
-import com.itworks.snamp.core.OSGiLoggingContext;
+import com.itworks.snamp.core.*;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.MethodStub;
 import com.itworks.snamp.management.Maintainable;
@@ -43,6 +46,13 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
     private static final ActivationProperty<String> ADAPTER_NAME_HOLDER = defineActivationProperty(String.class);
     private static final ActivationProperty<Logger> LOGGER_HOLDER = defineActivationProperty(Logger.class);
 
+    private static interface ResourceAdapterHook{
+        void afterActivation(final AbstractResourceAdapter adapter);
+        void beforeUpdate(final AbstractResourceAdapter adapter);
+        void afterUpdate(final AbstractResourceAdapter adapter);
+        void beforeDestroy(final AbstractResourceAdapter adapter);
+    }
+
     /**
      * Represents a factory responsible for creating instances of resource adapters.
      * @param <TAdapter> Type of the adapter implementation.
@@ -61,6 +71,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
          * Represents name of the resource adapter.
          */
         protected final String adapterName;
+        private final List<ResourceAdapterHook> hooks;
 
         private ResourceAdapterRegistry(final String adapterName,
                                         final ResourceAdapterFactory<TAdapter> factory,
@@ -68,6 +79,41 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
             super(PersistentConfigurationManager.getAdapterFactoryPersistentID(adapterName), dependencies);
             this.adapterFactory = Objects.requireNonNull(factory, "factory is null.");
             this.adapterName = adapterName;
+            this.hooks = new LinkedList<>();
+        }
+
+        private void addHook(final ResourceAdapterHook hook) {
+            synchronized (hooks) {
+                hooks.add(Objects.requireNonNull(hook));
+            }
+        }
+
+        private void afterActivation(final AbstractResourceAdapter adapter){
+            synchronized (hooks){
+                for(final ResourceAdapterHook hook: hooks)
+                    hook.afterActivation(adapter);
+            }
+        }
+
+        private void beforeUpdate(final AbstractResourceAdapter adapter){
+            synchronized (hooks){
+                for(final ResourceAdapterHook hook: hooks)
+                    hook.beforeUpdate(adapter);
+            }
+        }
+
+        private void afterUpdate(final AbstractResourceAdapter adapter){
+            synchronized (hooks){
+                for(final ResourceAdapterHook hook: hooks)
+                    hook.afterUpdate(adapter);
+            }
+        }
+
+        private void beforeDestroy(final AbstractResourceAdapter adapter){
+            synchronized (hooks){
+                for(final ResourceAdapterHook hook: hooks)
+                    hook.beforeDestroy(adapter);
+            }
         }
 
         private BundleContext getBundleContext(){
@@ -94,7 +140,9 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
          */
         @Override
         protected TAdapter updateService(final TAdapter adapter, final Dictionary<String, ?> configuration, final RequiredService<?>... dependencies) throws Exception {
+            beforeUpdate(adapter);
             adapter.tryUpdate(PersistentConfigurationManager.getAdapterParameters(configuration));
+            afterUpdate(adapter);
             return adapter;
         }
 
@@ -120,6 +168,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
             else try(final OSGiLoggingContext logger = getLoggingContext()){
                 logger.severe("Adapter is not started.");
             }
+            afterActivation(resourceAdapter);
             return resourceAdapter;
         }
 
@@ -132,6 +181,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
          */
         @Override
         protected void dispose(final TAdapter adapter, final boolean bundleStop) throws Exception {
+            beforeDestroy(adapter);
             try {
                 getBundleContext().removeServiceListener(adapter);
             }
@@ -172,6 +222,13 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
                         adapterName), e);
             }
         }
+
+        @Override
+        protected void destroyManager() {
+            synchronized (hooks) {
+                hooks.clear();
+            }
+        }
     }
 
     /**
@@ -196,6 +253,77 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
          */
         protected final String getAdapterName(){
             return getActivationPropertyValue(ADAPTER_NAME_HOLDER);
+        }
+    }
+
+    private final static class RuntimeInformationServiceImpl extends AbstractAggregator implements RuntimeInformationService{
+        private final Cache<String, AbstractBindingSupplier> bindingCache;
+
+        private RuntimeInformationServiceImpl(final Cache<String, AbstractBindingSupplier> cache){
+            this.bindingCache = Objects.requireNonNull(cache);
+        }
+
+        @Override
+        public <B extends FeatureBinding> Collection<B> getBindingInfo(final String adapterInstanceName, final Class<B> bindingType) {
+            final AbstractBindingSupplier supplier = bindingCache.getIfPresent(adapterInstanceName);
+            return supplier == null ? Collections.<B>emptyList() : supplier.getBindings(bindingType);
+        }
+
+        @Override
+        public ImmutableSet<String> getAdapterInstances() {
+            return ImmutableSet.copyOf(bindingCache.asMap().keySet());
+        }
+
+        @Override
+        @Aggregation
+        public Logger getLogger() {
+            return Logger.getLogger(getClass().getName());
+        }
+    }
+
+    /**
+     * Represents manager for the service that can supply information about features binding.
+     * This class cannot be inherited.
+     */
+    protected final static class RuntimeInformationServiceManager extends SupportAdapterServiceManager<RuntimeInformationService, RuntimeInformationServiceImpl> implements ResourceAdapterHook{
+        private final Cache<String, AbstractBindingSupplier> bindingCache =
+                CacheBuilder.newBuilder().weakValues().build();
+
+        public RuntimeInformationServiceManager() {
+            super(RuntimeInformationService.class);
+        }
+
+        /**
+         * Creates a new instance of the service.
+         *
+         * @param identity     A dictionary of properties that uniquely identifies service instance.
+         * @param dependencies A collection of dependencies.
+         * @return A new instance of the service.
+         */
+        @Override
+        protected final RuntimeInformationServiceImpl activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) {
+            identity.put(ADAPTER_NAME_IDENTITY_PROPERTY, getAdapterName());
+            return new RuntimeInformationServiceImpl(bindingCache);
+        }
+
+        @Override
+        public void afterActivation(final AbstractResourceAdapter adapter) {
+            bindingCache.put(adapter.getInstanceName(), adapter);
+        }
+
+        @Override
+        public void beforeUpdate(final AbstractResourceAdapter adapter) {
+
+        }
+
+        @Override
+        public void afterUpdate(final AbstractResourceAdapter adapter) {
+
+        }
+
+        @Override
+        public void beforeDestroy(final AbstractResourceAdapter adapter) {
+            bindingCache.invalidate(adapter.getInstanceName());
         }
     }
 
@@ -285,6 +413,21 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
         this(adapterName, factory, EMPTY_REQUIRED_SERVICES, optionalServices);
     }
 
+    private static ProvidedService<?, ?>[] attachHooksAndCombineServices(final ResourceAdapterRegistry<?> registry,
+                                                                       final SupportAdapterServiceManager<?, ?>[] optionalServices) {
+        for (final SupportAdapterServiceManager<?, ?> serviceManager : optionalServices)
+            if (serviceManager instanceof ResourceAdapterHook)
+                registry.addHook((ResourceAdapterHook) serviceManager);
+        return ArrayUtils.addToEnd(optionalServices, registry, ProvidedService.class);
+    }
+
+    private ResourceAdapterActivator(final String adapterName,
+                                     final ResourceAdapterRegistry<?> registry,
+                                     final SupportAdapterServiceManager<?, ?>[] optionalServices) {
+        super(attachHooksAndCombineServices(registry, optionalServices));
+        this.adapterName = adapterName;
+    }
+
     /**
      * Initializes a new instance of the resource adapter activator.
      * @param adapterName The name of the adapter.
@@ -296,8 +439,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
                                        final ResourceAdapterFactory<TAdapter> factory,
                                        final RequiredService<?>[] adapterDependencies,
                                        final SupportAdapterServiceManager<?, ?>[] optionalServices) {
-        super(ArrayUtils.addToEnd(optionalServices, new ResourceAdapterRegistry<>(adapterName, factory, adapterDependencies), ProvidedService.class));
-        this.adapterName = adapterName;
+        this(adapterName, new ResourceAdapterRegistry<>(adapterName, factory, adapterDependencies), optionalServices);
     }
 
     /**

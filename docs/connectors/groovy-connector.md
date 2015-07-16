@@ -226,7 +226,7 @@ Attribute script supports additional DSL extensions:
   * `INT16`- represents `int16` type from SNAMP Management Information Model
   * `STRING`- represents `string` type from SNAMP Management Information Model
   * `OBJECTNAME`- represents `objectname` type from SNAMP Management Information Model
-  * `DATE`- represents `date/time` type from SNAMP Management Information Model
+  * `DATETIME`- represents `datetime` type from SNAMP Management Information Model
 * Functions:
   * `void type(OpenType t)` - define attribute type
   * `ArrayType ARRAY(OpenType elementType)` - construct array type
@@ -344,7 +344,7 @@ BigDecimal | bigdecimal | 42.1G
 **char** | char | 'a'
 String | string | "Hello, world!"
 **boolean** | bool | _true_
-Date | Date/time
+Date | datetime | `new Date()`
 javax.management.ObjectName | objectname | `new ObjectName('type=Foo')`
 javax.management.openmbean.CompositeData | Dictionary | `asDictionary(key1: 67L, key2: true)`
 javax.management.openmbean.TabularData | Table | `asTable([[column1: 6, column2: false], [column1: 7, column2: true]])`

@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import com.itworks.snamp.AbstractAggregator;
+import com.itworks.snamp.adapters.runtime.FeatureBinding;
 import com.itworks.snamp.concurrent.AsyncEventListener;
 import com.itworks.snamp.concurrent.GroupedThreadFactory;
 import com.itworks.snamp.concurrent.WriteOnceRef;
@@ -37,6 +38,7 @@ import javax.management.MBeanOperationInfo;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -56,7 +58,7 @@ import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
  * @since 1.0
  * @version 1.0
  */
-public abstract class AbstractResourceAdapter extends AbstractAggregator implements ResourceAdapter, ResourceEventListener{
+public abstract class AbstractResourceAdapter extends AbstractBindingSupplier implements ResourceAdapter, ResourceEventListener{
     private static final Multimap<String, WeakReference<ResourceAdapterEventListener>> listeners = HashMultimap.create(10, 3);
     private static final ExecutorService eventExecutor = Executors.newSingleThreadExecutor(new GroupedThreadFactory("ADAPTER_EVENTS"));
 
@@ -644,5 +646,16 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         synchronized (listeners){
             return WeakMultimap.remove(listeners, adapterName, listener) > 0;
         }
+    }
+
+    /**
+     * Gets information about binding of the features.
+     * @param bindingType Type of the feature binding.
+     * @param <B> Type of the feature binding.
+     * @return A collection of features
+     */
+    @Override
+    protected <B extends FeatureBinding> Collection<B> getBindings(final Class<B> bindingType){
+        return Collections.emptyList();
     }
 }

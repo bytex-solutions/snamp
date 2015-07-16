@@ -28,232 +28,232 @@ public enum  WellKnownType implements Serializable, Type, Predicate {
     /**
      * Represents {@link java.lang.Void} data type.
      */
-    VOID(SimpleType.VOID),
+    VOID("void", SimpleType.VOID),
 
     /**
      * Represents {@link javax.management.ObjectName} data type.
      */
-    OBJECT_NAME(SimpleType.OBJECTNAME),
+    OBJECT_NAME("objectname", SimpleType.OBJECTNAME),
 
     /**
      * Represents {@link java.lang.String} data type.
      */
-    STRING(SimpleType.STRING),
+    STRING("string", SimpleType.STRING),
 
     /**
      * Represents {@link java.lang.Byte} data type.
      */
-    BYTE(SimpleType.BYTE),
+    BYTE("int8", SimpleType.BYTE),
 
     /**
      * Represents {@link java.lang.Character} data type.
      */
-    CHAR(SimpleType.CHARACTER),
+    CHAR("char", SimpleType.CHARACTER),
 
     /**
      * Represents {@link java.lang.Short} data type.
      */
-    SHORT(SimpleType.SHORT),
+    SHORT("int16", SimpleType.SHORT),
 
     /**
      * Represents {@link java.lang.Integer} data type.
      */
-    INT(SimpleType.INTEGER),
+    INT("int32", SimpleType.INTEGER),
 
     /**
      * Represents {@link java.lang.Long} data type.
      */
-    LONG(SimpleType.LONG),
+    LONG("int64", SimpleType.LONG),
 
     /**
      * Represents {@link java.lang.Boolean} data type.
      */
-    BOOL(SimpleType.BOOLEAN),
+    BOOL("bool", SimpleType.BOOLEAN),
 
     /**
      * Represents {@link java.lang.Float} data type.
      */
-    FLOAT(SimpleType.FLOAT),
+    FLOAT("float32", SimpleType.FLOAT),
 
     /**
      * Represents {@link java.lang.Boolean} data type.
      */
-    DOUBLE(SimpleType.DOUBLE),
+    DOUBLE("float64", SimpleType.DOUBLE),
 
     /**
      * Represents {@link java.util.Date} data type.
      */
-    DATE(SimpleType.DATE),
+    DATE("date/time", SimpleType.DATE),
 
     /**
      * Represents {@link java.math.BigInteger} data type.
      */
-    BIG_INT(SimpleType.BIGINTEGER),
+    BIG_INT("bigint", SimpleType.BIGINTEGER),
 
     /**
      * Represents {@link java.math.BigDecimal} data type.
      */
-    BIG_DECIMAL(SimpleType.BIGDECIMAL),
+    BIG_DECIMAL("bigdecimal", SimpleType.BIGDECIMAL),
 
     /**
      * Represents {@link java.nio.ByteBuffer} data type.
      */
-    BYTE_BUFFER(ByteBuffer.class),
+    BYTE_BUFFER("buffer(int8)", ByteBuffer.class),
 
     /**
      * Represents {@link java.nio.CharBuffer} data type.
      */
-    CHAR_BUFFER(CharBuffer.class),
+    CHAR_BUFFER("buffer(char)", CharBuffer.class),
 
     /**
      * Represents {@link java.nio.ShortBuffer} data type.
      */
-    SHORT_BUFFER(ShortBuffer.class),
+    SHORT_BUFFER("buffer(int16)", ShortBuffer.class),
 
     /**
      * Represents {@link java.nio.IntBuffer} data type.
      */
-    INT_BUFFER(IntBuffer.class),
+    INT_BUFFER("buffer(int32)", IntBuffer.class),
 
     /**
      * Represents {@link java.nio.LongBuffer} data type.
      */
-    LONG_BUFFER(LongBuffer.class),
+    LONG_BUFFER("buffer(int64)", LongBuffer.class),
 
     /**
      * Represents {@link java.nio.FloatBuffer} data type.
      */
-    FLOAT_BUFFER(FloatBuffer.class),
+    FLOAT_BUFFER("buffer(float32)", FloatBuffer.class),
 
     /**
      * Represents {@link java.nio.DoubleBuffer} data type.
      */
-    DOUBLE_BUFFER(DoubleBuffer.class),
+    DOUBLE_BUFFER("buffer(float64)", DoubleBuffer.class),
 
     /**
      * Represents {@code byte[]} type.
      */
-    BYTE_ARRAY(SimpleType.BYTE, true),
+    BYTE_ARRAY("array(int8)", SimpleType.BYTE, true),
 
     /**
      * Represents {@link java.lang.Byte}[] type.
      */
-    WRAPPED_BYTE_ARRAY(SimpleType.BYTE, false),
+    WRAPPED_BYTE_ARRAY("array(int8)", SimpleType.BYTE, false),
 
     /**
      * Represents {@code char[]} type.
      */
-    CHAR_ARRAY(SimpleType.CHARACTER, true),
+    CHAR_ARRAY("array(char)", SimpleType.CHARACTER, true),
 
     /**
      * Represents {@link java.lang.Character}[] type.
      */
-    WRAPPED_CHAR_ARRAY(SimpleType.CHARACTER, false),
+    WRAPPED_CHAR_ARRAY("array(char)", SimpleType.CHARACTER, false),
 
     /**
      * Represents {@code short[]} type.
      */
-    SHORT_ARRAY(SimpleType.SHORT, true),
+    SHORT_ARRAY("array(int16)", SimpleType.SHORT, true),
 
     /**
      * Represents {@link java.lang.Short}[] type.
      */
-    WRAPPED_SHORT_ARRAY(SimpleType.SHORT, false),
+    WRAPPED_SHORT_ARRAY("array(int16)", SimpleType.SHORT, false),
 
     /**
      * Represents {@code int[]} type.
      */
-    INT_ARRAY(SimpleType.INTEGER, true),
+    INT_ARRAY("array(int32)", SimpleType.INTEGER, true),
 
     /**
      * Represents {@link java.lang.Integer}[] type.
      */
-    WRAPPED_INT_ARRAY(SimpleType.INTEGER, false),
+    WRAPPED_INT_ARRAY("array(int32)", SimpleType.INTEGER, false),
 
     /**
      * Represents {@code long[]} type.
      */
-    LONG_ARRAY(SimpleType.LONG, true),
+    LONG_ARRAY("array(int64)", SimpleType.LONG, true),
 
     /**
      * Represents {@link java.lang.Long}[] type.
      */
-    WRAPPED_LONG_ARRAY(SimpleType.LONG, false),
+    WRAPPED_LONG_ARRAY("array(int64)", SimpleType.LONG, false),
 
     /**
      * Represents {@code boolean[]} type.
      */
-    BOOL_ARRAY(SimpleType.BOOLEAN, true),
+    BOOL_ARRAY("array(bool)", SimpleType.BOOLEAN, true),
 
     /**
      * Represents {@link java.lang.Boolean}[] type.
      */
-    WRAPPED_BOOL_ARRAY(SimpleType.BOOLEAN, false),
+    WRAPPED_BOOL_ARRAY("array(bool)", SimpleType.BOOLEAN, false),
 
     /**
      * Represents {@code float[]} type.
      */
-    FLOAT_ARRAY(SimpleType.FLOAT, true),
+    FLOAT_ARRAY("array(float32)", SimpleType.FLOAT, true),
 
     /**
      * Represents {@link java.lang.Float}[] type.
      */
-    WRAPPED_FLOAT_ARRAY(SimpleType.FLOAT, false),
+    WRAPPED_FLOAT_ARRAY("array(float32)", SimpleType.FLOAT, false),
 
     /**
      * Represents {@code double[]} type.
      */
-    DOUBLE_ARRAY(SimpleType.DOUBLE, true),
+    DOUBLE_ARRAY("array(float64)", SimpleType.DOUBLE, true),
 
     /**
      * Represents {@link java.lang.Double}[] type.
      */
-    WRAPPED_DOUBLE_ARRAY(SimpleType.DOUBLE, false),
+    WRAPPED_DOUBLE_ARRAY("array(float64)", SimpleType.DOUBLE, false),
 
     /**
      * Represents {@link java.lang.String}[] type.
      */
-    STRING_ARRAY(SimpleType.STRING, false),
+    STRING_ARRAY("array(string)", SimpleType.STRING, false),
 
     /**
      * Represents {@link java.util.Date}[] type.
      */
-    DATE_ARRAY(SimpleType.DATE, false),
+    DATE_ARRAY("array(datetime)", SimpleType.DATE, false),
 
     /**
      * Represents {@link java.math.BigInteger}[] type.
      */
-    BIG_INT_ARRAY(SimpleType.BIGINTEGER, false),
+    BIG_INT_ARRAY("array(bigint)", SimpleType.BIGINTEGER, false),
 
     /**
      * Represents {@link java.math.BigDecimal}[] type.
      */
-    BIG_DECIMAL_ARRAY(SimpleType.BIGDECIMAL, false),
+    BIG_DECIMAL_ARRAY("array(bigdecimal)", SimpleType.BIGDECIMAL, false),
 
     /**
      * Represents {@link javax.management.ObjectName}[] type.
      */
-    OBJECT_NAME_ARRAY(SimpleType.OBJECTNAME, false),
+    OBJECT_NAME_ARRAY("array(objectname)", SimpleType.OBJECTNAME, false),
 
     /**
      * Represents {@link javax.management.openmbean.CompositeData} type.
      */
-    DICTIONARY(CompositeData.class),
+    DICTIONARY("dictionary", CompositeData.class),
 
     /**
      * Represents {@link javax.management.openmbean.CompositeData}[] type.
      */
-    DICTIONARY_ARRAY(CompositeData[].class),
+    DICTIONARY_ARRAY("array(dictionary)", CompositeData[].class),
 
     /**
      * Represents {@link javax.management.openmbean.TabularData} type.
      */
-    TABLE(TabularData.class),
+    TABLE("table", TabularData.class),
 
     /**
      * Represents {@link javax.management.openmbean.TabularData}[] type.
      */
-    TABLE_ARRAY(TabularData[].class)
+    TABLE_ARRAY("array(table)", TabularData[].class)
     ;
 
     private static final class WellKnownTypeCacheLoader extends CacheLoader<Object, WellKnownType>{
@@ -305,18 +305,19 @@ public enum  WellKnownType implements Serializable, Type, Predicate {
 
     private final OpenType<?> openType;
     private final Class<?> javaType;
+    private final String displayName;
 
-
-    <T> WellKnownType(final SimpleType<T> openType){
+    <T> WellKnownType(final String name, final SimpleType<T> openType){
         this.openType = Objects.requireNonNull(openType, "openType is null.");
         try {
             this.javaType = Class.forName(openType.getClassName());
         } catch (final ClassNotFoundException e) {
             throw new ExceptionInInitializerError(e);
         }
+        this.displayName = name;
     }
 
-    <A> WellKnownType(final SimpleType<?> componentType,
+    <A> WellKnownType(final String name, final SimpleType<?> componentType,
                       final boolean primitive){
         try {
             this.openType = new ArrayType<A>(componentType, primitive);
@@ -325,11 +326,21 @@ public enum  WellKnownType implements Serializable, Type, Predicate {
         catch (final OpenDataException | ClassNotFoundException e) {
             throw new ExceptionInInitializerError(e);
         }
+        this.displayName = name;
     }
 
-    WellKnownType(final Class<?> javaType) {
+    WellKnownType(final String name, final Class<?> javaType) {
         this.openType = null;
         this.javaType = Objects.requireNonNull(javaType, "javaType is null.");
+        this.displayName = name;
+    }
+
+    /**
+     * Gets display name of this type.
+     * @return The display name of this type.
+     */
+    public String getDisplayName(){
+        return displayName;
     }
 
     /**
@@ -629,5 +640,10 @@ public enum  WellKnownType implements Serializable, Type, Predicate {
     @Internal
     static long cacheSize(){
         return cache.size();
+    }
+
+    @Override
+    public String toString() {
+        return javaType.getCanonicalName();
     }
 }

@@ -2,7 +2,10 @@ package com.itworks.snamp.adapters.snmp;
 
 import com.itworks.snamp.adapters.AttributeAccessor;
 import com.itworks.snamp.jmx.DescriptorUtils;
+import org.snmp4j.SNMP4JSettings;
 import org.snmp4j.agent.*;
+import org.snmp4j.agent.mo.MOScalar;
+import org.snmp4j.asn1.BER;
 import org.snmp4j.smi.*;
 
 import javax.management.DescriptorRead;
@@ -312,5 +315,10 @@ enum SnmpType {
 
     final Object convert(final Variable value, final Type valueType) throws InvalidAttributeValueException {
         return convert(value, valueType, DescriptorUtils.EMPTY_DESCRIPTOR);
+    }
+
+    @Override
+    public final String toString() {
+        return AbstractVariable.getSyntaxString(syntax);
     }
 }

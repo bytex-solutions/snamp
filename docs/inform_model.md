@@ -20,22 +20,35 @@ The operation has its set of _formal parameters_ and _return value_. Each parame
 ## Type System
 SNAMP supports the following set of data types:
 * Scalar types
-  * Date/time - the number of milliseconds since January 1, 1970, 00:00:00 GMT
+  * datetime - the number of milliseconds since January 1, 1970, 00:00:00 GMT
   * int8 - 8-bit signed integer
   * int16 - 16-bit signed integer
   * int32 - 32-bit signed integer
   * int64 - 64-bit signed integer
   * float32 - IEEE-754 floating-point number with single precision
   * float64 - IEEE-754 floating-point number with double precision
-  * bigint - integer with arbitary precision
-  * bigdecimal - floating-point number with arbitary precision
+  * bigint - integer with arbitrary precision
+  * bigdecimal - floating-point number with arbitrary precision
   * char - 16-bit Unicode single character
   * string - 16-bit Unicode string
   * objectname - [JMX Object Identifier](http://www.oracle.com/technetwork/java/javase/tech/best-practices-jsp-136021.html#mozTocId509360)
   * bool - boolean data type with two possible values: `true` and `false`
-* Array - an array of any data type supported by SNAMP Management Information Model
-* Dictionary - a set of key/value pairs with unique keys. Each key is a _string_. The value in the pair may have any data type supported by SNAMP Management Information Model
-* Table - a set of rows and columns. The name of the column is a _string_. The cell value may have any data type supported by SNAMP Management Information Model
+* Array data types
+  * array(datetime) - array of date/time values
+  * array(int8) - array of bytes
+  * array(int16) - array of 16-bit words
+  * array(int32) - array of 32-bit words
+  * array(int64) - array of 64-bit words
+  * array(float32) - array of numbers with single precision
+  * array(float64) - array of numbers with double precision
+  * array(bigint) - array of integers with arbitrary precision
+  * array(bigdecimal) - array of reals with arbitrary precision
+  * array(char) - array of Unicode characters
+  * array(string) - array of strings
+  * array(objectname) - array of object names
+  * array(bool) - array of boolean values
+* Dictionary - a set of key/value pairs with unique keys. Each key is a _string_. The value in the pair may have any scalar type supported by SNAMP Management Information Model
+* Table - a set of rows and columns. The name of the column is a _string_. The cell value may have any scalar type supported by SNAMP Management Information Model
 
 You should take into account that the semantics of the protocol-specific data type may be loss during conversion. For example, we have configured SNMP Adapter and JMX Connector. JMX-compliant managed resource exposes attribute of `Float` JMX type. This JMX-specific type can be converted directly to `float` value in SNAMP Management Information Model. But ASN.1 type system (used by SNMP protocol) doesn't have support for IEEE-754 floating-point numbers. Therefore, SNMP Adapter converts `float` value to ASN.1 `OCTET_STRING`.  
 > Some Resource Adapter provide configuration properties allowing you to specify conversion rules. For example, `int32` value may be converted into ASN.1 `INTEGER_32` or 4-byte `OCTET_STRING`.
@@ -47,7 +60,7 @@ The structure of **Notification Object**:
 
 Field | Data Type | Description
 ---- | ---- | ----
-TimeStamp | date/time | The notification emission date
+TimeStamp | datetime | The notification emission date
 Source | string | The name of the managed resource emitting notification
 Type | string | The name of the notification (differs from event category)
 Message | string | Human-readable description of the notification

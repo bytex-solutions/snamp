@@ -32,6 +32,6 @@ public final class NagiosAdapterActivator extends ResourceAdapterActivator<Nagio
     public NagiosAdapterActivator() {
         super(NAME, new NagiosAdapterFactory(),
                 new RequiredService<?>[]{new SimpleDependency<>(HttpService.class)},
-                new SupportAdapterServiceManager<?, ?>[]{new NagiosConfigurationProvider()});
+                new SupportAdapterServiceManager<?, ?>[]{new NagiosConfigurationProvider(), new RuntimeInformationServiceManager()});
     }
 }

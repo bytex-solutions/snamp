@@ -31,7 +31,7 @@ public final class NRDPAdapterActivator extends ResourceAdapterActivator<NRDPAda
 
     @SpecialUse
     public NRDPAdapterActivator(){
-        super(NAME, new NRDPResourceAdapterFactory(),  new NRDPConfigurationProvider());
+        super(NAME, new NRDPResourceAdapterFactory(),  new NRDPConfigurationProvider(), new RuntimeInformationServiceManager());
     }
 
 }

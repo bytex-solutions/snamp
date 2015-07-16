@@ -6,11 +6,13 @@ import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.configuration.ConfigParameters;
 import com.itworks.snamp.connectors.ConfigurationEntityRuntimeMetadata;
 import com.itworks.snamp.jmx.DescriptorUtils;
+import com.itworks.snamp.jmx.WellKnownType;
 
 import javax.management.Descriptor;
 import javax.management.ImmutableDescriptor;
 import javax.management.MBeanOperationInfo;
 import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.OpenMBeanOperationInfo;
 import java.util.Map;
 import java.util.Objects;
 
@@ -160,5 +162,11 @@ public class OperationDescriptor extends ImmutableDescriptor implements Configur
      */
     public final boolean isAutomaticallyAdded(){
         return hasField(AUTOMATICALLY_ADDED_FIELD);
+    }
+
+    public static WellKnownType getReturnType(final MBeanOperationInfo operationInfo) {
+        if(operationInfo instanceof OpenMBeanOperationInfo)
+            return WellKnownType.getType(((OpenMBeanOperationInfo)operationInfo).getReturnOpenType());
+        else return WellKnownType.getType(operationInfo.getReturnType());
     }
 }

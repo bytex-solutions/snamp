@@ -192,18 +192,18 @@ The following configuration parameters of the attributes have influence on SNMP 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
 oid | OID | Highly recommended (see _Compatibility with Smart mode_ section) | OID used to register attribute as managed object in MIB | `1.2.5.6`
-displayFormat | Enum or String | No | Display format used to convert `Date/time` attributes into OCTET_STRING | `yyyy-MM-dd'T'HH:mm:ss.SSSXXX`
+displayFormat | Enum or String | No | Display format used to convert `datetime` attributes into OCTET_STRING | `yyyy-MM-dd'T'HH:mm:ss.SSSXXX`
 tableCacheTime | Integer | No | Used for attributes with complex data type only. This parameter describes period (in millis) of rebuilding SNMP Table from the source attribute. By default it is equal to 5 seconds | `3000`
 useRowStatus | Boolean | No | Use advanced column in the table which contains status of the row. By default it is equal to `false` | `true`
 
 > Note that attribute with `oid = 1.2.5.6` will not be visible if `context` of the adapter will be equal to `1.1`. All OIDs of attributes must starts with `context` prefix.
 
 ### Date/time formats
-`Date/time` data structure can be converted into ASN.1-compliant type using one of the rules specified in `displayFormat` configuration parameter:
+`datetime` data structure can be converted into ASN.1-compliant type using one of the rules specified in `displayFormat` configuration parameter:
 
 Value | Description
 ---- | ----
-default | Apply `yyyy-MM-dd'T'HH:mm:ss.SSSXXX` formatting mask and convert `Date/time` into OCTET_STRING with UTF-8 encoding
+default | Apply `yyyy-MM-dd'T'HH:mm:ss.SSSXXX` formatting mask and convert `datetime` into OCTET_STRING with UTF-8 encoding
 rfc1903 | OCTET_STRING with the following format: YEAR(16-bit) MONTH(8-bit) DAY_OF_MONTH(b-bit) HOUR_OF_DAY(8-bit) MINUTE(8-bit) SECOND(8-bit) 1/10 SECOND (8-bit) DIRECTION_FROM_UTC(8-bit) HOURS_OFFSET(8-bit) MINUTES_OFFSET(8-bit)
 rfc1903-human-readable | OCTET_STRING in UTF-8 encoding in the following format: `YY-MM-DD,HH:mm:ss.1/10s,DIR HF:MF`, where DIR is a direction from UTC (+ or -), HF - offset in hours, MF - offset in minutes
 _Any other string_ | ... will be interpreted as formatting mask, such `yyyy-MM-dd'T'HH:mm:ss.SSSXXX`
@@ -214,7 +214,7 @@ The following configuration parameters of the events have influence on SNMP Reso
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
 `oid` | OID | Yes | OID prefix of all managed objects inside of Trap | `1.1`
-displayFormat | Enum or String | No | Display format used to convert `Date/time` attributes into OCTET_STRING | `rfc1903`
+displayFormat | Enum or String | No | Display format used to convert `datetime` attributes into OCTET_STRING | `rfc1903`
 receiverAddress | String | Yes | An address of SNMP Trap receiver in format `<ip-address>/<port>` | `127.0.0.1/10538`
 receiverName | String | Yes | Unique name of the receiver | `remote-receiver-1`
 sendingTimeout | Integer | No | Trap sending timeout (in millis). By default it is equal to 2 seconds | `3000`

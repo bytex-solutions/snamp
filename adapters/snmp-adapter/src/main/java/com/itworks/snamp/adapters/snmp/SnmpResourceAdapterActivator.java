@@ -48,7 +48,8 @@ public final class SnmpResourceAdapterActivator extends ResourceAdapterActivator
                 new SnmpAdapterFactory(),
                 new RequiredService<?>[]{ new SimpleDependency<>(JNDIContextManager.class) },
                 new SupportAdapterServiceManager<?, ?>[]{
-                        new SnmpAdapterConfigurationEntityDescriptionManager()
+                        new SnmpAdapterConfigurationEntityDescriptionManager(),
+                        new RuntimeInformationServiceManager()
                 });
     }
 }

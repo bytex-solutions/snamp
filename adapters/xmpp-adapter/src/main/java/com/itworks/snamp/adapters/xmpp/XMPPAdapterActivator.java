@@ -27,6 +27,6 @@ public final class XMPPAdapterActivator extends ResourceAdapterActivator<XMPPAda
     }
 
     public XMPPAdapterActivator(){
-        super(NAME, new XMPPAdapterFactory(), new XMPPConfigurationProvider());
+        super(NAME, new XMPPAdapterFactory(), new XMPPConfigurationProvider(), new RuntimeInformationServiceManager());
     }
 }

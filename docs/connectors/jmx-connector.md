@@ -107,7 +107,7 @@ BIGDECIMAL | bigdecimal
 CHARACTER | char
 STRING | string
 BOOLEAN | bool
-DATE | Date/time
+DATE | datetime
 OBJECTNAME | objectname
 CompositeData | Dictionary
 TabularData | Table

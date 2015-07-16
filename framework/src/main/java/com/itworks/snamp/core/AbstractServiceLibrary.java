@@ -508,6 +508,12 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                     return null;
                 }
             });
+            destroyManager();
+        }
+
+        @MethodStub
+        protected void destroyManager() throws Exception{
+
         }
     }
 
