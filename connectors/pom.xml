@@ -39,6 +39,5 @@
       <!--<module>ibmwmb-connector</module>-->
       <module>ibmwmq-connector</module>
       <module>groovy-connector</module>
-      <module>openstack-connector</module>
   </modules>
 </project>
