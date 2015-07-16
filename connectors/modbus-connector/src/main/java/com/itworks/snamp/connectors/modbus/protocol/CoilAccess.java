@@ -1,23 +1,12 @@
-package com.itworks.snamp.connectors.modbus;
+package com.itworks.snamp.connectors.modbus.protocol;
 
 import com.ghgande.j2mod.modbus.ModbusException;
-import com.ghgande.j2mod.modbus.procimg.InputRegister;
-import com.ghgande.j2mod.modbus.procimg.Register;
 import com.ghgande.j2mod.modbus.util.BitVector;
 
-import java.io.Closeable;
-import java.io.IOException;
-
 /**
- * Represents client (master) of Modbus protocol
+ * Provides access to coins.
  */
-interface ModbusClient extends Closeable {
-    /**
-     * Connects to the Modbus slave device.
-     * @throws IOException Network problems
-     */
-    void connect() throws IOException;
-
+public interface CoilAccess {
     /**
      * Reads a given number of coil states from the slave.
      * <p/>
@@ -45,21 +34,7 @@ interface ModbusClient extends Closeable {
      * @throws ModbusException if an I/O error, a slave exception or
      *                         a transaction error occurs.
      */
-    void writeCoil(final int unitid, final int ref, final boolean state) throws ModbusException;
+    boolean writeCoil(final int unitid, final int ref, final boolean state) throws ModbusException;
 
     void writeCoils(int ref, BitVector coils) throws ModbusException;
-
-    BitVector readInputDiscretes(final int ref, final int count) throws ModbusException;
-
-    boolean readInputInputDiscrete(final int ref) throws ModbusException;
-
-    InputRegister[] readInputRegisters(final int ref, final int count) throws ModbusException;
-
-    short readInputRegister(final int ref) throws ModbusException;
-
-    Register[] readHoldingRegisters(final int ref, final int count) throws ModbusException;
-
-    Register readHoldingRegister(final int ref) throws ModbusException;
-
-    void writeHoldingRegister(final int ref, final Register register) throws ModbusException;
 }
