@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>connectors</artifactId>
+        <groupId>com.itworks.snamp</groupId>
+        <version>1.0.0</version>
+    </parent>
+    <artifactId>modbus-connector</artifactId>
+    <modelVersion>4.0.0</modelVersion>
+    <version>${snamp.connectors.modbus.version.version}</version>
+    <packaging>bundle</packaging>
+    <name>Modbus Connector</name>
+    <description>SNAMP management connector for Modbus (over TCP and UDP) protocol</description>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>com.itworks.snamp.connectors.modbus</Bundle-SymbolicName>
+                        <Bundle-Activator>com.itworks.snamp.connectors.modbus.ModbusResourceConnectorActivator</Bundle-Activator>
+                        <Export-Package/>
+                        <!--SNAMP specific header-->
+                        <SNAMP-Resource-Connector>modbus</SNAMP-Resource-Connector>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <dependencies>
+        <dependency>
+            <scope>provided</scope>
+            <groupId>com.itworks.snamp</groupId>
+            <artifactId>framework</artifactId>
+            <version>${snamp.framework.version}</version>
+        </dependency>
+        <dependency>
+            <scope>provided</scope>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.core</artifactId>
+            <version>${osgi.version}</version>
+        </dependency>
+        <dependency>
+            <scope>provided</scope>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.compendium</artifactId>
+            <version>${osgi.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.ghgande</groupId>
+            <artifactId>j2mod</artifactId>
+            <scope>system</scope>
+            <version>1.0.3</version>
+            <systemPath>${basedir}/lib/j2mod-1.03.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>com.ghgande</groupId>
+            <artifactId>j2mod</artifactId>
+            <scope>system</scope>
+            <classifier>sources</classifier>
+            <type>zip</type>
+            <version>1.0.3</version>
+            <systemPath>${basedir}/lib/j2mod-1.03-sources.zip</systemPath>
+        </dependency>
+    </dependencies>
+</project>

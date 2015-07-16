@@ -39,5 +39,6 @@
       <!--<module>ibmwmb-connector</module>-->
       <module>ibmwmq-connector</module>
       <module>groovy-connector</module>
+      <module>modbus-connector</module>
   </modules>
 </project>

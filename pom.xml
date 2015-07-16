@@ -27,7 +27,6 @@
     <aries.version>1.0.0</aries.version>
     <aries.api.version>1.1.0</aries.api.version>
     <jolokia.version>1.3.0</jolokia.version>     <!--Jolokia version should be aligned with HawtIO used in SNAMP Management Console-->
-    <openstack4j.version>2.0.3</openstack4j.version>
     <!--Versioning of SNAMP Components-->
     <snmp4j.version>2.3.3</snmp4j.version>
     <sshj.version>0.10.0</sshj.version>
@@ -55,7 +54,7 @@
     <snamp.connectors.ibmwmq.version>1.0.0</snamp.connectors.ibmwmq.version>
     <snamp.connectors.jmx.version>1.0.0</snamp.connectors.jmx.version>
     <snamp.connectors.snmp.version>1.0.0</snamp.connectors.snmp.version>
-    <snamp.connectors.openstack.version>1.0.0</snamp.connectors.openstack.version>
+    <snamp.connectors.modbus.version>1.0.0</snamp.connectors.modbus.version>
   </properties>
   <version>1.0.0</version>
   <organization>
