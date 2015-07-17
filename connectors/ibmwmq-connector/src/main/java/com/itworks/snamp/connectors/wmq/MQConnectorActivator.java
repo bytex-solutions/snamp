@@ -103,8 +103,7 @@ public final class MQConnectorActivator extends ManagedResourceActivator<MQConne
 
     @SpecialUse
     public MQConnectorActivator() {
-        super(NAME,
-                new MQConnectorFactory(),
+        super(new MQConnectorFactory(),
                 new MQConnectorConfigurationProvider(),
                 new MQDiscoveryServiceProvider(),
                 new MQMaintenanceManager());

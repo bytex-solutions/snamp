@@ -26,8 +26,6 @@ import java.util.logging.Logger;
  * @since 1.1.0
  */
 final class MQConnector extends ManagedResourceConnectorBean implements CMQC, CMQCFC {
-    static final String NAME = "ibm-wmq";
-
     public static final class MQDiscoveryService extends BeanDiscoveryService{
         public MQDiscoveryService() throws IntrospectionException {
             super(MQConnector.class);
@@ -40,7 +38,7 @@ final class MQConnector extends ManagedResourceConnectorBean implements CMQC, CM
          */
         @Override
         public Logger getLogger() {
-            return MQConnector.getLogger(NAME);
+            return getLoggerImpl();
         }
     }
 
@@ -381,17 +379,7 @@ final class MQConnector extends ManagedResourceConnectorBean implements CMQC, CM
     }
 
     static Logger getLoggerImpl(){
-        return getLogger(NAME);
-    }
-
-    /**
-     * Gets a logger associated with this platform service.
-     *
-     * @return A logger associated with this platform service.
-     */
-    @Override
-    public Logger getLogger() {
-        return getLoggerImpl();
+        return getLogger(getConnectorType(MQConnector.class));
     }
 
     @Override

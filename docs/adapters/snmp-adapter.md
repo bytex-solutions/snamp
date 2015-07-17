@@ -238,7 +238,8 @@ bigdecimal | OCTET_STRING (UTF-8 encoding)
 date | OCTET_STRING
 float32 | OCTET_STRING (UTF-8 encoding)
 float64 | OCTET_STRING (UTF-8 encoding)
-array of int8 | OCTET_STRING
+array(int8) | OCTET_STRING
+array(bool) | OCTET_STRING (little endian)
 
 Table, dictionary and arrays (except array of int8) will be converted into SNMP Table. SNMP Table represents a set of managed objects. The behavior of these structures can be tuned with `useRowStatus` and `tableCacheTime` configuration parameters.
 

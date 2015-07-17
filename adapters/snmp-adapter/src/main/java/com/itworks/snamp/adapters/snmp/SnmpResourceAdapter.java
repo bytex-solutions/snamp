@@ -40,8 +40,6 @@ import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor
  * @since 1.0
  */
 final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceAdapterProfile> {
-    static final String NAME = SnmpHelpers.ADAPTER_NAME;
-
     private static final class SnmpNotificationMappingImpl extends NotificationAccessor implements SnmpNotificationMapping{
         private static final Pattern IPv4_PATTERN = Pattern.compile("^\\d+\\.\\d+\\.\\d+\\.\\d+/\\d+");
         private WeakReference<NotificationOriginator> notificationOriginator;
@@ -373,6 +371,7 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
      * @param bindingType Type of the feature binding.
      * @return A collection of features
      */
+    @SuppressWarnings("unchecked")
     @Override
     protected synchronized  <B extends FeatureBinding> Collection<? extends B> getBindings(final Class<B> bindingType) {
         final SnmpAdapterUpdateManager updateManager = this.updateManager;
@@ -390,6 +389,6 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
      */
     @Override
     public Logger getLogger() {
-        return getLogger(NAME);
+        return getLogger(SnmpHelpers.ADAPTER_NAME);
     }
 }

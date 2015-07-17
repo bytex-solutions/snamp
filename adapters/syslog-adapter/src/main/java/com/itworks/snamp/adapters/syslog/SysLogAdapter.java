@@ -27,8 +27,6 @@ import static com.itworks.snamp.adapters.syslog.SysLogConfigurationDescriptor.ge
  * @since 1.0
  */
 final class SysLogAdapter extends AbstractResourceAdapter {
-    static final String NAME = "syslog";
-
     private static final class SysLogAttributeModel extends AbstractAttributesModel<SysLogAttributeAccessor> {
 
         @Override
@@ -176,10 +174,5 @@ final class SysLogAdapter extends AbstractResourceAdapter {
         attributeSender = null;
         attributes.clear();
         notifications.clear();
-    }
-
-    @Override
-    public Logger getLogger() {
-        return getLogger(NAME);
     }
 }

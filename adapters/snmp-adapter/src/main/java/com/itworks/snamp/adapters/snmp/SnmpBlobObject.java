@@ -2,6 +2,7 @@ package com.itworks.snamp.adapters.snmp;
 
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.internal.annotations.SpecialUse;
+import com.itworks.snamp.io.IOUtils;
 import com.itworks.snamp.jmx.WellKnownType;
 import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.SMIConstants;
@@ -11,23 +12,33 @@ import javax.management.InvalidAttributeValueException;
 import javax.management.ReflectionException;
 import java.lang.reflect.Type;
 import java.text.ParseException;
+import java.util.BitSet;
 
 import com.itworks.snamp.adapters.AttributeAccessor;
 
 /**
- * Represents SNMP wrapper for byte array.
+ * Represents SNMP wrapper for array of bytes or booleans.
  * This class cannot be inherited.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-final class SnmpByteArrayObject extends SnmpScalarObject<OctetString> {
+final class SnmpBlobObject extends SnmpScalarObject<OctetString> {
     static final int SYNTAX = SMIConstants.SYNTAX_OCTET_STRING;
     private static final OctetString DEFAULT_VALUE = new OctetString();
 
     @SpecialUse
-    SnmpByteArrayObject(final AttributeAccessor attribute) throws ParseException {
+    SnmpBlobObject(final AttributeAccessor attribute) throws ParseException {
         super(attribute, DEFAULT_VALUE);
+    }
+
+    private static OctetString toOctetString(final boolean[] value){
+        final BitSet bits = IOUtils.toBitSet(value);
+        return new OctetString(bits.toByteArray());
+    }
+
+    private static boolean[] toBooleanArray(final byte[] bits) {
+        return IOUtils.fromBitSet(BitSet.valueOf(bits));
     }
 
     @SpecialUse
@@ -36,14 +47,22 @@ final class SnmpByteArrayObject extends SnmpScalarObject<OctetString> {
             return OctetString.fromByteArray((byte[])value);
         else if(value instanceof Byte[])
             return OctetString.fromByteArray(ArrayUtils.unboxArray((Byte[])value));
+        else if(value instanceof boolean[])
+            return toOctetString((boolean[])value);
+        else if(value instanceof Boolean[])
+            return toOctetString(ArrayUtils.unboxArray((Boolean[])value));
         else return DEFAULT_VALUE;
     }
+
+
 
     private static Object fromSnmpObject(final OctetString value,
                                   final Type attributeType) throws InvalidAttributeValueException{
         switch (WellKnownType.getType(attributeType)){
             case BYTE_ARRAY: return value.toByteArray();
             case WRAPPED_BYTE_ARRAY: return ArrayUtils.boxArray(value.toByteArray());
+            case BOOL_ARRAY: return toBooleanArray(value.toByteArray());
+            case WRAPPED_BOOL_ARRAY: return ArrayUtils.boxArray(toBooleanArray(value.toByteArray()));
             default: throw unexpectedAttributeType(attributeType);
         }
     }

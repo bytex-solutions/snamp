@@ -30,8 +30,6 @@ final class XMPPAdapter extends AbstractResourceAdapter {
         initializer.initialize();
     }
 
-    static final String NAME = "xmpp";
-
     private AbstractXMPPConnection connection;
     private final Bot chatBot;
 
@@ -82,11 +80,6 @@ final class XMPPAdapter extends AbstractResourceAdapter {
         if (connection.isConnected())
             connection.disconnect(new Presence(Presence.Type.unavailable));
         connection = null;
-    }
-
-    @Override
-    public Logger getLogger() {
-        return getLogger(NAME);
     }
 
 }

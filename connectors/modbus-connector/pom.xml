@@ -57,20 +57,17 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.ghgande</groupId>
-            <artifactId>j2mod</artifactId>
-            <scope>system</scope>
-            <version>1.0.3</version>
-            <systemPath>${basedir}/lib/j2mod-1.03.jar</systemPath>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.ghgande</groupId>
             <artifactId>j2mod</artifactId>
             <scope>system</scope>
-            <classifier>sources</classifier>
-            <type>zip</type>
             <version>1.0.3</version>
-            <systemPath>${basedir}/lib/j2mod-1.03-sources.zip</systemPath>
+            <systemPath>${basedir}/lib/j2mod-1.03.jar</systemPath>
         </dependency>
     </dependencies>
 </project>

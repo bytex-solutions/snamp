@@ -9,8 +9,6 @@ import com.itworks.snamp.internal.annotations.SpecialUse;
  * @since 1.0
  */
 public final class GroovyResourceAdapterActivator extends ResourceAdapterActivator<GroovyResourceAdapter> {
-    private static final String NAME = GroovyResourceAdapter.NAME;
-
     private static final class GroovyResourceAdapterFactory implements ResourceAdapterFactory<GroovyResourceAdapter>{
 
         @Override
@@ -30,6 +28,6 @@ public final class GroovyResourceAdapterActivator extends ResourceAdapterActivat
 
     @SpecialUse
     public GroovyResourceAdapterActivator(){
-        super(NAME, new GroovyResourceAdapterFactory(), new GroovyResourceAdapterConfigurationManager(), new RuntimeInformationServiceManager());
+        super(new GroovyResourceAdapterFactory(), new GroovyResourceAdapterConfigurationManager(), new RuntimeInformationServiceManager());
     }
 }

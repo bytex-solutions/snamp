@@ -27,9 +27,7 @@ import com.itworks.snamp.core.OSGiLoggingContext;
 import com.itworks.snamp.core.RichLogicalOperation;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.WeakMultimap;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceEvent;
-import org.osgi.framework.ServiceReference;
+import org.osgi.framework.*;
 
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
@@ -37,10 +35,7 @@ import javax.management.MBeanNotificationInfo;
 import javax.management.MBeanOperationInfo;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
@@ -567,6 +562,8 @@ public abstract class AbstractResourceAdapter extends AbstractBindingSupplier im
         return Logger.getLogger(getLoggerName(adapterName));
     }
 
+
+
     /**
      * Releases all resources associated with this adapter.
      * @throws java.io.IOException An exception occurred during adapter releasing.
@@ -603,7 +600,9 @@ public abstract class AbstractResourceAdapter extends AbstractBindingSupplier im
      */
     @Override
     @Aggregation
-    public abstract Logger getLogger();
+    public Logger getLogger(){
+        return getLogger(getAdapterName(this));
+    }
 
     /**
      * Returns a string representation of this adapter.
@@ -657,5 +656,29 @@ public abstract class AbstractResourceAdapter extends AbstractBindingSupplier im
     @Override
     protected <B extends FeatureBinding> Collection<? extends B> getBindings(final Class<B> bindingType){
         return Collections.emptyList();
+    }
+
+    public final String getAdapterName(){
+        return getAdapterName(this);
+    }
+
+    public static String getAdapterName(final Class<? extends ResourceAdapter> adapter){
+        return getAdapterName(FrameworkUtil.getBundle(adapter.getClass()));
+    }
+
+    public static String getAdapterName(final ResourceAdapter adapter) {
+        return getAdapterName(adapter.getClass());
+    }
+
+    static boolean isResourceAdapterBundle(final Bundle bnd){
+        return bnd != null && bnd.getHeaders().get(ADAPTER_NAME_MANIFEST_HEADER) != null;
+    }
+
+    private static String getAdapterName(final Dictionary<String, ?> identity) {
+        return Objects.toString(identity.get(ADAPTER_NAME_MANIFEST_HEADER), "");
+    }
+
+    static String getAdapterName(final Bundle bnd){
+        return getAdapterName(bnd.getHeaders());
     }
 }

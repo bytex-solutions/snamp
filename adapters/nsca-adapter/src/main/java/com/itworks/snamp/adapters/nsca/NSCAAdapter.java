@@ -32,8 +32,6 @@ import static com.itworks.snamp.adapters.nsca.NSCAAdapterConfigurationDescriptor
  * @since 1.0
  */
 final class NSCAAdapter extends AbstractResourceAdapter {
-    static final String NAME = "nsca";
-
     private static final class NSCAAttributeAccessor extends AttributeAccessor{
         private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat();
 
@@ -257,7 +255,7 @@ final class NSCAAdapter extends AbstractResourceAdapter {
     protected void start(final Map<String, String> parameters) throws AbsentNSCAConfigurationParameterException {
         start(getPassiveCheckSendPeriod(parameters),
                 parseSettings(parameters),
-                new SenderThreadPoolConfig(parameters, NAME, getInstanceName()));
+                new SenderThreadPoolConfig(parameters, getAdapterName(), getInstanceName()));
     }
 
     @Override
@@ -268,10 +266,5 @@ final class NSCAAdapter extends AbstractResourceAdapter {
         attributes.clear();
         notifications.clear();
         attributeChecker = null;
-    }
-
-    @Override
-    public Logger getLogger() {
-        return getLogger(NAME);
     }
 }

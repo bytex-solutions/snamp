@@ -8,8 +8,6 @@ import com.itworks.snamp.adapters.ResourceAdapterActivator;
  * @since 1.0
  */
 public final class XMPPAdapterActivator extends ResourceAdapterActivator<XMPPAdapter> {
-    private static final String NAME = XMPPAdapter.NAME;
-
     private static final class XMPPAdapterFactory implements ResourceAdapterFactory<XMPPAdapter>{
 
         @Override
@@ -27,6 +25,6 @@ public final class XMPPAdapterActivator extends ResourceAdapterActivator<XMPPAda
     }
 
     public XMPPAdapterActivator(){
-        super(NAME, new XMPPAdapterFactory(), new XMPPConfigurationProvider(), new RuntimeInformationServiceManager());
+        super(new XMPPAdapterFactory(), new XMPPConfigurationProvider(), new RuntimeInformationServiceManager());
     }
 }

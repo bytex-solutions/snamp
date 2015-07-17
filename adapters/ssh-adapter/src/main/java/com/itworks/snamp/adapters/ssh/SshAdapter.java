@@ -50,7 +50,6 @@ import static com.itworks.snamp.adapters.ssh.SshAdapterConfigurationDescriptor.*
  * @since 1.0
  */
 final class SshAdapter extends AbstractResourceAdapter implements AdapterController {
-    static final String NAME = SshHelpers.ADAPTER_NAME;
     private static final Gson FORMATTER = Formatters.enableAll(new GsonBuilder())
             .serializeSpecialFloatingPointValues()
             .serializeNulls()
@@ -509,7 +508,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
      * @return The logger associated with this service.
      */
     public Logger getLogger() {
-        return getLogger(NAME);
+        return getLogger(SshHelpers.ADAPTER_NAME);
     }
 
     @Override

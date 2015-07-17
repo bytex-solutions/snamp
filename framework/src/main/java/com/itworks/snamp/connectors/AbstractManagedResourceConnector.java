@@ -1,14 +1,18 @@
 package com.itworks.snamp.connectors;
 
+import com.google.common.base.Strings;
 import com.itworks.snamp.Descriptive;
 import com.itworks.snamp.connectors.attributes.AbstractAttributeSupport;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
-import com.itworks.snamp.connectors.notifications.*;
+import com.itworks.snamp.connectors.notifications.AbstractNotificationSupport;
+import com.itworks.snamp.connectors.notifications.NotificationSupport;
 import com.itworks.snamp.connectors.operations.OperationSupport;
 import com.itworks.snamp.core.AbstractFrameworkService;
 import com.itworks.snamp.internal.IllegalStateFlag;
 import com.itworks.snamp.internal.annotations.ThreadSafe;
 import com.itworks.snamp.jmx.JMExceptionUtils;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkUtil;
 
 import javax.management.*;
 import java.util.*;
@@ -27,6 +31,7 @@ import java.util.logging.Logger;
  * @version 1.0
  */
 public abstract class AbstractManagedResourceConnector extends AbstractFrameworkService implements ManagedResourceConnector, Descriptive {
+
 
     private final IllegalStateFlag closed = new IllegalStateFlag() {
         @Override
@@ -361,5 +366,45 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
             return Objects.equals(smartMode, Boolean.TRUE) || Objects.equals(smartMode, Boolean.TRUE.toString());
         }
         else return false;
+    }
+
+    /**
+     * Returns system name of the connector using its implementation class.
+     * @param connectorImpl A class that represents implementation of resource connector.
+     * @return System name of the connector.
+     */
+    public static String getConnectorType(final Class<? extends ManagedResourceConnector> connectorImpl){
+        return getConnectorType(FrameworkUtil.getBundle(connectorImpl));
+    }
+
+    /**
+     * Returns system name of the specified connector.
+     * @param connector An instance of the resource connector.
+     * @return System name of the specified connector.
+     */
+    public static String getConnectorType(final ManagedResourceConnector connector){
+        return getConnectorType(connector.getClass());
+    }
+
+    static String getConnectorType(final Dictionary<String, ?> identity) {
+        return Objects.toString(identity.get(CONNECTOR_NAME_MANIFEST_HEADER), "");
+    }
+
+    static String getConnectorType(final Bundle bnd){
+        return isResourceConnectorBundle(bnd) ? getConnectorType(bnd.getHeaders()) : "";
+    }
+
+    static boolean isResourceConnectorBundle(final Bundle bnd) {
+        return !(bnd == null || Strings.isNullOrEmpty(bnd.getHeaders().get(CONNECTOR_NAME_MANIFEST_HEADER)));
+    }
+
+    /**
+     * Gets logger associated with this connector.
+     * @return A logger associated with this connector.
+     */
+    @Override
+    @Aggregation
+    public Logger getLogger() {
+        return getLogger(getConnectorType(this));
     }
 }

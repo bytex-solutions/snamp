@@ -133,6 +133,13 @@ public final class ArrayUtils {
         return result;
     }
 
+    public static boolean[] unboxArray(final Boolean[] value){
+        final boolean[] result = new boolean[value.length];
+        for(int i = 0; i < value.length; i++)
+            result[i] = value[i];
+        return result;
+    }
+
     public static int[] unboxArray(final Integer[] value){
         final int[] result = new int[value.length];
         for(int i = 0; i < value.length; i++)
@@ -142,6 +149,13 @@ public final class ArrayUtils {
 
     public static Integer[] boxArray(final int[] value){
         final Integer[] result = new Integer[value.length];
+        for (int i = 0; i < value.length; i++)
+            result[i] = new Integer(value[i]);  //explicit boxing to avoid caching
+        return result;
+    }
+
+    public static Boolean[] boxArray(final boolean[] value){
+        final Boolean[] result = new Boolean[value.length];
         for (int i = 0; i < value.length; i++)
             result[i] = value[i];
         return result;

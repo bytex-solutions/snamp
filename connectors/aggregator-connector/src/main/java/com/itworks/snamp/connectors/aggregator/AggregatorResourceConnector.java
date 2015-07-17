@@ -31,8 +31,6 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 public final class AggregatorResourceConnector extends AbstractManagedResourceConnector implements AttributeSupport {
-    static final String NAME = "aggregator";
-
     private static final class AttributeAggregationSupport extends OpenAttributeSupport<AbstractAttributeAggregation>{
         private AttributeAggregationSupport(final String resourceName){
             super(resourceName, AbstractAttributeAggregation.class);
@@ -213,12 +211,7 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
     }
 
     static Logger getLoggerImpl(){
-        return getLogger(NAME);
-    }
-
-    @Override
-    public Logger getLogger() {
-        return getLoggerImpl();
+        return getLogger(getConnectorType(AggregatorResourceConnector.class));
     }
 
     @Override

@@ -37,11 +37,6 @@ import static com.itworks.snamp.connectors.jmx.JmxConnectorConfigurationDescript
  * @author Roman Sakno
  */
 final class JmxConnector extends AbstractManagedResourceConnector implements AttributeSupport, NotificationSupport, OperationSupport {
-    /**
-     * Represents JMX connector name.
-     */
-    static final String NAME = JmxConnectorHelpers.CONNECTOR_NAME;
-
     private interface JmxFeatureMetadata extends Serializable, DescriptorRead {
         @SpecialUse
         ObjectName getOwner();
@@ -944,7 +939,11 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
     }
 
     static Logger getLoggerImpl(){
-        return getLogger(NAME);
+        return getLogger(getType());
+    }
+
+    static String getType(){
+        return getConnectorType(JmxConnector.class);
     }
 
     /**

@@ -10,18 +10,24 @@ import com.itworks.snamp.adapters.runtime.RuntimeInformationService;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.configuration.PersistentConfigurationManager;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
-import com.itworks.snamp.core.*;
+import com.itworks.snamp.core.AbstractServiceLibrary;
+import com.itworks.snamp.core.FrameworkService;
+import com.itworks.snamp.core.LogicalOperation;
+import com.itworks.snamp.core.OSGiLoggingContext;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.MethodStub;
 import com.itworks.snamp.management.Maintainable;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.FrameworkUtil;
 import org.osgi.service.cm.ConfigurationAdmin;
 
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static com.itworks.snamp.adapters.ResourceAdapter.ADAPTER_NAME_MANIFEST_HEADER;
 
 /**
  * Represents lifetime manager for managed resource adapter.
@@ -36,13 +42,8 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> extends AbstractServiceLibrary {
-    /**
-     * Represents name of the bundle manifest header that contains system name of the adapter.
-     */
-    public static final String ADAPTER_NAME_MANIFEST_HEADER = "SNAMP-Resource-Adapter";
 
 
-    private static final String ADAPTER_NAME_IDENTITY_PROPERTY = ADAPTER_NAME_MANIFEST_HEADER;
     private static final ActivationProperty<String> ADAPTER_NAME_HOLDER = defineActivationProperty(String.class);
     private static final ActivationProperty<Logger> LOGGER_HOLDER = defineActivationProperty(Logger.class);
 
@@ -80,6 +81,11 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
             this.adapterFactory = Objects.requireNonNull(factory, "factory is null.");
             this.adapterName = adapterName;
             this.hooks = new LinkedList<>();
+        }
+
+        private ResourceAdapterRegistry(final ResourceAdapterFactory<TAdapter> factory,
+                                       final RequiredService<?>... dependencies) {
+            this(getAdapterName(factory), factory, dependencies);
         }
 
         private void addHook(final ResourceAdapterHook hook) {
@@ -302,7 +308,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
          */
         @Override
         protected final RuntimeInformationServiceImpl activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) {
-            identity.put(ADAPTER_NAME_IDENTITY_PROPERTY, getAdapterName());
+            identity.put(ADAPTER_NAME_MANIFEST_HEADER, getAdapterName());
             return new RuntimeInformationServiceImpl(bindingCache);
         }
 
@@ -351,7 +357,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
          */
         @Override
         protected final T activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception {
-            identity.put(ADAPTER_NAME_IDENTITY_PROPERTY, getAdapterName());
+            identity.put(ADAPTER_NAME_MANIFEST_HEADER, getAdapterName());
             return createMaintenanceService(dependencies);
         }
     }
@@ -391,26 +397,19 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
          */
         @Override
         protected final T activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception {
-            identity.put(ADAPTER_NAME_IDENTITY_PROPERTY, getAdapterName());
+            identity.put(ADAPTER_NAME_MANIFEST_HEADER, getAdapterName());
             return createConfigurationDescriptionProvider(dependencies);
         }
     }
 
     /**
-     * Represents name of the adapter.
-     */
-    public final String adapterName;
-
-    /**
      * Initializes a new instance of the resource adapter activator.
-     * @param adapterName The name of the adapter.
      * @param factory Resource adapter factory. Cannot be {@literal null}.
      * @param optionalServices Additional services exposed by adapter.
      */
-    protected ResourceAdapterActivator(final String adapterName,
-                                       final ResourceAdapterFactory<TAdapter> factory,
+    protected ResourceAdapterActivator(final ResourceAdapterFactory<TAdapter> factory,
                                        final SupportAdapterServiceManager<?, ?>... optionalServices){
-        this(adapterName, factory, EMPTY_REQUIRED_SERVICES, optionalServices);
+        this(factory, EMPTY_REQUIRED_SERVICES, optionalServices);
     }
 
     private static ProvidedService<?, ?>[] attachHooksAndCombineServices(final ResourceAdapterRegistry<?> registry,
@@ -421,25 +420,29 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
         return ArrayUtils.addToEnd(optionalServices, registry, ProvidedService.class);
     }
 
-    private ResourceAdapterActivator(final String adapterName,
-                                     final ResourceAdapterRegistry<?> registry,
+    private ResourceAdapterActivator(final ResourceAdapterRegistry<?> registry,
                                      final SupportAdapterServiceManager<?, ?>[] optionalServices) {
         super(attachHooksAndCombineServices(registry, optionalServices));
-        this.adapterName = adapterName;
     }
 
     /**
      * Initializes a new instance of the resource adapter activator.
-     * @param adapterName The name of the adapter.
      * @param factory Resource adapter factory. Cannot be {@literal null}.
      * @param adapterDependencies Adapter-level dependencies.
      * @param optionalServices Additional services exposed by adapter.
      */
-    protected ResourceAdapterActivator(final String adapterName,
-                                       final ResourceAdapterFactory<TAdapter> factory,
+    protected ResourceAdapterActivator(final ResourceAdapterFactory<TAdapter> factory,
                                        final RequiredService<?>[] adapterDependencies,
                                        final SupportAdapterServiceManager<?, ?>[] optionalServices) {
-        this(adapterName, new ResourceAdapterRegistry<>(adapterName, factory, adapterDependencies), optionalServices);
+        this(new ResourceAdapterRegistry<>(factory, adapterDependencies), optionalServices);
+    }
+
+    private static String getAdapterName(final ResourceAdapterFactory<?> factory){
+        return getAdapterName(FrameworkUtil.getBundle(factory.getClass()));
+    }
+
+    public final String getAdapterName(){
+        return getAdapterName(FrameworkUtil.getBundle(getClass()));
     }
 
     /**
@@ -485,10 +488,10 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
      */
     @Override
     protected final void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception {
-        activationProperties.publish(ADAPTER_NAME_HOLDER, adapterName);
+        activationProperties.publish(ADAPTER_NAME_HOLDER, getAdapterName());
         activationProperties.publish(LOGGER_HOLDER, getLogger());
         try(final OSGiLoggingContext logger = getLoggingContext()){
-            logger.info(String.format("Activating resource adapters of type %s. Context: %s", adapterName,
+            logger.info(String.format("Activating resource adapters of type %s. Context: %s", getAdapterName(),
                     LogicalOperation.current()));
         }
     }
@@ -503,7 +506,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
      * @return A logger associated with this activator.
      */
     protected Logger getLogger(){
-        return AbstractResourceAdapter.getLogger(adapterName);
+        return AbstractResourceAdapter.getLogger(getAdapterName());
     }
 
     /**
@@ -516,7 +519,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
     protected final void deactivate(final ActivationPropertyReader activationProperties) throws Exception {
         try(final OSGiLoggingContext logger = getLoggingContext()){
             logger.info(String.format("Unloading adapters of type %s. Context: %s",
-                    adapterName,
+                    getAdapterName(),
                     LogicalOperation.current()));
         }
     }
@@ -535,7 +538,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
     protected void activationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
         try(final OSGiLoggingContext logger = getLoggingContext()) {
             logger.log(Level.SEVERE, String.format("Unable to activate %s resource adapter instance. Context: %s",
-                    adapterName,
+                    getAdapterName(),
                     LogicalOperation.current()), e);
         }
     }
@@ -550,7 +553,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
     protected void deactivationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
         try(final OSGiLoggingContext logger = getLoggingContext()){
             logger.log(Level.SEVERE, String.format("Unable to deactivate %s resource adapter instance. Context: %s",
-                    adapterName,
+                    getAdapterName(),
                     LogicalOperation.current()), e);
         }
     }
@@ -563,7 +566,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
      * of the managed resource adapter.
      */
     public static boolean isResourceAdapterBundle(final Bundle bnd){
-        return bnd != null && bnd.getHeaders().get(ADAPTER_NAME_MANIFEST_HEADER) != null;
+        return AbstractResourceAdapter.isResourceAdapterBundle(bnd);
     }
 
     private static List<Bundle> getResourceAdapterBundles(final BundleContext context){
@@ -633,6 +636,10 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
             bnd.start();
     }
 
+    private static String getAdapterName(final Bundle bnd){
+        return AbstractResourceAdapter.getAdapterName(bnd);
+    }
+
     /**
      * Gets a collection of installed adapters (system names).
      * @param context The context of the caller bundle. Cannot be {@literal null}.
@@ -642,13 +649,13 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
         final Collection<Bundle> candidates = getResourceAdapterBundles(context);
         final Collection<String> systemNames = new ArrayList<>(candidates.size());
         for(final Bundle bnd: candidates)
-            systemNames.add(bnd.getHeaders().get(ADAPTER_NAME_MANIFEST_HEADER));
+            systemNames.add(getAdapterName(bnd));
         return systemNames;
     }
 
     static String createFilter(final String adapterName, final String filter){
         return filter == null || filter.isEmpty() ?
-                String.format("(%s=%s)", ADAPTER_NAME_IDENTITY_PROPERTY, adapterName):
-                String.format("(&(%s=%s)%s)", ADAPTER_NAME_IDENTITY_PROPERTY, adapterName, filter);
+                String.format("(%s=%s)", ADAPTER_NAME_MANIFEST_HEADER, adapterName):
+                String.format("(&(%s=%s)%s)", ADAPTER_NAME_MANIFEST_HEADER, adapterName, filter);
     }
 }

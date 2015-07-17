@@ -11,6 +11,7 @@ import com.itworks.snamp.TypeTokens;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.BitSet;
 
 /**
  * @author Roman Sakno
@@ -120,5 +121,19 @@ public final class IOUtils {
     public static String[] splitPath(final String connectionString) {
         return ArrayUtils.toArray(PATH_SPLITTER.trimResults().splitToList(connectionString),
                 String.class);
+    }
+
+    public static BitSet toBitSet(final boolean[] bits) {
+        final BitSet result = new BitSet(bits.length);
+        for(int position = 0; position < bits.length; position++)
+            result.set(position, bits[position]);
+        return result;
+    }
+
+    public static boolean[] fromBitSet(final BitSet bits){
+        final boolean[] result = new boolean[bits.length()];
+        for(int position = 0; position < bits.length(); position++)
+            result[position] = bits.get(position);
+        return result;
     }
 }

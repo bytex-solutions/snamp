@@ -67,7 +67,6 @@ public final class RShellResourceConnectorActivator extends ManagedResourceActiv
      */
     @SpecialUse
     public RShellResourceConnectorActivator() {
-        super(RShellResourceConnector.NAME,
-                new RShellConnectorFactory());
+        super(new RShellConnectorFactory());
     }
 }

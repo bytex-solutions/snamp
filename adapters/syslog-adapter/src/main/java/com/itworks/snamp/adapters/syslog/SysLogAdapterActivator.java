@@ -9,8 +9,6 @@ import com.itworks.snamp.internal.annotations.SpecialUse;
  * @since 1.0
  */
 public final class SysLogAdapterActivator extends ResourceAdapterActivator<SysLogAdapter> {
-    private static final String NAME = SysLogAdapter.NAME;
-
     private static final class SysLogAdapterFactory implements ResourceAdapterFactory<SysLogAdapter>{
 
         @Override
@@ -29,6 +27,6 @@ public final class SysLogAdapterActivator extends ResourceAdapterActivator<SysLo
 
     @SpecialUse
     public SysLogAdapterActivator(){
-        super(NAME, new SysLogAdapterFactory(), new SysLogConfigurationProvider(), new RuntimeInformationServiceManager());
+        super(new SysLogAdapterFactory(), new SysLogConfigurationProvider(), new RuntimeInformationServiceManager());
     }
 }

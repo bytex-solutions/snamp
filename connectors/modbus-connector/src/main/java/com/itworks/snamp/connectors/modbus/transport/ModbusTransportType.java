@@ -6,13 +6,13 @@ package com.itworks.snamp.connectors.modbus.transport;
 public enum ModbusTransportType {
     TCP {
         @Override
-        ModbusTcpClient createClient(final String address, final int port) {
+        public ModbusTcpClient createClient(final String address, final int port) {
             return new ModbusTcpClient(address, port);
         }
     },
     UDP {
         @Override
-        ModbusUdpClient createClient(final String address, final int port) {
+        public ModbusUdpClient createClient(final String address, final int port) {
             return new ModbusUdpClient(address, port);
         }
     };
@@ -23,5 +23,5 @@ public enum ModbusTransportType {
      * @param port Incoming port on remote Modbus slave device.
      * @return A new instance of Modbus client.
      */
-    abstract ModbusClient createClient(final String address, final int port);
+    public abstract ModbusClient createClient(final String address, final int port);
 }

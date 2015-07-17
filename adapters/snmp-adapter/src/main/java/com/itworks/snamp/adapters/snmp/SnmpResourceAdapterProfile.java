@@ -62,7 +62,10 @@ class SnmpResourceAdapterProfile extends BasicResourceAdapterProfile implements 
                 case FLOAT_BUFFER:
                 case DOUBLE_BUFFER: return SnmpType.BUFFER;
                 case BYTE_ARRAY:
-                case WRAPPED_BYTE_ARRAY: return SnmpType.BYTE_ARRAY;
+                case WRAPPED_BYTE_ARRAY:
+                case BOOL_ARRAY:
+                case WRAPPED_BOOL_ARRAY:
+                    return SnmpType.BLOB;
                 case FLOAT_ARRAY:
                 case WRAPPED_FLOAT_ARRAY:
                 case SHORT_ARRAY:

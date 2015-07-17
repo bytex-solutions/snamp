@@ -13,6 +13,11 @@ import java.io.Closeable;
  */
 public interface ResourceAdapter extends FrameworkService, ServiceListener, Closeable {
     /**
+     * Represents name of the bundle manifest header that contains system name of the adapter.
+     */
+    String ADAPTER_NAME_MANIFEST_HEADER = "SNAMP-Resource-Adapter";
+
+    /**
      * Gets name of the resource adapter instance.
      * @return The name of the resource adapter instance.
      */

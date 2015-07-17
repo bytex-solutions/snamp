@@ -23,7 +23,6 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 final class GroovyResourceAdapter extends AbstractResourceAdapter {
-    static final String NAME = ResourceAdapterInfo.NAME;
     private static final String ADAPTER_INSTANCE_NAME = "adapterInstanceName";
     private final ScriptHolder holder;
     private final ManagementInformationRepository repository;

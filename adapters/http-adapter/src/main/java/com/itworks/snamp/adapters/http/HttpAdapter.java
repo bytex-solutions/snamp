@@ -40,7 +40,6 @@ import static org.atmosphere.cpr.FrameworkConfig.ATMOSPHERE_CONFIG;
  * @author Roman Sakno
  */
 final class HttpAdapter extends AbstractResourceAdapter {
-    static final String NAME = HttpAdapterHelpers.ADAPTER_NAME;
     private static final int METHOD_NOT_ALLOWED = 405;
 
     private static final class HttpAttributeMapping extends AttributeAccessor {
@@ -351,15 +350,5 @@ final class HttpAdapter extends AbstractResourceAdapter {
         else if(feature instanceof MBeanNotificationInfo)
             return (FeatureAccessor<M, ?>)servletFactory.notifications.removeNotification(resourceName, (MBeanNotificationInfo)feature);
         else return null;
-    }
-
-    /**
-     * Gets logger associated with this service.
-     *
-     * @return The logger associated with this service.
-     */
-    @Override
-    public Logger getLogger() {
-        return getLogger(NAME);
     }
 }

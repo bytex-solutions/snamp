@@ -27,6 +27,18 @@ import java.util.Map;
  */
 public interface ManagedResourceConnector extends AutoCloseable, FrameworkService, DynamicMBean {
     /**
+     * Represents name of the manifest header which contains the name of the management connector.
+     * <p>
+     *     The following example demonstrates how to set the name of the management connector
+     *     in the connector's bundle manifest:
+     *     <pre><tt>
+     *          SNAMP-Resource-Connector: impl
+     *     </tt></pre>
+     * </p>
+     */
+    String CONNECTOR_NAME_MANIFEST_HEADER = "SNAMP-Resource-Connector";
+
+    /**
      * Represents name of the configuration parameter that can be used to enable Smart mode of the connector.
      */
     String SMART_MODE_PARAM = "smartMode";

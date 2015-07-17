@@ -69,8 +69,7 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
 
     @SpecialUse
     public SnmpResourceConnectorActivator(){
-        super(SnmpConnectorHelpers.CONNECTOR_NAME,
-                new SnmpConnectorFactory(),
+        super( new SnmpConnectorFactory(),
                 new ConfigurationEntityDescriptionManager<SnmpConnectorConfigurationProvider>() {
                     @Override
                     protected SnmpConnectorConfigurationProvider createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) throws Exception {

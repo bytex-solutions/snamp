@@ -10,7 +10,6 @@ import org.osgi.service.http.HttpService;
  * @since 1.0
  */
 public final class NagiosAdapterActivator extends ResourceAdapterActivator<NagiosAdapter> {
-    private static final String NAME = NagiosAdapter.NAME;
     private static final class NagiosAdapterFactory implements ResourceAdapterFactory<NagiosAdapter>{
 
         @Override
@@ -30,7 +29,7 @@ public final class NagiosAdapterActivator extends ResourceAdapterActivator<Nagio
 
     @SpecialUse
     public NagiosAdapterActivator() {
-        super(NAME, new NagiosAdapterFactory(),
+        super(new NagiosAdapterFactory(),
                 new RequiredService<?>[]{new SimpleDependency<>(HttpService.class)},
                 new SupportAdapterServiceManager<?, ?>[]{new NagiosConfigurationProvider(), new RuntimeInformationServiceManager()});
     }

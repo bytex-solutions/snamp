@@ -6,7 +6,7 @@ import com.ghgande.j2mod.modbus.util.BitVector;
 /**
  * Provides access to coins.
  */
-public interface CoilAccess {
+public interface CoilAccess extends SlaveDeviceAccess {
     /**
      * Reads a given number of coil states from the slave.
      * <p/>
@@ -26,15 +26,13 @@ public interface CoilAccess {
 
     /**
      * Writes a coil state to the slave.
-     *
-     * @param unitid the slave unit id.
      * @param ref    the offset of the coil to be written.
      * @param state  the coil state to be written.
      * @return the state of the coil as returned from the slave.
      * @throws ModbusException if an I/O error, a slave exception or
      *                         a transaction error occurs.
      */
-    boolean writeCoil(final int unitid, final int ref, final boolean state) throws ModbusException;
+    boolean writeCoil(final int ref, final boolean state) throws ModbusException;
 
     void writeCoils(int ref, BitVector coils) throws ModbusException;
 }

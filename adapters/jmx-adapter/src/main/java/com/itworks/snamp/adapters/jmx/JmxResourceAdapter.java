@@ -20,8 +20,6 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 final class JmxResourceAdapter extends AbstractResourceAdapter {
-    static final String NAME = JmxAdapterHelpers.ADAPTER_NAME;
-
     private final KeyedObjects<String, ProxyMBean> exposedBeans;
     private boolean usePlatformMBean;
     private ObjectName rootObjectName;
@@ -130,15 +128,5 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
             rootObjectName = null;
             exposedBeans.clear();
         }
-    }
-
-    /**
-     * Gets withLogger associated with this service.
-     *
-     * @return The withLogger associated with this service.
-     */
-    @Override
-    public Logger getLogger() {
-        return getLogger(NAME);
     }
 }

@@ -51,8 +51,6 @@ import static com.itworks.snamp.connectors.ConfigurationEntityRuntimeMetadata.AU
  * @since 1.0
  */
 final class SnmpResourceConnector extends AbstractManagedResourceConnector implements AttributeSupport, NotificationSupport {
-    static final String NAME = SnmpConnectorHelpers.CONNECTOR_NAME;
-
     private static final class SnmpNotificationInfo extends CustomNotificationInfo{
         private static final long serialVersionUID = -4792879013459588079L;
 
@@ -904,20 +902,6 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
 
     void disableNotificationsExcept(final Set<String> events) {
         this.notifications.removeAllExcept(events);
-    }
-
-    /**
-     * Gets a logger associated with this platform service.
-     *
-     * @return A logger associated with this platform service.
-     */
-    @Override
-    public Logger getLogger() {
-        return getLoggerImpl();
-    }
-
-    static Logger getLoggerImpl(){
-        return getLogger(NAME);
     }
 
     /**

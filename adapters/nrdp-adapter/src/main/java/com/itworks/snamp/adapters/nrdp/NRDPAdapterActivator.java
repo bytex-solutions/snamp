@@ -9,8 +9,6 @@ import com.itworks.snamp.internal.annotations.SpecialUse;
  * @since 1.0
  */
 public final class NRDPAdapterActivator extends ResourceAdapterActivator<NRDPAdapter> {
-    static final String NAME = NRDPAdapter.NAME;
-
     private static final class NRDPResourceAdapterFactory implements ResourceAdapterFactory<NRDPAdapter>{
 
 
@@ -31,7 +29,7 @@ public final class NRDPAdapterActivator extends ResourceAdapterActivator<NRDPAda
 
     @SpecialUse
     public NRDPAdapterActivator(){
-        super(NAME, new NRDPResourceAdapterFactory(),  new NRDPConfigurationProvider(), new RuntimeInformationServiceManager());
+        super(new NRDPResourceAdapterFactory(),  new NRDPConfigurationProvider(), new RuntimeInformationServiceManager());
     }
 
 }

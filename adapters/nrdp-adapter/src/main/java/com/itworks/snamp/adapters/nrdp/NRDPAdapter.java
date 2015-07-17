@@ -30,8 +30,6 @@ import static com.itworks.snamp.adapters.nrdp.NRDPAdapterConfigurationDescriptor
  * @since 1.0
  */
 final class NRDPAdapter extends AbstractResourceAdapter {
-    static final String NAME = "nrdp";
-
     private static final class NRDPAttributeAccessor extends AttributeAccessor {
         private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat();
 
@@ -253,7 +251,7 @@ final class NRDPAdapter extends AbstractResourceAdapter {
     protected void start(final Map<String, String> parameters) throws AbsentNRDPConfigurationParameterException {
         start(getPassiveCheckSendPeriod(parameters),
                 parseSettings(parameters),
-                new SenderThreadPoolConfig(parameters, NAME, getInstanceName()));
+                new SenderThreadPoolConfig(parameters, getAdapterName(), getInstanceName()));
     }
 
     @Override
@@ -264,10 +262,5 @@ final class NRDPAdapter extends AbstractResourceAdapter {
         attributes.clear();
         notifications.clear();
         attributeChecker = null;
-    }
-
-    @Override
-    public Logger getLogger() {
-        return getLogger(NAME);
     }
 }

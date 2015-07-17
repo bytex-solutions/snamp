@@ -10,8 +10,6 @@ import com.itworks.snamp.internal.annotations.SpecialUse;
  * @version 1.0
  */
 public final class NSCAAdapterActivator extends ResourceAdapterActivator<NSCAAdapter> {
-    static final String NAME = NSCAAdapter.NAME;
-
     private static final class NSCAResourceAdapterFactory implements ResourceAdapterFactory<NSCAAdapter>{
 
 
@@ -32,6 +30,6 @@ public final class NSCAAdapterActivator extends ResourceAdapterActivator<NSCAAda
 
     @SpecialUse
     public NSCAAdapterActivator(){
-        super(NAME, new NSCAResourceAdapterFactory(),  new NSCAConfigurationProvider(), new RuntimeInformationServiceManager());
+        super(new NSCAResourceAdapterFactory(),  new NSCAConfigurationProvider(), new RuntimeInformationServiceManager());
     }
 }

@@ -44,8 +44,6 @@ import static com.itworks.snamp.TypeTokens.safeCast;
  * @since 1.0
  */
 final class RShellResourceConnector extends AbstractManagedResourceConnector implements AttributeSupport {
-    final static String NAME = RShellConnectorHelpers.CONNECTOR_NAME;
-
     private static abstract class RShellAttributeInfo extends OpenTypeAttributeInfo{
         private static final long serialVersionUID = -403897890533078455L;
         protected final XmlCommandLineToolProfile commandProfile;
@@ -354,16 +352,6 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
     @Override
     public void removeResourceEventListener(final ResourceEventListener listener) {
         addResourceEventListener(listener, attributes);
-    }
-
-    /**
-     * Gets a logger associated with this platform service.
-     *
-     * @return A logger associated with this platform service.
-     */
-    @Override
-    public Logger getLogger() {
-        return getLogger(NAME);
     }
 
     /**

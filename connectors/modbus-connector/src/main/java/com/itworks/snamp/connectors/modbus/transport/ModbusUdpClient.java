@@ -40,6 +40,11 @@ public class ModbusUdpClient extends ModbusTCPMaster implements ModbusClient {
     }
 
     @Override
+    public boolean writeCoil(final int ref, final boolean state) throws ModbusException {
+        return writeCoil(DEFAULT_UNIT_ID, ref, state);
+    }
+
+    @Override
     public void writeCoils(final int ref, final BitVector coils) throws ModbusException {
         writeMultipleCoils(ref, coils);
     }
@@ -75,7 +80,12 @@ public class ModbusUdpClient extends ModbusTCPMaster implements ModbusClient {
 
     @Override
     public void writeHoldingRegister(final int ref, final Register register) throws ModbusException {
-        writeMultipleRegisters(ref, new Register[]{register});
+        writeSingleRegister(ref, register);
+    }
+
+    @Override
+    public void writeHoldingRegisters(final int ref, final Register[] regs) throws ModbusException {
+        writeMultipleRegisters(ref, regs);
     }
 
     @Override

@@ -16,8 +16,6 @@ import java.util.Set;
  * @since 1.0
  */
 public final class AggregatorResourceConnectorActivator extends ManagedResourceActivator<AggregatorResourceConnector> {
-    private static final String NAME = AggregatorResourceConnector.NAME;
-
     private static final class ConnectorController extends ManagedResourceConnectorModeler<AggregatorResourceConnector>{
 
         @Override
@@ -86,9 +84,8 @@ public final class AggregatorResourceConnectorActivator extends ManagedResourceA
         }
     }
 
-    public AggregatorResourceConnectorActivator(){
-        super(NAME,
-                new ConnectorController(),
+    public AggregatorResourceConnectorActivator() {
+        super(new ConnectorController(),
                 new DiscoveryServiceManagerImpl(),
                 new ConfigurationProvider());
     }

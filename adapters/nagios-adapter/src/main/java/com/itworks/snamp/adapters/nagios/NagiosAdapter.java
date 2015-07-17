@@ -18,7 +18,6 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 final class NagiosAdapter extends AbstractResourceAdapter {
-    static final String NAME = "nagios";
     private final NagiosActiveCheckService service;
     private final HttpService publisher;
 
@@ -65,10 +64,5 @@ final class NagiosAdapter extends AbstractResourceAdapter {
     protected void stop() throws Exception {
         publisher.unregister(getServletContext());
         service.clear();
-    }
-
-    @Override
-    public Logger getLogger() {
-        return getLogger(NAME);
     }
 }

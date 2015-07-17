@@ -2,10 +2,7 @@ package com.itworks.snamp.adapters.snmp;
 
 import com.itworks.snamp.adapters.AttributeAccessor;
 import com.itworks.snamp.jmx.DescriptorUtils;
-import org.snmp4j.SNMP4JSettings;
 import org.snmp4j.agent.*;
-import org.snmp4j.agent.mo.MOScalar;
-import org.snmp4j.asn1.BER;
 import org.snmp4j.smi.*;
 
 import javax.management.DescriptorRead;
@@ -186,22 +183,22 @@ public enum SnmpType {
     },
 
     /**
-     * Represents SNMP mapping for byte arrays.
+     * Represents SNMP mapping for byte arrays and bool arrays.
      */
-    BYTE_ARRAY(true, SnmpByteArrayObject.SYNTAX) {
+    BLOB(true, SnmpBlobObject.SYNTAX) {
         @Override
-        protected SnmpByteArrayObject createManagedObject(final AttributeAccessor accessor) throws ParseException {
-            return new SnmpByteArrayObject( accessor);
+        protected SnmpBlobObject createManagedObject(final AttributeAccessor accessor) throws ParseException {
+            return new SnmpBlobObject( accessor);
         }
 
         @Override
         OctetString convert(final Object value, final DescriptorRead options) {
-            return SnmpByteArrayObject.toSnmpObject(value);
+            return SnmpBlobObject.toSnmpObject(value);
         }
 
         @Override
         Object convert(final Variable value, final Type valueType, final DescriptorRead options) throws InvalidAttributeValueException {
-            return SnmpByteArrayObject.fromSnmpObject(value, valueType);
+            return SnmpBlobObject.fromSnmpObject(value, valueType);
         }
     },
 

@@ -23,8 +23,6 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResource
  * @since 1.0
  */
 public final class GroovyResourceActivator extends ManagedResourceActivator<GroovyResourceConnector> {
-    private static final String NAME = GroovyResourceConnector.NAME;
-
     private static final class GroovyResourceConnectorFactory extends ManagedResourceConnectorModeler<GroovyResourceConnector>{
 
         @Override
@@ -104,8 +102,7 @@ public final class GroovyResourceActivator extends ManagedResourceActivator<Groo
 
     @SpecialUse
     public GroovyResourceActivator(){
-        super(NAME,
-                new GroovyResourceConnectorFactory(),
+        super( new GroovyResourceConnectorFactory(),
                 new GroovyDiscoveryService(),
                 new GroovyConfigurationDescriptionProvider());
     }
