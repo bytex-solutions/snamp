@@ -48,14 +48,14 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
 
     private final AttributeAccessor accessor;
 
-    protected SnmpScalarObject(final AttributeAccessor attribute, final T defval) throws ParseException {
+    protected SnmpScalarObject(final SnmpAttributeAccessor attribute, final T defval) {
         this(attribute, false, defval);
     }
 
-    protected SnmpScalarObject(final AttributeAccessor attribute,
+    protected SnmpScalarObject(final SnmpAttributeAccessor attribute,
                                final boolean readOnly,
-                               final T defval) throws ParseException {
-        super(parseOID(attribute.getMetadata()),
+                               final T defval) {
+        super(attribute.getID(),
                 readOnly ? MOAccessImpl.ACCESS_READ_ONLY : getAccessRestrictions(attribute.getMetadata()),
                 defval);
         this.accessor = attribute;

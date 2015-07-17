@@ -19,7 +19,7 @@ final class SnmpFloatObject extends SnmpScalarObject<OctetString>{
     static final int SYNTAX = SYNTAX_OCTET_STRING;
 
     @SpecialUse
-    SnmpFloatObject(final AttributeAccessor connector) throws ParseException {
+    SnmpFloatObject(final SnmpAttributeAccessor connector) {
         super(connector, SnmpHelpers.toOctetString(DEFAULT_VALUE.toString()));
     }
 

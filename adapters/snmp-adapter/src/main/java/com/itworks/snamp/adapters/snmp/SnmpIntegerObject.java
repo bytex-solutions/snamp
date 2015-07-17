@@ -21,7 +21,7 @@ final class SnmpIntegerObject extends SnmpScalarObject<Integer32>{
     static final int DEFAULT_VALUE = -1;
 
     @SpecialUse
-    SnmpIntegerObject(final AttributeAccessor connector) throws ParseException {
+    SnmpIntegerObject(final SnmpAttributeAccessor connector)  {
         super(connector, new Integer32(DEFAULT_VALUE));
     }
 

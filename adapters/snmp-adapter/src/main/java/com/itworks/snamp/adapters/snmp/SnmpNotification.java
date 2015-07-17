@@ -8,6 +8,7 @@ import com.itworks.snamp.connectors.notifications.Severity;
 import com.itworks.snamp.jmx.TabularDataUtils;
 import com.itworks.snamp.jmx.WellKnownType;
 import org.snmp4j.smi.*;
+import sun.security.krb5.internal.crypto.Des;
 
 import javax.management.DescriptorRead;
 import javax.management.MBeanNotificationInfo;
@@ -23,6 +24,7 @@ import java.util.Objects;
 
 import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.parseDateTimeDisplayFormat;
 import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.parseOID;
+import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.parseDateTimeDisplayFormat;
 
 /**
  * Represents SNMP notification with attachments.
@@ -64,24 +66,25 @@ final class SnmpNotification extends HashMap<OID, Variable> {
         sourceId = new OID(notificationID).append(7);
     }
 
-    SnmpNotification(final Notification n,
-                     final MBeanNotificationInfo metadata,
-                     final SnmpTypeMapper mapper) throws ParseException {
-        this(parseOID(metadata));
+    SnmpNotification(final OID notificationID,
+                     final Notification n,
+                     final MBeanNotificationInfo options,
+                     final SnmpTypeMapper mapper) {
+        this(notificationID);
         put(messageId, SnmpHelpers.toOctetString(n.getMessage()));
-        put(severityId, new Integer32(NotificationDescriptor.getSeverity(metadata).getLevel()));
+        put(severityId, new Integer32(NotificationDescriptor.getSeverity(options).getLevel()));
         put(sequenceNumberId, new Counter64(n.getSequenceNumber()));
-        put(categoryId, SnmpHelpers.toOctetString(NotificationDescriptor.getNotificationCategory(metadata)));
-        final DateTimeFormatter formatter = SnmpHelpers.createDateTimeFormatter(parseDateTimeDisplayFormat(metadata));
+        put(categoryId, SnmpHelpers.toOctetString(NotificationDescriptor.getNotificationCategory(options)));
+        final DateTimeFormatter formatter = SnmpHelpers.createDateTimeFormatter(parseDateTimeDisplayFormat(options));
         put(timeStampId, new OctetString(formatter.convert(new Date(n.getTimeStamp()))));
-        putAttachment(notificationID, n.getUserData(), metadata, this, mapper);
+        putAttachment(notificationID, n.getUserData(), options, this, mapper);
         put(eventNameId, SnmpHelpers.toOctetString(n.getType()));
         put(sourceId, SnmpHelpers.toOctetString(Objects.toString(n.getSource(), "")));
     }
 
     private static void putAttachment(final OID notificationID,
                                       final Object attachment,
-                                      final MBeanNotificationInfo options,
+                                      final DescriptorRead options,
                                       final Map<OID, Variable> output,
                                       final SnmpTypeMapper mapper) {
         if (attachment == null) return;

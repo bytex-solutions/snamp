@@ -9,11 +9,11 @@ import com.itworks.snamp.adapters.FeatureAccessor;
  * @since 1.0
  */
 public abstract class EventBinding extends FeatureBinding {
-    EventBinding(final String declaredResource, final FeatureAccessor<?, ?> accessor) {
+    protected EventBinding(final String declaredResource, final FeatureAccessor<?, ?> accessor) {
         super(declaredResource, accessor);
     }
 
-    EventBinding(final String declaredResource,
+    protected EventBinding(final String declaredResource,
                  final String listID) {
         super(declaredResource, listID);
     }

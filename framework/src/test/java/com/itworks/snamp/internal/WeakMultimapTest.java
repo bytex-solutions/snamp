@@ -1,7 +1,6 @@
 package com.itworks.snamp.internal;
 
 import com.google.common.collect.HashMultimap;
-import com.itworks.snamp.internal.WeakMultimap;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -29,7 +28,7 @@ public final class WeakMultimapTest extends Assert {
             final Reference<?> ref = queue.poll();
             if(ref == null) break;
         }
-        WeakMultimap.removeUnused(map);
+        WeakMultimap.gc(map);
         assertEquals(0, map.size());
     }
 }

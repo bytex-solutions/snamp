@@ -23,6 +23,7 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.service.cm.ConfigurationAdmin;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -42,17 +43,8 @@ import static com.itworks.snamp.adapters.ResourceAdapter.ADAPTER_NAME_MANIFEST_H
  * @since 1.0
  */
 public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> extends AbstractServiceLibrary {
-
-
     private static final ActivationProperty<String> ADAPTER_NAME_HOLDER = defineActivationProperty(String.class);
     private static final ActivationProperty<Logger> LOGGER_HOLDER = defineActivationProperty(Logger.class);
-
-    private static interface ResourceAdapterHook{
-        void afterActivation(final AbstractResourceAdapter adapter);
-        void beforeUpdate(final AbstractResourceAdapter adapter);
-        void afterUpdate(final AbstractResourceAdapter adapter);
-        void beforeDestroy(final AbstractResourceAdapter adapter);
-    }
 
     /**
      * Represents a factory responsible for creating instances of resource adapters.
@@ -72,7 +64,6 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
          * Represents name of the resource adapter.
          */
         protected final String adapterName;
-        private final List<ResourceAdapterHook> hooks;
 
         private ResourceAdapterRegistry(final String adapterName,
                                         final ResourceAdapterFactory<TAdapter> factory,
@@ -80,46 +71,11 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
             super(PersistentConfigurationManager.getAdapterFactoryPersistentID(adapterName), dependencies);
             this.adapterFactory = Objects.requireNonNull(factory, "factory is null.");
             this.adapterName = adapterName;
-            this.hooks = new LinkedList<>();
         }
 
         private ResourceAdapterRegistry(final ResourceAdapterFactory<TAdapter> factory,
                                        final RequiredService<?>... dependencies) {
             this(getAdapterName(factory), factory, dependencies);
-        }
-
-        private void addHook(final ResourceAdapterHook hook) {
-            synchronized (hooks) {
-                hooks.add(Objects.requireNonNull(hook));
-            }
-        }
-
-        private void afterActivation(final AbstractResourceAdapter adapter){
-            synchronized (hooks){
-                for(final ResourceAdapterHook hook: hooks)
-                    hook.afterActivation(adapter);
-            }
-        }
-
-        private void beforeUpdate(final AbstractResourceAdapter adapter){
-            synchronized (hooks){
-                for(final ResourceAdapterHook hook: hooks)
-                    hook.beforeUpdate(adapter);
-            }
-        }
-
-        private void afterUpdate(final AbstractResourceAdapter adapter){
-            synchronized (hooks){
-                for(final ResourceAdapterHook hook: hooks)
-                    hook.afterUpdate(adapter);
-            }
-        }
-
-        private void beforeDestroy(final AbstractResourceAdapter adapter){
-            synchronized (hooks){
-                for(final ResourceAdapterHook hook: hooks)
-                    hook.beforeDestroy(adapter);
-            }
         }
 
         private BundleContext getBundleContext(){
@@ -146,9 +102,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
          */
         @Override
         protected TAdapter updateService(final TAdapter adapter, final Dictionary<String, ?> configuration, final RequiredService<?>... dependencies) throws Exception {
-            beforeUpdate(adapter);
             adapter.tryUpdate(PersistentConfigurationManager.getAdapterParameters(configuration));
-            afterUpdate(adapter);
             return adapter;
         }
 
@@ -166,16 +120,19 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
         protected TAdapter activateService(final String servicePID,
                                            final Dictionary<String, ?> configuration,
                                            final RequiredService<?>... dependencies) throws Exception {
-            final TAdapter resourceAdapter = adapterFactory.createAdapter(PersistentConfigurationManager.getAdapterInstanceName(configuration),
-                    dependencies);
-            if (resourceAdapter != null && resourceAdapter.tryStart(adapterName, PersistentConfigurationManager.getAdapterParameters(configuration)))
-                ManagedResourceConnectorClient.addResourceListener(getBundleContext(),
-                        resourceAdapter);
-            else try(final OSGiLoggingContext logger = getLoggingContext()){
-                logger.severe("Adapter is not started.");
-            }
-            afterActivation(resourceAdapter);
-            return resourceAdapter;
+            final String instanceName = PersistentConfigurationManager.getAdapterInstanceName(configuration);
+            final TAdapter resourceAdapter = adapterFactory.createAdapter(instanceName, dependencies);
+            if (resourceAdapter != null)
+                if(resourceAdapter.tryStart(PersistentConfigurationManager.getAdapterParameters(configuration))) {
+                    ManagedResourceConnectorClient.addResourceListener(getBundleContext(),
+                            resourceAdapter);
+                    return resourceAdapter;
+                }
+                else {
+                    resourceAdapter.close();
+                    throw new IllegalStateException(String.format("Unable to start '%s' instance", instanceName));
+                }
+            else throw new InstantiationException(String.format("Unable to instantiate '%s' instance", instanceName));
         }
 
         /**
@@ -186,8 +143,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
          * @throws Exception Unable to dispose the service.
          */
         @Override
-        protected void dispose(final TAdapter adapter, final boolean bundleStop) throws Exception {
-            beforeDestroy(adapter);
+        protected void dispose(final TAdapter adapter, final boolean bundleStop) throws IOException {
             try {
                 getBundleContext().removeServiceListener(adapter);
             }
@@ -228,13 +184,6 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
                         adapterName), e);
             }
         }
-
-        @Override
-        protected void destroyManager() {
-            synchronized (hooks) {
-                hooks.clear();
-            }
-        }
     }
 
     /**
@@ -262,11 +211,11 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
         }
     }
 
-    private final static class RuntimeInformationServiceImpl extends AbstractAggregator implements RuntimeInformationService{
+    private final static class RuntimeInformationServiceImpl extends AbstractAggregator implements RuntimeInformationService, ResourceAdapterEventListener{
         private final Cache<String, AbstractBindingSupplier> bindingCache;
 
-        private RuntimeInformationServiceImpl(final Cache<String, AbstractBindingSupplier> cache){
-            this.bindingCache = Objects.requireNonNull(cache);
+        private RuntimeInformationServiceImpl(){
+            this.bindingCache = CacheBuilder.newBuilder().weakValues().build();
         }
 
         @Override
@@ -276,14 +225,17 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
         }
 
         @Override
-        public ImmutableSet<String> getAdapterInstances() {
-            return ImmutableSet.copyOf(bindingCache.asMap().keySet());
-        }
-
-        @Override
         @Aggregation
         public Logger getLogger() {
             return Logger.getLogger(getClass().getName());
+        }
+
+        @Override
+        public void handle(final ResourceAdapterEvent e) {
+            if (e instanceof ResourceAdapterStartedEvent && e.getSource() instanceof AbstractBindingSupplier)
+                bindingCache.put(e.getSource().getInstanceName(), (AbstractBindingSupplier) e.getSource());
+            else if (e instanceof ResourceAdapterStoppedEvent)
+                bindingCache.invalidate(e.getSource().getInstanceName());
         }
     }
 
@@ -291,10 +243,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
      * Represents manager for the service that can supply information about features binding.
      * This class cannot be inherited.
      */
-    protected final static class RuntimeInformationServiceManager extends SupportAdapterServiceManager<RuntimeInformationService, RuntimeInformationServiceImpl> implements ResourceAdapterHook{
-        private final Cache<String, AbstractBindingSupplier> bindingCache =
-                CacheBuilder.newBuilder().weakValues().build();
-
+    protected final static class RuntimeInformationServiceManager extends SupportAdapterServiceManager<RuntimeInformationService, RuntimeInformationServiceImpl> {
         public RuntimeInformationServiceManager() {
             super(RuntimeInformationService.class);
         }
@@ -309,27 +258,25 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
         @Override
         protected final RuntimeInformationServiceImpl activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) {
             identity.put(ADAPTER_NAME_MANIFEST_HEADER, getAdapterName());
-            return new RuntimeInformationServiceImpl(bindingCache);
+            final RuntimeInformationServiceImpl service = new RuntimeInformationServiceImpl();
+            ResourceAdapterEventBus.addEventListener(getAdapterName(), service);
+            return service;
         }
 
+        /**
+         * Provides service cleanup operations.
+         * <p>
+         * In the default implementation this method does nothing.
+         * </p>
+         *
+         * @param serviceInstance An instance of the hosted service to cleanup.
+         * @param stopBundle      {@literal true}, if this method calls when the owner bundle is stopping;
+         *                        {@literal false}, if this method calls when loosing dependency.
+         */
         @Override
-        public void afterActivation(final AbstractResourceAdapter adapter) {
-            bindingCache.put(adapter.getInstanceName(), adapter);
-        }
-
-        @Override
-        public void beforeUpdate(final AbstractResourceAdapter adapter) {
-
-        }
-
-        @Override
-        public void afterUpdate(final AbstractResourceAdapter adapter) {
-
-        }
-
-        @Override
-        public void beforeDestroy(final AbstractResourceAdapter adapter) {
-            bindingCache.invalidate(adapter.getInstanceName());
+        protected void cleanupService(final RuntimeInformationServiceImpl serviceInstance,
+                                      final boolean stopBundle) {
+            ResourceAdapterEventBus.removeEventListener(getAdapterName(), serviceInstance);
         }
     }
 
@@ -412,17 +359,9 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
         this(factory, EMPTY_REQUIRED_SERVICES, optionalServices);
     }
 
-    private static ProvidedService<?, ?>[] attachHooksAndCombineServices(final ResourceAdapterRegistry<?> registry,
-                                                                       final SupportAdapterServiceManager<?, ?>[] optionalServices) {
-        for (final SupportAdapterServiceManager<?, ?> serviceManager : optionalServices)
-            if (serviceManager instanceof ResourceAdapterHook)
-                registry.addHook((ResourceAdapterHook) serviceManager);
-        return ArrayUtils.addToEnd(optionalServices, registry, ProvidedService.class);
-    }
-
     private ResourceAdapterActivator(final ResourceAdapterRegistry<?> registry,
                                      final SupportAdapterServiceManager<?, ?>[] optionalServices) {
-        super(attachHooksAndCombineServices(registry, optionalServices));
+        super(ArrayUtils.addToEnd(optionalServices, registry, ProvidedService.class));
     }
 
     /**

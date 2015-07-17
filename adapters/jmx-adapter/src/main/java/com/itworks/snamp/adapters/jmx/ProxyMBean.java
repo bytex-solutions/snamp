@@ -6,7 +6,7 @@ import com.google.common.collect.Lists;
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
-import com.itworks.snamp.connectors.attributes.CustomAttributeInfo;
+import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.notifications.NotificationListenerList;
 import com.itworks.snamp.io.Buffers;
 import com.itworks.snamp.jmx.WellKnownType;
@@ -259,7 +259,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
             else if(metadata instanceof OpenMBeanAttributeInfo)
                 accessor = new OpenTypeAttributeAccessor((OpenMBeanAttributeInfo)metadata);
             else{
-                final WellKnownType attributeType = CustomAttributeInfo.getType(metadata);
+                final WellKnownType attributeType = AttributeDescriptor.getType(metadata);
                 if(attributeType != null)
                     switch (attributeType){
                         case BYTE_BUFFER:

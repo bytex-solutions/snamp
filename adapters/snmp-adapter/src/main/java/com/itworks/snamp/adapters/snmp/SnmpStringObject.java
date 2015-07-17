@@ -22,7 +22,7 @@ final class SnmpStringObject extends SnmpScalarObject<OctetString>{
     static final String DEFAULT_VALUE = "";
 
     @SpecialUse
-    SnmpStringObject(final AttributeAccessor connector) throws ParseException {
+    SnmpStringObject(final SnmpAttributeAccessor connector) {
         super(connector, SnmpHelpers.toOctetString(DEFAULT_VALUE));
     }
 

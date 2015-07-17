@@ -52,7 +52,7 @@ public final class ResourceAdapterClient {
      */
     public static boolean addEventListener(final String adapterName,
                                         final ResourceAdapterEventListener listener){
-        return AbstractResourceAdapter.addEventListener(adapterName, listener);
+        return ResourceAdapterEventBus.addEventListener(adapterName, listener);
     }
 
     public boolean addEventListener(final ResourceAdapterEventListener listener){
@@ -68,7 +68,7 @@ public final class ResourceAdapterClient {
      */
     public static boolean removeEventListener(final String adapterName,
                                            final ResourceAdapterEventListener listener){
-        return AbstractResourceAdapter.removeEventListener(adapterName, listener);
+        return ResourceAdapterEventBus.removeEventListener(adapterName, listener);
     }
 
     public boolean removeEventListener(final ResourceAdapterEventListener listener){

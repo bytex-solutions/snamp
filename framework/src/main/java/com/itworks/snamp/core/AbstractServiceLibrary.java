@@ -459,17 +459,21 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
 
                 @Override
                 public synchronized void updated(final String pid, final Dictionary<String, ?> properties) throws ConfigurationException {
-                    try(final LogicalOperation ignored = createLogicalOperationForUpdate(pid)) {
-                        if (containsKey(pid))
-                            put(pid, updateService(get(pid), properties, dependencies));
-                        else put(pid, activateService(pid, properties, dependencies));
-                    }
-                    catch (final ConfigurationException e){
+                    TService service;
+                    try (final LogicalOperation ignored = createLogicalOperationForUpdate(pid)) {
+                        service = containsKey(pid) ?
+                                updateService(get(pid), properties, dependencies) :
+                                activateService(pid, properties, dependencies);
+                    } catch (final ConfigurationException e) {
                         throw e;
-                    }
-                    catch (final Exception e){
+                    } catch (final Exception e) {
+                        service = null;
                         failedToUpdateService(pid, properties, e);
                     }
+                    if (service == null)
+                        remove(pid);
+                    else
+                        put(pid, service);
                 }
 
                 @Override

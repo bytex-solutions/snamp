@@ -27,7 +27,7 @@ final class SnmpBufferObject extends SnmpScalarObject<OctetString> {
     private static final OctetString DEFAULT_VALUE = new OctetString();
 
     @SpecialUse
-    SnmpBufferObject(final AttributeAccessor attribute) throws ParseException {
+    SnmpBufferObject(final SnmpAttributeAccessor attribute) {
         super(attribute, DEFAULT_VALUE);
     }
 

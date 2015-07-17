@@ -7,7 +7,6 @@ import com.itworks.snamp.TypeTokens;
 import com.itworks.snamp.concurrent.SimpleCache;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
-import com.itworks.snamp.connectors.attributes.CustomAttributeInfo;
 import com.itworks.snamp.jmx.DescriptorUtils;
 import com.itworks.snamp.jmx.WellKnownType;
 
@@ -31,7 +30,7 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo, Attri
 
         @Override
         protected WellKnownType init(final FeatureAccessor<? extends MBeanAttributeInfo, ?> accessor) {
-            return CustomAttributeInfo.getType(accessor.getMetadata());
+            return AttributeDescriptor.getType(accessor.getMetadata());
         }
 
         private void clear(){

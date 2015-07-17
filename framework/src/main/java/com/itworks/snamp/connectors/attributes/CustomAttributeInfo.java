@@ -48,16 +48,6 @@ public class CustomAttributeInfo extends MBeanAttributeInfo implements Attribute
     }
 
     /**
-     * Infers type of the attribute.
-     * @param attribute The attribute metadata. Cannot be {@literal null}.
-     * @return The well-known SNAMP type that should be recognized by resource adapter.
-     */
-    public static WellKnownType getType(final MBeanAttributeInfo attribute) {
-        final OpenType<?> ot = AttributeDescriptor.getOpenType(attribute);
-        return ot != null ? WellKnownType.getType(ot) : WellKnownType.getType(attribute.getType());
-    }
-
-    /**
      * Returns the descriptor for the feature.  Changing the returned value
      * will have no affect on the original descriptor.
      *

@@ -68,6 +68,16 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
         return fields;
     }
 
+    /**
+     * Infers type of the attribute.
+     * @param attribute The attribute metadata. Cannot be {@literal null}.
+     * @return The well-known SNAMP type that should be recognized by resource adapter.
+     */
+    public static WellKnownType getType(final MBeanAttributeInfo attribute) {
+        final OpenType<?> ot = getOpenType(attribute);
+        return ot != null ? WellKnownType.getType(ot) : WellKnownType.getType(attribute.getType());
+    }
+
     public final String getAttributeName(){
         return getAttributeName(this);
     }

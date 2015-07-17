@@ -12,7 +12,6 @@ import com.itworks.snamp.Consumer;
 import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
-import com.itworks.snamp.connectors.attributes.CustomAttributeInfo;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.jmx.ExpressionBasedDescriptorFilter;
 import com.itworks.snamp.jmx.TabularDataUtils;
@@ -374,7 +373,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
         @Override
         protected AbstractSshAttributeMapping createAccessor(final MBeanAttributeInfo metadata) {
-            final WellKnownType attributeType = CustomAttributeInfo.getType(metadata);
+            final WellKnownType attributeType = AttributeDescriptor.getType(metadata);
             if(attributeType != null)
                 switch (attributeType){
                     case BYTE_BUFFER:

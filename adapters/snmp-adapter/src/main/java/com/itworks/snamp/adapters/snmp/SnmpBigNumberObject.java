@@ -21,7 +21,7 @@ final class SnmpBigNumberObject extends SnmpScalarObject<OctetString>{
     static final Number DEFAULT_VALUE = 0;
 
     @SpecialUse
-    SnmpBigNumberObject(final AttributeAccessor attribute) throws ParseException {
+    SnmpBigNumberObject(final SnmpAttributeAccessor attribute) {
         super(attribute, SnmpHelpers.toOctetString(DEFAULT_VALUE.toString()));
     }
 

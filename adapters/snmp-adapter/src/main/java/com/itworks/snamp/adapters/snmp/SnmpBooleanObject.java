@@ -16,7 +16,7 @@ final class SnmpBooleanObject extends SnmpScalarObject<Integer32>{
     private static final Integer32 FALSE = new Integer32(0);
 
     @SpecialUse
-    SnmpBooleanObject(final AttributeAccessor connector) throws ParseException {
+    SnmpBooleanObject(final SnmpAttributeAccessor connector) {
         super(connector, new Integer32(defaultValue));
     }
 

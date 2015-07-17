@@ -16,8 +16,6 @@ import java.util.Set;
  * @since 1.0
  */
 public final class MQConnectorActivator extends ManagedResourceActivator<MQConnector> {
-    private static final String NAME = MQConnector.NAME;
-
     private static final class WMQJavaClassesNotInstalled extends PrerequisiteException{
         private static final long serialVersionUID = -3317875854766072865L;
 

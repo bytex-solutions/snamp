@@ -14,7 +14,7 @@ final class SnmpLongObject extends SnmpScalarObject<Counter64>{
     static final long DEFAULT_VALUE = -1;
 
     @SpecialUse
-    SnmpLongObject(final AttributeAccessor connector) throws ParseException {
+    SnmpLongObject(final SnmpAttributeAccessor connector) {
         super(connector, new Counter64(DEFAULT_VALUE));
     }
 

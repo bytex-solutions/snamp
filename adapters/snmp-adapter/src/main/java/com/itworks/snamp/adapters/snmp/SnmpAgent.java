@@ -2,6 +2,7 @@ package com.itworks.snamp.adapters.snmp;
 
 import com.itworks.snamp.adapters.AttributeAccessor;
 import com.itworks.snamp.adapters.ResourceAdapterUpdatedCallback;
+import com.itworks.snamp.internal.Utils;
 import org.snmp4j.TransportMapping;
 import org.snmp4j.agent.*;
 import org.snmp4j.agent.mo.snmp.*;
@@ -21,7 +22,6 @@ import org.snmp4j.util.ConcurrentMessageDispatcher;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
@@ -64,15 +64,13 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, Res
         this.prefix = prefix;
 	}
 
-    void registerManagedObject(final AttributeAccessor accessor,
-                               final SnmpTypeMapper mapper) throws DuplicateRegistrationException, ParseException {
-        final SnmpType type = mapper.apply(accessor.getType());
-        assert type != null;
-        type.registerManagedObject(accessor, prefix, server);
+    void registerManagedObject(final SnmpAttributeAccessor accessor,
+                               final SnmpTypeMapper mapper) throws DuplicateRegistrationException {
+        accessor.registerManagedObject(prefix, mapper, server);
     }
 
-    ManagedObject unregisterManagedObject(final AttributeAccessor accessor) throws ParseException {
-        return SnmpType.unregisterManagedObject(accessor, server);
+    ManagedObject unregisterManagedObject(final SnmpAttributeAccessor accessor) {
+        return accessor.unregisterManagedObject(server);
     }
 
     void registerNotificationTarget(final SnmpNotificationMapping mapping,
@@ -98,6 +96,13 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, Res
         mapping.setNotificationOriginator(null);
     }
 
+    private void addFullReadView(final OID... systemIDs){
+        for(final OID prefix: systemIDs)
+            vacmMIB.addViewTreeFamily(new OctetString("fullReadView"), prefix,
+                    new OctetString(), VacmMIB.vacmViewIncluded,
+                    StorageType.nonVolatile);
+    }
+
 	@Override
 	protected void registerManagedObjects() {
         vacmMIB.addViewTreeFamily(new OctetString("fullWriteView"), new OID(prefix),
@@ -106,7 +111,17 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, Res
         vacmMIB.addViewTreeFamily(new OctetString("fullReadView"), new OID(prefix),
                 new OctetString(), VacmMIB.vacmViewIncluded,
                 StorageType.volatile_);
-	}
+        addFullReadView(VacmMIB.vacmAccessEntryOID,
+                VacmMIB.vacmContextEntryOID,
+                VacmMIB.vacmViewTreeFamilyEntryOID,
+                VacmMIB.vacmSecurityToGroupEntryOID,
+                VacmMIB.vacmViewSpinLockOID);
+    }
+
+    private void removeFullReadView(final OID... systemIDs){
+        for(final OID prefix: systemIDs)
+            vacmMIB.removeViewTreeFamily(new OctetString("fullReadView"), prefix);
+    }
 
     /**
      * Unregisters additional managed objects from the agent's server.
@@ -114,9 +129,12 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, Res
     @Override
     protected final void unregisterManagedObjects() {
         vacmMIB.removeViewTreeFamily(new OctetString("fullWriteView"), new OID(prefix));
-        vacmMIB.addViewTreeFamily(new OctetString("fullReadView"), new OID(prefix),
-                new OctetString(), VacmMIB.vacmViewIncluded,
-                StorageType.volatile_);
+        vacmMIB.removeViewTreeFamily(new OctetString("fullReadView"), new OID(prefix));
+        removeFullReadView(VacmMIB.vacmAccessEntryOID,
+                VacmMIB.vacmContextEntryOID,
+                VacmMIB.vacmViewTreeFamilyEntryOID,
+                VacmMIB.vacmSecurityToGroupEntryOID,
+                VacmMIB.vacmViewSpinLockOID);
     }
 
     /**
@@ -230,19 +248,19 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, Res
         run();
     }
 
-    private void finishInit(final Iterable<? extends AttributeAccessor> attributes,
+    private void finishInit(final Iterable<? extends SnmpAttributeAccessor> attributes,
                             final Iterable<? extends SnmpNotificationMapping> notifications,
-                            final SnmpTypeMapper mapper) throws DuplicateRegistrationException, ParseException {
-        for(final AttributeAccessor mapping: attributes)
+                            final SnmpTypeMapper mapper) throws DuplicateRegistrationException {
+        for(final SnmpAttributeAccessor mapping: attributes)
             registerManagedObject(mapping, mapper);
         for(final SnmpNotificationMapping mapping: notifications)
             registerNotificationTarget(mapping, mapper);
         finishInit();
     }
 
-    boolean start(final Iterable<? extends AttributeAccessor> attributes,
+    boolean start(final Iterable<? extends SnmpAttributeAccessor> attributes,
                   final Iterable<? extends SnmpNotificationMapping> notifications,
-                  final SnmpTypeMapper mapper) throws IOException, DuplicateRegistrationException, ParseException {
+                  final SnmpTypeMapper mapper) throws IOException, DuplicateRegistrationException {
 		switch (agentState){
             case STATE_STOPPED:
             case STATE_CREATED:

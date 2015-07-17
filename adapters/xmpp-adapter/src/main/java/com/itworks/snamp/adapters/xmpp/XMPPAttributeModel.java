@@ -7,7 +7,7 @@ import com.itworks.snamp.Consumer;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.StringAppender;
 import com.itworks.snamp.adapters.AbstractAttributesModel;
-import com.itworks.snamp.connectors.attributes.CustomAttributeInfo;
+import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.jmx.TabularDataUtils;
 import com.itworks.snamp.jmx.WellKnownType;
 import com.itworks.snamp.jmx.json.JsonSerializerFunction;
@@ -280,7 +280,7 @@ final class XMPPAttributeModel extends AbstractAttributesModel<XMPPAttributeAcce
 
     @Override
     protected XMPPAttributeAccessor createAccessor(final MBeanAttributeInfo metadata) {
-        final WellKnownType attributeType = CustomAttributeInfo.getType(metadata);
+        final WellKnownType attributeType = AttributeDescriptor.getType(metadata);
         if (attributeType != null)
             switch (attributeType) {
                 case BYTE_BUFFER:

@@ -316,8 +316,8 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
     }
 
     @SpecialUse
-    SnmpTableObject(final AttributeAccessor connector) throws ParseException {
-        this(SnmpAdapterConfigurationDescriptor.parseOID(connector.getMetadata()),
+    SnmpTableObject(final SnmpAttributeAccessor connector) {
+        this(connector.getID(),
                 connector,
                 DEFAULT_MAPPER);
     }

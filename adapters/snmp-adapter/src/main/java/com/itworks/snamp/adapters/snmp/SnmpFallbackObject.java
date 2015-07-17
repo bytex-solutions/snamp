@@ -21,7 +21,7 @@ final class SnmpFallbackObject extends SnmpScalarObject<OctetString> {
     private static final String DEFAULT_VALUE = "";
 
     @SpecialUse
-    SnmpFallbackObject(final AttributeAccessor attribute) throws ParseException {
+    SnmpFallbackObject(final SnmpAttributeAccessor attribute) {
         super(attribute, true, SnmpHelpers.toOctetString(DEFAULT_VALUE));
     }
 

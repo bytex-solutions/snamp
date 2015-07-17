@@ -54,10 +54,7 @@ import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
  * @version 1.0
  */
 public abstract class AbstractResourceAdapter extends AbstractBindingSupplier implements ResourceAdapter, ResourceEventListener{
-    private static final Multimap<String, WeakReference<ResourceAdapterEventListener>> listeners = HashMultimap.create(10, 3);
-    private static final ExecutorService eventExecutor = Executors.newSingleThreadExecutor(new GroupedThreadFactory("ADAPTER_EVENTS"));
-
-    private static final class ResourceAdapterUpdateNotifier extends WeakReference<AbstractResourceAdapter> implements ResourceAdapterUpdatedCallback{
+    private static final class ResourceAdapterUpdateNotifier extends WeakReference<AbstractResourceAdapter> implements ResourceAdapterUpdatedCallback {
 
         private ResourceAdapterUpdateNotifier(final AbstractResourceAdapter adapter) {
             super(adapter);
@@ -66,7 +63,8 @@ public abstract class AbstractResourceAdapter extends AbstractBindingSupplier im
         @Override
         public void updated() {
             final AbstractResourceAdapter adapter = get();
-            if(adapter != null) adapter.notifyAdapterUpdated();
+            if (adapter != null)
+                ResourceAdapterEventBus.notifyAdapterUpdated(adapter.getAdapterName(), adapter);
         }
     }
 
@@ -121,8 +119,6 @@ public abstract class AbstractResourceAdapter extends AbstractBindingSupplier im
 
     private InternalState mutableState;
     private final String adapterInstanceName;
-    private final WriteOnceRef<ResourceAdapterEventListener> listener;
-    private final ResourceAdapterUpdateNotifier endUpdateNotifier;
 
     /**
      * Initializes a new resource adapter.
@@ -131,8 +127,6 @@ public abstract class AbstractResourceAdapter extends AbstractBindingSupplier im
     protected AbstractResourceAdapter(final String instanceName) {
         this.adapterInstanceName = instanceName;
         mutableState = InternalState.initialState();
-        listener = new WriteOnceRef<>();
-        endUpdateNotifier = new ResourceAdapterUpdateNotifier(this);
     }
 
     /**
@@ -361,26 +355,19 @@ public abstract class AbstractResourceAdapter extends AbstractBindingSupplier im
         }
     }
 
-    private void notifyAdapterUpdating(){
-        notifyAdapterListeners(new ResourceAdapterUpdatingEvent(this), "Adapter %s is updating. Context: %s");
-    }
-
-    private void notifyAdapterUpdated(){
-        notifyAdapterListeners(new ResourceAdapterUpdatedEvent(this), "Adapter %s is updated. Context: %s");
-    }
-
     /**
      * Begin or prolong updating the internal structure of this adapter.
      * @param manager The update manager.
      * @param callback The callback used to notify about ending of the updating process.
      */
     protected final void beginUpdate(final ResourceAdapterUpdateManager manager,
-                                     ResourceAdapterUpdatedCallback callback){
-        callback = callback != null ?
-                ResourceAdapterUpdateManager.combineCallbacks(callback, endUpdateNotifier):
-                endUpdateNotifier;
-        if(manager.beginUpdate(callback))
-            notifyAdapterUpdating();
+                                     ResourceAdapterUpdatedCallback callback) {
+        if (callback == null)
+            callback = new ResourceAdapterUpdateNotifier(this);
+        else
+            callback = ResourceAdapterUpdateManager.combineCallbacks(callback, new ResourceAdapterUpdateNotifier(this));
+        if (manager.beginUpdate(callback))
+            ResourceAdapterEventBus.notifyAdapterUpdating(getAdapterName(), this);
     }
 
     /**
@@ -389,39 +376,6 @@ public abstract class AbstractResourceAdapter extends AbstractBindingSupplier im
      */
     protected final void beginUpdate(final ResourceAdapterUpdateManager manager){
         beginUpdate(manager, null);
-    }
-
-    private void notifyAdapterListeners(final ResourceAdapterEvent event,
-                                        final String logMessage){
-        final ResourceAdapterEventListener listener = this.listener.get();
-        if(listener != null)
-            listener.handle(event);
-        try(final OSGiLoggingContext logger = getLoggingContext()){
-            logger.info(String.format(logMessage,
-                    adapterInstanceName,
-                    LogicalOperation.current()));
-        }
-    }
-
-    private void notifyAdapterStarted(){
-        notifyAdapterListeners(new ResourceAdapterStartedEvent(this), "Adapter %s is started. Context: %s");
-    }
-
-    private void notifyAdapterStopped() {
-        notifyAdapterListeners(new ResourceAdapterStoppedEvent(this), "Adapter %s is stopped. Context: %s");
-    }
-
-    private static ResourceAdapterEventListener createListener(final String adapterName){
-        return new ResourceAdapterEventListener() {
-            @Override
-            public void handle(final ResourceAdapterEvent e) {
-                fireAdapterListeners(adapterName, e);
-            }
-        };
-    }
-
-    final boolean tryStart(final String adapterName, final Map<String, String> params) throws Exception {
-        return this.listener.set(createListener(adapterName)) && tryStart(params);
     }
 
     private synchronized void addResource(final ServiceReference<ManagedResourceConnector> resourceRef) {
@@ -461,7 +415,7 @@ public abstract class AbstractResourceAdapter extends AbstractBindingSupplier im
             }
     }
 
-    private synchronized boolean tryStart(final Map<String, String> params) throws Exception{
+    final synchronized boolean tryStart(final Map<String, String> params) throws Exception{
         final InternalState currentState = mutableState;
         switch (currentState.state){
             case CREATED:
@@ -474,7 +428,7 @@ public abstract class AbstractResourceAdapter extends AbstractBindingSupplier im
                 InternalState newState = currentState.setParameters(params);
                 start(newState.parameters);
                 mutableState = newState.setAdapterState(AdapterState.STARTED);
-                notifyAdapterStarted();
+                adapterStarted();
                 return true;
             default:
                 return false;
@@ -496,7 +450,7 @@ public abstract class AbstractResourceAdapter extends AbstractBindingSupplier im
                 finally {
                     mutableState = currentState.setAdapterState(AdapterState.STOPPED);
                 }
-                notifyAdapterStopped();
+                adapterStopped();
                 return true;
             default:
                 return false;
@@ -572,17 +526,21 @@ public abstract class AbstractResourceAdapter extends AbstractBindingSupplier im
     public final void close() throws IOException {
         try {
             tryStop();
-        }
-        catch (final IOException e){
+        } catch (final IOException e) {
             throw e;
-        }
-        catch (final Exception e){
+        } catch (final Exception e) {
             throw new IOException(String.format("Unable to release resources associated with %s adapter instance", adapterInstanceName), e);
-        }
-        finally {
+        } finally {
             mutableState = InternalState.finalState();
-            endUpdateNotifier.clear();
         }
+    }
+
+    private void adapterStarted(){
+        ResourceAdapterEventBus.notifyAdapterStarted(getAdapterName(), this);
+    }
+
+    private void adapterStopped(){
+        ResourceAdapterEventBus.notifyAdapterStopped(getAdapterName(), this);
     }
 
     private BundleContext getBundleContext(){
@@ -613,40 +571,6 @@ public abstract class AbstractResourceAdapter extends AbstractBindingSupplier im
         return adapterInstanceName;
     }
 
-    private static void fireAdapterListeners(final String adapterName,
-                                       final ResourceAdapterEvent event){
-        synchronized (listeners){
-            WeakMultimap.removeUnused(listeners);
-            for(final WeakReference<ResourceAdapterEventListener> listenerRef: listeners.get(adapterName)){
-                final ResourceAdapterEventListener listener = listenerRef.get();
-                if(listener instanceof AsyncEventListener)
-                    eventExecutor.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            listener.handle(event);
-                        }
-                    });
-                else if(listener != null) listener.handle(event);
-            }
-        }
-    }
-
-    static boolean addEventListener(final String adapterName,
-                                           final ResourceAdapterEventListener listener){
-        if(adapterName == null || adapterName.isEmpty() || listener == null) return false;
-        synchronized (listeners){
-            return WeakMultimap.put(listeners, adapterName, listener);
-        }
-    }
-
-    static boolean removeEventListener(final String adapterName,
-                                              final ResourceAdapterEventListener listener){
-        if(adapterName == null || listener == null) return false;
-        synchronized (listeners){
-            return WeakMultimap.remove(listeners, adapterName, listener) > 0;
-        }
-    }
-
     /**
      * Gets information about binding of the features.
      * @param bindingType Type of the feature binding.
@@ -662,8 +586,8 @@ public abstract class AbstractResourceAdapter extends AbstractBindingSupplier im
         return getAdapterName(this);
     }
 
-    public static String getAdapterName(final Class<? extends ResourceAdapter> adapter){
-        return getAdapterName(FrameworkUtil.getBundle(adapter.getClass()));
+    public static String getAdapterName(final Class<? extends ResourceAdapter> adapterType){
+        return getAdapterName(FrameworkUtil.getBundle(adapterType));
     }
 
     public static String getAdapterName(final ResourceAdapter adapter) {

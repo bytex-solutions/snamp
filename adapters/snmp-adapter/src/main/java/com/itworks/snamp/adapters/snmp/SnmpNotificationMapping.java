@@ -11,7 +11,7 @@ import javax.management.MBeanNotificationInfo;
  * @version 1.0
  * @since 1.0
  */
-interface SnmpNotificationMapping extends SnmpEntity<MBeanNotificationInfo> {
+public interface SnmpNotificationMapping extends SnmpEntity<MBeanNotificationInfo> {
 
     OID getTransportDomain();
 

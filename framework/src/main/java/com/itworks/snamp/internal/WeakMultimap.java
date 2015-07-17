@@ -41,7 +41,13 @@ public final class WeakMultimap {
         return result;
     }
 
-    public static <K, V> void removeUnused(final Multimap<K, WeakReference<V>> map){
+    /**
+     * Removes dead references from the map.
+     * @param map The map to update.
+     * @param <K> Type of the keys in map.
+     * @param <V> Type of the values in map.
+     */
+    public static <K, V> void gc(final Multimap<K, WeakReference<V>> map){
         final ImmutableSet<K> keys = ImmutableSet.copyOf(map.keySet());
         for(final K key: keys)
             for(final Iterator<WeakReference<V>> it = map.get(key).iterator(); it.hasNext();){

@@ -1,10 +1,7 @@
 package com.itworks.snamp.management.impl;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
-import com.itworks.snamp.connectors.attributes.CustomAttributeInfo;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.jmx.TabularDataBuilderRowFill;
 import com.itworks.snamp.jmx.TabularTypeBuilder;
@@ -16,7 +13,6 @@ import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.SimpleType;
 import javax.management.openmbean.TabularData;
 import javax.management.openmbean.TabularType;
-import java.util.Collection;
 import java.util.concurrent.Callable;
 
 /**
@@ -59,7 +55,7 @@ final class AvailableAttributesOperation extends AvailableFeaturesOperation<MBea
     private static void fillRow(final MBeanAttributeInfo attributeInfo, final TabularDataBuilderRowFill.RowBuilder row) throws OpenDataException {
         final String description = attributeInfo.getDescription();
         final String attributeName = AttributeDescriptor.getAttributeName(attributeInfo);
-        final WellKnownType attributeType = CustomAttributeInfo.getType(attributeInfo);
+        final WellKnownType attributeType = AttributeDescriptor.getType(attributeInfo);
         row
                 .cell(USER_DEFINED_NAME_COLUMN, attributeInfo.getName())
                 .cell(READABLE_COLUMN, attributeInfo.isReadable())

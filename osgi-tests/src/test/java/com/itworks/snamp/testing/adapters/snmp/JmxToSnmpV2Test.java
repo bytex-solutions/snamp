@@ -6,6 +6,8 @@ import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.adapters.ResourceAdapterClient;
+import com.itworks.snamp.adapters.runtime.AttributeBinding;
+import com.itworks.snamp.adapters.runtime.EventBinding;
 import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
@@ -18,10 +20,7 @@ import com.itworks.snamp.testing.connectors.jmx.TestOpenMBean;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
-import org.snmp4j.smi.Integer32;
-import org.snmp4j.smi.OID;
-import org.snmp4j.smi.OctetString;
-import org.snmp4j.smi.Variable;
+import org.snmp4j.smi.*;
 
 import javax.management.AttributeChangeNotification;
 import javax.management.MalformedObjectNameException;
@@ -31,7 +30,9 @@ import java.math.BigInteger;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -47,6 +48,7 @@ import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
  */
 @SnampDependencies(SnampFeature.SNMP_ADAPTER)
 public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBean> {
+    private static final String ADAPTER_INSTANCE = "test-snmp";
     private static final String ADAPTER_NAME = "snmp";
     private static final String SNMP_PORT = "3222";
     private static final String SNMP_HOST = "127.0.0.1";
@@ -194,7 +196,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
         snmpAdapter.getParameters().put("socketTimeout", "5000");
         snmpAdapter.getParameters().put("context", "1.1");
         snmpAdapter.getParameters().put("restartTimeout", "4000");
-        adapters.put("test-snmp", snmpAdapter);
+        adapters.put(ADAPTER_INSTANCE, snmpAdapter);
     }
 
     @Test
@@ -361,6 +363,34 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
         final ConfigurationEntityDescription.ParameterDescription param = desc.getParameterDescriptor("ldap-uri");
         assertNotNull(param);
         assertFalse(param.getDescription(null).isEmpty());
+    }
+
+    @Test
+    public void attributesBindingTest(){
+        final Collection<? extends AttributeBinding> attributes = ResourceAdapterClient.getBindingInfo(getTestBundleContext(),
+                ADAPTER_NAME,
+                ADAPTER_INSTANCE,
+                AttributeBinding.class);
+        assertFalse(attributes.isEmpty());
+        for(final AttributeBinding binding: attributes) {
+            assertTrue(binding.containsKey("OID"));
+            assertNotNull(binding.getMappedType());
+            if (Objects.equals(binding.getName(), "2.0"))
+                assertEquals(AbstractVariable.getSyntaxString(SMIConstants.SYNTAX_INTEGER32), binding.getMappedType().toString());
+        }
+    }
+
+    @Test
+    public void notificationsBindingTest(){
+        final Collection<? extends EventBinding> events = ResourceAdapterClient.getBindingInfo(getTestBundleContext(),
+                ADAPTER_NAME,
+                ADAPTER_INSTANCE,
+                EventBinding.class
+                );
+        assertFalse(events.isEmpty());
+        for(final EventBinding binding: events){
+            assertTrue(binding.containsKey("OID"));
+        }
     }
 
     @Override

@@ -20,10 +20,4 @@ public interface RuntimeInformationService extends SupportService {
      */
     <B extends FeatureBinding> Collection<? extends B> getBindingInfo(final String adapterInstanceName,
                                                             final Class<B> bindingType);
-
-    /**
-     * Gets a set of instantiated adapters.
-     * @return A set of instantiated adapters.
-     */
-    Set<String> getAdapterInstances();
 }
