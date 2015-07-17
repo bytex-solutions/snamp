@@ -18,7 +18,7 @@ public interface RuntimeInformationService extends SupportService {
      * @param <B> Type of the feature binding.
      * @return A collection of features; or empty collection if binding is not supported.
      */
-    <B extends FeatureBinding> Collection<B> getBindingInfo(final String adapterInstanceName,
+    <B extends FeatureBinding> Collection<? extends B> getBindingInfo(final String adapterInstanceName,
                                                             final Class<B> bindingType);
 
     /**

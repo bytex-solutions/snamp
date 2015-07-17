@@ -26,7 +26,7 @@ import static com.itworks.snamp.jmx.DescriptorUtils.hasField;
  * @version 1.0
  * @since 1.0
  */
-final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl {
+public final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl {
     /**
      * Represents authoritative engine ID
      */
@@ -140,7 +140,7 @@ final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
         else throw new SnmpAdapterAbsentParameterException(CONTEXT_PARAM_NAME);
     }
 
-    static OID parseOID(final DescriptorRead info) throws ParseException {
+    public static OID parseOID(final DescriptorRead info) throws ParseException {
         if (hasField(info.getDescriptor(), OID_PARAM_NAME))
             return new OID(SNMP4JSettings.getOIDTextFormat().parse(getField(info.getDescriptor(), OID_PARAM_NAME, String.class)));
         else return SnmpHelpers.generateOID();

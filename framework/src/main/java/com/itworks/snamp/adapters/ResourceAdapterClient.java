@@ -3,6 +3,8 @@ package com.itworks.snamp.adapters;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
+import com.itworks.snamp.adapters.runtime.FeatureBinding;
+import com.itworks.snamp.adapters.runtime.RuntimeInformationService;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.core.FrameworkService;
@@ -109,6 +111,34 @@ public final class ResourceAdapterClient {
                                                                                        final String filter,
                                                                                        final Class<S> serviceType) throws InvalidSyntaxException{
         return getServiceReference(context, adapterName, filter, serviceType);
+    }
+
+    public static <B extends FeatureBinding> Collection<? extends B> getBindingInfo(final BundleContext context,
+                                                                         final String adapterName,
+                                                                          final String adapterInstanceName,
+                                                                                        final Class<B> bindingType) {
+        ServiceReference<RuntimeInformationService> ref = null;
+        try {
+            ref = getServiceReference(context, adapterName, null, RuntimeInformationService.class);
+            if (ref == null)
+                throw unsupportedServiceRequest(adapterName, ConfigurationEntityDescriptionProvider.class);
+            final RuntimeInformationService service = context.getService(ref);
+            return service.getBindingInfo(adapterInstanceName, bindingType);
+        } catch (final InvalidSyntaxException e) {
+            ref = null;
+            try (final OSGiLoggingContext logger = OSGiLoggingContext.getLogger(LOGGER_NAME, context)) {
+                logger.log(Level.SEVERE, String.format("Unable to find binding information schema of %s adapter", adapterInstanceName), e);
+            }
+            return Collections.emptyList();
+        } finally {
+            if (ref != null) context.ungetService(ref);
+        }
+    }
+
+    public <B extends FeatureBinding> Collection<? extends B> getBindingInfo(final BundleContext context,
+                                                                   final String adapterInstanceName,
+                                                                   final Class<B> bindingType) {
+        return getBindingInfo(context, adapterName, adapterInstanceName, bindingType);
     }
 
     /**

@@ -12,5 +12,5 @@ import java.util.Collection;
  */
 abstract class AbstractBindingSupplier extends AbstractAggregator {
     abstract String getInstanceName();
-    abstract <B extends FeatureBinding> Collection<B> getBindings(final Class<B> bindingType);
+    abstract <B extends FeatureBinding> Collection<? extends B> getBindings(final Class<B> bindingType);
 }

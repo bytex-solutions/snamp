@@ -22,7 +22,7 @@ import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor
 class SnmpResourceAdapterProfile extends BasicResourceAdapterProfile implements SnmpTypeMapper {
     static final String PROFILE_NAME = DEFAULT_PROFILE_NAME;
 
-    protected SnmpResourceAdapterProfile(final Map<String, String> parameters,
+    SnmpResourceAdapterProfile(final Map<String, String> parameters,
                                          final boolean defaultProfile) {
         super(parameters, defaultProfile);
     }

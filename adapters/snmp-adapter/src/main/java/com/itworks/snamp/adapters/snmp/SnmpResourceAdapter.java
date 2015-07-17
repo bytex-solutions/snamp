@@ -2,8 +2,13 @@ package com.itworks.snamp.adapters.snmp;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.adapters.profiles.PolymorphicResourceAdapter;
+import com.itworks.snamp.adapters.runtime.AttributeBinding;
+import com.itworks.snamp.adapters.runtime.FeatureBinding;
+import com.itworks.snamp.adapters.snmp.runtime.SnmpAttributeBinding;
 import org.osgi.service.jndi.JNDIContextManager;
 import org.snmp4j.agent.DuplicateRegistrationException;
 import org.snmp4j.agent.NotificationOriginator;
@@ -348,6 +353,34 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
             notifications.clear();
             attributes.clear();
         }
+    }
+
+    private static Collection<SnmpAttributeBinding> getBindings(final Multimap<String, AttributeAccessor> accessors,
+                                                                final SnmpTypeMapper typeMapper) {
+        final List<SnmpAttributeBinding> result = Lists.newArrayListWithExpectedSize(accessors.size());
+        for (final String declaredResource : accessors.keySet())
+            for (final AttributeAccessor accessor : accessors.get(declaredResource))
+                try {
+                    result.add(new SnmpAttributeBinding(declaredResource, accessor, typeMapper));
+                } catch (final ParseException ignored) {
+                }
+        return result;
+    }
+
+    /**
+     * Gets information about binding of the features.
+     *
+     * @param bindingType Type of the feature binding.
+     * @return A collection of features
+     */
+    @Override
+    protected synchronized  <B extends FeatureBinding> Collection<? extends B> getBindings(final Class<B> bindingType) {
+        final SnmpAdapterUpdateManager updateManager = this.updateManager;
+        if (updateManager == null)
+            return super.getBindings(bindingType);
+        else if (bindingType.isAssignableFrom(SnmpAttributeBinding.class))
+            return (Collection<B>) getBindings(attributes, updateManager.profile);
+        else return super.getBindings(bindingType);
     }
 
     /**

@@ -22,7 +22,7 @@ import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor
  * Represents SNMP managed object factory.
  * @author Roman Sakno
  */
-enum SnmpType {
+public enum SnmpType {
     /**
      * Represents type mapping for arbitrary-precision integers and decimals.
      */

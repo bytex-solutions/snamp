@@ -655,7 +655,7 @@ public abstract class AbstractResourceAdapter extends AbstractBindingSupplier im
      * @return A collection of features
      */
     @Override
-    protected <B extends FeatureBinding> Collection<B> getBindings(final Class<B> bindingType){
+    protected <B extends FeatureBinding> Collection<? extends B> getBindings(final Class<B> bindingType){
         return Collections.emptyList();
     }
 }

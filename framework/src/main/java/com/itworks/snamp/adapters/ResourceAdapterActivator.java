@@ -264,7 +264,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
         }
 
         @Override
-        public <B extends FeatureBinding> Collection<B> getBindingInfo(final String adapterInstanceName, final Class<B> bindingType) {
+        public <B extends FeatureBinding> Collection<? extends B> getBindingInfo(final String adapterInstanceName, final Class<B> bindingType) {
             final AbstractBindingSupplier supplier = bindingCache.getIfPresent(adapterInstanceName);
             return supplier == null ? Collections.<B>emptyList() : supplier.getBindings(bindingType);
         }
