@@ -1,6 +1,7 @@
 package com.itworks.snamp.adapters.runtime;
 
 import com.itworks.snamp.adapters.FeatureAccessor;
+import com.itworks.snamp.adapters.NotificationAccessor;
 
 /**
  * Represents information about binding of the attribute.
@@ -8,13 +9,13 @@ import com.itworks.snamp.adapters.FeatureAccessor;
  * @version 1.0
  * @since 1.0
  */
-public abstract class EventBinding extends FeatureBinding {
-    protected EventBinding(final String declaredResource, final FeatureAccessor<?, ?> accessor) {
+public abstract class NotificationBinding extends FeatureBinding {
+    protected NotificationBinding(final String declaredResource, final NotificationAccessor accessor) {
         super(declaredResource, accessor);
     }
 
-    protected EventBinding(final String declaredResource,
-                 final String listID) {
+    protected NotificationBinding(final String declaredResource,
+                                  final String listID) {
         super(declaredResource, listID);
     }
 

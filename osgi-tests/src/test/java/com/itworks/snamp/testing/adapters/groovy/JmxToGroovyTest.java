@@ -6,6 +6,8 @@ import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.adapters.ResourceAdapterClient;
+import com.itworks.snamp.adapters.runtime.AttributeBinding;
+import com.itworks.snamp.adapters.runtime.NotificationBinding;
 import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.io.Communicator;
@@ -23,6 +25,7 @@ import javax.management.Notification;
 import javax.management.ObjectName;
 import java.io.File;
 import java.math.BigInteger;
+import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -40,6 +43,7 @@ import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
  */
 @SnampDependencies(SnampFeature.GROOVY_ADAPTER)
 public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
+    private static final String INSTANCE_NAME = "groovy-adapter";
     private static final String ADAPTER_NAME = "groovy";
     private static final String COMMUNICATION_CHANNEL = "test-communication-channel";
     private static final Predicate<Object> NON_NOTIF = new Predicate<Object>() {
@@ -116,6 +120,24 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
         assertFalse(parameter.getDescription(Locale.getDefault()).isEmpty());
     }
 
+    @Test
+    public void attributesBindingTest(){
+        final Collection<? extends AttributeBinding> attributes = ResourceAdapterClient.getBindingInfo(getTestBundleContext(),
+                ADAPTER_NAME,
+                INSTANCE_NAME,
+                AttributeBinding.class);
+        assertFalse(attributes.isEmpty());
+    }
+
+    @Test
+    public void notificationsBindingTest(){
+        final Collection<? extends NotificationBinding> attributes = ResourceAdapterClient.getBindingInfo(getTestBundleContext(),
+                ADAPTER_NAME,
+                INSTANCE_NAME,
+                NotificationBinding.class);
+        assertFalse(attributes.isEmpty());
+    }
+
     @Override
     protected void fillAdapters(final Map<String, ResourceAdapterConfiguration> adapters,
                                 final Supplier<ResourceAdapterConfiguration> adapterFactory) {
@@ -125,7 +147,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
         groovyAdapter.getParameters().put("scriptFile", "Adapter.groovy");
         groovyAdapter.getParameters().put("communicationChannel", COMMUNICATION_CHANNEL);
         groovyAdapter.getParameters().put("resourceName", TEST_RESOURCE_NAME);
-        adapters.put("groovy-adapter", groovyAdapter);
+        adapters.put(INSTANCE_NAME, groovyAdapter);
     }
 
     @Override

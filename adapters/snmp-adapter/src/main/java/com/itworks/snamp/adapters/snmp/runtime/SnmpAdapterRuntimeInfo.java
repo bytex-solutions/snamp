@@ -11,6 +11,7 @@ import com.itworks.snamp.jmx.WellKnownType;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -22,7 +23,7 @@ public final class SnmpAdapterRuntimeInfo {
 
     private static Collection<SnmpAttributeBinding> getAttributes(final Multimap<String, SnmpAttributeAccessorImpl> accessors,
                                                                  final Function<WellKnownType, SnmpType> typeMapper) {
-        final List<SnmpAttributeBinding> result = Lists.newArrayListWithExpectedSize(accessors.size());
+        final List<SnmpAttributeBinding> result = new LinkedList<>();
         for (final String declaredResource : accessors.keySet())
             for (final SnmpAttributeAccessorImpl accessor : accessors.get(declaredResource))
                 result.add(new SnmpAttributeBinding(declaredResource, accessor, typeMapper));
@@ -31,7 +32,7 @@ public final class SnmpAdapterRuntimeInfo {
 
     private static Collection<SnmpNotificationBinding> getNotifications(final Multimap<String, SnmpNotificationAcessor> accessors,
                                                                   final Function<WellKnownType, SnmpType> typeMapper) {
-        final List<SnmpNotificationBinding> result = Lists.newArrayListWithExpectedSize(accessors.size());
+        final List<SnmpNotificationBinding> result = new LinkedList<>();
         for (final String declaredResource : accessors.keySet())
             for (final SnmpNotificationAcessor accessor : accessors.get(declaredResource))
                 result.add(new SnmpNotificationBinding(declaredResource, accessor, typeMapper));

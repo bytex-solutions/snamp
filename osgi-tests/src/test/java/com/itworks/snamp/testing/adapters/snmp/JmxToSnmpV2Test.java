@@ -7,7 +7,7 @@ import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.adapters.ResourceAdapterClient;
 import com.itworks.snamp.adapters.runtime.AttributeBinding;
-import com.itworks.snamp.adapters.runtime.EventBinding;
+import com.itworks.snamp.adapters.runtime.NotificationBinding;
 import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
@@ -382,13 +382,13 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
 
     @Test
     public void notificationsBindingTest(){
-        final Collection<? extends EventBinding> events = ResourceAdapterClient.getBindingInfo(getTestBundleContext(),
+        final Collection<? extends NotificationBinding> events = ResourceAdapterClient.getBindingInfo(getTestBundleContext(),
                 ADAPTER_NAME,
                 ADAPTER_INSTANCE,
-                EventBinding.class
+                NotificationBinding.class
                 );
         assertFalse(events.isEmpty());
-        for(final EventBinding binding: events){
+        for(final NotificationBinding binding: events){
             assertTrue(binding.containsKey("OID"));
         }
     }

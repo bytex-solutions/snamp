@@ -11,7 +11,7 @@ import javax.management.Notification;
  * @version 1.0
  * @since 1.0
  */
-final class ScriptNotificationAccessor extends NotificationRouter {
+public final class ScriptNotificationAccessor extends NotificationRouter {
     private final String resourceName;
 
     ScriptNotificationAccessor(final String resourceName,
@@ -19,6 +19,10 @@ final class ScriptNotificationAccessor extends NotificationRouter {
                                final NotificationListener destination) {
         super(metadata, destination);
         this.resourceName = resourceName;
+    }
+
+    public String getResourceName(){
+        return resourceName;
     }
 
     @Override

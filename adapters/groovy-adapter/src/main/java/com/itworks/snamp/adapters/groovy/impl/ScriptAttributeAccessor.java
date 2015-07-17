@@ -10,7 +10,7 @@ import javax.management.MBeanAttributeInfo;
  * @version 1.0
  * @since 1.0
  */
-final class ScriptAttributeAccessor extends AttributeAccessor {
+public final class ScriptAttributeAccessor extends AttributeAccessor {
     /**
      * Initializes a new attribute accessor.
      *

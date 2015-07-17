@@ -1,24 +1,17 @@
 package com.itworks.snamp.adapters.snmp.runtime;
 
 import com.google.common.base.Function;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
-import com.itworks.snamp.adapters.NotificationAccessor;
-import com.itworks.snamp.adapters.runtime.EventBinding;
+import com.itworks.snamp.adapters.runtime.NotificationBinding;
 import com.itworks.snamp.adapters.snmp.SnmpNotificationAcessor;
-import com.itworks.snamp.adapters.snmp.SnmpNotificationMapping;
 import com.itworks.snamp.adapters.snmp.SnmpType;
 import com.itworks.snamp.jmx.WellKnownType;
-
-import java.util.Collection;
-import java.util.List;
 
 /**
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-final class SnmpNotificationBinding extends EventBinding {
+final class SnmpNotificationBinding extends NotificationBinding {
     private final SnmpType attachmentType;
 
     SnmpNotificationBinding(final String declaredResource,

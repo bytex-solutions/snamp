@@ -4,6 +4,7 @@ import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.adapters.groovy.ResourceAdapterInfo;
 import com.itworks.snamp.adapters.groovy.ResourceAdapterScript;
 import com.itworks.snamp.adapters.groovy.ResourceAdapterScriptEngine;
+import com.itworks.snamp.adapters.runtime.FeatureBinding;
 import com.itworks.snamp.internal.Utils;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
@@ -12,6 +13,7 @@ import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanNotificationInfo;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -54,7 +56,7 @@ final class GroovyResourceAdapter extends AbstractResourceAdapter {
                                                                                final M feature) throws Exception {
         if (feature instanceof MBeanAttributeInfo)
             return (FeatureAccessor<M, S>) repository.addAttribute(resourceName, (MBeanAttributeInfo) feature);
-        else if(feature instanceof MBeanNotificationInfo)
+        else if (feature instanceof MBeanNotificationInfo)
             return (FeatureAccessor<M, S>) repository.addNotification(resourceName, (MBeanNotificationInfo) feature, holder);
         else return null;
     }
@@ -82,10 +84,10 @@ final class GroovyResourceAdapter extends AbstractResourceAdapter {
     @SuppressWarnings("unchecked")
     @Override
     protected <M extends MBeanFeatureInfo> FeatureAccessor<M, ?> removeFeature(final String resourceName, final M feature) {
-        if(feature instanceof MBeanAttributeInfo)
-            return (FeatureAccessor<M, ?>)repository.removeAttribute(resourceName, (MBeanAttributeInfo)feature);
-        else if(feature instanceof MBeanNotificationInfo)
-            return (FeatureAccessor<M, ?>)repository.removeNotification(resourceName, (MBeanNotificationInfo)feature);
+        if (feature instanceof MBeanAttributeInfo)
+            return (FeatureAccessor<M, ?>) repository.removeAttribute(resourceName, (MBeanAttributeInfo) feature);
+        else if (feature instanceof MBeanNotificationInfo)
+            return (FeatureAccessor<M, ?>) repository.removeNotification(resourceName, (MBeanNotificationInfo) feature);
         else return null;
     }
 
@@ -106,13 +108,12 @@ final class GroovyResourceAdapter extends AbstractResourceAdapter {
     protected synchronized void stop() throws Exception {
         try {
             holder.close();
-        }
-        finally {
+        } finally {
             repository.clear();
         }
     }
 
-    static Logger getLoggerImpl(){
+    static Logger getLoggerImpl() {
         return ResourceAdapterInfo.getLogger();
     }
 
@@ -124,5 +125,16 @@ final class GroovyResourceAdapter extends AbstractResourceAdapter {
     @Override
     public Logger getLogger() {
         return getLoggerImpl();
+    }
+
+    /**
+     * Gets information about binding of the features.
+     *
+     * @param bindingType Type of the feature binding.
+     * @return A collection of features
+     */
+    @Override
+    protected <B extends FeatureBinding> Collection<? extends B> getBindings(final Class<B> bindingType) {
+        return repository.getBindings(bindingType);
     }
 }

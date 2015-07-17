@@ -9,6 +9,8 @@ import com.itworks.snamp.adapters.groovy.EventsRootAPI;
 import com.itworks.snamp.adapters.groovy.ResourceAttributesAnalyzer;
 import com.itworks.snamp.adapters.groovy.ResourceNotificationsAnalyzer;
 import com.itworks.snamp.adapters.groovy.dsl.GroovyManagementModel;
+import com.itworks.snamp.adapters.groovy.impl.runtime.GroovyAdapterRuntimeInfo;
+import com.itworks.snamp.adapters.runtime.FeatureBinding;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
@@ -42,7 +44,7 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
         }
     }
 
-    private static final class ScriptNotificationsModel extends ThreadSafeObject {
+    private static final class ScriptNotificationsModel extends AbstractNotificationsModel<ScriptNotificationAccessor> {
         private final Map<String, ResourceNotificationList<ScriptNotificationAccessor>> notifications =
                 new HashMap<>(10);
 
@@ -115,6 +117,21 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
                 for(final Map.Entry<String, ? extends ResourceNotificationList<ScriptNotificationAccessor>> entry: notifications.entrySet())
                     for(final ScriptNotificationAccessor accessor: entry.getValue().values())
                         handler.read(entry.getKey(), accessor);
+            }
+        }
+
+        /**
+         * Iterates over all registered notifications.
+         *
+         * @param notificationReader
+         * @throws E
+         */
+        @Override
+        public <E extends Exception> void forEachNotification(final RecordReader<String, ? super ScriptNotificationAccessor, E> notificationReader) throws E {
+            try (final LockScope ignored = beginRead()) {
+                for (final ResourceNotificationList<ScriptNotificationAccessor> notifs : notifications.values())
+                    for (final ScriptNotificationAccessor accessor : notifs.values())
+                        notificationReader.read(accessor.getResourceName(), accessor);
             }
         }
     }
@@ -218,5 +235,9 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
     void clear(){
         attributes.clear();
         notifications.clear();
+    }
+
+    <B extends FeatureBinding> Collection<? extends B> getBindings(final Class<B> bindingType){
+        return GroovyAdapterRuntimeInfo.getBindings(bindingType, attributes, notifications);
     }
 }
