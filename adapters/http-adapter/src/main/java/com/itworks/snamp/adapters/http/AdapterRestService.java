@@ -19,9 +19,6 @@ import java.util.Set;
 @Singleton
 @org.atmosphere.config.service.Singleton
 public final class AdapterRestService {
-    private static final String RESOURCE_NAME_PARAM = "resourceName";
-    private static final String ATTRIBUTE_NAME_PARAM = "attributeName";
-
     private final AttributeSupport attributes;
     private final Gson formatter;
     private final NotificationSupport notifications;
@@ -34,9 +31,9 @@ public final class AdapterRestService {
     }
 
     @GET
-    @Path("/notifications/{" + RESOURCE_NAME_PARAM + "}")
+    @Path(HttpNotificationAccessor.NOTIFICATION_ACCESS_PATH)
     @Suspend(contentType = MediaType.APPLICATION_JSON)
-    public SuspendResponse<String> subscribe(@PathParam(RESOURCE_NAME_PARAM) final String resourceName,
+    public SuspendResponse<String> subscribe(@PathParam(HttpNotificationAccessor.RESOURCE_URL_PARAM) final String resourceName,
                                              @Context final HttpServletRequest request) throws WebApplicationException {
         final InternalBroadcaster broadcaster = notifications.getBroadcaster(resourceName);
         if (broadcaster != null) {
@@ -55,9 +52,9 @@ public final class AdapterRestService {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/attributes/{" + RESOURCE_NAME_PARAM + "}/{" + ATTRIBUTE_NAME_PARAM + "}")
-    public String getAttribute(@PathParam(RESOURCE_NAME_PARAM) final String resourceName,
-                                     @PathParam(ATTRIBUTE_NAME_PARAM) final String attributeName) throws WebApplicationException{
+    @Path(HttpAttributeAccessor.ATTRIBUTE_ACCESS_PATH)
+    public String getAttribute(@PathParam(HttpAttributeAccessor.RESOURCE_URL_PARAM) final String resourceName,
+                                     @PathParam(HttpAttributeAccessor.ATTRIBUTE_URL_PARAM) final String attributeName) throws WebApplicationException{
         return attributes.getAttribute(resourceName, attributeName);
     }
 
@@ -83,11 +80,11 @@ public final class AdapterRestService {
     }
 
     @POST
-    @Path("/attributes/{" + RESOURCE_NAME_PARAM + "}/{" + ATTRIBUTE_NAME_PARAM + "}")
+    @Path(HttpAttributeAccessor.ATTRIBUTE_ACCESS_PATH)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public String setAttribute(@PathParam(RESOURCE_NAME_PARAM)final String resourceName,
-                                   @PathParam(ATTRIBUTE_NAME_PARAM)final String attributeName,
+    public String setAttribute(@PathParam(HttpAttributeAccessor.RESOURCE_URL_PARAM)final String resourceName,
+                                   @PathParam(HttpAttributeAccessor.ATTRIBUTE_URL_PARAM)final String attributeName,
                                    final String attributeValue) throws WebApplicationException {
         attributes.setAttribute(resourceName, attributeName, attributeValue);
         return attributeValue;

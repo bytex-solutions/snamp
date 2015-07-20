@@ -30,7 +30,6 @@ import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
-import java.util.logging.Logger;
 
 import static org.atmosphere.cpr.FrameworkConfig.ATMOSPHERE_CONFIG;
 
@@ -41,37 +40,9 @@ import static org.atmosphere.cpr.FrameworkConfig.ATMOSPHERE_CONFIG;
  */
 final class HttpAdapter extends AbstractResourceAdapter {
     private static final int METHOD_NOT_ALLOWED = 405;
+    private static final String SERVLET_CONTEXT = "/snamp/adapters/http/%s";
 
-    private static final class HttpAttributeMapping extends AttributeAccessor {
-        private final Gson formatter;
-
-        private HttpAttributeMapping(final MBeanAttributeInfo attributeInfo) {
-            super(attributeInfo);
-            final String dateFormat = HttpAdapterConfigurationDescriptor.parseDateFormatParam(getMetadata().getDescriptor());
-            GsonBuilder builder = new GsonBuilder();
-            if (dateFormat != null && dateFormat.length() > 0)
-                builder = builder.setDateFormat(dateFormat);
-            builder = Formatters.enableBufferSupport(builder);
-            builder = Formatters.enableOpenTypeSystemSupport(builder);
-            formatter = builder
-                    .serializeSpecialFloatingPointValues()
-                    .serializeNulls().create();
-        }
-
-        @Override
-        protected String interceptGet(final Object value) {
-            return formatter.toJson(value);
-        }
-
-        @Override
-        protected Object interceptSet(final Object value) throws InterceptionException {
-            if (getType() != null && value instanceof String)
-                return formatter.fromJson((String) value, getType().getJavaType());
-            else throw new InterceptionException(new IllegalArgumentException("String expected"));
-        }
-    }
-
-    private static final class HttpAttributesModel extends AbstractAttributesModel<HttpAttributeMapping> implements AttributeSupport{
+    private static final class HttpAttributesModel extends AbstractAttributesModel<HttpAttributeAccessor> implements AttributeSupport{
 
         @Override
         public String getAttribute(final String resourceName, final String attributeName) throws WebApplicationException {
@@ -100,30 +71,13 @@ final class HttpAdapter extends AbstractResourceAdapter {
         }
 
         @Override
-        protected HttpAttributeMapping createAccessor(final MBeanAttributeInfo metadata) throws Exception {
-            return new HttpAttributeMapping(metadata);
-        }
-    }
-
-    private static final class HttpNotificationRouter extends NotificationRouter {
-        private final String resourceName;
-
-        private HttpNotificationRouter(final String resourceName,
-                                       final MBeanNotificationInfo metadata,
-                                       final NotificationListener destination) {
-            super(metadata, destination);
-            this.resourceName = resourceName;
-        }
-
-        @Override
-        protected Notification intercept(final Notification notification) {
-            notification.setSource(resourceName);
-            return notification;
+        protected HttpAttributeAccessor createAccessor(final MBeanAttributeInfo metadata) throws Exception {
+            return new HttpAttributeAccessor(metadata);
         }
     }
 
     private static final class NotificationBroadcaster extends JerseyBroadcaster implements InternalBroadcaster, NotificationListener {
-        private final ResourceNotificationList<HttpNotificationRouter> notifications;
+        private final ResourceNotificationList<HttpNotificationAccessor> notifications;
         private final String resourceName;
         private final Gson formatter;
 
@@ -166,7 +120,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
         }
 
         private NotificationRouter addNotification(final MBeanNotificationInfo metadata) {
-            final HttpNotificationRouter emitter = new HttpNotificationRouter(resourceName,
+            final HttpNotificationAccessor emitter = new HttpNotificationAccessor(resourceName,
                     metadata,
                     this);
             notifications.put(emitter);
@@ -303,7 +257,6 @@ final class HttpAdapter extends AbstractResourceAdapter {
     }
 
     private String getServletContext(){
-        final String SERVLET_CONTEXT = "/snamp/adapters/http/%s";
         return String.format(SERVLET_CONTEXT, getInstanceName());
     }
 

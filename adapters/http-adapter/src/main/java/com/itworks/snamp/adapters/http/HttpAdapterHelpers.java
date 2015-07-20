@@ -5,6 +5,7 @@ import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
 import com.itworks.snamp.core.OSGiLoggingContext;
 import com.itworks.snamp.internal.annotations.SpecialUse;
+import com.itworks.snamp.jmx.WellKnownType;
 import org.eclipse.jetty.continuation.Continuation;
 import org.eclipse.jetty.continuation.Servlet3Continuation;
 
@@ -53,5 +54,26 @@ final class HttpAdapterHelpers {
 
     static void log(final Level lvl, final String message, final Object arg0, final Object arg1, final Throwable e){
         log(lvl, message, new Object[]{arg0, arg1}, e);
+    }
+
+    static String getJsonType(final WellKnownType type){
+        switch (type){
+            case STRING:
+            case CHAR: return "String";
+            case BIG_INT:
+            case BIG_DECIMAL:
+            case BYTE:
+            case SHORT:
+            case INT:
+            case LONG:
+            case FLOAT:
+            case DOUBLE: return "Number";
+            case BOOL: return "Boolean";
+            default:
+                if(type.isArray() || type.isBuffer()) return "Array";
+            case DICTIONARY:
+            case TABLE:
+                return "Object";
+        }
     }
 }
