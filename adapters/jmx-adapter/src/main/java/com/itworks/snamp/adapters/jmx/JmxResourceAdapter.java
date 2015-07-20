@@ -2,13 +2,19 @@ package com.itworks.snamp.adapters.jmx;
 
 import com.google.common.collect.ImmutableList;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
+import com.itworks.snamp.adapters.AttributesModelReader;
 import com.itworks.snamp.adapters.FeatureAccessor;
+import com.itworks.snamp.adapters.NotificationsModelReader;
+import com.itworks.snamp.adapters.binding.FeatureBindingInfo;
+import com.itworks.snamp.adapters.jmx.binding.JmxAdapterRuntimeInfo;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
 import com.itworks.snamp.internal.KeyedObjects;
+import com.itworks.snamp.internal.RecordReader;
 import com.itworks.snamp.internal.Utils;
 import org.osgi.framework.BundleContext;
 
 import javax.management.*;
+import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -20,26 +26,40 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 final class JmxResourceAdapter extends AbstractResourceAdapter {
-    private final KeyedObjects<String, ProxyMBean> exposedBeans;
+    private static final class MBeanRegistry extends AbstractKeyedObjects<String, ProxyMBean> implements AttributesModelReader<JmxAttributeAccessor>, NotificationsModelReader<JmxNotificationAccessor>{
+        private static final long serialVersionUID = 7388558732363175763L;
+
+        private MBeanRegistry(){
+            super(8);
+        }
+
+        @Override
+        public String getKey(final ProxyMBean bean) {
+            return bean.getResourceName();
+        }
+
+        @Override
+        public <E extends Exception> void forEachAttribute(final RecordReader<String, ? super JmxAttributeAccessor, E> attributeReader) throws E {
+            for(final ProxyMBean bean: values())
+                bean.forEachAttribute(attributeReader);
+        }
+
+        @Override
+        public <E extends Exception> void forEachNotification(final RecordReader<String, ? super JmxNotificationAccessor, E> notificationReader) throws E {
+            for(final ProxyMBean bean: values())
+                bean.forEachNotification(notificationReader);
+        }
+    }
+
+    private final MBeanRegistry exposedBeans;
     private boolean usePlatformMBean;
     private ObjectName rootObjectName;
 
     JmxResourceAdapter(final String adapterInstanceName) {
         super(adapterInstanceName);
-        this.exposedBeans = createMBeanMap();
+        this.exposedBeans = new MBeanRegistry();
         this.usePlatformMBean = false;
         rootObjectName = null;
-    }
-
-    private static KeyedObjects<String, ProxyMBean> createMBeanMap(){
-        return new AbstractKeyedObjects<String, ProxyMBean>(10){
-            private static final long serialVersionUID = 7388558732363175763L;
-
-            @Override
-            public String getKey(final ProxyMBean bean) {
-                return bean.getResourceName();
-            }
-        };
     }
 
     private static ObjectName createObjectName(final ObjectName rootObjectName, final String resourceName) throws MalformedObjectNameException {
@@ -128,5 +148,16 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
             rootObjectName = null;
             exposedBeans.clear();
         }
+    }
+
+    /**
+     * Gets information about binding of the features.
+     *
+     * @param bindingType Type of the feature binding.
+     * @return A collection of features
+     */
+    @Override
+    protected synchronized <B extends FeatureBindingInfo> Collection<? extends B> getBindings(final Class<B> bindingType) {
+        return JmxAdapterRuntimeInfo.getBindingInfo(bindingType, exposedBeans, exposedBeans);
     }
 }

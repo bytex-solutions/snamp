@@ -44,7 +44,7 @@ import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
  * @since 1.0
  * @version 1.0
  */
-public abstract class AbstractResourceAdapter extends AbstractBindingSupplier implements ResourceAdapter, ResourceEventListener{
+public abstract class AbstractResourceAdapter extends AbstractBindingInfoProvider implements ResourceAdapter, ResourceEventListener{
     private static final class ResourceAdapterUpdateNotifier extends WeakReference<AbstractResourceAdapter> implements ResourceAdapterUpdatedCallback {
 
         private ResourceAdapterUpdateNotifier(final AbstractResourceAdapter adapter) {

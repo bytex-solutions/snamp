@@ -211,7 +211,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
     }
 
     private final static class RuntimeInformationServiceImpl extends AbstractAggregator implements RuntimeInformationService, ResourceAdapterEventListener{
-        private final Cache<String, AbstractBindingSupplier> bindingCache;
+        private final Cache<String, AbstractBindingInfoProvider> bindingCache;
 
         private RuntimeInformationServiceImpl(){
             this.bindingCache = CacheBuilder.newBuilder().weakValues().build();
@@ -219,7 +219,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
 
         @Override
         public <B extends FeatureBindingInfo> Collection<? extends B> getBindingInfo(final String adapterInstanceName, final Class<B> bindingType) {
-            final AbstractBindingSupplier supplier = bindingCache.getIfPresent(adapterInstanceName);
+            final AbstractBindingInfoProvider supplier = bindingCache.getIfPresent(adapterInstanceName);
             return supplier == null ? Collections.<B>emptyList() : supplier.getBindings(bindingType);
         }
 
@@ -231,8 +231,8 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
 
         @Override
         public void handle(final ResourceAdapterEvent e) {
-            if (e instanceof ResourceAdapterStartedEvent && e.getSource() instanceof AbstractBindingSupplier)
-                bindingCache.put(e.getSource().getInstanceName(), (AbstractBindingSupplier) e.getSource());
+            if (e instanceof ResourceAdapterStartedEvent && e.getSource() instanceof AbstractBindingInfoProvider)
+                bindingCache.put(e.getSource().getInstanceName(), (AbstractBindingInfoProvider) e.getSource());
             else if (e instanceof ResourceAdapterStoppedEvent)
                 bindingCache.invalidate(e.getSource().getInstanceName());
         }

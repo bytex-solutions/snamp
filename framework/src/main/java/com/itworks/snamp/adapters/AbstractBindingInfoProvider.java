@@ -10,7 +10,7 @@ import java.util.Collection;
  * @version 1.0
  * @since 1.0
  */
-abstract class AbstractBindingSupplier extends AbstractAggregator {
+abstract class AbstractBindingInfoProvider extends AbstractAggregator {
     abstract String getInstanceName();
     abstract <B extends FeatureBindingInfo> Collection<? extends B> getBindings(final Class<B> bindingType);
 }

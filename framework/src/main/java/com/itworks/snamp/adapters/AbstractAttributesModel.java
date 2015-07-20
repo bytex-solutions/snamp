@@ -19,7 +19,7 @@ import java.util.*;
  * @since 1.0
  */
 @ThreadSafe
-public abstract class AbstractAttributesModel<TAccessor extends AttributeAccessor> extends ThreadSafeObject {
+public abstract class AbstractAttributesModel<TAccessor extends AttributeAccessor> extends ThreadSafeObject implements AttributesModelReader<TAccessor> {
     private final HashMap<String, ResourceAttributeList<TAccessor>> attributes;
 
     /**

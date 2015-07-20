@@ -10,7 +10,7 @@ import java.util.EnumSet;
  * @version 1.0
  * @since 1.0
  */
-public abstract class AbstractNotificationsModel<TAccessor extends NotificationAccessor> extends ThreadSafeObject {
+public abstract class AbstractNotificationsModel<TAccessor extends NotificationAccessor> extends ThreadSafeObject implements NotificationsModelReader<TAccessor> {
     /**
      * Initializes a new thread-safe object.
      *

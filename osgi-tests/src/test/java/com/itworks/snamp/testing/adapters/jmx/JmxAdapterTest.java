@@ -7,6 +7,8 @@ import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.adapters.ResourceAdapterClient;
+import com.itworks.snamp.adapters.binding.AttributeBindingInfo;
+import com.itworks.snamp.adapters.binding.NotificationBindingInfo;
 import com.itworks.snamp.concurrent.Awaitor;
 import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
@@ -22,6 +24,7 @@ import org.osgi.framework.BundleException;
 
 import javax.management.*;
 import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.OpenType;
 import javax.management.openmbean.SimpleType;
 import javax.management.openmbean.TabularData;
 import javax.management.remote.JMXConnector;
@@ -29,6 +32,7 @@ import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Objects;
@@ -47,6 +51,8 @@ import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
 @SnampDependencies(SnampFeature.JMX_ADAPTER)
 public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final String ADAPTER_NAME = "jmx";
+    private static final String INSTANCE_NAME = "test-jmx";
+
     private static final String ROOT_OBJECT_NAME = "com.itworks.snamp.testing:type=TestOpenMBean";
 
     public JmxAdapterTest() throws MalformedObjectNameException {
@@ -190,6 +196,27 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
         assertNotNull(desc);
     }
 
+    @Test
+    public void attributeBindingTest(){
+        final Collection<? extends AttributeBindingInfo> attributes = ResourceAdapterClient.getBindingInfo(getTestBundleContext(),
+                ADAPTER_NAME,
+                INSTANCE_NAME,
+                AttributeBindingInfo.class);
+        assertFalse(attributes.isEmpty());
+        for(final AttributeBindingInfo binding: attributes){
+            assertTrue(binding.getMappedType() instanceof OpenType<?>);
+        }
+    }
+
+    @Test
+    public void notificationBindingTest(){
+        final Collection<? extends NotificationBindingInfo> attributes = ResourceAdapterClient.getBindingInfo(getTestBundleContext(),
+                ADAPTER_NAME,
+                INSTANCE_NAME,
+                NotificationBindingInfo.class);
+        assertFalse(attributes.isEmpty());
+    }
+
     @Override
     protected void fillAdapters(final Map<String, ResourceAdapterConfiguration> adapters, final Supplier<ResourceAdapterConfiguration> adapterFactory) {
         final ResourceAdapterConfiguration restAdapter = adapterFactory.get();
@@ -197,7 +224,7 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
         restAdapter.getParameters().put("objectName", ROOT_OBJECT_NAME);
         restAdapter.getParameters().put("usePlatformMBean", Boolean.toString(isInTestContainer()));
         restAdapter.getParameters().put("dbgUsePureSerialization", "true");
-        adapters.put("test-jmx", restAdapter);
+        adapters.put(INSTANCE_NAME, restAdapter);
     }
 
     @Override
