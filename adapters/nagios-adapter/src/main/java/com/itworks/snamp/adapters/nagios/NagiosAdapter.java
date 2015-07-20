@@ -2,15 +2,17 @@ package com.itworks.snamp.adapters.nagios;
 
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
 import com.itworks.snamp.adapters.FeatureAccessor;
+import com.itworks.snamp.adapters.binding.FeatureBindingInfo;
+import com.itworks.snamp.adapters.nagios.binding.NagiosAdapterRuntimeInfo;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
 import javax.servlet.ServletException;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
-import java.util.logging.Logger;
 
 /**
  * @author Roman Sakno
@@ -64,5 +66,16 @@ final class NagiosAdapter extends AbstractResourceAdapter {
     protected void stop() throws Exception {
         publisher.unregister(getServletContext());
         service.clear();
+    }
+
+    /**
+     * Gets information about binding of the features.
+     *
+     * @param bindingType Type of the feature binding.
+     * @return A collection of features
+     */
+    @Override
+    protected <B extends FeatureBindingInfo> Collection<? extends B> getBindings(final Class<B> bindingType) {
+        return NagiosAdapterRuntimeInfo.getBindingInfo(bindingType, getServletContext(), service);
     }
 }

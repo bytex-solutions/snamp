@@ -5,6 +5,7 @@ import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.adapters.ResourceAdapterClient;
+import com.itworks.snamp.adapters.binding.AttributeBindingInfo;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.io.IOUtils;
@@ -25,6 +26,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.Collection;
 import java.util.Map;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -39,7 +41,7 @@ import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
 @SnampDependencies(SnampFeature.NAGIOS_ADAPTER)
 public final class NagiosAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final String ADAPTER_NAME = "nagios";
-    private static final String ADAPTER_INSTANCE = "test-nagios";
+    private static final String INSTANCE_NAME = "test-nagios";
 
     public NagiosAdapterTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(), new ObjectName(BEAN_NAME));
@@ -70,7 +72,7 @@ public final class NagiosAdapterTest extends AbstractJmxConnectorTest<TestOpenMB
     }
 
     private static String getNagiosCheckResult(final String attributeID) throws IOException {
-        final URL attributeQuery = new URL(String.format("http://localhost:8181/snamp/adapters/nagios/%s/attributes/%s/%s", ADAPTER_INSTANCE, TEST_RESOURCE_NAME, attributeID));
+        final URL attributeQuery = new URL(String.format("http://localhost:8181/snamp/adapters/nagios/%s/attributes/%s/%s", INSTANCE_NAME, TEST_RESOURCE_NAME, attributeID));
         final HttpURLConnection connection = (HttpURLConnection)attributeQuery.openConnection();
         connection.setRequestMethod("GET");
         connection.connect();
@@ -140,6 +142,19 @@ public final class NagiosAdapterTest extends AbstractJmxConnectorTest<TestOpenMB
         assertFalse(param.getDescription(null).isEmpty());
     }
 
+    @Test
+    public void attributeBindingTest(){
+        final Collection<? extends AttributeBindingInfo> attributes = ResourceAdapterClient.getBindingInfo(getTestBundleContext(),
+                ADAPTER_NAME,
+                INSTANCE_NAME,
+                AttributeBindingInfo.class);
+        assertNotNull(attributes);
+        for(final AttributeBindingInfo binding: attributes){
+            assertTrue(binding.get("path") instanceof String);
+            assertTrue(binding.getMappedType() instanceof String);
+        }
+    }
+
     @Override
     protected boolean enableRemoteDebugging() {
         return false;
@@ -149,7 +164,7 @@ public final class NagiosAdapterTest extends AbstractJmxConnectorTest<TestOpenMB
     protected void fillAdapters(final Map<String, ResourceAdapterConfiguration> adapters, final Supplier<ResourceAdapterConfiguration> adapterFactory) {
         final ResourceAdapterConfiguration nagiosAdapter = adapterFactory.get();
         nagiosAdapter.setAdapterName(ADAPTER_NAME);
-        adapters.put(ADAPTER_INSTANCE, nagiosAdapter);
+        adapters.put(INSTANCE_NAME, nagiosAdapter);
     }
 
     @Override

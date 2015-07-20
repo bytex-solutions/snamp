@@ -16,19 +16,17 @@ import javax.ws.rs.core.Response;
 @Path("/")
 @Singleton
 public final class NagiosActiveCheckService extends AbstractAttributesModel<NagiosAttributeAccessor> {
-    private static final String RESOURCE_NAME_PARAM = "resourceName";
-    private static final String ATTRIBUTE_NAME_PARAM = "attributeName";
 
     @Override
     protected NagiosAttributeAccessor createAccessor(final MBeanAttributeInfo metadata) throws Exception {
         return new NagiosAttributeAccessor(metadata);
     }
 
-    @Path("/attributes/{" + RESOURCE_NAME_PARAM + "}/{" + ATTRIBUTE_NAME_PARAM + "}")
+    @Path(NagiosAttributeAccessor.ATTRIBUTE_ACCESS_PATH)
     @Produces(MediaType.TEXT_PLAIN)
     @GET
-    public String getAttribute(@PathParam(RESOURCE_NAME_PARAM)final String resourceName,
-                               @PathParam(ATTRIBUTE_NAME_PARAM)final String attributeName) throws WebApplicationException{
+    public String getAttribute(@PathParam(NagiosAttributeAccessor.RESOURCE_URL_PARAM)final String resourceName,
+                               @PathParam(NagiosAttributeAccessor.ATTRIBUTE_URL_PARAM)final String attributeName) throws WebApplicationException{
         final AttributeRequestProcessor processor = new AttributeRequestProcessor();
         processAttribute(resourceName, attributeName, processor);
         final NagiosPluginOutput result = processor.get();
