@@ -1,9 +1,8 @@
-package com.itworks.snamp.adapters.runtime;
+package com.itworks.snamp.adapters.binding;
 
 import com.itworks.snamp.core.SupportService;
 
 import java.util.Collection;
-import java.util.Set;
 
 /**
  * Represents internal information about binding of features.
@@ -18,6 +17,6 @@ public interface RuntimeInformationService extends SupportService {
      * @param <B> Type of the feature binding.
      * @return A collection of features; or empty collection if binding is not supported.
      */
-    <B extends FeatureBinding> Collection<? extends B> getBindingInfo(final String adapterInstanceName,
+    <B extends FeatureBindingInfo> Collection<? extends B> getBindingInfo(final String adapterInstanceName,
                                                             final Class<B> bindingType);
 }

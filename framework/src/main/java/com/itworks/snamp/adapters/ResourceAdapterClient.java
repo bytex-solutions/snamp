@@ -3,8 +3,8 @@ package com.itworks.snamp.adapters;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
-import com.itworks.snamp.adapters.runtime.FeatureBinding;
-import com.itworks.snamp.adapters.runtime.RuntimeInformationService;
+import com.itworks.snamp.adapters.binding.FeatureBindingInfo;
+import com.itworks.snamp.adapters.binding.RuntimeInformationService;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.core.FrameworkService;
@@ -113,7 +113,7 @@ public final class ResourceAdapterClient {
         return getServiceReference(context, adapterName, filter, serviceType);
     }
 
-    public static <B extends FeatureBinding> Collection<? extends B> getBindingInfo(final BundleContext context,
+    public static <B extends FeatureBindingInfo> Collection<? extends B> getBindingInfo(final BundleContext context,
                                                                          final String adapterName,
                                                                           final String adapterInstanceName,
                                                                                         final Class<B> bindingType) {
@@ -135,7 +135,7 @@ public final class ResourceAdapterClient {
         }
     }
 
-    public <B extends FeatureBinding> Collection<? extends B> getBindingInfo(final BundleContext context,
+    public <B extends FeatureBindingInfo> Collection<? extends B> getBindingInfo(final BundleContext context,
                                                                    final String adapterInstanceName,
                                                                    final Class<B> bindingType) {
         return getBindingInfo(context, adapterName, adapterInstanceName, bindingType);

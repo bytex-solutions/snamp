@@ -7,15 +7,12 @@ import com.itworks.snamp.adapters.NotificationListener;
 import com.itworks.snamp.adapters.groovy.AttributesRootAPI;
 import com.itworks.snamp.adapters.groovy.EventsRootAPI;
 import com.itworks.snamp.adapters.groovy.ResourceAttributesAnalyzer;
-import com.itworks.snamp.adapters.groovy.ResourceNotificationsAnalyzer;
 import com.itworks.snamp.adapters.groovy.dsl.GroovyManagementModel;
-import com.itworks.snamp.adapters.groovy.impl.runtime.GroovyAdapterRuntimeInfo;
-import com.itworks.snamp.adapters.runtime.FeatureBinding;
-import com.itworks.snamp.concurrent.ThreadSafeObject;
+import com.itworks.snamp.adapters.groovy.impl.binding.GroovyAdapterRuntimeInfo;
+import com.itworks.snamp.adapters.binding.FeatureBindingInfo;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.internal.RecordReader;
-import groovy.lang.Closure;
 import org.osgi.framework.BundleContext;
 
 import javax.management.*;
@@ -237,7 +234,7 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
         notifications.clear();
     }
 
-    <B extends FeatureBinding> Collection<? extends B> getBindings(final Class<B> bindingType){
+    <B extends FeatureBindingInfo> Collection<? extends B> getBindings(final Class<B> bindingType){
         return GroovyAdapterRuntimeInfo.getBindings(bindingType, attributes, notifications);
     }
 }

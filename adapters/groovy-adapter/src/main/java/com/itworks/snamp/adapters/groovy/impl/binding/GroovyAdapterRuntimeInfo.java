@@ -1,11 +1,11 @@
-package com.itworks.snamp.adapters.groovy.impl.runtime;
+package com.itworks.snamp.adapters.groovy.impl.binding;
 
 import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.adapters.AbstractAttributesModel;
 import com.itworks.snamp.adapters.AbstractNotificationsModel;
 import com.itworks.snamp.adapters.groovy.impl.ScriptAttributeAccessor;
 import com.itworks.snamp.adapters.groovy.impl.ScriptNotificationAccessor;
-import com.itworks.snamp.adapters.runtime.FeatureBinding;
+import com.itworks.snamp.adapters.binding.FeatureBindingInfo;
 import com.itworks.snamp.internal.RecordReader;
 
 import java.util.Collection;
@@ -23,34 +23,34 @@ public final class GroovyAdapterRuntimeInfo {
 
     }
 
-    private static Collection<ScriptAttributeBinding> getAttributes(final AbstractAttributesModel<ScriptAttributeAccessor> model){
-        final List<ScriptAttributeBinding> result = new LinkedList<>();
+    private static Collection<ScriptAttributeBindingInfo> getAttributes(final AbstractAttributesModel<ScriptAttributeAccessor> model){
+        final List<ScriptAttributeBindingInfo> result = new LinkedList<>();
         model.forEachAttribute(new RecordReader<String, ScriptAttributeAccessor, ExceptionPlaceholder>() {
             @Override
             public void read(final String resourceName, final ScriptAttributeAccessor accessor) {
-                result.add(new ScriptAttributeBinding(resourceName, accessor));
+                result.add(new ScriptAttributeBindingInfo(resourceName, accessor));
             }
         });
         return result;
     }
 
-    private static Collection<ScriptNotificationBinding> getNotifications(final AbstractNotificationsModel<ScriptNotificationAccessor> model){
-        final List<ScriptNotificationBinding> result = new LinkedList<>();
+    private static Collection<ScriptNotificationBindingInfo> getNotifications(final AbstractNotificationsModel<ScriptNotificationAccessor> model){
+        final List<ScriptNotificationBindingInfo> result = new LinkedList<>();
         model.forEachNotification(new RecordReader<String, ScriptNotificationAccessor, ExceptionPlaceholder>() {
             @Override
             public void read(final String resourceName, final ScriptNotificationAccessor accessor) {
-                result.add(new ScriptNotificationBinding(accessor));
+                result.add(new ScriptNotificationBindingInfo(accessor));
             }
         });
         return result;
     }
 
-    public static <B extends FeatureBinding> Collection<? extends B> getBindings(final Class<B> bindingType,
+    public static <B extends FeatureBindingInfo> Collection<? extends B> getBindings(final Class<B> bindingType,
                                                                        final AbstractAttributesModel<ScriptAttributeAccessor> attributes,
                                                                        final AbstractNotificationsModel<ScriptNotificationAccessor> notifs) {
-        if (bindingType.isAssignableFrom(ScriptAttributeBinding.class))
+        if (bindingType.isAssignableFrom(ScriptAttributeBindingInfo.class))
             return (Collection<B>) getAttributes(attributes);
-        else if (bindingType.isAssignableFrom(ScriptNotificationBinding.class))
+        else if (bindingType.isAssignableFrom(ScriptNotificationBindingInfo.class))
             return (Collection<B>) getNotifications(notifs);
         else return Collections.emptyList();
     }

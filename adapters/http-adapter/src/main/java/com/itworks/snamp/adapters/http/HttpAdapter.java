@@ -6,9 +6,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.adapters.NotificationListener;
-import com.itworks.snamp.concurrent.ThreadSafeObject;
+import com.itworks.snamp.adapters.http.binding.HttpAdapterRuntimeInfo;
+import com.itworks.snamp.adapters.binding.FeatureBindingInfo;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
 import com.itworks.snamp.internal.KeyedObjects;
+import com.itworks.snamp.internal.RecordReader;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.jmx.json.Formatters;
 import com.sun.jersey.api.core.DefaultResourceConfig;
@@ -142,7 +144,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
         }
     }
 
-    private static final class HttpNotificationsModel extends ThreadSafeObject implements NotificationSupport{
+    private static final class HttpNotificationsModel extends AbstractNotificationsModel<HttpNotificationAccessor> implements NotificationSupport{
         private final KeyedObjects<String, NotificationBroadcaster> notifications;
         private static final Gson FORMATTER = Formatters.enableAll(new GsonBuilder())
                 .serializeSpecialFloatingPointValues()
@@ -181,6 +183,15 @@ final class HttpAdapter extends AbstractResourceAdapter {
                     broadcaster = notifications.get(resourceName);
                 else notifications.put(broadcaster = new NotificationBroadcaster(resourceName, FORMATTER));
                 return broadcaster.addNotification(metadata);
+            }
+        }
+
+        @Override
+        public <E extends Exception> void forEachNotification(final RecordReader<String, ? super HttpNotificationAccessor, E> notificationReader) throws E {
+            try (final LockScope ignored = beginRead()) {
+                for (final NotificationBroadcaster broadcaster : notifications.values())
+                    for (final HttpNotificationAccessor accessor : broadcaster.notifications.values())
+                        notificationReader.read(broadcaster.resourceName, accessor);
             }
         }
 
@@ -303,5 +314,18 @@ final class HttpAdapter extends AbstractResourceAdapter {
         else if(feature instanceof MBeanNotificationInfo)
             return (FeatureAccessor<M, ?>)servletFactory.notifications.removeNotification(resourceName, (MBeanNotificationInfo)feature);
         else return null;
+    }
+
+    /**
+     * Gets information about binding of the features.
+     *
+     * @param bindingType Type of the feature binding.
+     * @return A collection of features
+     */
+    @Override
+    protected <B extends FeatureBindingInfo> Collection<? extends B> getBindings(final Class<B> bindingType) {
+        return HttpAdapterRuntimeInfo.getBindings(bindingType, getServletContext(),
+                servletFactory.attributes,
+                servletFactory.notifications);
     }
 }

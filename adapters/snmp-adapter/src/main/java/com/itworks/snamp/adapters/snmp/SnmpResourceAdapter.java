@@ -2,13 +2,10 @@ package com.itworks.snamp.adapters.snmp;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
 import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.adapters.profiles.PolymorphicResourceAdapter;
-import com.itworks.snamp.adapters.runtime.AttributeBinding;
-import com.itworks.snamp.adapters.runtime.FeatureBinding;
-import com.itworks.snamp.adapters.snmp.runtime.SnmpAdapterRuntimeInfo;
+import com.itworks.snamp.adapters.binding.FeatureBindingInfo;
+import com.itworks.snamp.adapters.snmp.binding.SnmpAdapterRuntimeInfo;
 import org.osgi.service.jndi.JNDIContextManager;
 import org.snmp4j.agent.DuplicateRegistrationException;
 
@@ -250,7 +247,7 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
      */
     @SuppressWarnings("unchecked")
     @Override
-    protected synchronized  <B extends FeatureBinding> Collection<? extends B> getBindings(final Class<B> bindingType) {
+    protected synchronized  <B extends FeatureBindingInfo> Collection<? extends B> getBindings(final Class<B> bindingType) {
         final SnmpAdapterUpdateManager updateManager = this.updateManager;
         return updateManager == null ?
                 super.getBindings(bindingType) :

@@ -1,19 +1,19 @@
-package com.itworks.snamp.adapters.http.runtime;
+package com.itworks.snamp.adapters.http.binding;
 
 import com.itworks.snamp.adapters.http.HttpAttributeAccessor;
-import com.itworks.snamp.adapters.runtime.AttributeBinding;
+import com.itworks.snamp.adapters.binding.AttributeBindingInfo;
 
 /**
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-final class HttpAttributeBinding extends AttributeBinding {
+final class HttpAttributeBindingInfo extends AttributeBindingInfo {
     private final String mappedType;
 
-    HttpAttributeBinding(final String servletContext,
-                         final String resourceName,
-                         final HttpAttributeAccessor accessor){
+    HttpAttributeBindingInfo(final String servletContext,
+                             final String resourceName,
+                             final HttpAttributeAccessor accessor){
         super(resourceName, accessor);
         mappedType = accessor.getJsonType();
         put("path", accessor.getPath(servletContext, resourceName));

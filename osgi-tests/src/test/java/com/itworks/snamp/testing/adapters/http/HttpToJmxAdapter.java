@@ -9,6 +9,8 @@ import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.adapters.ResourceAdapterClient;
+import com.itworks.snamp.adapters.binding.AttributeBindingInfo;
+import com.itworks.snamp.adapters.binding.NotificationBindingInfo;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.io.IOUtils;
 import com.itworks.snamp.jmx.CompositeDataBuilder;
@@ -38,6 +40,7 @@ import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeoutException;
@@ -74,7 +77,7 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
     }
 
     private static final String ADAPTER_NAME = "http";
-    private static final String ADAPTER_INSTANCE = "test-http";
+    private static final String INSTANCE_NAME = "test-http";
     private final Gson formatter;
 
     public HttpToJmxAdapter() throws MalformedObjectNameException {
@@ -86,12 +89,12 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
     protected void fillAdapters(final Map<String, ResourceAdapterConfiguration> adapters, final Supplier<ResourceAdapterConfiguration> adapterFactory) {
         final ResourceAdapterConfiguration restAdapter = adapterFactory.get();
         restAdapter.setAdapterName(ADAPTER_NAME);
-        adapters.put(ADAPTER_INSTANCE, restAdapter);
+        adapters.put(INSTANCE_NAME, restAdapter);
     }
 
     private void testAttribute(final String attributeID,
                                final JsonElement value) throws IOException {
-        final URL attributeQuery = new URL(String.format("http://localhost:8181/snamp/adapters/http/%s/attributes/%s/%s", ADAPTER_INSTANCE, TEST_RESOURCE_NAME, attributeID));
+        final URL attributeQuery = new URL(String.format("http://localhost:8181/snamp/adapters/http/%s/attributes/%s/%s", INSTANCE_NAME, TEST_RESOURCE_NAME, attributeID));
         //write attribute
         HttpURLConnection connection = (HttpURLConnection)attributeQuery.openConnection();
         connection.setRequestMethod("POST");
@@ -208,7 +211,7 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
         final AtmosphereClient client = ClientFactory.getDefault().newClient(AtmosphereClient.class);
         final RequestBuilder requestBuilder = client.newRequestBuilder()
                 .method(Request.METHOD.GET)
-                .uri(String.format("http://localhost:8181/snamp/adapters/http/%s/notifications/%s", ADAPTER_INSTANCE, TEST_RESOURCE_NAME))
+                .uri(String.format("http://localhost:8181/snamp/adapters/http/%s/notifications/%s", INSTANCE_NAME, TEST_RESOURCE_NAME))
                 //.trackMessageLength(true)
                 .transport(transport);
         final Socket sock = client.create();
@@ -273,6 +276,31 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
     protected void beforeCleanupTest(final BundleContext context) throws Exception {
         ResourceAdapterActivator.stopResourceAdapter(context, ADAPTER_NAME);
         stopResourceConnector(context);
+    }
+
+    @Test
+    public void attributeBindingTest() {
+        final Collection<? extends AttributeBindingInfo> attributes = ResourceAdapterClient.getBindingInfo(getTestBundleContext(),
+                ADAPTER_NAME,
+                INSTANCE_NAME,
+                AttributeBindingInfo.class);
+        assertFalse(attributes.isEmpty());
+        for (final AttributeBindingInfo binding : attributes) {
+            assertTrue(binding.get("path") instanceof String);
+            assertTrue(binding.getMappedType() instanceof String);
+        }
+    }
+
+    @Test
+    public void notificationBindingTest(){
+        final Collection<? extends NotificationBindingInfo> notifs = ResourceAdapterClient.getBindingInfo(getTestBundleContext(),
+                ADAPTER_NAME,
+                INSTANCE_NAME,
+                NotificationBindingInfo.class);
+        assertFalse(notifs.isEmpty());
+        for (final NotificationBindingInfo binding : notifs) {
+            assertTrue(binding.get("path") instanceof String);
+        }
     }
 
     @Override

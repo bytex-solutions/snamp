@@ -6,8 +6,8 @@ import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.adapters.ResourceAdapterClient;
-import com.itworks.snamp.adapters.runtime.AttributeBinding;
-import com.itworks.snamp.adapters.runtime.NotificationBinding;
+import com.itworks.snamp.adapters.binding.AttributeBindingInfo;
+import com.itworks.snamp.adapters.binding.NotificationBindingInfo;
 import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.io.Communicator;
@@ -122,19 +122,19 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
 
     @Test
     public void attributesBindingTest(){
-        final Collection<? extends AttributeBinding> attributes = ResourceAdapterClient.getBindingInfo(getTestBundleContext(),
+        final Collection<? extends AttributeBindingInfo> attributes = ResourceAdapterClient.getBindingInfo(getTestBundleContext(),
                 ADAPTER_NAME,
                 INSTANCE_NAME,
-                AttributeBinding.class);
+                AttributeBindingInfo.class);
         assertFalse(attributes.isEmpty());
     }
 
     @Test
     public void notificationsBindingTest(){
-        final Collection<? extends NotificationBinding> attributes = ResourceAdapterClient.getBindingInfo(getTestBundleContext(),
+        final Collection<? extends NotificationBindingInfo> attributes = ResourceAdapterClient.getBindingInfo(getTestBundleContext(),
                 ADAPTER_NAME,
                 INSTANCE_NAME,
-                NotificationBinding.class);
+                NotificationBindingInfo.class);
         assertFalse(attributes.isEmpty());
     }
 

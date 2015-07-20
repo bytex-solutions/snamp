@@ -1,16 +1,16 @@
-package com.itworks.snamp.adapters.groovy.impl.runtime;
+package com.itworks.snamp.adapters.groovy.impl.binding;
 
 import com.itworks.snamp.adapters.groovy.impl.ScriptNotificationAccessor;
-import com.itworks.snamp.adapters.runtime.NotificationBinding;
+import com.itworks.snamp.adapters.binding.NotificationBindingInfo;
 
 /**
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-final class ScriptNotificationBinding extends NotificationBinding {
+final class ScriptNotificationBindingInfo extends NotificationBindingInfo {
 
-    ScriptNotificationBinding(final ScriptNotificationAccessor accessor) {
+    ScriptNotificationBindingInfo(final ScriptNotificationAccessor accessor) {
         super(accessor.getResourceName(), accessor);
     }
 

@@ -1,7 +1,7 @@
 package com.itworks.snamp.adapters;
 
 import com.itworks.snamp.AbstractAggregator;
-import com.itworks.snamp.adapters.runtime.FeatureBinding;
+import com.itworks.snamp.adapters.binding.FeatureBindingInfo;
 
 import java.util.Collection;
 
@@ -12,5 +12,5 @@ import java.util.Collection;
  */
 abstract class AbstractBindingSupplier extends AbstractAggregator {
     abstract String getInstanceName();
-    abstract <B extends FeatureBinding> Collection<? extends B> getBindings(final Class<B> bindingType);
+    abstract <B extends FeatureBindingInfo> Collection<? extends B> getBindings(final Class<B> bindingType);
 }

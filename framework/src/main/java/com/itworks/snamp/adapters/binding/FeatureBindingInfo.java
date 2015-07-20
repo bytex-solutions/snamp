@@ -1,4 +1,4 @@
-package com.itworks.snamp.adapters.runtime;
+package com.itworks.snamp.adapters.binding;
 
 import com.google.common.base.Joiner;
 import com.itworks.snamp.adapters.FeatureAccessor;
@@ -15,25 +15,25 @@ import java.util.Objects;
  * @version 1.0
  * @since 1.0
  */
-public abstract class FeatureBinding extends HashMap<String, Object> {
+public abstract class FeatureBindingInfo extends HashMap<String, Object> {
     private final String resourceName;
     private final String userDefinedName;
 
-    private FeatureBinding(final String declaredResource,
-                           final String featureName,
-                           final Map<String, ?> bindingDetails){
+    private FeatureBindingInfo(final String declaredResource,
+                               final String featureName,
+                               final Map<String, ?> bindingDetails){
         super(bindingDetails);
         this.resourceName = Objects.requireNonNull(declaredResource);
         this.userDefinedName = Objects.requireNonNull(featureName);
     }
 
-    FeatureBinding(final String declaredResource,
-                   final FeatureAccessor<?, ?> accessor) {
+    FeatureBindingInfo(final String declaredResource,
+                       final FeatureAccessor<?, ?> accessor) {
         this(declaredResource, accessor.get().getName(), DescriptorUtils.toMap(accessor.get().getDescriptor()));
     }
 
-    FeatureBinding(final String declaredResource,
-                   final String featureName){
+    FeatureBindingInfo(final String declaredResource,
+                       final String featureName){
         this(declaredResource, featureName, Collections.<String, Object>emptyMap());
     }
 

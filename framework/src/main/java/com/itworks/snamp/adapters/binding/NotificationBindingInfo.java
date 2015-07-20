@@ -1,6 +1,5 @@
-package com.itworks.snamp.adapters.runtime;
+package com.itworks.snamp.adapters.binding;
 
-import com.itworks.snamp.adapters.FeatureAccessor;
 import com.itworks.snamp.adapters.NotificationAccessor;
 
 /**
@@ -9,13 +8,13 @@ import com.itworks.snamp.adapters.NotificationAccessor;
  * @version 1.0
  * @since 1.0
  */
-public abstract class NotificationBinding extends FeatureBinding {
-    protected NotificationBinding(final String declaredResource, final NotificationAccessor accessor) {
+public abstract class NotificationBindingInfo extends FeatureBindingInfo {
+    protected NotificationBindingInfo(final String declaredResource, final NotificationAccessor accessor) {
         super(declaredResource, accessor);
     }
 
-    protected NotificationBinding(final String declaredResource,
-                                  final String listID) {
+    protected NotificationBindingInfo(final String declaredResource,
+                                      final String listID) {
         super(declaredResource, listID);
     }
 

@@ -1,4 +1,4 @@
-package com.itworks.snamp.adapters.runtime;
+package com.itworks.snamp.adapters.binding;
 
 import com.itworks.snamp.adapters.AttributeAccessor;
 
@@ -8,13 +8,13 @@ import com.itworks.snamp.adapters.AttributeAccessor;
  * @version 1.0
  * @since 1.0
  */
-public abstract class AttributeBinding extends FeatureBinding {
-    protected AttributeBinding(final String declaredResource,
-                               final AttributeAccessor accessor) {
+public abstract class AttributeBindingInfo extends FeatureBindingInfo {
+    protected AttributeBindingInfo(final String declaredResource,
+                                   final AttributeAccessor accessor) {
         super(declaredResource, accessor);
     }
 
-    protected AttributeBinding(final String declaredResource, final String attributeID) {
+    protected AttributeBindingInfo(final String declaredResource, final String attributeID) {
         super(declaredResource, attributeID);
     }
 

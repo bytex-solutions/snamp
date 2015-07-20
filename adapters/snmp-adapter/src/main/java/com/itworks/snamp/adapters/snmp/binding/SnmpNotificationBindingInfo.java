@@ -1,7 +1,7 @@
-package com.itworks.snamp.adapters.snmp.runtime;
+package com.itworks.snamp.adapters.snmp.binding;
 
 import com.google.common.base.Function;
-import com.itworks.snamp.adapters.runtime.NotificationBinding;
+import com.itworks.snamp.adapters.binding.NotificationBindingInfo;
 import com.itworks.snamp.adapters.snmp.SnmpNotificationAcessor;
 import com.itworks.snamp.adapters.snmp.SnmpType;
 import com.itworks.snamp.jmx.WellKnownType;
@@ -11,12 +11,12 @@ import com.itworks.snamp.jmx.WellKnownType;
  * @version 1.0
  * @since 1.0
  */
-final class SnmpNotificationBinding extends NotificationBinding {
+final class SnmpNotificationBindingInfo extends NotificationBindingInfo {
     private final SnmpType attachmentType;
 
-    SnmpNotificationBinding(final String declaredResource,
-                            final SnmpNotificationAcessor accessor,
-                            final Function<WellKnownType, SnmpType> typeMapper) {
+    SnmpNotificationBindingInfo(final String declaredResource,
+                                final SnmpNotificationAcessor accessor,
+                                final Function<WellKnownType, SnmpType> typeMapper) {
         super(declaredResource, accessor);
         put("OID", accessor.getID());
         attachmentType = accessor.getType(typeMapper);

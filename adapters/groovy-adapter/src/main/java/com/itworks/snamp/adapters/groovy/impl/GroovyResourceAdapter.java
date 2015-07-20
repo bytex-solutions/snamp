@@ -4,7 +4,7 @@ import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.adapters.groovy.ResourceAdapterInfo;
 import com.itworks.snamp.adapters.groovy.ResourceAdapterScript;
 import com.itworks.snamp.adapters.groovy.ResourceAdapterScriptEngine;
-import com.itworks.snamp.adapters.runtime.FeatureBinding;
+import com.itworks.snamp.adapters.binding.FeatureBindingInfo;
 import com.itworks.snamp.internal.Utils;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
@@ -134,7 +134,7 @@ final class GroovyResourceAdapter extends AbstractResourceAdapter {
      * @return A collection of features
      */
     @Override
-    protected <B extends FeatureBinding> Collection<? extends B> getBindings(final Class<B> bindingType) {
+    protected <B extends FeatureBindingInfo> Collection<? extends B> getBindings(final Class<B> bindingType) {
         return repository.getBindings(bindingType);
     }
 }

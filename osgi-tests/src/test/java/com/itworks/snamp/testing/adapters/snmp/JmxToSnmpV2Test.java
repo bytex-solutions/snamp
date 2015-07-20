@@ -6,8 +6,8 @@ import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.adapters.ResourceAdapterClient;
-import com.itworks.snamp.adapters.runtime.AttributeBinding;
-import com.itworks.snamp.adapters.runtime.NotificationBinding;
+import com.itworks.snamp.adapters.binding.AttributeBindingInfo;
+import com.itworks.snamp.adapters.binding.NotificationBindingInfo;
 import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
@@ -367,12 +367,12 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
 
     @Test
     public void attributesBindingTest(){
-        final Collection<? extends AttributeBinding> attributes = ResourceAdapterClient.getBindingInfo(getTestBundleContext(),
+        final Collection<? extends AttributeBindingInfo> attributes = ResourceAdapterClient.getBindingInfo(getTestBundleContext(),
                 ADAPTER_NAME,
                 ADAPTER_INSTANCE,
-                AttributeBinding.class);
+                AttributeBindingInfo.class);
         assertFalse(attributes.isEmpty());
-        for(final AttributeBinding binding: attributes) {
+        for(final AttributeBindingInfo binding: attributes) {
             assertTrue(binding.containsKey("OID"));
             assertNotNull(binding.getMappedType());
             if (Objects.equals(binding.getName(), "2.0"))
@@ -382,13 +382,13 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
 
     @Test
     public void notificationsBindingTest(){
-        final Collection<? extends NotificationBinding> events = ResourceAdapterClient.getBindingInfo(getTestBundleContext(),
+        final Collection<? extends NotificationBindingInfo> events = ResourceAdapterClient.getBindingInfo(getTestBundleContext(),
                 ADAPTER_NAME,
                 ADAPTER_INSTANCE,
-                NotificationBinding.class
+                NotificationBindingInfo.class
                 );
         assertFalse(events.isEmpty());
-        for(final NotificationBinding binding: events){
+        for(final NotificationBindingInfo binding: events){
             assertTrue(binding.containsKey("OID"));
         }
     }

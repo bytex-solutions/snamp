@@ -11,7 +11,7 @@ import javax.management.Notification;
  * @version 1.0
  * @since 1.0
  */
-final class HttpNotificationAccessor extends NotificationRouter implements HttpAccessor {
+public final class HttpNotificationAccessor extends NotificationRouter implements HttpAccessor {
     static final String NOTIFICATION_ACCESS_PATH = "/notifications/{" + RESOURCE_URL_PARAM + "}";
     private final String resourceName;
 

@@ -1,14 +1,8 @@
 package com.itworks.snamp.adapters;
 
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Multimap;
-import com.itworks.snamp.AbstractAggregator;
-import com.itworks.snamp.adapters.runtime.FeatureBinding;
-import com.itworks.snamp.concurrent.AsyncEventListener;
-import com.itworks.snamp.concurrent.GroupedThreadFactory;
-import com.itworks.snamp.concurrent.WriteOnceRef;
+import com.itworks.snamp.adapters.binding.FeatureBindingInfo;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.connectors.ResourceEvent;
@@ -26,7 +20,6 @@ import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.core.OSGiLoggingContext;
 import com.itworks.snamp.core.RichLogicalOperation;
 import com.itworks.snamp.internal.Utils;
-import com.itworks.snamp.internal.WeakMultimap;
 import org.osgi.framework.*;
 
 import javax.management.MBeanAttributeInfo;
@@ -36,8 +29,6 @@ import javax.management.MBeanOperationInfo;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -578,7 +569,7 @@ public abstract class AbstractResourceAdapter extends AbstractBindingSupplier im
      * @return A collection of features
      */
     @Override
-    protected <B extends FeatureBinding> Collection<? extends B> getBindings(final Class<B> bindingType){
+    protected <B extends FeatureBindingInfo> Collection<? extends B> getBindings(final Class<B> bindingType){
         return Collections.emptyList();
     }
 

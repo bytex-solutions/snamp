@@ -1,8 +1,7 @@
-package com.itworks.snamp.adapters.groovy.impl.runtime;
+package com.itworks.snamp.adapters.groovy.impl.binding;
 
-import com.itworks.snamp.adapters.AttributeAccessor;
 import com.itworks.snamp.adapters.groovy.impl.ScriptAttributeAccessor;
-import com.itworks.snamp.adapters.runtime.AttributeBinding;
+import com.itworks.snamp.adapters.binding.AttributeBindingInfo;
 import com.itworks.snamp.jmx.WellKnownType;
 
 /**
@@ -10,11 +9,11 @@ import com.itworks.snamp.jmx.WellKnownType;
  * @version 1.0
  * @since 1.0
  */
-final class ScriptAttributeBinding extends AttributeBinding {
+final class ScriptAttributeBindingInfo extends AttributeBindingInfo {
     private final WellKnownType attributeType;
 
-    ScriptAttributeBinding(final String declaredResource,
-                                     final ScriptAttributeAccessor accessor) {
+    ScriptAttributeBindingInfo(final String declaredResource,
+                               final ScriptAttributeAccessor accessor) {
         super(declaredResource, accessor);
         attributeType = accessor.getType();
     }

@@ -2,11 +2,10 @@ package com.itworks.snamp.adapters;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.ImmutableSet;
 import com.itworks.snamp.AbstractAggregator;
 import com.itworks.snamp.ArrayUtils;
-import com.itworks.snamp.adapters.runtime.FeatureBinding;
-import com.itworks.snamp.adapters.runtime.RuntimeInformationService;
+import com.itworks.snamp.adapters.binding.FeatureBindingInfo;
+import com.itworks.snamp.adapters.binding.RuntimeInformationService;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.configuration.PersistentConfigurationManager;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
@@ -219,7 +218,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
         }
 
         @Override
-        public <B extends FeatureBinding> Collection<? extends B> getBindingInfo(final String adapterInstanceName, final Class<B> bindingType) {
+        public <B extends FeatureBindingInfo> Collection<? extends B> getBindingInfo(final String adapterInstanceName, final Class<B> bindingType) {
             final AbstractBindingSupplier supplier = bindingCache.getIfPresent(adapterInstanceName);
             return supplier == null ? Collections.<B>emptyList() : supplier.getBindings(bindingType);
         }
