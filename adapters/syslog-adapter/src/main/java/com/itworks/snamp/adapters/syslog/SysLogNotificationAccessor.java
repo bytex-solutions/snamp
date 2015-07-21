@@ -3,7 +3,7 @@ package com.itworks.snamp.adapters.syslog;
 import com.cloudbees.syslog.Facility;
 import com.cloudbees.syslog.Severity;
 import com.itworks.snamp.adapters.NotificationListener;
-import com.itworks.snamp.adapters.NotificationRouter;
+import com.itworks.snamp.adapters.modeling.NotificationRouter;
 import com.itworks.snamp.connectors.notifications.NotificationDescriptor;
 
 import javax.management.MBeanNotificationInfo;

@@ -1,4 +1,4 @@
-package com.itworks.snamp.adapters;
+package com.itworks.snamp.adapters.modeling;
 
 import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.ExceptionalCallable;

@@ -1,4 +1,4 @@
-package com.itworks.snamp.adapters;
+package com.itworks.snamp.adapters.modeling;
 
 import com.itworks.snamp.internal.AbstractKeyedObjects;
 
@@ -56,7 +56,7 @@ public abstract class ResourceFeatureList<M extends MBeanFeatureInfo, TAccessor 
     @Override
     public final void clear() {
         for(final TAccessor accessor: values())
-            accessor.disconnect();
+            accessor.close();
         super.clear();
     }
 }

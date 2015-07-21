@@ -2,13 +2,11 @@ package com.itworks.snamp.adapters.jmx;
 
 import com.google.common.collect.ImmutableList;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
-import com.itworks.snamp.adapters.AttributesModelReader;
-import com.itworks.snamp.adapters.FeatureAccessor;
-import com.itworks.snamp.adapters.NotificationsModelReader;
-import com.itworks.snamp.adapters.binding.FeatureBindingInfo;
+import com.itworks.snamp.adapters.modeling.AttributeSet;
+import com.itworks.snamp.adapters.modeling.FeatureAccessor;
+import com.itworks.snamp.adapters.modeling.NotificationSet;
 import com.itworks.snamp.adapters.jmx.binding.JmxAdapterRuntimeInfo;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
-import com.itworks.snamp.internal.KeyedObjects;
 import com.itworks.snamp.internal.RecordReader;
 import com.itworks.snamp.internal.Utils;
 import org.osgi.framework.BundleContext;
@@ -17,7 +15,6 @@ import javax.management.*;
 import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Map;
-import java.util.logging.Logger;
 
 /**
  * Represents JMX adapter. This class cannot be inherited.
@@ -26,7 +23,7 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 final class JmxResourceAdapter extends AbstractResourceAdapter {
-    private static final class MBeanRegistry extends AbstractKeyedObjects<String, ProxyMBean> implements AttributesModelReader<JmxAttributeAccessor>, NotificationsModelReader<JmxNotificationAccessor>{
+    private static final class MBeanRegistry extends AbstractKeyedObjects<String, ProxyMBean> implements AttributeSet<JmxAttributeAccessor>, NotificationSet<JmxNotificationAccessor> {
         private static final long serialVersionUID = 7388558732363175763L;
 
         private MBeanRegistry(){

@@ -1,10 +1,9 @@
 package com.itworks.snamp.adapters.groovy;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.eventbus.Subscribe;
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.adapters.AttributeAccessor;
-import com.itworks.snamp.adapters.NotificationAccessor;
+import com.itworks.snamp.adapters.modeling.AttributeAccessor;
+import com.itworks.snamp.adapters.modeling.NotificationAccessor;
 import com.itworks.snamp.adapters.NotificationEvent;
 import com.itworks.snamp.adapters.NotificationListener;
 import com.itworks.snamp.adapters.groovy.dsl.GroovyManagementModel;
@@ -19,7 +18,6 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 
 import javax.management.*;
-import java.util.Collection;
 import java.util.EventListener;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;

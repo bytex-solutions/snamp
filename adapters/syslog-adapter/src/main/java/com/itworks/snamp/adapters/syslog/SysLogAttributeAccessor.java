@@ -3,7 +3,7 @@ package com.itworks.snamp.adapters.syslog;
 import com.cloudbees.syslog.Facility;
 import com.cloudbees.syslog.Severity;
 import com.cloudbees.syslog.SyslogMessage;
-import com.itworks.snamp.adapters.AttributeAccessor;
+import com.itworks.snamp.adapters.modeling.AttributeAccessor;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 
 import javax.management.AttributeNotFoundException;

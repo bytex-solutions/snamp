@@ -11,10 +11,7 @@ import org.snmp4j.smi.Variable;
 import javax.management.InvalidAttributeValueException;
 import javax.management.ReflectionException;
 import java.lang.reflect.Type;
-import java.text.ParseException;
 import java.util.BitSet;
-
-import com.itworks.snamp.adapters.AttributeAccessor;
 
 /**
  * Represents SNMP wrapper for array of bytes or booleans.

@@ -7,7 +7,7 @@ import com.google.common.collect.Sets;
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.adapters.AttributeAccessor;
+import com.itworks.snamp.adapters.modeling.AttributeAccessor;
 import com.itworks.snamp.internal.annotations.SpecialUse;
 import com.itworks.snamp.jmx.TabularDataUtils;
 import org.snmp4j.agent.*;
@@ -634,7 +634,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
         if(server != null) {
             server.unregister(this, null);
         }
-        else _connector.disconnect();
+        else _connector.close();
         return _connector;
     }
 

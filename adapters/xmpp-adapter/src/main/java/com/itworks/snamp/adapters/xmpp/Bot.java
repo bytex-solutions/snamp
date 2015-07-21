@@ -169,13 +169,13 @@ final class Bot implements ChatManagerListener, Closeable {
 
     private final LinkedList<ChatSession> sessions;
     private final Logger logger;
-    private final XMPPAttributeModel attributes;
+    private final XMPPAttributeModelOfAttributes attributes;
     private final XMPPNotificationModel notifications;
 
     Bot(final Logger logger){
         sessions = new LinkedList<>();
         this.logger = Objects.requireNonNull(logger);
-        this.attributes = new XMPPAttributeModel();
+        this.attributes = new XMPPAttributeModelOfAttributes();
         this.notifications = new XMPPNotificationModel();
     }
 
@@ -230,7 +230,7 @@ final class Bot implements ChatManagerListener, Closeable {
         return matchList.toArray(new String[matchList.size()]);
     }
 
-    public XMPPAttributeModel getAttributes(){
+    public XMPPAttributeModelOfAttributes getAttributes(){
         return attributes;
     }
 

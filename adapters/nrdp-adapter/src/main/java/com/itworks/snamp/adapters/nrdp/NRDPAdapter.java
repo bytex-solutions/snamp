@@ -9,6 +9,7 @@ import com.google.common.collect.Iterables;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.adapters.NotificationListener;
+import com.itworks.snamp.adapters.modeling.*;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.notifications.NotificationDescriptor;
@@ -20,7 +21,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
-import java.util.logging.Logger;
 
 import static com.itworks.snamp.adapters.nrdp.NRDPAdapterConfigurationDescriptor.*;
 
@@ -68,7 +68,7 @@ final class NRDPAdapter extends AbstractResourceAdapter {
         }
     }
 
-    private static final class NRDPAttributeModel extends AbstractAttributesModel<NRDPAttributeAccessor> {
+    private static final class NRDPAttributeModelOfAttributes extends ModelOfAttributes<NRDPAttributeAccessor> {
 
         @Override
         protected NRDPAttributeAccessor createAccessor(final MBeanAttributeInfo metadata) throws Exception {
@@ -176,7 +176,7 @@ final class NRDPAdapter extends AbstractResourceAdapter {
             try (final LockScope ignored = beginWrite()) {
                 for (final ResourceNotificationList<?> list : notifications.values())
                     for (final NotificationAccessor accessor : list.values())
-                        accessor.disconnect();
+                        accessor.close();
             }
             final ConcurrentPassiveCheckSender sender = checkSender;
             if (sender != null)
@@ -190,7 +190,7 @@ final class NRDPAdapter extends AbstractResourceAdapter {
 
         NSCAPeriodPassiveCheckSender(final TimeSpan period,
                                      final ConcurrentPassiveCheckSender sender,
-                                     final NRDPAttributeModel attributes) {
+                                     final NRDPAttributeModelOfAttributes attributes) {
             super(period, attributes);
             checkSender = Objects.requireNonNull(sender);
         }
@@ -202,13 +202,13 @@ final class NRDPAdapter extends AbstractResourceAdapter {
         }
     }
 
-    private final NRDPAttributeModel attributes;
+    private final NRDPAttributeModelOfAttributes attributes;
     private NSCAPeriodPassiveCheckSender attributeChecker;
     private final NRDPNotificationModel notifications;
 
     NRDPAdapter(final String instanceName) {
         super(instanceName);
-        attributes = new NRDPAttributeModel();
+        attributes = new NRDPAttributeModelOfAttributes();
         notifications = new NRDPNotificationModel();
     }
 

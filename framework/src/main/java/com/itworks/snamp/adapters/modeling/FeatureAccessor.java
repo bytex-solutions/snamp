@@ -1,10 +1,14 @@
-package com.itworks.snamp.adapters;
+package com.itworks.snamp.adapters.modeling;
 
 import com.google.common.base.Supplier;
+import com.itworks.snamp.connectors.FeatureModifiedEvent;
+import com.itworks.snamp.connectors.attributes.AttributeAddedEvent;
+import com.itworks.snamp.internal.annotations.Internal;
 
 import javax.management.Descriptor;
 import javax.management.DescriptorRead;
 import javax.management.MBeanFeatureInfo;
+import java.io.Closeable;
 import java.util.Iterator;
 import java.util.Objects;
 
@@ -14,7 +18,7 @@ import java.util.Objects;
  * @param <M> The type of the managed resource feature.
  * @param <S> The type of the feature supporter.
  */
-public abstract class FeatureAccessor<M extends MBeanFeatureInfo, S> implements Supplier<M>, DescriptorRead {
+public abstract class FeatureAccessor<M extends MBeanFeatureInfo> implements Supplier<M>, DescriptorRead, Closeable {
     private final M metadata;
 
     FeatureAccessor(final M metadata){
@@ -50,15 +54,10 @@ public abstract class FeatureAccessor<M extends MBeanFeatureInfo, S> implements 
     }
 
     /**
-     * Connector feature accessor to the managed resource.
-     * @param value The managed resource accessor.
-     */
-    abstract void connect(final S value);
-
-    /**
      * Disconnects the feature accessor from the managed resource.
      */
-    public abstract void disconnect();
+    @Override
+    public abstract void close();
 
     /**
      * Determines whether the feature of the managed resource is accessible
@@ -72,7 +71,7 @@ public abstract class FeatureAccessor<M extends MBeanFeatureInfo, S> implements 
         return getMetadata().toString();
     }
 
-    private static int removeAll(final Iterator<? extends FeatureAccessor<?, ?>> features,
+    private static int removeAll(final Iterator<? extends FeatureAccessor<?>> features,
                                  final MBeanFeatureInfo metadata){
         int result = 0;
         while (features.hasNext())
@@ -83,7 +82,7 @@ public abstract class FeatureAccessor<M extends MBeanFeatureInfo, S> implements 
         return result;
     }
 
-    private static <F extends FeatureAccessor<?, ?>> F remove(final Iterator<? extends F> features,
+    private static <F extends FeatureAccessor<?>> F remove(final Iterator<? extends F> features,
                                  final MBeanFeatureInfo metadata){
         while (features.hasNext()) {
             final F feature = features.next();
@@ -101,13 +100,21 @@ public abstract class FeatureAccessor<M extends MBeanFeatureInfo, S> implements 
      * @param metadata The metadata of the feature that should be removed from the collection. Cannot be {@literal null}.
      * @return A number of removed features.
      */
-    protected static <M extends MBeanFeatureInfo> int removeAll(final Iterable<? extends FeatureAccessor<M, ?>> features,
+    protected static <M extends MBeanFeatureInfo> int removeAll(final Iterable<? extends FeatureAccessor<M>> features,
                                                                 final M metadata){
         return removeAll(features.iterator(), metadata);
     }
 
-    protected static <M extends MBeanFeatureInfo, F extends FeatureAccessor<M, ?>> F remove(final Iterable<? extends F> features,
+    protected static <M extends MBeanFeatureInfo, F extends FeatureAccessor<M>> F remove(final Iterable<? extends F> features,
                                                                                             final M metadata){
         return remove(features.iterator(), metadata);
     }
+
+    /**
+     * Processes an event related to this accessor.
+     * @param event An event related to this accessor.
+     * @return {@literal true}, if event processed successfully; otherwise, {@literal false}.
+     */
+    @Internal
+    public abstract boolean processEvent(final FeatureModifiedEvent<M> event);
 }

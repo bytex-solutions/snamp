@@ -1,7 +1,7 @@
 package com.itworks.snamp.adapters.groovy.impl;
 
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.adapters.AbstractAttributesModel;
+import com.itworks.snamp.adapters.modeling.ModelOfAttributes;
 import com.itworks.snamp.adapters.groovy.ResourceAttributesAnalyzer;
 
 /**
@@ -19,7 +19,7 @@ final class ScriptAttributesAnalyzer extends ResourceAttributesAnalyzer<ScriptAt
      * @param attributes A collection of attributes. Cannot be {@literal null}.
      * @throws IllegalArgumentException period is {@literal null}.
      */
-    ScriptAttributesAnalyzer(final TimeSpan period, final AbstractAttributesModel<ScriptAttributeAccessor> attributes) {
+    ScriptAttributesAnalyzer(final TimeSpan period, final ModelOfAttributes<ScriptAttributeAccessor> attributes) {
         super(period, attributes);
     }
 }

@@ -1,7 +1,7 @@
 package com.itworks.snamp.adapters.snmp;
 
 import com.google.common.base.Function;
-import com.itworks.snamp.adapters.NotificationAccessor;
+import com.itworks.snamp.adapters.modeling.NotificationAccessor;
 import com.itworks.snamp.connectors.notifications.NotificationDescriptor;
 import com.itworks.snamp.jmx.WellKnownType;
 import org.snmp4j.agent.NotificationOriginator;
@@ -13,11 +13,9 @@ import org.snmp4j.smi.UdpAddress;
 
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
-import javax.management.openmbean.OpenType;
 import java.lang.ref.WeakReference;
 import java.text.ParseException;
 import java.util.Objects;
-import java.util.logging.Level;
 import java.util.regex.Pattern;
 
 import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.*;

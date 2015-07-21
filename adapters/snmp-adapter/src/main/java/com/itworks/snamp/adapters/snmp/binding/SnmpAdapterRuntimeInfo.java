@@ -2,7 +2,6 @@ package com.itworks.snamp.adapters.snmp.binding;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Multimap;
-import com.itworks.snamp.adapters.binding.FeatureBindingInfo;
 import com.itworks.snamp.adapters.snmp.SnmpAttributeAccessorImpl;
 import com.itworks.snamp.adapters.snmp.SnmpNotificationAcessor;
 import com.itworks.snamp.adapters.snmp.SnmpType;

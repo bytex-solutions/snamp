@@ -1,30 +1,28 @@
-package com.itworks.snamp.adapters;
+package com.itworks.snamp.adapters.modeling;
 
 import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.internal.RecordReader;
-
-import java.util.EnumSet;
 
 /**
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-public abstract class AbstractNotificationsModel<TAccessor extends NotificationAccessor> extends ThreadSafeObject implements NotificationsModelReader<TAccessor> {
+public abstract class ModelOfNotifications<TAccessor extends NotificationAccessor> extends ThreadSafeObject implements NotificationSet<TAccessor> {
     /**
      * Initializes a new thread-safe object.
      *
      * @param resourceGroupDef The type of the enum which represents a set of field groups.
      * @param <G> Enum definition.
      */
-    protected <G extends Enum<G>> AbstractNotificationsModel(final Class<G> resourceGroupDef) {
+    protected <G extends Enum<G>> ModelOfNotifications(final Class<G> resourceGroupDef) {
         super(resourceGroupDef);
     }
 
     /**
      * Initializes a new thread-safe object in which all fields represents the single resource.
      */
-    protected AbstractNotificationsModel() {
+    protected ModelOfNotifications() {
         super();
     }
 

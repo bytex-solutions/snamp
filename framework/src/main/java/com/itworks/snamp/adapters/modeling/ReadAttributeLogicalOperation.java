@@ -1,4 +1,6 @@
-package com.itworks.snamp.adapters;
+package com.itworks.snamp.adapters.modeling;
+
+import com.itworks.snamp.adapters.AttributeRelatedLogicalOperation;
 
 /**
  * @author Roman Sakno

@@ -1,7 +1,6 @@
 package com.itworks.snamp.adapters.http.binding;
 
 import com.itworks.snamp.adapters.http.HttpNotificationAccessor;
-import com.itworks.snamp.adapters.binding.NotificationBindingInfo;
 
 /**
  * @author Roman Sakno

@@ -1,6 +1,5 @@
 package com.itworks.snamp.adapters.nagios.binding;
 
-import com.itworks.snamp.adapters.binding.AttributeBindingInfo;
 import com.itworks.snamp.adapters.nagios.NagiosAttributeAccessor;
 
 /**

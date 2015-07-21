@@ -1,7 +1,6 @@
 package com.itworks.snamp.adapters.groovy.impl.binding;
 
 import com.itworks.snamp.adapters.groovy.impl.ScriptNotificationAccessor;
-import com.itworks.snamp.adapters.binding.NotificationBindingInfo;
 
 /**
  * @author Roman Sakno

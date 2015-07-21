@@ -1,6 +1,6 @@
 package com.itworks.snamp.adapters.nagios;
 
-import com.itworks.snamp.adapters.AbstractAttributesModel;
+import com.itworks.snamp.adapters.modeling.ModelOfAttributes;
 import com.sun.jersey.spi.resource.Singleton;
 
 import javax.management.MBeanAttributeInfo;
@@ -15,7 +15,7 @@ import javax.ws.rs.core.Response;
  */
 @Path("/")
 @Singleton
-public final class NagiosActiveCheckService extends AbstractAttributesModel<NagiosAttributeAccessor> {
+public final class NagiosActiveCheckService extends ModelOfAttributes<NagiosAttributeAccessor> {
 
     @Override
     protected NagiosAttributeAccessor createAccessor(final MBeanAttributeInfo metadata) throws Exception {

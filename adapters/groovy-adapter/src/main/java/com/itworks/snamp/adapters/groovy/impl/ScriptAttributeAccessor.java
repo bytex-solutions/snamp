@@ -1,6 +1,6 @@
 package com.itworks.snamp.adapters.groovy.impl;
 
-import com.itworks.snamp.adapters.AttributeAccessor;
+import com.itworks.snamp.adapters.modeling.AttributeAccessor;
 
 import javax.management.MBeanAttributeInfo;
 

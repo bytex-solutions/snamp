@@ -10,6 +10,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.itworks.snamp.Consumer;
 import com.itworks.snamp.adapters.*;
+import com.itworks.snamp.adapters.modeling.*;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.internal.Utils;
@@ -369,7 +370,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         }
     }
 
-    private static final class SshAttributesModel extends AbstractAttributesModel<AbstractSshAttributeMapping>{
+    private static final class SshModelOfAttributes extends ModelOfAttributes<AbstractSshAttributeMapping> {
 
         @Override
         protected AbstractSshAttributeMapping createAccessor(final MBeanAttributeInfo metadata) {
@@ -403,12 +404,12 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
     private SshServer server;
     private ExecutorService threadPool;
-    private final SshAttributesModel attributes;
+    private final SshModelOfAttributes attributes;
     private final SshNotificationsModel notifications;
 
     SshAdapter(final String adapterInstanceName) {
         super(adapterInstanceName);
-        attributes = new SshAttributesModel();
+        attributes = new SshModelOfAttributes();
         notifications = new SshNotificationsModel();
     }
 

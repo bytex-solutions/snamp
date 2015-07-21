@@ -1,4 +1,4 @@
-package com.itworks.snamp.adapters;
+package com.itworks.snamp.adapters.modeling;
 
 import com.itworks.snamp.internal.RecordReader;
 
@@ -8,7 +8,7 @@ import com.itworks.snamp.internal.RecordReader;
  * @version 1.0
  * @since 1.0
  */
-public interface AttributesModelReader<TAccessor extends AttributeAccessor> {
+public interface AttributeSet<TAccessor extends AttributeAccessor> {
     /**
      * Reads all attributes sequentially.
      * @param attributeReader An object that accepts attribute and its resource.

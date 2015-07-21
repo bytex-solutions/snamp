@@ -1,8 +1,8 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.itworks.snamp.adapters.AttributeAccessor;
-import com.itworks.snamp.adapters.ReadAttributeLogicalOperation;
-import com.itworks.snamp.adapters.WriteAttributeLogicalOperation;
+import com.itworks.snamp.adapters.modeling.AttributeAccessor;
+import com.itworks.snamp.adapters.modeling.ReadAttributeLogicalOperation;
+import com.itworks.snamp.adapters.modeling.WriteAttributeLogicalOperation;
 import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.jmx.WellKnownType;
 import org.snmp4j.agent.DuplicateRegistrationException;
@@ -158,7 +158,7 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
         if(server != null) {
             server.unregister(this, null);
         }
-        else accessor.disconnect();
+        else accessor.close();
         return accessor;
     }
 

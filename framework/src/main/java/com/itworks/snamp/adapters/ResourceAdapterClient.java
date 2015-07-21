@@ -3,8 +3,6 @@ package com.itworks.snamp.adapters;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
-import com.itworks.snamp.adapters.binding.FeatureBindingInfo;
-import com.itworks.snamp.adapters.binding.RuntimeInformationService;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.core.FrameworkService;

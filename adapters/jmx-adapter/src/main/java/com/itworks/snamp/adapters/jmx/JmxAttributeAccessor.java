@@ -1,6 +1,6 @@
 package com.itworks.snamp.adapters.jmx;
 
-import com.itworks.snamp.adapters.AttributeAccessor;
+import com.itworks.snamp.adapters.modeling.AttributeAccessor;
 
 import javax.management.InvalidAttributeValueException;
 import javax.management.MBeanAttributeInfo;

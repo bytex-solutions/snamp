@@ -2,9 +2,9 @@ package com.itworks.snamp.adapters.groovy;
 
 import com.google.common.base.Predicate;
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.adapters.AbstractAttributesModel;
-import com.itworks.snamp.adapters.AttributeAccessor;
-import com.itworks.snamp.adapters.PeriodicPassiveChecker;
+import com.itworks.snamp.adapters.modeling.ModelOfAttributes;
+import com.itworks.snamp.adapters.modeling.AttributeAccessor;
+import com.itworks.snamp.adapters.modeling.PeriodicPassiveChecker;
 import com.itworks.snamp.concurrent.WriteOnceRef;
 import com.itworks.snamp.internal.annotations.SpecialUse;
 import groovy.lang.Closure;
@@ -156,7 +156,7 @@ public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> ext
      * @throws IllegalArgumentException period is {@literal null}.
      */
     public ResourceAttributesAnalyzer(final TimeSpan period,
-                                      final AbstractAttributesModel<TAccessor> attributes) {
+                                      final ModelOfAttributes<TAccessor> attributes) {
         super(period, attributes);
         selectionStatements = new LinkedHashSet<>(10);
     }

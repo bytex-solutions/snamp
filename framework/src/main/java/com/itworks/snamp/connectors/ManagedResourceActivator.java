@@ -356,7 +356,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                                  final RequiredService<?>... dependencies) {
             super(ManagedResourceConnector.class,
                     PersistentConfigurationManager.getConnectorFactoryPersistentID(connectorType),
-                    ArrayUtils.addToEnd(dependencies, new SimpleDependency<>(EventAdmin.class), RequiredService.class));
+                    dependencies);
             this.controller = Objects.requireNonNull(controller, "controller is null.");
             this.connectorType = connectorType;
             this.configurationHashes = Maps.newHashMapWithExpectedSize(10);
@@ -484,7 +484,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
             createIdentity(resourceName,
                     connectorType,
                     connectionString,
-                    options,
                     identity);
             final TConnector result = controller.createConnector(resourceName, connectionString, options, dependencies);
             updateFeatures(result, configuration);
@@ -813,12 +812,10 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     private static void createIdentity(final String resourceName,
                                        final String connectorType,
                                        final String connectionString,
-                                       final Map<String, String> connectionOptions,
                                        final Map<String, Object> identity){
         identity.put(MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY, resourceName);
         identity.put(CONNECTOR_NAME_MANIFEST_HEADER, connectorType);
         identity.put(CONNECTOR_STRING_IDENTITY_PROPERTY, connectionString);
-        identity.putAll(connectionOptions);
     }
 
     /**

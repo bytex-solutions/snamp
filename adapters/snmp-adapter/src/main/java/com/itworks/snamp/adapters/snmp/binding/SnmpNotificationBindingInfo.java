@@ -1,7 +1,6 @@
 package com.itworks.snamp.adapters.snmp.binding;
 
 import com.google.common.base.Function;
-import com.itworks.snamp.adapters.binding.NotificationBindingInfo;
 import com.itworks.snamp.adapters.snmp.SnmpNotificationAcessor;
 import com.itworks.snamp.adapters.snmp.SnmpType;
 import com.itworks.snamp.jmx.WellKnownType;

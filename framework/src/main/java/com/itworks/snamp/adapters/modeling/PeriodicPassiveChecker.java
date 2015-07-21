@@ -1,4 +1,4 @@
-package com.itworks.snamp.adapters;
+package com.itworks.snamp.adapters.modeling;
 
 import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.TimeSpan;
@@ -14,7 +14,7 @@ import java.util.Objects;
  * @since 1.0
  */
 public abstract class PeriodicPassiveChecker<TAccessor extends AttributeAccessor> extends Repeater {
-    private final AbstractAttributesModel<TAccessor> attributes;
+    private final ModelOfAttributes<TAccessor> attributes;
 
     /**
      * Initializes a new attribute value sender.
@@ -24,7 +24,7 @@ public abstract class PeriodicPassiveChecker<TAccessor extends AttributeAccessor
      * @throws IllegalArgumentException period is {@literal null}.
      */
     protected PeriodicPassiveChecker(final TimeSpan period,
-                                     final AbstractAttributesModel<TAccessor> attributes) {
+                                     final ModelOfAttributes<TAccessor> attributes) {
         super(period);
         this.attributes = Objects.requireNonNull(attributes);
     }

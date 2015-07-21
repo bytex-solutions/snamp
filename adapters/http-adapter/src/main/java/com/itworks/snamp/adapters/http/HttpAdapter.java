@@ -7,7 +7,7 @@ import com.google.gson.GsonBuilder;
 import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.adapters.NotificationListener;
 import com.itworks.snamp.adapters.http.binding.HttpAdapterRuntimeInfo;
-import com.itworks.snamp.adapters.binding.FeatureBindingInfo;
+import com.itworks.snamp.adapters.modeling.*;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
 import com.itworks.snamp.internal.KeyedObjects;
 import com.itworks.snamp.internal.RecordReader;
@@ -44,7 +44,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
     private static final int METHOD_NOT_ALLOWED = 405;
     private static final String SERVLET_CONTEXT = "/snamp/adapters/http/%s";
 
-    private static final class HttpAttributesModel extends AbstractAttributesModel<HttpAttributeAccessor> implements AttributeSupport{
+    private static final class HttpModelOfAttributes extends ModelOfAttributes<HttpAttributeAccessor> implements AttributeSupport{
 
         @Override
         public String getAttribute(final String resourceName, final String attributeName) throws WebApplicationException {
@@ -139,19 +139,19 @@ final class HttpAdapter extends AbstractResourceAdapter {
 
         private void clear() {
             for(final NotificationAccessor accessor: notifications.values())
-                accessor.disconnect();
+                accessor.close();
             notifications.clear();
         }
     }
 
-    private static final class HttpNotificationsModel extends AbstractNotificationsModel<HttpNotificationAccessor> implements NotificationSupport{
+    private static final class HttpNotificationsModelOfNotifications extends ModelOfNotifications<HttpNotificationAccessor> implements NotificationSupport{
         private final KeyedObjects<String, NotificationBroadcaster> notifications;
         private static final Gson FORMATTER = Formatters.enableAll(new GsonBuilder())
                 .serializeSpecialFloatingPointValues()
                 .serializeNulls()
                 .create();
 
-        private HttpNotificationsModel(){
+        private HttpNotificationsModelOfNotifications(){
             this.notifications = createBroadcasters();
         }
 
@@ -237,10 +237,10 @@ final class HttpAdapter extends AbstractResourceAdapter {
     }
 
     private static final class JerseyServletFactory implements ServletFactory<ServletContainer> {
-        private final HttpNotificationsModel notifications;
-        private final HttpAttributesModel attributes;
+        private final HttpNotificationsModelOfNotifications notifications;
+        private final HttpModelOfAttributes attributes;
 
-        JerseyServletFactory(final HttpAttributesModel attributes, final HttpNotificationsModel notifications){
+        JerseyServletFactory(final HttpModelOfAttributes attributes, final HttpNotificationsModelOfNotifications notifications){
             this.notifications = Objects.requireNonNull(notifications);
             this.attributes = Objects.requireNonNull(attributes);
         }
@@ -263,8 +263,8 @@ final class HttpAdapter extends AbstractResourceAdapter {
     HttpAdapter(final String instanceName, final HttpService servletPublisher) {
         super(instanceName);
         publisher = Objects.requireNonNull(servletPublisher, "servletPublisher is null.");
-        servletFactory = new JerseyServletFactory(new HttpAttributesModel(),
-                new HttpNotificationsModel());
+        servletFactory = new JerseyServletFactory(new HttpModelOfAttributes(),
+                new HttpNotificationsModelOfNotifications());
     }
 
     private String getServletContext(){

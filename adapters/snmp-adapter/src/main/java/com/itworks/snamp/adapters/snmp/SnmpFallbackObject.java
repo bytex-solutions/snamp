@@ -1,12 +1,10 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.itworks.snamp.adapters.AttributeAccessor;
 import com.itworks.snamp.internal.annotations.SpecialUse;
 import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.SMIConstants;
 
 import javax.management.InvalidAttributeValueException;
-import java.text.ParseException;
 import java.util.Objects;
 
 /**

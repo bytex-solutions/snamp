@@ -1,5 +1,8 @@
-package com.itworks.snamp.adapters;
+package com.itworks.snamp.adapters.modeling;
 
+import com.itworks.snamp.connectors.FeatureModifiedEvent;
+import com.itworks.snamp.connectors.notifications.NotificationAddedEvent;
+import com.itworks.snamp.connectors.notifications.NotificationRemovingEvent;
 import com.itworks.snamp.connectors.notifications.NotificationSupport;
 import com.itworks.snamp.connectors.notifications.TypeBasedNotificationFilter;
 import com.itworks.snamp.internal.annotations.MethodStub;
@@ -13,7 +16,7 @@ import javax.management.NotificationListener;
  * @since 1.0
  * @version 1.0
  */
-public abstract class NotificationAccessor extends FeatureAccessor<MBeanNotificationInfo, NotificationSupport> implements NotificationListener {
+public abstract class NotificationAccessor extends FeatureAccessor<MBeanNotificationInfo> implements NotificationListener {
     private NotificationSupport notificationSupport;
 
     /**
@@ -26,7 +29,19 @@ public abstract class NotificationAccessor extends FeatureAccessor<MBeanNotifica
     }
 
     @Override
-    final void connect(final NotificationSupport value) {
+    public final boolean processEvent(final FeatureModifiedEvent<MBeanNotificationInfo> event) {
+        if(event instanceof NotificationAddedEvent) {
+            connect(((NotificationAddedEvent) event).getSource());
+            return true;
+        }
+        else if(event instanceof NotificationRemovingEvent) {
+            close();
+            return true;
+        }
+        else return false;
+    }
+
+    private void connect(final NotificationSupport value) {
         this.notificationSupport = value;
         if(value != null)
             value.addNotificationListener(this, createFilter(), null);
@@ -52,7 +67,7 @@ public abstract class NotificationAccessor extends FeatureAccessor<MBeanNotifica
      * Disconnects notification accessor from the managed resource.
      */
     @Override
-    public final void disconnect() {
+    public final void close() {
         try {
             final NotificationSupport ns = this.notificationSupport;
             if(ns != null)

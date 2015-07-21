@@ -6,7 +6,7 @@ import com.google.common.collect.Collections2;
 import com.itworks.snamp.Consumer;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.StringAppender;
-import com.itworks.snamp.adapters.AbstractAttributesModel;
+import com.itworks.snamp.adapters.modeling.ModelOfAttributes;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.jmx.TabularDataUtils;
 import com.itworks.snamp.jmx.WellKnownType;
@@ -26,7 +26,7 @@ import java.util.Objects;
  * @version 1.0
  * @since 1.0
  */
-final class XMPPAttributeModel extends AbstractAttributesModel<XMPPAttributeAccessor> implements AttributeReader, AttributeWriter {
+final class XMPPAttributeModelOfAttributes extends ModelOfAttributes<XMPPAttributeAccessor> implements AttributeReader, AttributeWriter {
     private static final class Reader implements Consumer<XMPPAttributeAccessor, JMException>{
         private final AttributeValueFormat format;
         private String output;

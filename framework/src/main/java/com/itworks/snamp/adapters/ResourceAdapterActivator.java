@@ -4,15 +4,10 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.itworks.snamp.AbstractAggregator;
 import com.itworks.snamp.ArrayUtils;
-import com.itworks.snamp.adapters.binding.FeatureBindingInfo;
-import com.itworks.snamp.adapters.binding.RuntimeInformationService;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.configuration.PersistentConfigurationManager;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
-import com.itworks.snamp.core.AbstractServiceLibrary;
-import com.itworks.snamp.core.FrameworkService;
-import com.itworks.snamp.core.LogicalOperation;
-import com.itworks.snamp.core.OSGiLoggingContext;
+import com.itworks.snamp.core.*;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.MethodStub;
 import com.itworks.snamp.management.Maintainable;
@@ -42,6 +37,7 @@ import static com.itworks.snamp.adapters.ResourceAdapter.ADAPTER_NAME_MANIFEST_H
  * @since 1.0
  */
 public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> extends AbstractServiceLibrary {
+    private static final String ADAPTER_INSTANCE_IDENTITY_PROPERTY = "instanceName";
     private static final ActivationProperty<String> ADAPTER_NAME_HOLDER = defineActivationProperty(String.class);
     private static final ActivationProperty<Logger> LOGGER_HOLDER = defineActivationProperty(Logger.class);
 
@@ -57,7 +53,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
                                final RequiredService<?>... dependencies) throws Exception;
     }
 
-    private static final class ResourceAdapterRegistry<TAdapter extends AbstractResourceAdapter> extends DynamicServiceManager<TAdapter>{
+    private static final class ResourceAdapterRegistry<TAdapter extends AbstractResourceAdapter> extends ServiceSubRegistryManager<ResourceAdapter, TAdapter>{
         private final ResourceAdapterFactory<TAdapter> adapterFactory;
         /**
          * Represents name of the resource adapter.
@@ -67,7 +63,9 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
         private ResourceAdapterRegistry(final String adapterName,
                                         final ResourceAdapterFactory<TAdapter> factory,
                                         final RequiredService<?>... dependencies){
-            super(PersistentConfigurationManager.getAdapterFactoryPersistentID(adapterName), dependencies);
+            super(ResourceAdapter.class,
+                    PersistentConfigurationManager.getAdapterFactoryPersistentID(adapterName),
+                    dependencies);
             this.adapterFactory = Objects.requireNonNull(factory, "factory is null.");
             this.adapterName = adapterName;
         }
@@ -88,38 +86,20 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
             return OSGiLoggingContext.get(logger, getBundleContext());
         }
 
-        /**
-         * Automatically invokes by SNAMP when the dynamic service should be updated with
-         * a new configuration.
-         *
-         * @param adapter      The service to be updated.
-         * @param configuration A new configuration of the service.
-         * @param dependencies  A collection of dependencies required for the service.
-         * @return An updated service.
-         * @throws Exception                                  Unable to create new service or update the existing service.
-         * @throws org.osgi.service.cm.ConfigurationException Invalid service configuration.
-         */
         @Override
-        protected TAdapter updateService(final TAdapter adapter, final Dictionary<String, ?> configuration, final RequiredService<?>... dependencies) throws Exception {
+        protected TAdapter update(final TAdapter adapter,
+                                  final Dictionary<String, ?> configuration,
+                                  final RequiredService<?>... dependencies) throws Exception {
             adapter.tryUpdate(PersistentConfigurationManager.getAdapterParameters(configuration));
             return adapter;
         }
 
-        /**
-         * Automatically invokes by SNAMP when the new dynamic service should be created.
-         *
-         * @param servicePID    The persistent identifier associated with a newly created service.
-         * @param configuration A new configuration of the service.
-         * @param dependencies  A collection of dependencies required for the newly created service.
-         * @return A new instance of the service.
-         * @throws Exception                                  Unable to instantiate the service.
-         * @throws org.osgi.service.cm.ConfigurationException Invalid service configuration.
-         */
         @Override
-        protected TAdapter activateService(final String servicePID,
-                                           final Dictionary<String, ?> configuration,
-                                           final RequiredService<?>... dependencies) throws Exception {
+        protected TAdapter createService(final Map<String, Object> identity,
+                                         final Dictionary<String, ?> configuration,
+                                         final RequiredService<?>... dependencies) throws Exception {
             final String instanceName = PersistentConfigurationManager.getAdapterInstanceName(configuration);
+            createIdentity(adapterName, instanceName, identity);
             final TAdapter resourceAdapter = adapterFactory.createAdapter(instanceName, dependencies);
             if (resourceAdapter != null)
                 if(resourceAdapter.tryStart(PersistentConfigurationManager.getAdapterParameters(configuration))) {
@@ -134,15 +114,8 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
             else throw new InstantiationException(String.format("Unable to instantiate '%s' instance", instanceName));
         }
 
-        /**
-         * Automatically invokes by SNAMP when service is disposing.
-         *
-         * @param adapter   A service to dispose.
-         * @param bundleStop {@literal true}, if disposing is initiated by bundle stop operation; otherwise, {@literal false}.
-         * @throws Exception Unable to dispose the service.
-         */
         @Override
-        protected void dispose(final TAdapter adapter, final boolean bundleStop) throws IOException {
+        protected void cleanupService(final TAdapter adapter, final Dictionary<String, ?> identity) throws IOException {
             try {
                 getBundleContext().removeServiceListener(adapter);
             }
@@ -185,6 +158,13 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
         }
     }
 
+    private static void createIdentity(final String adapterName,
+                                       final String instanceName,
+                                       final Map<String, Object> identity){
+        identity.put(ADAPTER_NAME_MANIFEST_HEADER, adapterName);
+        identity.put(ADAPTER_INSTANCE_IDENTITY_PROPERTY, instanceName);
+    }
+
     /**
      * Represents superclass for all optional adapter-related service factories.
      * You cannot derive from this class directly.
@@ -207,75 +187,6 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
          */
         protected final String getAdapterName(){
             return getActivationPropertyValue(ADAPTER_NAME_HOLDER);
-        }
-    }
-
-    private final static class RuntimeInformationServiceImpl extends AbstractAggregator implements RuntimeInformationService, ResourceAdapterEventListener{
-        private final Cache<String, AbstractBindingInfoProvider> bindingCache;
-
-        private RuntimeInformationServiceImpl(){
-            this.bindingCache = CacheBuilder.newBuilder().weakValues().build();
-        }
-
-        @Override
-        public <B extends FeatureBindingInfo> Collection<? extends B> getBindingInfo(final String adapterInstanceName, final Class<B> bindingType) {
-            final AbstractBindingInfoProvider supplier = bindingCache.getIfPresent(adapterInstanceName);
-            return supplier == null ? Collections.<B>emptyList() : supplier.getBindings(bindingType);
-        }
-
-        @Override
-        @Aggregation
-        public Logger getLogger() {
-            return Logger.getLogger(getClass().getName());
-        }
-
-        @Override
-        public void handle(final ResourceAdapterEvent e) {
-            if (e instanceof ResourceAdapterStartedEvent && e.getSource() instanceof AbstractBindingInfoProvider)
-                bindingCache.put(e.getSource().getInstanceName(), (AbstractBindingInfoProvider) e.getSource());
-            else if (e instanceof ResourceAdapterStoppedEvent)
-                bindingCache.invalidate(e.getSource().getInstanceName());
-        }
-    }
-
-    /**
-     * Represents manager for the service that can supply information about features binding.
-     * This class cannot be inherited.
-     */
-    protected final static class RuntimeInformationServiceManager extends SupportAdapterServiceManager<RuntimeInformationService, RuntimeInformationServiceImpl> {
-        public RuntimeInformationServiceManager() {
-            super(RuntimeInformationService.class);
-        }
-
-        /**
-         * Creates a new instance of the service.
-         *
-         * @param identity     A dictionary of properties that uniquely identifies service instance.
-         * @param dependencies A collection of dependencies.
-         * @return A new instance of the service.
-         */
-        @Override
-        protected final RuntimeInformationServiceImpl activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) {
-            identity.put(ADAPTER_NAME_MANIFEST_HEADER, getAdapterName());
-            final RuntimeInformationServiceImpl service = new RuntimeInformationServiceImpl();
-            ResourceAdapterEventBus.addEventListener(getAdapterName(), service);
-            return service;
-        }
-
-        /**
-         * Provides service cleanup operations.
-         * <p>
-         * In the default implementation this method does nothing.
-         * </p>
-         *
-         * @param serviceInstance An instance of the hosted service to cleanup.
-         * @param stopBundle      {@literal true}, if this method calls when the owner bundle is stopping;
-         *                        {@literal false}, if this method calls when loosing dependency.
-         */
-        @Override
-        protected void cleanupService(final RuntimeInformationServiceImpl serviceInstance,
-                                      final boolean stopBundle) {
-            ResourceAdapterEventBus.removeEventListener(getAdapterName(), serviceInstance);
         }
     }
 

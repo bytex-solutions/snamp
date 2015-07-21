@@ -1,4 +1,4 @@
-package com.itworks.snamp.adapters;
+package com.itworks.snamp.adapters.modeling;
 
 import com.itworks.snamp.internal.RecordReader;
 
@@ -8,6 +8,6 @@ import com.itworks.snamp.internal.RecordReader;
  * @version 1.0
  * @since 1.0
  */
-public interface NotificationsModelReader<TAccessor extends NotificationAccessor> {
+public interface NotificationSet<TAccessor extends NotificationAccessor> {
     <E extends Exception> void forEachNotification(final RecordReader<String, ? super TAccessor, E> notificationReader) throws E;
 }

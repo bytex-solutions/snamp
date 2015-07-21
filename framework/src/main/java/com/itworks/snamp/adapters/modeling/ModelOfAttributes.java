@@ -1,4 +1,4 @@
-package com.itworks.snamp.adapters;
+package com.itworks.snamp.adapters.modeling;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -19,13 +19,13 @@ import java.util.*;
  * @since 1.0
  */
 @ThreadSafe
-public abstract class AbstractAttributesModel<TAccessor extends AttributeAccessor> extends ThreadSafeObject implements AttributesModelReader<TAccessor> {
+public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> extends ThreadSafeObject implements AttributeSet<TAccessor> {
     private final HashMap<String, ResourceAttributeList<TAccessor>> attributes;
 
     /**
      * Initializes a new storage.
      */
-    protected AbstractAttributesModel(){
+    protected ModelOfAttributes(){
         attributes = new HashMap<>(10);
     }
 

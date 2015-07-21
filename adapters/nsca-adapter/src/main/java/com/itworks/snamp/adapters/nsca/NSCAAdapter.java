@@ -8,6 +8,7 @@ import com.googlecode.jsendnsca.core.NagiosSettings;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.adapters.NotificationListener;
+import com.itworks.snamp.adapters.modeling.*;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.notifications.NotificationDescriptor;
@@ -19,7 +20,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
-import java.util.logging.Logger;
 
 import static com.itworks.snamp.adapters.nsca.NSCAAdapterConfigurationDescriptor.*;
 import static com.itworks.snamp.adapters.nsca.NSCAAdapterConfigurationDescriptor.getServiceName;
@@ -32,7 +32,7 @@ import static com.itworks.snamp.adapters.nsca.NSCAAdapterConfigurationDescriptor
  * @since 1.0
  */
 final class NSCAAdapter extends AbstractResourceAdapter {
-    private static final class NSCAAttributeAccessor extends AttributeAccessor{
+    private static final class NSCAAttributeAccessor extends AttributeAccessor {
         private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat();
 
         private NSCAAttributeAccessor(final MBeanAttributeInfo metadata) {
@@ -69,7 +69,7 @@ final class NSCAAdapter extends AbstractResourceAdapter {
         }
     }
 
-    private static final class NSCAAttributeModel extends AbstractAttributesModel<NSCAAttributeAccessor>{
+    private static final class NSCAAttributeModelOfAttributes extends ModelOfAttributes<NSCAAttributeAccessor> {
 
         @Override
         protected NSCAAttributeAccessor createAccessor(final MBeanAttributeInfo metadata) throws Exception {
@@ -179,7 +179,7 @@ final class NSCAAdapter extends AbstractResourceAdapter {
             try (final LockScope ignored = beginWrite()) {
                 for (final ResourceNotificationList<?> list : notifications.values())
                     for (final NotificationAccessor accessor : list.values())
-                        accessor.disconnect();
+                        accessor.close();
             }
             final ConcurrentPassiveCheckSender sender = checkSender;
             if (sender != null)
@@ -193,7 +193,7 @@ final class NSCAAdapter extends AbstractResourceAdapter {
 
         NSCAPeriodPassiveCheckSender(final TimeSpan period,
                                      final ConcurrentPassiveCheckSender sender,
-                                     final NSCAAttributeModel attributes) {
+                                     final NSCAAttributeModelOfAttributes attributes) {
             super(period, attributes);
             checkSender = Objects.requireNonNull(sender);
         }
@@ -206,13 +206,13 @@ final class NSCAAdapter extends AbstractResourceAdapter {
         }
     }
 
-    private final NSCAAttributeModel attributes;
+    private final NSCAAttributeModelOfAttributes attributes;
     private NSCAPeriodPassiveCheckSender attributeChecker;
     private final NSCANotificationModel notifications;
 
     NSCAAdapter(final String instanceName) {
         super(instanceName);
-        attributes = new NSCAAttributeModel();
+        attributes = new NSCAAttributeModelOfAttributes();
         notifications = new NSCANotificationModel();
     }
 

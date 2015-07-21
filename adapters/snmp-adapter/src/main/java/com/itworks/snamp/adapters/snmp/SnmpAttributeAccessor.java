@@ -1,13 +1,12 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.itworks.snamp.adapters.AttributeAccessor;
+import com.itworks.snamp.adapters.modeling.AttributeAccessor;
 import org.snmp4j.agent.DuplicateRegistrationException;
 import org.snmp4j.agent.MOServer;
 import org.snmp4j.agent.ManagedObject;
 import org.snmp4j.smi.OID;
 
 import javax.management.MBeanAttributeInfo;
-import java.text.ParseException;
 import java.util.Objects;
 
 /**

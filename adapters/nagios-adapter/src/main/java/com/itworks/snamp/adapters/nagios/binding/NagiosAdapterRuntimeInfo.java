@@ -1,8 +1,7 @@
 package com.itworks.snamp.adapters.nagios.binding;
 
 import com.itworks.snamp.ExceptionPlaceholder;
-import com.itworks.snamp.adapters.AttributesModelReader;
-import com.itworks.snamp.adapters.binding.FeatureBindingInfo;
+import com.itworks.snamp.adapters.modeling.AttributeSet;
 import com.itworks.snamp.adapters.nagios.NagiosAttributeAccessor;
 import com.itworks.snamp.internal.RecordReader;
 
@@ -22,7 +21,7 @@ public final class NagiosAdapterRuntimeInfo {
     }
 
     private static Collection<NagiosAttributeBindingInfo> getAttributes(final String servletContext,
-                                                                        final AttributesModelReader<NagiosAttributeAccessor> attributes){
+                                                                        final AttributeSet<NagiosAttributeAccessor> attributes){
         final List<NagiosAttributeBindingInfo> result = new LinkedList<>();
         attributes.forEachAttribute(new RecordReader<String, NagiosAttributeAccessor, ExceptionPlaceholder>() {
             @Override
@@ -36,7 +35,7 @@ public final class NagiosAdapterRuntimeInfo {
 
     public static <B extends FeatureBindingInfo> Collection<? extends B> getBindingInfo(final Class<B> bindingType,
                                                                                         final String servletContext,
-                                                                                        final AttributesModelReader<NagiosAttributeAccessor> attributes){
+                                                                                        final AttributeSet<NagiosAttributeAccessor> attributes){
         if(bindingType.isAssignableFrom(NagiosAttributeBindingInfo.class))
             return (Collection<B>)getAttributes(servletContext, attributes);
         else return Collections.emptyList();

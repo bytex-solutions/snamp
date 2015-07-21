@@ -1,10 +1,8 @@
 package com.itworks.snamp.adapters.jmx.binding;
 
-import com.itworks.snamp.adapters.binding.AttributeBindingInfo;
 import com.itworks.snamp.adapters.jmx.JmxAttributeAccessor;
 
 import javax.management.openmbean.OpenType;
-import javax.management.openmbean.SimpleType;
 
 /**
  * @author Roman Sakno

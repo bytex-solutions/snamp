@@ -1,7 +1,6 @@
 package com.itworks.snamp.adapters.http.binding;
 
 import com.itworks.snamp.adapters.http.HttpAttributeAccessor;
-import com.itworks.snamp.adapters.binding.AttributeBindingInfo;
 
 /**
  * @author Roman Sakno

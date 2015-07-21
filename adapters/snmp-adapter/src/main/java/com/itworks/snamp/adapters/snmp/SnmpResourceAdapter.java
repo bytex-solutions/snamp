@@ -3,8 +3,10 @@ package com.itworks.snamp.adapters.snmp;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
 import com.itworks.snamp.adapters.*;
+import com.itworks.snamp.adapters.modeling.AttributeAccessor;
+import com.itworks.snamp.adapters.modeling.FeatureAccessor;
+import com.itworks.snamp.adapters.modeling.NotificationAccessor;
 import com.itworks.snamp.adapters.profiles.PolymorphicResourceAdapter;
-import com.itworks.snamp.adapters.binding.FeatureBindingInfo;
 import com.itworks.snamp.adapters.snmp.binding.SnmpAdapterRuntimeInfo;
 import org.osgi.service.jndi.JNDIContextManager;
 import org.snmp4j.agent.DuplicateRegistrationException;
@@ -228,10 +230,10 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
                 updateManager.close();
             //remove all notifications
             for (final FeatureAccessor<?, ?> mapping : notifications.values())
-                mapping.disconnect();
+                mapping.close();
             //remove all attributes
             for (final FeatureAccessor<?, ?> mapping : attributes.values())
-                mapping.disconnect();
+                mapping.close();
         } finally {
             updateManager = null;
             notifications.clear();

@@ -1,6 +1,6 @@
 package com.itworks.snamp.adapters.nagios;
 
-import com.itworks.snamp.adapters.AttributeAccessor;
+import com.itworks.snamp.adapters.modeling.AttributeAccessor;
 
 import javax.management.AttributeNotFoundException;
 import javax.management.MBeanAttributeInfo;

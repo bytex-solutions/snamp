@@ -3,7 +3,7 @@ package com.itworks.snamp.adapters.xmpp;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.itworks.snamp.adapters.NotificationListener;
-import com.itworks.snamp.adapters.NotificationRouter;
+import com.itworks.snamp.adapters.modeling.NotificationRouter;
 import com.itworks.snamp.jmx.json.Formatters;
 import org.jivesoftware.smack.packet.ExtensionElement;
 import org.jivesoftware.smackx.jiveproperties.packet.JivePropertiesExtension;

@@ -1,13 +1,11 @@
 package com.itworks.snamp.adapters.http;
 
-import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.itworks.snamp.adapters.AttributeAccessor;
+import com.itworks.snamp.adapters.modeling.AttributeAccessor;
 import com.itworks.snamp.jmx.json.Formatters;
 
 import javax.management.MBeanAttributeInfo;
-import java.text.MessageFormat;
 
 /**
  * @author Roman Sakno

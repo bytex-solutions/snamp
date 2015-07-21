@@ -1,8 +1,7 @@
 package com.itworks.snamp.adapters.nagios;
 
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
-import com.itworks.snamp.adapters.FeatureAccessor;
-import com.itworks.snamp.adapters.binding.FeatureBindingInfo;
+import com.itworks.snamp.adapters.modeling.FeatureAccessor;
 import com.itworks.snamp.adapters.nagios.binding.NagiosAdapterRuntimeInfo;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;

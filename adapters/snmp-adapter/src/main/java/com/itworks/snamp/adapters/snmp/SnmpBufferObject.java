@@ -11,9 +11,6 @@ import javax.management.InvalidAttributeValueException;
 import javax.management.ReflectionException;
 import java.lang.reflect.Type;
 import java.nio.*;
-import java.text.ParseException;
-
-import com.itworks.snamp.adapters.AttributeAccessor;
 
 /**
  * Represents SNMP wrapper for all buffer types.

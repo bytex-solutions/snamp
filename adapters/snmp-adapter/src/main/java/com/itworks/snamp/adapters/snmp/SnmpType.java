@@ -1,8 +1,6 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.itworks.snamp.adapters.AttributeAccessor;
 import com.itworks.snamp.jmx.DescriptorUtils;
-import org.snmp4j.agent.*;
 import org.snmp4j.smi.*;
 
 import javax.management.DescriptorRead;
@@ -10,10 +8,7 @@ import javax.management.InvalidAttributeValueException;
 import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.nio.Buffer;
-import java.text.ParseException;
 import java.util.Date;
-
-import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.parseOID;
 
 /**
  * Represents SNMP managed object factory.

@@ -1,8 +1,8 @@
 package com.itworks.snamp.adapters.xmpp;
 
 import com.google.common.collect.ImmutableList;
-import com.itworks.snamp.adapters.MulticastNotificationListener;
-import com.itworks.snamp.adapters.ResourceNotificationList;
+import com.itworks.snamp.adapters.modeling.MulticastNotificationListener;
+import com.itworks.snamp.adapters.modeling.ResourceNotificationList;
 
 import javax.management.MBeanNotificationInfo;
 import java.util.HashMap;

@@ -2,7 +2,10 @@ package com.itworks.snamp.adapters;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.itworks.snamp.adapters.binding.FeatureBindingInfo;
+import com.itworks.snamp.AbstractAggregator;
+import com.itworks.snamp.adapters.modeling.AttributeAccessor;
+import com.itworks.snamp.adapters.modeling.FeatureAccessor;
+import com.itworks.snamp.adapters.modeling.NotificationAccessor;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.connectors.ResourceEvent;
@@ -44,7 +47,7 @@ import static com.itworks.snamp.internal.Utils.getBundleContextByObject;
  * @since 1.0
  * @version 1.0
  */
-public abstract class AbstractResourceAdapter extends AbstractBindingInfoProvider implements ResourceAdapter, ResourceEventListener{
+public abstract class AbstractResourceAdapter extends AbstractAggregator implements ResourceAdapter, ResourceEventListener{
     private static final class ResourceAdapterUpdateNotifier extends WeakReference<AbstractResourceAdapter> implements ResourceAdapterUpdatedCallback {
 
         private ResourceAdapterUpdateNotifier(final AbstractResourceAdapter adapter) {
@@ -140,43 +143,43 @@ public abstract class AbstractResourceAdapter extends AbstractBindingInfoProvide
     }
 
     private void attributeAdded(final AttributeAddedEvent event){
-        final FeatureAccessor<MBeanAttributeInfo, AttributeSupport> accessor =
+        final FeatureAccessor<MBeanAttributeInfo> accessor =
                 addFeatureImpl(event.getResourceName(), event.getFeature());
         if(accessor != null)
-            accessor.connect(event.getSource());
+            accessor.processEvent(event);
     }
 
     private void attributeRemoved(final AttributeRemovingEvent event){
-        final FeatureAccessor<MBeanAttributeInfo, ?> accessor =
+        final FeatureAccessor<MBeanAttributeInfo> accessor =
                 removeFeatureImpl(event.getResourceName(), event.getFeature());
         if(accessor != null)
-            accessor.disconnect();
+            accessor.processEvent(event);
     }
 
     private void notificationAdded(final NotificationAddedEvent event){
-        final FeatureAccessor<MBeanNotificationInfo, NotificationSupport> accessor =
+        final FeatureAccessor<MBeanNotificationInfo> accessor =
                 addFeatureImpl(event.getResourceName(), event.getFeature());
         if(accessor != null)
-            accessor.connect(event.getSource());
+            accessor.processEvent(event);
     }
 
     private void notificationRemoved(final NotificationRemovingEvent event){
-        final FeatureAccessor<MBeanNotificationInfo, ?> accessor = removeFeatureImpl(event.getResourceName(), event.getFeature());
+        final FeatureAccessor<MBeanNotificationInfo> accessor = removeFeatureImpl(event.getResourceName(), event.getFeature());
         if(accessor != null)
-            accessor.disconnect();
+            accessor.processEvent(event);
     }
 
     private void operationAdded(final OperationAddedEvent event){
-        final FeatureAccessor<MBeanOperationInfo, OperationSupport> accessor =
+        final FeatureAccessor<MBeanOperationInfo> accessor =
                 addFeatureImpl(event.getResourceName(), event.getFeature());
         if(accessor != null)
-            accessor.connect(event.getSource());
+            accessor.processEvent(event);
     }
 
     private void operationRemoved(final OperationRemovingEvent event){
-        final FeatureAccessor<MBeanOperationInfo, ?> accessor = removeFeatureImpl(event.getResourceName(), event.getFeature());
+        final FeatureAccessor<MBeanOperationInfo> accessor = removeFeatureImpl(event.getResourceName(), event.getFeature());
         if(accessor != null)
-            accessor.disconnect();
+            accessor.processEvent(event);
     }
 
     /**
@@ -208,15 +211,14 @@ public abstract class AbstractResourceAdapter extends AbstractBindingInfoProvide
      * @param resourceName The name of the managed resource.
      * @param feature A new feature of the managed resource.
      * @param <M> Type of the managed resource feature.
-     * @param <S> Type of the object that provides support for the specified feature.
      * @return A new instance of the resource feature accessor. May be {@literal null}.
      * @see AttributeAccessor
      * @see NotificationAccessor
      */
-    protected abstract <M extends MBeanFeatureInfo, S> FeatureAccessor<M, S> addFeature(final String resourceName,
+    protected abstract <M extends MBeanFeatureInfo, S> FeatureAccessor<M> addFeature(final String resourceName,
                                        final M feature) throws Exception;
 
-    private <M extends MBeanFeatureInfo, S> FeatureAccessor<M, S> addFeatureImpl(final String resourceName,
+    private <M extends MBeanFeatureInfo, S> FeatureAccessor<M> addFeatureImpl(final String resourceName,
                                                                              final M feature){
         try {
             return addFeature(resourceName, feature);
@@ -244,9 +246,9 @@ public abstract class AbstractResourceAdapter extends AbstractBindingInfoProvide
      * @param resourceName The name of the resource.
      * @return Read-only collection of features tracked by this resource adapter. Cannot be {@literal null}.
      */
-    protected abstract Iterable<? extends FeatureAccessor<?, ?>> removeAllFeatures(final String resourceName) throws Exception;
+    protected abstract Iterable<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception;
 
-    private Iterable<? extends FeatureAccessor<?, ?>> removeAllFeaturesImpl(final String resourceName){
+    private Iterable<? extends FeatureAccessor<?>> removeAllFeaturesImpl(final String resourceName){
         try {
             return removeAllFeatures(resourceName);
         } catch (final Exception e) {
@@ -270,10 +272,10 @@ public abstract class AbstractResourceAdapter extends AbstractBindingInfoProvide
      * @param <M> The type of the resource feature.
      * @return An instance of the feature accessor used by this resource adapter. May be {@literal null}.
      */
-    protected abstract <M extends MBeanFeatureInfo> FeatureAccessor<M, ?> removeFeature(final String resourceName,
+    protected abstract <M extends MBeanFeatureInfo> FeatureAccessor<M> removeFeature(final String resourceName,
                                                                                         final M feature) throws Exception;
 
-    private <M extends MBeanFeatureInfo> FeatureAccessor<M, ?> removeFeatureImpl(final String resourceName,
+    private <M extends MBeanFeatureInfo> FeatureAccessor<M> removeFeatureImpl(final String resourceName,
                                                                              final M feature){
         try {
             return removeFeature(resourceName, feature);
@@ -398,8 +400,8 @@ public abstract class AbstractResourceAdapter extends AbstractBindingInfoProvide
         if(connector != null)
             try{
                 connector.removeResourceEventListener(this);
-                for(final FeatureAccessor<?, ?> accessor: removeAllFeaturesImpl(resourceName))
-                    accessor.disconnect();
+                for(final FeatureAccessor<?> accessor: removeAllFeaturesImpl(resourceName))
+                    accessor.close();
             }
             finally {
                 context.ungetService(resourceRef);
@@ -562,17 +564,6 @@ public abstract class AbstractResourceAdapter extends AbstractBindingInfoProvide
         return adapterInstanceName;
     }
 
-    /**
-     * Gets information about binding of the features.
-     * @param bindingType Type of the feature binding.
-     * @param <B> Type of the feature binding.
-     * @return A collection of features
-     */
-    @Override
-    protected <B extends FeatureBindingInfo> Collection<? extends B> getBindings(final Class<B> bindingType){
-        return Collections.emptyList();
-    }
-
     public final String getAdapterName(){
         return getAdapterName(this);
     }
@@ -595,5 +586,11 @@ public abstract class AbstractResourceAdapter extends AbstractBindingInfoProvide
 
     static String getAdapterName(final Bundle bnd){
         return getAdapterName(bnd.getHeaders());
+    }
+
+    @Override
+    public <M extends MBeanFeatureInfo> Collection<? extends FeatureBindingInfo<M>> getBindings(final Class<M> featureType,
+                                                                                                final String resourceName) {
+        return Collections.emptyList();
     }
 }

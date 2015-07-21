@@ -1,7 +1,6 @@
 package com.itworks.snamp.adapters.snmp;
 
 import com.google.common.base.Function;
-import com.itworks.snamp.adapters.AttributeAccessor;
 import com.itworks.snamp.jmx.WellKnownType;
 import org.snmp4j.agent.*;
 import org.snmp4j.smi.OID;

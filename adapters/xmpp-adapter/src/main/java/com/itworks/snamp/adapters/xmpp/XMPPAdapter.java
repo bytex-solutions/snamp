@@ -2,7 +2,7 @@ package com.itworks.snamp.adapters.xmpp;
 
 import com.google.common.collect.Iterables;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
-import com.itworks.snamp.adapters.FeatureAccessor;
+import com.itworks.snamp.adapters.modeling.FeatureAccessor;
 import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
@@ -17,7 +17,6 @@ import javax.management.MBeanNotificationInfo;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Map;
-import java.util.logging.Logger;
 
 /**
  * @author Roman Sakno

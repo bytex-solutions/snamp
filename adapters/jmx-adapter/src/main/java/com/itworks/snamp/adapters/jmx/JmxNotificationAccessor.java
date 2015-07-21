@@ -1,6 +1,6 @@
 package com.itworks.snamp.adapters.jmx;
 
-import com.itworks.snamp.adapters.NotificationAccessor;
+import com.itworks.snamp.adapters.modeling.NotificationAccessor;
 
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;

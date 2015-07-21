@@ -1,7 +1,6 @@
 package com.itworks.snamp.adapters.groovy.impl.binding;
 
 import com.itworks.snamp.adapters.groovy.impl.ScriptAttributeAccessor;
-import com.itworks.snamp.adapters.binding.AttributeBindingInfo;
 import com.itworks.snamp.jmx.WellKnownType;
 
 /**

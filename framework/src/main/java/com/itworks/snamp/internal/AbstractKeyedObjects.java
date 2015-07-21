@@ -1,5 +1,7 @@
 package com.itworks.snamp.internal;
 
+import com.itworks.snamp.SerializableMap;
+
 import java.util.HashMap;
 
 /**
@@ -8,7 +10,7 @@ import java.util.HashMap;
  * @version 1.0
  * @since 1.0
  */
-public abstract class AbstractKeyedObjects<K, V> extends HashMap<K, V> implements KeyedObjects<K, V> {
+public abstract class AbstractKeyedObjects<K, V> extends HashMap<K, V> implements KeyedObjects<K, V>, SerializableMap<K, V> {
     private static final long serialVersionUID = 330704774449284851L;
 
     /**

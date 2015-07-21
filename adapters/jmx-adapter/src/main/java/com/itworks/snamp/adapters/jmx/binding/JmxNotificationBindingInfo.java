@@ -1,6 +1,5 @@
 package com.itworks.snamp.adapters.jmx.binding;
 
-import com.itworks.snamp.adapters.binding.NotificationBindingInfo;
 import com.itworks.snamp.adapters.jmx.JmxNotificationAccessor;
 
 /**

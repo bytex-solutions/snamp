@@ -626,11 +626,13 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                                                                       final RequiredService<?>... dependencies) throws Exception {
             final T oldService = registration.serviceInstance;
             final T newService = update(oldService, configuration, dependencies);
-            if(oldService != newService) {
+            if (newService == null)
+                registration = null;
+            else if (oldService != newService) {
                 //save the identity of the service
                 final ServiceReference<S> ref = registration.registration.getReference();
                 final Hashtable<String, Object> identity = new Hashtable<>(ref.getPropertyKeys().length);
-                for(final String key: registration.registration.getReference().getPropertyKeys())
+                for (final String key : registration.registration.getReference().getPropertyKeys())
                     identity.put(key, ref.getProperty(key));
                 //re-register updated service
                 dispose(registration, false);
@@ -670,10 +672,8 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                                                                final RequiredService<?>... dependencies) throws Exception {
             final Hashtable<String, Object> identity = new Hashtable<>(4);
             identity.put(Constants.SERVICE_PID, servicePID);
-            return new ServiceRegistrationHolder<>(serviceContract,
-                    createService(identity, configuration, dependencies),
-                    identity,
-                    getBundleContextByObject(this));
+            final T service = createService(identity, configuration, dependencies);
+            return service != null ? new ServiceRegistrationHolder<>(serviceContract, service, identity, getBundleContextByObject(this)) : null;
         }
 
         /**

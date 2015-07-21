@@ -1,11 +1,7 @@
 package com.itworks.snamp.adapters.groovy;
 
-import com.itworks.snamp.adapters.NotificationAccessor;
-import com.itworks.snamp.adapters.NotificationListener;
+import com.itworks.snamp.adapters.modeling.NotificationAccessor;
 import com.itworks.snamp.internal.RecordReader;
-import groovy.lang.Closure;
-
-import javax.management.JMException;
 
 /**
  * Represents root-level DSL for working with events.

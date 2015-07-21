@@ -3,7 +3,7 @@ package com.itworks.snamp.adapters.xmpp;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.itworks.snamp.StringAppender;
-import com.itworks.snamp.adapters.AttributeAccessor;
+import com.itworks.snamp.adapters.modeling.AttributeAccessor;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.jmx.json.Formatters;
 import org.jivesoftware.smack.packet.ExtensionElement;

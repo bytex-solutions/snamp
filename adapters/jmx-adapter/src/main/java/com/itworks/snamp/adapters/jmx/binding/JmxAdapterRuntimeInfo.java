@@ -1,10 +1,8 @@
 package com.itworks.snamp.adapters.jmx.binding;
 
 import com.itworks.snamp.ExceptionPlaceholder;
-import com.itworks.snamp.adapters.AttributesModelReader;
-import com.itworks.snamp.adapters.NotificationsModelReader;
-import com.itworks.snamp.adapters.binding.AttributeBindingInfo;
-import com.itworks.snamp.adapters.binding.FeatureBindingInfo;
+import com.itworks.snamp.adapters.modeling.AttributeSet;
+import com.itworks.snamp.adapters.modeling.NotificationSet;
 import com.itworks.snamp.adapters.jmx.JmxAttributeAccessor;
 import com.itworks.snamp.adapters.jmx.JmxNotificationAccessor;
 import com.itworks.snamp.internal.RecordReader;
@@ -21,7 +19,7 @@ import java.util.List;
  */
 public final class JmxAdapterRuntimeInfo {
 
-    private static Collection<JmxAttributeBindingInfo> getAttributes(final AttributesModelReader<JmxAttributeAccessor> attributes){
+    private static Collection<JmxAttributeBindingInfo> getAttributes(final AttributeSet<JmxAttributeAccessor> attributes){
         final List<JmxAttributeBindingInfo> result = new LinkedList<>();
         attributes.forEachAttribute(new RecordReader<String, JmxAttributeAccessor, ExceptionPlaceholder>() {
             @Override
@@ -33,7 +31,7 @@ public final class JmxAdapterRuntimeInfo {
         return result;
     }
 
-    private static Collection<JmxNotificationBindingInfo> getNotifications(final NotificationsModelReader<JmxNotificationAccessor> notifs){
+    private static Collection<JmxNotificationBindingInfo> getNotifications(final NotificationSet<JmxNotificationAccessor> notifs){
         final List<JmxNotificationBindingInfo> result = new LinkedList<>();
         notifs.forEachNotification(new RecordReader<String, JmxNotificationAccessor, ExceptionPlaceholder>() {
             @Override
@@ -46,8 +44,8 @@ public final class JmxAdapterRuntimeInfo {
     }
 
     public static <B extends FeatureBindingInfo> Collection<? extends B> getBindingInfo(final Class<B> bindingType,
-                                                                                        final AttributesModelReader<JmxAttributeAccessor> attributes,
-                                                                                        final NotificationsModelReader<JmxNotificationAccessor> notifs) {
+                                                                                        final AttributeSet<JmxAttributeAccessor> attributes,
+                                                                                        final NotificationSet<JmxNotificationAccessor> notifs) {
         if (bindingType.isAssignableFrom(JmxAttributeBindingInfo.class))
             return (Collection<B>) getAttributes(attributes);
         else if (bindingType.isAssignableFrom(JmxNotificationBindingInfo.class))

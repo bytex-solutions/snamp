@@ -1,6 +1,8 @@
-package com.itworks.snamp.adapters;
+package com.itworks.snamp.adapters.modeling;
 
 import com.itworks.snamp.WeakEventListenerList;
+import com.itworks.snamp.adapters.NotificationEvent;
+import com.itworks.snamp.adapters.NotificationListener;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.internal.annotations.Internal;
 

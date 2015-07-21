@@ -1,4 +1,7 @@
-package com.itworks.snamp.adapters;
+package com.itworks.snamp.adapters.modeling;
+
+import com.itworks.snamp.adapters.NotificationEvent;
+import com.itworks.snamp.adapters.NotificationListener;
 
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;

@@ -1,8 +1,6 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.itworks.snamp.adapters.AttributeAccessor;
 import com.itworks.snamp.adapters.ResourceAdapterUpdatedCallback;
-import com.itworks.snamp.internal.Utils;
 import org.snmp4j.TransportMapping;
 import org.snmp4j.agent.*;
 import org.snmp4j.agent.mo.snmp.*;

@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.itworks.snamp.ArrayUtils;
-import com.itworks.snamp.adapters.*;
+import com.itworks.snamp.adapters.modeling.*;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.notifications.NotificationListenerList;
@@ -32,7 +32,7 @@ import java.util.logging.Level;
  * @version 1.0
  * @since 1.0
  */
-final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, NotificationBroadcaster, NotificationListener, Closeable, AttributesModelReader<JmxAttributeAccessor>, NotificationsModelReader<JmxNotificationAccessor> {
+final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, NotificationBroadcaster, NotificationListener, Closeable, AttributeSet<JmxAttributeAccessor>, NotificationSet<JmxNotificationAccessor> {
     private enum MBeanResources{
         NOTIFICATIONS,
         ATTRIBUTES

@@ -8,6 +8,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.*;
+import com.itworks.snamp.adapters.modeling.ModelOfAttributes;
+import com.itworks.snamp.adapters.modeling.FeatureAccessor;
+import com.itworks.snamp.adapters.modeling.NotificationAccessor;
+import com.itworks.snamp.adapters.modeling.ResourceNotificationList;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
 
 import javax.management.MBeanAttributeInfo;
@@ -16,7 +20,6 @@ import javax.management.MBeanNotificationInfo;
 import java.io.CharArrayWriter;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import static com.itworks.snamp.adapters.syslog.SysLogConfigurationDescriptor.createSender;
 import static com.itworks.snamp.adapters.syslog.SysLogConfigurationDescriptor.getPassiveCheckSendPeriod;
@@ -27,7 +30,7 @@ import static com.itworks.snamp.adapters.syslog.SysLogConfigurationDescriptor.ge
  * @since 1.0
  */
 final class SysLogAdapter extends AbstractResourceAdapter {
-    private static final class SysLogAttributeModel extends AbstractAttributesModel<SysLogAttributeAccessor> {
+    private static final class SysLogAttributeModelOfAttributes extends ModelOfAttributes<SysLogAttributeAccessor> {
 
         @Override
         protected SysLogAttributeAccessor createAccessor(final MBeanAttributeInfo metadata) {
@@ -105,7 +108,7 @@ final class SysLogAdapter extends AbstractResourceAdapter {
             try (final LockScope ignored = beginWrite()) {
                 for (final ResourceNotificationList<?> list : notifications.values())
                     for (final NotificationAccessor accessor : list.values())
-                        accessor.disconnect();
+                        accessor.close();
             }
             final ConcurrentSyslogMessageSender sender = checkSender;
             if (sender != null)
@@ -114,13 +117,13 @@ final class SysLogAdapter extends AbstractResourceAdapter {
         }
     }
 
-    private final SysLogAttributeModel attributes;
+    private final SysLogAttributeModelOfAttributes attributes;
     private SysLogAttributeSender attributeSender;
     private final SysLogNotificationModel notifications;
 
     SysLogAdapter(final String adapterInstanceName){
         super(adapterInstanceName);
-        attributes = new SysLogAttributeModel();
+        attributes = new SysLogAttributeModelOfAttributes();
         notifications = new SysLogNotificationModel();
         attributeSender = null;
     }

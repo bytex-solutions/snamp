@@ -1,6 +1,7 @@
 package com.itworks.snamp.adapters.groovy;
 
 import com.google.common.base.Supplier;
+import com.itworks.snamp.adapters.modeling.FeatureAccessor;
 import com.itworks.snamp.jmx.ExpressionBasedDescriptorFilter;
 import org.osgi.framework.InvalidSyntaxException;
 
@@ -32,7 +33,7 @@ public interface ResourceFeaturesAnalyzer {
          * Determines whether the specified feature accessor matches to this filter.
          * @param accessor An accessor to check. Cannot be {@literal null}.
          * @return {@literal true}, if the specified feature accessor matches to this filter; otherwise, {@literal false}.
-         * @see com.itworks.snamp.adapters.FeatureAccessor
+         * @see FeatureAccessor
          */
         public final boolean match(final Supplier<? extends MBeanFeatureInfo> accessor){
             return match(accessor.get());

@@ -1,11 +1,14 @@
-package com.itworks.snamp.adapters;
+package com.itworks.snamp.adapters.modeling;
 
 import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.Consumer;
 import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.TypeTokens;
 import com.itworks.snamp.concurrent.SimpleCache;
+import com.itworks.snamp.connectors.FeatureModifiedEvent;
+import com.itworks.snamp.connectors.attributes.AttributeAddedEvent;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
+import com.itworks.snamp.connectors.attributes.AttributeRemovingEvent;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.jmx.DescriptorUtils;
 import com.itworks.snamp.jmx.WellKnownType;
@@ -25,11 +28,11 @@ import java.text.ParseException;
  * @since 1.0
  * @version 1.0
  */
-public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo, AttributeSupport> implements AttributeValueReader, Consumer<Object, JMException> {
-    private static final class WellKnownTypeCache extends SimpleCache<FeatureAccessor<? extends MBeanAttributeInfo, ?>, WellKnownType, ExceptionPlaceholder> {
+public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> implements AttributeValueReader, Consumer<Object, JMException> {
+    private static final class WellKnownTypeCache extends SimpleCache<FeatureAccessor<? extends MBeanAttributeInfo>, WellKnownType, ExceptionPlaceholder> {
 
         @Override
-        protected WellKnownType init(final FeatureAccessor<? extends MBeanAttributeInfo, ?> accessor) {
+        protected WellKnownType init(final FeatureAccessor<? extends MBeanAttributeInfo> accessor) {
             return AttributeDescriptor.getType(accessor.getMetadata());
         }
 
@@ -38,10 +41,10 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo, Attri
         }
     }
 
-    private static final class OpenTypeCache extends SimpleCache<FeatureAccessor<? extends MBeanAttributeInfo, ?>, OpenType<?>, ExceptionPlaceholder> {
+    private static final class OpenTypeCache extends SimpleCache<FeatureAccessor<? extends MBeanAttributeInfo>, OpenType<?>, ExceptionPlaceholder> {
 
         @Override
-        protected OpenType<?> init(final FeatureAccessor<? extends MBeanAttributeInfo, ?> input) {
+        protected OpenType<?> init(final FeatureAccessor<? extends MBeanAttributeInfo> input) {
             return AttributeDescriptor.getOpenType(input.getMetadata());
         }
 
@@ -102,15 +105,27 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo, Attri
     }
 
     @Override
-    final void connect(final AttributeSupport value) {
-        attributeSupport = value;
+    public final boolean processEvent(final FeatureModifiedEvent<MBeanAttributeInfo> event) {
+        if (event instanceof AttributeAddedEvent) {
+            connect(((AttributeAddedEvent) event).getSource());
+            return true;
+        }
+        else if (event instanceof AttributeRemovingEvent) {
+            close();
+            return true;
+        }
+        else return false;
+    }
+
+    private void connect(final AttributeSupport value){
+        this.attributeSupport = value;
     }
 
     /**
      * Disconnects attribute accessor from the managed resource.
      */
     @Override
-    public final void disconnect() {
+    public final void close() {
         attributeSupport = null;
         wellKnownType.clear();
         openType.clear();

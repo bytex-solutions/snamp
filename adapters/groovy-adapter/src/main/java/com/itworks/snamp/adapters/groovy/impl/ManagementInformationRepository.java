@@ -2,14 +2,13 @@ package com.itworks.snamp.adapters.groovy.impl;
 
 import com.google.common.collect.*;
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.adapters.NotificationListener;
 import com.itworks.snamp.adapters.groovy.AttributesRootAPI;
 import com.itworks.snamp.adapters.groovy.EventsRootAPI;
 import com.itworks.snamp.adapters.groovy.ResourceAttributesAnalyzer;
 import com.itworks.snamp.adapters.groovy.dsl.GroovyManagementModel;
 import com.itworks.snamp.adapters.groovy.impl.binding.GroovyAdapterRuntimeInfo;
-import com.itworks.snamp.adapters.binding.FeatureBindingInfo;
+import com.itworks.snamp.adapters.modeling.*;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.internal.RecordReader;
@@ -26,7 +25,7 @@ import java.util.*;
  * @since 1.0
  */
 final class ManagementInformationRepository extends GroovyManagementModel implements AttributesRootAPI, EventsRootAPI {
-    private static final class ScriptAttributesModel extends AbstractAttributesModel<ScriptAttributeAccessor> {
+    private static final class ScriptModelOfAttributes extends ModelOfAttributes<ScriptAttributeAccessor> {
         @Override
         protected ScriptAttributeAccessor createAccessor(final MBeanAttributeInfo metadata) {
             return new ScriptAttributeAccessor(metadata);
@@ -41,7 +40,7 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
         }
     }
 
-    private static final class ScriptNotificationsModel extends AbstractNotificationsModel<ScriptNotificationAccessor> {
+    private static final class ScriptNotificationsModelOfNotifications extends ModelOfNotifications<ScriptNotificationAccessor> {
         private final Map<String, ResourceNotificationList<ScriptNotificationAccessor>> notifications =
                 new HashMap<>(10);
 
@@ -133,8 +132,8 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
         }
     }
 
-    private final ScriptAttributesModel attributes = new ScriptAttributesModel();
-    private final ScriptNotificationsModel notifications = new ScriptNotificationsModel();
+    private final ScriptModelOfAttributes attributes = new ScriptModelOfAttributes();
+    private final ScriptNotificationsModelOfNotifications notifications = new ScriptNotificationsModelOfNotifications();
     private final BundleContext context;
 
     ManagementInformationRepository(final BundleContext context){

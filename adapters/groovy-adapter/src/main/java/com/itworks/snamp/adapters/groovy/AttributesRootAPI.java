@@ -1,11 +1,8 @@
 package com.itworks.snamp.adapters.groovy;
 
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.adapters.AttributeAccessor;
+import com.itworks.snamp.adapters.modeling.AttributeAccessor;
 import com.itworks.snamp.internal.RecordReader;
-import groovy.lang.Closure;
-
-import javax.management.JMException;
 
 /**
  * Represents root-level DSL for working with attributes.

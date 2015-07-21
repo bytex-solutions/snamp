@@ -1,13 +1,10 @@
 package com.itworks.snamp.adapters.groovy.impl.binding;
 
 import com.itworks.snamp.ExceptionPlaceholder;
-import com.itworks.snamp.adapters.AbstractAttributesModel;
-import com.itworks.snamp.adapters.AbstractNotificationsModel;
-import com.itworks.snamp.adapters.AttributesModelReader;
-import com.itworks.snamp.adapters.NotificationsModelReader;
+import com.itworks.snamp.adapters.modeling.AttributeSet;
+import com.itworks.snamp.adapters.modeling.NotificationSet;
 import com.itworks.snamp.adapters.groovy.impl.ScriptAttributeAccessor;
 import com.itworks.snamp.adapters.groovy.impl.ScriptNotificationAccessor;
-import com.itworks.snamp.adapters.binding.FeatureBindingInfo;
 import com.itworks.snamp.internal.RecordReader;
 
 import java.util.Collection;
@@ -25,7 +22,7 @@ public final class GroovyAdapterRuntimeInfo {
 
     }
 
-    private static Collection<ScriptAttributeBindingInfo> getAttributes(final AttributesModelReader<ScriptAttributeAccessor> model){
+    private static Collection<ScriptAttributeBindingInfo> getAttributes(final AttributeSet<ScriptAttributeAccessor> model){
         final List<ScriptAttributeBindingInfo> result = new LinkedList<>();
         model.forEachAttribute(new RecordReader<String, ScriptAttributeAccessor, ExceptionPlaceholder>() {
             @Override
@@ -37,7 +34,7 @@ public final class GroovyAdapterRuntimeInfo {
         return result;
     }
 
-    private static Collection<ScriptNotificationBindingInfo> getNotifications(final NotificationsModelReader<ScriptNotificationAccessor> model){
+    private static Collection<ScriptNotificationBindingInfo> getNotifications(final NotificationSet<ScriptNotificationAccessor> model){
         final List<ScriptNotificationBindingInfo> result = new LinkedList<>();
         model.forEachNotification(new RecordReader<String, ScriptNotificationAccessor, ExceptionPlaceholder>() {
             @Override
@@ -50,8 +47,8 @@ public final class GroovyAdapterRuntimeInfo {
     }
 
     public static <B extends FeatureBindingInfo> Collection<? extends B> getBindings(final Class<B> bindingType,
-                                                                       final AttributesModelReader<ScriptAttributeAccessor> attributes,
-                                                                       final NotificationsModelReader<ScriptNotificationAccessor> notifs) {
+                                                                       final AttributeSet<ScriptAttributeAccessor> attributes,
+                                                                       final NotificationSet<ScriptNotificationAccessor> notifs) {
         if (bindingType.isAssignableFrom(ScriptAttributeBindingInfo.class))
             return (Collection<B>) getAttributes(attributes);
         else if (bindingType.isAssignableFrom(ScriptNotificationBindingInfo.class))

@@ -1,7 +1,7 @@
 package com.itworks.snamp.adapters.groovy.impl;
 
 import com.itworks.snamp.adapters.NotificationListener;
-import com.itworks.snamp.adapters.NotificationRouter;
+import com.itworks.snamp.adapters.modeling.NotificationRouter;
 
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;

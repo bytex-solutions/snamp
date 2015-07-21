@@ -1,7 +1,7 @@
 package com.itworks.snamp.adapters.ssh;
 
 import com.itworks.snamp.Consumer;
-import com.itworks.snamp.adapters.ReadAttributeLogicalOperation;
+import com.itworks.snamp.adapters.modeling.ReadAttributeLogicalOperation;
 import com.itworks.snamp.core.LogicalOperation;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;

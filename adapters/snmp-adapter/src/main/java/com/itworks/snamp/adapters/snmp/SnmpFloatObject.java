@@ -1,6 +1,5 @@
 package com.itworks.snamp.adapters.snmp;
 
-import com.itworks.snamp.adapters.AttributeAccessor;
 import com.itworks.snamp.internal.annotations.SpecialUse;
 import com.itworks.snamp.jmx.WellKnownType;
 import org.snmp4j.smi.AssignableFromByteArray;
@@ -9,7 +8,6 @@ import org.snmp4j.smi.OctetString;
 import javax.management.InvalidAttributeValueException;
 import javax.management.ReflectionException;
 import java.lang.reflect.Type;
-import java.text.ParseException;
 import java.util.Objects;
 
 import static org.snmp4j.smi.SMIConstants.SYNTAX_OCTET_STRING;
