@@ -396,8 +396,9 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
                                       final Map<String, ManagedResourceConfiguration> output) throws Exception {
         forEachResource(admin, new RecordReader<String, ManagedResourceConfiguration, ExceptionPlaceholder>() {
             @Override
-            public void read(final String resourceName, final ManagedResourceConfiguration config) {
+            public boolean read(final String resourceName, final ManagedResourceConfiguration config) {
                 output.put(resourceName, config);
+                return true;
             }
         });
     }
@@ -551,16 +552,18 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
             //save each modified resource or adapter
             config.modifiedAdapters(new RecordReader<String, ResourceAdapterConfiguration, IOException>() {
                 @Override
-                public void read(final String adapterInstance, final ResourceAdapterConfiguration config) throws IOException {
+                public boolean read(final String adapterInstance, final ResourceAdapterConfiguration config) throws IOException {
                     if (config instanceof Modifiable && ((Modifiable) config).isModified())
                         save(adapterInstance, config, output);
+                    return true;
                 }
             });
             config.modifiedResources(new RecordReader<String, ManagedResourceConfiguration, IOException>() {
                 @Override
-                public void read(final String resourceName, final ManagedResourceConfiguration config) throws IOException {
+                public boolean read(final String resourceName, final ManagedResourceConfiguration config) throws IOException {
                     if (config instanceof Modifiable && ((Modifiable) config).isModified())
                         save(resourceName, config, output);
+                    return true;
                 }
             });
         }

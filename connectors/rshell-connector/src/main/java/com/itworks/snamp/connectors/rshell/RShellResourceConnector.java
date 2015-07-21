@@ -121,8 +121,9 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
             builder.addColumn(INDEX_COLUMN, "The index of the row", SimpleType.INTEGER, true);
             definition.exportTableOrDictionaryType(new RecordReader<String, XmlParsingResultType, ExceptionPlaceholder>() {
                 @Override
-                public void read(final String index, final XmlParsingResultType value) {
+                public boolean read(final String index, final XmlParsingResultType value) {
                     builder.addColumn(index, index, value.getOpenType(), false);
+                    return true;
                 }
             });
             builder.setTypeName(String.format("%sTabularType", descriptor.getAttributeName()), true);
@@ -172,8 +173,9 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
             final CompositeTypeBuilder builder = new CompositeTypeBuilder();
             definition.exportTableOrDictionaryType(new RecordReader<String, XmlParsingResultType, ExceptionPlaceholder>() {
                 @Override
-                public void read(final String index, final XmlParsingResultType value) {
+                public boolean read(final String index, final XmlParsingResultType value) {
                     builder.addItem(index, index, value.getOpenType());
+                    return true;
                 }
             });
             builder.setTypeName(String.format("%sCompositeType", descriptor.getAttributeName()));

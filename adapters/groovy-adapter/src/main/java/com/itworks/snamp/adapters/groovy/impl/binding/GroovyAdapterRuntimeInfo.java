@@ -29,8 +29,9 @@ public final class GroovyAdapterRuntimeInfo {
         final List<ScriptAttributeBindingInfo> result = new LinkedList<>();
         model.forEachAttribute(new RecordReader<String, ScriptAttributeAccessor, ExceptionPlaceholder>() {
             @Override
-            public void read(final String resourceName, final ScriptAttributeAccessor accessor) {
+            public boolean read(final String resourceName, final ScriptAttributeAccessor accessor) {
                 result.add(new ScriptAttributeBindingInfo(resourceName, accessor));
+                return true;
             }
         });
         return result;
@@ -40,8 +41,9 @@ public final class GroovyAdapterRuntimeInfo {
         final List<ScriptNotificationBindingInfo> result = new LinkedList<>();
         model.forEachNotification(new RecordReader<String, ScriptNotificationAccessor, ExceptionPlaceholder>() {
             @Override
-            public void read(final String resourceName, final ScriptNotificationAccessor accessor) {
+            public boolean read(final String resourceName, final ScriptNotificationAccessor accessor) {
                 result.add(new ScriptNotificationBindingInfo(accessor));
+                return true;
             }
         });
         return result;

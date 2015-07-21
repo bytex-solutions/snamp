@@ -44,8 +44,9 @@ public abstract class PeriodicPassiveChecker<TAccessor extends AttributeAccessor
     protected final void doAction() {
         attributes.forEachAttribute(new RecordReader<String, TAccessor, ExceptionPlaceholder>() {
             @Override
-            public void read(final String resourceName, final TAccessor attribute) {
+            public boolean read(final String resourceName, final TAccessor attribute) {
                 processAttribute(resourceName, attribute);
+                return true;
             }
         });
     }

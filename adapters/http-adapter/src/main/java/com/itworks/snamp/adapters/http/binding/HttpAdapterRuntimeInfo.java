@@ -27,8 +27,9 @@ public final class HttpAdapterRuntimeInfo {
         final List<HttpAttributeBindingInfo> result = new LinkedList<>();
         attributes.forEachAttribute(new RecordReader<String, HttpAttributeAccessor, ExceptionPlaceholder>() {
             @Override
-            public void read(final String resourceName, final HttpAttributeAccessor accessor) {
+            public boolean read(final String resourceName, final HttpAttributeAccessor accessor) {
                 result.add(new HttpAttributeBindingInfo(servletContext, resourceName, accessor));
+                return true;
             }
         });
         return result;
@@ -39,8 +40,9 @@ public final class HttpAdapterRuntimeInfo {
         final List<HttpNotificationBindingInfo> result = new LinkedList<>();
         notifs.forEachNotification(new RecordReader<String, HttpNotificationAccessor, ExceptionPlaceholder>() {
             @Override
-            public void read(final String resourceName, final HttpNotificationAccessor accessor) {
+            public boolean read(final String resourceName, final HttpNotificationAccessor accessor) {
                 result.add(new HttpNotificationBindingInfo(servletContext, resourceName, accessor));
+                return true;
             }
         });
         return result;

@@ -171,7 +171,7 @@ public abstract class AbstractAttributesModel<TAccessor extends AttributeAccesso
         try(final LockScope ignored = beginRead()) {
             for (final Map.Entry<String, ResourceAttributeList<TAccessor>> entry: attributes.entrySet())
                 for(final TAccessor accessor: entry.getValue().values())
-                    attributeReader.read(entry.getKey(), accessor);
+                    if(!attributeReader.read(entry.getKey(), accessor)) return;
         }
     }
 

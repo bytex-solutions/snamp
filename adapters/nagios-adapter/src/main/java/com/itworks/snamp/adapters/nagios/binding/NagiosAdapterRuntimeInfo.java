@@ -26,8 +26,9 @@ public final class NagiosAdapterRuntimeInfo {
         final List<NagiosAttributeBindingInfo> result = new LinkedList<>();
         attributes.forEachAttribute(new RecordReader<String, NagiosAttributeAccessor, ExceptionPlaceholder>() {
             @Override
-            public void read(final String resourceName, final NagiosAttributeAccessor accessor) {
+            public boolean read(final String resourceName, final NagiosAttributeAccessor accessor) {
                 result.add(new NagiosAttributeBindingInfo(servletContext, resourceName, accessor));
+                return true;
             }
         });
         return result;

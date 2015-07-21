@@ -135,16 +135,19 @@ public abstract class ResourceAdapterScript extends Script implements AutoClosea
     private static void processAttributes(final AttributesRootAPI model, final Closure<?> closure) throws JMException {
         model.processAttributes(new RecordReader<String, AttributeAccessor, JMException>() {
             @Override
-            public void read(final String resourceName, final AttributeAccessor accessor) throws JMException {
+            public boolean read(final String resourceName, final AttributeAccessor accessor) throws JMException {
                 switch (closure.getMaximumNumberOfParameters()) {
                     case 0:
                         closure.call();
-                        return;
+                        return true;
                     case 1:
                         closure.call(accessor.getMetadata());
-                        return;
+                        return true;
                     case 2:
                         closure.call(resourceName, accessor.getMetadata());
+                        return true;
+                    default:
+                        return false;
                 }
             }
         });
@@ -160,16 +163,19 @@ public abstract class ResourceAdapterScript extends Script implements AutoClosea
     private static void processEvents(final EventsRootAPI model, final Closure<?> closure) throws JMException {
         model.processEvents(new RecordReader<String, NotificationAccessor, JMException>() {
             @Override
-            public void read(final String resourceName, final NotificationAccessor accessor) throws JMException {
+            public boolean read(final String resourceName, final NotificationAccessor accessor) throws JMException {
                 switch (closure.getMaximumNumberOfParameters()) {
                     case 0:
                         closure.call();
-                        return;
+                        return true;
                     case 1:
                         closure.call(accessor.getMetadata());
-                        return;
+                        return true;
                     case 2:
                         closure.call(resourceName, accessor.getMetadata());
+                        return true;
+                    default:
+                        return false;
                 }
             }
         });

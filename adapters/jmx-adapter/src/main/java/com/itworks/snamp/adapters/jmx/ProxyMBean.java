@@ -452,7 +452,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     public <E extends Exception> void forEachAttribute(final RecordReader<String, ? super JmxAttributeAccessor, E> attributeReader) throws E {
         try(final LockScope ignored = beginRead(MBeanResources.ATTRIBUTES)){
             for(final JmxAttributeAccessor accessor: attributes.values())
-                attributeReader.read(resourceName, accessor);
+                if(!attributeReader.read(resourceName, accessor)) return;
         }
     }
 

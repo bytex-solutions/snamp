@@ -25,8 +25,9 @@ public final class JmxAdapterRuntimeInfo {
         final List<JmxAttributeBindingInfo> result = new LinkedList<>();
         attributes.forEachAttribute(new RecordReader<String, JmxAttributeAccessor, ExceptionPlaceholder>() {
             @Override
-            public void read(final String resourceName, final JmxAttributeAccessor accessor) {
+            public boolean read(final String resourceName, final JmxAttributeAccessor accessor) {
                 result.add(new JmxAttributeBindingInfo(resourceName, accessor));
+                return true;
             }
         });
         return result;
@@ -36,8 +37,9 @@ public final class JmxAdapterRuntimeInfo {
         final List<JmxNotificationBindingInfo> result = new LinkedList<>();
         notifs.forEachNotification(new RecordReader<String, JmxNotificationAccessor, ExceptionPlaceholder>() {
             @Override
-            public void read(final String resourceName, final JmxNotificationAccessor accessor) {
+            public boolean read(final String resourceName, final JmxNotificationAccessor accessor) {
                 result.add(new JmxNotificationBindingInfo(resourceName, accessor));
+                return true;
             }
         });
         return result;

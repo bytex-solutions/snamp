@@ -15,6 +15,7 @@ public interface RecordReader<I, R, E extends Exception> {
      * @param index An index of the record.
      * @param value A record.
      * @throws E Unable to process record.
+     * @return {@literal true} to continue iteration; {@literal false} to abort iteration
      */
-    void read(final I index, final R value) throws E;
+    boolean read(final I index, final R value) throws E;
 }

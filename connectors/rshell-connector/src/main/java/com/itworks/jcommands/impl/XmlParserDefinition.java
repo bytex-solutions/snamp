@@ -1006,10 +1006,10 @@ public class XmlParserDefinition {
         for (final Object templateFragment : getParsingTemplate())
             if (templateFragment instanceof TableColumnParsingRule) {
                 final TableColumnParsingRule rule = (TableColumnParsingRule) templateFragment;
-                reader.read(rule.getColumnName(), rule.getColumnType());
+                if(!reader.read(rule.getColumnName(), rule.getColumnType())) return;
             } else if (templateFragment instanceof DictionaryEntryParsingRule) {
                 final DictionaryEntryParsingRule rule = (DictionaryEntryParsingRule) templateFragment;
-                reader.read(rule.getKeyName(), rule.getValueType());
+                if(!reader.read(rule.getKeyName(), rule.getValueType())) return;
             }
     }
 }

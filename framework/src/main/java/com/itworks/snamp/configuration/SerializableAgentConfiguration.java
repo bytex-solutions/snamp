@@ -151,12 +151,12 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
             entities = new HashMap<>(10);
         }
 
-        private <ERROR extends Exception> void modifiedResources(final RecordReader<String, ? super E, ERROR> reader) throws ERROR{
+        private <ERROR extends Exception> void modifiedEntries(final RecordReader<String, ? super E, ERROR> reader) throws ERROR{
             for(final Entry<String, E> e: entrySet()){
                 final E entity = e.getValue();
                 final String name = e.getKey();
                 if(entity instanceof Modifiable && ((Modifiable)entity).isModified())
-                    reader.read(name, entity);
+                    if(!reader.read(name, entity)) break;
             }
         }
 
@@ -1077,11 +1077,11 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
     }
 
     public <E extends Exception> void modifiedResources(final RecordReader<String, ? super ManagedResourceConfiguration, E> handler) throws E{
-        resources.modifiedResources(handler);
+        resources.modifiedEntries(handler);
     }
 
     public <E extends Exception> void modifiedAdapters(final RecordReader<String, ? super ResourceAdapterConfiguration, E> handler) throws E{
-        adapters.modifiedResources(handler);
+        adapters.modifiedEntries(handler);
     }
 
     /**
