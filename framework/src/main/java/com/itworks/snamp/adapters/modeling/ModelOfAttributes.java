@@ -139,7 +139,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
             final ResourceAttributeList<?> resource = attributes.get(resourceName);
             if(resource != null){
                 final List<MBeanAttributeInfo> result = Lists.newArrayListWithExpectedSize(resource.size());
-                for(final FeatureAccessor<MBeanAttributeInfo, ?> accessor: resource.values())
+                for(final FeatureAccessor<MBeanAttributeInfo> accessor: resource.values())
                     result.add(accessor.getMetadata());
                 return result;
             }

@@ -10,7 +10,7 @@ import javax.management.MBeanFeatureInfo;
  * @version 1.0
  * @since 1.0
  */
-public abstract class ResourceFeatureList<M extends MBeanFeatureInfo, TAccessor extends FeatureAccessor<M, ?>> extends AbstractKeyedObjects<String, TAccessor> {
+public abstract class ResourceFeatureList<M extends MBeanFeatureInfo, TAccessor extends FeatureAccessor<M>> extends AbstractKeyedObjects<String, TAccessor> {
     private static final long serialVersionUID = 7793182286593325522L;
 
     /**

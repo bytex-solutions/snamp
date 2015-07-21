@@ -140,12 +140,13 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
     protected static abstract class ResourceAdapterDescriptor extends HashMap<String, String> implements SnampComponentDescriptor{
         private static final long serialVersionUID = 5641114150847940779L;
 
-        protected final ResourceAdapterClient adapterClient;
-
         protected ResourceAdapterDescriptor(final String systemName){
             super(1);
-            this.adapterClient = new ResourceAdapterClient(systemName);
             put(ADAPTER_SYSTEM_NAME_PROPERTY, systemName);
+        }
+
+        protected final String getSystemName(){
+            return get(ADAPTER_SYSTEM_NAME_PROPERTY);
         }
 
         private BundleContext getItselfContext(){
@@ -165,7 +166,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          */
         @Override
         public int getState() {
-            return adapterClient.getState(getItselfContext());
+            return ResourceAdapterClient.getState(getItselfContext(), getSystemName());
         }
 
         /**
@@ -176,7 +177,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          */
         @Override
         public String getName(final Locale loc) {
-            return adapterClient.getDisplayName(getItselfContext(), loc);
+            return ResourceAdapterClient.getDisplayName(getItselfContext(), getSystemName(), loc);
         }
 
         /**
@@ -186,7 +187,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          */
         @Override
         public Version getVersion() {
-            return adapterClient.getVersion(getItselfContext());
+            return ResourceAdapterClient.getVersion(getItselfContext(), getSystemName());
         }
 
         /**
@@ -200,7 +201,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
         public final  <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Consumer<S, E> serviceInvoker) throws E {
             ServiceReference<S> ref = null;
             try {
-                ref = adapterClient.getServiceReference(getItselfContext(), null, serviceType);
+                ref = ResourceAdapterClient.getServiceReference(getItselfContext(), getSystemName(), null, serviceType);
                 if (ref == null) return false;
                 serviceInvoker.accept(getItselfContext().getService(ref));
             } catch (final InvalidSyntaxException ignored) {
@@ -220,7 +221,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          */
         @Override
         public String getDescription(final Locale locale) {
-            return adapterClient.getDescription(getItselfContext(), locale);
+            return ResourceAdapterClient.getDescription(getItselfContext(), getSystemName(), locale);
         }
 
         /**
@@ -229,7 +230,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          */
         @Override
         public String toString() {
-            return adapterClient.toString();
+            return getSystemName();
         }
     }
 

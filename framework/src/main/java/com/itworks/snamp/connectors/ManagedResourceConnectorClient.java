@@ -26,17 +26,16 @@ import java.util.logging.Level;
 import static com.itworks.snamp.configuration.AgentConfiguration.EntityConfiguration;
 
 /**
- * Represents a set of static method that can be used by
- * resource connector client.
+ * Represents a client of resource connector that can be used by resource consumers.
+ * This class cannot be inherited.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
 public final class ManagedResourceConnectorClient extends ServiceReferenceHolder<ManagedResourceConnector> implements Aggregator, DynamicMBean {
-    private static final String LOGGER_NAME = "com.itworks.snamp.connectors.ManagedResourceConnectorClient";
-
     /**
      * Initializes a new client of the specified managed resource.
+     * @param context The context of the caller bundle. Cannot be {@literal null}.
      * @param resourceName The name of the managed resource. Cannot be {@literal null} or empty.
      * @throws InstanceNotFoundException The specified resource doesn't exist.
      */
@@ -47,12 +46,11 @@ public final class ManagedResourceConnectorClient extends ServiceReferenceHolder
 
     private static ServiceReference<ManagedResourceConnector> getResourceConnectorAndCheck(final BundleContext context,
                                                                                            final String resourceName) throws InstanceNotFoundException {
-        try{
-            return getResourceConnector(context, resourceName);
-        }
-        catch (final IllegalArgumentException ignored){
+        final ServiceReference<ManagedResourceConnector> result =
+                getResourceConnector(context, resourceName);
+        if (result == null)
             throw new InstanceNotFoundException(String.format("Managed resource '%s' doesn't exist", resourceName));
-        }
+        else return result;
     }
 
     private static UnsupportedOperationException unsupportedServiceRequest(final String connectorType,
@@ -145,25 +143,20 @@ public final class ManagedResourceConnectorClient extends ServiceReferenceHolder
      */
     public static <T extends EntityConfiguration> ConfigurationEntityDescription<T> getConfigurationEntityDescriptor(final BundleContext context,
                                                           final String connectorType,
-                                                          final Class<T> configurationEntity) throws UnsupportedOperationException{
-        if(context == null || configurationEntity == null) return null;
+                                                          final Class<T> configurationEntity) throws UnsupportedOperationException {
+        if (context == null || configurationEntity == null) return null;
         ServiceReference<ConfigurationEntityDescriptionProvider> ref = null;
         try {
             ref = getServiceReference(context, connectorType, null, ConfigurationEntityDescriptionProvider.class);
-            if(ref == null)
+            if (ref == null)
                 throw unsupportedServiceRequest(connectorType, ConfigurationEntityDescriptionProvider.class);
             final ConfigurationEntityDescriptionProvider provider = context.getService(ref);
             return provider.getDescription(configurationEntity);
-        }
-        catch (final InvalidSyntaxException e) {
+        } catch (final InvalidSyntaxException ignored) {
             ref = null;
-            try(final OSGiLoggingContext logger = OSGiLoggingContext.getLogger(LOGGER_NAME, context)){
-                logger.log(Level.SEVERE, String.format("Unable to discover configuration schema of %s connector", connectorType), e);
-            }
             return null;
-        }
-        finally {
-            if(ref != null) context.ungetService(ref);
+        } finally {
+            if (ref != null) context.ungetService(ref);
         }
     }
 
@@ -194,12 +187,7 @@ public final class ManagedResourceConnectorClient extends ServiceReferenceHolder
             final DiscoveryService service = context.getService(ref);
             return service.discover(connectionString, connectionOptions, entityType);
         }
-        catch (final InvalidSyntaxException e) {
-            try(final OSGiLoggingContext logger = OSGiLoggingContext.getLogger(LOGGER_NAME, context)){
-                logger.log(Level.SEVERE, String.format("Unable to discover entities of %s connector with %s connection string",
-                        connectorType,
-                        connectionString), e);
-            }
+        catch (final InvalidSyntaxException ignored) {
             return Collections.emptyList();
         }
         finally {
@@ -232,11 +220,8 @@ public final class ManagedResourceConnectorClient extends ServiceReferenceHolder
                 result.put(actionName, service.getActionDescription(actionName, loc));
             return result;
         }
-        catch (final InvalidSyntaxException e) {
+        catch (final InvalidSyntaxException ignored) {
             ref = null;
-            try(final OSGiLoggingContext logger = OSGiLoggingContext.getLogger(LOGGER_NAME, context)){
-                logger.log(Level.SEVERE, String.format("Unable to enumerate maintenance actions of %s connector", connectorType), e);
-            }
             return Collections.emptyMap();
         }
         finally {
@@ -296,10 +281,7 @@ public final class ManagedResourceConnectorClient extends ServiceReferenceHolder
             }
             return result;
         }
-        catch (final InvalidSyntaxException e) {
-            try(final OSGiLoggingContext logger = OSGiLoggingContext.getLogger(LOGGER_NAME, context)){
-                logger.log(Level.SEVERE, "Unable to enumerate all available connectors", e);
-            }
+        catch (final InvalidSyntaxException ignored) {
             return Collections.emptyMap();
         }
     }
@@ -352,12 +334,9 @@ public final class ManagedResourceConnectorClient extends ServiceReferenceHolder
         try {
             return Iterables.<ServiceReference>getFirst(context.getServiceReferences(ManagedResourceConnector.class, ManagedResourceActivator.createFilter(resourceName)), null);
         }
-        catch (final InvalidSyntaxException e) {
-            try(final OSGiLoggingContext logger = OSGiLoggingContext.getLogger(LOGGER_NAME, context)){
-                logger.log(Level.SEVERE, String.format("Unable to find resource connector %s", resourceName), e);
-            }
+        catch (final InvalidSyntaxException ignored) {
+            return null;
         }
-        return null;
     }
 
     /**
@@ -370,10 +349,7 @@ public final class ManagedResourceConnectorClient extends ServiceReferenceHolder
         try {
             context.addServiceListener(listener, ManagedResourceActivator.createFilter("*", String.format("(%s=%s)", Constants.OBJECTCLASS, ManagedResourceConnector.class.getName())));
             return true;
-        } catch (final InvalidSyntaxException e) {
-            try(final OSGiLoggingContext logger = OSGiLoggingContext.getLogger(LOGGER_NAME, context)){
-                logger.log(Level.SEVERE, "Unable to bind resource listener", e);
-            }
+        } catch (final InvalidSyntaxException ignored) {
             return false;
         }
     }

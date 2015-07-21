@@ -1,5 +1,6 @@
 package com.itworks.snamp.adapters;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.itworks.snamp.AbstractAggregator;
@@ -11,10 +12,7 @@ import com.itworks.snamp.core.*;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.internal.annotations.MethodStub;
 import com.itworks.snamp.management.Maintainable;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
-import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.*;
 import org.osgi.service.cm.ConfigurationAdmin;
 
 import java.io.IOException;
@@ -103,8 +101,6 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
             final TAdapter resourceAdapter = adapterFactory.createAdapter(instanceName, dependencies);
             if (resourceAdapter != null)
                 if(resourceAdapter.tryStart(PersistentConfigurationManager.getAdapterParameters(configuration))) {
-                    ManagedResourceConnectorClient.addResourceListener(getBundleContext(),
-                            resourceAdapter);
                     return resourceAdapter;
                 }
                 else {
@@ -116,12 +112,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
 
         @Override
         protected void cleanupService(final TAdapter adapter, final Dictionary<String, ?> identity) throws IOException {
-            try {
-                getBundleContext().removeServiceListener(adapter);
-            }
-            finally {
-                adapter.close();
-            }
+            adapter.close();
         }
 
         /**
@@ -506,5 +497,19 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
         return filter == null || filter.isEmpty() ?
                 String.format("(%s=%s)", ADAPTER_NAME_MANIFEST_HEADER, adapterName):
                 String.format("(&(%s=%s)%s)", ADAPTER_NAME_MANIFEST_HEADER, adapterName, filter);
+    }
+
+    static String createFilter(final String adapterInstanceName){
+        return String.format("(%s=%s", ADAPTER_INSTANCE_IDENTITY_PROPERTY, adapterInstanceName);
+    }
+
+    private static String getAdapterInstanceName(final Dictionary<String, ?> identity){
+        return Objects.toString(identity.get(ADAPTER_INSTANCE_IDENTITY_PROPERTY), "");
+    }
+
+    static String getAdapterInstanceName(final ServiceReference<ResourceAdapter> adapterInstance) {
+        return adapterInstance != null ?
+                getAdapterInstanceName(getProperties(adapterInstance)) :
+                "";
     }
 }
