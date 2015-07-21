@@ -28,6 +28,6 @@ public final class GroovyResourceAdapterActivator extends ResourceAdapterActivat
 
     @SpecialUse
     public GroovyResourceAdapterActivator(){
-        super(new GroovyResourceAdapterFactory(), new GroovyResourceAdapterConfigurationManager(), new RuntimeInformationServiceManager());
+        super(new GroovyResourceAdapterFactory(), new GroovyResourceAdapterConfigurationManager());
     }
 }

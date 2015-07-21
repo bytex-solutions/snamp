@@ -12,7 +12,7 @@ import javax.management.MBeanAttributeInfo;
  * @version 1.0
  * @since 1.0
  */
-public final class HttpAttributeAccessor extends AttributeAccessor implements HttpAccessor {
+final class HttpAttributeAccessor extends AttributeAccessor implements HttpAccessor {
     static final String ATTRIBUTE_URL_PARAM = "attributeName";
     static final String ATTRIBUTE_ACCESS_PATH = "/attributes/{" + RESOURCE_URL_PARAM + "}/{" + ATTRIBUTE_URL_PARAM + "}";
     private final Gson formatter;
@@ -30,7 +30,7 @@ public final class HttpAttributeAccessor extends AttributeAccessor implements Ht
                 .serializeNulls().create();
     }
 
-    public String getJsonType(){
+    String getJsonType(){
         return HttpAdapterHelpers.getJsonType(getType());
     }
 

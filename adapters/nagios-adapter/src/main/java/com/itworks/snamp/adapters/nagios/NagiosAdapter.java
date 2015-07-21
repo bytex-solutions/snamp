@@ -1,8 +1,13 @@
 package com.itworks.snamp.adapters.nagios;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
+import com.itworks.snamp.adapters.ResourceAdapter;
+import com.itworks.snamp.adapters.modeling.AttributeSet;
 import com.itworks.snamp.adapters.modeling.FeatureAccessor;
-import com.itworks.snamp.adapters.nagios.binding.NagiosAdapterRuntimeInfo;
+import com.itworks.snamp.internal.RecordReader;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 
@@ -31,23 +36,23 @@ final class NagiosAdapter extends AbstractResourceAdapter {
 
     @SuppressWarnings("unchecked")
     @Override
-    protected <M extends MBeanFeatureInfo, S> FeatureAccessor<M, S> addFeature(final String resourceName,
+    protected <M extends MBeanFeatureInfo> FeatureAccessor<M> addFeature(final String resourceName,
                                                                                final M feature) throws Exception {
         if(feature instanceof MBeanAttributeInfo)
-            return (FeatureAccessor<M, S>)service.addAttribute(resourceName, (MBeanAttributeInfo)feature);
+            return (FeatureAccessor<M>)service.addAttribute(resourceName, (MBeanAttributeInfo)feature);
         else return null;
     }
 
     @Override
-    protected Iterable<? extends FeatureAccessor<?, ?>> removeAllFeatures(final String resourceName) {
+    protected Iterable<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) {
         return service.clear(resourceName);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    protected <M extends MBeanFeatureInfo> FeatureAccessor<M, ?> removeFeature(final String resourceName, final M feature) {
+    protected <M extends MBeanFeatureInfo> FeatureAccessor<M> removeFeature(final String resourceName, final M feature) {
         if(feature instanceof MBeanAttributeInfo)
-            return (FeatureAccessor<M, ?>)service.removeAttribute(resourceName, (MBeanAttributeInfo)feature);
+            return (FeatureAccessor<M>)service.removeAttribute(resourceName, (MBeanAttributeInfo)feature);
         else return null;
     }
 
@@ -67,14 +72,26 @@ final class NagiosAdapter extends AbstractResourceAdapter {
         service.clear();
     }
 
-    /**
-     * Gets information about binding of the features.
-     *
-     * @param bindingType Type of the feature binding.
-     * @return A collection of features
-     */
+    private static Multimap<String, ? extends FeatureBindingInfo<MBeanAttributeInfo>> getAttributes(final String servletContext,
+                                                                                                    final AttributeSet<NagiosAttributeAccessor> attributes){
+        final Multimap<String, ReadOnlyFeatureBindingInfo<MBeanAttributeInfo>> result =
+                HashMultimap.create();
+        attributes.forEachAttribute(new RecordReader<String, NagiosAttributeAccessor, ExceptionPlaceholder>() {
+            @Override
+            public boolean read(final String resourceName, final NagiosAttributeAccessor accessor)  {
+                return result.put(resourceName, new ReadOnlyFeatureBindingInfo<MBeanAttributeInfo>(accessor,
+                    "path", accessor.getPath(servletContext, resourceName),
+                     FeatureBindingInfo.MAPPED_TYPE, "Text"
+                ));
+            }
+        });
+        return result;
+    }
+
     @Override
-    protected <B extends FeatureBindingInfo> Collection<? extends B> getBindings(final Class<B> bindingType) {
-        return NagiosAdapterRuntimeInfo.getBindingInfo(bindingType, getServletContext(), service);
+    public <M extends MBeanFeatureInfo> Multimap<String, ? extends FeatureBindingInfo<M>> getBindings(final Class<M> featureType) {
+        if (featureType.isAssignableFrom(MBeanAttributeInfo.class))
+            return (Multimap<String, ? extends FeatureBindingInfo<M>>) getAttributes(getServletContext(), service);
+        return super.getBindings(featureType);
     }
 }

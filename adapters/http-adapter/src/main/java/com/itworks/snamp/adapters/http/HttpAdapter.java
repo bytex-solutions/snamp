@@ -1,12 +1,11 @@
 package com.itworks.snamp.adapters.http;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.adapters.NotificationListener;
-import com.itworks.snamp.adapters.http.binding.HttpAdapterRuntimeInfo;
 import com.itworks.snamp.adapters.modeling.*;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
 import com.itworks.snamp.internal.KeyedObjects;
@@ -144,14 +143,14 @@ final class HttpAdapter extends AbstractResourceAdapter {
         }
     }
 
-    private static final class HttpNotificationsModelOfNotifications extends ModelOfNotifications<HttpNotificationAccessor> implements NotificationSupport{
+    private static final class HttpModelOfNotifications extends ModelOfNotifications<HttpNotificationAccessor> implements NotificationSupport{
         private final KeyedObjects<String, NotificationBroadcaster> notifications;
         private static final Gson FORMATTER = Formatters.enableAll(new GsonBuilder())
                 .serializeSpecialFloatingPointValues()
                 .serializeNulls()
                 .create();
 
-        private HttpNotificationsModelOfNotifications(){
+        private HttpModelOfNotifications(){
             this.notifications = createBroadcasters();
         }
 
@@ -237,10 +236,10 @@ final class HttpAdapter extends AbstractResourceAdapter {
     }
 
     private static final class JerseyServletFactory implements ServletFactory<ServletContainer> {
-        private final HttpNotificationsModelOfNotifications notifications;
+        private final HttpModelOfNotifications notifications;
         private final HttpModelOfAttributes attributes;
 
-        JerseyServletFactory(final HttpModelOfAttributes attributes, final HttpNotificationsModelOfNotifications notifications){
+        JerseyServletFactory(final HttpModelOfAttributes attributes, final HttpModelOfNotifications notifications){
             this.notifications = Objects.requireNonNull(notifications);
             this.attributes = Objects.requireNonNull(attributes);
         }
@@ -264,7 +263,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
         super(instanceName);
         publisher = Objects.requireNonNull(servletPublisher, "servletPublisher is null.");
         servletFactory = new JerseyServletFactory(new HttpModelOfAttributes(),
-                new HttpNotificationsModelOfNotifications());
+                new HttpModelOfNotifications());
     }
 
     private String getServletContext(){
@@ -289,16 +288,16 @@ final class HttpAdapter extends AbstractResourceAdapter {
 
     @SuppressWarnings("unchecked")
     @Override
-    protected <M extends MBeanFeatureInfo, S> FeatureAccessor<M, S> addFeature(final String resourceName, final M feature) throws Exception {
+    protected <M extends MBeanFeatureInfo> FeatureAccessor<M> addFeature(final String resourceName, final M feature) throws Exception {
         if(feature instanceof MBeanAttributeInfo)
-            return (FeatureAccessor<M, S>)servletFactory.attributes.addAttribute(resourceName, (MBeanAttributeInfo)feature);
+            return (FeatureAccessor<M>)servletFactory.attributes.addAttribute(resourceName, (MBeanAttributeInfo)feature);
         else if(feature instanceof MBeanNotificationInfo)
-            return (FeatureAccessor<M, S>)servletFactory.notifications.addNotification(resourceName, (MBeanNotificationInfo)feature);
+            return (FeatureAccessor<M>)servletFactory.notifications.addNotification(resourceName, (MBeanNotificationInfo)feature);
         else return null;
     }
 
     @Override
-    protected Iterable<? extends FeatureAccessor<?, ?>> removeAllFeatures(final String resourceName) {
+    protected Iterable<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) {
         final Collection<? extends AttributeAccessor> attributes =
                 servletFactory.attributes.clear(resourceName);
         final Collection<? extends NotificationAccessor> notifications =
@@ -308,24 +307,51 @@ final class HttpAdapter extends AbstractResourceAdapter {
 
     @SuppressWarnings("unchecked")
     @Override
-    protected <M extends MBeanFeatureInfo> FeatureAccessor<M, ?> removeFeature(final String resourceName, final M feature) {
+    protected <M extends MBeanFeatureInfo> FeatureAccessor<M> removeFeature(final String resourceName, final M feature) {
         if(feature instanceof MBeanAttributeInfo)
-            return (FeatureAccessor<M, ?>)servletFactory.attributes.removeAttribute(resourceName, (MBeanAttributeInfo)feature);
+            return (FeatureAccessor<M>)servletFactory.attributes.removeAttribute(resourceName, (MBeanAttributeInfo)feature);
         else if(feature instanceof MBeanNotificationInfo)
-            return (FeatureAccessor<M, ?>)servletFactory.notifications.removeNotification(resourceName, (MBeanNotificationInfo)feature);
+            return (FeatureAccessor<M>)servletFactory.notifications.removeNotification(resourceName, (MBeanNotificationInfo)feature);
         else return null;
     }
 
-    /**
-     * Gets information about binding of the features.
-     *
-     * @param bindingType Type of the feature binding.
-     * @return A collection of features
-     */
+    private static Multimap<String, ? extends FeatureBindingInfo<MBeanAttributeInfo>> getAttributes(final String servletContext,
+                                                                                                    final AttributeSet<HttpAttributeAccessor> attributes){
+        final Multimap<String, ReadOnlyFeatureBindingInfo<MBeanAttributeInfo>> result =
+                HashMultimap.create();
+        attributes.forEachAttribute(new RecordReader<String, HttpAttributeAccessor, ExceptionPlaceholder>() {
+            @Override
+            public boolean read(final String resourceName, final HttpAttributeAccessor accessor) {
+                return result.put(resourceName, new ReadOnlyFeatureBindingInfo<MBeanAttributeInfo>(accessor,
+                        "path", accessor.getPath(servletContext, resourceName),
+                        FeatureBindingInfo.MAPPED_TYPE, accessor.getJsonType()
+                ));
+            }
+        });
+        return result;
+    }
+
+    private static Multimap<String, ? extends FeatureBindingInfo<MBeanNotificationInfo>> getNotifications(final String servletContext,
+                                                                                                          final NotificationSet<HttpNotificationAccessor> notifs){
+        final Multimap<String, ReadOnlyFeatureBindingInfo<MBeanNotificationInfo>> result =
+                HashMultimap.create();
+        notifs.forEachNotification(new RecordReader<String, HttpNotificationAccessor, ExceptionPlaceholder>() {
+            @Override
+            public boolean read(final String resourceName, final HttpNotificationAccessor accessor) {
+                return result.put(resourceName, new ReadOnlyFeatureBindingInfo<MBeanNotificationInfo>(accessor,
+                            "path", accessor.getPath(servletContext, resourceName)
+                        ));
+            }
+        });
+        return result;
+    }
+
     @Override
-    protected <B extends FeatureBindingInfo> Collection<? extends B> getBindings(final Class<B> bindingType) {
-        return HttpAdapterRuntimeInfo.getBindings(bindingType, getServletContext(),
-                servletFactory.attributes,
-                servletFactory.notifications);
+    public <M extends MBeanFeatureInfo> Multimap<String, ? extends FeatureBindingInfo<M>> getBindings(final Class<M> featureType) {
+        if(featureType.isAssignableFrom(MBeanAttributeInfo.class))
+            return (Multimap<String, ? extends FeatureBindingInfo<M>>)getAttributes(getServletContext(), servletFactory.attributes);
+        else if(featureType.isAssignableFrom(MBeanNotificationInfo.class))
+            return (Multimap<String, ? extends FeatureBindingInfo<M>>)getNotifications(getServletContext(), servletFactory.notifications);
+        else return super.getBindings(featureType);
     }
 }

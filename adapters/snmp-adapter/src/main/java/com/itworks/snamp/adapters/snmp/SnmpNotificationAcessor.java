@@ -94,7 +94,7 @@ public final class SnmpNotificationAcessor extends NotificationAccessor implemen
         notificationOriginator = new WeakReference<>(originator);
     }
 
-    public SnmpType getType(final Function<WellKnownType, SnmpType> typeMapper){
+    SnmpType getType(final SnmpTypeMapper typeMapper){
         final WellKnownType attachmentType = WellKnownType.getType(NotificationDescriptor.getUserDataType(get()));
         return attachmentType == null ? null : typeMapper.apply(attachmentType);
     }

@@ -34,8 +34,7 @@ public final class HttpAdapterActivator extends ResourceAdapterActivator<HttpAda
         super(new RestAdapterFactory(),
                 new RequiredService<?>[]{new SimpleDependency<>(HttpService.class)},
                 new SupportAdapterServiceManager<?, ?>[]{
-                        new RestAdapterConfigurationManager(),
-                        new RuntimeInformationServiceManager()
+                        new RestAdapterConfigurationManager()
                 });
     }
 }

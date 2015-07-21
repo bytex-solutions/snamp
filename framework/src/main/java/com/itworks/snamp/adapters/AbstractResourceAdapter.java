@@ -1,7 +1,6 @@
 package com.itworks.snamp.adapters;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.*;
 import com.itworks.snamp.AbstractAggregator;
 import com.itworks.snamp.adapters.modeling.AttributeAccessor;
 import com.itworks.snamp.adapters.modeling.FeatureAccessor;
@@ -23,6 +22,7 @@ import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.core.OSGiLoggingContext;
 import com.itworks.snamp.core.RichLogicalOperation;
 import com.itworks.snamp.internal.Utils;
+import com.itworks.snamp.jmx.DescriptorUtils;
 import org.osgi.framework.*;
 
 import javax.management.MBeanAttributeInfo;
@@ -108,6 +108,93 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                 return true;
             }
             else return false;
+        }
+    }
+
+    /**
+     * Represents base implementation of {@link com.itworks.snamp.adapters.ResourceAdapter.FeatureBindingInfo} interface.
+     * @param <M> Type of the feature.
+     */
+    protected static abstract class AbstractFeatureBindingInfo<M extends MBeanFeatureInfo> implements FeatureBindingInfo<M>{
+        private final M metadata;
+
+        protected AbstractFeatureBindingInfo(final M metadata){
+            this.metadata = Objects.requireNonNull(metadata);
+        }
+
+        /**
+         * Gets metadata of the feature as it is supplied by connected resources.
+         *
+         * @return The metadata of the feature.
+         */
+        @Override
+        public final M getMetadata() {
+            return metadata;
+        }
+    }
+
+    protected final static class ReadOnlyFeatureBindingInfo<M extends MBeanFeatureInfo> extends AbstractFeatureBindingInfo<M>{
+        private final ImmutableMap<String, ?> properties;
+
+        public ReadOnlyFeatureBindingInfo(final FeatureAccessor<M> accessor,
+                                          final Map<String, ?> advancedProps) {
+            super(accessor.getMetadata());
+            properties = ImmutableMap.<String, Object>builder()
+                    .putAll(advancedProps)
+                    .putAll(DescriptorUtils.toMap(accessor.get().getDescriptor()))
+                    .build();
+        }
+
+        public ReadOnlyFeatureBindingInfo(final FeatureAccessor<M> accessor){
+            this(accessor, ImmutableMap.<String, String>of());
+        }
+
+        public ReadOnlyFeatureBindingInfo(final FeatureAccessor<M> accessor,
+                                          final String propertyName,
+                                          final Object propertyValue){
+            this(accessor, ImmutableMap.of(propertyName, propertyValue));
+        }
+
+        public ReadOnlyFeatureBindingInfo(final FeatureAccessor<M> accessor,
+                                          final String property1,
+                                          final Object value1,
+                                          final String property2,
+                                          final Object value2){
+            this(accessor, ImmutableMap.of(property1, value1, property2, value2));
+        }
+
+        /**
+         * Gets binding property such as URL, OID or any other information
+         * describing how this feature is exposed to the outside world.
+         *
+         * @param propertyName The name of the binding property.
+         * @return The value of the binding property.
+         */
+        @Override
+        public Object getProperty(final String propertyName) {
+            return properties.get(propertyName);
+        }
+
+        /**
+         * Gets all supported properties.
+         *
+         * @return A set of all supported properties.
+         */
+        @Override
+        public ImmutableSet<String> getProperties() {
+            return properties.keySet();
+        }
+
+        /**
+         * Always return {@literal false}.
+         *
+         * @param propertyName The name of the property to change.
+         * @param value        A new property value.
+         * @return {@literal true}, if the property supports modification and changed successfully; otherwise, {@literal false}.
+         */
+        @Override
+        public boolean setProperty(final String propertyName, final Object value) {
+            return false;
         }
     }
 
@@ -216,10 +303,10 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * @see AttributeAccessor
      * @see NotificationAccessor
      */
-    protected abstract <M extends MBeanFeatureInfo, S> FeatureAccessor<M> addFeature(final String resourceName,
+    protected abstract <M extends MBeanFeatureInfo> FeatureAccessor<M> addFeature(final String resourceName,
                                        final M feature) throws Exception;
 
-    private <M extends MBeanFeatureInfo, S> FeatureAccessor<M> addFeatureImpl(final String resourceName,
+    private <M extends MBeanFeatureInfo> FeatureAccessor<M> addFeatureImpl(final String resourceName,
                                                                              final M feature){
         try {
             return addFeature(resourceName, feature);
@@ -591,8 +678,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
     }
 
     @Override
-    public <M extends MBeanFeatureInfo> Collection<? extends FeatureBindingInfo<M>> getBindings(final Class<M> featureType,
-                                                                                                final String resourceName) {
-        return Collections.emptyList();
+    public <M extends MBeanFeatureInfo> Multimap<String, ? extends FeatureBindingInfo<M>> getBindings(final Class<M> featureType) {
+        return ImmutableMultimap.of();
     }
 }

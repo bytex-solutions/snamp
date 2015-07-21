@@ -1,5 +1,9 @@
 package com.itworks.snamp.adapters.groovy.impl;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
+import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.adapters.groovy.ResourceAdapterInfo;
 import com.itworks.snamp.adapters.groovy.ResourceAdapterScript;
@@ -7,6 +11,7 @@ import com.itworks.snamp.adapters.groovy.ResourceAdapterScriptEngine;
 import com.itworks.snamp.adapters.modeling.AttributeAccessor;
 import com.itworks.snamp.adapters.modeling.FeatureAccessor;
 import com.itworks.snamp.adapters.modeling.NotificationAccessor;
+import com.itworks.snamp.internal.RecordReader;
 import com.itworks.snamp.internal.Utils;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
@@ -15,8 +20,7 @@ import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanNotificationInfo;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Logger;
 
 /**
@@ -54,12 +58,12 @@ final class GroovyResourceAdapter extends AbstractResourceAdapter {
      */
     @SuppressWarnings("unchecked")
     @Override
-    protected <M extends MBeanFeatureInfo, S> FeatureAccessor<M, S> addFeature(final String resourceName,
+    protected <M extends MBeanFeatureInfo> FeatureAccessor<M> addFeature(final String resourceName,
                                                                                final M feature) throws Exception {
         if (feature instanceof MBeanAttributeInfo)
-            return (FeatureAccessor<M, S>) repository.addAttribute(resourceName, (MBeanAttributeInfo) feature);
+            return (FeatureAccessor<M>) repository.addAttribute(resourceName, (MBeanAttributeInfo) feature);
         else if (feature instanceof MBeanNotificationInfo)
-            return (FeatureAccessor<M, S>) repository.addNotification(resourceName, (MBeanNotificationInfo) feature, holder);
+            return (FeatureAccessor<M>) repository.addNotification(resourceName, (MBeanNotificationInfo) feature, holder);
         else return null;
     }
 
@@ -71,7 +75,7 @@ final class GroovyResourceAdapter extends AbstractResourceAdapter {
      * @return Read-only collection of features tracked by this resource adapter. Cannot be {@literal null}.
      */
     @Override
-    protected Iterable<? extends FeatureAccessor<?, ?>> removeAllFeatures(final String resourceName) throws Exception {
+    protected Iterable<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception {
         return repository.clear(resourceName);
     }
 
@@ -85,11 +89,11 @@ final class GroovyResourceAdapter extends AbstractResourceAdapter {
      */
     @SuppressWarnings("unchecked")
     @Override
-    protected <M extends MBeanFeatureInfo> FeatureAccessor<M, ?> removeFeature(final String resourceName, final M feature) {
+    protected <M extends MBeanFeatureInfo> FeatureAccessor<M> removeFeature(final String resourceName, final M feature) {
         if (feature instanceof MBeanAttributeInfo)
-            return (FeatureAccessor<M, ?>) repository.removeAttribute(resourceName, (MBeanAttributeInfo) feature);
+            return (FeatureAccessor<M>) repository.removeAttribute(resourceName, (MBeanAttributeInfo) feature);
         else if (feature instanceof MBeanNotificationInfo)
-            return (FeatureAccessor<M, ?>) repository.removeNotification(resourceName, (MBeanNotificationInfo) feature);
+            return (FeatureAccessor<M>) repository.removeNotification(resourceName, (MBeanNotificationInfo) feature);
         else return null;
     }
 
@@ -115,6 +119,43 @@ final class GroovyResourceAdapter extends AbstractResourceAdapter {
         }
     }
 
+    private static Multimap<String, ? extends FeatureBindingInfo<MBeanAttributeInfo>> getAttributes(final ManagementInformationRepository repository) {
+        final Multimap<String, ScriptAttributeAccessor> result =
+                HashMultimap.create();
+        repository.processAttributes(new RecordReader<String, AttributeAccessor, ExceptionPlaceholder>() {
+            @Override
+            public boolean read(final String resourceName, final AttributeAccessor accessor) {
+                if (accessor instanceof ScriptAttributeAccessor)
+                    result.put(resourceName, (ScriptAttributeAccessor) accessor);
+                return true;
+            }
+        });
+        return result;
+    }
+
+    private static Multimap<String, ? extends FeatureBindingInfo<MBeanNotificationInfo>> getNotifications(final ManagementInformationRepository repository){
+        final Multimap<String, ScriptNotificationAccessor> result =
+                HashMultimap.create();
+        repository.processEvents(new RecordReader<String, NotificationAccessor, ExceptionPlaceholder>() {
+            @Override
+            public boolean read(final String resourceName, final NotificationAccessor accessor) {
+                if(accessor instanceof ScriptNotificationAccessor)
+                    result.put(resourceName, (ScriptNotificationAccessor)accessor);
+                return true;
+            }
+        });
+        return result;
+    }
+
+    @Override
+    public <M extends MBeanFeatureInfo> Multimap<String, ? extends FeatureBindingInfo<M>> getBindings(final Class<M> featureType) {
+        if(featureType.isAssignableFrom(MBeanAttributeInfo.class))
+            return (Multimap<String, ? extends FeatureBindingInfo<M>>)getAttributes(repository);
+        else if(featureType.isAssignableFrom(MBeanNotificationInfo.class))
+            return (Multimap<String, ? extends FeatureBindingInfo<M>>)getNotifications(repository);
+        else return super.getBindings(featureType);
+    }
+
     static Logger getLoggerImpl() {
         return ResourceAdapterInfo.getLogger();
     }
@@ -129,14 +170,4 @@ final class GroovyResourceAdapter extends AbstractResourceAdapter {
         return getLoggerImpl();
     }
 
-    /**
-     * Gets information about binding of the features.
-     *
-     * @param bindingType Type of the feature binding.
-     * @return A collection of features
-     */
-    @Override
-    protected <B extends FeatureBindingInfo> Collection<? extends B> getBindings(final Class<B> bindingType) {
-        return repository.getBindings(bindingType);
-    }
 }

@@ -16,16 +16,12 @@ import static com.itworks.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor
  * @version 1.0
  * @since 1.0
  */
-public final class SnmpAttributeAccessorImpl extends SnmpAttributeAccessor {
+final class SnmpAttributeAccessorImpl extends SnmpAttributeAccessor {
     private final OID attributeID;
 
     SnmpAttributeAccessorImpl(final MBeanAttributeInfo metadata) throws ParseException {
         super(metadata);
         attributeID = parseOID(metadata);
-    }
-
-    public SnmpType getType(final Function<WellKnownType, SnmpType> mapper){
-        return mapper.apply(getType());
     }
 
     @Override

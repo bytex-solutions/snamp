@@ -25,6 +25,10 @@ abstract class SnmpAttributeAccessor extends AttributeAccessor implements SnmpEn
 
     abstract ManagedObject unregisterManagedObject(final MOServer server);
 
+    final SnmpType getType(final SnmpTypeMapper mapper){
+        return mapper.apply(getType());
+    }
+
     @Override
     public final boolean equals(final MBeanAttributeInfo metadata) {
         return Objects.equals(metadata, get());

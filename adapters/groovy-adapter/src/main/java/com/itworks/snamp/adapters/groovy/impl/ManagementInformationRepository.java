@@ -7,7 +7,6 @@ import com.itworks.snamp.adapters.groovy.AttributesRootAPI;
 import com.itworks.snamp.adapters.groovy.EventsRootAPI;
 import com.itworks.snamp.adapters.groovy.ResourceAttributesAnalyzer;
 import com.itworks.snamp.adapters.groovy.dsl.GroovyManagementModel;
-import com.itworks.snamp.adapters.groovy.impl.binding.GroovyAdapterRuntimeInfo;
 import com.itworks.snamp.adapters.modeling.*;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
@@ -89,7 +88,7 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
                 final ResourceNotificationList<?> list = notifications.get(resourceName);
                 if (list != null) {
                     final List<MBeanNotificationInfo> result = Lists.newArrayListWithExpectedSize(list.size());
-                    for (final FeatureAccessor<MBeanNotificationInfo, ?> accessor : list.values())
+                    for (final FeatureAccessor<MBeanNotificationInfo> accessor : list.values())
                         result.add(accessor.getMetadata());
                     return result;
                 } else return ImmutableList.of();
@@ -101,7 +100,7 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
             try (final LockScope ignored = beginRead()) {
                 if (notifications.containsKey(resourceName)) {
                     final Set<String> result = new HashSet<>(20);
-                    for (final FeatureAccessor<MBeanNotificationInfo, ?> accessor : notifications.get(resourceName).values())
+                    for (final FeatureAccessor<MBeanNotificationInfo> accessor : notifications.get(resourceName).values())
                         Collections.addAll(result, accessor.getMetadata().getNotifTypes());
                     return result;
                 } else return ImmutableSet.of();
@@ -220,7 +219,7 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
         return attributes.addAttribute(resourceName, feature);
     }
 
-    Iterable<? extends FeatureAccessor<?, ?>> clear(final String resourceName) {
+    Iterable<? extends FeatureAccessor<?>> clear(final String resourceName) {
         return Iterables.concat(attributes.clear(resourceName), notifications.clear(resourceName));
     }
 
@@ -231,9 +230,5 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
     void clear(){
         attributes.clear();
         notifications.clear();
-    }
-
-    <B extends FeatureBindingInfo> Collection<? extends B> getBindings(final Class<B> bindingType){
-        return GroovyAdapterRuntimeInfo.getBindings(bindingType, attributes, notifications);
     }
 }

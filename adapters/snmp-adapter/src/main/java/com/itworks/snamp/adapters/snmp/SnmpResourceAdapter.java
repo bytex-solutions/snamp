@@ -2,12 +2,12 @@ package com.itworks.snamp.adapters.snmp;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Multimap;
 import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.adapters.modeling.AttributeAccessor;
 import com.itworks.snamp.adapters.modeling.FeatureAccessor;
 import com.itworks.snamp.adapters.modeling.NotificationAccessor;
 import com.itworks.snamp.adapters.profiles.PolymorphicResourceAdapter;
-import com.itworks.snamp.adapters.snmp.binding.SnmpAdapterRuntimeInfo;
 import org.osgi.service.jndi.JNDIContextManager;
 import org.snmp4j.agent.DuplicateRegistrationException;
 
@@ -86,8 +86,8 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
 
     private SnmpAdapterUpdateManager updateManager;
     private final DirContextFactory contextFactory;
-    private final HashMultimap<String, SnmpNotificationAcessor> notifications;
-    private final HashMultimap<String, SnmpAttributeAccessorImpl> attributes;
+    private final Multimap<String, SnmpNotificationAcessor> notifications;
+    private final Multimap<String, SnmpAttributeAccessor> attributes;
 
     SnmpResourceAdapter(final String adapterInstanceName, final JNDIContextManager contextManager) {
         super(adapterInstanceName);
@@ -155,19 +155,19 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
 
     @SuppressWarnings("unchecked")
     @Override
-    protected synchronized <M extends MBeanFeatureInfo, S> FeatureAccessor<M, S> addFeature(final String resourceName, final M feature) throws Exception {
+    protected synchronized <M extends MBeanFeatureInfo> FeatureAccessor<M> addFeature(final String resourceName, final M feature) throws Exception {
         final SnmpAdapterUpdateManager updateManager = this.updateManager;
         if(updateManager != null)
             beginUpdate(updateManager, updateManager.getCallback());
         if(feature instanceof MBeanNotificationInfo)
-            return (FeatureAccessor<M, S>)addNotification(resourceName, (MBeanNotificationInfo)feature);
+            return (FeatureAccessor<M>)addNotification(resourceName, (MBeanNotificationInfo)feature);
         else if(feature instanceof MBeanAttributeInfo)
-            return (FeatureAccessor<M, S>)addAttribute(resourceName, (MBeanAttributeInfo) feature);
+            return (FeatureAccessor<M>)addAttribute(resourceName, (MBeanAttributeInfo) feature);
         else return null;
     }
 
     @Override
-    protected synchronized Iterable<? extends FeatureAccessor<?, ?>> removeAllFeatures(final String resourceName) throws Exception {
+    protected synchronized Iterable<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception {
         final Iterable<SnmpNotificationAcessor> notifs = notifications.removeAll(resourceName);
         final Collection<? extends SnmpAttributeAccessor> accessors = attributes.removeAll(resourceName);
         final SnmpAdapterUpdateManager updateManager = this.updateManager;
@@ -206,14 +206,14 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
 
     @SuppressWarnings("unchecked")
     @Override
-    protected synchronized <M extends MBeanFeatureInfo> FeatureAccessor<M, ?> removeFeature(final String resourceName, final M feature) throws Exception {
+    protected synchronized <M extends MBeanFeatureInfo> FeatureAccessor<M> removeFeature(final String resourceName, final M feature) throws Exception {
         final SnmpAdapterUpdateManager updateManager = this.updateManager;
         if(updateManager != null)
             beginUpdate(updateManager, updateManager.agent);
         if(feature instanceof MBeanAttributeInfo)
-            return (FeatureAccessor<M, ?>)removeAttribute(resourceName, (MBeanAttributeInfo)feature);
+            return (FeatureAccessor<M>)removeAttribute(resourceName, (MBeanAttributeInfo)feature);
         else if(feature instanceof MBeanNotificationInfo)
-            return (FeatureAccessor<M, ?>)removeNotification(resourceName, (MBeanNotificationInfo) feature);
+            return (FeatureAccessor<M>)removeNotification(resourceName, (MBeanNotificationInfo) feature);
         else return null;
     }
 
@@ -229,10 +229,10 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
             if (updateManager != null)
                 updateManager.close();
             //remove all notifications
-            for (final FeatureAccessor<?, ?> mapping : notifications.values())
+            for (final FeatureAccessor<?> mapping : notifications.values())
                 mapping.close();
             //remove all attributes
-            for (final FeatureAccessor<?, ?> mapping : attributes.values())
+            for (final FeatureAccessor<?> mapping : attributes.values())
                 mapping.close();
         } finally {
             updateManager = null;
@@ -241,19 +241,42 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
         }
     }
 
-    /**
-     * Gets information about binding of the features.
-     *
-     * @param bindingType Type of the feature binding.
-     * @return A collection of features
-     */
-    @SuppressWarnings("unchecked")
+    private static Multimap<String, ? extends FeatureBindingInfo<MBeanAttributeInfo>> getAttributes(final Multimap<String, SnmpAttributeAccessor> attributes,
+                                                                                                            final SnmpTypeMapper typeMapper){
+        final Multimap<String, ReadOnlyFeatureBindingInfo<MBeanAttributeInfo>> result =
+                HashMultimap.create(attributes.keySet().size(), 10);
+        for(final String resourceName: attributes.keySet())
+            for(final SnmpAttributeAccessor accessor: attributes.get(resourceName))
+                result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor,
+                        FeatureBindingInfo.MAPPED_TYPE, accessor.getType(typeMapper),
+                        "OID", accessor.getID()
+                        ));
+        return result;
+    }
+
+    private static Multimap<String, ? extends FeatureBindingInfo<MBeanNotificationInfo>> getNotifications(final Multimap<String, SnmpNotificationAcessor> notifs,
+                                                                                                          final SnmpTypeMapper typeMapper){
+        final Multimap<String, ReadOnlyFeatureBindingInfo<MBeanNotificationInfo>> result =
+                HashMultimap.create(notifs.keySet().size(), 10);
+        for(final String resourceName: notifs.keySet())
+            for(final SnmpNotificationAcessor accessor: notifs.get(resourceName))
+                result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor,
+                        FeatureBindingInfo.MAPPED_TYPE, accessor.getType(typeMapper),
+                        "OID", accessor.getID()
+                ));
+        return result;
+    }
+
     @Override
-    protected synchronized  <B extends FeatureBindingInfo> Collection<? extends B> getBindings(final Class<B> bindingType) {
+    public synchronized <M extends MBeanFeatureInfo> Multimap<String, ? extends FeatureBindingInfo<M>> getBindings(final Class<M> featureType) {
         final SnmpAdapterUpdateManager updateManager = this.updateManager;
-        return updateManager == null ?
-                super.getBindings(bindingType) :
-                SnmpAdapterRuntimeInfo.getBindings(bindingType, attributes, notifications, updateManager.profile);
+        if(updateManager == null)
+            return super.getBindings(featureType);
+        else if(featureType.isAssignableFrom(MBeanAttributeInfo.class))
+            return (Multimap<String, ? extends FeatureBindingInfo<M>>)getAttributes(attributes, updateManager.profile);
+        else if(featureType.isAssignableFrom(MBeanNotificationInfo.class))
+            return (Multimap<String, ? extends FeatureBindingInfo<M>>)getNotifications(notifications, updateManager.profile);
+        else return super.getBindings(featureType);
     }
 
     /**

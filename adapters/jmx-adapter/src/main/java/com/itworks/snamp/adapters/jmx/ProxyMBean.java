@@ -32,7 +32,7 @@ import java.util.logging.Level;
  * @version 1.0
  * @since 1.0
  */
-final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, NotificationBroadcaster, NotificationListener, Closeable, AttributeSet<JmxAttributeAccessor>, NotificationSet<JmxNotificationAccessor> {
+final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, NotificationBroadcaster, NotificationListener, Closeable {
     private enum MBeanResources{
         NOTIFICATIONS,
         ATTRIBUTES
@@ -187,8 +187,8 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
         listeners.clear();
     }
 
-    Iterable<? extends FeatureAccessor<?, ?>> getAccessorsAndClose(){
-        final ImmutableList<? extends FeatureAccessor<?, ?>> result =
+    Iterable<? extends FeatureAccessor<?>> getAccessorsAndClose(){
+        final ImmutableList<? extends FeatureAccessor<?>> result =
                 ImmutableList.copyOf(Iterables.concat(attributes.values(), notifications.values()));
         close();
         return result;
@@ -442,25 +442,19 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
         listeners.handleNotification(notification, handback);
     }
 
-    /**
-     * Reads all attributes sequentially.
-     *
-     * @param attributeReader An object that accepts attribute and its resource.
-     * @throws E Unable to process attribute.
-     */
-    @Override
-    public <E extends Exception> void forEachAttribute(final RecordReader<String, ? super JmxAttributeAccessor, E> attributeReader) throws E {
+    <E extends Exception> boolean forEachAttribute(final RecordReader<String, ? super JmxAttributeAccessor, E> attributeReader) throws E {
         try(final LockScope ignored = beginRead(MBeanResources.ATTRIBUTES)){
             for(final JmxAttributeAccessor accessor: attributes.values())
-                if(!attributeReader.read(resourceName, accessor)) return;
+                if(!attributeReader.read(resourceName, accessor)) return false;
         }
+        return true;
     }
 
-    @Override
-    public <E extends Exception> void forEachNotification(final RecordReader<String, ? super JmxNotificationAccessor, E> notificationReader) throws E {
+    <E extends Exception> boolean forEachNotification(final RecordReader<String, ? super JmxNotificationAccessor, E> notificationReader) throws E {
         try(final LockScope ignored = beginRead(MBeanResources.NOTIFICATIONS)){
             for(final JmxNotificationAccessor accessor: notifications.values())
-                notificationReader.read(resourceName, accessor);
+                if(!notificationReader.read(resourceName, accessor)) return false;
         }
+        return true;
     }
 }

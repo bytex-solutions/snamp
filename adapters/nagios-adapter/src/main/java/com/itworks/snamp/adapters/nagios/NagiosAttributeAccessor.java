@@ -14,7 +14,7 @@ import java.text.ParseException;
  * @version 1.0
  * @since 1.0
  */
-public final class NagiosAttributeAccessor extends AttributeAccessor {
+final class NagiosAttributeAccessor extends AttributeAccessor {
     private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat();
     static final String RESOURCE_URL_PARAM = "resourceName";
     static final String ATTRIBUTE_URL_PARAM = "attributeName";
@@ -49,7 +49,7 @@ public final class NagiosAttributeAccessor extends AttributeAccessor {
         return result;
     }
 
-    public String getPath(final String servletContext,
+    String getPath(final String servletContext,
                           final String resourceName) {
         return servletContext + ATTRIBUTE_ACCESS_PATH
                 .replace("{" + RESOURCE_URL_PARAM + "}", resourceName)

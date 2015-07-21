@@ -33,7 +33,6 @@ public final class JmxResourceAdapterActivator extends ResourceAdapterActivator<
     @SpecialUse
     public JmxResourceAdapterActivator() {
         super(new JmxAdapterFactory(),
-                new JmxConfigurationDescriptor(),
-                new RuntimeInformationServiceManager());
+                new JmxConfigurationDescriptor());
     }
 }

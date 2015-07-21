@@ -1,6 +1,7 @@
 package com.itworks.snamp.adapters;
 
 import com.google.common.base.Supplier;
+import com.google.common.collect.Multimap;
 import com.itworks.snamp.core.FrameworkService;
 import org.osgi.framework.ServiceListener;
 
@@ -57,6 +58,12 @@ public interface ResourceAdapter extends FrameworkService, ServiceListener, Clos
         Object getProperty(final String propertyName);
 
         /**
+         * Gets all supported properties.
+         * @return A set of all supported properties.
+         */
+        Set<String> getProperties();
+
+        /**
          * Overwrite property value.
          * <p>
          *     This operation may change behavior of the resource adapter.
@@ -80,19 +87,11 @@ public interface ResourceAdapter extends FrameworkService, ServiceListener, Clos
     AdapterState getState();
 
     /**
-     * Gets a set of connected resources.
-     * @return A set of connected resources.
-     */
-    Set<String> getConnectedResources();
-
-    /**
      * Gets a collection of features contained in this instance of the adapter.
      * @param featureType Type of the feature.
-     * @param resourceName The name of the connected resource.
      * @param <M> Feature class.
-     * @return A collection of features contained in this instance.
+     * @return A collection of features associated with resource name.
      * @see com.itworks.snamp.adapters.ResourceAdapter.FeatureBindingInfo
      */
-    <M extends MBeanFeatureInfo> Collection<? extends FeatureBindingInfo<M>> getBindings(final Class<M> featureType,
-                                                                                         final String resourceName);
+    <M extends MBeanFeatureInfo> Multimap<String, ? extends FeatureBindingInfo<M>> getBindings(final Class<M> featureType);
 }

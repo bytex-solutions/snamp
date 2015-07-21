@@ -17,11 +17,13 @@ import com.itworks.snamp.management.Maintainable;
 import org.osgi.framework.*;
 
 import javax.management.InstanceNotFoundException;
+import javax.management.MBeanFeatureInfo;
 import java.util.*;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.EntityConfiguration;
+import static com.itworks.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
 
 /**
  * Represents a client of resource connector that can be used by adapter consumers.
@@ -268,10 +270,6 @@ public final class ResourceAdapterClient extends ServiceReferenceHolder<Resource
 
     public String getInstanceName(){
         return getAdapterInstanceName(this);
-    }
-
-    public Set<String> getConnectedResources(){
-        return get().getConnectedResources();
     }
 
     /**

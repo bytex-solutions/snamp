@@ -1,11 +1,14 @@
 package com.itworks.snamp.adapters.jmx;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multimap;
+import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
+import com.itworks.snamp.adapters.ResourceAdapter;
 import com.itworks.snamp.adapters.modeling.AttributeSet;
 import com.itworks.snamp.adapters.modeling.FeatureAccessor;
 import com.itworks.snamp.adapters.modeling.NotificationSet;
-import com.itworks.snamp.adapters.jmx.binding.JmxAdapterRuntimeInfo;
 import com.itworks.snamp.internal.AbstractKeyedObjects;
 import com.itworks.snamp.internal.RecordReader;
 import com.itworks.snamp.internal.Utils;
@@ -37,14 +40,14 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
 
         @Override
         public <E extends Exception> void forEachAttribute(final RecordReader<String, ? super JmxAttributeAccessor, E> attributeReader) throws E {
-            for(final ProxyMBean bean: values())
-                bean.forEachAttribute(attributeReader);
+            for (final ProxyMBean bean : values())
+                if (!bean.forEachAttribute(attributeReader)) return;
         }
 
         @Override
         public <E extends Exception> void forEachNotification(final RecordReader<String, ? super JmxNotificationAccessor, E> notificationReader) throws E {
             for(final ProxyMBean bean: values())
-                bean.forEachNotification(notificationReader);
+                if(!bean.forEachNotification(notificationReader)) return;
         }
     }
 
@@ -69,7 +72,7 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
 
     @SuppressWarnings("unchecked")
     @Override
-    protected synchronized <M extends MBeanFeatureInfo, S> FeatureAccessor<M, S> addFeature(final String resourceName, final M feature) throws MalformedObjectNameException, NotCompliantMBeanException, InstanceAlreadyExistsException, MBeanRegistrationException {
+    protected synchronized <M extends MBeanFeatureInfo> FeatureAccessor<M> addFeature(final String resourceName, final M feature) throws MalformedObjectNameException, NotCompliantMBeanException, InstanceAlreadyExistsException, MBeanRegistrationException {
         final ProxyMBean bean;
         if(exposedBeans.containsKey(resourceName))
             bean = exposedBeans.get(resourceName);
@@ -84,14 +87,14 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
             }
         }
         if(feature instanceof MBeanAttributeInfo)
-            return (FeatureAccessor<M, S>)bean.addAttribute((MBeanAttributeInfo)feature);
+            return (FeatureAccessor<M>)bean.addAttribute((MBeanAttributeInfo)feature);
         else if(feature instanceof MBeanNotificationInfo)
-            return (FeatureAccessor<M, S>)bean.addNotification((MBeanNotificationInfo)feature);
+            return (FeatureAccessor<M>)bean.addNotification((MBeanNotificationInfo)feature);
         else return null;
     }
 
     @Override
-    protected synchronized Iterable<? extends FeatureAccessor<?, ?>> removeAllFeatures(final String resourceName) throws MalformedObjectNameException, MBeanRegistrationException, InstanceNotFoundException {
+    protected synchronized Iterable<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws MalformedObjectNameException, MBeanRegistrationException, InstanceNotFoundException {
         if(exposedBeans.containsKey(resourceName)){
             final ProxyMBean bean = exposedBeans.remove(resourceName);
             //unregister bean
@@ -106,13 +109,13 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
 
     @SuppressWarnings("unchecked")
     @Override
-    protected synchronized  <M extends MBeanFeatureInfo> FeatureAccessor<M, ?> removeFeature(final String resourceName, final M feature) throws Exception {
+    protected synchronized  <M extends MBeanFeatureInfo> FeatureAccessor<M> removeFeature(final String resourceName, final M feature) throws Exception {
         if(exposedBeans.containsKey(resourceName)){
             final ProxyMBean bean = exposedBeans.get(resourceName);
             if(feature instanceof MBeanAttributeInfo)
-                return (FeatureAccessor<M, ?>)bean.removeAttribute((MBeanAttributeInfo)feature);
+                return (FeatureAccessor<M>)bean.removeAttribute((MBeanAttributeInfo)feature);
             else if(feature instanceof MBeanNotificationInfo)
-                return (FeatureAccessor<M, ?>)bean.removeNotification((MBeanNotificationInfo)feature);
+                return (FeatureAccessor<M>)bean.removeNotification((MBeanNotificationInfo)feature);
             else return null;
         }
         else return null;
@@ -147,14 +150,34 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
         }
     }
 
-    /**
-     * Gets information about binding of the features.
-     *
-     * @param bindingType Type of the feature binding.
-     * @return A collection of features
-     */
+    private static Multimap<String, ? extends FeatureBindingInfo<MBeanAttributeInfo>> getAttributes(final AttributeSet<JmxAttributeAccessor> attributes){
+        final Multimap<String, JmxAttributeAccessor> result = HashMultimap.create();
+        attributes.forEachAttribute(new RecordReader<String, JmxAttributeAccessor, ExceptionPlaceholder>() {
+            @Override
+            public boolean read(final String resourceName, final JmxAttributeAccessor accessor) {
+                return result.put(resourceName, accessor);
+            }
+        });
+        return result;
+    }
+
+    private static Multimap<String, ? extends FeatureBindingInfo<MBeanNotificationInfo>> getNotifications(final NotificationSet<JmxNotificationAccessor> notifs){
+        final Multimap<String, JmxNotificationAccessor> result = HashMultimap.create();
+        notifs.forEachNotification(new RecordReader<String, JmxNotificationAccessor, ExceptionPlaceholder>() {
+            @Override
+            public boolean read(final String resourceName, final JmxNotificationAccessor accessor) {
+                return result.put(resourceName, accessor);
+            }
+        });
+        return result;
+    }
+
     @Override
-    protected synchronized <B extends FeatureBindingInfo> Collection<? extends B> getBindings(final Class<B> bindingType) {
-        return JmxAdapterRuntimeInfo.getBindingInfo(bindingType, exposedBeans, exposedBeans);
+    public <M extends MBeanFeatureInfo> Multimap<String, ? extends FeatureBindingInfo<M>> getBindings(final Class<M> featureType) {
+        if(featureType.isAssignableFrom(MBeanAttributeInfo.class))
+            return (Multimap<String, ? extends FeatureBindingInfo<M>>)getAttributes(exposedBeans);
+        else if(featureType.isAssignableFrom(MBeanNotificationInfo.class))
+            return (Multimap<String, ? extends FeatureBindingInfo<M>>)getNotifications(exposedBeans);
+        return super.getBindings(featureType);
     }
 }
