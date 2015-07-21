@@ -1,15 +1,9 @@
 package com.itworks.snamp.connectors.modbus;
 
-import com.ghgande.j2mod.modbus.Modbus;
-import com.ghgande.j2mod.modbus.facade.ModbusTCPMaster;
-import com.ghgande.j2mod.modbus.facade.ModbusUDPMaster;
-import com.ghgande.j2mod.modbus.net.ModbusMasterFactory;
 import com.google.common.base.Function;
-import com.google.common.collect.Range;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
 import com.itworks.snamp.connectors.ResourceEventListener;
-import com.itworks.snamp.connectors.attributes.AbstractAttributeSupport;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.attributes.OpenAttributeSupport;
 import com.itworks.snamp.connectors.modbus.transport.ModbusClient;
@@ -22,6 +16,7 @@ import javax.management.openmbean.OpenDataException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
@@ -30,7 +25,7 @@ import java.util.logging.Logger;
 /**
  * Represents Modbus connector.
  */
-final class ModbusResourceConnector extends AbstractManagedResourceConnector implements Modbus {
+final class ModbusResourceConnector extends AbstractManagedResourceConnector {
     private static final class ModbusAttributeSupport extends OpenAttributeSupport<ModbusAttributeInfo>{
         private final ModbusClient client;
         private final Logger logger;
@@ -43,16 +38,29 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector imp
 
         @Override
         protected ModbusAttributeInfo<?, ?> connectAttribute(final String attributeID, final AttributeDescriptor descriptor) throws AttributeNotFoundException, OpenDataException {
-            switch (descriptor.getAttributeName()){
-                case CoilAttribute.NAME: return new CoilAttribute(attributeID, descriptor, client);
-                case InputRegisterAttribute.NAME: return new InputRegisterAttribute(attributeID, descriptor, client);
-                case InputDiscreteAttribute.NAME: return new InputDiscreteAttribute(attributeID, descriptor, client);
-                case HoldingRegisterAttribute.NAME: return new HoldingRegisterAttribute(attributeID, descriptor, client);
-                case CoilSetAttribute.NAME: return new CoilSetAttribute(attributeID, descriptor, client);
-                case InputDiscreteSetAttribute.NAME: return new InputDiscreteSetAttribute(attributeID, descriptor, client);
-                case InputRegisterSetAttribute.NAME: return new InputRegisterSetAttribute(attributeID, descriptor, client);
-
-                default: throw JMExceptionUtils.attributeNotFound(descriptor.getAttributeName());
+            switch (descriptor.getAttributeName()) {
+                case CoilAttribute.NAME:
+                    if (ModbusResourceConnectorConfigurationDescriptor.hasCount(descriptor))
+                        return new CoilSetAttribute(attributeID, descriptor, client);
+                    else
+                        return new CoilAttribute(attributeID, descriptor, client);
+                case InputRegisterAttribute.NAME:
+                    if (ModbusResourceConnectorConfigurationDescriptor.hasCount(descriptor))
+                        return new InputRegisterSetAttribute(attributeID, descriptor, client);
+                    else
+                        return new InputRegisterAttribute(attributeID, descriptor, client);
+                case InputDiscreteAttribute.NAME:
+                    if (ModbusResourceConnectorConfigurationDescriptor.hasCount(descriptor))
+                        return new InputDiscreteSetAttribute(attributeID, descriptor, client);
+                    else
+                        return new InputDiscreteAttribute(attributeID, descriptor, client);
+                case HoldingRegisterAttribute.NAME:
+                    if (ModbusResourceConnectorConfigurationDescriptor.hasCount(descriptor))
+                        return new HoldingRegisterSetAttribute(attributeID, descriptor, client);
+                    else
+                        return new HoldingRegisterAttribute(attributeID, descriptor, client);
+                default:
+                    throw JMExceptionUtils.attributeNotFound(descriptor.getAttributeName());
             }
         }
 
@@ -78,12 +86,13 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector imp
     ModbusResourceConnector(final String resourceName,
                             final ModbusTransportType transportType,
                             final String address,
-                            final int port){
+                            final int port) throws IOException {
         client = transportType.createClient(address, port);
         attributes = new ModbusAttributeSupport(resourceName, client, getLogger());
+
     }
 
-    private static ModbusTransportType getTransportType(final URI connectionString) throws MalformedURLException{
+    static ModbusTransportType getTransportType(final URI connectionString) throws MalformedURLException{
         switch (connectionString.getScheme()){
             case "tcp": return ModbusTransportType.TCP;
             case "udp": return ModbusTransportType.UDP;
@@ -92,7 +101,7 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector imp
     }
 
     ModbusResourceConnector(final String resourceName,
-                            final URI connectionString) throws MalformedURLException{
+                            final URI connectionString) throws IOException {
         this(resourceName, getTransportType(connectionString), "", 0);
     }
 
@@ -104,8 +113,8 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector imp
         this.attributes.removeAllExcept(attributes);
     }
 
-    void connect() throws IOException {
-        client.openConnection();
+    void connect(final int socketTimeout) throws IOException {
+        client.connect(socketTimeout);
     }
 
     @Override

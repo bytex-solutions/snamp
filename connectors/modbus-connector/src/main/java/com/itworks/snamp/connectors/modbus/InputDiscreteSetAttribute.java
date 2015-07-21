@@ -14,7 +14,6 @@ import javax.management.openmbean.SimpleType;
  * Provides access to a range of input discretes.
  */
 final class InputDiscreteSetAttribute extends ModbusArrayAttributeInfo<boolean[], InputDiscreteAccess> {
-    static final String NAME = "inputDiscreteSet";
     private static final String DESCRIPTION = "A set of input discretes";
 
     InputDiscreteSetAttribute(final String attributeID,
@@ -27,7 +26,7 @@ final class InputDiscreteSetAttribute extends ModbusArrayAttributeInfo<boolean[]
     @Override
     protected boolean[] getValue(final InputDiscreteAccess deviceAccess) throws ModbusException, ModbusAbsentConfigurationParameterException {
         final IntegerRange range = getRange();
-        final BitVector coils = deviceAccess.readInputDiscretes(range.getLowerBound(), range.size());
+        final BitVector coils = deviceAccess.readInputDiscretes(getUnitID(), range.getLowerBound(), range.size());
         final boolean[] result = new boolean[coils.size()];
         for(int i = 0; i < coils.size(); i++)
             result[i] = coils.getBit(i);

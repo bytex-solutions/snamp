@@ -21,11 +21,11 @@ final class CoilAttribute extends ModbusAttributeInfo<Boolean, CoilAccess> {
 
     @Override
     protected Boolean getValue(final CoilAccess deviceAccess) throws ModbusException, ModbusAbsentConfigurationParameterException {
-        return deviceAccess.readCoil(getOffset());
+        return deviceAccess.readCoil(getUnitID(), getOffset());
     }
 
     @Override
     protected void setValue(final CoilAccess deviceAccess, final Boolean value) throws ModbusException, ModbusAbsentConfigurationParameterException {
-        deviceAccess.writeCoil(getOffset(), value);
+        deviceAccess.writeCoil(getUnitID(), getOffset(), value);
     }
 }

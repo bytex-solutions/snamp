@@ -20,6 +20,6 @@ final class InputRegisterAttribute extends ModbusAttributeInfo<Short, InputRegis
 
     @Override
     protected Short getValue(final InputRegisterAccess deviceAccess) throws ModbusException, ModbusAbsentConfigurationParameterException {
-        return deviceAccess.readInputRegister(getOffset()).toShort();
+        return deviceAccess.readInputRegister(getUnitID(), getOffset()).toShort();
     }
 }

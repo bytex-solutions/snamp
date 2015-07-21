@@ -15,7 +15,6 @@ import javax.management.openmbean.SimpleType;
  *
  */
 final class CoilSetAttribute extends ModbusArrayAttributeInfo<boolean[], CoilAccess> {
-    static final String NAME = "coils";
     private static final String DESCRIPTION = "A set of coils";
 
     CoilSetAttribute(final String attributeID, final AttributeDescriptor descriptor, final CoilAccess deviceAccess) throws OpenDataException {
@@ -25,7 +24,7 @@ final class CoilSetAttribute extends ModbusArrayAttributeInfo<boolean[], CoilAcc
     @Override
     protected boolean[] getValue(final CoilAccess deviceAccess) throws ModbusAbsentConfigurationParameterException, ModbusException {
         final IntegerRange range = getRange();
-        final BitVector coils = deviceAccess.readCoils(range.getLowerBound(), range.size());
+        final BitVector coils = deviceAccess.readCoils(getUnitID(), range.getLowerBound(), range.size());
         final boolean[] result = new boolean[coils.size()];
         for(int i = 0; i < coils.size(); i++)
             result[i] = coils.getBit(i);
@@ -37,6 +36,6 @@ final class CoilSetAttribute extends ModbusArrayAttributeInfo<boolean[], CoilAcc
         final BitVector coils = new BitVector(value.length);
         for(int i = 0; i < value.length; i++)
             coils.setBit(i, value[i]);
-        deviceAccess.writeCoils(getOffset(), coils);
+        deviceAccess.writeCoils(getUnitID(), getOffset(), coils);
     }
 }

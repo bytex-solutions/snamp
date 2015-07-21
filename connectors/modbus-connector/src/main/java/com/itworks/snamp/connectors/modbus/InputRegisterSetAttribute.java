@@ -16,7 +16,6 @@ import javax.management.openmbean.SimpleType;
  * Provides access to a set of input registers.
  */
 final class InputRegisterSetAttribute extends ModbusArrayAttributeInfo<short[], InputRegisterAccess> {
-    static final String NAME = "inputRegisterSet";
     private static final String DESCRIPTION = "A set of input registers";
 
     InputRegisterSetAttribute(final String attributeID, final AttributeDescriptor descriptor, final InputRegisterAccess deviceAccess) throws OpenDataException {
@@ -26,7 +25,7 @@ final class InputRegisterSetAttribute extends ModbusArrayAttributeInfo<short[], 
     @Override
     protected short[] getValue(final InputRegisterAccess deviceAccess) throws ModbusException, AbsentConfigurationParameterException {
         final IntegerRange range = getRange();
-        final InputRegister[] registers = deviceAccess.readInputRegisters(range.getLowerBound(), range.size());
+        final InputRegister[] registers = deviceAccess.readInputRegisters(getUnitID(), range.getLowerBound(), range.size());
         final short[] result = new short[registers.length];
         for(int i = 0; i < registers.length; i++)
             result[i] = registers[i].toShort();

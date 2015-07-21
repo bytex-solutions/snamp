@@ -22,13 +22,13 @@ final class HoldingRegisterAttribute extends ModbusAttributeInfo<Short, HoldingR
 
     @Override
     protected Short getValue(final HoldingRegisterAccess deviceAccess) throws ModbusException, ModbusAbsentConfigurationParameterException {
-        return deviceAccess.readHoldingRegister(getOffset()).toShort();
+        return deviceAccess.readHoldingRegister(getUnitID(), getOffset()).toShort();
     }
 
     @Override
     protected void setValue(final HoldingRegisterAccess deviceAccess, final Short value) throws ModbusException, ModbusAbsentConfigurationParameterException {
         final Register reg = new SimpleRegister();
         reg.setValue(value);
-        deviceAccess.writeHoldingRegister(getOffset(), reg);
+        deviceAccess.writeHoldingRegister(getUnitID(), getOffset(), reg);
     }
 }

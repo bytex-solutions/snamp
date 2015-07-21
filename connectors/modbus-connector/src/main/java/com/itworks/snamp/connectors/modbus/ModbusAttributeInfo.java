@@ -6,10 +6,9 @@ import com.itworks.snamp.connectors.attributes.OpenAttributeAccessor;
 import com.itworks.snamp.connectors.modbus.protocol.SlaveDeviceAccess;
 
 import javax.management.openmbean.OpenType;
-import java.io.Serializable;
 import java.util.Objects;
 
-import static com.itworks.snamp.connectors.modbus.ModbusResourceConnectorConfigurationDescriptor.parseOffset;
+import static com.itworks.snamp.connectors.modbus.ModbusResourceConnectorConfigurationDescriptor.*;
 
 /**
  *
@@ -29,6 +28,10 @@ abstract class ModbusAttributeInfo<T, A extends SlaveDeviceAccess> extends OpenA
 
     final int getOffset() throws ModbusAbsentConfigurationParameterException {
         return parseOffset(getDescriptor());
+    }
+
+    final int getUnitID() {
+        return parseUnitID(getDescriptor());
     }
 
     protected abstract T getValue(final A deviceAccess) throws Exception;

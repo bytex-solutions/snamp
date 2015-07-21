@@ -17,7 +17,6 @@ import java.util.ServiceLoader;
  * Provides access to a set of holding registers.
  */
 final class HoldingRegisterSetAttribute extends ModbusArrayAttributeInfo<short[], HoldingRegisterAccess> {
-    static final String NAME = "holdingRegisterSet";
     private static final String DESCRIPTION = "A set of holding registers";
 
     protected HoldingRegisterSetAttribute(final String attributeID,
@@ -30,7 +29,7 @@ final class HoldingRegisterSetAttribute extends ModbusArrayAttributeInfo<short[]
     @Override
     protected short[] getValue(final HoldingRegisterAccess deviceAccess) throws Exception {
         final IntegerRange range = getRange();
-        final Register[] registers = deviceAccess.readHoldingRegisters(range.getLowerBound(), range.size());
+        final Register[] registers = deviceAccess.readHoldingRegisters(getUnitID(), range.getLowerBound(), range.size());
         final short[] result = new short[registers.length];
         for(int i = 0; i < registers.length; i++)
             result[i] = registers[i].toShort();
@@ -42,6 +41,6 @@ final class HoldingRegisterSetAttribute extends ModbusArrayAttributeInfo<short[]
         final Register[] registers = new Register[value.length];
         for (int i = 0; i < value.length; i++)
             (registers[i] = new SimpleRegister()).setValue(value[i]);
-        deviceAccess.writeHoldingRegisters(getOffset(), registers);
+        deviceAccess.writeHoldingRegisters(getUnitID(), getOffset(), registers);
     }
 }

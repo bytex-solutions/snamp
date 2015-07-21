@@ -9,10 +9,8 @@ import com.ghgande.j2mod.modbus.util.BitVector;
 public interface CoilAccess extends SlaveDeviceAccess {
     /**
      * Reads a given number of coil states from the slave.
-     * <p/>
-     * Note that the number of bits in the bit vector will be
-     * forced to the number originally requested.
      *
+     * @param unitID Address of the slave device.
      * @param ref   the offset of the coil to start reading from.
      * @param count the number of coil states to be read.
      * @return a <tt>BitVector</tt> instance holding the
@@ -20,19 +18,20 @@ public interface CoilAccess extends SlaveDeviceAccess {
      * @throws ModbusException if an I/O error, a slave exception or
      *                         a transaction error occurs.
      */
-    BitVector readCoils(final int ref, final int count) throws ModbusException;
+    BitVector readCoils(final int unitID, final int ref, final int count) throws ModbusException;
 
-    boolean readCoil(final int ref) throws ModbusException;
+    boolean readCoil(final int unitID, final int ref) throws ModbusException;
 
     /**
      * Writes a coil state to the slave.
+     * @param unitID Address of the slave device.
      * @param ref    the offset of the coil to be written.
      * @param state  the coil state to be written.
      * @return the state of the coil as returned from the slave.
      * @throws ModbusException if an I/O error, a slave exception or
      *                         a transaction error occurs.
      */
-    boolean writeCoil(final int ref, final boolean state) throws ModbusException;
+    boolean writeCoil(final int unitID, final int ref, final boolean state) throws ModbusException;
 
-    void writeCoils(int ref, BitVector coils) throws ModbusException;
+    void writeCoils(final int unitID, final int ref, final BitVector coils) throws ModbusException;
 }

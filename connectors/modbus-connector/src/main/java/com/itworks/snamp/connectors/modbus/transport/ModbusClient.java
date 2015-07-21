@@ -15,11 +15,5 @@ import java.io.IOException;
  * @version 1.0
  */
 public interface ModbusClient extends CoilAccess, Closeable, InputDiscreteAccess, InputRegisterAccess, HoldingRegisterAccess {
-    /**
-     * Connects to the Modbus slave device.
-     * @throws IOException Network problems
-     */
-    void openConnection() throws IOException;
-
-    boolean isReconnecting();
+    void connect(final int socketTimeout) throws IOException;
 }

@@ -20,6 +20,6 @@ public class InputDiscreteAttribute extends ModbusAttributeInfo<Boolean, InputDi
 
     @Override
     protected Boolean getValue(final InputDiscreteAccess deviceAccess) throws ModbusException, ModbusAbsentConfigurationParameterException {
-        return deviceAccess.readInputDiscrete(getOffset());
+        return deviceAccess.readInputDiscrete(getUnitID(), getOffset());
     }
 }
