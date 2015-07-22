@@ -6,13 +6,12 @@ import com.cloudbees.syslog.SyslogMessage;
 import com.cloudbees.syslog.sender.SyslogMessageSender;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Multimap;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.*;
-import com.itworks.snamp.adapters.modeling.ModelOfAttributes;
-import com.itworks.snamp.adapters.modeling.FeatureAccessor;
-import com.itworks.snamp.adapters.modeling.NotificationAccessor;
-import com.itworks.snamp.adapters.modeling.ResourceNotificationList;
+import com.itworks.snamp.adapters.modeling.*;
 import com.itworks.snamp.concurrent.ThreadSafeObject;
+import com.itworks.snamp.internal.RecordReader;
 
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
@@ -30,7 +29,7 @@ import static com.itworks.snamp.adapters.syslog.SysLogConfigurationDescriptor.ge
  * @since 1.0
  */
 final class SysLogAdapter extends AbstractResourceAdapter {
-    private static final class SysLogAttributeModelOfAttributes extends ModelOfAttributes<SysLogAttributeAccessor> {
+    private static final class SysLogModelOfAttributes extends ModelOfAttributes<SysLogAttributeAccessor> {
 
         @Override
         protected SysLogAttributeAccessor createAccessor(final MBeanAttributeInfo metadata) {
@@ -38,12 +37,21 @@ final class SysLogAdapter extends AbstractResourceAdapter {
         }
     }
 
-    private static final class SysLogNotificationModel extends ThreadSafeObject implements NotificationListener {
+    private static final class SysLogModelOfNotifications extends ModelOfNotifications<SysLogNotificationAccessor> implements NotificationListener {
         private final Map<String, ResourceNotificationList<SysLogNotificationAccessor>> notifications;
         private ConcurrentSyslogMessageSender checkSender;
 
-        private SysLogNotificationModel() {
+        private SysLogModelOfNotifications() {
             this.notifications = new HashMap<>(10);
+        }
+
+        @Override
+        public <E extends Exception> void forEachNotification(final RecordReader<String, ? super SysLogNotificationAccessor, E> notificationReader) throws E {
+            try(final LockScope ignored = beginRead()){
+                for(final ResourceNotificationList<SysLogNotificationAccessor> list: notifications.values())
+                    for(final SysLogNotificationAccessor accessor: list.values())
+                        if(!notificationReader.read(accessor.resourceName, accessor)) return;
+            }
         }
 
         private void setCheckSender(final ConcurrentSyslogMessageSender value){
@@ -117,40 +125,40 @@ final class SysLogAdapter extends AbstractResourceAdapter {
         }
     }
 
-    private final SysLogAttributeModelOfAttributes attributes;
+    private final SysLogModelOfAttributes attributes;
     private SysLogAttributeSender attributeSender;
-    private final SysLogNotificationModel notifications;
+    private final SysLogModelOfNotifications notifications;
 
     SysLogAdapter(final String adapterInstanceName){
         super(adapterInstanceName);
-        attributes = new SysLogAttributeModelOfAttributes();
-        notifications = new SysLogNotificationModel();
+        attributes = new SysLogModelOfAttributes();
+        notifications = new SysLogModelOfNotifications();
         attributeSender = null;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    protected <M extends MBeanFeatureInfo, S> FeatureAccessor<M, S> addFeature(final String resourceName, final M feature) throws Exception {
+    protected <M extends MBeanFeatureInfo> FeatureAccessor<M> addFeature(final String resourceName, final M feature) throws Exception {
         if(feature instanceof MBeanAttributeInfo)
-            return (FeatureAccessor<M, S>)attributes.addAttribute(resourceName, (MBeanAttributeInfo)feature);
+            return (FeatureAccessor<M>)attributes.addAttribute(resourceName, (MBeanAttributeInfo)feature);
         else if(feature instanceof MBeanNotificationInfo)
-            return (FeatureAccessor<M, S>)notifications.addNotification(resourceName, (MBeanNotificationInfo)feature);
+            return (FeatureAccessor<M>)notifications.addNotification(resourceName, (MBeanNotificationInfo)feature);
         else return null;
     }
 
     @Override
-    protected Iterable<? extends FeatureAccessor<?, ?>> removeAllFeatures(final String resourceName) throws Exception {
+    protected Iterable<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception {
         return Iterables.concat(notifications.removeNotifications(resourceName),
                 attributes.clear(resourceName));
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    protected <M extends MBeanFeatureInfo> FeatureAccessor<M, ?> removeFeature(final String resourceName, final M feature) throws Exception {
+    protected <M extends MBeanFeatureInfo> FeatureAccessor<M> removeFeature(final String resourceName, final M feature) throws Exception {
         if(feature instanceof MBeanAttributeInfo)
-            return (FeatureAccessor<M, ?>)attributes.removeAttribute(resourceName, (MBeanAttributeInfo)feature);
+            return (FeatureAccessor<M>)attributes.removeAttribute(resourceName, (MBeanAttributeInfo)feature);
         else if(feature instanceof MBeanNotificationInfo)
-            return (FeatureAccessor<M, ?>)notifications.removeNotification(resourceName, (MBeanNotificationInfo)feature);
+            return (FeatureAccessor<M>)notifications.removeNotification(resourceName, (MBeanNotificationInfo)feature);
         else return null;
     }
 
@@ -177,5 +185,15 @@ final class SysLogAdapter extends AbstractResourceAdapter {
         attributeSender = null;
         attributes.clear();
         notifications.clear();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <M extends MBeanFeatureInfo> Multimap<String, ? extends FeatureBindingInfo<M>> getBindings(final Class<M> featureType) {
+        if(featureType.isAssignableFrom(MBeanAttributeInfo.class))
+            return (Multimap<String, ? extends FeatureBindingInfo<M>>)getBindings(attributes);
+        else if(featureType.isAssignableFrom(MBeanNotificationInfo.class))
+            return (Multimap<String, ? extends FeatureBindingInfo<M>>)getBindings(notifications);
+        else return super.getBindings(featureType);
     }
 }

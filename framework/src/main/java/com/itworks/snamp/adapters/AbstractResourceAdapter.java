@@ -2,9 +2,8 @@ package com.itworks.snamp.adapters;
 
 import com.google.common.collect.*;
 import com.itworks.snamp.AbstractAggregator;
-import com.itworks.snamp.adapters.modeling.AttributeAccessor;
-import com.itworks.snamp.adapters.modeling.FeatureAccessor;
-import com.itworks.snamp.adapters.modeling.NotificationAccessor;
+import com.itworks.snamp.ExceptionPlaceholder;
+import com.itworks.snamp.adapters.modeling.*;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.connectors.ResourceEvent;
@@ -21,6 +20,7 @@ import com.itworks.snamp.connectors.operations.OperationSupport;
 import com.itworks.snamp.core.LogicalOperation;
 import com.itworks.snamp.core.OSGiLoggingContext;
 import com.itworks.snamp.core.RichLogicalOperation;
+import com.itworks.snamp.internal.RecordReader;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.jmx.DescriptorUtils;
 import org.osgi.framework.*;
@@ -680,5 +680,27 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
     @Override
     public <M extends MBeanFeatureInfo> Multimap<String, ? extends FeatureBindingInfo<M>> getBindings(final Class<M> featureType) {
         return ImmutableMultimap.of();
+    }
+
+    protected static <TAccessor extends AttributeAccessor & FeatureBindingInfo<MBeanAttributeInfo>> Multimap<String, ? extends FeatureBindingInfo<MBeanAttributeInfo>> getBindings(final AttributeSet<TAccessor> model){
+        final Multimap<String, TAccessor> result = HashMultimap.create();
+        model.forEachAttribute(new RecordReader<String, TAccessor, ExceptionPlaceholder>() {
+            @Override
+            public boolean read(final String resourceName, final TAccessor accessor) {
+                return result.put(resourceName, accessor);
+            }
+        });
+        return result;
+    }
+
+    protected static <TAccessor extends NotificationAccessor & FeatureBindingInfo<MBeanNotificationInfo>> Multimap<String, ? extends FeatureBindingInfo<MBeanNotificationInfo>> getBindings(final NotificationSet<TAccessor> model){
+        final Multimap<String, TAccessor> result = HashMultimap.create();
+        model.forEachNotification(new RecordReader<String, TAccessor, ExceptionPlaceholder>() {
+            @Override
+            public boolean read(final String resourceName, final TAccessor accessor) {
+                return result.put(resourceName, accessor);
+            }
+        });
+        return result;
     }
 }

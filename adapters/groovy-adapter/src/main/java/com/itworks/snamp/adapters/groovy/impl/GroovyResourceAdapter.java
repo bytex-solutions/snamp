@@ -8,9 +8,7 @@ import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.adapters.groovy.ResourceAdapterInfo;
 import com.itworks.snamp.adapters.groovy.ResourceAdapterScript;
 import com.itworks.snamp.adapters.groovy.ResourceAdapterScriptEngine;
-import com.itworks.snamp.adapters.modeling.AttributeAccessor;
-import com.itworks.snamp.adapters.modeling.FeatureAccessor;
-import com.itworks.snamp.adapters.modeling.NotificationAccessor;
+import com.itworks.snamp.adapters.modeling.*;
 import com.itworks.snamp.internal.RecordReader;
 import com.itworks.snamp.internal.Utils;
 import groovy.util.ResourceException;
@@ -119,40 +117,13 @@ final class GroovyResourceAdapter extends AbstractResourceAdapter {
         }
     }
 
-    private static Multimap<String, ? extends FeatureBindingInfo<MBeanAttributeInfo>> getAttributes(final ManagementInformationRepository repository) {
-        final Multimap<String, ScriptAttributeAccessor> result =
-                HashMultimap.create();
-        repository.processAttributes(new RecordReader<String, AttributeAccessor, ExceptionPlaceholder>() {
-            @Override
-            public boolean read(final String resourceName, final AttributeAccessor accessor) {
-                if (accessor instanceof ScriptAttributeAccessor)
-                    result.put(resourceName, (ScriptAttributeAccessor) accessor);
-                return true;
-            }
-        });
-        return result;
-    }
-
-    private static Multimap<String, ? extends FeatureBindingInfo<MBeanNotificationInfo>> getNotifications(final ManagementInformationRepository repository){
-        final Multimap<String, ScriptNotificationAccessor> result =
-                HashMultimap.create();
-        repository.processEvents(new RecordReader<String, NotificationAccessor, ExceptionPlaceholder>() {
-            @Override
-            public boolean read(final String resourceName, final NotificationAccessor accessor) {
-                if(accessor instanceof ScriptNotificationAccessor)
-                    result.put(resourceName, (ScriptNotificationAccessor)accessor);
-                return true;
-            }
-        });
-        return result;
-    }
-
+    @SuppressWarnings("unchecked")
     @Override
     public <M extends MBeanFeatureInfo> Multimap<String, ? extends FeatureBindingInfo<M>> getBindings(final Class<M> featureType) {
         if(featureType.isAssignableFrom(MBeanAttributeInfo.class))
-            return (Multimap<String, ? extends FeatureBindingInfo<M>>)getAttributes(repository);
+            return (Multimap<String, ? extends FeatureBindingInfo<M>>)getBindings((AttributeSet<ScriptAttributeAccessor>)repository);
         else if(featureType.isAssignableFrom(MBeanNotificationInfo.class))
-            return (Multimap<String, ? extends FeatureBindingInfo<M>>)getNotifications(repository);
+            return (Multimap<String, ? extends FeatureBindingInfo<M>>)getBindings((NotificationSet<ScriptNotificationAccessor>)repository);
         else return super.getBindings(featureType);
     }
 

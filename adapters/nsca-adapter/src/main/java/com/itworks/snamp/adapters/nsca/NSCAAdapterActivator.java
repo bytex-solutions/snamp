@@ -30,6 +30,6 @@ public final class NSCAAdapterActivator extends ResourceAdapterActivator<NSCAAda
 
     @SpecialUse
     public NSCAAdapterActivator(){
-        super(new NSCAResourceAdapterFactory(),  new NSCAConfigurationProvider(), new RuntimeInformationServiceManager());
+        super(new NSCAResourceAdapterFactory(),  new NSCAConfigurationProvider());
     }
 }

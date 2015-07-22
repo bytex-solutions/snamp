@@ -150,34 +150,13 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
         }
     }
 
-    private static Multimap<String, ? extends FeatureBindingInfo<MBeanAttributeInfo>> getAttributes(final AttributeSet<JmxAttributeAccessor> attributes){
-        final Multimap<String, JmxAttributeAccessor> result = HashMultimap.create();
-        attributes.forEachAttribute(new RecordReader<String, JmxAttributeAccessor, ExceptionPlaceholder>() {
-            @Override
-            public boolean read(final String resourceName, final JmxAttributeAccessor accessor) {
-                return result.put(resourceName, accessor);
-            }
-        });
-        return result;
-    }
-
-    private static Multimap<String, ? extends FeatureBindingInfo<MBeanNotificationInfo>> getNotifications(final NotificationSet<JmxNotificationAccessor> notifs){
-        final Multimap<String, JmxNotificationAccessor> result = HashMultimap.create();
-        notifs.forEachNotification(new RecordReader<String, JmxNotificationAccessor, ExceptionPlaceholder>() {
-            @Override
-            public boolean read(final String resourceName, final JmxNotificationAccessor accessor) {
-                return result.put(resourceName, accessor);
-            }
-        });
-        return result;
-    }
-
+    @SuppressWarnings("unchecked")
     @Override
     public <M extends MBeanFeatureInfo> Multimap<String, ? extends FeatureBindingInfo<M>> getBindings(final Class<M> featureType) {
         if(featureType.isAssignableFrom(MBeanAttributeInfo.class))
-            return (Multimap<String, ? extends FeatureBindingInfo<M>>)getAttributes(exposedBeans);
+            return (Multimap<String, ? extends FeatureBindingInfo<M>>)getBindings((AttributeSet<JmxAttributeAccessor>)exposedBeans);
         else if(featureType.isAssignableFrom(MBeanNotificationInfo.class))
-            return (Multimap<String, ? extends FeatureBindingInfo<M>>)getNotifications(exposedBeans);
+            return (Multimap<String, ? extends FeatureBindingInfo<M>>)getBindings((NotificationSet<JmxNotificationAccessor>)exposedBeans);
         return super.getBindings(featureType);
     }
 }

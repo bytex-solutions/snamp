@@ -23,7 +23,7 @@ import java.util.*;
  * @version 1.0
  * @since 1.0
  */
-final class ManagementInformationRepository extends GroovyManagementModel implements AttributesRootAPI, EventsRootAPI {
+final class ManagementInformationRepository extends GroovyManagementModel implements AttributesRootAPI, EventsRootAPI, AttributeSet<ScriptAttributeAccessor>, NotificationSet<ScriptNotificationAccessor> {
     private static final class ScriptModelOfAttributes extends ModelOfAttributes<ScriptAttributeAccessor> {
         @Override
         protected ScriptAttributeAccessor createAccessor(final MBeanAttributeInfo metadata) {
@@ -107,14 +107,6 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
             }
         }
 
-        private <E extends Exception> void forEachEvent(final RecordReader<String, ? super ScriptNotificationAccessor, E> handler) throws E {
-            try(final LockScope ignored = beginRead()){
-                for(final Map.Entry<String, ? extends ResourceNotificationList<ScriptNotificationAccessor>> entry: notifications.entrySet())
-                    for(final ScriptNotificationAccessor accessor: entry.getValue().values())
-                        handler.read(entry.getKey(), accessor);
-            }
-        }
-
         /**
          * Iterates over all registered notifications.
          *
@@ -181,7 +173,7 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
 
     @Override
     public <E extends Exception> void processAttributes(final RecordReader<String, AttributeAccessor, E> handler) throws E {
-        attributes.forEachAttribute(handler);
+        forEachAttribute(handler);
     }
 
     @Override
@@ -196,7 +188,7 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
 
     @Override
     public <E extends Exception> void processEvents(final RecordReader<String, NotificationAccessor, E> closure) throws E {
-        notifications.forEachEvent(closure);
+        forEachNotification(closure);
     }
 
     @Override
@@ -230,5 +222,15 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
     void clear(){
         attributes.clear();
         notifications.clear();
+    }
+
+    @Override
+    public <E extends Exception> void forEachAttribute(final RecordReader<String, ? super ScriptAttributeAccessor, E> attributeReader) throws E {
+        attributes.forEachAttribute(attributeReader);
+    }
+
+    @Override
+    public <E extends Exception> void forEachNotification(final RecordReader<String, ? super ScriptNotificationAccessor, E> notificationReader) throws E {
+        notifications.forEachNotification(notificationReader);
     }
 }

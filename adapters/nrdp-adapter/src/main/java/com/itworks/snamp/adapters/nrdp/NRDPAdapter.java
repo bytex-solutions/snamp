@@ -6,17 +6,14 @@ import ch.shamu.jsendnrdp.domain.State;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Multimap;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.adapters.NotificationListener;
 import com.itworks.snamp.adapters.modeling.*;
-import com.itworks.snamp.concurrent.ThreadSafeObject;
-import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
-import com.itworks.snamp.connectors.notifications.NotificationDescriptor;
+import com.itworks.snamp.internal.RecordReader;
 
 import javax.management.*;
-import java.text.DecimalFormat;
-import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -30,43 +27,6 @@ import static com.itworks.snamp.adapters.nrdp.NRDPAdapterConfigurationDescriptor
  * @since 1.0
  */
 final class NRDPAdapter extends AbstractResourceAdapter {
-    private static final class NRDPAttributeAccessor extends AttributeAccessor {
-        private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat();
-
-        private NRDPAttributeAccessor(final MBeanAttributeInfo metadata) {
-            super(metadata);
-        }
-
-        private NagiosCheckResult getCheckResult(final String host){
-            State state;
-            String message;
-            final String service = getServiceName(getMetadata().getDescriptor(),
-                    AttributeDescriptor.getAttributeName(getMetadata().getDescriptor()));
-            try{
-                final Object attributeValue = getValue();
-                if(attributeValue instanceof Number)
-                    state = isInRange((Number)attributeValue, DECIMAL_FORMAT) ?
-                            State.OK : State.CRITICAL;
-                else state = State.OK;
-                message = Objects.toString(attributeValue, "0") +
-                        getUnitOfMeasurement(getMetadata().getDescriptor());
-            }
-            catch (final AttributeNotFoundException | ParseException e){
-                message = e.getMessage();
-                state = State.WARNING;
-            }
-            catch (final JMException e){
-                message = e.getMessage();
-                state = State.CRITICAL;
-            }
-            return new NagiosCheckResult(host, service, state, message);
-        }
-
-        @Override
-        public boolean canWrite() {
-            return false;
-        }
-    }
 
     private static final class NRDPAttributeModelOfAttributes extends ModelOfAttributes<NRDPAttributeAccessor> {
 
@@ -76,49 +36,21 @@ final class NRDPAdapter extends AbstractResourceAdapter {
         }
     }
 
-    private static final class NRDPNotificationAccessor extends NotificationRouter {
-        private final String resourceName;
-
-        private <L extends ThreadSafeObject & NotificationListener> NRDPNotificationAccessor(final String resourceName,
-                                                                                             final MBeanNotificationInfo metadata,
-                                                                                             final L listener) {
-            super(metadata, listener);
-            this.resourceName = resourceName;
-        }
-
-        @Override
-        protected Notification intercept(final Notification notification) {
-            notification.setSource(resourceName);
-            return notification;
-        }
-
-        private static State getLevel(final MBeanNotificationInfo metadata){
-            switch (NotificationDescriptor.getSeverity(metadata)){
-                case NOTICE:
-                case WARNING: return State.WARNING;
-                case ALERT:
-                case ERROR:
-                case PANIC: return State.CRITICAL;
-                case INFO:
-                case DEBUG:
-                case UNKNOWN:
-                    return State.OK;
-                default: return State.UNKNOWN;
-            }
-        }
-
-        private static String getServiceName(final MBeanNotificationInfo metadata){
-            return NRDPAdapterConfigurationDescriptor.getServiceName(metadata.getDescriptor(),
-                    NotificationDescriptor.getNotificationCategory(metadata));
-        }
-    }
-
-    private static final class NRDPNotificationModel extends ThreadSafeObject implements NotificationListener{
+    private static final class NRDPNotificationModel extends ModelOfNotifications<NRDPNotificationAccessor> implements NotificationListener{
         private final Map<String, ResourceNotificationList<NRDPNotificationAccessor>> notifications;
         private ConcurrentPassiveCheckSender checkSender;
 
         private NRDPNotificationModel() {
             this.notifications = new HashMap<>(10);
+        }
+
+        @Override
+        public <E extends Exception> void forEachNotification(final RecordReader<String, ? super NRDPNotificationAccessor, E> notificationReader) throws E {
+            try(final LockScope ignored = beginRead()){
+                for(final ResourceNotificationList<NRDPNotificationAccessor> list: notifications.values())
+                    for(final NRDPNotificationAccessor accessor: list.values())
+                        if(!notificationReader.read(accessor.resourceName, accessor)) return;
+            }
         }
 
         private void setCheckSender(final ConcurrentPassiveCheckSender value){
@@ -214,27 +146,27 @@ final class NRDPAdapter extends AbstractResourceAdapter {
 
     @SuppressWarnings("unchecked")
     @Override
-    protected <M extends MBeanFeatureInfo, S> FeatureAccessor<M, S> addFeature(final String resourceName, final M feature) throws Exception {
+    protected <M extends MBeanFeatureInfo> FeatureAccessor<M> addFeature(final String resourceName, final M feature) throws Exception {
         if(feature instanceof MBeanAttributeInfo)
-            return (FeatureAccessor<M, S>)attributes.addAttribute(resourceName, (MBeanAttributeInfo)feature);
+            return (FeatureAccessor<M>)attributes.addAttribute(resourceName, (MBeanAttributeInfo)feature);
         else if(feature instanceof MBeanNotificationInfo)
-            return (FeatureAccessor<M, S>)notifications.addNotification(resourceName, (MBeanNotificationInfo)feature);
+            return (FeatureAccessor<M>)notifications.addNotification(resourceName, (MBeanNotificationInfo)feature);
         else return null;
     }
 
     @Override
-    protected Iterable<? extends FeatureAccessor<?, ?>> removeAllFeatures(final String resourceName) throws Exception {
+    protected Iterable<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception {
         return Iterables.concat(notifications.removeNotifications(resourceName),
                 attributes.clear(resourceName));
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    protected <M extends MBeanFeatureInfo> FeatureAccessor<M, ?> removeFeature(final String resourceName, final M feature) throws Exception {
+    protected <M extends MBeanFeatureInfo> FeatureAccessor<M> removeFeature(final String resourceName, final M feature) throws Exception {
         if(feature instanceof MBeanAttributeInfo)
-            return (FeatureAccessor<M, ?>)attributes.removeAttribute(resourceName, (MBeanAttributeInfo)feature);
+            return (FeatureAccessor<M>)attributes.removeAttribute(resourceName, (MBeanAttributeInfo)feature);
         else if(feature instanceof MBeanNotificationInfo)
-            return (FeatureAccessor<M, ?>)notifications.removeNotification(resourceName, (MBeanNotificationInfo)feature);
+            return (FeatureAccessor<M>)notifications.removeNotification(resourceName, (MBeanNotificationInfo)feature);
         else return null;
     }
 
@@ -262,5 +194,15 @@ final class NRDPAdapter extends AbstractResourceAdapter {
         attributes.clear();
         notifications.clear();
         attributeChecker = null;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <M extends MBeanFeatureInfo> Multimap<String, ? extends FeatureBindingInfo<M>> getBindings(final Class<M> featureType) {
+        if(featureType.isAssignableFrom(MBeanAttributeInfo.class))
+            return (Multimap<String, ? extends FeatureBindingInfo<M>>)getBindings(attributes);
+        else if(featureType.isAssignableFrom(MBeanNotificationInfo.class))
+            return (Multimap<String, ? extends FeatureBindingInfo<M>>)getBindings(notifications);
+        return super.getBindings(featureType);
     }
 }

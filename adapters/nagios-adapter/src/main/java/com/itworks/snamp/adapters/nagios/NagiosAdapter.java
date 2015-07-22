@@ -88,6 +88,7 @@ final class NagiosAdapter extends AbstractResourceAdapter {
         return result;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <M extends MBeanFeatureInfo> Multimap<String, ? extends FeatureBindingInfo<M>> getBindings(final Class<M> featureType) {
         if (featureType.isAssignableFrom(MBeanAttributeInfo.class))

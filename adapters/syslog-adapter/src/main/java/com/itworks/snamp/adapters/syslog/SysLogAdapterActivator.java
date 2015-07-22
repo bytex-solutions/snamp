@@ -27,6 +27,6 @@ public final class SysLogAdapterActivator extends ResourceAdapterActivator<SysLo
 
     @SpecialUse
     public SysLogAdapterActivator(){
-        super(new SysLogAdapterFactory(), new SysLogConfigurationProvider(), new RuntimeInformationServiceManager());
+        super(new SysLogAdapterFactory(), new SysLogConfigurationProvider());
     }
 }

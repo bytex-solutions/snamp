@@ -2,20 +2,27 @@ package com.itworks.snamp.adapters.syslog;
 
 import com.cloudbees.syslog.Facility;
 import com.cloudbees.syslog.Severity;
+import com.google.common.collect.ImmutableSet;
 import com.itworks.snamp.adapters.NotificationListener;
 import com.itworks.snamp.adapters.modeling.NotificationRouter;
 import com.itworks.snamp.connectors.notifications.NotificationDescriptor;
 
+import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
+import java.util.Set;
+
+import static com.itworks.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
 
 /**
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-final class SysLogNotificationAccessor extends NotificationRouter {
-    private final String resourceName;
+final class SysLogNotificationAccessor extends NotificationRouter implements FeatureBindingInfo<MBeanNotificationInfo> {
+    private static final String FACILITY_PARAM = "facility";
+    private static final String SEVERITY_PARAM = "severity";
+    final String resourceName;
 
     SysLogNotificationAccessor(final String resourceName,
                                final MBeanNotificationInfo metadata,
@@ -42,6 +49,33 @@ final class SysLogNotificationAccessor extends NotificationRouter {
             case NOTICE: return Severity.NOTICE;
             default: return Severity.DEBUG;
         }
+    }
+
+    private Severity getSeverity(){
+        return getSeverity(get());
+    }
+
+    private Facility getFacility(){
+        return getFacility(get());
+    }
+
+    @Override
+    public Object getProperty(final String propertyName) {
+        switch (propertyName){
+            case FACILITY_PARAM: return getFacility();
+            case SEVERITY_PARAM: return getSeverity();
+            default: return null;
+        }
+    }
+
+    @Override
+    public ImmutableSet<String> getProperties() {
+        return ImmutableSet.of(SEVERITY_PARAM, FACILITY_PARAM);
+    }
+
+    @Override
+    public boolean setProperty(final String propertyName, final Object value) {
+        return false;
     }
 
     static Facility getFacility(final MBeanNotificationInfo metadata){
