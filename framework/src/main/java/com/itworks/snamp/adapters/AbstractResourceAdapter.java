@@ -208,7 +208,6 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
     protected AbstractResourceAdapter(final String instanceName) {
         this.adapterInstanceName = instanceName;
         mutableState = InternalState.initialState();
-        ManagedResourceConnectorClient.addResourceListener(getBundleContext(), this);
     }
 
     /**
@@ -510,6 +509,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                 start(newState.parameters);
                 mutableState = newState.setAdapterState(AdapterState.STARTED);
                 adapterStarted();
+                ManagedResourceConnectorClient.addResourceListener(getBundleContext(), this);
                 return true;
             default:
                 return false;
@@ -529,6 +529,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                         removeResource(resourceRef);
                 }
                 finally {
+                    getBundleContext().removeServiceListener(this);
                     mutableState = currentState.setAdapterState(AdapterState.STOPPED);
                 }
                 adapterStopped();
@@ -612,7 +613,6 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         } catch (final Exception e) {
             throw new IOException(String.format("Unable to release resources associated with %s adapter instance", adapterInstanceName), e);
         } finally {
-            getBundleContext().removeServiceListener(this);
             mutableState = InternalState.finalState();
         }
     }
