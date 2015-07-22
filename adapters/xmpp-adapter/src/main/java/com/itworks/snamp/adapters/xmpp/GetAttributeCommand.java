@@ -18,7 +18,7 @@ import java.util.Objects;
  */
 final class GetAttributeCommand extends AbstractAttributeCommand {
     static final String NAME = "get";
-    static final String COMMAND_USAGE = "get -n <name> -r <resource> [-t|-j]";
+    static final String COMMAND_USAGE = String.format(XMPPAttributeAccessor.GET_COMMAND_PATTERN, "<name>", "<resource") + " [-t|-j]";
     static final String COMMAND_DESC = "Print attribute value";
     private static final Option TEXT_OPTION = new Option("t", "text", false, "Print attribute value in plain text format");
     private static final Option JSON_OPTION = new Option("j", "json", false, "Print attribute value in JSON format");

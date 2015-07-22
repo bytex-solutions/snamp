@@ -20,6 +20,8 @@ import java.util.Collection;
  * @since 1.0
  */
 abstract class XMPPAttributeAccessor extends AttributeAccessor {
+    static final String GET_COMMAND_PATTERN = "get -n %s -r %s";
+    static final String SET_COMMAND_PATTERN = "set -n %s -r %s -v %s";
     protected static final Gson FORMATTER = Formatters.enableAll(new GsonBuilder())
                         .serializeSpecialFloatingPointValues()
                         .serializeNulls()
@@ -65,5 +67,13 @@ abstract class XMPPAttributeAccessor extends AttributeAccessor {
             result.setProperty("readable", getMetadata().isReadable());
             XMPPUtils.copyDescriptorFields(getMetadata().getDescriptor(), result);
         }
+    }
+
+    final String getReadCommand(final String resourceName){
+        return String.format(GET_COMMAND_PATTERN, getName(), resourceName);
+    }
+
+    final String getWriteCommand(final String resourceName){
+        return String.format(SET_COMMAND_PATTERN, getName(), resourceName, "<json-value>");
     }
 }

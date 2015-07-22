@@ -2,7 +2,9 @@ package com.itworks.snamp.adapters.xmpp;
 
 import com.google.common.collect.ImmutableList;
 import com.itworks.snamp.adapters.modeling.MulticastNotificationListener;
+import com.itworks.snamp.adapters.modeling.NotificationSet;
 import com.itworks.snamp.adapters.modeling.ResourceNotificationList;
+import com.itworks.snamp.internal.RecordReader;
 
 import javax.management.MBeanNotificationInfo;
 import java.util.HashMap;
@@ -13,7 +15,7 @@ import java.util.Map;
  * @version 1.0
  * @since 1.0
  */
-final class XMPPNotificationModel extends MulticastNotificationListener {
+final class XMPPModelOfNotifications extends MulticastNotificationListener implements NotificationSet<XMPPNotificationAccessor> {
     private enum XNMResource{
         LISTENERS,
         NOTIFICATIONS
@@ -21,7 +23,7 @@ final class XMPPNotificationModel extends MulticastNotificationListener {
 
     private final Map<String, ResourceNotificationList<XMPPNotificationAccessor>> notifications;
 
-    XMPPNotificationModel(){
+    XMPPModelOfNotifications(){
         super(XNMResource.class, XNMResource.LISTENERS);
         notifications = new HashMap<>(10);
     }
@@ -68,6 +70,15 @@ final class XMPPNotificationModel extends MulticastNotificationListener {
             for(final ResourceNotificationList<?> list: notifications.values())
                 list.clear();
             notifications.clear();
+        }
+    }
+
+    @Override
+    public <E extends Exception> void forEachNotification(final RecordReader<String, ? super XMPPNotificationAccessor, E> notificationReader) throws E {
+        try(final LockScope ignored = beginRead(XNMResource.NOTIFICATIONS)){
+            for(final ResourceNotificationList<XMPPNotificationAccessor> list: notifications.values())
+                for(final XMPPNotificationAccessor accessor: list.values())
+                    if(!notificationReader.read(accessor.resourceName, accessor)) return;
         }
     }
 }

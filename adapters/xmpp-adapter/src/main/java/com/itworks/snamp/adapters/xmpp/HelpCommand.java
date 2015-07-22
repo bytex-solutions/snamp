@@ -54,6 +54,7 @@ final class HelpCommand extends AbstractCommand {
             writer.println();
             printHelp(formatter, writer, ListOfAttributesCommand.COMMAND_USAGE, ListOfAttributesCommand.COMMAND_DESC, ListOfResourcesCommand.COMMAND_OPTIONS);
             printHelp(formatter, writer, ListOfResourcesCommand.NAME, ListOfResourcesCommand.COMMAND_DESC, ListOfResourcesCommand.COMMAND_OPTIONS);
+            printHelp(formatter, writer, ManageNotificationsCommand.COMMAND_USAGE, ManageNotificationsCommand.COMMAND_DESC, ManageNotificationsCommand.COMMAND_OPTIONS);
             printHelp(formatter, writer, ExitCommand.NAME, ExitCommand.COMMAND_DESC, ExitCommand.COMMAND_OPTIONS);
             result.setBody(output.toString());
         } catch (final IOException e) {

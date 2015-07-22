@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicReference;
 final class ManageNotificationsCommand extends AbstractCommand {
     static final String NAME = "notifs";
     static final String COMMAND_DESC = "Enables/disables notifications";
-    static final String COMMAND_USAGE = "notifs [-f filter-expression]";
+    static final String COMMAND_USAGE = String.format(XMPPNotificationAccessor.LISTEN_COMMAND_PATTERN, "[-f filter-expression]");
     private static final Option FILTER_OPT = new Option("f", "filter", true, "RFC 1960 filter for notifications");
     static final Options COMMAND_OPTIONS = new Options()
             .addOption(FILTER_OPT);

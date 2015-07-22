@@ -1,8 +1,16 @@
 package com.itworks.snamp.adapters.xmpp;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Multimap;
+import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
+import com.itworks.snamp.adapters.ResourceAdapter;
+import com.itworks.snamp.adapters.modeling.AttributeSet;
 import com.itworks.snamp.adapters.modeling.FeatureAccessor;
+import com.itworks.snamp.adapters.modeling.NotificationSet;
+import com.itworks.snamp.internal.RecordReader;
 import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
@@ -40,27 +48,27 @@ final class XMPPAdapter extends AbstractResourceAdapter {
 
     @SuppressWarnings("unchecked")
     @Override
-    protected <M extends MBeanFeatureInfo, S> FeatureAccessor<M, S> addFeature(final String resourceName, final M feature) throws Exception {
+    protected <M extends MBeanFeatureInfo> FeatureAccessor<M> addFeature(final String resourceName, final M feature) throws Exception {
         if(feature instanceof MBeanAttributeInfo)
-            return (FeatureAccessor<M, S>) chatBot.getAttributes().addAttribute(resourceName, (MBeanAttributeInfo)feature);
+            return (FeatureAccessor<M>) chatBot.getAttributes().addAttribute(resourceName, (MBeanAttributeInfo)feature);
         else if(feature instanceof MBeanNotificationInfo)
-            return (FeatureAccessor<M, S>) chatBot.getNotifications().enableNotifications(resourceName, (MBeanNotificationInfo)feature);
+            return (FeatureAccessor<M>) chatBot.getNotifications().enableNotifications(resourceName, (MBeanNotificationInfo)feature);
         else return null;
     }
 
     @Override
-    protected Iterable<? extends FeatureAccessor<?, ?>> removeAllFeatures(final String resourceName) {
+    protected Iterable<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) {
         return Iterables.concat(chatBot.getAttributes().clear(resourceName),
                 chatBot.getNotifications().clear(resourceName));
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    protected <M extends MBeanFeatureInfo> FeatureAccessor<M, ?> removeFeature(final String resourceName, final M feature) {
+    protected <M extends MBeanFeatureInfo> FeatureAccessor<M> removeFeature(final String resourceName, final M feature) {
         if(feature instanceof MBeanAttributeInfo)
-            return (FeatureAccessor<M, ?>) chatBot.getAttributes().removeAttribute(resourceName, (MBeanAttributeInfo)feature);
+            return (FeatureAccessor<M>) chatBot.getAttributes().removeAttribute(resourceName, (MBeanAttributeInfo)feature);
         else if(feature instanceof MBeanNotificationInfo)
-            return (FeatureAccessor<M, ?>) chatBot.getNotifications().disableNotifications(resourceName, (MBeanNotificationInfo)feature);
+            return (FeatureAccessor<M>) chatBot.getNotifications().disableNotifications(resourceName, (MBeanNotificationInfo)feature);
         else return null;
     }
 
@@ -81,4 +89,40 @@ final class XMPPAdapter extends AbstractResourceAdapter {
         connection = null;
     }
 
+    private static Multimap<String, ? extends FeatureBindingInfo<MBeanAttributeInfo>> getAttributes(final AttributeSet<XMPPAttributeAccessor> attributes){
+        final Multimap<String, ReadOnlyFeatureBindingInfo<MBeanAttributeInfo>> result = HashMultimap.create();
+        attributes.forEachAttribute(new RecordReader<String, XMPPAttributeAccessor, ExceptionPlaceholder>() {
+            @Override
+            public boolean read(final String resourceName, final XMPPAttributeAccessor accessor) {
+                final ImmutableMap.Builder<String, String> parameters = ImmutableMap.builder();
+                if (accessor.canRead())
+                    parameters.put("read-command", accessor.getReadCommand(resourceName));
+                if (accessor.canWrite())
+                    parameters.put("write-command", accessor.getWriteCommand(resourceName));
+                return result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor, parameters.build()));
+            }
+        });
+        return result;
+    }
+
+    private static Multimap<String, ? extends FeatureBindingInfo<MBeanNotificationInfo>> getNotifications(final NotificationSet<XMPPNotificationAccessor> notifs) {
+        final Multimap<String, ReadOnlyFeatureBindingInfo<MBeanNotificationInfo>> result = HashMultimap.create();
+        notifs.forEachNotification(new RecordReader<String, XMPPNotificationAccessor, ExceptionPlaceholder>() {
+            @Override
+            public boolean read(final String resourceName, final XMPPNotificationAccessor accessor) {
+                return result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor, "listen-command", accessor.getListenCommand()));
+            }
+        });
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <M extends MBeanFeatureInfo> Multimap<String, ? extends FeatureBindingInfo<M>> getBindings(final Class<M> featureType) {
+        if(featureType.isAssignableFrom(MBeanAttributeInfo.class))
+            return (Multimap<String, ? extends FeatureBindingInfo<M>>)getAttributes(chatBot.getAttributes());
+        else if(featureType.isAssignableFrom(MBeanNotificationInfo.class))
+            return (Multimap<String, ? extends FeatureBindingInfo<M>>)getNotifications(chatBot.getNotifications());
+        return super.getBindings(featureType);
+    }
 }

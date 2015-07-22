@@ -26,7 +26,7 @@ import java.util.Objects;
  * @version 1.0
  * @since 1.0
  */
-final class XMPPAttributeModelOfAttributes extends ModelOfAttributes<XMPPAttributeAccessor> implements AttributeReader, AttributeWriter {
+final class XMPPModelOfAttributes extends ModelOfAttributes<XMPPAttributeAccessor> implements AttributeReader, AttributeWriter {
     private static final class Reader implements Consumer<XMPPAttributeAccessor, JMException>{
         private final AttributeValueFormat format;
         private String output;
