@@ -162,7 +162,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
     }
 
     public static abstract class OpenOperation<R, T extends OpenType<R>> extends OpenMBeanElement<MBeanOperationInfo>{
-        private final T returnType;
+        protected final T returnType;
         private final List<OpenMBeanParameterInfo> parameters;
 
         protected OpenOperation(final String operationName, final T returnType, final OpenMBeanParameterInfo... parameters){

@@ -44,6 +44,7 @@ import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
  */
 @SnampDependencies(SnampFeature.SNMP_ADAPTER)
 public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBean> {
+    private static final String ADAPTER_INSTANCE_NAME = "test-snmp";
     private static final String SNAMP_MBEAN = "com.itworks.snamp.management:type=SnampCore";
     private static final String ADAPTER_NAME = "snmp";
     private static final String SNMP_PORT = "3222";
@@ -65,6 +66,17 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             final ObjectName commonsObj = new ObjectName(SNAMP_MBEAN);
             final Object attrs =
                     connection.invoke(commonsObj, "getAvailableAttributes", new Object[]{TEST_RESOURCE_NAME}, new String[]{String.class.getName()});
+            assertTrue(attrs instanceof TabularData);
+        }
+    }
+
+    @Test
+    public void bindingOfAttributesTest() throws IOException, JMException {
+        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
+            final MBeanServerConnection connection = connector.getMBeanServerConnection();
+            final ObjectName commonsObj = new ObjectName(SNAMP_MBEAN);
+            final Object attrs =
+                    connection.invoke(commonsObj, "getBindingOfAttributes", new Object[]{ADAPTER_INSTANCE_NAME}, new String[]{String.class.getName()});
             assertTrue(attrs instanceof TabularData);
         }
     }
@@ -679,7 +691,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
         snmpAdapter.getParameters().put("host", SNMP_HOST);
         snmpAdapter.getParameters().put("socketTimeout", "5000");
         snmpAdapter.getParameters().put("context", "1.1");
-        adapters.put("test-snmp", snmpAdapter);
+        adapters.put(ADAPTER_INSTANCE_NAME, snmpAdapter);
     }
 
     @Override
