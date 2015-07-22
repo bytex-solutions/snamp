@@ -267,6 +267,7 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
         return result;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public synchronized <M extends MBeanFeatureInfo> Multimap<String, ? extends FeatureBindingInfo<M>> getBindings(final Class<M> featureType) {
         final SnmpAdapterUpdateManager updateManager = this.updateManager;

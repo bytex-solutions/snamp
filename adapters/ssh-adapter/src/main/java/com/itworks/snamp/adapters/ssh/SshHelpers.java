@@ -1,10 +1,13 @@
 package com.itworks.snamp.adapters.ssh;
 
 import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.itworks.snamp.Consumer;
 import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
 import com.itworks.snamp.core.OSGiLoggingContext;
+import com.itworks.snamp.jmx.json.Formatters;
 
 import java.util.Map;
 import java.util.logging.Level;
@@ -19,6 +22,10 @@ final class SshHelpers {
     static final TypeToken<Map<String, Object>> STRING_MAP_TYPE = new TypeToken<Map<String, Object>>() {};
     static final String ADAPTER_NAME = "ssh";
     private static final String LOGGER_NAME = AbstractResourceAdapter.getLoggerName(ADAPTER_NAME);
+    static final Gson FORMATTER = Formatters.enableAll(new GsonBuilder())
+            .serializeSpecialFloatingPointValues()
+            .serializeNulls()
+            .create();
 
     private SshHelpers(){
 

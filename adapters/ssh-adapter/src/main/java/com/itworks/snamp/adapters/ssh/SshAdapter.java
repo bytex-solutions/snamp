@@ -3,21 +3,17 @@ package com.itworks.snamp.adapters.ssh;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Supplier;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.google.common.collect.*;
 import com.itworks.snamp.Consumer;
+import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.adapters.*;
 import com.itworks.snamp.adapters.modeling.*;
-import com.itworks.snamp.concurrent.ThreadSafeObject;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
+import com.itworks.snamp.internal.RecordReader;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.jmx.ExpressionBasedDescriptorFilter;
 import com.itworks.snamp.jmx.TabularDataUtils;
 import com.itworks.snamp.jmx.WellKnownType;
-import com.itworks.snamp.jmx.json.Formatters;
 import com.itworks.snamp.jmx.json.JsonSerializerFunction;
 import org.apache.sshd.SshServer;
 import org.apache.sshd.common.KeyPairProvider;
@@ -33,7 +29,6 @@ import javax.management.*;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.TabularData;
 import java.io.IOException;
-import java.io.Reader;
 import java.io.Writer;
 import java.nio.*;
 import java.security.PublicKey;
@@ -50,39 +45,27 @@ import static com.itworks.snamp.adapters.ssh.SshAdapterConfigurationDescriptor.*
  * @since 1.0
  */
 final class SshAdapter extends AbstractResourceAdapter implements AdapterController {
-    private static final Gson FORMATTER = Formatters.enableAll(new GsonBuilder())
-            .serializeSpecialFloatingPointValues()
-            .serializeNulls()
-            .create();
 
-    private static final class SshNotificationMappingImpl extends NotificationRouter implements SshNotificationMapping {
-        private final String resourceName;
-
-        private SshNotificationMappingImpl(final MBeanNotificationInfo metadata,
-                                           final NotificationEventBox mailbox,
-                                           final String resourceName){
-            super(metadata, mailbox);
-            this.resourceName = resourceName;
-        }
-
-        @Override
-        protected Notification intercept(final Notification notification) {
-            notification.setSource(resourceName);
-            return notification;
-        }
-    }
-
-    private static final class SshNotificationsModel extends ThreadSafeObject{
-        private final Map<String, ResourceNotificationList<SshNotificationMappingImpl>> notifications;
+    private static final class SshModelOfNotifications extends ModelOfNotifications<SshNotificationAccessor>{
+        private final Map<String, ResourceNotificationList<SshNotificationAccessor>> notifications;
         private final NotificationEventBox mailbox;
 
-        private SshNotificationsModel(){
+        private SshModelOfNotifications(){
             notifications = createNotifs();
             mailbox = new NotificationEventBox(50);
         }
 
-        private static Map<String, ResourceNotificationList<SshNotificationMappingImpl>> createNotifs(){
-            return new HashMap<String, ResourceNotificationList<SshNotificationMappingImpl>>(20){
+        @Override
+        public <E extends Exception> void forEachNotification(final RecordReader<String, ? super SshNotificationAccessor, E> notificationReader) throws E {
+            try (final LockScope ignored = beginRead()) {
+                for (final ResourceNotificationList<SshNotificationAccessor> list : notifications.values())
+                    for (final SshNotificationAccessor accessor : list.values())
+                        if (!notificationReader.read(accessor.resourceName, accessor)) return;
+            }
+        }
+
+        private static Map<String, ResourceNotificationList<SshNotificationAccessor>> createNotifs(){
+            return new HashMap<String, ResourceNotificationList<SshNotificationAccessor>>(20){
                 private static final long serialVersionUID = 3091347160169529722L;
 
                 @Override
@@ -104,11 +87,11 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         private NotificationAccessor addNotification(final String resourceName,
                                                      final MBeanNotificationInfo metadata){
             try(final LockScope ignored = beginWrite()){
-                final ResourceNotificationList<SshNotificationMappingImpl> list;
+                final ResourceNotificationList<SshNotificationAccessor> list;
                 if(notifications.containsKey(resourceName))
                     list = notifications.get(resourceName);
                 else notifications.put(resourceName, list = new ResourceNotificationList<>());
-                final SshNotificationMappingImpl accessor = new SshNotificationMappingImpl(metadata, mailbox, resourceName);
+                final SshNotificationAccessor accessor = new SshNotificationAccessor(metadata, mailbox, resourceName);
                 list.put(accessor);
                 return accessor;
             }
@@ -118,14 +101,14 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
             try(final LockScope ignored = beginWrite()){
                 return notifications.containsKey(resourceName) ?
                     notifications.remove(resourceName).values():
-                        ImmutableList.<SshNotificationMappingImpl>of();
+                        ImmutableList.<SshNotificationAccessor>of();
             }
         }
 
         private NotificationAccessor removeNotification(final String resourceName,
                                                         final MBeanNotificationInfo metadata){
             try(final LockScope ignored = beginWrite()){
-                final ResourceNotificationList<SshNotificationMappingImpl> list;
+                final ResourceNotificationList<SshNotificationAccessor> list;
                 if(notifications.containsKey(resourceName))
                     list = notifications.get(resourceName);
                 else return null;
@@ -143,54 +126,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         }
     }
 
-    private abstract static class AbstractSshAttributeMapping extends AttributeAccessor implements SshAttributeMapping {
-        private AbstractSshAttributeMapping(final MBeanAttributeInfo metadata){
-            super(metadata);
-        }
-
-        @Override
-        public final String getOriginalName() {
-            return AttributeDescriptor.getAttributeName(getMetadata());
-        }
-
-        private void printValueAsJson(final Writer output) throws IOException, JMException{
-            FORMATTER.toJson(getValue(), output);
-            output.flush();
-        }
-
-        @Override
-        public final void printValue(final Writer output, final AttributeValueFormat format) throws JMException, IOException {
-            switch (format){
-                case JSON: printValueAsJson(output); return;
-                default: printValueAsText(output);
-            }
-        }
-
-        protected abstract void printValueAsText(final Writer output) throws JMException, IOException;
-
-        /**
-         * Prints attribute value.
-         *
-         * @param input An input stream that contains attribute
-         * @throws javax.management.JMException
-         */
-        @Override
-        public final void setValue(final Reader input) throws JMException, IOException {
-            if(getType() != null && canWrite())
-                setValue(FORMATTER.fromJson(input, getType().getJavaType()));
-            else throw new UnsupportedOperationException(String.format("Attribute %s is read-only", getName()));
-        }
-
-        @Override
-        public final void printOptions(final Writer output) throws IOException{
-            final Descriptor descr = getMetadata().getDescriptor();
-            for(final String fieldName: descr.getFieldNames())
-                output.append(String.format("%s = %s", fieldName, descr.getFieldValue(fieldName)));
-            output.flush();
-        }
-    }
-
-    private static final class ReadOnlyAttributeMapping extends AbstractSshAttributeMapping {
+    private static final class ReadOnlyAttributeMapping extends SshAttributeAccessor {
         private ReadOnlyAttributeMapping(final MBeanAttributeInfo metadata){
             super(metadata);
         }
@@ -206,7 +142,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         }
     }
 
-    private static final class DefaultAttributeMapping extends AbstractSshAttributeMapping {
+    private static final class DefaultAttributeMapping extends SshAttributeAccessor {
 
         private DefaultAttributeMapping(final MBeanAttributeInfo metadata) {
             super(metadata);
@@ -218,7 +154,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         }
     }
 
-    private static abstract class AbstractBufferAttributeMapping<B extends Buffer> extends AbstractSshAttributeMapping {
+    private static abstract class AbstractBufferAttributeMapping<B extends Buffer> extends SshAttributeAccessor {
         protected static final char WHITESPACE = ' ';
         private final Class<B> bufferType;
 
@@ -320,7 +256,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         }
     }
 
-    private static final class CompositeDataAttributeMapping extends AbstractSshAttributeMapping {
+    private static final class CompositeDataAttributeMapping extends SshAttributeAccessor {
         private CompositeDataAttributeMapping(final MBeanAttributeInfo metadata){
             super(metadata);
         }
@@ -330,12 +266,12 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
             final CompositeData value = getValue(CompositeData.class);
             for(final String key: value.getCompositeType().keySet())
                 output
-                        .append(String.format("%s = %s", key, FORMATTER.toJson(value.get(key))))
+                        .append(String.format("%s = %s", key, SshHelpers.FORMATTER.toJson(value.get(key))))
                         .append(System.lineSeparator());
         }
     }
 
-    private static final class TabularDataAttributeMapping extends AbstractSshAttributeMapping {
+    private static final class TabularDataAttributeMapping extends SshAttributeAccessor {
         private TabularDataAttributeMapping(final MBeanAttributeInfo metadata){
             super(metadata);
         }
@@ -363,17 +299,17 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
                 @SuppressWarnings("unchecked")
                 @Override
                 public void accept(final CompositeData row) throws IOException{
-                    final Collection<?> values = Collections2.transform(row.values(), new JsonSerializerFunction(FORMATTER));
+                    final Collection<?> values = Collections2.transform(row.values(), new JsonSerializerFunction(SshHelpers.FORMATTER));
                     output.append(joinString(values, ITEM_FORMAT, COLUMN_SEPARATOR));
                 }
             });
         }
     }
 
-    private static final class SshModelOfAttributes extends ModelOfAttributes<AbstractSshAttributeMapping> {
+    private static final class SshModelOfAttributes extends ModelOfAttributes<SshAttributeAccessor> {
 
         @Override
-        protected AbstractSshAttributeMapping createAccessor(final MBeanAttributeInfo metadata) {
+        protected SshAttributeAccessor createAccessor(final MBeanAttributeInfo metadata) {
             final WellKnownType attributeType = AttributeDescriptor.getType(metadata);
             if(attributeType != null)
                 switch (attributeType){
@@ -405,12 +341,12 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
     private SshServer server;
     private ExecutorService threadPool;
     private final SshModelOfAttributes attributes;
-    private final SshNotificationsModel notifications;
+    private final SshModelOfNotifications notifications;
 
     SshAdapter(final String adapterInstanceName) {
         super(adapterInstanceName);
         attributes = new SshModelOfAttributes();
-        notifications = new SshNotificationsModel();
+        notifications = new SshModelOfNotifications();
     }
 
     private static void setupSecurity(final SshServer server, final SshSecuritySettings security) {
@@ -541,31 +477,68 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
     @SuppressWarnings("unchecked")
     @Override
-    protected <M extends MBeanFeatureInfo, S> FeatureAccessor<M, S> addFeature(final String resourceName, final M feature) throws Exception {
+    protected <M extends MBeanFeatureInfo> FeatureAccessor<M> addFeature(final String resourceName, final M feature) throws Exception {
         if(feature instanceof MBeanAttributeInfo)
-            return (FeatureAccessor<M, S>)attributes.addAttribute(resourceName, (MBeanAttributeInfo)feature);
+            return (FeatureAccessor<M>)attributes.addAttribute(resourceName, (MBeanAttributeInfo)feature);
         else if(feature instanceof MBeanNotificationInfo)
-            return (FeatureAccessor<M, S>)notifications.addNotification(resourceName, (MBeanNotificationInfo)feature);
+            return (FeatureAccessor<M>)notifications.addNotification(resourceName, (MBeanNotificationInfo)feature);
         else return null;
     }
 
     @Override
-    protected Iterable<? extends FeatureAccessor<?, ?>> removeAllFeatures(final String resourceName) {
+    protected Iterable<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) {
         return Iterables.concat(attributes.clear(resourceName), notifications.clear(resourceName));
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    protected <M extends MBeanFeatureInfo> FeatureAccessor<M, ?> removeFeature(final String resourceName, final M feature) {
+    protected <M extends MBeanFeatureInfo> FeatureAccessor<M> removeFeature(final String resourceName, final M feature) {
         if(feature instanceof MBeanAttributeInfo)
-            return (FeatureAccessor<M, ?>)attributes.removeAttribute(resourceName, (MBeanAttributeInfo)feature);
+            return (FeatureAccessor<M>)attributes.removeAttribute(resourceName, (MBeanAttributeInfo)feature);
         else if(feature instanceof MBeanNotificationInfo)
-            return (FeatureAccessor<M, ?>)notifications.removeNotification(resourceName, (MBeanNotificationInfo)feature);
+            return (FeatureAccessor<M>)notifications.removeNotification(resourceName, (MBeanNotificationInfo)feature);
         else return null;
     }
 
     @Override
     public void print(final Notification notif, final Writer output) {
-        FORMATTER.toJson(notif, output);
+        SshHelpers.FORMATTER.toJson(notif, output);
+    }
+
+    private static Multimap<String, ? extends FeatureBindingInfo<MBeanAttributeInfo>> getAttributes(final AttributeSet<SshAttributeAccessor> attributes){
+        final Multimap<String, ReadOnlyFeatureBindingInfo<MBeanAttributeInfo>> result = HashMultimap.create();
+        attributes.forEachAttribute(new RecordReader<String, SshAttributeAccessor, ExceptionPlaceholder>() {
+            @Override
+            public boolean read(final String resourceName, final SshAttributeAccessor accessor) {
+                final ImmutableMap.Builder<String, String> parameters = ImmutableMap.builder();
+                if (accessor.canRead())
+                    parameters.put("read-command", accessor.getReadCommand(resourceName));
+                if (accessor.canWrite())
+                    parameters.put("write-command", accessor.getWriteCommand(resourceName));
+                return result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor, parameters.build()));
+            }
+        });
+        return result;
+    }
+
+    private static Multimap<String, ? extends FeatureBindingInfo<MBeanNotificationInfo>> getNotifications(final NotificationSet<SshNotificationAccessor> notifs){
+        final Multimap<String, ReadOnlyFeatureBindingInfo<MBeanNotificationInfo>> result = HashMultimap.create();
+        notifs.forEachNotification(new RecordReader<String, SshNotificationAccessor, ExceptionPlaceholder>() {
+            @Override
+            public boolean read(final String resourceName, final SshNotificationAccessor accessor) {
+                return result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor, "listen-command", accessor.getListenCommand()));
+            }
+        });
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <M extends MBeanFeatureInfo> Multimap<String, ? extends FeatureBindingInfo<M>> getBindings(final Class<M> featureType) {
+        if (featureType.isAssignableFrom(MBeanAttributeInfo.class))
+            return (Multimap<String, ? extends FeatureBindingInfo<M>>) getAttributes(attributes);
+        else if (featureType.isAssignableFrom(MBeanNotificationInfo.class))
+            return (Multimap<String, ? extends FeatureBindingInfo<M>>) getNotifications(notifications);
+        return super.getBindings(featureType);
     }
 }

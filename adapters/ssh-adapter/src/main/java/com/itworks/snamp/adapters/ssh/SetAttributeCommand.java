@@ -18,7 +18,7 @@ import java.io.StringReader;
  * @since 1.0
  */
 final class SetAttributeCommand extends AbstractAttributeCommand {
-    static final String COMMAND_USAGE = "set -n <name> -r <resource> -v <value-as-json>";
+    static final String COMMAND_USAGE = String.format(SshAttributeAccessor.SET_COMMAND_PATTERN, "<name>", "<resource>", "<value-as-json>");;
     static final String COMMAND_NAME = "set";
     static final String COMMAND_DESC = "Set attribute value";
     private static final Option VALUE_OPTION = new Option("v", "value", true, "Attribute value in JSON format");

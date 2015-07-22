@@ -37,7 +37,6 @@ public final class SshAdapterActivator extends ResourceAdapterActivator<SshAdapt
     @SpecialUse
     public SshAdapterActivator() {
         super(new SshAdapterFactory(),
-                new ConfigurationDescriptorServiceManager(),
-                new RuntimeInformationServiceManager());
+                new ConfigurationDescriptorServiceManager());
     }
 }

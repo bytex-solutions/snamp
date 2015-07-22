@@ -18,7 +18,7 @@ import static com.itworks.snamp.io.IOUtils.hasMoreData;
  */
 final class NotificationsCommand extends AbstractManagementShellCommand {
     static final String COMMAND_NAME = "notifs";
-    static final String COMMAND_USAGE = "notifs [-f <expression>]";
+    static final String COMMAND_USAGE = String.format(SshNotificationAccessor.LISTEN_COMMAND_PATTERN, "[-f <expression>]");
     static final String COMMAND_DESC = "Notifications management";
     private static final Option FILTER_OPTION = new Option("f", "filter", true, "Notification filter");
     static final Options COMMAND_OPTIONS = new Options()
