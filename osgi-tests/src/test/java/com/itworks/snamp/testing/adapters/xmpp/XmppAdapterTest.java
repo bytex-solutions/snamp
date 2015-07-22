@@ -5,10 +5,13 @@ import com.google.common.collect.ImmutableList;
 import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.adapters.ResourceAdapter;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
+import com.itworks.snamp.adapters.ResourceAdapterClient;
 import com.itworks.snamp.adapters.xmpp.client.XMPPClient;
 import com.itworks.snamp.concurrent.Awaitor;
 import com.itworks.snamp.configuration.AbsentConfigurationParameterException;
+import com.itworks.snamp.internal.RecordReader;
 import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
@@ -29,6 +32,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 
 import javax.management.AttributeChangeNotification;
+import javax.management.MBeanAttributeInfo;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import java.io.File;
@@ -52,7 +56,7 @@ import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
 @SnampDependencies({SnampFeature.XMPP_ADAPTER, SnampFeature.WRAPPED_LIBS})
 public final class XmppAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final String ADAPTER_NAME = "xmpp";
-    private static final String ADAPTER_INSTANCE = "test-xmpp";
+    private static final String INSTANCE_NAME = "test-xmpp";
     private static final int PORT = 9898;
     private static final String USER_NAME = "agent";
     private static final String PASSWORD = "123";
@@ -68,7 +72,7 @@ public final class XmppAdapterTest extends AbstractJmxConnectorTest<TestOpenMBea
         final ResourceAdapterConfiguration xmppAdapter = adapterFactory.get();
         xmppAdapter.setAdapterName(ADAPTER_NAME);
         fillParameters(xmppAdapter.getParameters());
-        adapters.put(ADAPTER_INSTANCE, xmppAdapter);
+        adapters.put(INSTANCE_NAME, xmppAdapter);
     }
 
     private static void fillParameters(final Map<String, String> serverParameters){
@@ -149,6 +153,21 @@ public final class XmppAdapterTest extends AbstractJmxConnectorTest<TestOpenMBea
             //from the PAX test bundle
             final Object notification = notifAwaitor.await(TimeSpan.fromSeconds(5));
             assertNotNull(notification);
+        }
+    }
+
+    @Test
+    public void attributesBindingTest() throws TimeoutException, InterruptedException {
+        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.fromSeconds(2));
+        try {
+            assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new RecordReader<String, ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
+                @Override
+                public boolean read(final String resourceName, final ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo> bindingInfo) {
+                    return bindingInfo.getProperty("read-command") instanceof String;
+                }
+            }));
+        } finally {
+            client.release(getTestBundleContext());
         }
     }
 

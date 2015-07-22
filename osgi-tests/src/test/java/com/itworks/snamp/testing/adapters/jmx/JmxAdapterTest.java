@@ -5,11 +5,13 @@ import com.google.common.collect.ImmutableMap;
 import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.adapters.ResourceAdapter;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.adapters.ResourceAdapterClient;
 import com.itworks.snamp.concurrent.Awaitor;
 import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
+import com.itworks.snamp.internal.RecordReader;
 import com.itworks.snamp.jmx.CompositeDataBuilder;
 import com.itworks.snamp.jmx.TabularDataBuilder;
 import com.itworks.snamp.testing.SnampDependencies;
@@ -40,6 +42,7 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResource
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
+import static com.itworks.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
 
 /**
  * @author Roman Sakno
@@ -195,24 +198,33 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
     }
 
     @Test
-    public void attributeBindingTest(){
-        final Collection<? extends AttributeBindingInfo> attributes = ResourceAdapterClient.getBindingInfo(getTestBundleContext(),
-                ADAPTER_NAME,
-                INSTANCE_NAME,
-                AttributeBindingInfo.class);
-        assertFalse(attributes.isEmpty());
-        for(final AttributeBindingInfo binding: attributes){
-            assertTrue(binding.getMappedType() instanceof OpenType<?>);
+    public void attributeBindingTest() throws TimeoutException, InterruptedException {
+        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.fromSeconds(2));
+        try {
+            assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new RecordReader<String, FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
+                @Override
+                public boolean read(final String resourceName, final FeatureBindingInfo<MBeanAttributeInfo> bindingInfo) {
+                    return bindingInfo.getProperty(FeatureBindingInfo.MAPPED_TYPE) instanceof OpenType<?>;
+                }
+            }));
+        } finally {
+            client.release(getTestBundleContext());
         }
     }
 
     @Test
-    public void notificationBindingTest(){
-        final Collection<? extends NotificationBindingInfo> attributes = ResourceAdapterClient.getBindingInfo(getTestBundleContext(),
-                ADAPTER_NAME,
-                INSTANCE_NAME,
-                NotificationBindingInfo.class);
-        assertFalse(attributes.isEmpty());
+    public void notificationBindingTest() throws TimeoutException, InterruptedException {
+        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.fromSeconds(2));
+        try {
+            assertTrue(client.forEachFeature(MBeanNotificationInfo.class, new RecordReader<String, FeatureBindingInfo<MBeanNotificationInfo>, ExceptionPlaceholder>() {
+                @Override
+                public boolean read(final String resourceName, final FeatureBindingInfo<MBeanNotificationInfo> bindingInfo) {
+                    return bindingInfo != null;
+                }
+            }));
+        } finally {
+            client.release(getTestBundleContext());
+        }
     }
 
     @Override

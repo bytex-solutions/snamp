@@ -2,13 +2,17 @@ package com.itworks.snamp.testing.adapters.groovy;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
+import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.adapters.ResourceAdapter;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.adapters.ResourceAdapterClient;
 import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
+import com.itworks.snamp.internal.RecordReader;
 import com.itworks.snamp.io.Communicator;
+import com.itworks.snamp.jmx.WellKnownType;
 import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
@@ -17,10 +21,7 @@ import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 
-import javax.management.AttributeChangeNotification;
-import javax.management.MalformedObjectNameException;
-import javax.management.Notification;
-import javax.management.ObjectName;
+import javax.management.*;
 import java.io.File;
 import java.math.BigInteger;
 import java.util.Collection;
@@ -108,9 +109,8 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
 
     @Test
     public void configurationTest(){
-        final ResourceAdapterClient client = new ResourceAdapterClient(ADAPTER_NAME);
         final ConfigurationEntityDescription<?> descr =
-                client.getConfigurationEntityDescriptor(getTestBundleContext(), ResourceAdapterConfiguration.class);
+                ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, ResourceAdapterConfiguration.class);
         assertNotNull(descr);
         final ConfigurationEntityDescription.ParameterDescription parameter = descr.getParameterDescriptor("scriptFile");
         assertNotNull(parameter);
@@ -119,21 +119,33 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     }
 
     @Test
-    public void attributesBindingTest(){
-        final Collection<? extends AttributeBindingInfo> attributes = ResourceAdapterClient.getBindingInfo(getTestBundleContext(),
-                ADAPTER_NAME,
-                INSTANCE_NAME,
-                AttributeBindingInfo.class);
-        assertFalse(attributes.isEmpty());
+    public void attributesBindingTest() throws TimeoutException, InterruptedException {
+        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.fromSeconds(2));
+        try {
+            assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new RecordReader<String, ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
+                @Override
+                public boolean read(final String resourceName, final ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo> bindingInfo) {
+                    return bindingInfo.getProperty(ResourceAdapter.FeatureBindingInfo.MAPPED_TYPE) instanceof WellKnownType;
+                }
+            }));
+        } finally {
+            client.release(getTestBundleContext());
+        }
     }
 
     @Test
-    public void notificationsBindingTest(){
-        final Collection<? extends NotificationBindingInfo> attributes = ResourceAdapterClient.getBindingInfo(getTestBundleContext(),
-                ADAPTER_NAME,
-                INSTANCE_NAME,
-                NotificationBindingInfo.class);
-        assertFalse(attributes.isEmpty());
+    public void notificationsBindingTest() throws TimeoutException, InterruptedException {
+        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.fromSeconds(2));
+        try {
+            assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new RecordReader<String, ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
+                @Override
+                public boolean read(final String resourceName, final ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo> bindingInfo) {
+                    return bindingInfo != null;
+                }
+            }));
+        } finally {
+            client.release(getTestBundleContext());
+        }
     }
 
     @Override

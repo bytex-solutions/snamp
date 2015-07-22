@@ -141,7 +141,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
             super(accessor.getMetadata());
             properties = ImmutableMap.<String, Object>builder()
                     .putAll(advancedProps)
-                    .putAll(DescriptorUtils.toMap(accessor.get().getDescriptor()))
+                    .putAll(DescriptorUtils.toMap(accessor.get().getDescriptor(), true))
                     .build();
         }
 

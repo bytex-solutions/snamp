@@ -3,8 +3,12 @@ package com.itworks.snamp.adapters;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.Futures;
+import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.ServiceReferenceHolder;
+import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.concurrent.SpinWait;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.itworks.snamp.connectors.ManagedResourceActivator;
@@ -20,6 +24,7 @@ import javax.management.InstanceNotFoundException;
 import javax.management.MBeanFeatureInfo;
 import java.util.*;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.EntityConfiguration;
@@ -33,6 +38,21 @@ import static com.itworks.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
  * @since 1.0
  */
 public final class ResourceAdapterClient extends ServiceReferenceHolder<ResourceAdapter> {
+    private static final class ResourceAdapterServiceWait extends SpinWait<ServiceReference<ResourceAdapter>, ExceptionPlaceholder>{
+        private final BundleContext context;
+        private final String instanceName;
+
+        private ResourceAdapterServiceWait(final BundleContext context,
+                                           final String instanceName){
+            this.context = Objects.requireNonNull(context);
+            this.instanceName = Objects.requireNonNull(instanceName);
+        }
+
+        @Override
+        protected ServiceReference<ResourceAdapter> get() {
+            return getResourceAdapter(context, instanceName);
+        }
+    }
 
     /**
      * Initializes a new client of the adapter instance.
@@ -43,6 +63,12 @@ public final class ResourceAdapterClient extends ServiceReferenceHolder<Resource
     public ResourceAdapterClient(final BundleContext context,
                                  final String instanceName) throws InstanceNotFoundException {
         super(context, getResourceAdapterAndCheck(context, instanceName));
+    }
+
+    public ResourceAdapterClient(final BundleContext context,
+                                 final String instanceName,
+                                 final TimeSpan instanceTimeout) throws TimeoutException, InterruptedException{
+        super(context, new ResourceAdapterServiceWait(context, instanceName).await(instanceTimeout));
     }
 
     private static ServiceReference<ResourceAdapter> getResourceAdapterAndCheck(final BundleContext context,
@@ -64,7 +90,7 @@ public final class ResourceAdapterClient extends ServiceReferenceHolder<Resource
                                                                                   final String instanceName) {
         try {
             return Iterables.<ServiceReference>getFirst(context.getServiceReferences(ResourceAdapter.class, ResourceAdapterActivator.createFilter(instanceName)), null);
-        } catch (final InvalidSyntaxException e) {
+        } catch (final InvalidSyntaxException ignored) {
             return null;
         }
     }
@@ -268,8 +294,22 @@ public final class ResourceAdapterClient extends ServiceReferenceHolder<Resource
         return ResourceAdapterActivator.getAdapterInstanceName(adapterInstance);
     }
 
+    /**
+     * Gets name of the adapter instance.
+     * @return The name of the adapter instance.
+     */
     public String getInstanceName(){
         return getAdapterInstanceName(this);
+    }
+
+    public <M extends MBeanFeatureInfo, E extends Exception> boolean forEachFeature(final Class<M> featureType,
+                                                            final RecordReader<String, ? super FeatureBindingInfo<M>, E> reader) throws E {
+        final Multimap<String, ? extends FeatureBindingInfo<M>> features =
+                get().getBindings(featureType);
+        for (final String resourceName : features.keySet())
+            for (final FeatureBindingInfo<M> bindingInfo : features.get(resourceName))
+                if (!reader.read(resourceName, bindingInfo)) return false;
+        return !features.isEmpty();
     }
 
     /**

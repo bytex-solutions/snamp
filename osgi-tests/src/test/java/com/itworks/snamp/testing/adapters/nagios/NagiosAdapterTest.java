@@ -1,12 +1,15 @@
 package com.itworks.snamp.testing.adapters.nagios;
 
 import com.google.common.base.Supplier;
+import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.adapters.ResourceAdapter;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.adapters.ResourceAdapterClient;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
+import com.itworks.snamp.internal.RecordReader;
 import com.itworks.snamp.io.IOUtils;
 import com.itworks.snamp.jmx.DescriptorUtils;
 import com.itworks.snamp.testing.SnampDependencies;
@@ -17,16 +20,14 @@ import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 
-import javax.management.Attribute;
-import javax.management.JMException;
-import javax.management.MalformedObjectNameException;
-import javax.management.ObjectName;
+import javax.management.*;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
@@ -142,15 +143,18 @@ public final class NagiosAdapterTest extends AbstractJmxConnectorTest<TestOpenMB
     }
 
     @Test
-    public void attributeBindingTest(){
-        final Collection<? extends AttributeBindingInfo> attributes = ResourceAdapterClient.getBindingInfo(getTestBundleContext(),
-                ADAPTER_NAME,
-                INSTANCE_NAME,
-                AttributeBindingInfo.class);
-        assertNotNull(attributes);
-        for(final AttributeBindingInfo binding: attributes){
-            assertTrue(binding.get("path") instanceof String);
-            assertTrue(binding.getMappedType() instanceof String);
+    public void attributeBindingTest() throws TimeoutException, InterruptedException {
+        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.fromSeconds(2));
+        try {
+            assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new RecordReader<String, ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
+                @Override
+                public boolean read(final String resourceName, final ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo> bindingInfo) {
+                    return bindingInfo.getProperty("path") instanceof String &&
+                            bindingInfo.getProperty(ResourceAdapter.FeatureBindingInfo.MAPPED_TYPE) instanceof String;
+                }
+            }));
+        } finally {
+            client.release(getTestBundleContext());
         }
     }
 

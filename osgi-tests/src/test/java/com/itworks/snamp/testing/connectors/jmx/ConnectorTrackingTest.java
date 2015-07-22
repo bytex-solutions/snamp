@@ -61,11 +61,11 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
 
         @SuppressWarnings("unchecked")
         @Override
-        protected <M extends MBeanFeatureInfo, S> FeatureAccessor<M, S> addFeature(final String resourceName, final M feature) throws Exception {
+        protected <M extends MBeanFeatureInfo> FeatureAccessor<M> addFeature(final String resourceName, final M feature) throws Exception {
             if(feature instanceof MBeanAttributeInfo){
                 final AttributeAccessor accessor = new AttributeAccessor((MBeanAttributeInfo)feature);
                 attributes.add(accessor);
-                return (FeatureAccessor<M, S>)accessor;
+                return (FeatureAccessor<M>)accessor;
             }
             else if(feature instanceof MBeanNotificationInfo){
                 final NotificationAccessor accessor = new NotificationAccessor((MBeanNotificationInfo)feature) {
@@ -75,13 +75,13 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
                     }
                 };
                 notifications.add(accessor);
-                return (FeatureAccessor<M, S>)accessor;
+                return (FeatureAccessor<M>)accessor;
             }
             else return null;
         }
 
         @Override
-        protected Iterable<? extends FeatureAccessor<?, ?>> removeAllFeatures(final String resourceName) throws Exception {
+        protected Iterable<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception {
             try {
                 return Iterables.concat(ImmutableList.copyOf(attributes),
                         ImmutableList.copyOf(notifications));
@@ -101,11 +101,11 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
         }
 
         @Override
-        protected <M extends MBeanFeatureInfo> FeatureAccessor<M, ?> removeFeature(final String resourceName, final M feature) throws Exception {
+        protected <M extends MBeanFeatureInfo> FeatureAccessor<M> removeFeature(final String resourceName, final M feature) throws Exception {
             if(feature instanceof MBeanAttributeInfo)
-                return (FeatureAccessor<M, ?>)removeAttribute((MBeanAttributeInfo)feature);
+                return (FeatureAccessor<M>)removeAttribute((MBeanAttributeInfo)feature);
             else if(feature instanceof MBeanNotificationInfo)
-                return (FeatureAccessor<M, ?>)removeNotification((MBeanNotificationInfo)feature);
+                return (FeatureAccessor<M>)removeNotification((MBeanNotificationInfo)feature);
             else return null;
         }
 

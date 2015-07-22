@@ -1,12 +1,15 @@
 package com.itworks.snamp.testing.adapters.syslog;
 
 import com.google.common.base.Supplier;
+import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.adapters.ResourceAdapter;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.adapters.ResourceAdapterClient;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
+import com.itworks.snamp.internal.RecordReader;
 import com.itworks.snamp.io.IOUtils;
 import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
@@ -21,6 +24,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
@@ -35,7 +39,7 @@ import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
 @SnampDependencies(SnampFeature.SYSLOG_ADAPTER)
 public final class SyslogAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final String ADAPTER_NAME = "syslog";
-    private static final String ADAPTER_INSTANCE = "test-syslog";
+    private static final String INSTANCE_NAME = "test-syslog";
     private ServerSocket server;
     private static final int PORT = 9652;
 
@@ -76,6 +80,22 @@ public final class SyslogAdapterTest extends AbstractJmxConnectorTest<TestOpenMB
         assertFalse(param.getDescription(null).isEmpty());
     }
 
+    @Test
+    public void attributesBindingTest() throws TimeoutException, InterruptedException {
+        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.fromSeconds(2));
+        try {
+            assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new RecordReader<String, ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
+                @Override
+                public boolean read(final String resourceName, final ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo> bindingInfo) {
+                    return bindingInfo.getProperty("messageID") instanceof String &&
+                            bindingInfo.getProperty("facility") instanceof Enum<?>;
+                }
+            }));
+        } finally {
+            client.release(getTestBundleContext());
+        }
+    }
+
     @Override
     protected void fillAdapters(final Map<String, ResourceAdapterConfiguration> adapters,
                                 final Supplier<ResourceAdapterConfiguration> adapterFactory) {
@@ -84,7 +104,7 @@ public final class SyslogAdapterTest extends AbstractJmxConnectorTest<TestOpenMB
         syslogAdapter.getParameters().put("port", Integer.toString(PORT));
         syslogAdapter.getParameters().put("address", "127.0.0.1");
         syslogAdapter.getParameters().put("protocol", "tcp");
-        adapters.put(ADAPTER_INSTANCE, syslogAdapter);
+        adapters.put(INSTANCE_NAME, syslogAdapter);
     }
 
     @Override

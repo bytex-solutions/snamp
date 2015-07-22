@@ -500,7 +500,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
     }
 
     static String createFilter(final String adapterInstanceName){
-        return String.format("(%s=%s", ADAPTER_INSTANCE_IDENTITY_PROPERTY, adapterInstanceName);
+        return String.format("(%s=%s)", ADAPTER_INSTANCE_IDENTITY_PROPERTY, adapterInstanceName);
     }
 
     private static String getAdapterInstanceName(final Dictionary<String, ?> identity){

@@ -103,11 +103,23 @@ public final class DescriptorUtils {
      * @return A map of fields.
      */
     public static Map<String, ?> toMap(final Descriptor descr){
+        return toMap(descr, false);
+    }
+
+    /**
+     * Converts {@link Descriptor} to map of fields.
+     * @param descr The descriptor to convert. May be {@literal null}.
+     * @return A map of fields.
+     */
+    public static Map<String, ?> toMap(final Descriptor descr, final boolean ignoreNullValues){
         if(descr == null) return Collections.emptyMap();
         final String[] fields = descr.getFieldNames();
         final Map<String, Object> result = Maps.newHashMapWithExpectedSize(fields.length);
-        for(final String fieldName: fields)
-            result.put(fieldName, descr.getFieldValue(fieldName));
+        for(final String fieldName: fields) {
+            final Object fieldValue = descr.getFieldValue(fieldName);
+            if(fieldValue == null && ignoreNullValues) continue;
+            result.put(fieldName, fieldValue);
+        }
         return result;
     }
 

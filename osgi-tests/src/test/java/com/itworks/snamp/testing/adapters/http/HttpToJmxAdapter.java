@@ -5,11 +5,14 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
+import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.adapters.ResourceAdapter;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.adapters.ResourceAdapterClient;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
+import com.itworks.snamp.internal.RecordReader;
 import com.itworks.snamp.io.IOUtils;
 import com.itworks.snamp.jmx.CompositeDataBuilder;
 import com.itworks.snamp.jmx.TabularDataBuilder;
@@ -26,9 +29,7 @@ import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 
-import javax.management.AttributeChangeNotification;
-import javax.management.MalformedObjectNameException;
-import javax.management.ObjectName;
+import javax.management.*;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.SimpleType;
@@ -48,6 +49,7 @@ import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResource
 import static com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import static com.itworks.snamp.jmx.json.JsonUtils.toJsonArray;
 import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
+import static com.itworks.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
 
 /**
  * @author Roman Sakno
@@ -277,27 +279,33 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
     }
 
     @Test
-    public void attributeBindingTest() {
-        final Collection<? extends AttributeBindingInfo> attributes = ResourceAdapterClient.getBindingInfo(getTestBundleContext(),
-                ADAPTER_NAME,
-                INSTANCE_NAME,
-                AttributeBindingInfo.class);
-        assertFalse(attributes.isEmpty());
-        for (final AttributeBindingInfo binding : attributes) {
-            assertTrue(binding.get("path") instanceof String);
-            assertTrue(binding.getMappedType() instanceof String);
+    public void attributeBindingTest() throws TimeoutException, InterruptedException {
+        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.fromSeconds(2));
+        try {
+            assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new RecordReader<String, FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
+                @Override
+                public boolean read(final String resourceName, final FeatureBindingInfo<MBeanAttributeInfo> bindingInfo) {
+                    return bindingInfo.getProperty("path") instanceof String &&
+                            bindingInfo.getProperty(FeatureBindingInfo.MAPPED_TYPE) instanceof String;
+                }
+            }));
+        } finally {
+            client.release(getTestBundleContext());
         }
     }
 
     @Test
-    public void notificationBindingTest(){
-        final Collection<? extends NotificationBindingInfo> notifs = ResourceAdapterClient.getBindingInfo(getTestBundleContext(),
-                ADAPTER_NAME,
-                INSTANCE_NAME,
-                NotificationBindingInfo.class);
-        assertFalse(notifs.isEmpty());
-        for (final NotificationBindingInfo binding : notifs) {
-            assertTrue(binding.get("path") instanceof String);
+    public void notificationBindingTest() throws TimeoutException, InterruptedException {
+        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.fromSeconds(2));
+        try {
+            assertTrue(client.forEachFeature(MBeanNotificationInfo.class, new RecordReader<String, FeatureBindingInfo<MBeanNotificationInfo>, ExceptionPlaceholder>() {
+                @Override
+                public boolean read(final String resourceName, final FeatureBindingInfo<MBeanNotificationInfo> bindingInfo) {
+                    return bindingInfo.getProperty("path") instanceof String;
+                }
+            }));
+        } finally {
+            client.release(getTestBundleContext());
         }
     }
 

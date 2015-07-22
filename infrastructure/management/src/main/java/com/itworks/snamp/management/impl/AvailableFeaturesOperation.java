@@ -16,6 +16,7 @@ import java.util.Objects;
 import java.util.concurrent.Callable;
 
 import static com.itworks.snamp.jmx.OpenMBean.OpenOperation;
+import static com.itworks.snamp.jmx.DescriptorUtils.toMap;
 
 /**
  * @author Roman Sakno
@@ -53,20 +54,8 @@ abstract class AvailableFeaturesOperation<F extends MBeanFeatureInfo> extends Op
         return "Set of resource features";
     }
 
-    private static Map<String, String> toMap(final Descriptor descr){
-        if(descr == null) return Collections.emptyMap();
-        final String[] fields = descr.getFieldNames();
-        final Map<String, String> result = Maps.newHashMapWithExpectedSize(fields.length);
-        for(final String fieldName: fields){
-            final Object fieldValue = descr.getFieldValue(fieldName);
-            if(fieldValue == null) continue;
-            else result.put(fieldName, Objects.toString(fieldValue));
-        }
-        return result;
-    }
-
     protected static TabularData toTabularData(final DescriptorRead read) throws OpenDataException {
-        return TabularDataUtils.makeKeyValuePairs(DESCRIPTOR_TYPE, toMap(read.getDescriptor()));
+        return TabularDataUtils.makeKeyValuePairs(DESCRIPTOR_TYPE, toMap(read.getDescriptor(), true));
     }
 
     protected abstract TabularData invoke(final MBeanInfo metadata) throws OpenDataException;

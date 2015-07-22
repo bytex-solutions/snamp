@@ -1,9 +1,13 @@
 package com.itworks.snamp.testing.adapters.ssh;
 
 import com.google.common.base.Supplier;
+import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.adapters.ResourceAdapter;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
+import com.itworks.snamp.adapters.ResourceAdapterClient;
+import com.itworks.snamp.internal.RecordReader;
 import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
@@ -15,8 +19,10 @@ import net.schmizz.sshj.connection.channel.direct.Session;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.snmp4j.smi.OID;
 
 import javax.management.AttributeChangeNotification;
+import javax.management.MBeanAttributeInfo;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import java.io.IOException;
@@ -42,6 +48,7 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
     private static final String PASSWORD = "Password";
     private static final int PORT = 22000;
     private static final String ADAPTER_NAME = "ssh";
+    private static final String INSTANCE_NAME = "test-ssh";
 
     public JmxToSshTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(/*true*/), new ObjectName(BEAN_NAME));
@@ -116,6 +123,21 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
         testScalarAttribute("5.1", "[42,100,332,99]", AbstractResourceConnectorTest.<String>valueEquator());
     }
 
+    @Test
+    public void attributesBindingTest() throws TimeoutException, InterruptedException {
+        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.fromSeconds(2));
+        try {
+            assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new RecordReader<String, ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
+                @Override
+                public boolean read(final String resourceName, final ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo> bindingInfo) {
+                    return bindingInfo.getProperty("read-command") instanceof String;
+                }
+            }));
+        } finally {
+            client.release(getTestBundleContext());
+        }
+    }
+
     @Override
     protected void beforeStartTest(final BundleContext context) throws Exception {
         super.beforeStartTest(context);
@@ -149,7 +171,7 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
         sshAdapter.getParameters().put("userName", USER_NAME);
         sshAdapter.getParameters().put("password", PASSWORD);
         sshAdapter.getParameters().put("hostKeyFile", getPathToFileInProjectRoot("hostkey.ser"));
-        adapters.put("test-jmx", sshAdapter);
+        adapters.put(INSTANCE_NAME, sshAdapter);
     }
 
     @Override

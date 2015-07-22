@@ -2,14 +2,18 @@ package com.itworks.snamp.testing.adapters.snmp;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
+import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
+import com.itworks.snamp.adapters.ResourceAdapter;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.adapters.ResourceAdapterClient;
 import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.connectors.notifications.Severity;
+import com.itworks.snamp.internal.RecordReader;
+import com.itworks.snamp.jmx.WellKnownType;
 import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.SnmpTable;
@@ -20,10 +24,9 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.snmp4j.smi.*;
 
-import javax.management.AttributeChangeNotification;
-import javax.management.MalformedObjectNameException;
-import javax.management.ObjectName;
+import javax.management.*;
 import java.io.IOException;
+import java.io.Serializable;
 import java.math.BigInteger;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -46,7 +49,7 @@ import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
  */
 @SnampDependencies(SnampFeature.SNMP_ADAPTER)
 public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBean> {
-    private static final String ADAPTER_INSTANCE = "test-snmp";
+    private static final String INSTANCE_NAME = "test-snmp";
     private static final String ADAPTER_NAME = "snmp";
     private static final String SNMP_PORT = "3222";
     private static final String SNMP_HOST = "127.0.0.1";
@@ -194,7 +197,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
         snmpAdapter.getParameters().put("socketTimeout", "5000");
         snmpAdapter.getParameters().put("context", "1.1");
         snmpAdapter.getParameters().put("restartTimeout", "4000");
-        adapters.put(ADAPTER_INSTANCE, snmpAdapter);
+        adapters.put(INSTANCE_NAME, snmpAdapter);
     }
 
     @Test
@@ -364,30 +367,33 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
     }
 
     @Test
-    public void attributesBindingTest(){
-        final Collection<? extends AttributeBindingInfo> attributes = ResourceAdapterClient.getBindingInfo(getTestBundleContext(),
-                ADAPTER_NAME,
-                ADAPTER_INSTANCE,
-                AttributeBindingInfo.class);
-        assertFalse(attributes.isEmpty());
-        for(final AttributeBindingInfo binding: attributes) {
-            assertTrue(binding.containsKey("OID"));
-            assertNotNull(binding.getMappedType());
-            if (Objects.equals(binding.getName(), "2.0"))
-                assertEquals(AbstractVariable.getSyntaxString(SMIConstants.SYNTAX_INTEGER32), binding.getMappedType().toString());
+    public void attributesBindingTest() throws TimeoutException, InterruptedException {
+        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.fromSeconds(2));
+        try {
+            assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new RecordReader<String, ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
+                @Override
+                public boolean read(final String resourceName, final ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo> bindingInfo) {
+                    return bindingInfo.getProperty(ResourceAdapter.FeatureBindingInfo.MAPPED_TYPE) instanceof Enum &&
+                            bindingInfo.getProperty("OID") instanceof OID;
+                }
+            }));
+        } finally {
+            client.release(getTestBundleContext());
         }
     }
 
     @Test
-    public void notificationsBindingTest(){
-        final Collection<? extends NotificationBindingInfo> events = ResourceAdapterClient.getBindingInfo(getTestBundleContext(),
-                ADAPTER_NAME,
-                ADAPTER_INSTANCE,
-                NotificationBindingInfo.class
-                );
-        assertFalse(events.isEmpty());
-        for(final NotificationBindingInfo binding: events){
-            assertTrue(binding.containsKey("OID"));
+    public void notificationsBindingTest() throws TimeoutException, InterruptedException {
+        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.fromSeconds(2));
+        try {
+            assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new RecordReader<String, ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
+                @Override
+                public boolean read(final String resourceName, final ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo> bindingInfo) {
+                    return bindingInfo.getProperty("OID") instanceof OID;
+                }
+            }));
+        } finally {
+            client.release(getTestBundleContext());
         }
     }
 
