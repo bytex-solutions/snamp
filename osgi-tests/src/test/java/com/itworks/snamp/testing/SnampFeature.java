@@ -24,7 +24,8 @@ public enum SnampFeature {
     SYSLOG_ADAPTER("syslog-adapter-feature", "1.0.0"),
     XMPP_ADAPTER("xmpp-adapter-feature", "1.0.0"),
     GROOVY_CONNECTOR("groovy-connector-feature", "1.0.0"),
-    GROOVY_ADAPTER("groovy-adapter-feature", "1.0.0");
+    GROOVY_ADAPTER("groovy-adapter-feature", "1.0.0"),
+    MODBUS_CONNECTOR("modbus-connector-feature", "1.0.0");
 
     final String featureName;
     final String version;

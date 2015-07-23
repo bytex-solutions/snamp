@@ -1,4 +1,4 @@
-package com.itworks.snamp.connectors.modbus.protocol;
+package com.itworks.snamp.connectors.modbus.master;
 
 import com.ghgande.j2mod.modbus.Modbus;
 

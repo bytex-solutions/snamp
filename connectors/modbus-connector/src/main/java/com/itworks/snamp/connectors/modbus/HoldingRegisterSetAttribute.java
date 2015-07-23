@@ -1,17 +1,14 @@
 package com.itworks.snamp.connectors.modbus;
 
-import com.ghgande.j2mod.modbus.procimg.InputRegister;
 import com.ghgande.j2mod.modbus.procimg.Register;
 import com.ghgande.j2mod.modbus.procimg.SimpleRegister;
-import com.itworks.snamp.ServiceProvider;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.attributes.AttributeSpecifier;
-import com.itworks.snamp.connectors.modbus.protocol.HoldingRegisterAccess;
+import com.itworks.snamp.connectors.modbus.master.HoldingRegisterAccess;
 
 import javax.management.openmbean.ArrayType;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.SimpleType;
-import java.util.ServiceLoader;
 
 /**
  * Provides access to a set of holding registers.

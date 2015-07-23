@@ -18,6 +18,7 @@
         <module>aggregator-connector-feature</module>
         <module>ibmwmq-connector-feature</module>
         <module>groovy-connector-feature</module>
+        <module>modbus-connector-feature</module>
     </modules>
 
 </project>

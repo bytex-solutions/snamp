@@ -2,7 +2,7 @@ package com.itworks.snamp.connectors.modbus;
 
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.attributes.AttributeSpecifier;
-import com.itworks.snamp.connectors.modbus.protocol.SlaveDeviceAccess;
+import com.itworks.snamp.connectors.modbus.master.SlaveDeviceAccess;
 
 import javax.management.openmbean.ArrayType;
 

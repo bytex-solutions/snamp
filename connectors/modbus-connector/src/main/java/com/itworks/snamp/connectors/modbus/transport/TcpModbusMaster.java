@@ -1,38 +1,35 @@
 package com.itworks.snamp.connectors.modbus.transport;
 
-import com.ghgande.j2mod.modbus.ModbusException;
-import com.ghgande.j2mod.modbus.facade.ModbusTCPMaster;
 import com.ghgande.j2mod.modbus.io.ModbusTCPTransaction;
-import com.ghgande.j2mod.modbus.io.ModbusTransaction;
+import com.ghgande.j2mod.modbus.io.ModbusTCPTransport;
+import com.ghgande.j2mod.modbus.io.ModbusTransport;
+import com.ghgande.j2mod.modbus.io.ModbusUDPTransport;
 import com.ghgande.j2mod.modbus.net.TCPMasterConnection;
-import com.ghgande.j2mod.modbus.procimg.InputRegister;
-import com.ghgande.j2mod.modbus.procimg.Register;
-import com.ghgande.j2mod.modbus.util.BitVector;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Arrays;
 
 /**
  * Represents TCP transport for Modbus.
  * This class cannot be inherited.
  */
-final class ModbusTcpClient extends AbstractModbusClient {
+final class TcpModbusMaster extends AbstractModbusMaster {
     private final TCPMasterConnection connection;
+    private final boolean headless;
 
-    ModbusTcpClient(final InetAddress addr, final int port){
+    TcpModbusMaster(final InetAddress addr, final int port, final boolean headless){
         connection = new TCPMasterConnection(addr);
         connection.setPort(port);
+        this.headless = headless;
     }
 
-    ModbusTcpClient(final String addr, final int port) throws UnknownHostException {
-        this(InetAddress.getByName(addr), port);
+    TcpModbusMaster(final String addr, final int port, final boolean headless) throws UnknownHostException {
+        this(InetAddress.getByName(addr), port, headless);
     }
 
     @Override
     public void connect(final int socketTimeout) throws IOException {
-        connection.setTimeout(socketTimeout);
         try {
             connection.connect();
         }
@@ -42,16 +39,19 @@ final class ModbusTcpClient extends AbstractModbusClient {
         catch (final Exception e) {
             throw new IOException(e);
         }
+        connection.setTimeout(socketTimeout);
+        final ModbusTransport transport = connection.getModbusTransport();
+        if(headless && transport instanceof ModbusTCPTransport)
+            ((ModbusTCPTransport)transport).setHeadless();
     }
 
     @Override
     protected ModbusTCPTransaction createTransaction() {
-        final ModbusTCPTransaction transaction = new ModbusTCPTransaction();
+        final ModbusTCPTransaction transaction = new ModbusTCPTransaction(connection);
         transaction.setCheckingValidity(true);
         transaction.setReconnecting(true);
         return transaction;
     }
-
 
     @Override
     public void close() {

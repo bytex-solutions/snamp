@@ -2,11 +2,10 @@ package com.itworks.snamp.connectors.modbus;
 
 import com.ghgande.j2mod.modbus.ModbusException;
 import com.ghgande.j2mod.modbus.procimg.InputRegister;
-import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.configuration.AbsentConfigurationParameterException;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.attributes.AttributeSpecifier;
-import com.itworks.snamp.connectors.modbus.protocol.InputRegisterAccess;
+import com.itworks.snamp.connectors.modbus.master.InputRegisterAccess;
 
 import javax.management.openmbean.ArrayType;
 import javax.management.openmbean.OpenDataException;

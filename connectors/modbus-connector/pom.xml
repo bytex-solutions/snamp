@@ -23,7 +23,11 @@
                     <instructions>
                         <Bundle-SymbolicName>com.itworks.snamp.connectors.modbus</Bundle-SymbolicName>
                         <Bundle-Activator>com.itworks.snamp.connectors.modbus.ModbusResourceConnectorActivator</Bundle-Activator>
-                        <Export-Package/>
+                        <Export-Package>
+                            com.itworks.snamp.connectors.modbus.transport,
+                            com.itworks.snamp.connectors.modbus.slave,
+                            com.itworks.snamp.connectors.modbus.master
+                        </Export-Package>
                         <Embed-Dependency>
                             *;scope=system
                         </Embed-Dependency>

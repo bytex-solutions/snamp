@@ -6,7 +6,7 @@ import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
 import com.itworks.snamp.connectors.ResourceEventListener;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.attributes.OpenAttributeSupport;
-import com.itworks.snamp.connectors.modbus.transport.ModbusClient;
+import com.itworks.snamp.connectors.modbus.transport.ModbusMaster;
 import com.itworks.snamp.connectors.modbus.transport.ModbusTransportType;
 import com.itworks.snamp.jmx.JMExceptionUtils;
 
@@ -16,7 +16,6 @@ import javax.management.openmbean.OpenDataException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
@@ -27,10 +26,10 @@ import java.util.logging.Logger;
  */
 final class ModbusResourceConnector extends AbstractManagedResourceConnector {
     private static final class ModbusAttributeSupport extends OpenAttributeSupport<ModbusAttributeInfo>{
-        private final ModbusClient client;
+        private final ModbusMaster client;
         private final Logger logger;
 
-        private ModbusAttributeSupport(final String resourceName, final ModbusClient client, final Logger logger) {
+        private ModbusAttributeSupport(final String resourceName, final ModbusMaster client, final Logger logger) {
             super(resourceName, ModbusAttributeInfo.class);
             this.client = Objects.requireNonNull(client);
             this.logger = logger;
@@ -80,14 +79,14 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
             failedToSetAttribute(logger, Level.SEVERE, attributeID, value, e);
         }
     }
-    private final ModbusClient client;
+    private final ModbusMaster client;
     private final ModbusAttributeSupport attributes;
 
     ModbusResourceConnector(final String resourceName,
                             final ModbusTransportType transportType,
                             final String address,
                             final int port) throws IOException {
-        client = transportType.createClient(address, port);
+        client = transportType.createMaster(address, port);
         attributes = new ModbusAttributeSupport(resourceName, client, getLogger());
 
     }
@@ -102,7 +101,7 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
 
     ModbusResourceConnector(final String resourceName,
                             final URI connectionString) throws IOException {
-        this(resourceName, getTransportType(connectionString), "", 0);
+        this(resourceName, getTransportType(connectionString), connectionString.getHost(), connectionString.getPort());
     }
 
     boolean addAttribute(final String attributeID, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options){
@@ -113,7 +112,8 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
         this.attributes.removeAllExcept(attributes);
     }
 
-    void connect(final int socketTimeout) throws IOException {
+    void connect(final int socketTimeout, final int retryCount) throws IOException {
+        client.setRetryCount(retryCount);
         client.connect(socketTimeout);
     }
 

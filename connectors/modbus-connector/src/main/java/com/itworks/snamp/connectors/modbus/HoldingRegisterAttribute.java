@@ -5,7 +5,7 @@ import com.ghgande.j2mod.modbus.procimg.Register;
 import com.ghgande.j2mod.modbus.procimg.SimpleRegister;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.attributes.AttributeSpecifier;
-import com.itworks.snamp.connectors.modbus.protocol.HoldingRegisterAccess;
+import com.itworks.snamp.connectors.modbus.master.HoldingRegisterAccess;
 
 import javax.management.openmbean.SimpleType;
 
@@ -27,7 +27,7 @@ final class HoldingRegisterAttribute extends ModbusAttributeInfo<Short, HoldingR
 
     @Override
     protected void setValue(final HoldingRegisterAccess deviceAccess, final Short value) throws ModbusException, ModbusAbsentConfigurationParameterException {
-        final Register reg = new SimpleRegister();
+        final Register reg = new SimpleRegister(0);
         reg.setValue(value);
         deviceAccess.writeHoldingRegister(getUnitID(), getOffset(), reg);
     }

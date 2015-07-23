@@ -3,7 +3,7 @@ package com.itworks.snamp.connectors.modbus;
 import com.ghgande.j2mod.modbus.ModbusException;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.attributes.AttributeSpecifier;
-import com.itworks.snamp.connectors.modbus.protocol.InputDiscreteAccess;
+import com.itworks.snamp.connectors.modbus.master.InputDiscreteAccess;
 
 import javax.management.openmbean.SimpleType;
 

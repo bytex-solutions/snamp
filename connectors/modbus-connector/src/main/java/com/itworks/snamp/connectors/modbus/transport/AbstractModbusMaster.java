@@ -1,8 +1,8 @@
 package com.itworks.snamp.connectors.modbus.transport;
 
 import com.ghgande.j2mod.modbus.ModbusException;
-import com.ghgande.j2mod.modbus.cmd.ReadFileRecordTest;
 import com.ghgande.j2mod.modbus.io.ModbusTransaction;
+import com.ghgande.j2mod.modbus.io.ModbusTransport;
 import com.ghgande.j2mod.modbus.msg.*;
 import com.ghgande.j2mod.modbus.procimg.InputRegister;
 import com.ghgande.j2mod.modbus.procimg.Register;
@@ -11,11 +11,12 @@ import com.ghgande.j2mod.modbus.util.BitVector;
 /**
  * Represents an abstract class for all Modbus master apps.
  */
-abstract class AbstractModbusClient implements ModbusClient {
+abstract class AbstractModbusMaster implements ModbusMaster {
     private int retryCount = 3;
 
     protected abstract ModbusTransaction createTransaction();
 
+    @Override
     public final void setRetryCount(final int value){
         retryCount = value;
     }
@@ -35,6 +36,7 @@ abstract class AbstractModbusClient implements ModbusClient {
         final ReadCoilsRequest request = new ReadCoilsRequest();
         request.setReference(ref);
         request.setUnitID(unitID);
+        request.setBitCount(count);
         transaction.setRequest(request);
         final BitVector response = executeWithResponse(transaction, ReadCoilsResponse.class).getCoils();
         response.forceSize(count);
@@ -50,10 +52,8 @@ abstract class AbstractModbusClient implements ModbusClient {
     public final void writeCoils(final int unitID, final int ref, final BitVector coils) throws ModbusException {
         final ModbusTransaction transaction = createTransaction();
         transaction.setRetries(retryCount);
-        final WriteMultipleCoilsRequest request = new WriteMultipleCoilsRequest();
+        final WriteMultipleCoilsRequest request = new WriteMultipleCoilsRequest(ref, coils);
         request.setUnitID(unitID);
-        request.setReference(ref);
-        request.setCoils(coils);
         transaction.setRequest(request);
         transaction.execute();
     }
@@ -62,10 +62,8 @@ abstract class AbstractModbusClient implements ModbusClient {
     public final boolean writeCoil(final int unitID, final int ref, final boolean state) throws ModbusException {
         final ModbusTransaction transaction = createTransaction();
         transaction.setRetries(retryCount);
-        final WriteCoilRequest request = new WriteCoilRequest();
+        final WriteCoilRequest request = new WriteCoilRequest(ref, state);
         request.setUnitID(unitID);
-        request.setReference(ref);
-        request.setCoil(state);
         transaction.setRequest(request);
         return executeWithResponse(transaction, WriteCoilResponse.class).getCoil();
     }
@@ -74,9 +72,7 @@ abstract class AbstractModbusClient implements ModbusClient {
     public final BitVector readInputDiscretes(final int unitID, final int ref, final int count) throws ModbusException {
         final ModbusTransaction transaction = createTransaction();
         transaction.setRetries(retryCount);
-        final ReadInputDiscretesRequest request = new ReadInputDiscretesRequest();
-        request.setReference(ref);
-        request.setBitCount(count);
+        final ReadInputDiscretesRequest request = new ReadInputDiscretesRequest(ref, count);
         request.setUnitID(unitID);
         transaction.setRequest(request);
         final BitVector result = executeWithResponse(transaction, ReadInputDiscretesResponse.class).getDiscretes();
@@ -93,10 +89,8 @@ abstract class AbstractModbusClient implements ModbusClient {
     public final InputRegister[] readInputRegisters(final int unitID, final int ref, final int count) throws ModbusException {
         final ModbusTransaction transaction = createTransaction();
         transaction.setRetries(retryCount);
-        final ReadInputRegistersRequest request = new ReadInputRegistersRequest();
-        request.setReference(ref);
+        final ReadInputRegistersRequest request = new ReadInputRegistersRequest(ref, count);
         request.setUnitID(unitID);
-        request.setWordCount(count);
         transaction.setRequest(request);
         return executeWithResponse(transaction, ReadInputRegistersResponse.class).getRegisters();
     }
@@ -110,10 +104,8 @@ abstract class AbstractModbusClient implements ModbusClient {
     public final Register[] readHoldingRegisters(final int unitID, final int ref, final int count) throws ModbusException {
         final ModbusTransaction transaction = createTransaction();
         transaction.setRetries(retryCount);
-        final ReadMultipleRegistersRequest request = new ReadMultipleRegistersRequest();
+        final ReadMultipleRegistersRequest request = new ReadMultipleRegistersRequest(ref, count);
         request.setUnitID(unitID);
-        request.setReference(ref);
-        request.setWordCount(count);
         transaction.setRequest(request);
         return executeWithResponse(transaction, ReadMultipleRegistersResponse.class).getRegisters();
     }
@@ -127,10 +119,8 @@ abstract class AbstractModbusClient implements ModbusClient {
     public final void writeHoldingRegisters(final int unitID, final int ref, final Register[] regs) throws ModbusException {
         final ModbusTransaction transaction = createTransaction();
         transaction.setRetries(retryCount);
-        final WriteMultipleRegistersRequest request = new WriteMultipleRegistersRequest();
-        request.setReference(ref);
+        final WriteMultipleRegistersRequest request = new WriteMultipleRegistersRequest(ref, regs);
         request.setUnitID(unitID);
-        request.setRegisters(regs);
         transaction.setRequest(request);
         transaction.execute();
     }

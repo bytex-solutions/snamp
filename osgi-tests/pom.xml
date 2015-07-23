@@ -312,6 +312,7 @@
             <version>${snamp.connectors.rshell.version}</version>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.apache.sshd</groupId>
             <artifactId>sshd-core</artifactId>
@@ -348,6 +349,12 @@
             <groupId>com.itworks.snamp</groupId>
             <artifactId>xmpp-adapter</artifactId>
             <version>${snamp.adapters.xmpp.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.itworks.snamp</groupId>
+            <artifactId>modbus-connector</artifactId>
+            <version>${snamp.connectors.modbus.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

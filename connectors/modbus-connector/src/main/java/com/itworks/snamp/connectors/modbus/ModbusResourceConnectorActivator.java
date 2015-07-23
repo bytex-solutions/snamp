@@ -10,6 +10,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.Set;
+
+import static com.itworks.snamp.connectors.modbus.ModbusResourceConnectorConfigurationDescriptor.parseRetryCount;
 import static com.itworks.snamp.connectors.modbus.ModbusResourceConnectorConfigurationDescriptor.parseSocketTimeout;
 
 /**
@@ -53,7 +55,7 @@ public final class ModbusResourceConnectorActivator extends ManagedResourceActiv
         @Override
         public ModbusResourceConnector createConnector(final String resourceName, final String connectionString, final Map<String, String> connectionParameters, final RequiredService<?>... dependencies) throws URISyntaxException, IOException {
             final ModbusResourceConnector connector = new ModbusResourceConnector(resourceName, new URI(connectionString));
-            connector.connect(parseSocketTimeout(connectionParameters));
+            connector.connect(parseSocketTimeout(connectionParameters), parseRetryCount(connectionParameters));
             return connector;
         }
     }

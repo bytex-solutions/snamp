@@ -150,7 +150,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
     protected final boolean releaseManagementConnector(final BundleContext context){
         final ServiceReference<ManagedResourceConnector> connectorRef =
                 ManagedResourceConnectorClient.getConnectors(context).get(TEST_RESOURCE_NAME);
-        return connectorRef != null && getTestBundleContext().ungetService(connectorRef);
+        return connectorRef != null && context.ungetService(connectorRef);
     }
 
 

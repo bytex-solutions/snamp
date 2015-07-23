@@ -4,7 +4,7 @@ import com.ghgande.j2mod.modbus.ModbusException;
 import com.ghgande.j2mod.modbus.util.BitVector;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.attributes.AttributeSpecifier;
-import com.itworks.snamp.connectors.modbus.protocol.CoilAccess;
+import com.itworks.snamp.connectors.modbus.master.CoilAccess;
 
 import javax.management.openmbean.ArrayType;
 import javax.management.openmbean.OpenDataException;

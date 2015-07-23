@@ -9,14 +9,35 @@ import java.net.UnknownHostException;
 public enum ModbusTransportType {
     TCP {
         @Override
-        public ModbusTcpClient createClient(final String address, final int port) throws UnknownHostException {
-            return new ModbusTcpClient(address, port);
+        public TcpModbusMaster createMaster(final String address, final int port) throws UnknownHostException {
+            return new TcpModbusMaster(address, port, false);
+        }
+
+        @Override
+        public TcpModbusSlave createSlave(final int port) {
+            return new TcpModbusSlave(port);
         }
     },
     UDP {
         @Override
-        public ModbusUdpClient createClient(final String address, final int port) throws UnknownHostException {
-            return new ModbusUdpClient(address, port);
+        public UdpModbusMaster createMaster(final String address, final int port) throws UnknownHostException {
+            return new UdpModbusMaster(address, port);
+        }
+
+        @Override
+        public UdpModbusSlave createSlave(final int port) {
+            return new UdpModbusSlave(port);
+        }
+    },
+    RTU_IP{
+        @Override
+        public TcpModbusMaster createMaster(final String address, final int port) throws IOException {
+            return new TcpModbusMaster(address, port, true);
+        }
+
+        @Override
+        public TcpModbusSlave createSlave(final int port) {
+            return new TcpModbusSlave(port);
         }
     };
 
@@ -27,5 +48,7 @@ public enum ModbusTransportType {
      * @return A new instance of Modbus client.
      * @throws IOException Unable to instantiate Modbus master.
      */
-    public abstract ModbusClient createClient(final String address, final int port) throws IOException;
+    public abstract ModbusMaster createMaster(final String address, final int port) throws IOException;
+
+    public abstract ModbusSlave createSlave(final int port);
 }
