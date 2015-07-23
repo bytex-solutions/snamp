@@ -9,7 +9,7 @@
     </parent>
     <artifactId>modbus-connector</artifactId>
     <modelVersion>4.0.0</modelVersion>
-    <version>${snamp.connectors.modbus.version.version}</version>
+    <version>${snamp.connectors.modbus.version}</version>
     <packaging>bundle</packaging>
     <name>Modbus Connector</name>
     <description>SNAMP management connector for Modbus (over TCP and UDP) protocol</description>
@@ -24,6 +24,14 @@
                         <Bundle-SymbolicName>com.itworks.snamp.connectors.modbus</Bundle-SymbolicName>
                         <Bundle-Activator>com.itworks.snamp.connectors.modbus.ModbusResourceConnectorActivator</Bundle-Activator>
                         <Export-Package/>
+                        <Embed-Dependency>
+                            *;scope=system
+                        </Embed-Dependency>
+                        <Embed-Transitive>true</Embed-Transitive>
+                        <Import-Package>
+                            !gnu.io,
+                            *
+                        </Import-Package>
                         <!--SNAMP specific header-->
                         <SNAMP-Resource-Connector>modbus</SNAMP-Resource-Connector>
                     </instructions>
