@@ -7,6 +7,7 @@ import com.ghgande.j2mod.modbus.msg.*;
 import com.ghgande.j2mod.modbus.procimg.InputRegister;
 import com.ghgande.j2mod.modbus.procimg.Register;
 import com.ghgande.j2mod.modbus.util.BitVector;
+import com.itworks.snamp.Consumer;
 
 /**
  * Represents an abstract class for all Modbus master apps.
@@ -21,8 +22,19 @@ abstract class AbstractModbusMaster implements ModbusMaster {
         retryCount = value;
     }
 
-    private static <R extends ModbusResponse> R executeWithResponse(final ModbusTransaction transaction, final Class<R> responseType) throws ModbusException {
-        transaction.execute();
+    private static void executeWithRetry(final ModbusTransaction transaction, int retryCount) throws ModbusException {
+        while (retryCount-- > 0) {
+            try {
+                transaction.execute();
+                return;
+            } catch (final ModbusException e) {
+                if (retryCount == 0) throw e;
+            }
+        }
+    }
+
+    private static <R extends ModbusResponse> R executeWithResponse(final ModbusTransaction transaction, final int retryCount, final Class<R> responseType) throws ModbusException {
+        executeWithRetry(transaction, retryCount);
         final ModbusResponse response = transaction.getResponse();
         if(responseType.isInstance(response))
             return responseType.cast(response);
@@ -38,7 +50,7 @@ abstract class AbstractModbusMaster implements ModbusMaster {
         request.setUnitID(unitID);
         request.setBitCount(count);
         transaction.setRequest(request);
-        final BitVector response = executeWithResponse(transaction, ReadCoilsResponse.class).getCoils();
+        final BitVector response = executeWithResponse(transaction, retryCount, ReadCoilsResponse.class).getCoils();
         response.forceSize(count);
         return response;
     }
@@ -55,7 +67,7 @@ abstract class AbstractModbusMaster implements ModbusMaster {
         final WriteMultipleCoilsRequest request = new WriteMultipleCoilsRequest(ref, coils);
         request.setUnitID(unitID);
         transaction.setRequest(request);
-        transaction.execute();
+        executeWithRetry(transaction, retryCount);
     }
 
     @Override
@@ -65,7 +77,7 @@ abstract class AbstractModbusMaster implements ModbusMaster {
         final WriteCoilRequest request = new WriteCoilRequest(ref, state);
         request.setUnitID(unitID);
         transaction.setRequest(request);
-        return executeWithResponse(transaction, WriteCoilResponse.class).getCoil();
+        return executeWithResponse(transaction, retryCount, WriteCoilResponse.class).getCoil();
     }
 
     @Override
@@ -75,7 +87,7 @@ abstract class AbstractModbusMaster implements ModbusMaster {
         final ReadInputDiscretesRequest request = new ReadInputDiscretesRequest(ref, count);
         request.setUnitID(unitID);
         transaction.setRequest(request);
-        final BitVector result = executeWithResponse(transaction, ReadInputDiscretesResponse.class).getDiscretes();
+        final BitVector result = executeWithResponse(transaction, retryCount, ReadInputDiscretesResponse.class).getDiscretes();
         result.forceSize(count);
         return result;
     }
@@ -92,7 +104,7 @@ abstract class AbstractModbusMaster implements ModbusMaster {
         final ReadInputRegistersRequest request = new ReadInputRegistersRequest(ref, count);
         request.setUnitID(unitID);
         transaction.setRequest(request);
-        return executeWithResponse(transaction, ReadInputRegistersResponse.class).getRegisters();
+        return executeWithResponse(transaction, retryCount, ReadInputRegistersResponse.class).getRegisters();
     }
 
     @Override
@@ -107,7 +119,7 @@ abstract class AbstractModbusMaster implements ModbusMaster {
         final ReadMultipleRegistersRequest request = new ReadMultipleRegistersRequest(ref, count);
         request.setUnitID(unitID);
         transaction.setRequest(request);
-        return executeWithResponse(transaction, ReadMultipleRegistersResponse.class).getRegisters();
+        return executeWithResponse(transaction, retryCount, ReadMultipleRegistersResponse.class).getRegisters();
     }
 
     @Override
@@ -122,7 +134,7 @@ abstract class AbstractModbusMaster implements ModbusMaster {
         final WriteMultipleRegistersRequest request = new WriteMultipleRegistersRequest(ref, regs);
         request.setUnitID(unitID);
         transaction.setRequest(request);
-        transaction.execute();
+        executeWithRetry(transaction, retryCount);
     }
 
     @Override
