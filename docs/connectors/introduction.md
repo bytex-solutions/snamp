@@ -19,4 +19,4 @@ Display name | System name | Supported Protocols | Attributes | Notifications | 
 [IBM WebSphere MQ Connector](wmq-connector.md) | ibm-wmq | Proprietary | Yes | No | No | Yes
 [Resource Aggregator](aggregator-connector.md) | aggregator | _Not Applicable_ | Yes | Yes | No | No
 [Groovy Resource Connector](groovy-connector.md) | groovy | _Any_ | Yes | Yes | No | No
-[OpenStack Resource Connector](openstack-connector.md) | openstack | HTTP | Yes | Yes | No | Yes
+[Modbus Resource Connector](modbus-connector.md) | modbus | Modbus/TCP, Modbus/UDP, Modbus RTU-IP | Yes | No | No | No
