@@ -14,6 +14,8 @@ import org.osgi.framework.BundleContext;
 
 import javax.management.Attribute;
 import javax.management.JMException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Map;
 
 /**
@@ -30,7 +32,7 @@ public final class ModbusConnectorTest extends AbstractModbusConnectorTest {
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
     @Override
@@ -73,7 +75,7 @@ public final class ModbusConnectorTest extends AbstractModbusConnectorTest {
     }
 
     @Test
-    public void inputRegisterReadTest() throws JMException{
+    public void inputRegisterReadTest() throws JMException, URISyntaxException {
         testAttribute("IR_0", TypeTokens.SHORT, IR_0.getValue(), true);
         testAttribute("IR_1", TypeTokens.SHORT, IR_1.getValue(), true);
     }
