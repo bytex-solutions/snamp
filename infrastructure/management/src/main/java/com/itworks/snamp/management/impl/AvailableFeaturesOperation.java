@@ -1,18 +1,14 @@
 package com.itworks.snamp.management.impl;
 
-import com.google.common.collect.Maps;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.jmx.KeyValueTypeBuilder;
 import com.itworks.snamp.jmx.TabularDataUtils;
-import com.itworks.snamp.jmx.WellKnownType;
 import org.osgi.framework.BundleContext;
 
 import javax.management.*;
 import javax.management.openmbean.*;
-import java.util.Collections;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.Callable;
 
 import static com.itworks.snamp.jmx.OpenMBean.OpenOperation;
@@ -24,7 +20,7 @@ import static com.itworks.snamp.jmx.DescriptorUtils.toMap;
  * @since 1.0
  */
 abstract class AvailableFeaturesOperation<F extends MBeanFeatureInfo> extends OpenOperation<TabularData, TabularType> {
-    protected static final TabularType DESCRIPTOR_TYPE = Utils.interfaceStaticInitialize(new Callable<TabularType>() {
+    protected static final TabularType PARAMETERS_TYPE = Utils.interfaceStaticInitialize(new Callable<TabularType>() {
         @Override
         public TabularType call() throws Exception {
             return new KeyValueTypeBuilder<String, String>()
@@ -55,7 +51,7 @@ abstract class AvailableFeaturesOperation<F extends MBeanFeatureInfo> extends Op
     }
 
     protected static TabularData toTabularData(final DescriptorRead read) throws OpenDataException {
-        return TabularDataUtils.makeKeyValuePairs(DESCRIPTOR_TYPE, toMap(read.getDescriptor(), true));
+        return TabularDataUtils.makeKeyValuePairs(PARAMETERS_TYPE, toMap(read.getDescriptor(), String.class, true));
     }
 
     protected abstract TabularData invoke(final MBeanInfo metadata) throws OpenDataException;

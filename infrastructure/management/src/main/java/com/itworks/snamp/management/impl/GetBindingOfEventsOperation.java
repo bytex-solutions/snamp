@@ -23,7 +23,6 @@ final class GetBindingOfEventsOperation extends AbstractBindingInfoOperation<MBe
     private static final String NAME = "getBindingOfNotifications";
 
     private static final String CATEGORY_COLUMN = "category";
-    private static final String SEVERITY_COLUMN = "severity";
     private static final String LIST_ID_COLUMN = "subscriptionListID";
     private static final String ATTACHMENT_TYPE_COLUMN = "mappedAttachmentType";
 
@@ -37,7 +36,7 @@ final class GetBindingOfEventsOperation extends AbstractBindingInfoOperation<MBe
                     .addColumn(LIST_ID_COLUMN, "The ID of the subscription list specified by administrator", SimpleType.STRING, true)
                     .addColumn(CATEGORY_COLUMN, "The category of the event as it is provided by the connected resource", SimpleType.STRING, false)
                     .addColumn(ATTACHMENT_TYPE_COLUMN, "The mapped type of the notification attachments", SimpleType.STRING, false)
-                    .addColumn(DETAILS_COLUMN, "Binding details", SimpleType.STRING, false)
+                    .addColumn(DETAILS_COLUMN, "Binding details", DETAILS_TYPE, false)
                     .build();
         }
     });
@@ -48,13 +47,11 @@ final class GetBindingOfEventsOperation extends AbstractBindingInfoOperation<MBe
 
     @Override
     protected void fillRow(final TabularDataBuilderRowFill.RowBuilder row, final FeatureBindingInfo<MBeanNotificationInfo> bindingInfo) throws OpenDataException {
-        final String severity = NotificationDescriptor.getSeverity(bindingInfo.getMetadata()).toString();
         final String attachmentType = Objects.toString(bindingInfo.getProperty(FeatureBindingInfo.MAPPED_TYPE), "");
         final String category = NotificationDescriptor.getNotificationCategory(bindingInfo.getMetadata());
 
         row
                 .cell(LIST_ID_COLUMN, bindingInfo.getMetadata().getNotifTypes()[0])
-                .cell(SEVERITY_COLUMN, severity)
                 .cell(CATEGORY_COLUMN, category)
                 .cell(ATTACHMENT_TYPE_COLUMN, attachmentType);
     }

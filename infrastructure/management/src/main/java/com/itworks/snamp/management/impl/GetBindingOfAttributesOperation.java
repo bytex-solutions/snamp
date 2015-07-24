@@ -47,7 +47,7 @@ final class GetBindingOfAttributesOperation extends AbstractBindingInfoOperation
                     .addColumn(USER_DEFINED_NAME_COLUMN, "The name of the attribute specified by administrator", SimpleType.STRING, true)
                     .addColumn(NAME_COLUMN, "The name of the attribute declared by the connected resource", SimpleType.STRING, false)
                     .addColumn(MAPPED_TYPE_COLUMN, "Adapter-specific type of the attribute", SimpleType.STRING, false)
-                    .addColumn(DETAILS_COLUMN, "Binding details", SimpleType.STRING, false)
+                    .addColumn(DETAILS_COLUMN, "Binding details", DETAILS_TYPE, false)
                     .build();
         }
     });

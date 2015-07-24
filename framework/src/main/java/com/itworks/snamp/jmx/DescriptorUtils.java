@@ -112,12 +112,16 @@ public final class DescriptorUtils {
      * @return A map of fields.
      */
     public static Map<String, ?> toMap(final Descriptor descr, final boolean ignoreNullValues){
-        if(descr == null) return Collections.emptyMap();
+        return toMap(descr, Object.class, ignoreNullValues);
+    }
+
+    public static <V> Map<String, V> toMap(final Descriptor descr, final Class<V> valueType, final boolean ignoreNullValues) {
+        if (descr == null) return Collections.emptyMap();
         final String[] fields = descr.getFieldNames();
-        final Map<String, Object> result = Maps.newHashMapWithExpectedSize(fields.length);
-        for(final String fieldName: fields) {
-            final Object fieldValue = descr.getFieldValue(fieldName);
-            if(fieldValue == null && ignoreNullValues) continue;
+        final Map<String, V> result = Maps.newHashMapWithExpectedSize(fields.length);
+        for (final String fieldName : fields) {
+            final V fieldValue = getField(descr, fieldName, valueType);
+            if (fieldValue == null && ignoreNullValues) continue;
             result.put(fieldName, fieldValue);
         }
         return result;

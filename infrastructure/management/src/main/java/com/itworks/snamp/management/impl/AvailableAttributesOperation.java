@@ -39,7 +39,7 @@ final class AvailableAttributesOperation extends AvailableFeaturesOperation<MBea
                     .setDescription("A set of available attributes", true)
                     .addColumn(USER_DEFINED_NAME_COLUMN, "User-defined name of the attribute", SimpleType.STRING, true)
                     .addColumn(DESCRIPTION_COLUMN, "Description of the attribute", SimpleType.STRING, false)
-                    .addColumn(PARAMETERS_COLUMN, "Configuration parameters", SimpleType.STRING, false)
+                    .addColumn(PARAMETERS_COLUMN, "Configuration parameters", PARAMETERS_TYPE, false)
                     .addColumn(TYPE_COLUMN, "Type of the attribute", SimpleType.STRING, false)
                     .addColumn(READABLE_COLUMN, "Is attribute readable?", SimpleType.BOOLEAN, false)
                     .addColumn(WRITABLE_COLUMN, "Is attribute writable?", SimpleType.BOOLEAN, false)

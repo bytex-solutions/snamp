@@ -4,10 +4,12 @@ import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.ExceptionalCallable;
+import com.itworks.snamp.SafeConsumer;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.concurrent.SynchronizationEvent;
 import com.itworks.snamp.configuration.AgentConfiguration;
+import com.itworks.snamp.jmx.TabularDataUtils;
 import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
@@ -64,9 +66,21 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
         try(final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
             final ObjectName commonsObj = new ObjectName(SNAMP_MBEAN);
-            final Object attrs =
-                    connection.invoke(commonsObj, "getAvailableAttributes", new Object[]{TEST_RESOURCE_NAME}, new String[]{String.class.getName()});
-            assertTrue(attrs instanceof TabularData);
+            final TabularData attrs =
+                    (TabularData)connection.invoke(commonsObj, "getAvailableAttributes", new Object[]{TEST_RESOURCE_NAME}, new String[]{String.class.getName()});
+            assertFalse(attrs.isEmpty());
+            TabularDataUtils.forEachRow(attrs, new SafeConsumer<CompositeData>() {
+                @Override
+                public void accept(final CompositeData row) {
+                    assertTrue(row.get("userDefinedName") instanceof String);
+                    assertTrue(row.get("description") instanceof String);
+                    assertTrue(row.get("parameters") instanceof TabularData);
+                    assertTrue(row.get("type") instanceof String);
+                    assertTrue(row.get("readable") instanceof Boolean);
+                    assertTrue(row.get("writable") instanceof Boolean);
+                    assertTrue(row.get("name") instanceof String);
+                }
+            });
         }
     }
 
@@ -75,9 +89,19 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
         try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
             final ObjectName commonsObj = new ObjectName(SNAMP_MBEAN);
-            final Object attrs =
-                    connection.invoke(commonsObj, "getBindingOfAttributes", new Object[]{ADAPTER_INSTANCE_NAME}, new String[]{String.class.getName()});
-            assertTrue(attrs instanceof TabularData);
+            final TabularData attrs =
+                    (TabularData)connection.invoke(commonsObj, "getBindingOfAttributes", new Object[]{ADAPTER_INSTANCE_NAME}, new String[]{String.class.getName()});
+            assertFalse(attrs.isEmpty());
+            TabularDataUtils.forEachRow(attrs, new SafeConsumer<CompositeData>() {
+                @Override
+                public void accept(final CompositeData row) {
+                    assertTrue(row.get("resourceName") instanceof String);
+                    assertTrue(row.get("userDefinedName") instanceof String);
+                    assertTrue(row.get("name") instanceof String);
+                    assertTrue(row.get("mappedType") instanceof String);
+                    assertTrue(row.get("details") instanceof TabularData);
+                }
+            });
         }
     }
 

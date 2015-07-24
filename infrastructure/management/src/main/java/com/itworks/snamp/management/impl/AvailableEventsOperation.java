@@ -1,24 +1,18 @@
 package com.itworks.snamp.management.impl;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableList;
-import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
-import com.itworks.snamp.connectors.attributes.CustomAttributeInfo;
-import com.itworks.snamp.connectors.notifications.CustomNotificationInfo;
 import com.itworks.snamp.connectors.notifications.NotificationDescriptor;
 import com.itworks.snamp.internal.Utils;
 import com.itworks.snamp.jmx.TabularDataBuilderRowFill;
 import com.itworks.snamp.jmx.TabularTypeBuilder;
 import com.itworks.snamp.jmx.WellKnownType;
 
-import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanInfo;
 import javax.management.MBeanNotificationInfo;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.SimpleType;
 import javax.management.openmbean.TabularData;
 import javax.management.openmbean.TabularType;
-import java.util.Collection;
 import java.util.concurrent.Callable;
 
 /**
@@ -29,7 +23,7 @@ import java.util.concurrent.Callable;
 final class AvailableEventsOperation extends AvailableFeaturesOperation<MBeanNotificationInfo> {
     static final String NAME = "getAvailableEvents";
 
-    private static final String USER_DEFINED_NAME_COLUMN = "userDefinedName";
+    private static final String LIST_ID_COLUMN = "listID";
     private static final String DESCRIPTION_COLUMN = "description";
     private static final String PARAMETERS_COLUMN = "parameters";
     private static final String ATTACHMENT_TYPE_COLUMN = "attachmentType";
@@ -42,9 +36,9 @@ final class AvailableEventsOperation extends AvailableFeaturesOperation<MBeanNot
             return new TabularTypeBuilder()
                     .setTypeName("AvailableNotifications", true)
                     .setDescription("A set of available notifications", true)
-                    .addColumn(USER_DEFINED_NAME_COLUMN, "User-defined name of the event", SimpleType.STRING, true)
+                    .addColumn(LIST_ID_COLUMN, "User-defined name of the event", SimpleType.STRING, true)
                     .addColumn(DESCRIPTION_COLUMN, "Description of the event", SimpleType.STRING, false)
-                    .addColumn(PARAMETERS_COLUMN, "Configuration parameters", SimpleType.STRING, false)
+                    .addColumn(PARAMETERS_COLUMN, "Configuration parameters", PARAMETERS_TYPE, false)
                     .addColumn(ATTACHMENT_TYPE_COLUMN, "Type of the notification attachment", SimpleType.STRING, false)
                     .addColumn(CATEGORY_COLUMN, "Category of the event", SimpleType.STRING, false)
                     .addColumn(SEVERITY_COLUMN, "Severity of the notification", SimpleType.STRING, false)
@@ -62,7 +56,7 @@ final class AvailableEventsOperation extends AvailableFeaturesOperation<MBeanNot
         final String category = NotificationDescriptor.getNotificationCategory(notificationInfo);
         final WellKnownType attachmentType = WellKnownType.getType(NotificationDescriptor.getUserDataType(notificationInfo));
         row
-                .cell(USER_DEFINED_NAME_COLUMN, notificationInfo.getNotifTypes()[0])
+                .cell(LIST_ID_COLUMN, notificationInfo.getNotifTypes()[0])
                 .cell(PARAMETERS_COLUMN, toTabularData(notificationInfo))
                 .cell(DESCRIPTION_COLUMN, MoreObjects.firstNonNull(description, ""))
                 .cell(ATTACHMENT_TYPE_COLUMN, attachmentType == null ? "" : attachmentType.getDisplayName())

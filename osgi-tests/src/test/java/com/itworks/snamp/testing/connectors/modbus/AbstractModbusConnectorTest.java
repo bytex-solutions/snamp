@@ -1,5 +1,6 @@
 package com.itworks.snamp.testing.connectors.modbus;
 
+import com.google.common.collect.ImmutableMap;
 import com.itworks.snamp.connectors.modbus.slave.DigitalInputAccessor;
 import com.itworks.snamp.connectors.modbus.slave.DigitalOutputAccessor;
 import com.itworks.snamp.connectors.modbus.slave.InputRegisterAccessor;
@@ -72,7 +73,7 @@ public abstract class AbstractModbusConnectorTest extends AbstractResourceConnec
     };
 
     protected AbstractModbusConnectorTest(final String connectionString){
-        super(CONNECTOR_TYPE, connectionString);
+        super(CONNECTOR_TYPE, connectionString, ImmutableMap.of("retryCount", "10"));
     }
 
     protected abstract ModbusSlave createSlaveDevice();

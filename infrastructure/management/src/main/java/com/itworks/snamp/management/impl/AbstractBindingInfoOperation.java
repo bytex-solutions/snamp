@@ -7,7 +7,9 @@ import com.itworks.snamp.adapters.ResourceAdapter;
 import com.itworks.snamp.adapters.ResourceAdapterClient;
 import com.itworks.snamp.internal.RecordReader;
 import com.itworks.snamp.internal.Utils;
+import com.itworks.snamp.jmx.KeyValueTypeBuilder;
 import com.itworks.snamp.jmx.TabularDataBuilderRowFill;
+import com.itworks.snamp.jmx.TabularDataUtils;
 import org.osgi.framework.BundleContext;
 
 import javax.management.JMException;
@@ -16,6 +18,7 @@ import javax.management.openmbean.*;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.Callable;
 
 import static com.itworks.snamp.jmx.OpenMBean.OpenOperation;
 import static com.itworks.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
@@ -26,7 +29,6 @@ import static com.itworks.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
  * @since 1.0
  */
 abstract class AbstractBindingInfoOperation<F extends MBeanFeatureInfo> extends OpenOperation<TabularData, TabularType> {
-    private static final Joiner.MapJoiner DETAILS_JOINER = Joiner.on(';').withKeyValueSeparator("=");
     protected static final String RESOURCE_NAME_COLUMN = "resourceName";
     protected static final String DETAILS_COLUMN = "details";
     protected static final OpenMBeanParameterInfoSupport INSTANCE_NAME_PARAM = new OpenMBeanParameterInfoSupport(
@@ -34,6 +36,17 @@ abstract class AbstractBindingInfoOperation<F extends MBeanFeatureInfo> extends 
             "The name of the adapter instance",
             SimpleType.STRING
     );
+    protected static final TabularType DETAILS_TYPE = Utils.interfaceStaticInitialize(new Callable<TabularType>() {
+        @Override
+        public TabularType call() throws Exception {
+            return new KeyValueTypeBuilder<String, String>()
+                    .setTypeName("FeatureBindingDetails")
+                    .setTypeDescription("A set of configuration parameters")
+                    .setKeyColumn("parameter", "Parameter name", SimpleType.STRING)
+                    .setValueColumn("value", "Parameter value", SimpleType.STRING)
+                    .build();
+        }
+    });
 
     private final Class<F> featureType;
 
@@ -44,14 +57,14 @@ abstract class AbstractBindingInfoOperation<F extends MBeanFeatureInfo> extends 
         this.featureType = Objects.requireNonNull(featureType);
     }
 
-    private static String convertToString(final FeatureBindingInfo<?> bindingInfo){
-        final Map<String, Object> params = Maps.newHashMapWithExpectedSize(bindingInfo.getProperties().size());
-        for(final String propertyName: bindingInfo.getProperties()) {
+    private static TabularData toTabularData(final FeatureBindingInfo<?> bindingInfo) throws OpenDataException {
+        final Map<String, String> params = Maps.newHashMapWithExpectedSize(bindingInfo.getProperties().size());
+        for (final String propertyName : bindingInfo.getProperties()) {
             final Object propertyValue = bindingInfo.getProperty(propertyName);
             if (propertyValue != null)
-                params.put(propertyName, bindingInfo.getProperty(propertyName));
+                params.put(propertyName, propertyValue.toString());
         }
-        return DETAILS_JOINER.join(params);
+        return TabularDataUtils.makeKeyValuePairs(DETAILS_TYPE, params);
     }
 
     protected abstract void fillRow(final TabularDataBuilderRowFill.RowBuilder row,
@@ -67,7 +80,7 @@ abstract class AbstractBindingInfoOperation<F extends MBeanFeatureInfo> extends 
                 public boolean read(final String resourceName, final FeatureBindingInfo<F> bindingInfo) throws OpenDataException {
                     final TabularDataBuilderRowFill.RowBuilder row = result.newRow()
                             .cell(RESOURCE_NAME_COLUMN, resourceName)
-                            .cell(DETAILS_COLUMN, convertToString(bindingInfo));
+                            .cell(DETAILS_COLUMN, toTabularData(bindingInfo));
                     fillRow(row, bindingInfo);
                     row.flush();
                     return true;

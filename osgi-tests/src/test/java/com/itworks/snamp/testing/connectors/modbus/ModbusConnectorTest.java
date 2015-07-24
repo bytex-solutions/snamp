@@ -89,6 +89,11 @@ public final class ModbusConnectorTest extends AbstractModbusConnectorTest {
                 true);
     }
 
+    @Test
+    public void registerReadWriteTest() throws JMException{
+        testAttribute("OR_0", TypeTokens.SHORT, (short)97);
+    }
+
     @Override
     protected void fillAttributes(final Map<String, AttributeConfiguration> attributes,
                                   final Supplier<AttributeConfiguration> attributeFactory) {
