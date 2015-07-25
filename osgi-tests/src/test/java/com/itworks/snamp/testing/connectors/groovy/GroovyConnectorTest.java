@@ -1,5 +1,6 @@
 package com.itworks.snamp.testing.connectors.groovy;
 
+import com.google.common.collect.ImmutableSet;
 import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.concurrent.Awaitor;
@@ -123,14 +124,16 @@ public final class GroovyConnectorTest extends AbstractGroovyConnectorTest {
     }
 
     @Test
-    public void configurationDescriptionTest(){
-        final ConfigurationEntityDescription<?> description =
-                ManagedResourceConnectorClient.getConfigurationEntityDescriptor(getTestBundleContext(), CONNECTOR_TYPE, AgentConfiguration.ManagedResourceConfiguration.class);
-        assertNotNull(description);
-        final ConfigurationEntityDescription.ParameterDescription param =
-                description.getParameterDescriptor("initScript");
-        assertNotNull(param);
-        assertFalse(param.getDescription(null).isEmpty());
+    public void configurationDescriptionTest() {
+        testConfigurationDescriptor(AgentConfiguration.ManagedResourceConfiguration.class, ImmutableSet.of(
+                "initScript",
+                "groovy.warnings",
+                "groovy.source.encoding",
+                "groovy.classpath",
+                "groovy.output.verbose",
+                "groovy.output.debug",
+                "groovy.errors.tolerance"
+        ));
     }
 
     @Override

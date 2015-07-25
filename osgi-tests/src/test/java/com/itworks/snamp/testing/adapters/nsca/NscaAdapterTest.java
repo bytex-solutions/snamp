@@ -8,6 +8,7 @@ import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.adapters.ResourceAdapter;
 import com.itworks.snamp.adapters.ResourceAdapterActivator;
 import com.itworks.snamp.adapters.ResourceAdapterClient;
+import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.internal.RecordReader;
@@ -30,7 +31,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeoutException;
 
-import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
 import static com.itworks.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
 
@@ -80,11 +81,12 @@ public final class NscaAdapterTest extends AbstractJmxConnectorTest<TestOpenMBea
 
     @Test
     public void configurationDescriptorTest() throws BundleException {
-        final ConfigurationEntityDescription desc = ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, ResourceAdapterConfiguration.class);
-        assertNotNull(desc);
-        final ConfigurationEntityDescription.ParameterDescription param = desc.getParameterDescriptor("nagiosHost");
-        assertNotNull(param);
-        assertFalse(param.getDescription(null).isEmpty());
+        ConfigurationEntityDescription desc = ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, ResourceAdapterConfiguration.class);
+        testConfigurationDescriptor(desc, "nagiosHost", "nagiosPort", "connectionTimeout", "password", "encryption", "passiveCheckSendPeriod");
+        desc = ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, AttributeConfiguration.class);
+        testConfigurationDescriptor(desc, "serviceName", "maxValue", "minValue", "units");
+        desc = ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, EventConfiguration.class);
+        testConfigurationDescriptor(desc, "serviceName");
     }
 
     @Test

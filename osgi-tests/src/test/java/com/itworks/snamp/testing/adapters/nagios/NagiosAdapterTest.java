@@ -1,6 +1,7 @@
 package com.itworks.snamp.testing.adapters.nagios;
 
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableSet;
 import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
@@ -136,10 +137,15 @@ public final class NagiosAdapterTest extends AbstractJmxConnectorTest<TestOpenMB
     @Test
     public void configurationDescriptorTest() throws BundleException {
         final ConfigurationEntityDescription desc = ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, AttributeConfiguration.class);
-        assertNotNull(desc);
-        final ConfigurationEntityDescription.ParameterDescription param = desc.getParameterDescriptor("warningThreshold");
-        assertNotNull(param);
-        assertFalse(param.getDescription(null).isEmpty());
+        testConfigurationDescriptor(desc,
+                "serviceName",
+                "label",
+                "criticalThreshold",
+                "warningThreshold",
+                "units",
+                "maxValue",
+                "minValue"
+        );
     }
 
     @Test

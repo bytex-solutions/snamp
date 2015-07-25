@@ -2,6 +2,7 @@ package com.itworks.snamp.testing.adapters.jmx;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
@@ -189,12 +190,9 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
     @Test
     public void configurationDescriptorTest() throws BundleException {
         ConfigurationEntityDescription desc = ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, ResourceAdapterConfiguration.class);
-        assertNotNull(desc);
-        final ConfigurationEntityDescription.ParameterDescription param = desc.getParameterDescriptor("usePlatformMBean");
-        assertNotNull(param);
-        assertFalse(param.getDescription(null).isEmpty());
+        testConfigurationDescriptor(desc, "objectName", "usePlatformMBean");
         desc = ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, EventConfiguration.class);
-        assertNotNull(desc);
+        testConfigurationDescriptor(desc, "severity");
     }
 
     @Test

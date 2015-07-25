@@ -1,10 +1,14 @@
 package com.itworks.snamp.testing.connectors.modbus;
 
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.TypeTokens;
+import com.itworks.snamp.configuration.AgentConfiguration;
 import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
+import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
 import com.itworks.snamp.connectors.attributes.AttributeSupport;
 import com.itworks.snamp.connectors.modbus.slave.DigitalInputAccessor;
 import com.itworks.snamp.connectors.modbus.transport.ModbusSlave;
@@ -32,7 +36,7 @@ public final class ModbusConnectorTest extends AbstractModbusConnectorTest {
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return true;
+        return false;
     }
 
     @Override
@@ -101,6 +105,14 @@ public final class ModbusConnectorTest extends AbstractModbusConnectorTest {
                 15, 89, 34, 33,          //record 1
                 78, 0, 12, -56};                //record 2
         testAttribute("FI_0", TypeToken.of(short[].class), array, arrayEquator());
+    }
+
+    @Test
+    public void configurationDescriptionTest(){
+        testConfigurationDescriptor(AgentConfiguration.ManagedResourceConfiguration.class, ImmutableSet.of(
+                "connectionTimeout",
+                "retryCount"
+        ));
     }
 
     @Override

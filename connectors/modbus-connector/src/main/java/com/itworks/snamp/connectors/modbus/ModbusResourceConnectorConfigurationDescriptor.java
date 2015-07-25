@@ -8,7 +8,6 @@ import com.itworks.snamp.configuration.ResourceBasedConfigurationEntityDescripti
 
 import javax.management.Descriptor;
 import java.util.Map;
-import java.util.Objects;
 
 import static com.itworks.snamp.jmx.DescriptorUtils.*;
 
@@ -21,14 +20,14 @@ final class ModbusResourceConnectorConfigurationDescriptor extends Configuration
     private static final String COUNT_PARAM = "count";
     private static final String RECORD_SIZE_PARAM = "recordSize";
     private static final String UNIT_ID_PARAM = "unitID";
-    private static final String SOCKET_TIMEOUT_PARAM = "socketTimeout";
+    private static final String CONNECTION_TIMEOUT_PARAM = "connectionTimeout";
     private static final String RETRY_COUNT_PARAM = "retryCount";
 
     private static final class AttributeConfigurationDescriptor extends ResourceBasedConfigurationEntityDescription<AttributeConfiguration>{
         private static final String RESOURCE_NAME = "AttributeConfiguration";
 
         private AttributeConfigurationDescriptor(){
-            super(RESOURCE_NAME, AttributeConfiguration.class, OFFSET_PARAM, COUNT_PARAM);
+            super(RESOURCE_NAME, AttributeConfiguration.class, OFFSET_PARAM, COUNT_PARAM, RECORD_SIZE_PARAM, UNIT_ID_PARAM);
         }
     }
 
@@ -36,7 +35,7 @@ final class ModbusResourceConnectorConfigurationDescriptor extends Configuration
         private static final String RESOURCE_NAME = "ConnectorConfiguration";
 
         private ConnectorConfigurationDescriptor(){
-            super(RESOURCE_NAME, ManagedResourceConfiguration.class, RESOURCE_NAME, SOCKET_TIMEOUT_PARAM);
+            super(RESOURCE_NAME, ManagedResourceConfiguration.class, CONNECTION_TIMEOUT_PARAM, RETRY_COUNT_PARAM);
         }
     }
 
@@ -66,9 +65,9 @@ final class ModbusResourceConnectorConfigurationDescriptor extends Configuration
         else return Modbus.DEFAULT_UNIT_ID;
     }
 
-    static int parseSocketTimeout(final Map<String, String> parameters){
-        if(parameters.containsKey(SOCKET_TIMEOUT_PARAM))
-            return Integer.parseInt(parameters.get(SOCKET_TIMEOUT_PARAM));
+    static int parseConnectionTimeout(final Map<String, String> parameters){
+        if(parameters.containsKey(CONNECTION_TIMEOUT_PARAM))
+            return Integer.parseInt(parameters.get(CONNECTION_TIMEOUT_PARAM));
         else return 2000;
     }
 

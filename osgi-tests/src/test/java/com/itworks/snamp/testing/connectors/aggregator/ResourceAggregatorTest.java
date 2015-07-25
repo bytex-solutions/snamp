@@ -19,7 +19,7 @@ import java.math.BigInteger;
 import java.util.Locale;
 
 import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
-import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
 import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
 
 /**
@@ -274,12 +274,21 @@ public final class ResourceAggregatorTest extends AbstractSnampIntegrationTest {
 
     @Test
     public void configurationTest(){
-        final ConfigurationEntityDescription description = ManagedResourceConnectorClient.getConfigurationEntityDescriptor(getTestBundleContext(), AGGREGATOR_CONNECTOR, ManagedResourceConfiguration.class);
-        assertNotNull(description);
-        final ConfigurationEntityDescription.ParameterDescription parameter =
-                description.getParameterDescriptor("notificationFrequency");
-        assertNotNull(parameter);
-        assertFalse(parameter.getDescription(Locale.getDefault()).isEmpty());
+        ConfigurationEntityDescription description = ManagedResourceConnectorClient.getConfigurationEntityDescriptor(getTestBundleContext(), AGGREGATOR_CONNECTOR, ManagedResourceConfiguration.class);
+        AbstractResourceConnectorTest.testConfigurationDescriptor(description, "notificationFrequency");
+        description = ManagedResourceConnectorClient.getConfigurationEntityDescriptor(getTestBundleContext(), AGGREGATOR_CONNECTOR, AttributeConfiguration.class);
+        AbstractResourceConnectorTest.testConfigurationDescriptor(description,
+                "source",
+                "foreignAttribute",
+                "firstForeignAttribute",
+                "secondForeignAttribute",
+                "comparer",
+                "value",
+                "timeInterval");
+        description = ManagedResourceConnectorClient.getConfigurationEntityDescriptor(getTestBundleContext(), AGGREGATOR_CONNECTOR, EventConfiguration.class);
+        AbstractResourceConnectorTest.testConfigurationDescriptor(description,
+                "foreignAttribute",
+                "source");
     }
 
     /**

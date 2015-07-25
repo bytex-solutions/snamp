@@ -2,6 +2,7 @@ package com.itworks.snamp.testing.adapters.groovy;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableSet;
 import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.ExceptionalCallable;
 import com.itworks.snamp.TimeSpan;
@@ -111,11 +112,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     public void configurationTest(){
         final ConfigurationEntityDescription<?> descr =
                 ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, ResourceAdapterConfiguration.class);
-        assertNotNull(descr);
-        final ConfigurationEntityDescription.ParameterDescription parameter = descr.getParameterDescriptor("scriptFile");
-        assertNotNull(parameter);
-        assertTrue(parameter.isRequired());
-        assertFalse(parameter.getDescription(Locale.getDefault()).isEmpty());
+        testConfigurationDescriptor(descr, "scriptFile",  "scriptPath");
     }
 
     @Test

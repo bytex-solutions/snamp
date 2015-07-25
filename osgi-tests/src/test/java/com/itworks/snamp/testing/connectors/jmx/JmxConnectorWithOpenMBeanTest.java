@@ -2,6 +2,7 @@ package com.itworks.snamp.testing.connectors.jmx;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.TypeTokens;
@@ -299,15 +300,22 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
 
     @Test
     public final void testForAttributeConfigDescription(){
-        final ConfigurationEntityDescription<AttributeConfiguration> description = ManagedResourceConnectorClient.getConfigurationEntityDescriptor(getTestBundleContext(),
-                CONNECTOR_NAME,
-                AttributeConfiguration.class);
-        assertNotNull(description);
-        final ConfigurationEntityDescription.ParameterDescription param = description.getParameterDescriptor("objectName");
-        final String defValue = param.getDescription(null);//default locale
-        assertTrue(defValue.length() > 0);
-        final String ruValue = param.getDescription(Locale.forLanguageTag("RU"));
-        assertTrue(ruValue.length() > 0);
+        testConfigurationDescriptor(AgentConfiguration.ManagedResourceConfiguration.class, ImmutableSet.of(
+            "login",
+                "password",
+                "connectionCheckPeriod",
+                "smartMode",
+                "objectName"
+        ));
+        testConfigurationDescriptor(AttributeConfiguration.class, ImmutableSet.of(
+                "objectName",
+                "useRegexp"
+        ));
+        testConfigurationDescriptor(EventConfiguration.class, ImmutableSet.of(
+                "objectName",
+                "severity",
+                "useRegexp"
+        ));
     }
 
     @Test

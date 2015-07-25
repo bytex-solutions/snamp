@@ -359,11 +359,38 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
 
     @Test
     public void configurationDescriptorTest() throws BundleException {
-        final ConfigurationEntityDescription desc = ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, ResourceAdapterConfiguration.class);
-        assertNotNull(desc);
-        final ConfigurationEntityDescription.ParameterDescription param = desc.getParameterDescriptor("ldap-uri");
-        assertNotNull(param);
-        assertFalse(param.getDescription(null).isEmpty());
+        ConfigurationEntityDescription desc = ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, ResourceAdapterConfiguration.class);
+        testConfigurationDescriptor(desc,
+                "context",
+                "engineID",
+                "snmpv3-groups",
+                "socketTimeout",
+                "port",
+                "host",
+                "ldap-uri",
+                "minPoolSize",
+                "maxPoolSize",
+                "queueSize",
+                "keepAliveTime",
+                "priority",
+                "restartTimeout",
+                "ldap-user",
+                "ldap-password",
+                "ldap-auth-protocol",
+                "ldap-base-dn",
+                "ldap-user-search-filter");
+        desc = ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, AttributeConfiguration.class);
+        testConfigurationDescriptor(desc,
+                "oid",
+                "displayFormat");
+        ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, EventConfiguration.class);
+        testConfigurationDescriptor(desc,
+                "oid",
+                "displayFormat",
+                "receiverAddress",
+                "receiverName",
+                "sendingTimeout",
+                "retryCount");
     }
 
     @Test

@@ -1,5 +1,6 @@
 package com.itworks.snamp.connectors.modbus;
 
+import com.ghgande.j2mod.modbus.procimg.FIFO;
 import com.google.common.base.Function;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.connectors.AbstractManagedResourceConnector;
@@ -69,7 +70,6 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
         protected void failedToConnectAttribute(final String attributeID, final String attributeName, final Exception e) {
             failedToConnectAttribute(logger, Level.WARNING, attributeID, attributeName, e);
         }
-
 
         @Override
         protected void failedToGetAttribute(final String attributeID, final Exception e) {

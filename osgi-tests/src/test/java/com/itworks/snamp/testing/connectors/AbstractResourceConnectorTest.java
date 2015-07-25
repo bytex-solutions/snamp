@@ -1,6 +1,7 @@
 package com.itworks.snamp.testing.connectors;
 
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.ArrayUtils;
 import com.itworks.snamp.ExceptionPlaceholder;
@@ -9,7 +10,10 @@ import com.itworks.snamp.TypeTokens;
 import com.itworks.snamp.concurrent.Awaitor;
 import com.itworks.snamp.concurrent.SpinWait;
 import com.itworks.snamp.configuration.AgentConfiguration;
-import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
+import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
+import com.itworks.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.OperationConfiguration;
+import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.connectors.ManagedResourceActivator;
 import com.itworks.snamp.connectors.ManagedResourceConnector;
 import com.itworks.snamp.connectors.ManagedResourceConnectorClient;
@@ -27,6 +31,7 @@ import javax.management.MBeanAttributeInfo;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -289,5 +294,39 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
                                            final T attributeValue,
                                            final boolean readOnlyTest) throws JMException {
         testAttribute(attributeName, attributeType, attributeValue, AbstractResourceConnectorTest.<T>valueEquator(), readOnlyTest);
+    }
+
+    private static void testConfigurationDescriptor(final ConfigurationEntityDescription<?> description,
+                                                      final Set<String> parameters){
+        assertNotNull(description);
+        int matches = 0;
+        for (final String paramName : description) {
+            final ConfigurationEntityDescription.ParameterDescription param =
+                    description.getParameterDescriptor(paramName);
+            assertNotNull(param);
+            assertFalse("Invalid param description " + paramName, param.getDescription(null).isEmpty());
+            if(parameters.contains(paramName))
+                matches += 1;
+        }
+        if(matches != parameters.size())
+            fail("Not all configuration parameters match to the expected list");
+    }
+
+    public static void testConfigurationDescriptor(final ConfigurationEntityDescription<?> description,
+                                                    final String... parameters) {
+        testConfigurationDescriptor(description, ImmutableSet.copyOf(parameters));
+    }
+
+    protected static <E extends AgentConfiguration.EntityConfiguration> void testConfigurationDescriptor(final BundleContext context,
+                                                                                                          final String connectorType,
+                                                                                                          final Class<E> entityType,
+                                                                                                          final Set<String> parameters) {
+        final ConfigurationEntityDescription<?> description = ManagedResourceConnectorClient.getConfigurationEntityDescriptor(context, connectorType, entityType);
+        testConfigurationDescriptor(description, parameters);
+    }
+
+    protected final <E extends AgentConfiguration.EntityConfiguration> void testConfigurationDescriptor(final Class<E> entityType,
+                                                                                                        final Set<String> parameters){
+        testConfigurationDescriptor(getTestBundleContext(), connectorType, entityType, parameters);
     }
 }

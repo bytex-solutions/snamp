@@ -1,6 +1,7 @@
 package com.itworks.snamp.testing.adapters.http;
 
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -243,10 +244,7 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
     @Test
     public void configurationDescriptorTest() throws BundleException {
         final ConfigurationEntityDescription desc = ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, ResourceAdapterConfiguration.class);
-        assertNotNull(desc);
-        final ConfigurationEntityDescription.ParameterDescription param = desc.getParameterDescriptor("dateFormat");
-        assertNotNull(param);
-        assertFalse(param.getDescription(null).isEmpty());
+        testConfigurationDescriptor(desc, "dateFormat");
     }
 
     @Override

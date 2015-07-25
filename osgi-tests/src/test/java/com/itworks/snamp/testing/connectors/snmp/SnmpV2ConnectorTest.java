@@ -2,6 +2,7 @@ package com.itworks.snamp.testing.connectors.snmp;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 import com.itworks.snamp.TimeSpan;
 import com.itworks.snamp.TypeTokens;
@@ -471,14 +472,31 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
 
     @Test
     public void configurationDescriptionServiceTest() {
-        final ConfigurationEntityDescription<AttributeConfiguration> attributesConfig = ManagedResourceConnectorClient.getConfigurationEntityDescriptor(getTestBundleContext(), CONNECTOR_NAME, AttributeConfiguration.class);
-        assertNotNull(attributesConfig);
-        final ConfigurationEntityDescription.ParameterDescription descr = attributesConfig.getParameterDescriptor("snmpConversionFormat");
-        assertNotNull(descr);
-        assertTrue(descr.getDescription(null).length() > 0);
-        assertNotNull(ManagedResourceConnectorClient.getConfigurationEntityDescriptor(getTestBundleContext(), CONNECTOR_NAME, EventConfiguration.class));
-        assertNotNull(ManagedResourceConnectorClient.getConfigurationEntityDescriptor(getTestBundleContext(), CONNECTOR_NAME, AgentConfiguration.ManagedResourceConfiguration.class));
-
+        testConfigurationDescriptor(AttributeConfiguration.class, ImmutableSet.of(
+                "snmpConversionFormat",
+                "responseTimeout"
+        ));
+        testConfigurationDescriptor(EventConfiguration.class, ImmutableSet.of(
+                "messageTemplate",
+                "severity"
+        ));
+        testConfigurationDescriptor(AgentConfiguration.ManagedResourceConfiguration.class, ImmutableSet.of(
+                "community",
+                "engineID",
+                "userName",
+                "authenticationProtocol",
+                "encryptionKey",
+                "encryptionProtocol",
+                "password",
+                "localAddress",
+                "securityContext",
+                "queueSize",
+                "priority",
+                "keepAliveTime",
+                "minPoolSize",
+                "maxPoolSize",
+                "smartMode"
+        ));
     }
 
     @Override
