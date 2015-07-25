@@ -6,12 +6,11 @@ import com.ghgande.j2mod.modbus.procimg.*;
 import com.google.common.primitives.Shorts;
 import com.google.common.primitives.UnsignedInteger;
 import com.google.common.primitives.UnsignedInts;
-import com.itworks.snamp.connectors.modbus.slave.DigitalInputAccessor;
-import com.itworks.snamp.connectors.modbus.slave.DigitalOutputAccessor;
-import com.itworks.snamp.connectors.modbus.slave.InputRegisterAccessor;
-import com.itworks.snamp.connectors.modbus.slave.OutputRegisterAccessor;
+import com.itworks.snamp.connectors.modbus.slave.*;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ShortBuffer;
 import java.util.Objects;
 
 /**
@@ -117,9 +116,61 @@ abstract class AbstractModbusSlave<L extends ModbusListener> implements ModbusSl
 
             @Override
             public byte[] toBytes() {
-                return new byte[0];
+                return Shorts.toByteArray(output.getValue());
             }
         };
+    }
+
+    private static File cast(final int fileNumber, final FileRecordAccessor accessor){
+        final File result = new File(fileNumber, accessor.getRecords());
+        for(int recordIndex = 0; recordIndex < accessor.getRecords(); recordIndex++){
+            final int recordSize = accessor.getRecord(recordIndex).limit();
+            final Record rec = new Record(recordIndex, recordSize);
+            result.setRecord(recordIndex, rec);
+            //registers
+            for(int register = 0; register < recordSize; register++){
+                final ShortBuffer recordBuffer = accessor.getRecord(recordIndex);
+                final int registerIndex = register;
+                rec.setRegister(register, new Register() {
+                    @Override
+                    public void setValue(int value) {
+                        value &= 0xFF_FF_FF_FF;
+                        setValue((short)value);
+                    }
+
+                    @Override
+                    public void setValue(final short value) {
+                        recordBuffer.put(registerIndex, value);
+                    }
+
+                    @Override
+                    public void setValue(final byte[] bytes) {
+                        setValue(Shorts.fromByteArray(bytes));
+                    }
+
+                    @Override
+                    public int getValue() {
+                        return toUnsignedShort();
+                    }
+
+                    @Override
+                    public int toUnsignedShort() {
+                        return toShort() & 0xFF_FF;
+                    }
+
+                    @Override
+                    public short toShort() {
+                        return recordBuffer.get(registerIndex);
+                    }
+
+                    @Override
+                    public byte[] toBytes() {
+                        return Shorts.toByteArray(toShort());
+                    }
+                });
+            }
+        }
+        return result;
     }
 
     @Override
@@ -155,6 +206,15 @@ abstract class AbstractModbusSlave<L extends ModbusListener> implements ModbusSl
             processImage.addRegister(cast(output));
         else
             processImage.setRegister(ref, cast(output));
+        return this;
+    }
+
+    @Override
+    public final AbstractModbusSlave<L> register(final int fileNumber, final FileRecordAccessor file){
+        if(processImage.getFileCount() <= fileNumber)
+            processImage.addFile(cast(fileNumber, file));
+        else
+            processImage.setFile(fileNumber, cast(fileNumber, file));
         return this;
     }
 

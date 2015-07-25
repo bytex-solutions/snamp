@@ -8,6 +8,10 @@ import com.ghgande.j2mod.modbus.procimg.InputRegister;
 import com.ghgande.j2mod.modbus.procimg.Register;
 import com.ghgande.j2mod.modbus.util.BitVector;
 import com.itworks.snamp.Consumer;
+import com.itworks.snamp.io.Buffers;
+
+import java.nio.ByteBuffer;
+import java.nio.ShortBuffer;
 
 /**
  * Represents an abstract class for all Modbus master apps.
@@ -140,5 +144,51 @@ abstract class AbstractModbusMaster implements ModbusMaster {
     @Override
     public final void writeHoldingRegister(final int unitID, final int ref, final Register register) throws ModbusException {
         writeHoldingRegisters(unitID, ref, new Register[]{register});
+    }
+
+    @Override
+    public final short[] readFile(final int unitID,
+                                  final int file,
+                                  final int recordCount,
+                                  final int recordSize) throws ModbusException {
+        final ShortBuffer buffer = Buffers.wrap(new short[recordCount * recordSize]);
+        final ModbusTransaction transaction = createTransaction();
+        transaction.setRetries(retryCount);
+        for(int recordNumber = 0; recordNumber < recordCount; recordNumber++) {
+            final ReadFileRecordRequest request = new ReadFileRecordRequest();
+            request.addRequest(request.new RecordRequest(file, recordNumber, recordSize));
+            request.setUnitID(unitID);
+            transaction.setRequest(request);
+            final ReadFileRecordResponse response = executeWithResponse(transaction, retryCount, ReadFileRecordResponse.class);
+            if (response.getRecordCount() > 0) {
+                final ReadFileRecordResponse.RecordResponse fileRecord = response.getRecord(0);
+                for (int i = 0; i < fileRecord.getWordCount(); i++)
+                    buffer.put(fileRecord.getRegister(i).toShort());
+            } else return new short[0];
+        }
+        return buffer.array();
+    }
+
+    private void writeFile(final int unitID, final int file, final int recordSize, final ShortBuffer buffer) throws ModbusException {
+        final ModbusTransaction transaction = createTransaction();
+        transaction.setRetries(retryCount);
+        int recordNumber = 0;
+        while (buffer.hasRemaining()){
+            final WriteFileRecordRequest request = new WriteFileRecordRequest();
+            request.setUnitID(unitID);
+            final short[] recordContent = new short[recordSize];
+            for(int i = 0; i < recordSize && buffer.hasRemaining(); i++)
+                recordContent[i] = buffer.get();
+            final WriteFileRecordRequest.RecordRequest fileRecord =
+                    request.new RecordRequest(file, recordNumber++, recordContent);
+            request.addRequest(fileRecord);
+            transaction.setRequest(request);
+            executeWithRetry(transaction, retryCount);
+        }
+    }
+
+    @Override
+    public final void writeFile(final int unitID, final int file, final int recordSize, final short[] value) throws ModbusException {
+        writeFile(unitID, file, recordSize, Buffers.wrap(value));
     }
 }

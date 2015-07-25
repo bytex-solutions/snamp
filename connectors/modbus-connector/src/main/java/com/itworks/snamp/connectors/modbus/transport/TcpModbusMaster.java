@@ -1,9 +1,6 @@
 package com.itworks.snamp.connectors.modbus.transport;
 
-import com.ghgande.j2mod.modbus.io.ModbusTCPTransaction;
-import com.ghgande.j2mod.modbus.io.ModbusTCPTransport;
-import com.ghgande.j2mod.modbus.io.ModbusTransport;
-import com.ghgande.j2mod.modbus.io.ModbusUDPTransport;
+import com.ghgande.j2mod.modbus.io.*;
 import com.ghgande.j2mod.modbus.net.TCPMasterConnection;
 
 import java.io.IOException;
@@ -46,11 +43,12 @@ final class TcpModbusMaster extends AbstractModbusMaster {
     }
 
     @Override
-    protected ModbusTCPTransaction createTransaction() {
-        final ModbusTCPTransaction transaction = new ModbusTCPTransaction(connection);
-        transaction.setCheckingValidity(true);
-        transaction.setReconnecting(true);
-        return transaction;
+    protected ModbusTransaction createTransaction() {
+        final ModbusTransaction result = connection.getModbusTransport().createTransaction();
+        result.setCheckingValidity(true);
+        if(result instanceof ModbusTCPTransaction)
+            ((ModbusTCPTransaction)result).setReconnecting(true);
+        return result;
     }
 
     @Override

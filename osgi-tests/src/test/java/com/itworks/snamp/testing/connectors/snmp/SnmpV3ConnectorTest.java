@@ -369,7 +369,7 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
         testAttribute("opaqueAttr",
                 TypeToken.of(byte[].class),
                 new byte[]{10, 20, 30, 40, 50},
-                AbstractResourceConnectorTest.<byte[]>arrayEquator(),
+                arrayEquator(),
                 false);
     }
 
@@ -378,7 +378,7 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
         testAttribute("ipAddressAsByte",
                 TypeToken.of(byte[].class),
                 new IpAddress("192.168.0.1").toByteArray(),
-                AbstractResourceConnectorTest.<byte[]>arrayEquator(),
+                arrayEquator(),
                 false);
         testAttribute("ipAddressAsString",
                 TypeTokens.STRING,
@@ -392,7 +392,7 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
         testAttribute("oidAsIntArray",
                 TypeToken.of(int[].class),
                 new OID("1.4.5.3.1").getValue(),
-                AbstractResourceConnectorTest.<int[]>arrayEquator(),
+                arrayEquator(),
                 false);
         testAttribute("oidAsString",
                 TypeTokens.STRING,
@@ -467,7 +467,7 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
         testAttribute("octetstringAsByteArray",
                 TypeToken.of(byte[].class),
                 new byte[]{10, 20, 1, 4},
-                AbstractResourceConnectorTest.<byte[]>arrayEquator(),
+                arrayEquator(),
                 false);
     }
 

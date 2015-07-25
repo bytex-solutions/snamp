@@ -241,7 +241,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
     @Test
     public final void testForArrayProperty() throws Exception {
         final short[] array = new short[]{10, 20, 30, 40, 50};
-        testAttribute("5.1", TypeToken.of(short[].class), array, AbstractResourceConnectorTest.<short[]>arrayEquator());
+        testAttribute("5.1", TypeToken.of(short[].class), array, arrayEquator());
     }
 
     @Test

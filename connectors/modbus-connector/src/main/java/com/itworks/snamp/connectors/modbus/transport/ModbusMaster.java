@@ -1,9 +1,6 @@
 package com.itworks.snamp.connectors.modbus.transport;
 
-import com.itworks.snamp.connectors.modbus.master.CoilAccess;
-import com.itworks.snamp.connectors.modbus.master.HoldingRegisterAccess;
-import com.itworks.snamp.connectors.modbus.master.InputDiscreteAccess;
-import com.itworks.snamp.connectors.modbus.master.InputRegisterAccess;
+import com.itworks.snamp.connectors.modbus.master.*;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -14,7 +11,7 @@ import java.io.IOException;
  * @since 1.0
  * @version 1.0
  */
-public interface ModbusMaster extends CoilAccess, Closeable, InputDiscreteAccess, InputRegisterAccess, HoldingRegisterAccess {
+public interface ModbusMaster extends CoilAccess, Closeable, InputDiscreteAccess, InputRegisterAccess, HoldingRegisterAccess, FileAccess {
     void setRetryCount(final int value);
     void connect(final int socketTimeout) throws IOException;
 }

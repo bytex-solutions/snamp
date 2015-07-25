@@ -1,6 +1,11 @@
 package com.itworks.snamp.connectors.modbus;
 
 import com.ghgande.j2mod.modbus.ModbusException;
+import com.ghgande.j2mod.modbus.cmd.ReadFileRecordTest;
+import com.ghgande.j2mod.modbus.msg.ReadFileRecordRequest;
+import com.ghgande.j2mod.modbus.msg.ReadFileRecordResponse;
+import com.ghgande.j2mod.modbus.msg.WriteFileRecordRequest;
+import com.ghgande.j2mod.modbus.msg.WriteFileRecordResponse;
 import com.ghgande.j2mod.modbus.util.BitVector;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
 import com.itworks.snamp.connectors.attributes.AttributeSpecifier;

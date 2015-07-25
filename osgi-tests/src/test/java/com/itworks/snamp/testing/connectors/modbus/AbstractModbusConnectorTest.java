@@ -1,15 +1,15 @@
 package com.itworks.snamp.testing.connectors.modbus;
 
 import com.google.common.collect.ImmutableMap;
-import com.itworks.snamp.connectors.modbus.slave.DigitalInputAccessor;
-import com.itworks.snamp.connectors.modbus.slave.DigitalOutputAccessor;
-import com.itworks.snamp.connectors.modbus.slave.InputRegisterAccessor;
-import com.itworks.snamp.connectors.modbus.slave.OutputRegisterAccessor;
+import com.itworks.snamp.connectors.modbus.slave.*;
 import com.itworks.snamp.connectors.modbus.transport.ModbusSlave;
+import com.itworks.snamp.io.Buffers;
 import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
 import com.itworks.snamp.testing.connectors.AbstractResourceConnectorTest;
 import org.osgi.framework.BundleContext;
+
+import java.nio.ShortBuffer;
 
 /**
  * @author Roman Sakno
@@ -69,6 +69,26 @@ public abstract class AbstractModbusConnectorTest extends AbstractResourceConnec
         @Override
         public short getValue() {
             return register;
+        }
+    };
+    protected final FileRecordAccessor FI_0 = new FileRecordAccessor() {
+        private final ShortBuffer record0 = Buffers.wrap((short)5, (short)6, (short)7, (short)8);
+        private final ShortBuffer record1 = Buffers.wrap((short)8, (short)9, (short)10, (short)11);
+        private final ShortBuffer record2 = Buffers.wrap((short)56, (short)57, (short)58, (short)67);
+
+        @Override
+        public ShortBuffer getRecord(final int recordNumber) {
+            switch (recordNumber){
+                case 0: return record0;
+                case 1: return record1;
+                case 2: return record2;
+                default:return null;
+            }
+        }
+
+        @Override
+        public int getRecords() {
+            return 3;
         }
     };
 

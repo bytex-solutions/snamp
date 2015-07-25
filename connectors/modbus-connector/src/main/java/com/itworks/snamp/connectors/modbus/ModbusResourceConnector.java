@@ -58,6 +58,8 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
                         return new HoldingRegisterSetAttribute(attributeID, descriptor, client);
                     else
                         return new HoldingRegisterAttribute(attributeID, descriptor, client);
+                case FileAttribute.NAME:
+                    return new FileAttribute(attributeID, descriptor, client);
                 default:
                     throw JMExceptionUtils.attributeNotFound(descriptor.getAttributeName());
             }

@@ -69,10 +69,10 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         };
     }
 
-    protected static <V> Equator<V> arrayEquator(){
-        return new Equator<V>() {
+    protected static Equator arrayEquator(){
+        return new Equator() {
             @Override
-            public boolean equate(final V value1, final V value2) {
+            public boolean equate(final Object value1, final Object value2) {
                 return Objects.equals(value1.getClass().getComponentType(), value2.getClass().getComponentType()) &&
                         ArrayUtils.equals(value1, value2);
             }

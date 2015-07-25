@@ -19,6 +19,7 @@ import static com.itworks.snamp.jmx.DescriptorUtils.*;
 final class ModbusResourceConnectorConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl {
     private static final String OFFSET_PARAM = "offset";
     private static final String COUNT_PARAM = "count";
+    private static final String RECORD_SIZE_PARAM = "recordSize";
     private static final String UNIT_ID_PARAM = "unitID";
     private static final String SOCKET_TIMEOUT_PARAM = "socketTimeout";
     private static final String RETRY_COUNT_PARAM = "retryCount";
@@ -75,5 +76,11 @@ final class ModbusResourceConnectorConfigurationDescriptor extends Configuration
         if(parameters.containsKey(RETRY_COUNT_PARAM))
             return Integer.parseInt(parameters.get(RETRY_COUNT_PARAM));
         else return 3;
+    }
+
+    static int parseRecordSize(final Descriptor descriptor) throws ModbusAbsentConfigurationParameterException {
+        if(hasField(descriptor, RECORD_SIZE_PARAM))
+            return Integer.parseInt(getField(descriptor, RECORD_SIZE_PARAM, String.class));
+        else throw new ModbusAbsentConfigurationParameterException(RECORD_SIZE_PARAM);
     }
 }

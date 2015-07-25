@@ -45,7 +45,8 @@ public final class ModbusConnectorTest extends AbstractModbusConnectorTest {
                 .register(0, DO_0)
                 .register(0, IR_0)
                 .register(1, IR_1)
-                .register(0, OR_0);
+                .register(0, OR_0)
+                .register(0, FI_0);
     }
 
     @Override
@@ -70,7 +71,7 @@ public final class ModbusConnectorTest extends AbstractModbusConnectorTest {
         testAttribute("ID_01",
                 TypeToken.of(boolean[].class),
                 new boolean[]{DI_0.getValue(), DI_1.getValue()},
-                AbstractModbusConnectorTest.<boolean[]>arrayEquator(),
+                arrayEquator(),
                 true);
     }
 
@@ -85,13 +86,21 @@ public final class ModbusConnectorTest extends AbstractModbusConnectorTest {
         testAttribute("IR_01",
                 TypeToken.of(short[].class),
                 new short[]{IR_0.getValue(), IR_1.getValue()},
-                AbstractModbusConnectorTest.<short[]>arrayEquator(),
+                arrayEquator(),
                 true);
     }
 
     @Test
     public void registerReadWriteTest() throws JMException{
         testAttribute("OR_0", TypeTokens.SHORT, (short)97);
+    }
+
+    @Test
+    public void fileReadWriteTest() throws JMException {
+        final short[] array = new short[]{4, 6, 7, 10, //record 0
+                15, 89, 34, 33,          //record 1
+                78, 0, 12, -56};                //record 2
+        testAttribute("FI_0", TypeToken.of(short[].class), array, arrayEquator());
     }
 
     @Override
@@ -146,5 +155,13 @@ public final class ModbusConnectorTest extends AbstractModbusConnectorTest {
         attr.getParameters().put("unitID", Integer.toString(UNIT_ID));
         attr.getParameters().put("offset", "0");
         attributes.put("OR_0", attr);
+
+        attr = attributeFactory.get();
+        attr.setAttributeName("file");
+        attr.getParameters().put("unitID", Integer.toString(UNIT_ID));
+        attr.getParameters().put("offset", "0");
+        attr.getParameters().put("count", "3");
+        attr.getParameters().put("recordSize", "4");
+        attributes.put("FI_0", attr);
     }
 }
