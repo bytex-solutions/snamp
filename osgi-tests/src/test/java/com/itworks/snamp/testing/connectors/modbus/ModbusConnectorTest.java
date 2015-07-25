@@ -113,6 +113,12 @@ public final class ModbusConnectorTest extends AbstractModbusConnectorTest {
                 "connectionTimeout",
                 "retryCount"
         ));
+        testConfigurationDescriptor(AttributeConfiguration.class, ImmutableSet.of(
+                "offset",
+                "count",
+                "recordSize",
+                "unitID"
+        ));
     }
 
     @Override
