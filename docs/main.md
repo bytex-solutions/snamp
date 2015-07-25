@@ -33,5 +33,4 @@ This is a top-level page of SNAMP technical documentation. Here you can found al
 
 ## Examples
 * [JMX over SNMP](examples/jmx-over-snmp.md)
-* [JMX over XMPP](examples/jmx-over-xmpp.md)
 * [SNMP over HTTP](examples/snmp-over-http.md)
