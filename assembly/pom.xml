@@ -149,6 +149,14 @@
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>com.itworks.snamp</groupId>
+                                    <artifactId>modbus-connector-feature</artifactId>
+                                    <version>${snamp.connectors.modbus.version}</version>
+                                    <type>kar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${karaf.folder.deploy}</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.itworks.snamp</groupId>
                                     <artifactId>groovy-adapter-feature</artifactId>
                                     <version>${snamp.adapters.groovy.version}</version>
                                     <type>kar</type>
