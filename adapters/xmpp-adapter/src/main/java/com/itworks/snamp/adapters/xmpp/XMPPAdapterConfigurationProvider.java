@@ -27,7 +27,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 1.0
  * @since 1.0
  */
-public final class XMPPAdapterConfiguration extends ConfigurationEntityDescriptionProviderImpl {
+public final class XMPPAdapterConfigurationProvider extends ConfigurationEntityDescriptionProviderImpl {
     private static final String USER_NAME_PARAM = "userName";
     private static final String PASSWORD_PARAM = "password";
     private static final String DOMAIN_PARAM = "domain";
@@ -50,11 +50,13 @@ public final class XMPPAdapterConfiguration extends ConfigurationEntityDescripti
                     PASSWORD_PARAM,
                     KEYSTORE_PASSWORD_PARAM,
                     KEYSTORE_PATH_PARAM,
-                    KEYSTORE_TYPE_PARAM);
+                    KEYSTORE_TYPE_PARAM,
+                    ALLOW_CUSTOM_CERTIFICATE_PARAM,
+                    M2M_FEATURES_PARAM);
         }
     }
 
-    XMPPAdapterConfiguration(){
+    XMPPAdapterConfigurationProvider(){
         super(new AdapterConfigurationDescriptor());
     }
 

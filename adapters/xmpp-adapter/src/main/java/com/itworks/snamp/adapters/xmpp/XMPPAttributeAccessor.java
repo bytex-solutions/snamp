@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.itworks.snamp.StringAppender;
 import com.itworks.snamp.adapters.modeling.AttributeAccessor;
 import com.itworks.snamp.connectors.attributes.AttributeDescriptor;
+import com.itworks.snamp.jmx.WellKnownType;
 import com.itworks.snamp.jmx.json.Formatters;
 import org.jivesoftware.smack.packet.ExtensionElement;
 import org.jivesoftware.smackx.jiveproperties.packet.JivePropertiesExtension;
@@ -13,6 +14,7 @@ import javax.management.Descriptor;
 import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
 import java.util.Collection;
+import java.util.Objects;
 
 /**
  * @author Roman Sakno
@@ -60,11 +62,14 @@ abstract class XMPPAttributeAccessor extends AttributeAccessor {
         return AttributeDescriptor.getAttributeName(getMetadata());
     }
 
-    final void createExtensions(final Collection<ExtensionElement> output){
-        if(XMPPAdapterConfiguration.isM2MEnabled(getMetadata().getDescriptor())) {
+    final void createExtensions(final Collection<ExtensionElement> output) {
+        if (XMPPAdapterConfigurationProvider.isM2MEnabled(getMetadata().getDescriptor())) {
             final JivePropertiesExtension result = new JivePropertiesExtension();
             result.setProperty("writable", getMetadata().isWritable());
             result.setProperty("readable", getMetadata().isReadable());
+            final WellKnownType attributeType = getType();
+            if (attributeType != null)
+                result.setProperty("type", attributeType.getDisplayName());
             XMPPUtils.copyDescriptorFields(getMetadata().getDescriptor(), result);
         }
     }

@@ -45,7 +45,7 @@ final class XMPPNotificationAccessor extends NotificationRouter {
 
     static void createExtensions(final MBeanNotificationInfo metadata,
                                  final Collection<ExtensionElement> extensions){
-        if(XMPPAdapterConfiguration.isM2MEnabled(metadata.getDescriptor())) {
+        if(XMPPAdapterConfigurationProvider.isM2MEnabled(metadata.getDescriptor())) {
             final JivePropertiesExtension extension = new JivePropertiesExtension();
             XMPPUtils.copyDescriptorFields(metadata.getDescriptor(), extension);
             extensions.add(extension);

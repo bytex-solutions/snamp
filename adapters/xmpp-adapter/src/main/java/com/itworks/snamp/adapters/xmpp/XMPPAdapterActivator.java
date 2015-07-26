@@ -16,11 +16,11 @@ public final class XMPPAdapterActivator extends ResourceAdapterActivator<XMPPAda
         }
     }
 
-    private static final class XMPPConfigurationProvider extends ConfigurationEntityDescriptionManager<XMPPAdapterConfiguration>{
+    private static final class XMPPConfigurationProvider extends ConfigurationEntityDescriptionManager<XMPPAdapterConfigurationProvider>{
 
         @Override
-        protected XMPPAdapterConfiguration createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
-            return new XMPPAdapterConfiguration();
+        protected XMPPAdapterConfigurationProvider createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
+            return new XMPPAdapterConfigurationProvider();
         }
     }
 

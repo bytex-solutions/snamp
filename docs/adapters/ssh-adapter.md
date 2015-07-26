@@ -31,7 +31,7 @@ There are the following supported commands:
 1. `notifs [-f <expression>]` - enables listening of incoming notifications. In this mode you are not able to print any commands. Pressing of any key causes abortion of notification listening session. Any received notification will be displayed in the console
   - `-f <expression>`, `--filter <expression>` - _RFC 1960_-based expression that describes notification selection candidate. You may use any configuration property in the filtering expression
 
-`get`, `set` and `notifs` uses the same JSON format as **HTTP Resource Adapter**.
+Attribute value and notification object represented in the same JSON format as defined in **HTTP Resource Adapter**.
 
 HTTP Resource Adapter provides its own SSH server that fully supports certificate, JAAS and/or password.
 

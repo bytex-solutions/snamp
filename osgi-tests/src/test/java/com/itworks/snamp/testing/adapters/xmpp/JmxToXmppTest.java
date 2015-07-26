@@ -11,6 +11,7 @@ import com.itworks.snamp.adapters.ResourceAdapterClient;
 import com.itworks.snamp.adapters.xmpp.client.XMPPClient;
 import com.itworks.snamp.concurrent.Awaitor;
 import com.itworks.snamp.configuration.AbsentConfigurationParameterException;
+import com.itworks.snamp.configuration.ConfigurationEntityDescription;
 import com.itworks.snamp.internal.RecordReader;
 import com.itworks.snamp.testing.SnampDependencies;
 import com.itworks.snamp.testing.SnampFeature;
@@ -54,7 +55,7 @@ import static com.itworks.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
  * @since 1.0
  */
 @SnampDependencies({SnampFeature.XMPP_ADAPTER, SnampFeature.WRAPPED_LIBS})
-public final class XmppAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean> {
+public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final String ADAPTER_NAME = "xmpp";
     private static final String INSTANCE_NAME = "test-xmpp";
     private static final int PORT = 9898;
@@ -62,7 +63,7 @@ public final class XmppAdapterTest extends AbstractJmxConnectorTest<TestOpenMBea
     private static final String PASSWORD = "123";
     private XMPPServer server;
 
-    public XmppAdapterTest() throws MalformedObjectNameException, IOException {
+    public JmxToXmppTest() throws MalformedObjectNameException, IOException {
         super(new TestOpenMBean(), new ObjectName(BEAN_NAME));
     }
 
@@ -154,6 +155,20 @@ public final class XmppAdapterTest extends AbstractJmxConnectorTest<TestOpenMBea
             final Object notification = notifAwaitor.await(TimeSpan.fromSeconds(5));
             assertNotNull(notification);
         }
+    }
+
+    @Test
+    public void configurationDescriptorTest(){
+        final ConfigurationEntityDescription<?> descr = ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, ResourceAdapterConfiguration.class);
+        testConfigurationDescriptor(descr,
+                "host",
+                "port",
+                "password",
+                "keystorePassword",
+                "keystore",
+                "keystoreType",
+                "allowUnsafeCertificate",
+                "enableM2M");
     }
 
     @Test

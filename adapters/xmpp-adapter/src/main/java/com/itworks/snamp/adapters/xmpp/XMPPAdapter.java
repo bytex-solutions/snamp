@@ -6,7 +6,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.adapters.AbstractResourceAdapter;
-import com.itworks.snamp.adapters.ResourceAdapter;
 import com.itworks.snamp.adapters.modeling.AttributeSet;
 import com.itworks.snamp.adapters.modeling.FeatureAccessor;
 import com.itworks.snamp.adapters.modeling.NotificationSet;
@@ -74,7 +73,7 @@ final class XMPPAdapter extends AbstractResourceAdapter {
 
     @Override
     protected void start(final Map<String, String> parameters) throws AbsentXMPPConfigurationParameterException, IOException, XMPPException, SmackException, GeneralSecurityException {
-        connection = XMPPAdapterConfiguration.createConnection(parameters);
+        connection = XMPPAdapterConfigurationProvider.createConnection(parameters);
         connection.connect();
         connection.login();
         final ChatManager chatManager = ChatManager.getInstanceFor(connection);

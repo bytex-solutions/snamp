@@ -2,7 +2,7 @@ package com.itworks.snamp.adapters.xmpp.client;
 
 import com.itworks.snamp.ExceptionPlaceholder;
 import com.itworks.snamp.TimeSpan;
-import com.itworks.snamp.adapters.xmpp.XMPPAdapterConfiguration;
+import com.itworks.snamp.adapters.xmpp.XMPPAdapterConfigurationProvider;
 import com.itworks.snamp.concurrent.Awaitor;
 import com.itworks.snamp.configuration.AbsentConfigurationParameterException;
 import org.jivesoftware.smack.AbstractXMPPConnection;
@@ -34,8 +34,8 @@ public final class XMPPClient implements Closeable {
     private Chat chat = null;
 
     public XMPPClient(final Map<String, String> parameters) throws AbsentConfigurationParameterException, GeneralSecurityException, IOException {
-        connection = XMPPAdapterConfiguration.createConnection(parameters);
-        domain = XMPPAdapterConfiguration.getDomain(parameters);
+        connection = XMPPAdapterConfigurationProvider.createConnection(parameters);
+        domain = XMPPAdapterConfigurationProvider.getDomain(parameters);
     }
 
     public boolean beginChat(final String userName){
