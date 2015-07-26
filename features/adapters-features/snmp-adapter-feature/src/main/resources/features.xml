@@ -10,7 +10,7 @@
         <bundle start="true">mvn:org.apache.aries.jndi/org.apache.aries.jndi.rmi/${aries.version}</bundle>
         <bundle start="true">mvn:org.apache.aries/org.apache.aries.util/${aries.version}</bundle>
         <bundle start="true">mvn:org.apache.aries.proxy/org.apache.aries.proxy.api/${aries.version}</bundle>
-        <bundle start="true">mvn:com.itworks.snamp/snmp4j/${snmp4j.version}</bundle>
-        <bundle start="true">mvn:com.itworks.snamp/snmp-adapter/${project.version}</bundle>
+        <bundle start="true">mvn:com.bytex.snamp/snmp4j/${snmp4j.version}</bundle>
+        <bundle start="true">mvn:com.bytex.snamp/snmp-adapter/${project.version}</bundle>
     </feature>
 </features>

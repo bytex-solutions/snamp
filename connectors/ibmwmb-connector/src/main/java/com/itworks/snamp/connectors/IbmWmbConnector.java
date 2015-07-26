@@ -1,9 +1,9 @@
-package com.itworks.snamp.connectors;
+package com.bytex.snamp.connectors;
 
 import com.ibm.broker.config.proxy.*;
-import com.itworks.snamp.Repeater;
-import com.itworks.snamp.SimpleTable;
-import com.itworks.snamp.TimeSpan;
+import com.bytex.snamp.Repeater;
+import com.bytex.snamp.SimpleTable;
+import com.bytex.snamp.TimeSpan;
 
 import java.beans.IntrospectionException;
 import java.net.URI;

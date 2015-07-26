@@ -3,6 +3,6 @@
     <feature name="${project.artifactId}" description="${project.name}" version="${project.version}">
         <details>${project.description}</details>
         <feature version="[${snamp.framework.version}, ${snamp.framework.maxVersion})">platform-feature</feature>
-        <bundle>mvn:com.itworks.snamp/xmpp-adapter/${project.version}</bundle>
+        <bundle>mvn:com.bytex.snamp/xmpp-adapter/${project.version}</bundle>
     </feature>
 </features>

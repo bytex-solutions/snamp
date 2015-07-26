@@ -146,7 +146,7 @@ Sometimes, this example output does not match with what you see. This may happen
 
 After that, print `log:exception-display` in the shell console and verify that the command has empty output. But you might see the following message:
 ```
-com.itworks.snamp.connectors.wmq.MQConnectorActivator$WMQJavaClassesNotInstalled: WebSphere MQ classes for Java are not installed into OSGi environment
+com.bytex.snamp.connectors.wmq.MQConnectorActivator$WMQJavaClassesNotInstalled: WebSphere MQ classes for Java are not installed into OSGi environment
 ```
 
 This is not a fatal error but warning related to **IBM WMQ Connector** or **IBM WMB Connector**. The message informs that IBM WebSphere libraries are not installed into Apache Karaf correctly. You may choose the following ways to fix this problem:

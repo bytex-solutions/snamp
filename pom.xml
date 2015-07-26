@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.itworks.snamp</groupId>
+  <groupId>com.bytex.snamp</groupId>
   <artifactId>snamp</artifactId>
 
   <packaging>pom</packaging>
@@ -58,8 +58,8 @@
   </properties>
   <version>1.0.0</version>
   <organization>
-        <name>IT Works</name>
-        <url>http://snamp.itworks.com/</url>
+        <name>Bytex</name>
+        <url>http://snamp.bytex.com/</url>
   </organization>
   <build>
         <pluginManagement>

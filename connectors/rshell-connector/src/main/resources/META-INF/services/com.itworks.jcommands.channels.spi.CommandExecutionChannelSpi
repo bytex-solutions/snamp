@@ -1,4 +1,0 @@
-com.itworks.jcommands.channels.spi.LocalProcessChannelSpi
-com.itworks.jcommands.channels.spi.SSHChannelSpi
-com.itworks.jcommands.channels.spi.RExecChannelSpi
-com.itworks.jcommands.channels.spi.RShellChannelSpi

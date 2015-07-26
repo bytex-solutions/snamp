@@ -8,7 +8,7 @@ If you not familiar with JAAS it is highly recommended to read the following art
 
 **The first**, you should specify path to JAAS configuration using JVM system property:
 ```
--Dcom.itworks.snamp.login.config.boot=/dev/shared/jaas.json
+-Dcom.bytex.snamp.login.config.boot=/dev/shared/jaas.json
 ```
 
 **The second**, write JAAS configuration in JSON format:
@@ -48,7 +48,7 @@ Example:
 }
 ```
 
-> The file is used to load initial JAAS configuration only. It will be stored in OSGi configuration persistent storage. Factory PID (Persistence IDentifier) is `com.itworks.snamp.login.config`.
+> The file is used to load initial JAAS configuration only. It will be stored in OSGi configuration persistent storage. Factory PID (Persistence IDentifier) is `com.bytex.snamp.login.config`.
 
 **The third**, edit `<snamp>/etc/users.properties` file and use any realm from JSON-based JAAS configuration.
 

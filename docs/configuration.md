@@ -143,9 +143,9 @@ org.jolokia.authMode=jaas
 
 The second, obtain SNAMP configuration:
 ```bash
-curl -u karaf:karaf http://localhost:8181/jolokia/read/com.itworks.snamp.management:type=SnampCore/configuration?maxDepth=20&maxCollectionSize=500&ignoreErrors=true&canonicalNaming=false
+curl -u karaf:karaf http://localhost:8181/jolokia/read/com.bytex.snamp.management:type=SnampCore/configuration?maxDepth=20&maxCollectionSize=500&ignoreErrors=true&canonicalNaming=false
 
-{"timestamp":1433455091,"status":200,"request":{"mbean":"com.itworks.snamp.management:type=SnampCore","attribute":"configuration","type":"read"},"value":null}
+{"timestamp":1433455091,"status":200,"request":{"mbean":"com.bytex.snamp.management:type=SnampCore","attribute":"configuration","type":"read"},"value":null}
 ```
 > If you have 403 error then read [this](http://modio.io/jolokia-in-karaf-3-0-x-fixing-the-403-access-error/) article
 
@@ -288,7 +288,7 @@ JSON format of SNAMP configuration is just a mapping between JMX data type and J
 
 If your SNAMP configuration is ready then save JSON into the file and use `curl` utility to setup a new configuration:
 ```bash
-curl -u karaf:karaf -X POST -d @config.json http://localhost:8181/jolokia/read/com.itworks.snamp.management:type=SnampCore/configuration?maxDepth=20&maxCollectionSize=500&ignoreErrors=true&canonicalNaming=false
+curl -u karaf:karaf -X POST -d @config.json http://localhost:8181/jolokia/read/com.bytex.snamp.management:type=SnampCore/configuration?maxDepth=20&maxCollectionSize=500&ignoreErrors=true&canonicalNaming=false
 ```
 
 ## Predefined configuration parameters

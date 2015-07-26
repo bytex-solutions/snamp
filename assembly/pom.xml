@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>snamp</artifactId>
-        <groupId>com.itworks.snamp</groupId>
+        <groupId>com.bytex.snamp</groupId>
         <version>1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -100,7 +100,7 @@
                         <configuration>
                             <artifactItems>
                                 <artifactItem>
-                                    <groupId>com.itworks.snamp</groupId>
+                                    <groupId>com.bytex.snamp</groupId>
                                     <artifactId>jmx-connector-feature</artifactId>
                                     <version>${snamp.connectors.jmx.version}</version>
                                     <type>kar</type>
@@ -108,7 +108,7 @@
                                     <outputDirectory>${karaf.folder.deploy}</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
-                                    <groupId>com.itworks.snamp</groupId>
+                                    <groupId>com.bytex.snamp</groupId>
                                     <artifactId>aggregator-connector-feature</artifactId>
                                     <version>${snamp.connectors.aggregator.version}</version>
                                     <type>kar</type>
@@ -116,7 +116,7 @@
                                     <outputDirectory>${karaf.folder.deploy}</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
-                                    <groupId>com.itworks.snamp</groupId>
+                                    <groupId>com.bytex.snamp</groupId>
                                     <artifactId>groovy-connector-feature</artifactId>
                                     <version>${snamp.connectors.groovy.version}</version>
                                     <type>kar</type>
@@ -124,7 +124,7 @@
                                     <outputDirectory>${karaf.folder.deploy}</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
-                                    <groupId>com.itworks.snamp</groupId>
+                                    <groupId>com.bytex.snamp</groupId>
                                     <artifactId>ibmwmq-connector-feature</artifactId>
                                     <version>${snamp.connectors.ibmwmq.version}</version>
                                     <type>kar</type>
@@ -132,7 +132,7 @@
                                     <outputDirectory>${karaf.folder.deploy}</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
-                                    <groupId>com.itworks.snamp</groupId>
+                                    <groupId>com.bytex.snamp</groupId>
                                     <artifactId>rshell-connector-feature</artifactId>
                                     <version>${snamp.connectors.rshell.version}</version>
                                     <type>kar</type>
@@ -140,7 +140,7 @@
                                     <outputDirectory>${karaf.folder.deploy}</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
-                                    <groupId>com.itworks.snamp</groupId>
+                                    <groupId>com.bytex.snamp</groupId>
                                     <artifactId>snmp-connector-feature</artifactId>
                                     <version>${snamp.connectors.snmp.version}</version>
                                     <type>kar</type>
@@ -148,7 +148,7 @@
                                     <outputDirectory>${karaf.folder.deploy}</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
-                                    <groupId>com.itworks.snamp</groupId>
+                                    <groupId>com.bytex.snamp</groupId>
                                     <artifactId>modbus-connector-feature</artifactId>
                                     <version>${snamp.connectors.modbus.version}</version>
                                     <type>kar</type>
@@ -156,7 +156,7 @@
                                     <outputDirectory>${karaf.folder.deploy}</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
-                                    <groupId>com.itworks.snamp</groupId>
+                                    <groupId>com.bytex.snamp</groupId>
                                     <artifactId>groovy-adapter-feature</artifactId>
                                     <version>${snamp.adapters.groovy.version}</version>
                                     <type>kar</type>
@@ -164,7 +164,7 @@
                                     <outputDirectory>${karaf.folder.deploy}</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
-                                    <groupId>com.itworks.snamp</groupId>
+                                    <groupId>com.bytex.snamp</groupId>
                                     <artifactId>http-adapter-feature</artifactId>
                                     <version>${snamp.adapters.http.version}</version>
                                     <type>kar</type>
@@ -172,7 +172,7 @@
                                     <outputDirectory>${karaf.folder.deploy}</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
-                                    <groupId>com.itworks.snamp</groupId>
+                                    <groupId>com.bytex.snamp</groupId>
                                     <artifactId>jmx-adapter-feature</artifactId>
                                     <version>${snamp.adapters.jmx.version}</version>
                                     <type>kar</type>
@@ -180,7 +180,7 @@
                                     <outputDirectory>${karaf.folder.deploy}</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
-                                    <groupId>com.itworks.snamp</groupId>
+                                    <groupId>com.bytex.snamp</groupId>
                                     <artifactId>nagios-adapter-feature</artifactId>
                                     <version>${snamp.adapters.nagios.version}</version>
                                     <type>kar</type>
@@ -188,7 +188,7 @@
                                     <outputDirectory>${karaf.folder.deploy}</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
-                                    <groupId>com.itworks.snamp</groupId>
+                                    <groupId>com.bytex.snamp</groupId>
                                     <artifactId>nrdp-adapter-feature</artifactId>
                                     <version>${snamp.adapters.nrdp.version}</version>
                                     <type>kar</type>
@@ -196,7 +196,7 @@
                                     <outputDirectory>${karaf.folder.deploy}</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
-                                    <groupId>com.itworks.snamp</groupId>
+                                    <groupId>com.bytex.snamp</groupId>
                                     <artifactId>nsca-adapter-feature</artifactId>
                                     <version>${snamp.adapters.nsca.version}</version>
                                     <type>kar</type>
@@ -204,7 +204,7 @@
                                     <outputDirectory>${karaf.folder.deploy}</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
-                                    <groupId>com.itworks.snamp</groupId>
+                                    <groupId>com.bytex.snamp</groupId>
                                     <artifactId>snmp-adapter-feature</artifactId>
                                     <version>${snamp.adapters.snmp.version}</version>
                                     <type>kar</type>
@@ -212,7 +212,7 @@
                                     <outputDirectory>${karaf.folder.deploy}</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
-                                    <groupId>com.itworks.snamp</groupId>
+                                    <groupId>com.bytex.snamp</groupId>
                                     <artifactId>ssh-adapter-feature</artifactId>
                                     <version>${snamp.adapters.ssh.version}</version>
                                     <type>kar</type>
@@ -220,7 +220,7 @@
                                     <outputDirectory>${karaf.folder.deploy}</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
-                                    <groupId>com.itworks.snamp</groupId>
+                                    <groupId>com.bytex.snamp</groupId>
                                     <artifactId>syslog-adapter-feature</artifactId>
                                     <version>${snamp.adapters.syslog.version}</version>
                                     <type>kar</type>
@@ -228,7 +228,7 @@
                                     <outputDirectory>${karaf.folder.deploy}</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
-                                    <groupId>com.itworks.snamp</groupId>
+                                    <groupId>com.bytex.snamp</groupId>
                                     <artifactId>xmpp-adapter-feature</artifactId>
                                     <version>${snamp.adapters.xmpp.version}</version>
                                     <type>kar</type>
@@ -260,7 +260,7 @@
             <type>kar</type>
         </dependency>
         <dependency>
-            <groupId>com.itworks.snamp</groupId>
+            <groupId>com.bytex.snamp</groupId>
             <artifactId>platform-feature</artifactId>
             <version>${project.version}</version>
             <type>xml</type>

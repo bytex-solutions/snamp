@@ -5,6 +5,6 @@
         <feature version="[${snamp.framework.version}, ${snamp.framework.maxVersion})">platform-feature</feature>
         <bundle start="true">mvn:org.codehaus.groovy/groovy/${groovy.version}/jar/indy</bundle>
         <bundle start="true">mvn:org.apache.ivy/ivy/${apache.ivy.version}</bundle>
-        <bundle start="true">mvn:com.itworks.snamp/groovy-connector/${project.version}</bundle>
+        <bundle start="true">mvn:com.bytex.snamp/groovy-connector/${project.version}</bundle>
     </feature>
 </features>

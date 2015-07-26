@@ -2,6 +2,6 @@
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="snamp">
     <feature name="${project.artifactId}" description="${project.name}" version="${project.version}">
         <details>${project.description}</details>
-        <bundle start="true">mvn:com.itworks.snamp/modbus-connector/${project.version}</bundle>
+        <bundle start="true">mvn:com.bytex.snamp/modbus-connector/${project.version}</bundle>
     </feature>
 </features>
