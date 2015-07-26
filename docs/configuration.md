@@ -200,7 +200,7 @@ The following example shows setup of JMX-to-SNMP bridge:
               "Name": "int32",  //name of the attribute in remote MBean
               "AdditionalProperties": {
                 "objectName": {
-                  "Value": "com.snampy.impl:type=com.itworks.snamp.adapters.TestManagementBean",
+                  "Value": "com.bytex.snamp:type=TestManagementBean",
                   "Key": "objectName"
                 },
                 "oid": {
@@ -217,7 +217,7 @@ The following example shows setup of JMX-to-SNMP bridge:
               "Name": "dictionary",
               "AdditionalProperties": {
                 "objectName": {
-                  "Value": "com.snampy.impl:type=com.itworks.snamp.adapters.TestManagementBean",
+                  "Value": "com.bytex.snamp:type=TestManagementBean",
                   "Key": "objectName"
                 },
                 "oid": {
@@ -234,7 +234,7 @@ The following example shows setup of JMX-to-SNMP bridge:
               "Name": "bigint",
               "AdditionalProperties": {
                 "objectName": {
-                  "Value": "com.snampy.impl:type=com.itworks.snamp.adapters.TestManagementBean",
+                  "Value": "com.bytex.snamp:type=TestManagementBean",
                   "Key": "objectName"
                 },
                 "oid": {
@@ -253,7 +253,7 @@ The following example shows setup of JMX-to-SNMP bridge:
               "Category": "jmx.attribute.change", //name of the JMX notification in MBean
               "AdditionalProperties": {//event configuration parameters
                 "objectName": {
-                  "Value": "com.snampy.impl:type=com.itworks.snamp.adapters.TestManagementBean",
+                  "Value": "com.bytex.snamp:type=TestManagementBean",
                   "Key": "objectName"
                 },
                 "oid": {

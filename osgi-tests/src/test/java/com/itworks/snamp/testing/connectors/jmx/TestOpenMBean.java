@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * Represents simple management bean.
  */
 public final class TestOpenMBean extends NotificationBroadcasterSupport implements DynamicMBean {
-    public static final String BEAN_NAME = "com.snampy.impl:type=com.itworks.snamp.adapters.TestManagementBean";
+    public static final String BEAN_NAME = "com.bytex.snamp:type=TestManagementBean";
 
     private static final MBeanAttributeInfo STRING_PROPERTY = new OpenMBeanAttributeInfoSupport("string",
             "Sample description",
