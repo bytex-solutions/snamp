@@ -23,7 +23,7 @@
     <apache.ivy.version>2.4.0</apache.ivy.version>
     <cellar.version>${karaf.version}</cellar.version>
     <jline.version>2.12</jline.version>
-    <bouncycastle.version>1.50</bouncycastle.version>
+    <bouncycastle.version>1.52</bouncycastle.version>
     <aries.version>1.0.0</aries.version>
     <aries.api.version>1.1.0</aries.api.version>
     <jolokia.version>1.3.0</jolokia.version>     <!--Jolokia version should be aligned with HawtIO used in SNAMP Management Console-->
