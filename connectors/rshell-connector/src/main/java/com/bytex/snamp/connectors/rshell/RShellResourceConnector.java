@@ -26,10 +26,7 @@ import javax.script.ScriptException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -202,7 +199,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
                                  final CommandExecutionChannel channel,
                                  final ScriptEngineManager engineManager) {
             super(resourceName, RShellAttributeInfo.class);
-            this.executionChannel = channel;
+            this.executionChannel = Objects.requireNonNull(channel);
             this.scriptEngineManager = engineManager;
         }
 
