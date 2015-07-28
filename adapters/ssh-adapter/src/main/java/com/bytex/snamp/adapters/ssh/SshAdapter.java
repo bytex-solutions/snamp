@@ -30,6 +30,7 @@ import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.TabularData;
 import java.io.IOException;
 import java.io.Writer;
+import java.lang.ref.WeakReference;
 import java.nio.*;
 import java.security.PublicKey;
 import java.util.*;
@@ -338,6 +339,24 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         }
     }
 
+    private static final class SshCommandFactory extends WeakReference<AdapterController> implements CommandFactory{
+        private final ExecutorService commandExecutors;
+
+        private SshCommandFactory(final AdapterController controller,
+                                  final ExecutorService taskExecutor){
+            super(controller);
+            this.commandExecutors = Objects.requireNonNull(taskExecutor);
+        }
+
+        @Override
+        public Command createCommand(final String commandLine) {
+            final AdapterController controller = get();
+            return controller != null && commandLine != null && commandLine.length() > 0 ?
+                    ManagementShell.createSshCommand(commandLine, controller, commandExecutors) :
+                    null;
+        }
+    }
+
     private SshServer server;
     private ExecutorService threadPool;
     private final SshModelOfAttributes attributes;
@@ -388,16 +407,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         server.setKeyPairProvider(hostKeyFile);
         setupSecurity(server, security);
         server.setShellFactory(ManagementShell.createFactory(this, commandExecutors));
-        server.setCommandFactory(new CommandFactory() {
-            private final AdapterController controller = Utils.weakReference(SshAdapter.this, AdapterController.class);
-
-            @Override
-            public Command createCommand(final String commandLine) {
-                return commandLine != null && commandLine.length() > 0 ?
-                        ManagementShell.createSshCommand(commandLine, controller, commandExecutors) :
-                        null;
-            }
-        });
+        server.setCommandFactory(new SshCommandFactory(this, commandExecutors));
         server.start();
         this.server = server;
         this.threadPool = commandExecutors;

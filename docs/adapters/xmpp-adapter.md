@@ -41,9 +41,11 @@ Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
 host | IP Address or DNS-name | Yes | Host name of the XMPP/Jabber server | `jabber.acme.com`
 port | Integer | No | Listening port on XMPP/Jabber server. By default it is equal to `5222` | `6733`
+userName | String | Yes | The name of the Jabber user | `sheldon`
+domain | String | Yes | XMPP domain name | `acme.com`
 password | String | Yes | A user password used to authenticate on XMPP/Jabber server | `qwerty`
 keystorePassword | String | No | Password used to read information from the key store when SSL is enabled | `qwerty`
-keystore | String | No | Path to the storage with certificates. Can be defined via `javax.net.ssl.keyStore` JVM property | `/home/admin/.keystore`
+keystore | String | No | Path to the storage with certificates. Can be defined via `javax.net.ssl.keyStore` JVM property | `/home/admin/.keystore/tls.cert`
 keystoreType | String | No | Type of the key storage. It is recommended to use Java Key Store (JKS) | `jks`
 allowUnsafeCertificate | Boolean | No | Allow to verify untrusted server certificate (which root certificate authority cannot be established). By default it is equal to `false` | `true`
 enableM2M | Boolean | No | Enable injection of machine-readable information as extensions of XMPP protocol. By default it is equal to `false` | `true`
@@ -54,7 +56,7 @@ If your Jabber server supports transport-level security (via SSL) and verificati
 * `keystore`
 * `keystoreType`
 
-And, optionally, `allowUnsafeCertificate` parameter
+And, optionally, `allowUnsafeCertificate` parameter. `keystore` file can be generated with OpenSSL.
 
 ### Machine-to-Machine communication
 XMPP Resource Adapter primarily oriented on human-to-machine communication (admin-to-SNAMP using Jabber client). But XMPP protocol is verify useful as messaging framework between two applications. If `enableM2M` parameter is enabled then adapter will add extra information to XMPP stanza (packet). This information will be located in `properties` XML element with `http://www.jivesoftware.com/xmlns/xmpp/properties` namespace. The following properties will be injected:

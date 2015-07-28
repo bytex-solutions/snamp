@@ -54,8 +54,8 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
     private static final String LDAP_ADMIN_PASSWORD = "1-2-3-4-5-password";
     private static final String LDAP_USER = "cn=Roman";
     private static final String ENGINE_ID = "80:00:13:70:01:7f:00:01:01:be:1e:8b:35";
-    private static EmbeddedADSVerTrunk ads;
-    private static File workDir;
+    private EmbeddedADSVerTrunk ads;
+    private File workDir;
     private final SnmpClient client;
 
     //ldapsearch -h 127.0.0.1 -p 10389 -w 1-2-3-4-5-password -D uid=admin,ou=system -b dc=ad,dc=microsoft,dc=com
@@ -371,8 +371,9 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
     protected void afterCleanupTest(final BundleContext context) throws Exception {
         super.afterCleanupTest(context);
         ads.stopServer();
-        //noinspection ResultOfMethodCallIgnored
         workDir.delete();
+        ads = null;
+        workDir = null;
     }
 
     @Override

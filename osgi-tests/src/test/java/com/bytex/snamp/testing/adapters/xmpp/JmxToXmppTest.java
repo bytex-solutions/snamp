@@ -163,6 +163,8 @@ public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean>
         testConfigurationDescriptor(descr,
                 "host",
                 "port",
+                "userName",
+                "domain",
                 "password",
                 "keystorePassword",
                 "keystore",

@@ -53,7 +53,7 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
         super(new TestOpenMBean(/*true*/), new ObjectName(BEAN_NAME));
     }
 
-    private void testScalarAttribute(final String attributeName,
+    private static void testScalarAttribute(final String attributeName,
                                final String value,
                                final Equator<String> equator) throws IOException{
         try(final SSHClient client = new SSHClient()){

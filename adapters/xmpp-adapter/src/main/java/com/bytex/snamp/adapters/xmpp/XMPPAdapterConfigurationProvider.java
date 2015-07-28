@@ -47,6 +47,8 @@ public final class XMPPAdapterConfigurationProvider extends ConfigurationEntityD
             super(RESOURCE_NAME, ResourceAdapterConfiguration.class,
                     PORT_PARAM,
                     HOST_PARAM,
+                    USER_NAME_PARAM,
+                    DOMAIN_PARAM,
                     PASSWORD_PARAM,
                     KEYSTORE_PASSWORD_PARAM,
                     KEYSTORE_PATH_PARAM,

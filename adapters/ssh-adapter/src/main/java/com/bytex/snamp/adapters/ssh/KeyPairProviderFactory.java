@@ -13,7 +13,7 @@ enum KeyPairProviderFactory {
     JAVA_KEY {
         @Override
         SimpleGeneratorHostKeyProvider loadPair(final String fileName) {
-            return new SimpleGeneratorHostKeyProvider();
+            return new SimpleGeneratorHostKeyProvider(fileName);
         }
     },
 
