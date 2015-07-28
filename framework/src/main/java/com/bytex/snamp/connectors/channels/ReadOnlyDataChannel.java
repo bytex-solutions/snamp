@@ -7,7 +7,7 @@ import java.nio.channels.NonWritableChannelException;
 import java.util.concurrent.Future;
 
 /**
- * Represents read-onyl data channel.
+ * Represents read-only data channel.
  * @param <D> Type of the data packets in the channel.
  * @author Roman Sakno
  * @since 1.0

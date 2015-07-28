@@ -172,7 +172,7 @@ Groovy Resource Adapter provides very convenient way to work with connected reso
 * `resources.resName.events` - gets collection of all events exposed by resource `resName`
 * `resources.resName.getAttribute("attrName")` - gets access to the attribute `attrName`. The same as `resources.resName.attrName`
 * `resources.resName.getEvent("eventName")` - gets access to the event `eventName`. The same as `resources.resName.eventName`
-* `resources.resName.attrName.value` - gets or sets value of the attribute if `aatrName` is a name of the attribute (not event)
+* `resources.resName.attrName.value` - gets or sets value of the attribute if `attrName` is a name of the attribute (not event)
 * `resources.resName.attrName.metadata.configProperty` - gets value of the configuration parameter declared in the configuration section for attribute `attrName`
 * `resources.resName.eventName.configProperty` - gets value of the configuration parameter declared in the configuration section for attribute `attrName`
 

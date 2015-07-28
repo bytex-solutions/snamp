@@ -13,7 +13,7 @@ import java.util.concurrent.ExecutionException;
  */
 public final class ChannelsTest extends Assert {
     @Test
-    public void collectioChannel() throws ExecutionException, InterruptedException {
+    public void collectionChannel() throws ExecutionException, InterruptedException {
         final List<Integer> lst = new ArrayList<>(10);
         lst.add(5);
         lst.add(6);

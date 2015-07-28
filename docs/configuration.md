@@ -100,7 +100,7 @@ XMPP Adapter provides value of the `freeMemoryRaw` and `freeMemory` in two diffe
 As you can see, configuration parameters depends on the Resource Adapter and Resource Connector. See [Configuring Resource Adapters](adapters/introduction.md) and [Configuring Resource Connectors](connectors/introduction.md) for more details about SNAMP configuration.
 
 ### Smart mode
-Some resource connectors can expose attributes, events or operations without its manual configuration. In this case the connector automatically exsposes all attributes, events or operations. So, these resource features will be accessible at runtime event if configuration section with attributes and events is empty. To enable smart mode of the connector you should specify `smartMode = true` in the configuration parameters of the resource.
+Some resource connectors can expose attributes, events or operations without its manual configuration. In this case the connector automatically exposes all attributes, events or operations. So, these resource features will be accessible at runtime event if configuration section with attributes and events is empty. To enable smart mode of the connector you should specify `smartMode = true` in the configuration parameters of the resource.
 
 ## Using SNAMP Management Console
 SNAMP Management Console allows you to configure and maintain SNAMP via user-friendly Web interface in your browser.

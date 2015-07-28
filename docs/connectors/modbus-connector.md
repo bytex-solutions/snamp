@@ -42,7 +42,7 @@ Modbus Resource Connector recognizes the following parameters:
 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
-retryCount | Integer | No | Number of attemptions when sending data to the slave device. By default it is equal to 3 | `10`
+retryCount | Integer | No | Number of attempts when sending data to the slave device. By default it is equal to 3 | `10`
 connectionTimeout | Integer | No | Connection timeout in millis. By default it is equal to `2000` | `50000`
 
 Any other parameters will be ignored.
@@ -52,9 +52,9 @@ Each attribute configured in JMX Resource Connector has the following configurat
 * `Name` - one of the predefined names:
   * `coil` - read/write access to device coil (of type `bool` or `array(bool)`)
   * `inputRegister` - read-only access to the register of device (of type `int16` or `array(int16)`)
-  * `inputDiscrete` - read-only accesso to the digital input of device (of type `bool` or `array(bool)`)
+  * `inputDiscrete` - read-only access to the digital input of device (of type `bool` or `array(bool)`)
   * `holdingRegister` - read/write access to the register of device (of type `int16` or `array(int16)`)
-  * `file` - read/write access to the recors of the file on device (of type `array(int16)`)
+  * `file` - read/write access to the records of the file on device (of type `array(int16)`)
 * Configuration parameters:
 
 Parameter | Type | Required | Meaning | Example

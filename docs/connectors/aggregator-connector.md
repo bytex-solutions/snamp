@@ -167,7 +167,7 @@ Resource Aggregator supplies predefined set of events:
 
 Category | Description
 ---- | ----
-periodicAttributeQuery | Periodically reads value of the foreign attribute and emits value as notification. The query period is defined using _notificationFrequency_ configuration parameter. The notification will not be emitted if reading operatiion completed unsuccessfully
+periodicAttributeQuery | Periodically reads value of the foreign attribute and emits value as notification. The query period is defined using _notificationFrequency_ configuration parameter. The notification will not be emitted if reading operation completed unsuccessfully
 healthCheck | Periodically attempts to read attribute value. If this action will fail the event will be emitted. The notification will not be emitted if reading operation completed successfully
 
 Configuration parameters of the event depend on its category:

@@ -30,16 +30,16 @@ public final class WellKnownChannel {
     /**
      * Converts iterator to the read-only channel.
      * @param iterator An iterator to be converted. Cannot be {@literal null}.
-     * @param elementTyoe Type of the elements in the sequence.
+     * @param elementType Type of the elements in the sequence.
      * @param <D> Type of the elements in the sequence.
      * @return Read-only data channel.
      */
     public static <D> ReadOnlyDataChannel<D> toChannel(final Iterator<D> iterator,
-                                                                    final OpenType<D> elementTyoe){
+                                                                    final OpenType<D> elementType){
        return new ReadOnlyDataChannel<D>() {
            @Override
            public OpenType<D> getDataType() {
-               return elementTyoe;
+               return elementType;
            }
 
            @Override
@@ -76,13 +76,13 @@ public final class WellKnownChannel {
     /**
      * Converts collection to the read-only channel.
      * @param collection An iterator to be converted. Cannot be {@literal null}.
-     * @param elementTyoe Type of the elements in the sequence.
+     * @param elementType Type of the elements in the sequence.
      * @param <D> Type of the elements in the sequence.
      * @return Read-only data channel.
      */
     public static <D> ReadOnlyDataChannel<D> toChannel(final Iterable<D> collection,
-                                                                    final OpenType<D> elementTyoe){
-        return toChannel(collection.iterator(), elementTyoe);
+                                                                    final OpenType<D> elementType){
+        return toChannel(collection.iterator(), elementType);
     }
 
 
@@ -162,7 +162,7 @@ public final class WellKnownChannel {
     }
 
     /**
-     * Concats read-only and write-onle channels into single bidirectional channel.
+     * Concatenates read-only and write-only channels into single bidirectional channel.
      * @param reader Read-only channel. Cannot be {@literal null}.
      * @param writer Write-only channel. Cannot be {@literal null}.
      * @param <D> Type of the elements in both channels.
