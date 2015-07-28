@@ -1,6 +1,7 @@
 package com.bytex.snamp.configuration;
 
 import com.bytex.snamp.ResourceReader;
+import com.google.common.collect.ImmutableSet;
 
 import java.util.*;
 
@@ -21,7 +22,15 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
     private static final String EXCLUSION_POSTFIX = ".exclusion";
     private static final String DEFVAL_POSTIFX = ".default";
     private final Class<T> entityType;
-    private final Set<String> parameters;
+    private final ImmutableSet<String> parameters;
+
+    private ResourceBasedConfigurationEntityDescription(final String baseName,
+                                                        final Class<T> entityType,
+                                                        final ImmutableSet<String> parameters){
+        super(baseName);
+        this.entityType = Objects.requireNonNull(entityType);
+        this.parameters = parameters == null ? ImmutableSet.<String>of() : parameters;
+    }
 
     /**
      * Initializes a new resource-based descriptor.
@@ -32,9 +41,7 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
     protected ResourceBasedConfigurationEntityDescription(final String baseName,
                                                           final Class<T> entityType,
                                                           final Collection<String> parameters){
-        super(baseName);
-        this.parameters = new HashSet<>(parameters);
-        this.entityType = entityType;
+        this(baseName, entityType, ImmutableSet.copyOf(parameters));
     }
 
     /**
@@ -46,7 +53,7 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
     protected ResourceBasedConfigurationEntityDescription(final String baseName,
                                                           final Class<T> entityType,
                                                           final String... parameters){
-        this(baseName, entityType, Arrays.asList(parameters));
+        this(baseName, entityType, ImmutableSet.copyOf(parameters));
     }
 
     /**

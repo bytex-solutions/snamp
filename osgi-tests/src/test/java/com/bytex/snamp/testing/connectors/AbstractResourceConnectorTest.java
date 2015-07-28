@@ -309,7 +309,10 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
                 matches += 1;
         }
         if(matches != parameters.size())
-            fail("Not all configuration parameters match to the expected list");
+            fail("Not all configuration parameters match to the expected list. Actual count = " +
+                    matches +
+                    ". Expected count = " +
+                    parameters.size());
     }
 
     public static void testConfigurationDescriptor(final ConfigurationEntityDescription<?> description,

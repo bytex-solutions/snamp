@@ -379,7 +379,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
         testConfigurationDescriptor(desc,
                 "oid",
                 "displayFormat");
-        ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, EventConfiguration.class);
+        desc = ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, EventConfiguration.class);
         testConfigurationDescriptor(desc,
                 "oid",
                 "displayFormat",
