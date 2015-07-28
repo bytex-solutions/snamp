@@ -1,0 +1,4 @@
+com.bytex.jcommands.channels.spi.LocalProcessChannelSpi
+com.bytex.jcommands.channels.spi.SSHChannelSpi
+com.bytex.jcommands.channels.spi.RExecChannelSpi
+com.bytex.jcommands.channels.spi.RShellChannelSpi

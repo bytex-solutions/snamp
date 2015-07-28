@@ -21,7 +21,7 @@ Verify correctness of installation:
 ```
 1. With `log:exception-display`. The following message should not be presented in the log:
 ```
-com.itworks.snamp.connectors.wmq.MQConnectorActivator$WMQJavaClassesNotInstalled: WebSphere MQ classes for Java are not installed into OSGi environment
+com.bytex.snamp.connectors.wmq.MQConnectorActivator$WMQJavaClassesNotInstalled: WebSphere MQ classes for Java are not installed into OSGi environment
 ```
 
 ## Connection String

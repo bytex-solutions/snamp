@@ -6,7 +6,7 @@
         <bundle start="true">mvn:org.bouncycastle/bcpg-jdk15on/${bouncycastle.version}</bundle>
         <bundle start="true">mvn:org.bouncycastle/bcpkix-jdk15on/${bouncycastle.version}</bundle>
         <bundle start="true">mvn:org.bouncycastle/bcprov-jdk15on/${bouncycastle.version}</bundle>
-        <bundle start="true">mvn:com.itworks.snamp/sshj/${sshj.version}</bundle>
-        <bundle start="true">mvn:com.itworks.snamp/ssh-adapter/${project.version}</bundle>
+        <bundle start="true">mvn:com.bytex.snamp/sshj/${sshj.version}</bundle>
+        <bundle start="true">mvn:com.bytex.snamp/ssh-adapter/${project.version}</bundle>
     </feature>
 </features>

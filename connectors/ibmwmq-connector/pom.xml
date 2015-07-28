@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.itworks.snamp</groupId>
+    <groupId>com.bytex.snamp</groupId>
     <artifactId>connectors</artifactId>
     <version>1.0.0</version>
   </parent>
@@ -23,8 +23,8 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-SymbolicName>com.itworks.snamp.connectors.wmq</Bundle-SymbolicName>
-            <Bundle-Activator>com.itworks.snamp.connectors.wmq.MQConnectorActivator</Bundle-Activator>
+            <Bundle-SymbolicName>com.bytex.snamp.connectors.wmq</Bundle-SymbolicName>
+            <Bundle-Activator>com.bytex.snamp.connectors.wmq.MQConnectorActivator</Bundle-Activator>
             <Import-Package>
               !com.ibm.*,
               *
@@ -43,7 +43,7 @@
   <dependencies>
     <dependency>
       <scope>provided</scope>
-      <groupId>com.itworks.snamp</groupId>
+      <groupId>com.bytex.snamp</groupId>
       <artifactId>framework</artifactId>
       <version>${snamp.framework.version}</version>
     </dependency>

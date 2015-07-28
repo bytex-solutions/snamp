@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>adapters</artifactId>
-        <groupId>com.itworks.snamp</groupId>
+        <groupId>com.bytex.snamp</groupId>
         <version>1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -26,8 +26,8 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Bundle-SymbolicName>com.itworks.snamp.adapters.http</Bundle-SymbolicName>
-                        <Bundle-Activator>com.itworks.snamp.adapters.http.HttpAdapterActivator</Bundle-Activator>
+                        <Bundle-SymbolicName>com.bytex.snamp.adapters.http</Bundle-SymbolicName>
+                        <Bundle-Activator>com.bytex.snamp.adapters.http.HttpAdapterActivator</Bundle-Activator>
                         <Export-Package/>
                         <Import-Package>
                             !org.eclipse.jetty.websocket.api.*,
@@ -57,7 +57,7 @@
     </build>
     <dependencies>
         <dependency>
-            <groupId>com.itworks.snamp</groupId>
+            <groupId>com.bytex.snamp</groupId>
             <artifactId>framework</artifactId>
             <version>${snamp.framework.version}</version>
             <scope>provided</scope>
@@ -135,7 +135,7 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.itworks.snamp</groupId>
+            <groupId>com.bytex.snamp</groupId>
             <artifactId>jmx-helpers</artifactId>
             <version>${snamp.jmxhelper.version}</version>
             <scope>provided</scope>

@@ -1,7 +1,7 @@
-package com.itworks.snamp.connectors;
+package com.bytex.snamp.connectors;
 
-import com.itworks.snamp.SimpleTable;
-import com.itworks.snamp.Table;
+import com.bytex.snamp.SimpleTable;
+import com.bytex.snamp.Table;
 
 import java.util.HashMap;
 import java.util.Map;

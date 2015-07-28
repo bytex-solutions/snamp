@@ -42,7 +42,7 @@ SNAMP supports the following set of data types:
   * array(float32) - array of numbers with single precision
   * array(float64) - array of numbers with double precision
   * array(bigint) - array of integers with arbitrary precision
-  * array(bigdecimal) - array of reals with arbitrary precision
+  * array(bigdecimal) - array of real numbers with arbitrary precision
   * array(char) - array of Unicode characters
   * array(string) - array of strings
   * array(objectname) - array of object names

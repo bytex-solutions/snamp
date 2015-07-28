@@ -100,7 +100,7 @@ XMPP Adapter provides value of the `freeMemoryRaw` and `freeMemory` in two diffe
 As you can see, configuration parameters depends on the Resource Adapter and Resource Connector. See [Configuring Resource Adapters](adapters/introduction.md) and [Configuring Resource Connectors](connectors/introduction.md) for more details about SNAMP configuration.
 
 ### Smart mode
-Some resource connectors can expose attributes, events or operations without its manual configuration. In this case the connector automatically exsposes all attributes, events or operations. So, these resource features will be accessible at runtime event if configuration section with attributes and events is empty. To enable smart mode of the connector you should specify `smartMode = true` in the configuration parameters of the resource. 
+Some resource connectors can expose attributes, events or operations without its manual configuration. In this case the connector automatically exposes all attributes, events or operations. So, these resource features will be accessible at runtime event if configuration section with attributes and events is empty. To enable smart mode of the connector you should specify `smartMode = true` in the configuration parameters of the resource.
 
 ## Using SNAMP Management Console
 SNAMP Management Console allows you to configure and maintain SNAMP via user-friendly Web interface in your browser.
@@ -143,9 +143,9 @@ org.jolokia.authMode=jaas
 
 The second, obtain SNAMP configuration:
 ```bash
-curl -u karaf:karaf http://localhost:8181/jolokia/read/com.itworks.snamp.management:type=SnampCore/configuration?maxDepth=20&maxCollectionSize=500&ignoreErrors=true&canonicalNaming=false
+curl -u karaf:karaf http://localhost:8181/jolokia/read/com.bytex.snamp.management:type=SnampCore/configuration?maxDepth=20&maxCollectionSize=500&ignoreErrors=true&canonicalNaming=false
 
-{"timestamp":1433455091,"status":200,"request":{"mbean":"com.itworks.snamp.management:type=SnampCore","attribute":"configuration","type":"read"},"value":null}
+{"timestamp":1433455091,"status":200,"request":{"mbean":"com.bytex.snamp.management:type=SnampCore","attribute":"configuration","type":"read"},"value":null}
 ```
 > If you have 403 error then read [this](http://modio.io/jolokia-in-karaf-3-0-x-fixing-the-403-access-error/) article
 
@@ -200,7 +200,7 @@ The following example shows setup of JMX-to-SNMP bridge:
               "Name": "int32",  //name of the attribute in remote MBean
               "AdditionalProperties": {
                 "objectName": {
-                  "Value": "com.snampy.impl:type=com.itworks.snamp.adapters.TestManagementBean",
+                  "Value": "com.bytex.snamp:type=TestManagementBean",
                   "Key": "objectName"
                 },
                 "oid": {
@@ -217,7 +217,7 @@ The following example shows setup of JMX-to-SNMP bridge:
               "Name": "dictionary",
               "AdditionalProperties": {
                 "objectName": {
-                  "Value": "com.snampy.impl:type=com.itworks.snamp.adapters.TestManagementBean",
+                  "Value": "com.bytex.snamp:type=TestManagementBean",
                   "Key": "objectName"
                 },
                 "oid": {
@@ -234,7 +234,7 @@ The following example shows setup of JMX-to-SNMP bridge:
               "Name": "bigint",
               "AdditionalProperties": {
                 "objectName": {
-                  "Value": "com.snampy.impl:type=com.itworks.snamp.adapters.TestManagementBean",
+                  "Value": "com.bytex.snamp:type=TestManagementBean",
                   "Key": "objectName"
                 },
                 "oid": {
@@ -253,7 +253,7 @@ The following example shows setup of JMX-to-SNMP bridge:
               "Category": "jmx.attribute.change", //name of the JMX notification in MBean
               "AdditionalProperties": {//event configuration parameters
                 "objectName": {
-                  "Value": "com.snampy.impl:type=com.itworks.snamp.adapters.TestManagementBean",
+                  "Value": "com.bytex.snamp:type=TestManagementBean",
                   "Key": "objectName"
                 },
                 "oid": {
@@ -288,7 +288,7 @@ JSON format of SNAMP configuration is just a mapping between JMX data type and J
 
 If your SNAMP configuration is ready then save JSON into the file and use `curl` utility to setup a new configuration:
 ```bash
-curl -u karaf:karaf -X POST -d @config.json http://localhost:8181/jolokia/read/com.itworks.snamp.management:type=SnampCore/configuration?maxDepth=20&maxCollectionSize=500&ignoreErrors=true&canonicalNaming=false
+curl -u karaf:karaf -X POST -d @config.json http://localhost:8181/jolokia/read/com.bytex.snamp.management:type=SnampCore/configuration?maxDepth=20&maxCollectionSize=500&ignoreErrors=true&canonicalNaming=false
 ```
 
 ## Predefined configuration parameters
@@ -344,4 +344,3 @@ See [Karaf Log Configuration](http://karaf.apache.org/manual/latest/users-guide/
 ## Examples
 * [Monitoring JMX resources over SNMP](examples/jmx-over-snmp.md)
 * [Monitoring SNMP resources over HTTP](examples/snmp-over-http.md)
-* [Monitoring JMX resources over XMPP](examples/jmx-over-xmpp.md)

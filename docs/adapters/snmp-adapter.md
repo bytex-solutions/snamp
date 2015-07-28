@@ -137,9 +137,9 @@ snamp-snmp-priv-key | SNAMP_SNMP_PRIVKEY | Secret for data encryption algorithm
 Class | Attributes | Description
 ---- | ---- | ----
 snampUser | snamp-snmp-auth-protocol, snamp-snmp-priv-protocol, snamp-snmp-priv-key | Class of records that holds information about SNMPv3 user. An attribute with password must be exists in this class. Usually, LDAP server uses `userPassword` attribute. If it not true then you should specify `ldap-user-password-attribute-name` configuration parameter with correct name of the attribute
-snampGroup | snamp-snmp-security-level, snamp-snmp-allowed-operation | Class of recirds that holds information about group of users.
+snampGroup | snamp-snmp-security-level, snamp-snmp-allowed-operation | Class of records that holds information about group of users.
 
-`ldap-user-search-filter` used to find users (objects with `snampUser` class) inside of the group. The name of the group can be included into the filter using `$GROUPNAME$` parameter. For exampe, `(groupName=$GROUPNAME$)`. `$GROUPNAME$` will be replaced with DN name of the entries selected from `ldap-groups` query.
+`ldap-user-search-filter` used to find users (objects with `snampUser` class) inside of the group. The name of the group can be included into the filter using `$GROUPNAME$` parameter. For example, `(groupName=$GROUPNAME$)`. `$GROUPNAME$` will be replaced with DN name of the entries selected from `ldap-groups` query.
 
 Example of LDAP tree:
 ```
@@ -218,7 +218,7 @@ displayFormat | Enum or String | No | Display format used to convert `datetime` 
 receiverAddress | String | Yes | An address of SNMP Trap receiver in format `<ip-address>/<port>` | `127.0.0.1/10538`
 receiverName | String | Yes | Unique name of the receiver | `remote-receiver-1`
 sendingTimeout | Integer | No | Trap sending timeout (in millis). By default it is equal to 2 seconds | `3000`
-retryCount | Integer | No | A number of attemptions to send Trap after timeout. By default it is equal to 3 | `5`
+retryCount | Integer | No | A number of attempts to send Trap after timeout. By default it is equal to 3 | `5`
 
 ## Data formats
 SNMP Resource Adapter uses ASN.1 as representation of management information. The following table describes mapping between types of **Management Information Model** and JSON:
@@ -239,7 +239,7 @@ date | OCTET_STRING
 float32 | OCTET_STRING (UTF-8 encoding)
 float64 | OCTET_STRING (UTF-8 encoding)
 array(int8) | OCTET_STRING
-array(bool) | OCTET_STRING (little endian)
+array(bool) | OCTET_STRING (little-endian)
 
 Table, dictionary and arrays (except array of int8) will be converted into SNMP Table. SNMP Table represents a set of managed objects. The behavior of these structures can be tuned with `useRowStatus` and `tableCacheTime` configuration parameters.
 
@@ -248,9 +248,9 @@ These parameters can be specified at JVM level and affects all instances of SNMP
 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
-com.itworks.snamp.adapters.snmp.oidPrefix | OID | No | OID prefix applied to attributes and notifications when `oid` configuration of such attributes and notifications are not specified. By default it is equal to `1.1.1`. Postfix will be generated automatically. So, the attribute without `oid` configuration parameter may have OID `1.1.1.X`.  | `3000`
+com.bytex.snamp.adapters.snmp.oidPrefix | OID | No | OID prefix applied to attributes and notifications when `oid` configuration of such attributes and notifications are not specified. By default it is equal to `1.1.1`. Postfix will be generated automatically. So, the attribute without `oid` configuration parameter may have OID `1.1.1.X`.  | `3000`
 
 ## Compatibility with Smart mode
-In the Smart mode of the connector each attribute or notification is registered automatically. Therefore you cannot specify `oid` configuration parameter directly in SNAMP configuration. SNMP Resource Adapter generates OID for each attribute automatically using prefix specified in `com.itworks.snamp.adapters.snmp.oidPrefix` system-level property. By default, each attribute will be registered in `1.1.1.X` context.
+In the Smart mode of the connector each attribute or notification is registered automatically. Therefore you cannot specify `oid` configuration parameter directly in SNAMP configuration. SNMP Resource Adapter generates OID for each attribute automatically using prefix specified in `com.bytex.snamp.adapters.snmp.oidPrefix` system-level property. By default, each attribute will be registered in `1.1.1.X` context.
 
 Notifications of the connector in Smart mode cannot be exposed via SNMP Resource Adapter.

@@ -8,6 +8,6 @@
         <bundle start="true">mvn:com.sun.jersey/jersey-server/${jersey.version}</bundle>
         <bundle start="true">mvn:com.sun.jersey/jersey-servlet/${jersey.version}</bundle>
         <feature>war</feature>
-        <bundle start="true">mvn:com.itworks.snamp/nagios-adapter/${project.version}</bundle>
+        <bundle start="true">mvn:com.bytex.snamp/nagios-adapter/${project.version}</bundle>
     </feature>
 </features>

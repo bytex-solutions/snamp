@@ -1,4 +1,4 @@
-package com.itworks.snamp.connectors;
+package com.bytex.snamp.connectors;
 
 import net.xeoh.plugins.base.annotations.PluginImplementation;
 
