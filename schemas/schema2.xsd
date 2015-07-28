@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<xs:schema version="1.0" xmlns:ns1="http://snamp.bytex.com/schemas/command-line-tool-profile/v1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:import namespace="http://snamp.bytex.com/schemas/command-line-tool-profile/v1.0" schemaLocation="schema1.xsd"/>
+
+  <xs:complexType name="TableColumnParsingRule" final="extension restriction">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute ref="ns1:name" use="required"/>
+        <xs:attribute ref="ns1:type" use="required"/>
+        <xs:attribute ref="ns1:indexed" use="required"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+</xs:schema>
+

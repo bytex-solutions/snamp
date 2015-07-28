@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<xs:schema version="1.0" targetNamespace="http://snamp.bytex.com/schemas/command-line-tool-profile/v1.0" xmlns:tns="http://snamp.bytex.com/schemas/command-line-tool-profile/v1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:import schemaLocation="schema2.xsd"/>
+
+  <xs:element name="column" type="TableColumnParsingRule"/>
+
+  <xs:element name="const" type="tns:Constant"/>
+
+  <xs:element name="entry" type="tns:DictionaryEntryParsingRule"/>
+
+  <xs:element name="item" type="tns:ArrayItemParsingRule"/>
+
+  <xs:element name="line-terminator" type="tns:LineTerminationParsingRule"/>
+
+  <xs:element name="profile" type="tns:XmlCommandLineToolProfile"/>
+
+  <xs:element name="skip" type="tns:SkipTokenParsingRule"/>
+
+  <xs:element name="template" type="tns:XmlCommandLineTemplate"/>
+
+  <xs:complexType name="XmlCommandLineToolProfile">
+    <xs:sequence>
+      <xs:element name="modifier" type="tns:XmlCommandLineTemplate" form="qualified" minOccurs="0"/>
+      <xs:element name="reader" type="tns:XmlCommandLineTemplate" form="qualified" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="XmlCommandLineTemplate">
+    <xs:sequence>
+      <xs:element name="output" type="tns:CommandLineToolOutputParser" form="qualified" minOccurs="0"/>
+      <xs:element name="input" type="xs:string" form="qualified" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="CommandLineToolOutputParser" mixed="true">
+    <xs:sequence>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element ref="tns:entry"/>
+        <xs:element ref="tns:line-terminator"/>
+        <xs:element ref="tns:column"/>
+        <xs:element ref="tns:item"/>
+        <xs:element ref="tns:skip"/>
+        <xs:element ref="tns:const"/>
+      </xs:choice>
+    </xs:sequence>
+    <xs:attribute ref="tns:blobFormat"/>
+    <xs:attribute ref="tns:dateTimeFormat"/>
+    <xs:attribute ref="tns:numberFormat"/>
+    <xs:attribute ref="tns:language" use="required"/>
+    <xs:attribute ref="tns:type" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="DictionaryEntryParsingRule" final="extension restriction">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute ref="tns:key" use="required"/>
+        <xs:attribute ref="tns:type" use="required"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:simpleType name="LineTerminationParsingRule">
+    <xs:restriction base="xs:string"/>
+  </xs:simpleType>
+
+
+  <xs:complexType name="ArrayItemParsingRule" final="extension restriction">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute ref="tns:elementType" use="required"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:simpleType name="SkipTokenParsingRule">
+    <xs:restriction base="xs:string"/>
+  </xs:simpleType>
+
+  <xs:simpleType name="Constant">
+    <xs:restriction base="xs:string"/>
+  </xs:simpleType>
+
+  <xs:simpleType name="BlobFormat">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="hex"/>
+      <xs:enumeration value="base32"/>
+      <xs:enumeration value="base64"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="CommandLineToolReturnType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="bool"/>
+      <xs:enumeration value="string"/>
+      <xs:enumeration value="char"/>
+      <xs:enumeration value="blob"/>
+      <xs:enumeration value="int8"/>
+      <xs:enumeration value="int16"/>
+      <xs:enumeration value="int32"/>
+      <xs:enumeration value="int64"/>
+      <xs:enumeration value="bigint"/>
+      <xs:enumeration value="bigdecimal"/>
+      <xs:enumeration value="dictionary"/>
+      <xs:enumeration value="array"/>
+      <xs:enumeration value="table"/>
+      <xs:enumeration value="date"/>
+      <xs:enumeration value="float32"/>
+      <xs:enumeration value="float64"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:attribute name="blobFormat" type="tns:BlobFormat"/>
+
+  <xs:attribute name="dateTimeFormat" type="xs:string"/>
+
+  <xs:attribute name="elementType" type="tns:CommandLineToolReturnType"/>
+
+  <xs:attribute name="indexed" type="xs:boolean"/>
+
+  <xs:attribute name="key" type="xs:string"/>
+
+  <xs:attribute name="language" type="xs:string"/>
+
+  <xs:attribute name="name" type="xs:string"/>
+
+  <xs:attribute name="numberFormat" type="xs:string"/>
+
+  <xs:attribute name="type" type="tns:CommandLineToolReturnType"/>
+</xs:schema>
+

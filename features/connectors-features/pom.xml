@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>features</artifactId>
-        <groupId>com.itworks.snamp</groupId>
+        <groupId>com.bytex.snamp</groupId>
         <version>1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -17,6 +17,8 @@
         <module>rshell-connector-feature</module>
         <module>aggregator-connector-feature</module>
         <module>ibmwmq-connector-feature</module>
+        <module>groovy-connector-feature</module>
+        <module>modbus-connector-feature</module>
     </modules>
 
 </project>

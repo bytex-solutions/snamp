@@ -12,5 +12,6 @@
         <bundle>wrap:mvn:commons-lang/commons-lang/2.5$Export-Package=org.apache.commons.lang.*;version="2.5"</bundle>
         <bundle>wrap:mvn:commons-codec/commons-codec/1.10$Export-Package=org.apache.commons.codec.*;version="1.10"</bundle>
         <bundle>wrap:mvn:commons-io/commons-io/2.4$Export-Package=org.apache.commons.io.*;version="2.4"</bundle>
+        <bundle start="true">mvn:org.jolokia/jolokia-osgi/${jolokia.version}</bundle>
     </feature>
 </features>

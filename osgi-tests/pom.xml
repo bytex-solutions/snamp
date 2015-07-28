@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>snamp</artifactId>
-        <groupId>com.itworks.snamp</groupId>
+        <groupId>com.bytex.snamp</groupId>
         <version>1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -82,7 +82,7 @@
                         <com.sun.management.jmxremote.port>3334</com.sun.management.jmxremote.port>
                         <com.sun.management.jmxremote.authenticate>false</com.sun.management.jmxremote.authenticate>
                         <com.sun.management.jmxremote.ssl>false</com.sun.management.jmxremote.ssl>
-                        <com.itworks.snamp.login.config.boot>./jaas.json</com.itworks.snamp.login.config.boot>
+                        <com.bytex.snamp.login.config.boot>./jaas.json</com.bytex.snamp.login.config.boot>
                         <pax.exam.osgi.unresolved.fail>true</pax.exam.osgi.unresolved.fail>
                         <mavenLocalRepository>${settings.localRepository}</mavenLocalRepository>
                     </systemPropertyVariables>
@@ -222,19 +222,19 @@
         </dependency>
 
         <dependency>
-            <groupId>com.itworks.snamp</groupId>
+            <groupId>com.bytex.snamp</groupId>
             <artifactId>framework</artifactId>
             <version>${snamp.framework.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.itworks.snamp</groupId>
+            <groupId>com.bytex.snamp</groupId>
             <artifactId>snmp4j</artifactId>
             <version>${snmp4j.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.itworks.snamp</groupId>
+            <groupId>com.bytex.snamp</groupId>
             <artifactId>sshj</artifactId>
             <version>${sshj.version}</version>
             <scope>test</scope>
@@ -307,11 +307,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.itworks.snamp</groupId>
+            <groupId>com.bytex.snamp</groupId>
             <artifactId>rshell-connector</artifactId>
             <version>${snamp.connectors.rshell.version}</version>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.apache.sshd</groupId>
             <artifactId>sshd-core</artifactId>
@@ -333,21 +334,27 @@
         </dependency>
 
         <dependency>
-            <groupId>com.itworks.snamp</groupId>
+            <groupId>com.bytex.snamp</groupId>
             <artifactId>jaas-config</artifactId>
             <version>${snamp.jaasconfig.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.itworks.snamp</groupId>
+            <groupId>com.bytex.snamp</groupId>
             <artifactId>jmx-helpers</artifactId>
             <version>${snamp.jmxhelper.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.itworks.snamp</groupId>
+            <groupId>com.bytex.snamp</groupId>
             <artifactId>xmpp-adapter</artifactId>
             <version>${snamp.adapters.xmpp.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.bytex.snamp</groupId>
+            <artifactId>modbus-connector</artifactId>
+            <version>${snamp.connectors.modbus.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -360,6 +367,12 @@
             <groupId>org.atmosphere</groupId>
             <artifactId>wasync</artifactId>
             <version>2.0.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jolokia</groupId>
+            <artifactId>jolokia-osgi</artifactId>
+            <version>${jolokia.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

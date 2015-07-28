@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>features</artifactId>
-        <groupId>com.itworks.snamp</groupId>
+        <groupId>com.bytex.snamp</groupId>
         <version>1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -13,6 +13,12 @@
     <artifactId>wrapped-libs-for-tests</artifactId>
     <packaging>kar</packaging>
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.karaf.tooling</groupId>
@@ -81,7 +87,12 @@
             <version>2.4</version>
             <scope>provided</scope>
         </dependency>
-
+        <dependency>
+            <groupId>org.jolokia</groupId>
+            <artifactId>jolokia-osgi</artifactId>
+            <version>${jolokia.version}</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
 </project>

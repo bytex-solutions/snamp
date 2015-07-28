@@ -16,6 +16,8 @@ for the complex IT infrastructure.
 * JDK 7 or higher (Oracle HotSpot or OpenJDK is recommended but not required)
 
 ## How to build
+First, you should build SNAMP using _Development_ profile. After, you can switch to _Release_ profile and build SNAMP Distribution Package.
+
 Not all dependencies located at the Maven Central. Some dependencies are proprietary libraries. Therefore,
 it is necessary to prepare your local Maven repository as follows.
 
@@ -56,13 +58,13 @@ SNAMP uses the following third-party libraries not placed on any Maven repositor
 * IBM WebSphere MQ libraries for Java
 * IBM WebSphere MB (Integration Bus) libraries for Java
 
-Copy WebSphere the following libraries to third-party-libs/binaries/ibm/websphere folder:
+Copy WebSphere the following libraries to `third-party-libs/binaries/ibm/websphere` folder:
 * `com.ibm.mq.pcf.jar`
 * `com.ibm.mq.jar`
 * `com.ibm.mq.jmqi.jar`
 * `com.ibm.mq.headers.jar`
 
-WebSphere MQ classes for Java located in `MQ_INSTALLATION_PATH/java/lib` repository on Linux and
+WebSphere MQ classes for Java located in `MQ_INSTALLATION_PATH/java/lib` repository on Linux or
 `MQ_INSTALLATION_PATH\java\lib` on Windows.
 
 > See [WebSphere MQ classes for Java](http://www-01.ibm.com/support/knowledgecenter/SSFKSJ_7.5.0/com.ibm.mq.dev.doc/q030520_.htm)
