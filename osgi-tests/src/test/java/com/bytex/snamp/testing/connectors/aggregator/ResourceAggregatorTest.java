@@ -225,7 +225,7 @@ public final class ResourceAggregatorTest extends AbstractSnampIntegrationTest {
                 assertEquals(40L, val);
                 jmxConnector.setAttribute(new Attribute("3.0", 30));
                 val = aggregator.getAttribute("49");
-                assertEquals(30L, val);
+                assertEquals(40L, val);
                 try {
                     Thread.sleep(5000);
                 } catch (final InterruptedException e) {

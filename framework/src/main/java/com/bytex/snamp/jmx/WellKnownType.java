@@ -301,7 +301,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate {
     }
 
     private static final LoadingCache<Object, WellKnownType> cache =
-            CacheBuilder.newBuilder().build(new WellKnownTypeCacheLoader());
+            CacheBuilder.newBuilder().softValues().build(new WellKnownTypeCacheLoader());
 
     private final OpenType<?> openType;
     private final Class<?> javaType;

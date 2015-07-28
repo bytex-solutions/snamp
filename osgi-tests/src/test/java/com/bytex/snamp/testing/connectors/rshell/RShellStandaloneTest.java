@@ -40,8 +40,7 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
     @Override
     protected void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory) {
         AttributeConfiguration attribute = attributeFactory.get();
-        attribute.setAttributeName("memStatus");
-        attribute.getParameters().put("commandProfileLocation", getPathToFileInProjectRoot("freemem-tool-profile.xml"));
+        attribute.setAttributeName(getPathToFileInProjectRoot("freemem-tool-profile.xml"));
         attribute.getParameters().put("format", "-m");
         attributes.put("ms", attribute);
     }

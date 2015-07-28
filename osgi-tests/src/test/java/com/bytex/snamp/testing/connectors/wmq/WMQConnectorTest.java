@@ -46,6 +46,6 @@ public final class WMQConnectorTest extends AbstractResourceConnectorTest {
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return true;
+        return false;
     }
 }
