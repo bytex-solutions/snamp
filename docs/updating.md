@@ -6,10 +6,10 @@ There are following updating scenarios available:
 * Install a new version of SNAMP Platform
 * Install a new version of SNAMP Management Console
 
-Some of these scenarios supporting Hot Upgrade without influence on availability.
+Some of these scenarios support Hot Upgrade (without any availability issues).
 
 ## Update Resource Adapter
-Open the shell console and print `feature:list -i`. Yo will see something like this:
+Open the shell console and print `feature:list -i`. You will see following output (or similar):
 ```
 Name                         | Version          | Installed | Repository              | Description
 ------------------------------------------------------------------------------------------------------
@@ -54,16 +54,16 @@ cellar-shell                 | 3.0.3            | x         | karaf-cellar-3.0.3
 cellar                       | 3.0.3            | x         | karaf-cellar-3.0.3      | Karaf clustering
 syslog-adapter-feature       | 1.0.0            | x         | snamp                   | Syslog Adapter Karaf Feature
 ```
-Select SNAMP Resource Adapter which you want to upgrade. For example, you want to update `SNMP Resource Adapter`.
+Select SNAMP Resource Adapter which you want to upgrade. Let it be `SNMP Resource Adapter`.
 
 The first, you should uninstall it:
 1. Go to `<snamp>/deploy` folder and delete `snmp-adapter-feature-1.0.0.kar` file
-2. Verify that SNMP Resource Adapter is uninstalled with `feature:list -i` command
+2. Make sure SNMP Resource Adapter is uninstalled with executing `feature:list -i` command
 
 The second, you should install a new version of SNAMP Resource Adapter:
-1. Download a new version of SNAMP Resource Adapter. The name of the downloaded file must have name similar to this: `snmp-adapter-feature-1.1.0.kar`
-2. Copy downloaded file into `<snamp>/deploy` folder. The folder is automatically tracked by SNAMP. Therefore, a new version of the component will be automatically installed into OSGi environment.
-3. Verify installation with `feature:list -i` command. Make sure that _snmp-adapter-feature_ is presented in the command output and its version equal to `1.1.0`:
+1. Download the new version of SNAMP Resource Adapter. The name of the downloaded file must be similar to this: `snmp-adapter-feature-1.1.0.kar`
+2. Copy downloaded file into `<snamp>/deploy` folder. The folder is automatically tracked by SNAMP. Therefore, the new version of the component will be automatically installed into OSGi environment.
+3. Verify installation with `feature:list -i` command. Make sure that _snmp-adapter-feature_ is presented in the command output and corresponding version equals to `1.1.0`:
 
 ```
 snmp-adapter-feature         | 1.1.0            | x         | snamp                   | SNMP Adapter Karaf Feature
@@ -71,13 +71,13 @@ snmp-adapter-feature         | 1.1.0            | x         | snamp             
 ```
 
 There is alternative ways to verify Resource Adapter update:
-* Print `bundle:list` and verify that `SNMP Resource Adapter` bundle exist
+* Print `bundle:list` and make sure `SNMP Resource Adapter` bundle exists
 * Inspect log using `log:display -n 10` or ` log:exception-display ` command in the shell console
 
 ## Update Resource Connector
-Resource Connector can be updated in the same way as Resource Adapter. See instructions above for more details.
+Resource Connector can be updated with the same approach as Resource Adapter. See instructions above for more details.
 
-Note that Resource Connector or Resource Adapter can be updated without shutting down SNAMP. Updating component on the single node in cluster causes cascade update on all nodes. Therefore, there is no influence on availability.
+Note that Resource Connector or Resource Adapter can be updated without shutting down SNAMP. Updating component withing the single node in cluster causes cascade update of all the nodes. There are no availability issues.
 
 ## Update SNAMP Platform
 SNAMP Platform is a core set of OSGi bundles with basic SNAMP functionality.
@@ -87,6 +87,11 @@ SNAMP Platform is a core set of OSGi bundles with basic SNAMP functionality.
 
 Verify your installation using `feature:list -i`, `bundle:list` and `log:exception-display` shell commands.
 
-Note that updating of SNAMP Platform might affects availability. But you can detach node from the cluster and update SNAMP Platform, setup balancer for this updated node, repeat updating actions for each detached node and restore balancer configuration.
+Note that updating of SNAMP Platform might affect availability. You can avoid it with following steps: 
+1. Detach node from the cluster
+2. Update SNAMP Platform
+3. Setup balancer for updated node
+4. Repeat previous actions for each detached node
+5. Restore balancer configuration.
 
 ## Update Management Console
