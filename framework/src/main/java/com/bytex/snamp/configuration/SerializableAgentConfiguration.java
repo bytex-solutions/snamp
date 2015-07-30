@@ -542,9 +542,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
             @Override
             public void setInvocationTimeout(final TimeSpan value) {
                 markAsModified();
-                this.timeout = (value == TimeSpan.INFINITE || value.duration == Long.MAX_VALUE) ?
-                        TimeSpan.INFINITE :
-                        value;
+                this.timeout = value;
             }
         }
 
@@ -732,9 +730,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
             @Override
             public final void setReadWriteTimeout(final TimeSpan timeout) {
                 markAsModified();
-                this.readWriteTimeout = (timeout == TimeSpan.INFINITE || timeout.duration == Long.MAX_VALUE) ?
-                        TimeSpan.INFINITE :
-                        timeout;
+                this.readWriteTimeout = timeout;
             }
 
             /**
@@ -1177,4 +1173,5 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
     public final boolean isEmpty(){
         return adapters.isEmpty() && resources.isEmpty();
     }
+
 }
