@@ -12,7 +12,7 @@ Let's take a look at this example:
 
 ![Configuration Example](images/example.png)
 
-Example configuration consists of:
+Example configuration contains following entities:
 * Three **managed resources**
   * Java Application that can be managed via JMX
   * Linux Server that can be managed via SSH
@@ -46,35 +46,35 @@ Resource Adapter provides conversion from unified [Management Information Model]
   * Network Switch/Router
   * Sensor
 
-Managed resource is accessible through SNAMP when and only when it is connected via **Managed Connector**.
+Managed resource is accessible with SNAMP if and only if that is connected via **Managed Connector**.
 
 ## Resource Connector
-**Resource Connector** (or **Managed Resource Connector**) is a software component used to connect **managed resource** to SNAMP environment using the specific management protocol. Information model of each connected resource consists of the following entities (called **management features**):
+**Resource Connector** (or **Managed Resource Connector**) is a software component used to connect **managed resource** to SNAMP environment via specific management protocol. Information model of each connected resource consists of the following entities (called **management features**):
 * Attributes
 * Events (or notifications)
 * Operations
 
-Resource Connector may support all these features or some of them. Supported set of features depends on the particularity of the used Resource Connector. For example, SNMP Resource Connector doesn't support operations because of SNMP protocol limitations.
+Resource Connector may support all these features or some of them. Supported set of features depends on type of the Resource Connector. For example, SNMP Resource Connector doesn't support operations due to SNMP protocol limitations.
 
 **Resource Connector** has the following characteristics:
-* _System name_ (or _type_) - a name of the installed resource connector. Typically, system name indicates the management protocol used by resource connector
-* _Connection string_ - a string that specifies information about a managed resource and the means of connecting to it
-* _Configuration_ - a set of configuration parameters controlling behavior of the resource connector
+* _System name_ (or _type_) - name of the installed resource connector. Typically, system name indicates the management protocol used by resource connector
+* _Connection string_ - string that specifies information about managed resource
+* _Configuration_ - set of configuration parameters controlling behavior of the resource connector
 
 ### Attribute
-Management attribute (or attribute) describes the atomic metric, parameter or characteristics of the connected managed resource. Each connected managed resource may one or more attributes.
+Management attribute (or attribute) describes the atomic metric, parameter or characteristic of the connected managed resource. Each connected managed resource may have one or more attributes.
 
 Attribute has the following characteristics:
-* _Name_ - the name of the managed resource attribute. Each managed resource provides a strictly defined set of attributes
+* _Name_ - name of the managed resource attribute. Each managed resource provides a strictly defined set of attributes
 * _Accessibility_ is what you can do with attribute
   * _Read_ - attribute value is read-only
   * _Write_ - attribute value is write-only
   * _Read/Write_ - attribute value can be modified or obtained
-* _Read/write timeout_ - a timeout used to read or write attribute value. By default, SNAMP uses infinite timeout
-* _Type_ - the type of the attribute value. See [Management Information Model](inform_model.md) for more information about supported attribute types
-* _Configuration_ - a set of configuration parameters associated with the attribute
+* _Read/write timeout_ - timeout used to read or write attribute value. By default, SNAMP uses infinite timeout
+* _Type_ - type of the attribute value. See [Management Information Model](inform_model.md) for detailed information about supported attribute types
+* _Configuration_ - set of configuration parameters associated with the attribute
 
-The attribute configuration and attribute name may be specified by SNAMP administrator. Other characteristics depends on the connected managed resource and cannot be changed by administrator.
+The attribute configuration and attribute name might be specified by the SNAMP administrator. Other characteristics depends on the connected managed resource and cannot be changed by administrator.
 
 Examples of attributes:
 * Used disk space, in MB (read-only attribute)
@@ -85,16 +85,16 @@ Examples of attributes:
 * Max size of log file (read/write attribute)
 
 ### Event
-Event (or notification) is a maintenance message emitted by managed resource and carries information about some significant change in the managed resource.
+Event (or notification) is a maintenance message emitted by managed resource. Events carry information about some certain changes in the managed resource.
 
 Event has the following characteristics:
-* _Category_ - the identifier of the notification/event in the managed resource. Each managed resource provides a strictly defined set of events
-* _Configuration_ - a set of configuration parameters associated with the attribute
-* _Severity_ - severity level of the emitted notifications. This is an optional characteristic
+* _Category_ - identifier of the notification/event in the managed resource. Each managed resource provides a strictly defined set of events
+* _Configuration_ - set of configuration parameters associated with the attribute
+* _Severity_ - severity level of the emitted notifications. That is an optional characteristic
 
-The event configuration, category and severity level (optionally) may be specified by SNAMP administrator. Other characteristics depends on the connected managed resource and cannot be changed by administrator.
+The event configuration, category and severity level (optionally) may be specified by the SNAMP administrator. Other characteristics depend on the connected managed resource and cannot be changed by administrator.
 
-See [Management Information Model](inform_model.md) ror more information about severity level and notification content.
+See [Management Information Model](inform_model.md) for detailed information about severity level and notification content.
 
 Examples of notifications:
 * Fatal or critical error
@@ -105,11 +105,11 @@ Examples of notifications:
 Operation is a maintenance action that may be applied to the managed resource.
 
 Operation has the following characteristics:
-* _Name_ - the name of the maintenance action. Each managed resource provides a strictly defined set of operations
-* _Configuration_ - a set of configuration parameters associated with the operation
-* _Signature_ - a set of formal parameters which should be populated with actual arguments before execution
+* _Name_ - name of the maintenance action. Each managed resource provides a strictly defined set of operations
+* _Configuration_ - set of configuration parameters associated with the operation
+* _Signature_ - set of formal parameters which should be populated with actual arguments before execution
 
-The operation configuration may be specified by SNAMP administrator. Other characteristics depends on the connected managed resource and cannot be changed by administrator.
+The operation configuration may be specified by SNAMP administrator. Other characteristics depend on the connected managed resource and cannot be changed by the administrator.
 
 Examples of operations:
 * Shutdown software component
@@ -120,15 +120,15 @@ Examples of operations:
 ## Resource Adapter
 **Resource Adapter** is a software component used to expose management information of connected managed resources to **monitoring & management tools** using the specific management protocol.
 
-Resource Adapter uses resource connector to extract management information and expose it to the outside world. Resource Adapter may expose all configured management features or some of them. It is depend on particularity of the management protocol supported by Resource Adapter. For example, you have configured SNMP Adapter and JMX Connector. JMX Connector supports operations, but SNMP Adapter can't provide access to these operations due to SNMP protocol limitations.
+Resource Adapter uses resource connector to extract management information and expose one to the outside world. Resource Adapter may expose all configured management features or some of them. That depends on type of the Resource Adapter. For example, you have configured SNMP Adapter and JMX Connector. JMX Connector supports operations, but SNMP Adapter can't provide access to these operations due to SNMP protocol limitations.
 
 Resource Adapter has the following characteristics:
-* _System Name_ (or _Adapter Name_) - the name of the Resource Adapter. Typically, system name represents the provided management protocol
-* _Configuration_ - a set of configuration properties controlling behavior and network accessibility of the adapter
+* _System Name_ (or _Adapter Name_) - name of the Resource Adapter. Generally, system name represents the provided management protocol
+* _Configuration_ - set of configuration properties controlling behavior and network accessibility of the adapter
 
 
 # Technology Stack
-SNAMP constructed on top of [Apache Karaf](http://karaf.apache.org/) and requires Java Runtime Environment.
+SNAMP is constructed on top of [Apache Karaf](http://karaf.apache.org/) and requires Java Runtime Environment.
 
 ![Technology Stack](images/tstack.png)
 
