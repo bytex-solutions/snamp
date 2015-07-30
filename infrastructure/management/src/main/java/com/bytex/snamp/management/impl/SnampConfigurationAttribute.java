@@ -30,7 +30,7 @@ import static com.bytex.snamp.internal.Utils.getBundleContextByObject;
  * @author Evgeniy Kirichenko
  */
 final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<CompositeData, CompositeType> implements CommonOpenTypesSupport<MBeanAttributeInfo> {
-
+    private static final long INFINITE_TIMEOUT = -1L;
     private static final String NAME = "configuration";
 
     private static final CompositeType SNAMP_CONFIGURATION_DATA;
@@ -95,6 +95,23 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
         }
     }
 
+    private static TimeSpan convertTimeout(final long timeout){
+        return timeout == Long.MAX_VALUE || timeout <= INFINITE_TIMEOUT ?
+                TimeSpan.INFINITE:
+                new TimeSpan(timeout);
+    }
+
+    private static long convertTimeout(final TimeSpan timeout){
+        if(timeout == TimeSpan.INFINITE)
+            return INFINITE_TIMEOUT;
+        final long result = timeout.toMillis();
+        return result == Long.MAX_VALUE ? INFINITE_TIMEOUT : result;
+    }
+
+    private static TimeSpan convertTimeout(final CompositeData entry, final String key){
+        return convertTimeout(getLong(entry, key, INFINITE_TIMEOUT));
+    }
+
     /**
      * Parse connector attributes to the TabularData object
      * @param map - the configuration entity to parse
@@ -110,9 +127,7 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
                     .cell("Attribute", ATTRIBUTE_METADATA_BUILDER.build(
                             ImmutableMap.of(
                                     "Name", attribute.getValue().getAttributeName(),
-                                    "ReadWriteTimeout", (attribute.getValue().getReadWriteTimeout() != TimeSpan.INFINITE
-                                            ? attribute.getValue().getReadWriteTimeout().convert(TimeUnit.MILLISECONDS).duration
-                                            : Long.MAX_VALUE),
+                                    "ReadWriteTimeout", convertTimeout(attribute.getValue().getReadWriteTimeout()),
                                     "AdditionalProperties", MonitoringUtils.transformAdditionalPropertiesToTabularData(
                                             attribute.getValue().getParameters())
                             )))
@@ -250,11 +265,8 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
                                 if (attributeData.containsKey("Name")) {
                                     config.setAttributeName(getString(attributeData, "Name", ""));
                                 }
-                                if (attributeData.containsKey("ReadWriteTimeout")) {
-                                    config.setReadWriteTimeout(new TimeSpan(getLong(attributeData, "ReadWriteTimeout", Long.MAX_VALUE), TimeUnit.MILLISECONDS));
-                                } else {
-                                    config.setReadWriteTimeout(TimeSpan.INFINITE);
-                                }
+                                if (attributeData.containsKey("ReadWriteTimeout"))
+                                    config.setReadWriteTimeout(convertTimeout(attributeData, "ReadWriteTimeout"));
 
                                 if (attributeData.containsKey("AdditionalProperties") && attributeData.get("AdditionalProperties") instanceof TabularData) {
                                     final TabularData params = (TabularData) attributeData.get("AdditionalProperties");
