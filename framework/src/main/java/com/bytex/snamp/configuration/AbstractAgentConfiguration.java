@@ -1,6 +1,7 @@
 package com.bytex.snamp.configuration;
 
 import com.google.common.base.Supplier;
+import com.google.common.collect.Maps;
 
 import java.util.*;
 

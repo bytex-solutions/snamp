@@ -25,7 +25,7 @@ The goal of JVM tuning is to minimize GC pauses. We offer two main strategies on
 You should select the most convenient strategy based on your enterprise IT policies.
 > In most scenarios, number of monitoring & management tools are fixed in time (i.e. number of clients are fixed). If this is true for your enterprise then choose the second strategy.
 
-According with RAM calculation methodoly you may specify minimum and maximum Java memory:
+According with RAM calculation methodology you may specify minimum and maximum Java memory:
 * For Linux, go to `bin` directory inside of installed SNAMP and open `bin/setnv` and specify
 	* `export JAVA_MIN_MEM=1024m`
 	* `export JAVA_MAX_MEM=Xm`, where `X` is your calculated memory, for example `export JAVA_MAX_MEM=2424m`
@@ -108,7 +108,7 @@ Examples:
 1. `λ = 50` tps, `t = 0.1` seconds and expected availability is `P=0,999` (99,9%) then required number of cores `k = 14`
 1. `λ = 2` tps, `t = 0.3` seconds and expected availability is `P=0,99` (99%) then required number of cores `k = 4`
 
-> Many modern CPUs support simultaneous multithreading (SMT) when one physical CPU core may process two (or more) threads in parallel. In this case, `number of cores` means number of logical cores.
+> Many modern CPUs support simultaneous multi-threading (SMT) when one physical CPU core may process two (or more) threads in parallel. In this case, `number of cores` means number of logical cores.
 
 ## Thread pool size
 > It is possible to configure internal thread pool of some resource adapters and connectors. See [Configuration](configuration.md) for more information about thread pool configuration parameters.
