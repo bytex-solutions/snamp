@@ -126,13 +126,13 @@ For JMX-compliant tool you need establish connection to SNAMP Managed Bean and r
 For HTTP-based communication, use `curl` utility. The first, verify that JMX-HTTP bridge is accessible:
 
 ```bash
-curl http://localhost:8181/jolokia
+curl http://localhost:3535/jolokia
 ```
 Output:
 ```json
 {"timestamp":1433451551,"status":200,"request":{"type":"version"},"value":{"protocol":"7.2","config":{"useRestrictorService":"false","canonicalNaming":"true","includeStackTrace":"true","listenForHttpService":"true","historyMaxEntries":"10","agentId":"192.168.1.51-25946-69e862ec-osgi","debug":"false","realm":"jolokia","serializeException":"false","agentContext":"/jolokia","agentType":"servlet","policyLocation":"classpath:/jolokia-access.xml","debugMaxEntries":"100","authMode":"basic","mimeType":"text/plain"},"agent":"1.3.0","info":{"product":"felix","vendor":"Apache","version":"4.2.1"}}}
 ```
-If HawtIO is already installed then you can use http://localhost:8181/hawtio/jolokia path. Otherwise, Jolokia Basic Authentication need to be configured:
+If HawtIO is already installed then you can use http://localhost:3535/hawtio/jolokia path. Otherwise, Jolokia Basic Authentication need to be configured:
 1. Create `org.jolokia.osgi.cfg` file in `<snamp>/etc` directory
 2. Put the following configuration properties:
 ```
@@ -145,7 +145,7 @@ org.jolokia.authMode=jaas
 
 The second, obtain SNAMP configuration:
 ```bash
-curl -u karaf:karaf http://localhost:8181/jolokia/read/com.bytex.snamp.management:type=SnampCore/configuration?maxDepth=20&maxCollectionSize=500&ignoreErrors=true&canonicalNaming=false
+curl -u karaf:karaf http://localhost:3535/jolokia/read/com.bytex.snamp.management:type=SnampCore/configuration?maxDepth=20&maxCollectionSize=500&ignoreErrors=true&canonicalNaming=false
 
 {"timestamp":1433455091,"status":200,"request":{"mbean":"com.bytex.snamp.management:type=SnampCore","attribute":"configuration","type":"read"},"value":null}
 ```
@@ -290,7 +290,7 @@ JSON format of SNAMP configuration is just a mapping between JMX data type and J
 
 If your SNAMP configuration is ready then save JSON into the file and use `curl` utility to setup a new configuration:
 ```bash
-curl -u karaf:karaf -X POST -d @config.json http://localhost:8181/jolokia/
+curl -u karaf:karaf -X POST -d @config.json http://localhost:3535/jolokia/
 ```
 The content of `config.json` file:
 ```json
@@ -354,19 +354,17 @@ Apache Karaf and SNAMP logs located in `<snamp>/data/log` folder. You can config
 See [Karaf Log Configuration](http://karaf.apache.org/manual/latest/users-guide/log.html) for more details.
 
 ### HTTP
-By default the HTTP Server listens on port 8181. You can change the port by creating a file `<snamp>/etc/org.ops4j.pax.web.cfg` with the following content:
+By default the HTTP Server listens on port `3535`. You can change the port by modifying a file `<snamp>/etc/org.ops4j.pax.web.cfg` with the following content:
 
 ```
 org.osgi.service.http.port=8181
 ```
 or by typing:
 ```
-root@karaf> config:property-set -p org.ops4j.pax.web org.osgi.service.http.port 8181
+root@karaf> config:property-set -p org.ops4j.pax.web org.osgi.service.http.port 3535
 ```
 
 The change will take effect immediately.
-
-> On Debian 7/8 there is a problem with default port `8181`. We highly recommended to change the port to something different.
 
 ## Examples
 * [Monitoring JMX resources over SNMP](examples/jmx-over-snmp.md)

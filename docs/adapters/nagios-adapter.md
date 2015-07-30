@@ -16,7 +16,7 @@ HTTP GET
 http://<snamp-host>:<port>/snamp/adapters/nagios/<adapter-instance-name>/attributes/<resource-name>/<attribute-name>
 ```
 
-`8181` is the default port of SNAMP web server.
+`3535` is the default port of SNAMP web server.
 
 This adapter supports the following output formats for each attribute:
 * Plain scalar value of the attribute
