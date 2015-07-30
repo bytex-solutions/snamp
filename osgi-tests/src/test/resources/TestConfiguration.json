@@ -1,0 +1,92 @@
+{
+  "ResourceAdapters": {
+    "snmpmon": {
+      "UserDefinedName": "snmpmon",
+      "Adapter": {
+        "Name": "snmp",
+        "Parameters": {
+          "port": {
+            "Value": "3222",
+            "Key": "port"
+          },
+          "host": {
+            "Value": "127.0.0.1",
+            "Key": "host"
+          },
+          "socketTimeout": {
+            "Value": "5000",
+            "Key": "socketTimeout"
+          },
+          "context": {
+            "Value": "1.1",
+            "Key": "context"
+          }
+        }
+      }
+    }
+  },
+  "ManagedResources": {
+    "glassfish-v4": {
+      "Connector": {
+        "Parameters": {},
+        "ConnectionString": "service:jmx:rmi:///jndi/rmi://localhost:8686/jmxrmi",
+        "Attributes": {
+          "cpuLoad": {
+            "Attribute": {
+              "Name": "ProcessCpuLoad",
+              "AdditionalProperties": {
+                "objectName": {
+                  "Value": "java.lang:type=OperatingSystem",
+                  "Key": "objectName"
+                },
+                "oid": {
+                  "Value": "1.1.1.0",
+                  "Key": "oid"
+                }
+              },
+              "ReadWriteTimeout": 10000
+            },
+            "UserDefinedName": "cpuLoad"
+          },
+          "context": {
+            "Attribute": {
+              "Name": "ContextRoot",
+              "AdditionalProperties": {
+                "objectName": {
+                  "Value": "amx:pp=/domain/applications,type=application,name=hello",
+                  "Key": "objectName"
+                },
+                "oid": {
+                  "Value": "1.1.2.0",
+                  "Key": "oid"
+                }
+              },
+              "ReadWriteTimeout": 10000
+            },
+            "UserDefinedName": "context"
+          },
+          "memoryUsage": {
+            "Attribute": {
+              "Name": "HeapMemoryUsage",
+              "AdditionalProperties": {
+                "objectName": {
+                  "Value": "java.lang:type=Memory",
+                  "Key": "objectName"
+                },
+                "oid": {
+                  "Value": "1.1.6.1",
+                  "Key": "oid"
+                }
+              },
+              "ReadWriteTimeout": 10000
+            },
+            "UserDefinedName": "memoryUsage"
+          }
+        },
+        "Events": { },
+        "ConnectionType": "jmx"
+      },
+      "UserDefinedName": "glassfish-v4"
+    }
+  }
+}

@@ -113,6 +113,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
         private static final long serialVersionUID = 6594540590402879949L;
         private final HashMap<String, String> parameters;
 
+        @SpecialUse
         public ModifiableParameters(){
             parameters = new HashMap<>(10);
         }
@@ -544,6 +545,15 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
                 markAsModified();
                 this.timeout = value;
             }
+
+            private boolean equals(final OperationConfiguration other){
+                return AbstractAgentConfiguration.equals(this, other);
+            }
+
+            @Override
+            public boolean equals(final Object other) {
+                return other instanceof OperationConfiguration && equals((OperationConfiguration)other);
+            }
         }
 
         /**
@@ -630,9 +640,13 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
                 this.eventCategory = eventCategory != null ? eventCategory : "";
             }
 
+            private boolean equals(final EventConfiguration other){
+                return AbstractAgentConfiguration.equals(this, other);
+            }
+
             @Override
-            public final boolean equals(final Object obj) {
-                return obj instanceof EventConfiguration && Objects.equals(((EventConfiguration) obj).getCategory(), getCategory());
+            public final boolean equals(final Object other) {
+                return other instanceof EventConfiguration && equals((EventConfiguration)other);
             }
 
             /**
@@ -752,6 +766,16 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
             public final void setAttributeName(final String attributeName) {
                 markAsModified();
                 this.attributeName = attributeName != null ? attributeName : "";
+            }
+
+            private boolean equals(final AttributeConfiguration other){
+                return AbstractAgentConfiguration.equals(this, other);
+            }
+
+            @Override
+            public boolean equals(final Object other) {
+                return other instanceof AttributeConfiguration &&
+                        equals((AttributeConfiguration)other);
             }
         }
 

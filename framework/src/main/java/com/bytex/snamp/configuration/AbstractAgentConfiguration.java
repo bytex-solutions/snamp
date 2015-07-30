@@ -204,6 +204,21 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
                         equals(attr1.getParameters(), attr2.getParameters());
     }
 
+    public static boolean equals(final ManagedResourceConfiguration.EventConfiguration event1, final ManagedResourceConfiguration.EventConfiguration event2){
+        return event1 == event2 ||
+                !(event1 == null || event2 == null) &&
+                        Objects.equals(event1.getCategory(), event2.getCategory()) &&
+                        equals(event1.getParameters(), event2.getParameters());
+    }
+
+    public static boolean equals(final ManagedResourceConfiguration.OperationConfiguration op1, final ManagedResourceConfiguration.OperationConfiguration op2){
+        return op1 == op2 ||
+                !(op1 == null || op2 == null) &&
+                        Objects.equals(op1.getOperationName(), op2.getOperationName()) &&
+                        Objects.equals(op1.getInvocationTimeout(), op2.getInvocationTimeout()) &&
+                        equals(op1.getParameters(), op2.getParameters());
+    }
+
     private static boolean equals(final Map<String, ?> obj1, final Map<String, ?> obj2){
         if(obj1 == obj2) return true;
         else if(obj1 == null || obj2 == null) return false;
@@ -241,6 +256,9 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         else return resource2 != null &&
                 Objects.equals(resource1.getConnectionString(),  resource2.getConnectionString()) &&
                 Objects.equals(resource1.getConnectionType(), resource2.getConnectionType()) &&
+                Objects.equals(resource1.getElements(ManagedResourceConfiguration.AttributeConfiguration.class), resource2.getElements(ManagedResourceConfiguration.AttributeConfiguration.class)) &&
+                Objects.equals(resource1.getElements(ManagedResourceConfiguration.EventConfiguration.class), resource2.getElements(ManagedResourceConfiguration.EventConfiguration.class)) &&
+                Objects.equals(resource1.getElements(ManagedResourceConfiguration.OperationConfiguration.class), resource2.getElements(ManagedResourceConfiguration.OperationConfiguration.class)) &&
                 equals(resource1.getParameters(), resource2.getParameters());
     }
 }

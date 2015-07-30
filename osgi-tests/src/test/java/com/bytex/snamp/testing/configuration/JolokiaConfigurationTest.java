@@ -1,5 +1,8 @@
 package com.bytex.snamp.testing.configuration;
 
+import com.bytex.snamp.ResourceReader;
+import com.bytex.snamp.internal.Utils;
+import com.google.common.base.Charsets;
 import com.google.gson.*;
 import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.configuration.AgentConfiguration;
@@ -10,14 +13,9 @@ import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.SystemProperties;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.Authenticator;
-import java.net.HttpURLConnection;
-import java.net.PasswordAuthentication;
-import java.net.URL;
+import java.io.*;
+import java.net.*;
+import java.util.concurrent.Callable;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import static com.bytex.snamp.jmx.json.JsonUtils.toJsonObject;
@@ -29,7 +27,7 @@ import static com.bytex.snamp.testing.connectors.jmx.AbstractJmxConnectorTest.JM
  * @version 1.0
  * @since 1.0
  */
-@SnampDependencies(SnampFeature.WRAPPED_LIBS)
+@SnampDependencies({SnampFeature.WRAPPED_LIBS})
 @SystemProperties({
         "org.jolokia.agentContext=/jolokia",
         "org.jolokia.realm=karaf",
@@ -38,6 +36,13 @@ import static com.bytex.snamp.testing.connectors.jmx.AbstractJmxConnectorTest.JM
 })
 public final class JolokiaConfigurationTest extends AbstractSnampIntegrationTest {
     private final Gson formatter = new Gson();
+    private static final String SNAMP_CORE_MBEAN = "com.bytex.snamp.management:type=SnampCore";
+    private static final URL JOLOKIA_URL = Utils.interfaceStaticInitialize(new Callable<URL>() {
+        @Override
+        public URL call() throws MalformedURLException {
+            return new URL("http://localhost:8181/jolokia");
+        }
+    });
 
     private static final class JolokiaAuthenticator extends Authenticator{
         @Override
@@ -46,11 +51,36 @@ public final class JolokiaConfigurationTest extends AbstractSnampIntegrationTest
         }
     }
 
+    private void writeAttribute(final String objectName,
+                                final String attributeName,
+                                final JsonElement attributeValue) throws IOException{
+        //write attribute
+        HttpURLConnection connection = (HttpURLConnection)JOLOKIA_URL.openConnection();
+        connection.setRequestMethod("POST");
+        Authenticator.setDefault(new JolokiaAuthenticator());
+        connection.setDoOutput(true);
+        final JsonObject request = toJsonObject("type", new JsonPrimitive("write"),
+                "mbean", new JsonPrimitive(objectName),
+                "attribute", new JsonPrimitive(attributeName),
+                "value", attributeValue);
+        IOUtils.writeString(formatter.toJson(request),
+                connection.getOutputStream(),
+                IOUtils.DEFAULT_CHARSET);
+        connection.connect();
+        try {
+            assertEquals(200, connection.getResponseCode());
+        }
+        finally {
+            connection.disconnect();
+            Authenticator.setDefault(null);
+        }
+    }
+
     private JsonElement readAttribute(final String objectName,
                                              final String attributeName) throws IOException {
-        final URL jolokiaQuery = new URL("http://localhost:8181/jolokia");
-        //write attribute
-        HttpURLConnection connection = (HttpURLConnection)jolokiaQuery.openConnection();
+
+        //read attribute
+        HttpURLConnection connection = (HttpURLConnection)JOLOKIA_URL.openConnection();
         connection.setRequestMethod("POST");
         Authenticator.setDefault(new JolokiaAuthenticator());
         connection.setDoOutput(true);
@@ -77,26 +107,82 @@ public final class JolokiaConfigurationTest extends AbstractSnampIntegrationTest
     }
 
     @Test
-    public void processConfigViaJolokia() throws IOException {
+    public void readConfigurationTest() throws IOException {
         JsonElement config =
-                readAttribute("com.bytex.snamp.management:type=SnampCore", "configuration");
+                readAttribute(SNAMP_CORE_MBEAN, "configuration");
         assertTrue(config.isJsonObject());
         assertEquals(JsonNull.INSTANCE, config.getAsJsonObject().get("value"));
         //change config
+        final String RESOURCE_NAME = "res1";
         processConfiguration(new SafeConsumer<AgentConfiguration>() {
             @Override
             public void accept(final AgentConfiguration config) {
                 final ManagedResourceConfiguration resource =
                         config.newConfigurationEntity(ManagedResourceConfiguration.class);
-                resource.getParameters().put("param1", "value");
+                resource.getParameters().put("param1", "parameterValue");
                 resource.setConnectionType("snmp");
                 resource.setConnectionString("udp://127.0.0.1/161");
-                config.getManagedResources().put("res1", resource);
+                config.getManagedResources().put(RESOURCE_NAME, resource);
             }
         }, true);
-        config = readAttribute("com.bytex.snamp.management:type=SnampCore", "configuration");
+        config = readAttribute(SNAMP_CORE_MBEAN, "configuration");
         assertTrue(config.isJsonObject());
-        assertNotEquals(JsonNull.INSTANCE, config.getAsJsonObject().get("value"));
+        config = config.getAsJsonObject().get("value");
+        assertNotEquals(JsonNull.INSTANCE, config);
+        //read managed resource
+        config = config
+                .getAsJsonObject().get("ManagedResources")
+                .getAsJsonObject().get(RESOURCE_NAME)
+                .getAsJsonObject().get("Connector")
+                .getAsJsonObject().get("Parameters")
+                .getAsJsonObject().get("param1")
+                .getAsJsonObject().get("Value");
+        assertEquals(new JsonPrimitive("parameterValue"), config);
+    }
+
+    @Test
+    public void writeConfigurationTest() throws IOException{
+        JsonElement config;
+        try(final InputStream configStream =
+                    getClass().getClassLoader().getResourceAsStream("TestConfiguration.json");
+            final InputStreamReader reader = new InputStreamReader(configStream, Charsets.UTF_8)){
+            config = formatter.fromJson(reader, JsonElement.class);
+        }
+        assertNotNull(config);
+        assertNotEquals(JsonNull.INSTANCE, config);
+        writeAttribute(SNAMP_CORE_MBEAN, "configuration", config);
+        config = readAttribute(SNAMP_CORE_MBEAN, "configuration").getAsJsonObject().get("value");
+        assertNotEquals(JsonNull.INSTANCE, config);
+        //verify saved configuration
+        JsonObject oidProperty = config
+                .getAsJsonObject().get("ManagedResources")
+                .getAsJsonObject().get("glassfish-v4")
+                .getAsJsonObject().get("Connector")
+                .getAsJsonObject().get("Attributes")
+                .getAsJsonObject().get("memoryUsage")
+                .getAsJsonObject().get("Attribute")
+                .getAsJsonObject().get("AdditionalProperties")
+                .getAsJsonObject().get("oid")
+                .getAsJsonObject();
+        assertEquals(new JsonPrimitive("1.1.6.1"), oidProperty.get("Value"));
+        //change config
+        oidProperty.addProperty("Value", "1.1.10.1");
+        writeAttribute(SNAMP_CORE_MBEAN, "configuration", config);
+        config = readAttribute(SNAMP_CORE_MBEAN, "configuration").getAsJsonObject().get("value");
+        assertNotEquals(JsonNull.INSTANCE, config);
+        //verify changed configuration
+        oidProperty = config
+                .getAsJsonObject().get("ManagedResources")
+                .getAsJsonObject().get("glassfish-v4")
+                .getAsJsonObject().get("Connector")
+                .getAsJsonObject().get("Attributes")
+                .getAsJsonObject().get("memoryUsage")
+                .getAsJsonObject().get("Attribute")
+                .getAsJsonObject().get("AdditionalProperties")
+                .getAsJsonObject().get("oid")
+                .getAsJsonObject();
+        assertEquals(new JsonPrimitive("1.1.10.1"), oidProperty.get("Value"));
+
     }
 
     @Override
