@@ -25,13 +25,13 @@ final class SnmpStringObject extends SnmpScalarObject<OctetString>{
     }
 
     @SpecialUse
-    static OctetString toSnmpObject(final Object value){
-        if(value instanceof ObjectName)
+    static OctetString toSnmpObject(final Object value) {
+        if (value instanceof ObjectName)
             return SnmpHelpers.toOctetString(((ObjectName) value).getCanonicalName());
-        else if(value instanceof String)
-            return SnmpHelpers.toOctetString((String)value);
-        else if(value instanceof Character)
-            return SnmpHelpers.toOctetString(String.valueOf((char)value));
+        else if (value instanceof String)
+            return SnmpHelpers.toOctetString((String) value);
+        else if (value instanceof Character)
+            return SnmpHelpers.toOctetString(new String(new char[]{(char) value}));
         else return SnmpHelpers.toOctetString(Objects.toString(value, DEFAULT_VALUE));
     }
 

@@ -330,14 +330,8 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
             return (BigDecimal)value;
         else if(value instanceof BigInteger)
             return new BigDecimal((BigInteger)value);
-        else if(value instanceof Long)
-            return BigDecimal.valueOf((long)value);
-        else if(value instanceof Double)
-            return BigDecimal.valueOf((double)value);
-        else if(value instanceof Integer)
-            return BigDecimal.valueOf((int)value);
         else if(value instanceof Number)
-            return BigDecimal.valueOf(((Number)value).longValue());
+            return new BigDecimal(((Number)value).longValue());
         else return null;
     }
 

@@ -18,12 +18,10 @@ final class NumberUtils {
             return (BigDecimal)value;
         else if(value instanceof BigInteger)
             return new BigDecimal((BigInteger)value);
-        else if(value instanceof Long)
-            return BigDecimal.valueOf((Long)value);
-        else if(value instanceof Integer)
-            return BigDecimal.valueOf((Integer)value);
+        else if(value instanceof BigDecimal)
+            return (BigDecimal)value;
         else if(value instanceof Number)
-            return BigDecimal.valueOf(((Number)value).doubleValue());
+            return new BigDecimal(((Number)value).doubleValue());
         else if(value instanceof String)
             return new BigDecimal((String)value);
         else if(value instanceof Boolean)

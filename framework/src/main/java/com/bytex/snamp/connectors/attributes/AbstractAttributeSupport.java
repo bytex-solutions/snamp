@@ -53,11 +53,11 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
                                                   final CompositeData options) {
             BigInteger result = toBigInteger(attributeName);
             if (readWriteTimeout != null)
-                result = result.xor(BigInteger.valueOf(readWriteTimeout.toNanos()));
+                result = result.xor(new BigInteger(Long.toString(readWriteTimeout.toNanos())));
             for (final String propertyName : options.getCompositeType().keySet())
                 result = result
                         .xor(toBigInteger(propertyName))
-                        .xor(BigInteger.valueOf(options.get(propertyName).hashCode()));
+                        .xor(new BigInteger(Integer.toString(options.get(propertyName).hashCode())));
             return result;
         }
     }

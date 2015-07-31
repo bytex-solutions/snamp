@@ -181,7 +181,7 @@ public class XmlParserDefinition {
         @Override
         public BigInteger parseAsBigInteger(final String input) throws ParseException {
             final Number n = parse(input);
-            return n instanceof BigInteger ? (BigInteger)n : BigInteger.valueOf(n.longValue());
+            return n instanceof BigInteger ? (BigInteger)n : new BigInteger(Long.toString(n.longValue()));
         }
 
         @Override
