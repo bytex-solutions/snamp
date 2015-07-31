@@ -49,7 +49,7 @@ public abstract class AbstractNotificationSupport<M extends MBeanNotificationInf
             BigInteger result = toBigInteger(category);
             for (final String propertyName : options.getCompositeType().keySet())
                 result = result.xor(toBigInteger(propertyName))
-                        .xor(new BigInteger(Integer.toString(options.get(propertyName).hashCode())));
+                        .xor(BigInteger.valueOf(options.get(propertyName).hashCode()));
             return result;
         }
     }

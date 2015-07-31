@@ -150,7 +150,7 @@ public final class ArrayUtils {
     public static Integer[] boxArray(final int[] value){
         final Integer[] result = new Integer[value.length];
         for (int i = 0; i < value.length; i++)
-            result[i] = new Integer(value[i]);  //explicit boxing to avoid caching
+            result[i] = value[i];
         return result;
     }
 

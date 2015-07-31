@@ -8,6 +8,7 @@ import org.snmp4j.smi.OctetString;
 import javax.management.InvalidAttributeValueException;
 import javax.management.ReflectionException;
 import java.lang.reflect.Type;
+import java.math.BigInteger;
 import java.util.Objects;
 
 import static org.snmp4j.smi.SMIConstants.SYNTAX_OCTET_STRING;

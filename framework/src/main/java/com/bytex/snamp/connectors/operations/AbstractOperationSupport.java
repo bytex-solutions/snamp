@@ -223,7 +223,7 @@ public abstract class AbstractOperationSupport<M extends MBeanOperationInfo> ext
             BigInteger result = toBigInteger(operationName);
             for (final String propertyName : options.getCompositeType().keySet())
                 result = result.xor(toBigInteger(propertyName))
-                        .xor(new BigInteger(Integer.toString(options.get(propertyName).hashCode())));
+                        .xor(BigInteger.valueOf(options.get(propertyName).hashCode()));
             return result;
         }
     }
