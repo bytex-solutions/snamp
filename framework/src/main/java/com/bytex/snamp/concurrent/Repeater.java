@@ -6,6 +6,7 @@ import com.bytex.snamp.internal.annotations.MethodStub;
 import java.io.Closeable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Represents lightweight timer that is used to repeat some action in time.
@@ -47,10 +48,12 @@ public abstract class Repeater implements Closeable, Runnable {
         CLOSED,
     }
 
+    private static final AtomicLong THREAD_COUNTER = new AtomicLong(0L);
     private volatile State state;
     private volatile Throwable exception;
     private final TimeSpan period;
     private RepeaterThread repeatThread;
+
 
     /**
      * Initializes a new repeater.
@@ -71,6 +74,14 @@ public abstract class Repeater implements Closeable, Runnable {
      */
     protected Repeater(final long period){
         this(new TimeSpan(period));
+    }
+
+    /**
+     * Generates name of the repeater thread.
+     * @return A new unique name of the repeater thread.
+     */
+    protected String generateThreadName(){
+        return String.format("%sThread#%s", getClass().getSimpleName(), THREAD_COUNTER.getAndIncrement());
     }
 
     /**
@@ -155,8 +166,10 @@ public abstract class Repeater implements Closeable, Runnable {
     private final static class RepeaterThreadImpl extends Thread implements RepeaterThread{
         private final long period;
 
-        private RepeaterThreadImpl(final RepeaterWorker worker, final TimeSpan period){
-            super(worker);
+        private RepeaterThreadImpl(final RepeaterWorker worker,
+                                   final String threadName,
+                                   final TimeSpan period){
+            super(worker, threadName);
             this.period = period.convert(TimeUnit.MILLISECONDS).duration;
             setDaemon(true);
             setUncaughtExceptionHandler(worker);
@@ -206,7 +219,7 @@ public abstract class Repeater implements Closeable, Runnable {
                         fault(e);
                     }
                 };
-                repeatThread = new RepeaterThreadImpl(worker, period);
+                repeatThread = new RepeaterThreadImpl(worker, generateThreadName(), period);
                 //executes periodic thread
                 repeatThread.start();
                 stateChanged(state = State.STARTED);
