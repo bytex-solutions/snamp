@@ -1,6 +1,7 @@
 package com.bytex.snamp.concurrent;
 
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Represents thread factory which spawns a new threads in the same group.
@@ -13,6 +14,7 @@ public class GroupedThreadFactory extends ThreadGroup implements ThreadFactory, 
      * Represents a priority for all newly created threads.
      */
     protected final int newThreadPriority;
+    private final AtomicLong threadNum;
 
     /**
      * Initializes a new thread factory.
@@ -22,6 +24,7 @@ public class GroupedThreadFactory extends ThreadGroup implements ThreadFactory, 
     public GroupedThreadFactory(final String groupName, final int newThreadPriority) {
         super(groupName);
         this.newThreadPriority = newThreadPriority;
+        this.threadNum = new AtomicLong(0L);
     }
 
     /**
@@ -34,6 +37,18 @@ public class GroupedThreadFactory extends ThreadGroup implements ThreadFactory, 
     }
 
     /**
+     * Gets total number of created threads inside of this group.
+     * @return The total number of created threads inside of this group.
+     */
+    public final long createdCount(){
+        return threadNum.get();
+    }
+
+    private String nextThreadName(){
+        return getName() + "#" + threadNum.getAndIncrement();
+    }
+
+    /**
      * Constructs a new {@code Thread}.  Implementations may also initialize
      * priority, name, daemon status, {@code ThreadGroup}, etc.
      *
@@ -42,8 +57,8 @@ public class GroupedThreadFactory extends ThreadGroup implements ThreadFactory, 
      * create a thread is rejected
      */
     @Override
-    public Thread newThread(@SuppressWarnings("NullableProblems") final Runnable r) {
-        final Thread t = new Thread(this, r);
+    public final Thread newThread(@SuppressWarnings("NullableProblems") final Runnable r) {
+        final Thread t = new Thread(this, r, nextThreadName());
         t.setDaemon(true);
         t.setPriority(newThreadPriority);
         return t;
