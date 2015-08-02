@@ -1,4 +1,4 @@
-package com.bytex.snamp;
+package com.bytex.snamp.core;
 
 import com.google.common.base.Supplier;
 import org.osgi.framework.ServiceReference;

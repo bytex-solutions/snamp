@@ -1,6 +1,6 @@
 package com.bytex.snamp.testing.configuration;
 
-import com.bytex.snamp.ServiceReferenceHolder;
+import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.PersistentConfigurationManager;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
@@ -16,7 +16,7 @@ public class PersistentConfigurationTest extends AbstractSnampIntegrationTest {
 
     @Test
     public void configurationTest() throws Exception {
-        final ServiceReferenceHolder<ConfigurationAdmin> admin = new ServiceReferenceHolder<>(getTestBundleContext(), ConfigurationAdmin.class);
+        final ServiceHolder<ConfigurationAdmin> admin = new ServiceHolder<>(getTestBundleContext(), ConfigurationAdmin.class);
         try{
             final PersistentConfigurationManager manager = new PersistentConfigurationManager(admin);
             manager.load();

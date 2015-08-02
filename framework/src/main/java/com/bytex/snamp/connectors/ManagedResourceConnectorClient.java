@@ -3,7 +3,7 @@ package com.bytex.snamp.connectors;
 import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.Futures;
 import com.bytex.snamp.Aggregator;
-import com.bytex.snamp.ServiceReferenceHolder;
+import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
@@ -30,7 +30,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfigurati
  * @version 1.0
  * @since 1.0
  */
-public final class ManagedResourceConnectorClient extends ServiceReferenceHolder<ManagedResourceConnector> implements Aggregator, DynamicMBean {
+public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedResourceConnector> implements Aggregator, DynamicMBean {
     /**
      * Initializes a new client of the specified managed resource.
      * @param context The context of the caller bundle. Cannot be {@literal null}.
@@ -368,7 +368,7 @@ public final class ManagedResourceConnectorClient extends ServiceReferenceHolder
 
     public static ManagedResourceConfiguration getResourceConfiguration(final BundleContext context,
                                                                         final String resourceName) throws IOException {
-        final ServiceReferenceHolder<ConfigurationAdmin> admin = new ServiceReferenceHolder<>(context,
+        final ServiceHolder<ConfigurationAdmin> admin = new ServiceHolder<>(context,
                 ConfigurationAdmin.class);
         try {
             return PersistentConfigurationManager.readResourceConfiguration(admin.getService(), resourceName);

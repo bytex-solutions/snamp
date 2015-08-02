@@ -2,11 +2,15 @@ package com.bytex.snamp.management.impl;
 
 import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.core.AbstractServiceLibrary;
+import com.bytex.snamp.core.ExposedServiceHandler;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.internal.annotations.MethodStub;
 import com.bytex.snamp.management.SnampManager;
 import com.bytex.snamp.management.FrameworkMBean;
 import com.bytex.snamp.management.OpenMBeanProvider;
+import org.osgi.framework.Filter;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogEntry;
 import org.osgi.service.log.LogListener;
@@ -15,6 +19,7 @@ import org.osgi.service.log.LogReaderService;
 import javax.management.JMException;
 import javax.management.ObjectName;
 import java.lang.management.ManagementFactory;
+import java.lang.reflect.InvocationHandler;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.Map;
@@ -121,12 +126,23 @@ public final class MonitoringServiceLibrary extends AbstractServiceLibrary {
         }
     }
 
-    private static final class LogEntryRouter implements LogListener{
+    private static final class LogEntryRouter extends ExposedServiceHandler<FrameworkMBean, LogEntry> implements LogListener{
+
+        private LogEntryRouter() throws InvalidSyntaxException {
+            super(FrameworkMBean.class, String.format("(%s=%s)",
+                    SnampCoreMBean.OBJECT_NAME_IDENTITY_PROPERTY,
+                    SnampCoreMBean.OBJECT_NAME));
+        }
+
+        @Override
+        protected void handleService(final FrameworkMBean mbean, final LogEntry entry) {
+            final LogListener listener = mbean.queryObject(LogListener.class);
+            if (listener != null)
+                listener.logged(entry);
+        }
 
         /**
          * Listener method called for each LogEntry object created.
-         * <p/>
-         * <p/>
          * As with all event listeners, this method should return to its caller as
          * soon as possible.
          *
@@ -135,28 +151,13 @@ public final class MonitoringServiceLibrary extends AbstractServiceLibrary {
          */
         @Override
         public void logged(final LogEntry entry) {
-            try {
-                Utils.processExposedService(getClass(),
-                        FrameworkMBean.class,
-                        String.format("(%s=%s)", SnampCoreMBean.OBJECT_NAME_IDENTITY_PROPERTY, SnampCoreMBean.OBJECT_NAME),
-                        new SafeConsumer<FrameworkMBean>() {
-                            @Override
-                            public void accept(final FrameworkMBean input) {
-                                input.queryObject(LogListener.class).logged(entry);
-                            }
-                        });
-            }
-            catch (final Exception e) {
-                MonitoringUtils.log(Level.SEVERE,
-                        "Invalid filter for selecting SnampCoreMBean. Call for SNAMP developers.",
-                        e);
-            }
+            handleService(entry);
         }
     }
 
     private final LogListener listener;
 
-    public MonitoringServiceLibrary(){
+    public MonitoringServiceLibrary() throws InvalidSyntaxException {
         super(new SnampManagerProvider(), new SnampCoreMBeanProvider());
         this.listener = new LogEntryRouter();
     }

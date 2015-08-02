@@ -2,7 +2,7 @@ package com.bytex.snamp.management.impl;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.bytex.snamp.ServiceReferenceHolder;
+import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.PersistentConfigurationManager;
@@ -18,7 +18,7 @@ import javax.management.openmbean.*;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
+
 import static com.bytex.snamp.jmx.CompositeDataUtils.getString;
 import static com.bytex.snamp.jmx.CompositeDataUtils.getLong;
 
@@ -320,8 +320,8 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
     @Override
     public CompositeData getValue() throws IOException, ConfigurationException, OpenDataException {
         final BundleContext bundleContext = getBundleContextByObject(this);
-        final ServiceReferenceHolder<ConfigurationAdmin> adminRef =
-                new ServiceReferenceHolder<>(bundleContext,ConfigurationAdmin.class);
+        final ServiceHolder<ConfigurationAdmin> adminRef =
+                new ServiceHolder<>(bundleContext,ConfigurationAdmin.class);
         try{
             final PersistentConfigurationManager manager = new PersistentConfigurationManager(adminRef);
             manager.load();
@@ -340,7 +340,7 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
         if(data == null || data.values().size() == 0) throw new IllegalArgumentException("No valid input data received");
 
         final BundleContext bundleContext = getBundleContextByObject(this);
-        final ServiceReferenceHolder<ConfigurationAdmin> adminRef = new ServiceReferenceHolder<>(bundleContext, ConfigurationAdmin.class);
+        final ServiceHolder<ConfigurationAdmin> adminRef = new ServiceHolder<>(bundleContext, ConfigurationAdmin.class);
         try{
             final PersistentConfigurationManager manager = new PersistentConfigurationManager(adminRef);
             manager.load();

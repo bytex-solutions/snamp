@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.ServiceReferenceHolder;
+import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.Utils;
 import org.apache.karaf.jaas.config.JaasRealm;
 import org.osgi.framework.BundleContext;
@@ -74,7 +74,7 @@ final class JaasRealmImpl implements JaasRealm {
     }
 
     static Collection<JaasRealm> getRealms(final Gson formatter, final BundleContext context) throws InvalidSyntaxException, IOException {
-        final ServiceReferenceHolder<ConfigurationAdmin> adminRef = new ServiceReferenceHolder<>(context, ConfigurationAdmin.class);
+        final ServiceHolder<ConfigurationAdmin> adminRef = new ServiceHolder<>(context, ConfigurationAdmin.class);
         try {
             final Configuration[] configs = adminRef.getService().listConfigurations(getConfigFilter());
             if (configs == null || configs.length == 0) return Collections.emptyList();

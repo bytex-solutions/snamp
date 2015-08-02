@@ -44,7 +44,11 @@ public class GroupedThreadFactory extends ThreadGroup implements ThreadFactory, 
         return threadNum.get();
     }
 
-    private String nextThreadName(){
+    /**
+     * Generates a new name for the thread.
+     * @return A new unique name of the thread.
+     */
+    protected String generateThreadName(){
         return getName() + "#" + threadNum.getAndIncrement();
     }
 
@@ -58,7 +62,7 @@ public class GroupedThreadFactory extends ThreadGroup implements ThreadFactory, 
      */
     @Override
     public final Thread newThread(@SuppressWarnings("NullableProblems") final Runnable r) {
-        final Thread t = new Thread(this, r, nextThreadName());
+        final Thread t = new Thread(this, r, generateThreadName());
         t.setDaemon(true);
         t.setPriority(newThreadPriority);
         return t;

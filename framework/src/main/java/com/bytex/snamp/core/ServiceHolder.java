@@ -1,4 +1,4 @@
-package com.bytex.snamp;
+package com.bytex.snamp.core;
 
 import com.google.common.collect.Maps;
 import org.osgi.framework.*;
@@ -7,12 +7,13 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Represents a pair of OSGi service reference and strong service reference.
+ * Represents a permanent reference to the OSGi service. You should release this service manually
+ * when you no longer need it.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-public class ServiceReferenceHolder<S> implements ServiceProvider<S> {
+public class ServiceHolder<S> implements ServiceProvider<S> {
     private final ServiceReference<S> serviceRef;
     private S serviceImpl;
 
@@ -22,7 +23,7 @@ public class ServiceReferenceHolder<S> implements ServiceProvider<S> {
      * @param serviceRef The service reference to wrap. Cannot be {@literal null}.
      * @throws java.lang.IllegalArgumentException context or serviceRef is {@literal null}.
      */
-    public ServiceReferenceHolder(final BundleContext context, final ServiceReference<S> serviceRef) throws IllegalArgumentException{
+    public ServiceHolder(final BundleContext context, final ServiceReference<S> serviceRef) throws IllegalArgumentException{
         if(context == null) throw new IllegalArgumentException("context is null.");
         else if(serviceRef == null) throw new IllegalArgumentException("serviceRef is null.");
         else serviceImpl = context.getService(this.serviceRef = serviceRef);
@@ -33,7 +34,7 @@ public class ServiceReferenceHolder<S> implements ServiceProvider<S> {
      * @param context The context of the bundle which holds this reference. Cannot be {@literal null}.
      * @param serviceType The requested service type. Cannot be {@literal null}.
      */
-    public ServiceReferenceHolder(final BundleContext context, final Class<S> serviceType) throws IllegalArgumentException{
+    public ServiceHolder(final BundleContext context, final Class<S> serviceType) throws IllegalArgumentException{
         this(context, context.getServiceReference(serviceType));
     }
 
@@ -223,14 +224,14 @@ public class ServiceReferenceHolder<S> implements ServiceProvider<S> {
         return serviceRef.compareTo(reference);
     }
 
-    public final boolean equals(final ServiceReferenceHolder<?> refHolder){
+    public final boolean equals(final ServiceHolder<?> refHolder){
         return refHolder != null && Objects.equals(serviceRef, refHolder.serviceRef);
     }
 
     @Override
     public final boolean equals(final Object obj) {
-        return obj instanceof ServiceReferenceHolder<?> &&
-                equals((ServiceReferenceHolder<?>)obj);
+        return obj instanceof ServiceHolder<?> &&
+                equals((ServiceHolder<?>)obj);
     }
 
     @Override

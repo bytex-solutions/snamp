@@ -5,7 +5,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.net.MediaType;
 import com.google.gson.Gson;
 import com.bytex.snamp.AbstractAggregator;
-import com.bytex.snamp.ServiceReferenceHolder;
+import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.core.OSGiLoggingContext;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.security.LoginConfigurationManager;
@@ -89,7 +89,7 @@ final class LoginConfigurationManagerImpl extends AbstractAggregator implements 
     public void loadConfiguration(final InputStream in) throws IOException {
         final JsonConfiguration config = JsonConfiguration.deserialize(formatter, in);
         final BundleContext context = getContext();
-        final ServiceReferenceHolder<ConfigurationAdmin> adminRef = new ServiceReferenceHolder<>(context,
+        final ServiceHolder<ConfigurationAdmin> adminRef = new ServiceHolder<>(context,
                 ConfigurationAdmin.class);
         try {
             //delete existing realms

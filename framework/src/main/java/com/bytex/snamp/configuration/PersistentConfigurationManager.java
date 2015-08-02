@@ -1,5 +1,6 @@
 package com.bytex.snamp.configuration;
 
+import com.bytex.snamp.core.ServiceHolder;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
@@ -129,7 +130,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
      * Initializes a new configuration manager.
      * @param configAdmin A reference to {@link org.osgi.service.cm.ConfigurationAdmin} service.
      */
-    public PersistentConfigurationManager(final ServiceReferenceHolder<ConfigurationAdmin> configAdmin) {
+    public PersistentConfigurationManager(final ServiceHolder<ConfigurationAdmin> configAdmin) {
         this(configAdmin.getService());
     }
 

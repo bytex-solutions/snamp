@@ -5,7 +5,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.Futures;
 import com.bytex.snamp.ExceptionPlaceholder;
-import com.bytex.snamp.ServiceReferenceHolder;
+import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.SpinWait;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
@@ -32,7 +32,7 @@ import static com.bytex.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
  * @version 1.0
  * @since 1.0
  */
-public final class ResourceAdapterClient extends ServiceReferenceHolder<ResourceAdapter> {
+public final class ResourceAdapterClient extends ServiceHolder<ResourceAdapter> {
     private static final class ResourceAdapterServiceWait extends SpinWait<ServiceReference<ResourceAdapter>, ExceptionPlaceholder>{
         private final BundleContext context;
         private final String instanceName;

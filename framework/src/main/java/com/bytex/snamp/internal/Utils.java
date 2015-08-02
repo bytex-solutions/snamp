@@ -297,53 +297,6 @@ public final class Utils {
         throw new IntrospectionException(String.format("Property %s not found", propertyName));
     }
 
-    /**
-     * Processes a service provided by the calling bundle.
-     * @param caller The caller class.
-     * @param serviceType The contract of the exposed service.
-     * @param filter Exposed service selector. May be {@literal null} or empty.
-     * @param serviceInvoker The object that implements procession logic.
-     * @param <S> The contract of the exposed service.
-     * @param <E> Type of the exception that may be occurred in service invoker.
-     * @return {@literal true}, if requested service resolved; otherwise, {@literal false}.
-     * @throws InvalidSyntaxException Invalid service selector.
-     * @throws E Service invoker internal error.
-     */
-    public static <S, E extends Throwable> boolean processExposedService(final Class<?> caller,
-                                                 final Class<S> serviceType,
-                                                 final String filter,
-                                                 final Consumer<S, E> serviceInvoker) throws InvalidSyntaxException, E {
-        return processExposedService(caller, serviceType, filter == null || filter.isEmpty() ? null : FrameworkUtil.createFilter(filter), serviceInvoker);
-    }
-
-    /**
-     * Processes a service provided by the calling bundle.
-     * @param caller The caller class.
-     * @param serviceType The contract of the exposed service.
-     * @param filter Exposed service selector. May be {@literal null} or empty.
-     * @param serviceInvoker The object that implements procession logic.
-     * @param <S> The contract of the exposed service.
-     * @param <E> Type of the exception that can be thrown by service invoker.
-     * @return {@literal true}, if requested service resolved; otherwise, {@literal false}.
-     * @throws E Service invoker internal error.
-     */
-    public static <S, E extends Throwable> boolean processExposedService(final Class<?> caller,
-                                                 final Class<S> serviceType,
-                                                 final Filter filter,
-                                                 final Consumer<S, E> serviceInvoker) throws E {
-        final Bundle owner = FrameworkUtil.getBundle(caller);
-        final ServiceReference<?>[] services = owner.getRegisteredServices();
-        for (final ServiceReference<?> ref : services != null ? services : new ServiceReference<?>[0])
-            if ((filter == null || filter.match(ref)) && isInstanceOf(ref, serviceType))
-                try {
-                    serviceInvoker.accept(serviceType.cast(owner.getBundleContext().getService(ref)));
-                    return true;
-                } finally {
-                    owner.getBundleContext().ungetService(ref);
-                }
-        return false;
-    }
-
     public static <V, E extends Exception> V withContextClassLoader(final ClassLoader loader, final ExceptionalCallable<V, E> action) throws E{
         final Thread currentThread = Thread.currentThread();
         final ClassLoader previous = currentThread.getContextClassLoader();

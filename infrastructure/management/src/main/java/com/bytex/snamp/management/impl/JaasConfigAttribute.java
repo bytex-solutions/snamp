@@ -1,6 +1,6 @@
 package com.bytex.snamp.management.impl;
 
-import com.bytex.snamp.ServiceReferenceHolder;
+import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.jmx.OpenMBean;
 import com.bytex.snamp.security.LoginConfigurationManager;
 import org.osgi.framework.BundleContext;
@@ -37,7 +37,7 @@ final class JaasConfigAttribute extends OpenMBean.OpenAttribute<byte[], ArrayTyp
         final ServiceReference<LoginConfigurationManager> managerRef =
                 context.getServiceReference(LoginConfigurationManager.class);
         if (managerRef == null) return null;
-        final ServiceReferenceHolder<LoginConfigurationManager> manager = new ServiceReferenceHolder<>(context, managerRef);
+        final ServiceHolder<LoginConfigurationManager> manager = new ServiceHolder<>(context, managerRef);
         try (final ByteArrayOutputStream out = new ByteArrayOutputStream(1024)) {
             manager.get().dumpConfiguration(out);
             return out.toByteArray();
@@ -52,7 +52,7 @@ final class JaasConfigAttribute extends OpenMBean.OpenAttribute<byte[], ArrayTyp
         final ServiceReference<LoginConfigurationManager> managerRef =
                 context.getServiceReference(LoginConfigurationManager.class);
         if (managerRef == null) throw new RuntimeException("Cannot take LoginConfigurationManager reference");
-        final ServiceReferenceHolder<LoginConfigurationManager> manager = new ServiceReferenceHolder<>(context, managerRef);
+        final ServiceHolder<LoginConfigurationManager> manager = new ServiceHolder<>(context, managerRef);
         try {
             manager.get().loadConfiguration(new ByteArrayInputStream(content));
         } catch (final Exception e) {
