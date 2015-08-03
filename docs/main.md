@@ -32,4 +32,4 @@ This is a top-level page of SNAMP technical documentation. Here you can found al
 * [Install SNAMP license](install-license.md) - how to install SNAMP license if you have purchased subscription
 
 ## Examples
-* [Step-by-step guide](examples/complete-example.md)
+* [Step-by-step guide](examples/complete-example.md) of SNAMP installation and configuration. The real-life example shows how to setup JMX-to-HTTP, JMX-to-SNMP, cmdline-to-HTTP, cmdline-to-SNMP bridges in the single SNAMP instance.
