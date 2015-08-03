@@ -32,5 +32,4 @@ This is a top-level page of SNAMP technical documentation. Here you can found al
 * [Install SNAMP license](install-license.md) - how to install SNAMP license if you have purchased subscription
 
 ## Examples
-* [JMX over SNMP](examples/jmx-over-snmp.md)
-* [SNMP over HTTP](examples/snmp-over-http.md)
+* [Step-by-step guide](examples/complete-example.md)

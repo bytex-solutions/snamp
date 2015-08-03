@@ -163,8 +163,8 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * @return The bundle that declares this service.
          */
         protected final Bundle getBundle(){
-            final WeakBundleReference bundleRef = properties.getValue(BUNDLE_REF);
-            return bundleRef != null ? bundleRef.get() : null;
+            final BundleReference bundleRef = properties.getValue(BUNDLE_REF);
+            return bundleRef != null ? bundleRef.getBundle() : null;
         }
 
         /**
@@ -738,10 +738,16 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         }
     }
 
-    private static final class WeakBundleReference extends WeakReference<Bundle>{
-        private static final String NAME = "BUNDLE_REF";
+    private static final class WeakBundleReference extends WeakReference<Bundle> implements BundleReference{
+        private static final String ACTIVATION_PROPERTY_NAME = "BUNDLE_REF";
+
         private WeakBundleReference(final AbstractBundleActivator activator){
             super(getBundleContextByObject(activator).getBundle());
+        }
+
+        @Override
+        public Bundle getBundle() {
+            return get();
         }
     }
 
@@ -753,7 +759,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      *      the bundle.
      */
     private static final NamedActivationProperty<Monitor> GLOBAL_MONITOR = defineActivationProperty(GlobalMonitor.NAME, Monitor.class);
-    private static final NamedActivationProperty<WeakBundleReference> BUNDLE_REF = defineActivationProperty(WeakBundleReference.NAME, WeakBundleReference.class);
+    private static final NamedActivationProperty<WeakBundleReference> BUNDLE_REF = defineActivationProperty(WeakBundleReference.ACTIVATION_PROPERTY_NAME, WeakBundleReference.class);
     private final ProvidedServices serviceRegistry;
     private final List<ProvidedService<?, ?>> providedServices;
     private final GlobalMonitor monitor;

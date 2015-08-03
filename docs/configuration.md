@@ -302,7 +302,6 @@ The content of `config.json` file:
 }
 ```
 
-
 ## Predefined configuration parameters
 SNAMP Configuration Model provides a set of optional configuration parameters with predefined semantics.
 
@@ -365,7 +364,3 @@ root@karaf> config:property-set -p org.ops4j.pax.web org.osgi.service.http.port 
 ```
 
 The change will take effect immediately.
-
-## Examples
-* [Monitoring JMX resources over SNMP](examples/jmx-over-snmp.md)
-* [Monitoring SNMP resources over HTTP](examples/snmp-over-http.md)

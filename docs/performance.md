@@ -35,7 +35,10 @@ According to RAM calculation methodology you may specify minimum and maximum Jav
 
 > We recommend you not to specify PermGen settings
 
-Additional JVM settings can be specified in `EXTRA_JAVA_OPTS` environment parameter.
+Additional JVM settings can be specified in `EXTRA_JAVA_OPTS` environment parameter. The following example demonstrates setup of _G1GC_ garbage collector:
+```bash
+export EXTRA_JAVA_OPTS="-XX:+UseG1GC -XX:-UseAdaptiveSizePolicy"
+```
 
 More information about memory tuning:
 * [Java 8 GC tuning](http://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/index.html)
@@ -56,7 +59,6 @@ Long-lived objects are being created for each connected managed resource and res
 If peak application performance is the first priority and there are no pause time requirements (or pauses of 1 second or longer are acceptable), then select the parallel collector with `-XX:+UseParallelGC`. You might also specify `-XX:+UseParallelOldGC` if you expect frequent SNAMP reconfiguring.
 
 Also, you can specify `-XX:GCTimeRatio=<N>` JVM option. For example, `-XX:GCTimeRatio=19` sets the goal of 1/20 or 5% of the total time in garbage collection.
-
 
 ### Response time first
 If response time is more important than overall throughput and garbage collection pauses must be kept shorter than approximately one second, then you may choose one of the following collectors:
