@@ -3,7 +3,7 @@ SNAMP Performance Tips
 This page contains information about SNAMP performance tuning.
 
 ## RAM calculation
-The minimum RAM requirement is 2 GB. This amount of memory is enough to launch single resource adapter and single resource connector.
+The minimum RAM requirement is 2 GB. This amount of memory is enough for launching single resource adapter and single resource connector.
 
 Recommended amount of memory required by SNAMP depends on number of configured adapters and connectors:
 * Single Resource Adapter memory requirement is based on number of configured attributes, notifications and operations in each connected managed resource. Use the following formula: ![Resource Adapter Memory](http://latex.codecogs.com/gif.latex?M=40&plus;\sum_{i=1}^{r}A\times&space;10&plus;N\times&space;5&plus;O), where `M` - amount of memory required by single Resource Adapter (in MB), `r` - number of connected managed resources, `A` - number of configured attributes for `i`-resource, `N` - number of configured notifications of `i`-resource, `O` - number of configured operations of `i`-resource
@@ -47,7 +47,7 @@ More information about memory tuning:
 
 
 ### Memory utilization profile
-All Java objects created during SNAMP execution can be divided by its lifecycle:
+All the Java objects created during SNAMP execution can be divided by its lifecycle:
 * Long-lived objects
 * Short-lived objects
 
