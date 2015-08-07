@@ -3,7 +3,7 @@ SNAMP 1.0.0
 Read-to-use in production environment version of SNAMP
 
 ## Overview
-The following components are released as a part of SNAMP:
+The following components are released as parts of SNAMP:
 
 Component Name| Version | Changelog
 ---- | ---- | ----
