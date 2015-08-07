@@ -18,6 +18,7 @@ import org.osgi.framework.BundleContext;
 
 import javax.management.*;
 import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.OpenDataException;
 import java.beans.IntrospectionException;
 import java.util.Set;
 import java.util.logging.Level;
@@ -36,8 +37,12 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
             super(resourceName, AbstractAttributeAggregation.class);
         }
 
+        private BundleContext getBundleContext(){
+            return Utils.getBundleContextByObject(this);
+        }
+
         @Override
-        protected AbstractAttributeAggregation connectAttribute(final String attributeID, final AttributeDescriptor descriptor) throws Exception {
+        protected AbstractAttributeAggregation connectAttribute(final String attributeID, final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException, JMException {
             switch (descriptor.getAttributeName()){
                 case PatternMatcher.NAME: return new PatternMatcher(attributeID, descriptor);
                 case UnaryComparison.NAME: return new UnaryComparison(attributeID, descriptor);
@@ -49,6 +54,7 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
                 case Peak.NAME: return new Peak(attributeID, descriptor);
                 case Decomposer.NAME: return new Decomposer(attributeID, descriptor);
                 case Stringifier.NAME: return new Stringifier(attributeID, descriptor);
+                case Composer.NAME: return new Composer(attributeID, descriptor, getBundleContext());
                 default: return null;
             }
         }

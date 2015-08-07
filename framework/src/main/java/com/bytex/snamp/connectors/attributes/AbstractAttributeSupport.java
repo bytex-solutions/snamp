@@ -1,5 +1,7 @@
 package com.bytex.snamp.connectors.attributes;
 
+import com.bytex.snamp.jmx.CompositeTypeBuilder;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.bytex.snamp.TimeSpan;
@@ -11,7 +13,7 @@ import com.bytex.snamp.internal.annotations.ThreadSafe;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 
 import javax.management.*;
-import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.*;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -590,5 +592,26 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
     @Override
     public final Iterator<M> iterator() {
         return iterator(attributes.values());
+    }
+
+    /**
+     * Composes a set of scalar attributes into a single container.
+     * @param typeName The name of the composite type. Cannot be {@literal null} or empty.
+     * @param typeDescription The description of the composite type. Cannot be {@literal null} or empty.
+     * @param selector Filter for attribute types. Cannot be {@literal null}.
+     * @param attributes A set of attributes to compose.
+     * @return Composite type with scalar attributes.
+     */
+    public static CompositeType compose(final String typeName,
+                                        final String typeDescription,
+                                        final Predicate<? super OpenType<?>> selector,
+                                        final MBeanAttributeInfo... attributes) throws OpenDataException {
+        final CompositeTypeBuilder result = new CompositeTypeBuilder(typeName, typeDescription);
+        for (final MBeanAttributeInfo attributeInfo : attributes) {
+            final OpenType<?> attributeType = AttributeDescriptor.getOpenType(attributeInfo);
+            if (selector.apply(attributeType))
+                result.addItem(attributeInfo.getName(), attributeInfo.getDescription(), attributeType);
+        }
+        return result.build();
     }
 }

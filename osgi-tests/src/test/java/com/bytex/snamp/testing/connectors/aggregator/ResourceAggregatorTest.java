@@ -4,6 +4,7 @@ import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
+import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
@@ -15,6 +16,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
 import javax.management.*;
+import javax.management.openmbean.CompositeData;
 import java.math.BigInteger;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
@@ -248,6 +250,26 @@ public final class ResourceAggregatorTest extends AbstractSnampIntegrationTest {
         });
     }
 
+    @Test
+    public void composerTest() throws JMException{
+        runTest(new TestLogic() {
+            @Override
+            public void runTest(final DynamicMBean jmxConnector, final DynamicMBean aggregator) throws JMException {
+                jmxConnector.setAttribute(new Attribute("3.0", 907));
+                jmxConnector.setAttribute(new Attribute("1.0", "Frank Underwood"));
+                jmxConnector.setAttribute(new Attribute("4.0", BigInteger.valueOf(100500L)));
+                jmxConnector.setAttribute(new Attribute("8.0", 34.2F));
+
+                final CompositeData value = (CompositeData) aggregator.getAttribute("51");
+                assertNotNull(value);
+                assertEquals(907, CompositeDataUtils.getInteger(value, "3.0", 0));
+                assertEquals("Frank Underwood", CompositeDataUtils.getString(value, "1.0", ""));
+                assertEquals(BigInteger.valueOf(100500L), CompositeDataUtils.getBigInteger(value, "4.0", BigInteger.ZERO));
+                assertEquals(34.2F, CompositeDataUtils.getFloat(value, "8.0", 0F), 0.01);
+            }
+        });
+    }
+
     @Override
     protected boolean enableRemoteDebugging() {
         return false;
@@ -423,6 +445,11 @@ public final class ResourceAggregatorTest extends AbstractSnampIntegrationTest {
         attribute.getParameters().put("foreignAttribute", "6.1");
         attribute.getParameters().put("fieldPath", "col2");
         connector.getElements(AttributeConfiguration.class).put("50", attribute);
+
+        attribute = connector.newElement(AttributeConfiguration.class);
+        attribute.setAttributeName("composer");
+        attribute.getParameters().put("source", JMX_RESOURCE_NAME);
+        connector.getElements(AttributeConfiguration.class).put("51", attribute);
 
         config.getManagedResources().put(AGGREG_RESOURCE_NAME, connector);
     }
