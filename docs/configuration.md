@@ -6,23 +6,23 @@ SNAMP can be configured using different ways:
 * via HTTP
 * via command-line tools
 
-System configuration (JVM and Apache Karaf) can be changed via set of configuration files in `<snamp>/etc` folder or commands of Karaf shell console.
+System configuration (JVM and Apache Karaf) can be changed via set of configuration files in `<snamp>/etc` folder or Karaf shell console commands.
 
 See [Configuring Apache Karaf](http://karaf.apache.org/manual/latest/users-guide/configuration.html) for more information about Apache Karaf configuration model.
 
 See [SNAMP Management Interface](mgmt.md) for more information about SNAMP management via JMX.
 
 ## Configuration Model
-SNAMP configuration describes a set of resource adapters, resource connectors and its attributes, notifications and operations.
+SNAMP configuration describes set of resource adapters, resource connectors and its attributes, notifications and operations.
 
-At high level, configuration model can be represented as a tree of configurable elements:
+At high level, configuration model can be represented as a configurable elements tree:
 * _Resource Adapters_ section may contain zero or more configured adapter instances
   * `Adapter Instance Name` - unique name of the configured resource adapter
     * `System Name`: system name of the resource adapter
     * Additional configuration parameters in the form of key/value pairs
 * _Managed Resources_ section may contain zero or more configured managed resources
   * `Managed Resource Name` - unique name of the managed resource. Some adapters use this name when exposing connected resource to the outside
-    * `Resource Connector Name` - the system name of the resource connector
+    * `Resource Connector Name` - system name of the resource connector
     * `Connection String` - resource-specific connection string used by Resource Connector
     * Additional configuration parameters in the form of key/value pairs
     * _Attributes_ section may contain zero or more configured attributes
@@ -31,18 +31,18 @@ At high level, configuration model can be represented as a tree of configurable 
 
 _Attributes_ section:
 * `Attribute Instance Name` - unique name of the attribute. Resource Connector uses this name when exposing attributes to Resource Adapters
-  * `Name` - the name of the attribute declared by managed resource. Note that this name depends on the management information provided by managed resource. This is the required parameter.
+  * `Name` - name of the attribute declared by managed resource. Note that this name depends on the management information provided by managed resource. This parameter is required.
   * `Read/write timeout` - timeout (in millis) used when accessing attribute value. This is the optional parameter.
   * Additional configuration parameters in the form of key/value pairs
 
 _Events_ section:
 * `Event Name` - unique name of the event. Resource Connector uses this name as notification type when exposing notifications to Resource Adapters
-  * `Category` - the event category declared by managed resource. Note that category depends on the management information provided by managed resource. This is the required parameter
+  * `Category` - event category declared by managed resource. Note that the category depends on the management information provided by managed resource. This parameter is required.
   * Additional configuration parameters in the form of the key/value pairs
 
 _Operations_ section may contain zero:
 * `Operation instance name` - unique name of the operation. Resource Connector uses this name when exposing operations to Resource Adapters
-  * `Operation Name` - the name of the operation declared by managed resource. Note that operation name depends on the management information provided by managed resource. This is the required parameter
+  * `Operation Name` - name of the operation declared by managed resource. Note that operation name depends on the management information provided by managed resource. This parameter is required.
   * Additional configuration parameters in the form of the key/value pairs
 
 A set of additional configuration parameters depends on the particular Resource Adapter or Resource Connector.
@@ -107,16 +107,16 @@ SNAMP Management Console allows you to configure and maintain SNAMP via user-fri
 > SNAMP Management Console available in paid subscription only
 
 The console supports the following configuration features:
-* Highlight the available Resource Adapters
-* Highlight the available Resource Connectors
-* Highlight the available configuration properties
+* Highlight available Resource Adapters
+* Highlight available Resource Connectors
+* Highlight available configuration properties
 * Discovers available attributes, events and operations
 * Start, stop and restart resource adapters and connectors
 
 SNAMP Management Console build on top of powerful [hawt.io](http://hawt.io) web console.
 
 ## Without SNAMP Management Console
-There are the following ways to change the SNAMP configuration:
+There are several ways to change SNAMP configuration:
 * Using JMX tool such as JConsole or VisualVM
 * Using JMX command-line tool such as [jmxterm](http://wiki.cyclopsgroup.org/jmxterm/)
 * Using HTTP protocol and `curl` or `wget` utility
@@ -153,7 +153,7 @@ curl -u karaf:karaf http://localhost:3535/jolokia/read/com.bytex.snamp.managemen
 
 `value` field in the resulting JSON holds SNAMP configuration in the form of the JSON tree. `null` means that SNAMP configuration is empty. JSON structure of the SNAMP configuration repeats its logical structure described above.
 
-The following example shows setup of JMX-to-SNMP bridge:
+Following example shows setup of JMX-to-SNMP bridge:
 ```javascript
 {
   "ResourceAdapters": {
@@ -303,7 +303,7 @@ The content of `config.json` file:
 ```
 
 ## Predefined configuration parameters
-SNAMP Configuration Model provides a set of optional configuration parameters with predefined semantics.
+SNAMP Configuration Model provides set of optional configuration parameters with predefined semantics.
 
 Parameter | Applied to | Meaning
 ---- | ---- | ----
@@ -337,17 +337,17 @@ debug | Info useful to developers for debugging the application, not useful duri
 Some Resource Connectors and Adapters supports explicit configuration of its internal thread pool. All related configuration parameters are optional therefore you may specify some of them. But you should take into account the following restrictions:
 * `minPoolSize` must be less than `maxPoolSize`
 * If `queueSize` is not specified explicitly then SNAMP component uses unlimited capacity of the queue
-* It is not recommended to set `keepAliveTime` to zero due to performance penalties
+* Setting `keepAliveTime` to zero is not recommended due to performance penalties
 * If `priority` is not specified then SNAMP uses default OS priority for threads in pool
-* `priority` must be is in range _1..10_. Note that _1_ is the lowest priority.
+* value ща `priority` must lie in the interval _1..10_, where _1_ is the lowest priority.
 
 ## Configuring OSGi
-All configuration files located in `<snamp>/etc` directory. These files supply a low-level access to Apache Karaf configuration.
+All configuration files are located in `<snamp>/etc` folder. These files supply a low-level access to Apache Karaf configuration.
 
 ### Logging
-Apache Karaf and SNAMP logs located in `<snamp>/data/log` folder. You can configure log rotation, severity level and other logging settings using the following configurations files in `<snamp>/etc` directory:
+Apache Karaf and SNAMP logs are located in `<snamp>/data/log` folder. You can configure log rotation, severity level and other logging settings using the following configurations files in `<snamp>/etc` folder:
 * `org.ops4j.pax.logging.cfg` - initial log configuration (appenders, levels, log message format)
-* `java.util.logging.properties` - advanced configuration properties for standard Java logging. It is not recommended to change this file
+* `java.util.logging.properties` - advanced configuration properties for standard Java logging. Changing this file is not recommended.
 * `org.apache.karaf.log.cfg` - display configuration of the log records in the shell console
 
 See [Karaf Log Configuration](http://karaf.apache.org/manual/latest/users-guide/log.html) for more details.
