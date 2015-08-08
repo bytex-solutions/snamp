@@ -6,6 +6,7 @@ import com.bytex.snamp.internal.Utils;
 
 import javax.management.JMException;
 import java.util.logging.Logger;
+import static com.bytex.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableEventConfiguration;
 
 /**
  * @author Roman Sakno
@@ -30,5 +31,12 @@ final class HealthCheckNotification extends AbstractAggregatorNotification {
         } catch (final JMException e) {
             sender.sendNotification(this, e.getMessage(), Utils.getStackTrace(e));
         }
+    }
+
+    static SerializableEventConfiguration getConfiguration() {
+        final SerializableEventConfiguration result = new SerializableEventConfiguration(CATEGORY);
+        result.getParameters().put(AggregatorConnectorConfiguration.SOURCE_PARAM, "");
+        result.getParameters().put(AggregatorConnectorConfiguration.FOREIGN_ATTRIBUTE_PARAM, "");
+        return result;
     }
 }

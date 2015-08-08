@@ -30,13 +30,15 @@ final class AggregatorDiscoveryService extends AbstractAggregator implements Dis
                 Average.getConfiguratoin() ,
                 Peak.getConfiguration(),
                 Decomposer.getConfiguration(),
-                Stringifier.getConfiguration()
+                Stringifier.getConfiguration(),
+                Composer.getConfiguration()
         );
     }
 
     private static Collection<EventConfiguration> discoverEvents(){
         return ImmutableList.<EventConfiguration>of(
-            PeriodicAttributeQuery.getConfiguration()
+            PeriodicAttributeQuery.getConfiguration(),
+            HealthCheckNotification.getConfiguration()
         );
     }
 
