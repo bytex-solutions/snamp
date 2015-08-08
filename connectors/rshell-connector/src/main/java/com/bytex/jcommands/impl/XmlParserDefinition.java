@@ -41,11 +41,7 @@ public class XmlParserDefinition {
     private static final Pattern whitespaceMatcher = Pattern.compile("\\p{javaWhitespace}+");
 
     private static final class RegexScriptEngine extends AbstractScriptEngine{
-        private final ScriptEngine javaScriptEngine;
-
-        private RegexScriptEngine(final ScriptEngineManager manager){
-            javaScriptEngine = Objects.requireNonNull(manager.getEngineByName(JAVASCRIPT_LANG),
-                    String.format("Unable to load %s script engine", JAVASCRIPT_LANG));
+        private RegexScriptEngine(){
         }
 
         /**
@@ -69,9 +65,8 @@ public class XmlParserDefinition {
          * @throws NullPointerException         if either argument is null.
          */
         @Override
-        public Object eval(final String script, final ScriptContext context) throws ScriptException {
-            //Wraps regexp into the scanner expression
-            return javaScriptEngine.eval(String.format("scan.next('%s');", script), context);
+        public String eval(final String script, final ScriptContext context) throws ScriptException {
+            return getScanner(this).next(script);
         }
 
         /**
@@ -114,8 +109,8 @@ public class XmlParserDefinition {
          * @return A <code>Bindings</code> that can be used to replace the state of this <code>ScriptEngine</code>.
          */
         @Override
-        public Bindings createBindings() {
-            return javaScriptEngine.createBindings();
+        public SimpleBindings createBindings() {
+            return new SimpleBindings();
         }
     }
 
@@ -461,6 +456,12 @@ public class XmlParserDefinition {
         blobFormatter = BLOBFormat.HEX;
     }
 
+    private static Scanner getScanner(final ScriptEngine engine) {
+        final Object scanner = engine.get(SCAN_BINDING);
+        assert scanner instanceof Scanner : scanner;
+        return (Scanner) scanner;
+    }
+
     @XmlAttribute(name = "blobFormat", namespace = XmlConstants.NAMESPACE, required = false)
     @SpecialUse
     public final void setBlobParsingFormat(final BLOBFormat value){
@@ -624,7 +625,7 @@ public class XmlParserDefinition {
     private ScriptEngine createScriptEngine(final ScriptEngineManager manager){
         final String language;
         switch (language = getParsingLanguage()){
-            case REGEXP_LANG: return new RegexScriptEngine(manager);
+            case REGEXP_LANG: return new RegexScriptEngine();
             default: return manager.getEngineByName(language);
         }
     }
@@ -870,7 +871,7 @@ public class XmlParserDefinition {
     private Object parseArray(final ResettableIterator parsingTemplateIter,
                                      final ScriptEngine engine) throws ScriptException {
         final ArrayBuilder builder = new ArrayBuilder();
-        final Scanner stream = (Scanner)engine.get(SCAN_BINDING);
+        final Scanner stream = getScanner(engine);
         while (stream.hasNext() && parsingTemplateIter.hasNext()) {
             final Object templateFragment = parsingTemplateIter.next();
             if (templateFragment instanceof String)  //pass through placeholder
@@ -901,7 +902,7 @@ public class XmlParserDefinition {
     private Map<String, ?> parseDictionary(final ResettableIterator parsingTemplateIter,
                                                 final ScriptEngine engine) throws ScriptException {
         final Map<String, Object> result = newHashMap(20);
-        final Scanner stream = (Scanner)engine.get(SCAN_BINDING);
+        final Scanner stream = getScanner(engine);
         while (stream.hasNext() && parsingTemplateIter.hasNext()){
             final Object templateFragment = parsingTemplateIter.next();
             if(templateFragment instanceof String)
@@ -927,7 +928,7 @@ public class XmlParserDefinition {
                                                        final ScriptEngine engine) throws ScriptException{
         final List<HashMap<String, ?>> table = newLinkedList();
         HashMap<String, Object> row = new HashMap<>(20);
-        final Scanner stream = (Scanner)engine.get(SCAN_BINDING);
+        final Scanner stream = getScanner(engine);
         while (stream.hasNext() && parsingTemplateIter.hasNext()){
             final Object templateFragment = parsingTemplateIter.next();
             if(templateFragment instanceof String)

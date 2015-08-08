@@ -27,10 +27,10 @@ You may select the most convenient strategy based on your enterprise IT policies
 
 According to RAM calculation methodology you may specify minimum and maximum Java memory:
 * For Linux, go to `bin` directory (within the SNAMP folder) and open `bin/setnv` and specify
-	* `export JAVA_MIN_MEM=1024m`
+	* `export JAVA_MIN_MEM=1G`
 	* `export JAVA_MAX_MEM=Xm`, where `X` is your calculated memory, for example `export JAVA_MAX_MEM=2424m`
 * For Windows, go to `bin` directory (within the SNAMP folder) and open `bin/setenv.bat`
-	* `SET JAVA_MIN_MEM=1024m`
+	* `SET JAVA_MIN_MEM=1G`
 	* `SET JAVA_MAX_MEM=Xm`,  where `X` is your calculated memory, for example `SET JAVA_MAX_MEM=2424m`
 
 > We recommend you not to specify PermGen settings

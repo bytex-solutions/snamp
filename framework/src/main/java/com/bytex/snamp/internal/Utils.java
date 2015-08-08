@@ -147,14 +147,17 @@ public final class Utils {
                 null;
     }
 
-    public static boolean isInstanceOf(final ServiceReference<?> serviceRef, final String serviceType){
+    private static boolean isInstanceOf(final ServiceReference<?> serviceRef, final String serviceType) {
         final Object names = serviceRef.getProperty(OBJECTCLASS);
-        if(names != null && names.getClass().isArray())
-            for(int i = 0; i < Array.getLength(names); i++)
-                if(Objects.equals(Array.get(names, i), serviceType)) return true;
-        return false;
+        return names instanceof Object[] && ArrayUtils.contains((Object[]) names, serviceType);
     }
 
+    /**
+     * Determines whether the specified service reference is a reference of the specified service type.
+     * @param serviceRef A reference to check. Cannot be {@literal null}.
+     * @param serviceType Expected service type. Cannot be {@literal null}.
+     * @return {@literal true}, if the specified reference represents a service of the specified type; otherwise, {@literal false}.
+     */
     public static boolean isInstanceOf(final ServiceReference<?> serviceRef, final Class<?> serviceType){
         return isInstanceOf(serviceRef, serviceType.getName());
     }
