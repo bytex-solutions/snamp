@@ -35,6 +35,7 @@ counter | Unary | int64 | Summarizes value of the foreign attribute during updat
 average | Unary | float64 | Computes average value of the foreign attribute during update interval
 peak | Unary | float64 | Shows peak value of the foreign attribute during update interval
 decomposer | Unary | string | Extracts value from the dictionary returned by foreign attribute
+composer | 0-arity | dictionary | Composes all scalar attributes provided by the foreign resource into a single composite attribute
 stringifier | Unary | string | Exposes value of the foreign attribute as a string
 
 The attribute with any other name will no be exposed by connector.
@@ -113,6 +114,11 @@ Parameter | Type | Required | Meaning | Example
 source | string | Yes | The name of the managed resource used as a source of foreign attributes | `app-server`
 foreignAttribute | string | Yes | The name of the foreign attribute which supplies dictionary | `stats`
 fieldPath | string | Yes | _/_-separated path to the value in the dictionary | `memory/usage`
+
+* _composer_ - composes all scalar attributes provided by the specified foreign resource
+Parameter | Type | Required | Meaning | Example
+---- | ---- | ---- | ---- | ----
+source | string | Yes | The name of the managed resource used as a source of foreign scalar attributes | `app-server`
 
 * _stringifier_ - `toString(foreignAttribute)`
 
