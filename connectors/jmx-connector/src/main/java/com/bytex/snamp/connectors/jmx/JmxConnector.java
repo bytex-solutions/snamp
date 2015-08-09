@@ -143,12 +143,13 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
             this.connectionManager = connectionManager;
         }
 
-        private JmxOperationInfo enableOperation(final String userDefinedName,
-                                                 final OperationDescriptor descriptor,
-                                                 final ObjectName owner,
-                                                 final boolean useRegexp) throws Exception{
+        private static JmxOperationInfo enableOperation(final JmxConnectionManager connectionManager,
+                                                        final String userDefinedName,
+                                                        final OperationDescriptor descriptor,
+                                                        final ObjectName owner,
+                                                        final boolean useRegexp) throws Exception{
             if(useRegexp)
-                return enableOperation(userDefinedName, descriptor, connectionManager.resolveName(owner), false);
+                return enableOperation(connectionManager, userDefinedName, descriptor, connectionManager.resolveName(owner), false);
             final MBeanOperationInfo metadata = connectionManager.handleConnection(new MBeanServerConnectionHandler<MBeanOperationInfo>() {
                 @Override
                 public MBeanOperationInfo handle(final MBeanServerConnection connection) throws IOException, JMException {
@@ -161,6 +162,14 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
             if(metadata != null)
                 return new JmxOperationInfo(userDefinedName, metadata, owner, descriptor);
             else throw new MBeanException(new IllegalArgumentException(String.format("Operation '%s' doesn't exist in '%s' object", descriptor.getOperationName(), owner)));
+
+        }
+
+        private JmxOperationInfo enableOperation(final String userDefinedName,
+                                                 final OperationDescriptor descriptor,
+                                                 final ObjectName owner,
+                                                 final boolean useRegexp) throws Exception {
+            return enableOperation(connectionManager, userDefinedName, descriptor, owner, useRegexp);
         }
 
         private JmxOperationInfo enableOperation(final String userDefinedName,
@@ -332,9 +341,10 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
             });
         }
 
-        private JmxAttributeInfo createPlainAttribute(final ObjectName namespace,
-                                                          final String attributeName,
-                                                          final AttributeDescriptor metadata) throws Exception{
+        private static JmxAttributeInfo createPlainAttribute(final JmxConnectionManager connectionManager,
+                                                             final ObjectName namespace,
+                                                      final String attributeName,
+                                                      final AttributeDescriptor metadata) throws Exception{
             //extracts JMX attribute metadata
             final MBeanAttributeInfo targetAttr = connectionManager.handleConnection(new MBeanServerConnectionHandler<MBeanAttributeInfo>() {
                 @Override
@@ -346,6 +356,12 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
             });
             if(targetAttr == null) throw new AttributeNotFoundException(attributeName);
             else return new JmxAttributeInfo(attributeName, targetAttr, namespace, metadata);
+        }
+
+        private JmxAttributeInfo createPlainAttribute(final ObjectName namespace,
+                                                          final String attributeName,
+                                                          final AttributeDescriptor metadata) throws Exception {
+            return createPlainAttribute(connectionManager, namespace, attributeName, metadata);
         }
 
         private JmxAttributeInfo connectAttribute(final String attributeName,

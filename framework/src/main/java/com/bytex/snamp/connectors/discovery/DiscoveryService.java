@@ -100,6 +100,7 @@ public interface DiscoveryService extends SupportService {
      * @param entityTypes An array of requested entity types.
      * @return Discovery result.
      */
+    @SuppressWarnings("unchecked")
     DiscoveryResult discover(final String connectionString,
                              final Map<String, String> connectionOptions,
                              final Class<? extends FeatureConfiguration>... entityTypes);
