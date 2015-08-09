@@ -1,6 +1,6 @@
 SNAMP Overview
 ====
-SNAMP is a middleware acting as a bridge between **managed resources** and **monitoring & management tools** used in your enterprise and hides management protocol details. 
+SNAMP is a middleware acting as a bridge between **managed resources** and **monitoring & management tools** used in your enterprise and reduce complexity of monitoring & management.  
 
 ![Architecture Overview](images/snamp.png)
 

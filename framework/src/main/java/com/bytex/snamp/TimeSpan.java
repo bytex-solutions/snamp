@@ -191,7 +191,7 @@ public final class TimeSpan implements Serializable {
     @Override
     @ThreadSafe
     public final String toString() {
-        return String.format("%s %s", duration, unit);
+        return duration + " " + unit;
     }
 
     /**
