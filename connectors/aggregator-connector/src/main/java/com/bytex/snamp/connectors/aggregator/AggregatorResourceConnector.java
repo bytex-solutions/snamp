@@ -1,6 +1,5 @@
 package com.bytex.snamp.connectors.aggregator;
 
-import com.google.common.base.Function;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.Repeater;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
@@ -14,11 +13,13 @@ import com.bytex.snamp.connectors.notifications.NotificationListenerInvoker;
 import com.bytex.snamp.connectors.notifications.NotificationListenerInvokerFactory;
 import com.bytex.snamp.core.OSGiLoggingContext;
 import com.bytex.snamp.internal.Utils;
+import com.google.common.base.Function;
 import org.osgi.framework.BundleContext;
 
-import javax.management.*;
+import javax.management.InstanceNotFoundException;
+import javax.management.JMException;
+import javax.management.MBeanNotificationInfo;
 import javax.management.openmbean.CompositeData;
-import javax.management.openmbean.OpenDataException;
 import java.beans.IntrospectionException;
 import java.util.Set;
 import java.util.logging.Level;

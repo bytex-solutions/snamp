@@ -322,7 +322,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
         attributes.forEachAttribute(new RecordReader<String, HttpAttributeAccessor, ExceptionPlaceholder>() {
             @Override
             public boolean read(final String resourceName, final HttpAttributeAccessor accessor) {
-                return result.put(resourceName, new ReadOnlyFeatureBindingInfo<MBeanAttributeInfo>(accessor,
+                return result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor,
                         "path", accessor.getPath(servletContext, resourceName),
                         FeatureBindingInfo.MAPPED_TYPE, accessor.getJsonType()
                 ));
@@ -338,9 +338,9 @@ final class HttpAdapter extends AbstractResourceAdapter {
         notifs.forEachNotification(new RecordReader<String, HttpNotificationAccessor, ExceptionPlaceholder>() {
             @Override
             public boolean read(final String resourceName, final HttpNotificationAccessor accessor) {
-                return result.put(resourceName, new ReadOnlyFeatureBindingInfo<MBeanNotificationInfo>(accessor,
-                            "path", accessor.getPath(servletContext, resourceName)
-                        ));
+                return result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor,
+                        "path", accessor.getPath(servletContext, resourceName)
+                ));
             }
         });
         return result;

@@ -16,7 +16,6 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
-import java.util.Objects;
 
 /**
  * Represents an abstract class for attribute handling script

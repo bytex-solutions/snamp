@@ -1,15 +1,11 @@
 package com.bytex.snamp.management.impl;
 
-import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.ExposedServiceHandler;
-import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.internal.annotations.MethodStub;
-import com.bytex.snamp.management.SnampManager;
 import com.bytex.snamp.management.FrameworkMBean;
 import com.bytex.snamp.management.OpenMBeanProvider;
-import org.osgi.framework.Filter;
-import org.osgi.framework.FrameworkUtil;
+import com.bytex.snamp.management.SnampManager;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogEntry;
@@ -19,12 +15,10 @@ import org.osgi.service.log.LogReaderService;
 import javax.management.JMException;
 import javax.management.ObjectName;
 import java.lang.management.ManagementFactory;
-import java.lang.reflect.InvocationHandler;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.Map;
 import java.util.Objects;
-import java.util.logging.Level;
 
 /**
  * @author Roman Sakno

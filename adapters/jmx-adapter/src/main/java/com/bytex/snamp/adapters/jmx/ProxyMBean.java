@@ -16,7 +16,6 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
 import javax.management.*;
-import javax.management.NotificationListener;
 import javax.management.openmbean.*;
 import java.io.Closeable;
 import java.lang.management.ManagementFactory;

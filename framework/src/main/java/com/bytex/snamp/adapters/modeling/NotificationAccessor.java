@@ -8,7 +8,6 @@ import com.bytex.snamp.connectors.notifications.TypeBasedNotificationFilter;
 import com.bytex.snamp.internal.annotations.MethodStub;
 
 import javax.management.*;
-import javax.management.NotificationListener;
 
 /**
  * Exposes access to the individual notification.

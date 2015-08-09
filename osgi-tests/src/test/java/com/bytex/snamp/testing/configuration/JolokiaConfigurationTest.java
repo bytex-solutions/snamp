@@ -1,19 +1,21 @@
 package com.bytex.snamp.testing.configuration;
 
-import com.bytex.snamp.ResourceReader;
-import com.bytex.snamp.internal.Utils;
-import com.google.common.base.Charsets;
-import com.google.gson.*;
 import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.SystemProperties;
+import com.google.common.base.Charsets;
+import com.google.gson.*;
 import org.junit.Test;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.*;
 import java.util.concurrent.Callable;
 

@@ -1,13 +1,13 @@
 package com.bytex.snamp.internal;
 
-import com.google.common.base.*;
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.Consumer;
 import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.Wrapper;
 import com.bytex.snamp.internal.annotations.Internal;
-import org.osgi.framework.*;
-import org.osgi.service.event.Event;
+import com.google.common.base.*;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.ServiceReference;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
@@ -15,7 +15,6 @@ import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Array;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -323,27 +322,6 @@ public final class Utils {
         if(map1 == null) return map2 == null;
         else
             return map2 != null && map1.size() == map2.size() && map1.entrySet().containsAll(map2.entrySet());
-    }
-
-    /**
-     * Reads event property.
-     * @param ev An event to parse.
-     * @param propertyName The name of the event property to read.
-     * @param propertyType The type of the event property.
-     * @param defaultValue The default value if the property is not available.
-     * @param <T> Type of the property to read.
-     * @return The value of the property; or default value.
-     */
-    public static <T> T getEventProperty(final Event ev,
-                                         final String propertyName,
-                                         final Class<T> propertyType,
-                                         final T defaultValue){
-        if(ev == null) return defaultValue;
-        else if(ev.containsProperty(propertyName)){
-            final Object result = ev.getProperty(propertyName);
-            return propertyType.isInstance(result) ? propertyType.cast(result) : defaultValue;
-        }
-        else return defaultValue;
     }
 
     private static String getStackTrace(StackTraceElement[] stackTrace) {

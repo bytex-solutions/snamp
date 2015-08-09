@@ -17,6 +17,6 @@ public final class IntegerRangeTest extends Assert {
 
     @Test(expected = IllegalArgumentException.class)
     public void invalidParsingTest(){
-        final IntegerRange range = new IntegerRange("12..14a");
+        new IntegerRange("12..14a");
     }
 }

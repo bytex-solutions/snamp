@@ -9,14 +9,16 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
 import org.osgi.framework.BundleContext;
 
-import javax.management.*;
+import javax.management.Attribute;
+import javax.management.DynamicMBean;
+import javax.management.InstanceNotFoundException;
+import javax.management.JMException;
 import javax.management.openmbean.*;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 /**
- * Composes scalar attributes from the managed resoruce into a single vector.
+ * Composes scalar attributes from the managed resource into a single vector.
  * This class cannot be inherited.
  * @author Roman Sakno
  * @since 1.0

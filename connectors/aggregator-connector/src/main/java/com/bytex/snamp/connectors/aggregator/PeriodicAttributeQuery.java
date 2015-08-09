@@ -4,11 +4,9 @@ import com.bytex.snamp.configuration.SerializableAgentConfiguration.Serializable
 import com.bytex.snamp.connectors.attributes.AttributeSupport;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 
-import javax.management.*;
+import javax.management.AttributeNotFoundException;
+import javax.management.JMException;
 import java.util.logging.Logger;
-
-import static com.bytex.snamp.connectors.aggregator.AggregatorConnectorConfiguration.getForeignAttributeName;
-import static com.bytex.snamp.connectors.aggregator.AggregatorConnectorConfiguration.getSourceManagedResource;
 
 /**
  * @author Roman Sakno

@@ -3,11 +3,12 @@ package com.bytex.jcommands.channels;
 import com.bytex.jcommands.CommandExecutionChannel;
 import com.bytex.jcommands.channels.spi.CommandExecutionChannelSpi;
 import com.bytex.jcommands.channels.spi.URICommandExecutionChannelSpi;
-import com.google.common.base.Strings;
 
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.*;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Objects;
+import java.util.ServiceLoader;
 
 /**
  * Represents consolidated factory of

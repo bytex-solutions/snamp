@@ -1,9 +1,9 @@
 package com.bytex.snamp.configuration;
 
 import com.google.common.base.Supplier;
-import com.google.common.collect.Maps;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Represents a base class for custom agent configuration holders.

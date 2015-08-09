@@ -77,9 +77,9 @@ final class NagiosAdapter extends AbstractResourceAdapter {
         attributes.forEachAttribute(new RecordReader<String, NagiosAttributeAccessor, ExceptionPlaceholder>() {
             @Override
             public boolean read(final String resourceName, final NagiosAttributeAccessor accessor)  {
-                return result.put(resourceName, new ReadOnlyFeatureBindingInfo<MBeanAttributeInfo>(accessor,
-                    "path", accessor.getPath(servletContext, resourceName),
-                     FeatureBindingInfo.MAPPED_TYPE, "Text"
+                return result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor,
+                        "path", accessor.getPath(servletContext, resourceName),
+                        FeatureBindingInfo.MAPPED_TYPE, "Text"
                 ));
             }
         });

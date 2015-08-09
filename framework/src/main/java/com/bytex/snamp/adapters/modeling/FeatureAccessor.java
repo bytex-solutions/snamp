@@ -15,7 +15,6 @@ import java.util.Objects;
  * Represents an abstract class for all managed resource feature accessor.
  * This class cannot be derived directly from your code.
  * @param <M> The type of the managed resource feature.
- * @param <S> The type of the feature supporter.
  */
 public abstract class FeatureAccessor<M extends MBeanFeatureInfo> implements Supplier<M>, DescriptorRead, Closeable {
     private final M metadata;

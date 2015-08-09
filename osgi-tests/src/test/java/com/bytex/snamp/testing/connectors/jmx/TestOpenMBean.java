@@ -179,7 +179,7 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
                 put("col3", "Luke Skywalker");
             }}));
         }
-        catch (final OpenDataException e){
+        catch (final OpenDataException ignored){
 
         }
         if(generateNotifs){
