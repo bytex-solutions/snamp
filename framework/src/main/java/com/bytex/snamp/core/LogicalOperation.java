@@ -1,12 +1,11 @@
 package com.bytex.snamp.core;
 
+import com.bytex.snamp.Consumer;
+import com.bytex.snamp.TimeSpan;
+import com.bytex.snamp.internal.annotations.MethodStub;
 import com.google.common.base.Joiner;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
-import com.bytex.snamp.Consumer;
-import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.internal.IllegalStateFlag;
-import com.bytex.snamp.internal.annotations.MethodStub;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,6 +22,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class LogicalOperation implements AutoCloseable {
     private static final ThreadLocal<LogicalOperation> operations = new ThreadLocal<>();
     static final CorrelationIdentifierGenerator correlIdGenerator = new DefaultCorrelationIdentifierGenerator();
+    private static final Joiner.MapJoiner TO_STRING_JOINER = Joiner.on(',').withKeyValueSeparator("=");
 
     /**
      * Represents correlation identifier generator.
@@ -57,7 +57,6 @@ public class LogicalOperation implements AutoCloseable {
 
     private final String name;
     private LogicalOperation parent;
-    private final IllegalStateFlag operationState = createStateFlagHolder();
     private final Stopwatch timer;
     private final long correlationID;
 
@@ -78,15 +77,6 @@ public class LogicalOperation implements AutoCloseable {
             this.correlationID = correlationID.generate();
         else this.correlationID = -1;
         operations.set(this);
-    }
-
-    private static IllegalStateFlag createStateFlagHolder(){
-        return new IllegalStateFlag() {
-            @Override
-            protected IllegalStateException create() {
-                return new IllegalStateException("Logical operation is finished");
-            }
-        };
     }
 
     /**
@@ -142,7 +132,6 @@ public class LogicalOperation implements AutoCloseable {
      * @throws java.lang.IllegalStateException This operation is closed.
      */
     public final LogicalOperation getParent(){
-        operationState.verify();
         return parent;
     }
 
@@ -151,7 +140,7 @@ public class LogicalOperation implements AutoCloseable {
      * @return {@literal true}, if this operation is closed; otherwise, {@literal false}.
      */
     public final boolean isClosed(){
-        return operationState.get();
+        return parent == null;
     }
 
     /**
@@ -186,12 +175,13 @@ public class LogicalOperation implements AutoCloseable {
         else return false;
     }
 
-    private static LogicalOperation pop(){
+    private static LogicalOperation pop() {
         final LogicalOperation current = operations.get();
-        if(current != null) {
-            operations.set(current.parent);
-            current.parent = null;
-        }
+        if (current != null)
+            if(current.parent == null)
+                operations.remove();
+            else
+                operations.set(current.parent);
         return current;
     }
 
@@ -258,7 +248,7 @@ public class LogicalOperation implements AutoCloseable {
     public final String toString() {
         final Map<String, Object> result = new HashMap<>(10);
         collectStringData(result);
-        return Joiner.on(',').withKeyValueSeparator("=").join(result);
+        return TO_STRING_JOINER.join(result);
     }
 
     /**
@@ -272,7 +262,7 @@ public class LogicalOperation implements AutoCloseable {
         finally {
             pop();
             timer.stop();
-            operationState.set();
+            parent = null;
         }
     }
 }
