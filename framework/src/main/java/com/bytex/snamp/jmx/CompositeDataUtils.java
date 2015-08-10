@@ -1,12 +1,13 @@
 package com.bytex.snamp.jmx;
 
+import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.internal.Utils;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Maps;
-import com.bytex.snamp.ArrayUtils;
 
 import javax.management.openmbean.*;
 import java.beans.BeanInfo;
@@ -162,7 +163,7 @@ public final class CompositeDataUtils {
     public static <T> T getValue(final CompositeData dict,
                             final String itemName,
                             final Class<T> itemType) {
-        return getValue(dict, itemName, itemType, Suppliers.<T>ofInstance(null));
+        return getValue(dict, itemName, itemType, Utils.<T>nullSupplier());
     }
 
     public static boolean getBoolean(final CompositeData dict,

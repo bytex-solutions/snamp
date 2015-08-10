@@ -39,7 +39,7 @@ public abstract class FeatureAccessor<M extends MBeanFeatureInfo> implements Sup
      */
     @Override
     public final Descriptor getDescriptor() {
-        return getMetadata().getDescriptor();
+        return metadata.getDescriptor();
     }
 
     /**
@@ -66,7 +66,7 @@ public abstract class FeatureAccessor<M extends MBeanFeatureInfo> implements Sup
 
     @Override
     public String toString() {
-        return getMetadata().toString();
+        return metadata.toString();
     }
 
     private static int removeAll(final Iterator<? extends FeatureAccessor<?>> features,

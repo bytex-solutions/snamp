@@ -66,8 +66,15 @@ public final class Utils {
      */
     public static final boolean IS_OS_WINDOWS = getOS().startsWith("Windows");
 
+    private static final Supplier NULL_SUPPLIER = Suppliers.ofInstance(null);
+
     private Utils(){
 
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> Supplier<T> nullSupplier(){
+        return NULL_SUPPLIER;
     }
 
     /**
@@ -221,7 +228,7 @@ public final class Utils {
                                        final K propertyKey,
                                        final Class<V> propertyType,
                                        final Supplier<V> defaultValue){
-        if(defaultValue == null) return getProperty(map, propertyKey, propertyType, Suppliers.<V>ofInstance(null));
+        if(defaultValue == null) return getProperty(map, propertyKey, propertyType, Utils.<V>nullSupplier());
         else if(map == null) return defaultValue.get();
         else if(map.containsKey(propertyKey)){
             final Object value = map.get(propertyKey);
@@ -245,7 +252,7 @@ public final class Utils {
                                        final K propertyKey,
                                        final Class<V> propertyType,
                                        final Supplier<V> defaultValue){
-        if(defaultValue == null) return getProperty(dict, propertyKey, propertyType, Suppliers.<V>ofInstance(null));
+        if(defaultValue == null) return getProperty(dict, propertyKey, propertyType, Utils.<V>nullSupplier());
         else if(dict == null) return defaultValue.get();
         final Object value = dict.get(propertyKey);
         return value != null && propertyType.isInstance(value) ? propertyType.cast(value) : defaultValue.get();
