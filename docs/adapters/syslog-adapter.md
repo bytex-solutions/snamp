@@ -4,7 +4,7 @@ Syslog Resource Adapter allows to collect monitoring and management information 
 
 The resource adapter sends check information about connected resources in binary format to Syslog server at the specified period of time.
 
-Syslog Resource Adapter supports the following features (if they are supported by managed resources too):
+Syslog Resource Adapter supports the following features (if they are supported by managed resources as well):
 
 Feature | Description
 ---- | ----
@@ -18,17 +18,17 @@ Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
 port | Integer | Yes | Listen port of Syslog server | `6514`
 address | String | Yes | IP address or DNS-name of the Syslog Server | `syslog.acme.com`
-connectionTimeout | Integer | No | Socket connection timeout used when connecting to Syslog server. By default it is equal to `2000` | `3000`
-protocol | Enum | No | Type of the Syslog protocol. By default it is equal to `rfc-5424` | `rfc-3164`
+connectionTimeout | Integer | No | Socket connection timeout used when connecting to Syslog server. Default value is `2000` | `3000`
+protocol | Enum | No | Type of the Syslog protocol. Default value is `rfc-5424` | `rfc-3164`
 ssl | `true` or `false` | No | Enable or disable SSL support | `false`
-passiveCheckSendPeriod | Integer | No | The period of periodic check (in millis) sent to Syslog server by the resource adapter. This parameter affects only attributes because notifications will be delivered asynchronously. By default it is equal to 1 second
+passiveCheckSendPeriod | Integer | No | Period of periodic check (in millis) sent to Syslog server by the resource adapter. This parameter affects attributes only because notifications are being delivered asynchronously. Default value is 1 second
 
 ### Supported protocols
-`protocol` configuration parameter must have one of the following values:
+`protocol` configuration parameter can have one of the following values:
 
 Value | Description
 ---- | ----
-rfc-3164 | BSD syslog protocol. It is deprecated protocol.
+rfc-3164 | BSD syslog protocol (deprecated protocol).
 rfc-5424 | [RFC-5424](http://www.ietf.org/rfc/rfc5424.txt) Syslog protocol. It is preferred value.
 
 ## Configuring attributes
@@ -45,8 +45,8 @@ The following configuration parameters of the events have influence on Syslog Re
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
 applicationName | String | No | Identify the device or application that originated the message. By default it is equal to the user-defined resource name | `webapi-server`
-facility | Enum or Integer | No | Facility level of the notification. The default value is `DAEMON` | `ALERT`
-severity | Enum | Severity level of the notifications. The default value is `debug` | `panic`
+facility | Enum or Integer | No | Facility level of the notification. Default value is `DAEMON` | `ALERT`
+severity | Enum | Severity level of the notifications. Default value is `debug` | `panic`
 
 Severity must be specified in the same format as described in **SNAMP Configuration Guide** page. Syslog Resource Adapter performs the following mapping between Syslog Severity and SNAMP Severity:
 
@@ -63,7 +63,7 @@ debug | DEBUG(8)
 Any other | DEBUG(8)
 
 ## Facility level
-Facility level for attributes and notifications may be specified in the configuration. The default value for attributes is `AUDIT`. The default value for notifications is `DAEMON`. There are the following supported facility levels:
+Facility level for attributes and notifications may be specified in the configuration. Default value for attributes is `AUDIT`. Default value for notifications is `DAEMON`. There are following supported facility levels:
 
 Numeric code | Enum value | Description
 ---- | ----
