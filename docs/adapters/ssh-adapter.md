@@ -1,17 +1,17 @@
 SSH Resource Adapter
 ====
-SSH Resource Adapter provides remote command-line using SSH console that ables administrators to monitor & manage state of connected resources. You may read or write all attributes and receive notifications that displayed asynchronously in the terminal window. So, you may use _PuTTY_, _WinSCP_, _OpenSSH_ or any other SSH client.
+SSH Resource Adapter provides remote command-line using SSH console. It allows administrators to monitor & manage state of connected resources. You may read or write all attributes and receive notifications that displayed asynchronously in the terminal window. So, you may use _PuTTY_, _WinSCP_, _OpenSSH_ or any other SSH client.
 
-SSH Resource Adapter supports the following features (if they are supported by managed resources too):
+SSH Resource Adapter supports following features (if they are supported by managed resources as well):
 
 Feature | Description
 ---- | ----
-Attributes | Each attribute will be displayed in JSON format. Also, you may rewrite any writable attribute from the console
-Notifications | Each notification will be displayed in JSON format if it is enabled
+Attributes | Each attribute is being displayed in JSON format. Besides, you may rewrite any writable attribute from the console
+Notifications | Each notification is being displayed in JSON format (if that is enabled)
 
 Note that this adapter utilizes **its own internal thread pool that can be configured explicitly**.
 
-There are the following supported commands:
+There are following supported commands:
 1. `help` - displays all available commands
 1. `exit` - closes SSH session
 1. `resources` - displays list of connected resources
@@ -22,13 +22,13 @@ There are the following supported commands:
 1. `get -n <name> -r <resource> [-t|-j]` - displays attribute value of the specified resource
   - `-n <name>`, `--name <name>` - specifies user-defined name of the attribute
   - `-r <resource>`, `--resource <resource>` - specifies user-defined name of the connected resource
-  - `-t`, `--text` - specifies textual format for attribute value output. It is very useful for scalar data types
-  - `-j`, `--json` - specifies JSON format for attribute value output. It is very useful for dictionaries and tables
+  - `-t`, `--text` - specifies textual format for attribute value output. Uuseful for scalar data types
+  - `-j`, `--json` - specifies JSON format for attribute value output. Useful for dictionaries and tables
 1. `set -n <name> -r <resource> -v <value-as-json>` - sets value of attribute of the specified resource
   - `-n <name>`, `--name <name>` - specifies user-defined name of the attribute
   - `-r <resource>`, `--resource <resource>` - specifies user-defined name of the connected resource
   - `-v <value-as-json>`, `--value <value-as-json>` - specifies a new value of the attribute
-1. `notifs [-f <expression>]` - enables listening of incoming notifications. In this mode you are not able to print any commands. Pressing of any key causes abortion of notification listening session. Any received notification will be displayed in the console
+1. `notifs [-f <expression>]` - enables listening of incoming notifications. In this mode you are not able to print any commands. Pressing any key causes abortion of notification listening session. Any received notification will be displayed in the console
   - `-f <expression>`, `--filter <expression>` - _RFC 1960_-based expression that describes notification selection candidate. You may use any configuration property in the filtering expression
 
 Attribute value and notification object represented in the same JSON format as defined in **HTTP Resource Adapter**.
@@ -40,17 +40,17 @@ SSH Resource Adapters recognizes the following configuration parameters:
 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
-host | IP Address or DNS-name | Yes | An address of network interface used to listen incoming SSH connections | `0.0.0.0`
-port | Integer | No | Inbound port used to listen clients. By default it is equal `22` | `23`
+host | IP Address or DNS-name | Yes | Address of network interface used to listen incoming SSH connections | `0.0.0.0`
+port | Integer | No | Inbound port used to listen clients. Default value is `22` | `23`
 hostKeyFile | Filename | Yes | Path to the server certificate (*.ser or *.pem file) that represents serialized public/private key pair | `server.pem`
 hostKeyFormat | Enum | No | Type of the server certificate | `PEM`
-jaasDomain | String | No | The name of JAAS realm used to authenticate SSH clients | `karaf`
-userName | String | No | The user name of the client that can be authenticated on SSH server | `root`
-password | String | No | The password of the user that can be authenticated on SSH server `qwerty`
+jaasDomain | String | No | Name of JAAS realm used to authenticate SSH clients | `karaf`
+userName | String | No | User name of the client that can be authenticated on SSH server | `root`
+password | String | No | Password of the user that can be authenticated on SSH server `qwerty`
 publicKeyFile | Filename | No | Path to the public key used by client| `client.ssh`
 publicKeyFileFormat | Filename | No | Type of the public key used by client | `pkcs8`
 
-Note that parameters related to thread pool is omitted. See **SNAMP Configuration Guide** page for more information about thread pool configuration. All other parameters will be ignored.
+Note that parameters related to thread pool is omitted. See **SNAMP Configuration Guide** page for more information about thread pool configuration. Other parameters will be ignored.
 
 SSH Resource Adapter supports the following authentication techniques:
 1. Using simple _username/password_ pair - specify `userName` and `password` configuration parameters
@@ -58,12 +58,12 @@ SSH Resource Adapter supports the following authentication techniques:
 1. Using _public key_ - specify _publicKeyFile_ and, optionally, `publicKeyFileFormat` configuration parameters
 
 ### Server certificate
-Server certificate can be generated using `openssl` utility. The adapter supports the following types (`hostKeyType` configuration property) of certificate:
+Server certificate can be generated using `openssl` utility. The adapter supports following types (`hostKeyType` configuration property) of certificate:
 
 Value | Description
 ---- | ----
-PEM | A pair of public/private keys that can be generated by `openssl` utility
-SER | A serialized pair of public/private keys as Java objects
+PEM | Pair of public/private keys that can be generated by `openssl` utility
+SER | Serialized pair of public/private keys as Java objects
 
 It is highly recommended to use `PEM` file format.
 
