@@ -1,6 +1,6 @@
 Groovy Resource Adapter
 ====
-Groovy Resource Adapter allows to integrate any third-party management software with SNAMP using Groovy script. The script program has access to all management information provided by connected managed resources. It is very useful is the following cases:
+Groovy Resource Adapter allows to integrate any third-party management software with SNAMP using Groovy script. The script program has access to all management information provided by connected managed resources. It can be useful in the following cases:
 * Applying complex analysis on metrics
 * Applying validation rules on attributes
 * Processing notifications
@@ -8,12 +8,12 @@ Groovy Resource Adapter allows to integrate any third-party management software 
 * Storing metrics and notifications into external database
 
 ## Configuration Parameters
-Groovy Resource Adapter recognizes the following configuration parameters:
+Groovy Resource Adapter recognizes following configuration parameters:
 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
-scriptFile | string | Yes | The name of the boot script | `Adapter.groovy`
-scriptPath | string | Yes | A collection of paths with groovy scripts | `/usr/local/snamp/groovy:/usr/local/snamp/scripts`
+scriptFile | string | Yes | Name of the boot script | `Adapter.groovy`
+scriptPath | string | Yes | Collection of the paths with groovy scripts | `/usr/local/snamp/groovy:/usr/local/snamp/scripts`
 
 You may specify more than one path in `scriptPath` parameter using OS-specific path separator symbol:
 * `:` for Linux
@@ -22,9 +22,9 @@ You may specify more than one path in `scriptPath` parameter using OS-specific p
 Any other user-defined configuration property will be visible inside from Groovy script as a global variable.
 
 ## Scripting
-Groovy Resource Adapter provides the following features for Groovy scripting:
+Groovy Resource Adapter provides following features for Groovy scripting:
 * DSL extensions of Groovy language
-* Accessing to attributes and notifications of all connected managed resources
+* Accessing attributes and notifications of all connected managed resources
 * Full [Grape](http://www.groovy-lang.org/Grape) support so you can use any Groovy module or Java library published in Maven repository
 
 Each instance of the Groovy Resource Adapter has isolated sandbox with its own Java class loader used for Groovy scripts.
@@ -35,7 +35,7 @@ Special functions that you can declare in your script:
 Declaration | Description
 ---- | ----
 void close() | Called by SNAMP automatically when the resources acquired by instance of the adapter should be released
-def handleNotification(metadata, notif) | Catches notification emitted by one of the connected managed resources. This function is calling asynchronously
+def handleNotification(metadata, notif) | Catches notification emitted by one of the connected managed resources. This function is being called asynchronously
 
 The following example shows how to handle a notification:
 ```groovy
@@ -48,7 +48,7 @@ def handleNotification(metadata, notif){
 ```
 
 #### Global variables
-All configuration parameters specified at adapter-level will be visible to all scripts. For example, you have configured `scriptFile` and `customParam` parameters. The value of these parameters can be obtained as follows:
+All configuration parameters specified at adapter-level will be visible to all scripts. For example, you have configured `scriptFile` and `customParam` parameters. Value of these parameters can be obtained as follows:
 ```groovy
 println scriptFile
 println customParam
@@ -58,7 +58,7 @@ Other useful predefined global variables:
 
 Name | Type | Description
 ---- | ---- | ----
-resources | Groovy object | A root object that exposes access to all connected resources. It is a root of all DSL extensions
+resources | Groovy object | Root object that exposes access to all connected resources. That is a root of all DSL extensions
 
 #### Logging
 
@@ -76,8 +76,8 @@ Function | Description
 ---- | ----
 void processAttributes(Closure action) | Processes all attributes sequentially. May be used for map/reduce.
 void processEvents(Closure action) | Processes all events sequentially
-Object eventsAnalyzer() | Creates a new instance of real-time analyzer for all incoming notifications
-Object attributesAnalyzer(long checkPeriod) | Creates a new instance of real-time analyzer for all attributes
+Object eventsAnalyzer() | Creates new instance of real-time analyzer for all incoming notifications
+Object attributesAnalyzer(long checkPeriod) | Creates new instance of real-time analyzer for all attributes
 
 Read all attributes:
 ```groovy
@@ -106,7 +106,7 @@ void close(){
 ```
 _RFC 1960_-based filter used to filter attributes by its configuration parameters.
 
-The following example demonstrates how to enable events analyzer
+Following example demonstrates how to enable events analyzer
 ```groovy
 def analyzer = eventsAnalyzer()
 analyzer.with {
@@ -122,10 +122,10 @@ def handleNotification(metadata, notif){
 
 Function | Description
 ---- | ----
-Communicator getCommunicator(String name) | Gets or creates communication session. The communicator is very useful for inter-script lightweight communication
+Communicator getCommunicator(String name) | Gets or creates communication session. The communicator can be useful for inter-script lightweight communication
 MessageListener asListener(Closure action) | Wraps Groovy closure into communication message listener
 Timer createTimer(Closure action, long period) | Creates a new timer that execute the specified task periodically
-Timer schedule(Closure action, long period) | Execute the specified task periodically in the background
+Timer schedule(Closure action, long period) | Executes specified task periodically in the background
 
 Working with timers:
 ```groovy
@@ -162,21 +162,21 @@ println response  //pong
 ```
 
 ### DSL
-Groovy Resource Adapter provides very convenient way to work with connected resources and its features. Each resource and its features available as properties of Groovy objects:
+Groovy Resource Adapter provides convenient way to work with connected resources and its features. Each resource and its features are available as properties of Groovy objects:
 
-* `resources.resName` - gets access to the connected resource named as `resName` is SNAMP configuration
+* `resources.resName` - gets the access to the connected resource named as `resName` is SNAMP configuration
 * `resources.getResource("resName")` - the same as above
-* `resources.resName.metadata.configProperty` - gets value of the configuration parameter declared in the configuration section for resource with user-defined name `resName`
-* `resources.resName.entityName` - gets access to the feature of resource `resName`. The property can return attribute or event and this behavior depends on the user-defined name of the attribute or event used in SNAMP configuration
-* `resources.resName.attributes` - gets collection of all attributes exposed by resource `resName`
-* `resources.resName.events` - gets collection of all events exposed by resource `resName`
-* `resources.resName.getAttribute("attrName")` - gets access to the attribute `attrName`. The same as `resources.resName.attrName`
-* `resources.resName.getEvent("eventName")` - gets access to the event `eventName`. The same as `resources.resName.eventName`
-* `resources.resName.attrName.value` - gets or sets value of the attribute if `attrName` is a name of the attribute (not event)
-* `resources.resName.attrName.metadata.configProperty` - gets value of the configuration parameter declared in the configuration section for attribute `attrName`
-* `resources.resName.eventName.configProperty` - gets value of the configuration parameter declared in the configuration section for attribute `attrName`
+* `resources.resName.metadata.configProperty` - gets the value of the configuration parameter declared in the configuration section for resource with user-defined name `resName`
+* `resources.resName.entityName` - gets the access to the feature of resource `resName`. This property can return attribute or event and its behavior depends on the user-defined name of the attribute or event used in SNAMP configuration
+* `resources.resName.attributes` - gets the collection of all attributes exposed by resource `resName`
+* `resources.resName.events` - gets the collection of all events exposed by resource `resName`
+* `resources.resName.getAttribute("attrName")` - gets the access to the attribute `attrName`. The same as `resources.resName.attrName`
+* `resources.resName.getEvent("eventName")` - getsthe  access to the event `eventName`. The same as `resources.resName.eventName`
+* `resources.resName.attrName.value` - gets or sets the value of the attribute if `attrName` is a name of an attribute (not event)
+* `resources.resName.attrName.metadata.configProperty` - gets the value of the configuration parameter declared in the configuration section for attribute `attrName`
+* `resources.resName.eventName.configProperty` - gets the value of the configuration parameter declared in the configuration section for attribute `attrName`
 
-The following example demonstrates how to DSL extensions:
+Following example demonstrates how to DSL extensions:
 ```groovy
 def appServer = resources.appServer
 if(appServer.availableMemory.value < 10000) {
