@@ -3,26 +3,26 @@ Step-by-Step Guide
 This document provides step-by-step guide of SNAMP deployment and configuration.
 
 ## Overview
-Let's identify the required capabilities of the target configuration:
-1. To monitor Java Application Server via SNMPv2 using JMX-to-SNMP bridge
-1. To monitor Java Application Server via HTTP using JMX-to-HTTP bridge
-1. To collect monitoring data using third-party programs and expose this data via HTTP or SNMPv2
+Let's identify required capabilities of the target configuration:
+1. Monitoring Java Application Server via SNMPv2 using JMX-to-SNMP bridge
+1. Monitoring Java Application Server via HTTP using JMX-to-HTTP bridge
+1. Collecting monitoring data using third-party programs and exposing this data via HTTP or SNMPv2
 
-The following SNAMP components will be used to implement requirements described above:
-1. JMX Resource Connector allows to connect Java Application Server with SNAMP via JMX protocol
-1. RShell Resource Connector allows to execute any local process and parse its output into the necessary monitoring information
-1. HTTP Resource Adapter provides access to the management information exposed by all connectors using simple HTTP requests
-1. SNMP Resource Adapter provides access to the management information exposed by all connectors using SNMPv2 protocol
+Following SNAMP components will be used to implement requirements described above:
+1. JMX Resource Connector - allows to connect Java Application Server with SNAMP via JMX protocol
+1. RShell Resource Connector - allows to execute any local process and parse its output into the the necessary monitoring information
+1. HTTP Resource Adapter - provides access to the management information exposed by all connectors using simple HTTP requests
+1. SNMP Resource Adapter - provides access to the management information exposed by all connectors using SNMPv2 protocol
 
 ![Example](example.png)
 
 **Java Application Server** is represented by Glassfish Application Server V4.
 
-**snmpwalk** utility will be used for reading SNMP managed objects exposed by SNMP Resource Adapter.
+**snmpwalk** - reading SNMP managed objects exposed by SNMP Resource Adapter.
 
-**curl** utility will be used for reading attributes exposed by HTTP Resource Adapter.
+**curl** - reading attributes exposed by HTTP Resource Adapter.
 
-**free** utility will be used as a supplier of information about memory available in Operating System.
+**free** supply the information about available memory in Operating System.
 
 ## Prerequisites
 Prepare your test environment as described below:
@@ -42,7 +42,7 @@ rm glassfish-4.0.zip
 ls ./glassfish4
 ```
 
-Create file name 'glassfish' and edit file:
+Create file 'glassfish' and append the necessary data:
 ```bash
 vim /etc/init.d/glassfish
 ```
@@ -115,7 +115,7 @@ apt-get install curl
 ## Installation
 Download and unzip (or untar) the latest SNAMP version.
 
-Go to `<snamp>/etc` directory, create file name `org.jolokia.osgi.cfg` and edit file:
+Go to the `<snamp>/etc` folder, create file `org.jolokia.osgi.cfg` and append the necessary data:
 ```bash
 vim ./snamp/etc/org.jolokia.osgi.cfg
 ```
@@ -133,7 +133,7 @@ Execute SNAMP using the following command
 sh ./snamp/bin/karaf
 ```
 
-...and you will see the following welcome screen:
+...you will see the following welcome screen:
 ```
 _____ _   _          __  __ _____  
 / ____| \ | |   /\   |  \/  |  __ \
@@ -157,7 +157,7 @@ Verify that initial SNAMP configuration is empty:
 curl -u karaf:karaf http://localhost:3535/jolokia/read/com.bytex.snamp.management:type=SnampCore/configuration?maxDepth=20&maxCollectionSize=500&ignoreErrors=true&canonicalNaming=false
 ```
 
-Go to home directory and create file name `freemem.xml` with the following content:
+Go to home directory and create file with name `freemem.xml` and following content:
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ns1:profile xmlns:ns1="http://snamp.bytex.com/schemas/command-line-tool-profile/v1.0">
@@ -186,7 +186,7 @@ Mem:      16331720   16022604     309116     595432     470520    7210368
 Swap:            0          0          0
 ```
 
-Go to home directory and create file name `config.json` with the following content:
+Go to the home directory and create file with name `config.json`and following content:
 ```json
 {
   "type": "write",
@@ -328,12 +328,12 @@ curl -u karaf:karaf -X POST -d @config.json http://localhost:3535/jolokia/
 
 > Note that configuration loading can take a few seconds or minutes. This time depends on performance of your hardware
 
-Verify uploaded configuration
+Verify the uploaded configuration
 ```bash
 curl -u karaf:karaf http://localhost:3535/jolokia/read/com.bytex.snamp.management:type=SnampCore/configuration?maxDepth=20&maxCollectionSize=500&ignoreErrors=true&canonicalNaming=false
 ```
 
-Now you have configured SNAMP with two Resource Connectors and two Resources Adapters. SNAMP performs the following binding of the managed attributes:
+Now you have configured SNAMP with two Resource Connectors and two Resources Adapters. SNAMP performs following binding of the managed attributes:
 
 Source attribute | Attribute name | SNMP object | HTTP url
 ---- | ---- | ---- | ----
@@ -348,7 +348,7 @@ Open terminal and type
 snmpwalk -v2c -cpublic 127.0.0.1:3222 1.1
 ```
 
-... and you will see attributes converted from JMX and stdout of `free` to SNMP objects by SNMP Resource Adapter
+... you will see attributes converted from JMX and stdout of `free` to SNMP objects by SNMP Resource Adapter
 ```
 iso.1.1.0 = STRING: "0.005072769100375348"
 iso.1.2.0 = STRING: "/hello"
@@ -361,12 +361,12 @@ iso.1.10.0.3.1 = Counter64: 8195896
 iso.1.10.0.4.1 = Counter64: 3834064
 ```
 
-Verify that the same attributes is accessible through HTTP:
+Verify that the same attributes are accessible through HTTP:
 ```bash
 curl http://127.0.0.1:3535/snamp/adapters/http/httpmon/attributes/glassfish-v4/memoryUsage
 ```
 
-..and you will see attributes converted from JMX and stdout of `free` to JSON objects by HTTP Resource Adapter
+..you will see attributes converted from JMX and stdout of `free` to JSON objects by HTTP Resource Adapter
 ```json
 {
     "type": {
