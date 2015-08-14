@@ -2,15 +2,15 @@ SNAMP Resource Adapters
 ====
 **Managed Resource Adapter** (or **Resource Adapter**) is a software component used to expose monitoring and management functionality to **Monitoring & Management Tools** used in your enterprise (such as Nagios, Zabbix or Microsoft System Center Operations Manager). Resource Adapter exposes all information provided by connected managed resources (via Resource Connectors) to the external tools using specified protocol or technology.
 
-Feature list of **Resource Adapter** consists of the following items:
-* Management Protocols - a list of management protocols used by **monitoring & management tool** to manage and monitor the connected **managed resource**
+Feature list of **Resource Adapter** contains following items:
+* Management Protocols - list of management protocols used by **monitoring & management tool** to manage and monitor the connected **managed resource**
 * Attributes - is **Resource Adapter** provide access to the **managed resource** attributes?
 * Notifications - is **Resource Adapter** delivers **managed resource** notifications to the **monitoring & management tool**?
 * Operations - is it possible to invoke maintenace action remotely using **Resource Adapter**?
 
 > If **Resource Connector** doesn't support one of management feature then this feature will not be exposed by **Resource Adapter**.
 
-At this page you can find detailed description for each resource adapter supported by SNAMP:
+Detailed description for each resource adapter supported by SNAMP:
 
 Display name | System name | Management Protocols | Data Exchange Format | Attributes | Notifications | Operations
 ---- | ---- | ---- | ---- | ---- | ----
