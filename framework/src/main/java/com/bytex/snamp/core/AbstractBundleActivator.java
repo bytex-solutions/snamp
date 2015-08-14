@@ -32,12 +32,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
                                        final BundleContext context) {
             super(logger,
                     operationName,
-                    ImmutableMap.of(BUNDLE_NAME_PROPERTY, context.getBundle().getSymbolicName()),
-                    context);
-        }
-
-        private String getBundleName() {
-            return getProperty(BUNDLE_NAME_PROPERTY, String.class, "");
+                    ImmutableMap.of(BUNDLE_NAME_PROPERTY, context.getBundle().getSymbolicName()));
         }
 
         private static BundleLogicalOperation startBundle(final Logger logger, final BundleContext context) {

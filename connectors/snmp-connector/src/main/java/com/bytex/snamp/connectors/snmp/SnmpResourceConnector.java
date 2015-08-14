@@ -8,7 +8,6 @@ import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
 import com.bytex.snamp.connectors.attributes.*;
 import com.bytex.snamp.connectors.notifications.*;
-import com.bytex.snamp.core.LoggingScope;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.Buffers;
 import com.bytex.snamp.jmx.CompositeDataUtils;
@@ -85,14 +84,14 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
                     return client.queryObject(Executor.class);
                 }
             });
-            listenerInvoker = createListenerInvoker(executor);
+            listenerInvoker = createListenerInvoker(executor, logger);
         }
 
-        private static NotificationListenerInvoker createListenerInvoker(final Executor executor){
+        private static NotificationListenerInvoker createListenerInvoker(final Executor executor, final Logger logger) {
             return NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker(executor, new NotificationListenerInvokerFactory.ExceptionHandler() {
                 @Override
                 public void handle(final Throwable e, final NotificationListener source) {
-                    SnmpConnectorHelpers.log(Level.SEVERE, "Unable to process SNMP notification", e);
+                    logger.log(Level.SEVERE, "Unable to process SNMP notification", e);
                 }
             });
         }
@@ -107,9 +106,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
          */
         @Override
         protected void failedToEnableNotifications(final String listID, final String category, final Exception e) {
-            try (final LoggingScope logger = new LoggingScope(this.logger, Utils.getBundleContextByObject(this))) {
-                failedToEnableNotifications(logger, Level.WARNING, listID, category, e);
-            }
+            failedToEnableNotifications(logger, Level.WARNING, listID, category, e);
         }
 
         @Override
@@ -140,8 +137,8 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
                         }
                     });
                 } catch (final Exception e) {
-                    SnmpConnectorHelpers.log(Level.WARNING, "Subscription to SNMP event %s failed",
-                            metadata.getNotificationID(), e);
+                    logger.log(Level.WARNING, String.format("Subscription to SNMP event %s failed",
+                            metadata.getNotificationID()), e);
                 }
         }
 
@@ -573,9 +570,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
          */
         @Override
         protected void failedToConnectAttribute(final String attributeID, final String attributeName, final Exception e) {
-            try(final LoggingScope logger = new LoggingScope(this.logger, Utils.getBundleContextByObject(this))){
-                failedToConnectAttribute(logger, Level.WARNING, attributeID, attributeName, e);
-            }
+            failedToConnectAttribute(logger, Level.WARNING, attributeID, attributeName, e);
         }
 
         /**
@@ -587,9 +582,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
          */
         @Override
         protected void failedToGetAttribute(final String attributeID, final Exception e) {
-            try(final LoggingScope logger = new LoggingScope(this.logger, Utils.getBundleContextByObject(this))){
-                failedToGetAttribute(logger, Level.WARNING, attributeID, e);
-            }
+            failedToGetAttribute(logger, Level.WARNING, attributeID, e);
         }
 
         /**
@@ -602,9 +595,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
          */
         @Override
         protected void failedToSetAttribute(final String attributeID, final Object value, final Exception e) {
-            try(final LoggingScope logger = new LoggingScope(this.logger, Utils.getBundleContextByObject(this))){
-                failedToSetAttribute(logger, Level.WARNING, attributeID, value, e);
-            }
+            failedToSetAttribute(logger, Level.WARNING, attributeID, value, e);
         }
 
         private Address[] getClientAddresses(){
@@ -701,7 +692,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
                 @Override
                 public Void invoke(final SnmpClient client) throws Exception {
                     client.set(ImmutableMap.of(attribute.getAttributeID(), attribute.convert(value)),
-                        attribute.getDescriptor().getReadWriteTimeout());
+                            attribute.getDescriptor().getReadWriteTimeout());
                     return null;
                 }
             });
@@ -720,7 +711,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
             try {
                 return getAttributesParallel(executor, attributes, BATCH_READ_WRITE_TIMEOUT);
             } catch (final InterruptedException | TimeoutException e) {
-                SnmpConnectorHelpers.log(Level.SEVERE, e.getMessage(), e);
+                logger.log(Level.SEVERE, "Unable to read attributes", e);
                 return new AttributeList();
             }
         }
@@ -739,7 +730,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
             try {
                 return setAttributesParallel(executor, attributes, BATCH_READ_WRITE_TIMEOUT);
             } catch (final TimeoutException | InterruptedException e) {
-                SnmpConnectorHelpers.log(Level.SEVERE, e.getMessage(), e);
+                logger.log(Level.SEVERE, "Unable to write attributes", e);
                 return new AttributeList();
             }
         }
@@ -770,7 +761,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
                     }
                 });
             } catch (final Exception e) {
-                SnmpConnectorHelpers.log(Level.WARNING, String.format("Unable to expand attributes of '%s' resource", getResourceName()));
+                logger.log(Level.WARNING, String.format("Unable to expand attributes of '%s' resource", getResourceName()), e);
                 return Collections.emptyList();
             }
         }
@@ -943,5 +934,9 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
             if(attributes.canExpandWith(featureType))
                 return (Collection<F>)attributes.expand();
         return Collections.emptyList();
+    }
+
+    static String getConnectorType(){
+        return getConnectorType(SnmpResourceConnector.class);
     }
 }

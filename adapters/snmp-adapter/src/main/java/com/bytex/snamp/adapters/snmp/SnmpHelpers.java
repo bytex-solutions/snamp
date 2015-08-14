@@ -2,7 +2,6 @@ package com.bytex.snamp.adapters.snmp;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.adapters.AbstractResourceAdapter;
-import com.bytex.snamp.core.LoggingScope;
 import com.bytex.snamp.io.IOUtils;
 import com.google.common.primitives.Shorts;
 import org.osgi.framework.BundleContext;
@@ -39,8 +38,6 @@ import java.util.regex.Pattern;
 final class SnmpHelpers {
     private static final String AUTO_PREFIX_PROPERTY = "com.bytex.snamp.adapters.snmp.oidPrefix";
     static final Charset SNMP_ENCODING = StandardCharsets.UTF_8;
-    static final String ADAPTER_NAME = "snmp";
-    private static final String LOGGER_NAME = AbstractResourceAdapter.getLoggerName(ADAPTER_NAME);
     private static final TimeZone ZERO_TIME_ZONE = new SimpleTimeZone(0, "UTC");
     private static final AtomicInteger POSTFIX_COUNTER = new AtomicInteger(1);
 
@@ -348,18 +345,12 @@ final class SnmpHelpers {
         return result;
     }
 
-    private static BundleContext getBundleContext(){
-        return FrameworkUtil.getBundle(SnmpHelpers.class).getBundleContext();
-    }
-
     static Logger getLogger(){
-        return Logger.getLogger(LOGGER_NAME);
+        return SnmpResourceAdapter.getLoggerImpl();
     }
 
-    private static void log(final Level lvl, final String message, final Object[] args, final Throwable e){
-        try(final LoggingScope logger = new LoggingScope(getLogger(), getBundleContext())){
-            logger.log(lvl, String.format(message, args), e);
-        }
+    private static void log(final Level lvl, final String message, final Object[] args, final Throwable e) {
+        getLogger().log(lvl, String.format(message, args), e);
     }
 
     static void log(final Level lvl, final String message, final Throwable e){

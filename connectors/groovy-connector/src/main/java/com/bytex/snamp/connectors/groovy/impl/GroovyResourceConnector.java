@@ -10,7 +10,6 @@ import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.attributes.OpenTypeAttributeInfo;
 import com.bytex.snamp.connectors.groovy.*;
 import com.bytex.snamp.connectors.notifications.*;
-import com.bytex.snamp.core.LoggingScope;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.internal.annotations.MethodStub;
 import com.google.common.base.Function;
@@ -41,8 +40,6 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 final class GroovyResourceConnector extends AbstractManagedResourceConnector {
-    static final String NAME = ResourceConnectorInfo.NAME;
-
     private static final class GroovyNotificationInfo extends CustomNotificationInfo implements AutoCloseable{
         private NotificationEmitter emitter;
 
@@ -110,9 +107,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
             return NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker(executor, new NotificationListenerInvokerFactory.ExceptionHandler() {
                 @Override
                 public final void handle(final Throwable e, final NotificationListener source) {
-                    try (final LoggingScope logger = new LoggingScope(getLoggerImpl(), Utils.getBundleContextByObject(this))) {
-                        logger.log(Level.SEVERE, "Unable to process JMX notification.", e);
-                    }
+                    getLoggerImpl().log(Level.SEVERE, "Unable to process JMX notification.", e);
                 }
             });
         }
@@ -143,10 +138,6 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
             }
         }
 
-        private LoggingScope createLoggingScope(){
-            return new LoggingScope(getLoggerImpl(), Utils.getBundleContextByObject(this));
-        }
-
         /**
          * Reports an error when enabling notifications.
          *
@@ -157,10 +148,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
          */
         @Override
         protected void failedToEnableNotifications(final String listID, final String category, final Exception e) {
-
-            try(final LoggingScope logger = createLoggingScope()) {
-                failedToEnableNotifications(logger, Level.SEVERE, listID, category, e);
-            }
+            failedToEnableNotifications(getLoggerImpl(), Level.SEVERE, listID, category, e);
         }
     }
 
@@ -205,16 +193,9 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
             //create wrapper
             return new GroovyAttributeInfo(attributeID, descriptor, accessor);
         }
-
-        private LoggingScope createLoggingScope(){
-            return new LoggingScope(getLoggerImpl(), Utils.getBundleContextByObject(this));
-        }
-
         @Override
         protected void failedToConnectAttribute(final String attributeID, final String attributeName, final Exception e) {
-            try(final LoggingScope logger = createLoggingScope()) {
-                failedToConnectAttribute(logger, Level.SEVERE, attributeID, attributeName, e);
-            }
+            failedToConnectAttribute(getLoggerImpl(), Level.SEVERE, attributeID, attributeName, e);
         }
 
         private static Object getAttribute(final AttributeAccessor accessor) throws Exception {
@@ -237,9 +218,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
 
         @Override
         protected void failedToGetAttribute(final String attributeID, final Exception e) {
-            try(final LoggingScope logger = createLoggingScope()) {
-                failedToGetAttribute(logger, Level.SEVERE, attributeID, e);
-            }
+            failedToGetAttribute(getLoggerImpl(), Level.SEVERE, attributeID, e);
         }
 
         private static void setAttribute(final AttributeAccessor accessor,
@@ -262,9 +241,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
 
         @Override
         protected void failedToSetAttribute(final String attributeID, final Object value, final Exception e) {
-            try(final LoggingScope logger = createLoggingScope()) {
-                failedToSetAttribute(logger, Level.SEVERE, attributeID, value, e);
-            }
+            failedToSetAttribute(getLoggerImpl(), Level.SEVERE, attributeID, value, e);
         }
 
         /**
@@ -277,9 +254,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
             try {
                 attributeInfo.close();
             } catch (final Exception e) {
-                try (final LoggingScope logger = createLoggingScope()) {
-                    logger.log(Level.WARNING, String.format("Unable to disconnect attribute %s", attributeInfo.getName()), e);
-                }
+                getLoggerImpl().log(Level.WARNING, String.format("Unable to disconnect attribute %s", attributeInfo.getName()), e);
             }
         }
     }

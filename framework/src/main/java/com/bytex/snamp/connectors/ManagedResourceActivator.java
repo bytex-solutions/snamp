@@ -7,7 +7,6 @@ import com.bytex.snamp.connectors.discovery.AbstractDiscoveryService;
 import com.bytex.snamp.connectors.discovery.DiscoveryService;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.FrameworkService;
-import com.bytex.snamp.core.LoggingScope;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.internal.annotations.MethodStub;
 import com.bytex.snamp.io.IOUtils;
@@ -843,10 +842,8 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
             checkPrerequisites();
         } catch (final PrerequisiteException e) {
             if (e.abortStarting()) throw e;
-            else try (final LoggingScope logger = getLoggingContext()) {
-                logger.log(Level.WARNING, String.format("Preconditions for %s connector are not met", getConnectorType()), e);
-            }
-            finally {
+            else {
+                getLogger().log(Level.WARNING, String.format("Preconditions for %s connector are not met", getConnectorType()), e);
                 prerequisitesOK = false;
             }
         }
@@ -865,26 +862,17 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         activationProperties.publish(LOGGER_HOLDER, getLogger());
         activationProperties.publish(CONNECTOR_TYPE_HOLDER, getConnectorType());
         activationProperties.publish(PREREQUISITES_CHECK_HOLDER, prerequisitesOK);
-        try(final LoggingScope logger = getLoggingContext()){
-            logger.log(Level.INFO, "Activating resource connectors of type %s",
-                    getConnectorType());
-        }
+        getLogger().log(Level.INFO, "Activating resource connectors of type %s",
+                getConnectorType());
     }
 
     /**
      * Gets logger associated with this activator.
      * @return The logger associated with this activator.
      */
+    @Override
     protected Logger getLogger(){
         return AbstractManagedResourceConnector.getLogger(getConnectorType());
-    }
-
-    private BundleContext getBundleContext(){
-        return Utils.getBundleContextByObject(this);
-    }
-
-    private LoggingScope getLoggingContext(){
-        return new LoggingScope(getLogger(), getBundleContext());
     }
 
     /**
@@ -895,10 +883,8 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      */
     @Override
     protected void activationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
-        try (final LoggingScope logger = getLoggingContext()) {
-            logger.log(Level.SEVERE, String.format("Unable to instantiate %s connector",
-                    getConnectorType()), e);
-        }
+        getLogger().log(Level.SEVERE, String.format("Unable to instantiate %s connector",
+                getConnectorType()), e);
     }
 
     /**
@@ -910,10 +896,8 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      */
     @Override
     protected void deactivationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
-        try (final LoggingScope logger = getLoggingContext()) {
-            logger.log(Level.SEVERE, String.format("Unable to release %s connector instance",
-                    getConnectorType()), e);
-        }
+        getLogger().log(Level.SEVERE, String.format("Unable to release %s connector instance",
+                getConnectorType()), e);
     }
 
     /**
@@ -924,9 +908,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     @Override
     @MethodStub
     protected final void deactivate(final ActivationPropertyReader activationProperties) {
-        try(final LoggingScope logger = getLoggingContext()){
-            logger.log(Level.INFO, "Unloading connectors of type %s", getConnectorType());
-        }
+        getLogger().log(Level.INFO, String.format("Unloading connectors of type %s", getConnectorType()));
     }
 
     /**

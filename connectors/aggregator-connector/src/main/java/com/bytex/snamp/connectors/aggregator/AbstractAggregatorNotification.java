@@ -4,7 +4,6 @@ import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.connectors.attributes.AttributeSupport;
 import com.bytex.snamp.connectors.notifications.CustomNotificationInfo;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
-import com.bytex.snamp.core.LoggingScope;
 import com.bytex.snamp.internal.Utils;
 import org.osgi.framework.BundleContext;
 
@@ -46,21 +45,14 @@ abstract class AbstractAggregatorNotification extends CustomNotificationInfo {
         return Utils.getBundleContextByObject(this);
     }
 
-    private LoggingScope createLoggingScope(){
-        return new LoggingScope(this.logger, getBundleContext());
-    }
 
     protected final void attributeNotFound(final String attributeName, final AttributeNotFoundException e) {
-        try (final LoggingScope logger = createLoggingScope()) {
-            logger.log(Level.WARNING, "Unknown attribute '%s'", attributeName, e);
-        }
+        logger.log(Level.WARNING, String.format("Unknown attribute '%s'", attributeName), e);
     }
 
     protected final void failedToGetAttribute(final String attributeName,
                                       final Exception e) {
-        try (final LoggingScope logger = createLoggingScope()) {
-            logger.log(Level.SEVERE, "Can't read '%s' attribute", attributeName, e);
-        }
+        logger.log(Level.SEVERE, String.format("Can't read '%s' attribute", attributeName), e);
     }
 
     protected abstract void process(final AttributeSupport attributes,

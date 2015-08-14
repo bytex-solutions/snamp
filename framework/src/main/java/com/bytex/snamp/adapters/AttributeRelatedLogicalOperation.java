@@ -18,10 +18,9 @@ public class AttributeRelatedLogicalOperation extends RichLogicalOperation {
     protected AttributeRelatedLogicalOperation(final Logger logger,
                                                final String operationName,
                                          final String attributeName,
-                                         final String attributeID,
-                                               final BundleContext context){
+                                         final String attributeID){
         super(logger, operationName, ImmutableMap.of(ATTRIBUTE_ID_PARAMETER, attributeID,
-                ATTRIBUTE_NAME_PARAMETER, attributeName), context);
+                ATTRIBUTE_NAME_PARAMETER, attributeName));
     }
 
     public AttributeRelatedLogicalOperation(final Logger logger,
@@ -29,11 +28,10 @@ public class AttributeRelatedLogicalOperation extends RichLogicalOperation {
                                          final String attributeName,
                                          final String attributeID,
                                          final String propertyName,
-                                         final Object propertyValue,
-                                            final BundleContext context){
+                                         final Object propertyValue){
         super(logger, operationName, ImmutableMap.of(ATTRIBUTE_ID_PARAMETER, attributeID,
                 ATTRIBUTE_NAME_PARAMETER, attributeName,
-                propertyName, propertyValue), context);
+                propertyName, propertyValue));
     }
 
     public final String getAttributeID(){

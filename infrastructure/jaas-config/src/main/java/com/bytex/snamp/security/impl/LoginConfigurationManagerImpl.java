@@ -1,7 +1,6 @@
 package com.bytex.snamp.security.impl;
 
 import com.bytex.snamp.AbstractAggregator;
-import com.bytex.snamp.core.LoggingScope;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.security.LoginConfigurationManager;
@@ -69,11 +68,8 @@ final class LoginConfigurationManagerImpl extends AbstractAggregator implements 
     public void dumpConfiguration(final Multimap<String, AppConfigurationEntry> out) {
         try {
             dumpConfiguration(getContext(), formatter, out);
-        }
-        catch (final InvalidSyntaxException | IOException e) {
-            try(final LoggingScope logger = new LoggingScope(getLogger(), getContext())){
-                logger.log(Level.SEVERE, "Unable to dump JAAS configuration", e);
-            }
+        } catch (final InvalidSyntaxException | IOException e) {
+            getLogger().log(Level.SEVERE, "Unable to dump JAAS configuration", e);
         }
     }
 

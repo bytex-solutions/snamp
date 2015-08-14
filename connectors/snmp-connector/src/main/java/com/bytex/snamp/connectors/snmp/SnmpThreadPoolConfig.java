@@ -17,7 +17,7 @@ final class SnmpThreadPoolConfig extends ThreadPoolConfig {
     private static final int DEFAULT_PRIORITY = Thread.NORM_PRIORITY;
 
     private static String createThreadGroup(final String resourceName){
-        return String.format("%s:%s", SnmpConnectorHelpers.CONNECTOR_NAME, resourceName);
+        return String.format("%s:%s", SnmpResourceConnector.getConnectorType(), resourceName);
     }
 
     SnmpThreadPoolConfig(final Map<String, String> parameters, final String resourceName){

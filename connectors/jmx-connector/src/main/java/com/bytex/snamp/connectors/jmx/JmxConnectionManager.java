@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Represents JMX connectionHolder manager that provides reliable access to
@@ -66,11 +67,14 @@ final class JmxConnectionManager implements AutoCloseable {
         private final ConnectionHolder connectionHolder;
         private final List<ConnectionEstablishedEventHandler> reconnectionHandlers;
         private final AtomicReference<IOException> problem;
+        private final Logger logger;
 
         private ConnectionWatchDog(final TimeSpan period,
                                    final ConnectionHolder connection,
-                                   final Lock writeLock) {
+                                   final Lock writeLock,
+                                   final Logger logger) {
             super(period);
+            this.logger = Objects.requireNonNull(logger);
             this.writeLock = Objects.requireNonNull(writeLock);
             this.connectionHolder = connection;
             this.reconnectionHandlers = new Vector<>(4);
@@ -103,7 +107,7 @@ final class JmxConnectionManager implements AutoCloseable {
                 try {
                     handler.handle(server);
                 } catch (final JMException e) {
-                    JmxConnectorHelpers.log(Level.WARNING, "Unable to handle JMX reconnection %s", connectionHolder.factory, e);
+                    logger.log(Level.WARNING, String.format("Unable to handle JMX reconnection %s", connectionHolder.factory), e);
                 }
         }
 
@@ -138,7 +142,7 @@ final class JmxConnectionManager implements AutoCloseable {
                 onReconnection(server);
                 this.problem.set(null);//erase the problem
             } catch (final IOException e) {
-                JmxConnectorHelpers.log(Level.SEVERE, String.format("Failed to restore JMX connectionHolder %s", connectionHolder.factory), e);
+                logger.log(Level.SEVERE, String.format("Failed to restore JMX connectionHolder %s", connectionHolder.factory), e);
                 //save a problem
                 reportProblem(e);
             } finally {
@@ -153,11 +157,12 @@ final class JmxConnectionManager implements AutoCloseable {
     private final TimeSpan watchPeriod;
 
     JmxConnectionManager(final JmxConnectionFactory connectionString,
-                         final long watchDogPeriod) {
+                         final long watchDogPeriod,
+                         final Logger logger) {
         final ReentrantReadWriteLock coordinator = new ReentrantReadWriteLock();
         this.readLock = coordinator.readLock();
         connectionHolder = new ConnectionHolder(connectionString);
-        watchDog = new ConnectionWatchDog(this.watchPeriod = new TimeSpan(watchDogPeriod), connectionHolder, coordinator.writeLock());
+        watchDog = new ConnectionWatchDog(this.watchPeriod = new TimeSpan(watchDogPeriod), connectionHolder, coordinator.writeLock(), logger);
         //staring the watch dog
         watchDog.run();
     }

@@ -29,7 +29,6 @@ import static com.bytex.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.*
  * @since 1.0
  */
 final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceAdapterProfile> {
-
     private static final class SnmpAdapterUpdateManager extends ResourceAdapterUpdateManager {
         private final SnmpAgent agent;
         private final SnmpResourceAdapterProfile profile;
@@ -287,6 +286,14 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
      */
     @Override
     public Logger getLogger() {
-        return SnmpHelpers.getLogger();
+        return getLoggerImpl();
+    }
+
+    static String getAdapterNameImpl(){
+        return getAdapterName(SnmpResourceAdapter.class);
+    }
+
+    static Logger getLoggerImpl() {
+        return getLogger(getAdapterNameImpl());
     }
 }

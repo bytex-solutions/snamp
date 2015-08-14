@@ -301,21 +301,14 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
     protected final void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception {
         activationProperties.publish(ADAPTER_NAME_HOLDER, getAdapterName());
         activationProperties.publish(LOGGER_HOLDER, getLogger());
-        try (final LoggingScope logger = getLoggingContext()) {
-            logger.log(Level.INFO, "Activating resource adapters of type %s",
-                    getAdapterName());
-        }
+        getLogger().info(String.format("Activating resource adapters of type %s", getAdapterName()));
     }
-
-    private BundleContext getAdapterContext(){
-        return Utils.getBundleContextByObject(this);
-    }
-
 
     /**
      * Gets logger associated with this activator.
      * @return A logger associated with this activator.
      */
+    @Override
     protected Logger getLogger(){
         return AbstractResourceAdapter.getLogger(getAdapterName());
     }
@@ -328,13 +321,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
      */
     @Override
     protected final void deactivate(final ActivationPropertyReader activationProperties) throws Exception {
-        try(final LoggingScope logger = getLoggingContext()){
-            logger.log(Level.INFO, "Unloading adapters of type %s", getAdapterName());
-        }
-    }
-
-    private LoggingScope getLoggingContext(){
-        return new LoggingScope(getLogger(), getAdapterContext());
+        getLogger().info(String.format("Unloading adapters of type %s", getAdapterName()));
     }
 
     /**
@@ -345,11 +332,9 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
      */
     @Override
     protected void activationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
-        try (final LoggingScope logger = getLoggingContext()) {
-            logger.log(Level.SEVERE, "Unable to activate %s resource adapter instance",
-                    getAdapterName(),
-                    e);
-        }
+        getLogger().log(Level.SEVERE, String.format("Unable to activate %s resource adapter instance",
+                        getAdapterName()),
+                e);
     }
 
     /**
@@ -360,11 +345,9 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
      */
     @Override
     protected void deactivationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
-        try (final LoggingScope logger = getLoggingContext()) {
-            logger.log(Level.SEVERE, "Unable to deactivate %s resource adapter instance",
-                    getAdapterName(),
-                    e);
-        }
+        getLogger().log(Level.SEVERE, String.format("Unable to deactivate %s resource adapter instance",
+                        getAdapterName()),
+                e);
     }
 
     /**

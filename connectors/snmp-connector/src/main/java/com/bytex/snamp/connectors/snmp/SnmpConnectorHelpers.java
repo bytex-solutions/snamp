@@ -1,17 +1,12 @@
 package com.bytex.snamp.connectors.snmp;
 
 import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
-import com.bytex.snamp.core.LoggingScope;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
 import org.snmp4j.smi.OID;
 
 import javax.management.openmbean.ArrayType;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.SimpleType;
 import java.util.Arrays;
-import java.util.logging.Level;
 
 /**
  * @author Roman Sakno
@@ -20,8 +15,6 @@ import java.util.logging.Level;
  */
 final class SnmpConnectorHelpers {
     private static final String DISCOVERY_TIMEOUT_PROPERTY = "com.bytex.snamp.connectors.snmp.discoveryTimeout";
-    static final String CONNECTOR_NAME = "snmp";
-    private static final String LOGGER_NAME = AbstractManagedResourceConnector.getLoggerName(CONNECTOR_NAME);
 
     private SnmpConnectorHelpers(){
 
@@ -35,36 +28,6 @@ final class SnmpConnectorHelpers {
 
     public static OID getPostfix(final OID prefix, final OID oid){
         return oid.startsWith(prefix) ? new OID(getPostfix(prefix.getValue(), oid.getValue())) : new OID();
-    }
-
-    private static BundleContext getBundleContext(){
-        return FrameworkUtil.getBundle(SnmpConnectorHelpers.class).getBundleContext();
-    }
-
-    private static void log(final Level lvl, final String message, final Object[] args, final Throwable e){
-        try(final LoggingScope logger = new LoggingScope(LOGGER_NAME, getBundleContext())){
-            logger.log(lvl, String.format(message, args), e);
-        }
-    }
-
-    static void log(final Level lvl, final String message, final Throwable e){
-        log(lvl, message, new Object[0], e);
-    }
-
-    static void log(final Level lvl, final String message){
-        log(lvl, message, null);
-    }
-
-    static void log(final Level lvl, final String message, final Object arg0, final Throwable e){
-        log(lvl, message, new Object[]{arg0}, e);
-    }
-
-    static void log(final Level lvl, final String message, final Object arg0, final Object arg1, final Throwable e){
-        log(lvl, message, new Object[]{arg0, arg1}, e);
-    }
-
-    static void log(final Level lvl, final String message, final Object arg0, final Object arg1, final Object arg2, final Throwable e){
-        log(lvl, message, new Object[]{arg0, arg1, arg2}, e);
     }
 
     static <T> ArrayType<T[]> arrayType(final SimpleType<T> type,

@@ -82,9 +82,9 @@ abstract class AbstractManagementShellCommand extends BasicParser implements Man
         } catch (final Throwable e) {
             errStream.println(e.getMessage());
             errStream.flush();
-            SshHelpers.log(Level.WARNING, String.format("Unable to process command %s with arguments %s",
+            SshHelpers.log(Level.WARNING, "Unable to process command %s with arguments %s",
                     getClass().getSimpleName(),
-                    Joiner.on(' ').join(arguments)),
+                    Joiner.on(' ').join(arguments),
                     e);
         }
     }

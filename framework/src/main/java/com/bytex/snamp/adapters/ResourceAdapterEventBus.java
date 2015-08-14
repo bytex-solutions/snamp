@@ -2,7 +2,6 @@ package com.bytex.snamp.adapters;
 
 import com.bytex.snamp.concurrent.AsyncEventListener;
 import com.bytex.snamp.concurrent.GroupedThreadFactory;
-import com.bytex.snamp.core.LoggingScope;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.internal.WeakMultimap;
 import com.google.common.collect.HashMultimap;
@@ -63,35 +62,23 @@ final class ResourceAdapterEventBus {
         }
     }
 
-    private static LoggingScope createLoggingScope(final ResourceAdapter adapter){
-        return new LoggingScope(adapter.getLogger(), Utils.getBundleContextByObject(adapter));
-    }
-
     static void notifyAdapterStopped(final String adapterName, final ResourceAdapter adapter) {
-        try (final LoggingScope logger = createLoggingScope(adapter)) {
-            logger.log(Level.INFO, "Adapter %s is stopped", adapter.getInstanceName());
-        }
+        adapter.getLogger().info(String.format("Adapter %s is stopped", adapter.getInstanceName()));
         fireAdapterListeners(adapterName, new ResourceAdapterStoppedEvent(adapter));
     }
 
     static void notifyAdapterStarted(final String adapterName, final ResourceAdapter adapter){
-        try (final LoggingScope logger = createLoggingScope(adapter)) {
-            logger.log(Level.INFO, "Adapter %s is started", adapter.getInstanceName());
-        }
+        adapter.getLogger().info(String.format("Adapter %s is started", adapter.getInstanceName()));
         fireAdapterListeners(adapterName, new ResourceAdapterStartedEvent(adapter));
     }
 
     static void notifyAdapterUpdating(final String adapterName, final ResourceAdapter adapter){
-        try (final LoggingScope logger = createLoggingScope(adapter)) {
-            logger.log(Level.INFO, "Adapter %s is updating", adapter.getInstanceName());
-        }
+        adapter.getLogger().info(String.format("Adapter %s is updating", adapter.getInstanceName()));
         fireAdapterListeners(adapterName, new ResourceAdapterUpdatingEvent(adapter));
     }
 
     static void notifyAdapterUpdated(final String adapterName, final ResourceAdapter adapter) {
-        try (final LoggingScope logger = new LoggingScope(adapter.getLogger(), Utils.getBundleContextByObject(adapter))) {
-            logger.log(Level.INFO, "Adapter %s is updated", adapter.getInstanceName());
-        }
+        adapter.getLogger().info(String.format("Adapter %s is updated", adapter.getInstanceName()));
         fireAdapterListeners(adapterName, new ResourceAdapterUpdatedEvent(adapter));
     }
 }

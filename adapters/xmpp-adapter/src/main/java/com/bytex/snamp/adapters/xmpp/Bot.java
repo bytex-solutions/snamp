@@ -4,7 +4,6 @@ import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.concurrent.VolatileBox;
-import com.bytex.snamp.core.LoggingScope;
 import com.bytex.snamp.core.LogicalOperation;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.ExpressionBasedDescriptorFilter;
@@ -39,9 +38,8 @@ final class Bot implements ChatManagerListener, Closeable {
         private static final CorrelationIdentifierGenerator CORREL_ID_GEN =
                 new DefaultCorrelationIdentifierGenerator();
 
-        private SayHelloLogicalOperation(final Logger logger,
-                                         final BundleContext context) {
-            super(logger, "sayHello", CORREL_ID_GEN, context);
+        private SayHelloLogicalOperation(final Logger logger) {
+            super(logger, "sayHello", CORREL_ID_GEN);
         }
     }
 
@@ -59,10 +57,6 @@ final class Bot implements ChatManagerListener, Closeable {
             this.logger = logger;
             this.attributes = attributes;
             notificationFilter = new VolatileBox<>(null);
-        }
-
-        private BundleContext getBundleContext(){
-            return Utils.getBundleContextByObject(this);
         }
 
         @Override
@@ -138,9 +132,7 @@ final class Bot implements ChatManagerListener, Closeable {
         }
 
         private void unableToSendMessage(final Exception e) {
-            try (final LoggingScope context = new LoggingScope(logger, getBundleContext())) {
-                context.log(Level.WARNING, "Unable to send XMPP message", e);
-            }
+            logger.log(Level.WARNING, "Unable to send XMPP message", e);
         }
 
         @Override
@@ -208,19 +200,14 @@ final class Bot implements ChatManagerListener, Closeable {
     }
 
     private void sayHello(final Chat chat) {
-        final LogicalOperation logger = new SayHelloLogicalOperation(this.logger, getBundleContext());
+        final LogicalOperation logger = new SayHelloLogicalOperation(this.logger);
         try {
             chat.sendMessage(String.format("Hi, %s!", chat.getParticipant()));
         } catch (final SmackException.NotConnectedException e) {
             logger.log(Level.WARNING, "Unable to send Hello message", e);
-        }
-        finally {
+        } finally {
             logger.close();
         }
-    }
-
-    private BundleContext getBundleContext(){
-        return Utils.getBundleContextByObject(this);
     }
 
     private static String[] splitArguments(final String value){

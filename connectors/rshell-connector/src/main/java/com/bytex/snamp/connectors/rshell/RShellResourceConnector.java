@@ -10,7 +10,6 @@ import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
 import com.bytex.snamp.connectors.attributes.*;
-import com.bytex.snamp.core.LoggingScope;
 import com.bytex.snamp.internal.RecordReader;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.CompositeTypeBuilder;
@@ -215,9 +214,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
          */
         @Override
         protected void failedToConnectAttribute(final String attributeID, final String attributeName, final Exception e) {
-            try(final LoggingScope logger = new LoggingScope(this.logger, Utils.getBundleContextByObject(this))){
-                failedToConnectAttribute(logger, Level.WARNING, attributeID, attributeName, e);
-            }
+            failedToConnectAttribute(logger, Level.WARNING, attributeID, attributeName, e);
         }
 
         /**
@@ -229,9 +226,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
          */
         @Override
         protected void failedToGetAttribute(final String attributeID, final Exception e) {
-            try(final LoggingScope logger = new LoggingScope(this.logger, Utils.getBundleContextByObject(this))){
-                failedToGetAttribute(logger, Level.WARNING, attributeID, e);
-            }
+            failedToGetAttribute(logger, Level.WARNING, attributeID, e);
         }
 
         /**
@@ -244,9 +239,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
          */
         @Override
         protected void failedToSetAttribute(final String attributeID, final Object value, final Exception e) {
-            try(final LoggingScope logger = new LoggingScope(this.logger, Utils.getBundleContextByObject(this))){
-                failedToSetAttribute(logger, Level.WARNING, attributeID, value, e);
-            }
+            failedToSetAttribute(logger, Level.WARNING, attributeID, value, e);
         }
 
         /**

@@ -13,7 +13,6 @@ import com.bytex.snamp.connectors.operations.AbstractOperationSupport;
 import com.bytex.snamp.connectors.operations.OperationDescriptor;
 import com.bytex.snamp.connectors.operations.OperationDescriptorRead;
 import com.bytex.snamp.connectors.operations.OperationSupport;
-import com.bytex.snamp.core.LoggingScope;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.internal.annotations.SpecialUse;
 import com.google.common.base.Function;
@@ -197,17 +196,11 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
             return callInfo.getMetadata().invoke(connectionManager, callInfo.toArray());
         }
 
-        private LoggingScope createLoggingScope(){
-            return new LoggingScope(getLoggerImpl(), Utils.getBundleContextByObject(this));
-        }
-
         @Override
         protected void failedToEnableOperation(final String userDefinedName,
                                                final String operationName,
                                                final Exception e) {
-            try (final LoggingScope logger = createLoggingScope()) {
-                failedToEnableOperation(logger, Level.WARNING, userDefinedName, operationName, e);
-            }
+            failedToEnableOperation(getLoggerImpl(), Level.WARNING, userDefinedName, operationName, e);
         }
 
         @Override
@@ -243,7 +236,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
                     }
                 });
             } catch (final Exception e) {
-                JmxConnectorHelpers.log(Level.WARNING, String.format("Unable to expand operations for resource %s", getResourceName()));
+                getLoggerImpl().log(Level.WARNING, String.format("Unable to expand operations for resource %s", getResourceName()));
                 return Collections.emptyList();
             }
         }
@@ -290,10 +283,6 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
             this.connectionManager = connectionManager;
         }
 
-        private LoggingScope createLoggingScope(){
-            return new LoggingScope(getLoggerImpl(), Utils.getBundleContextByObject(this));
-        }
-
         /**
          * Reports an error when connecting attribute.
          *
@@ -304,9 +293,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
          */
         @Override
         protected void failedToConnectAttribute(final String attributeID, final String attributeName, final Exception e) {
-            try(final LoggingScope logger = createLoggingScope()){
-                failedToConnectAttribute(logger, Level.WARNING, attributeID, attributeName, e);
-            }
+            failedToConnectAttribute(getLoggerImpl(), Level.WARNING, attributeID, attributeName, e);
         }
 
         /**
@@ -318,9 +305,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
          */
         @Override
         protected void failedToGetAttribute(final String attributeID, final Exception e) {
-            try(final LoggingScope logger = createLoggingScope()){
-                failedToGetAttribute(logger, Level.WARNING, attributeID, e);
-            }
+            failedToGetAttribute(getLoggerImpl(), Level.WARNING, attributeID, e);
         }
 
         /**
@@ -333,9 +318,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
          */
         @Override
         protected void failedToSetAttribute(final String attributeID, final Object value, final Exception e) {
-            try(final LoggingScope logger = createLoggingScope()){
-                failedToSetAttribute(logger, Level.WARNING, attributeID, value, e);
-            }
+            failedToSetAttribute(getLoggerImpl(), Level.WARNING, attributeID, value, e);
         }
 
         private static JmxAttributeInfo createPlainAttribute(final JmxConnectionManager connectionManager,
@@ -426,7 +409,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
                     }
                 });
             } catch (final Exception e) {
-                JmxConnectorHelpers.log(Level.WARNING, String.format("Unable to expand attributes for resource %s", getResourceName()));
+                getLoggerImpl().log(Level.WARNING, String.format("Unable to expand attributes for resource %s", getResourceName()));
                 return Collections.emptyList();
             }
         }
@@ -481,7 +464,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
             return NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker(executor, new NotificationListenerInvokerFactory.ExceptionHandler() {
                 @Override
                 public final void handle(final Throwable e, final NotificationListener source) {
-                    JmxConnectorHelpers.log(Level.SEVERE, "Unable to process JMX notification.", e);
+                    getLoggerImpl().log(Level.SEVERE, "Unable to process JMX notification", e);
                 }
             });
         }
@@ -496,10 +479,6 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
             return listenerInvoker;
         }
 
-        private LoggingScope createLoggingScope(){
-            return new LoggingScope(getLoggerImpl(), Utils.getBundleContextByObject(this));
-        }
-
         /**
          * Reports an error when enabling notifications.
          *
@@ -510,9 +489,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
          */
         @Override
         protected void failedToEnableNotifications(final String listID, final String category, final Exception e) {
-            try(final LoggingScope logger = createLoggingScope()){
-                failedToEnableNotifications(logger, Level.WARNING, listID, category, e);
-            }
+            failedToEnableNotifications(getLoggerImpl(), Level.WARNING, listID, category, e);
         }
 
         private Set<ObjectName> getNotificationTargets() {
@@ -555,7 +532,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
                 try {
                     disableListening(metadata.getOwner());
                 } catch (final Exception e) {
-                    JmxConnectorHelpers.log(Level.WARNING, String.format("Unable to unsubscribe from %s", metadata.getOwner()), e);
+                    getLoggerImpl().log(Level.WARNING, String.format("Unable to unsubscribe from %s", metadata.getOwner()), e);
                 }
         }
 
@@ -632,7 +609,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
                     }
                 });
             } catch (final Exception e) {
-                JmxConnectorHelpers.log(Level.WARNING, String.format("Unable to expand events for resource %s", getResourceName()));
+                getLoggerImpl().log(Level.WARNING, String.format("Unable to expand events for resource %s", getResourceName()));
                 return Collections.emptyList();
             }
         }
@@ -651,9 +628,9 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
             try {
                 userData = UserDataExtractor.getUserData(notification);
             } catch (final OpenDataException | IllegalArgumentException e) {
-                JmxConnectorHelpers.log(Level.WARNING, "Unable to process user data %s in notification %s",
+                getLoggerImpl().log(Level.WARNING, String.format("Unable to process user data %s in notification %s",
                         notification.getUserData(),
-                        notification.getType(), e);
+                        notification.getType()), e);
             }
             fire(notification.getType(),
                     notification.getMessage(),
@@ -784,7 +761,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
 
     JmxConnector(final String resourceName,
                  final JmxConnectionOptions connectionOptions) {
-        this.connectionManager = connectionOptions.createConnectionManager();
+        this.connectionManager = connectionOptions.createConnectionManager(getLogger());
         //attempts to establish connection immediately
         connectionManager.connect();
         this.notifications = new JmxNotificationSupport(resourceName, connectionOptions.getGlobalObjectName(), connectionManager);

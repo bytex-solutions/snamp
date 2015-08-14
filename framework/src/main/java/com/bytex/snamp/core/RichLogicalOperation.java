@@ -20,37 +20,28 @@ public class RichLogicalOperation extends LogicalOperation {
     protected RichLogicalOperation(final Logger logger,
                                    final String name,
                                final CorrelationIdentifierGenerator correlationID,
-                               final ImmutableMap<String, ?> params,
-                                   final BundleContext context) {
-        super(logger, name, correlationID, context);
+                               final ImmutableMap<String, ?> params) {
+        super(logger, name, correlationID);
         this.properties = params != null ? params : ImmutableMap.<String, Object>of();
     }
 
     public RichLogicalOperation(final Logger logger,
                                 final String name,
-                                final ImmutableMap<String, ?> params,
-                                final BundleContext context){
-        this(logger, name, CORREL_ID_GEN, params, context);
-    }
-
-    protected RichLogicalOperation(final Logger logger,
-                                   final String name,
-                                   final CorrelationIdentifierGenerator correlationID,
-                                   final ImmutableMap<String, ?> params) {
-        this(logger, name, correlationID, params, null);
-    }
-
-    public RichLogicalOperation(final Logger logger,
-                                final String name,
                                 final ImmutableMap<String, ?> params){
-        this(logger, name, params, null);
+        this(logger, name, CORREL_ID_GEN, params);
     }
 
     public RichLogicalOperation(final String loggerName,
                                 final String name,
-                                final ImmutableMap<String, ?> params,
-                                final BundleContext context){
-        this(Logger.getLogger(loggerName), name, CORREL_ID_GEN, params, context);
+                                final ImmutableMap<String, ?> params){
+        this(loggerName, name, CORREL_ID_GEN, params);
+    }
+
+    protected RichLogicalOperation(final String loggerName,
+                                   final String name,
+                                   final CorrelationIdentifierGenerator correlationID,
+                                   final ImmutableMap<String, ?> params) {
+        this(Logger.getLogger(loggerName), name, correlationID, params);
     }
 
     /**

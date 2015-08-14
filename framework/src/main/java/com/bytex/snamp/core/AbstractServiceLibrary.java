@@ -38,7 +38,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                                                 final Class<?> serviceContract,
                                                 final BundleContext context){
             super(loggerName, operationName, ImmutableMap.of(SERVICE_CONTRACT_PARAMETER, serviceContract,
-                    EXPORTING_BUNDLE_NAME_PARAMETER, context.getBundle().getSymbolicName()), context);
+                    EXPORTING_BUNDLE_NAME_PARAMETER, context.getBundle().getSymbolicName()));
         }
 
         private static ProvidedServiceLogicalOperation expose(final String loggerName,
@@ -59,21 +59,18 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
 
         private DynamicServiceLogicalOperation(final String loggerName,
                                                final String operationName,
-                                               final String servicePID,
-                                               final BundleContext context){
-            super(loggerName, operationName, ImmutableMap.of(SERVICE_PID_PARAMETER, servicePID), context);
+                                               final String servicePID){
+            super(loggerName, operationName, ImmutableMap.of(SERVICE_PID_PARAMETER, servicePID));
         }
 
         private static DynamicServiceLogicalOperation update(final String loggerName,
-                                                             final String servicePID,
-                                                             final BundleContext context){
-            return new DynamicServiceLogicalOperation(loggerName, "updateDynamicService", servicePID, context);
+                                                             final String servicePID){
+            return new DynamicServiceLogicalOperation(loggerName, "updateDynamicService", servicePID);
         }
 
         private static DynamicServiceLogicalOperation delete(final String loggerName,
-                                                             final String servicePID,
-                                                             final BundleContext context){
-            return new DynamicServiceLogicalOperation(loggerName, "deleteDynamicService", servicePID, context);
+                                                             final String servicePID){
+            return new DynamicServiceLogicalOperation(loggerName, "deleteDynamicService", servicePID);
         }
     }
 
@@ -84,27 +81,23 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         private SubRegistryLogicalOperation(final String loggerName,
                                             final String operationName,
                                             final String servicePID,
-                                            final Class<?> serviceContract,
-                                            final BundleContext context){
+                                            final Class<?> serviceContract){
             super(loggerName,
                     operationName,
                     ImmutableMap.of(SERVICE_PID_PARAMETER, servicePID,
-                            SERVICE_CONTRACT_PARAMETER, serviceContract),
-                    context);
+                            SERVICE_CONTRACT_PARAMETER, serviceContract));
         }
 
         private static SubRegistryLogicalOperation update(final String loggerName,
                                                           final String servicePID,
-                                                          final Class<?> contract,
-                                                          final BundleContext context){
-            return new SubRegistryLogicalOperation(loggerName, "updateDynamicOsgiService", servicePID, contract, context);
+                                                          final Class<?> contract){
+            return new SubRegistryLogicalOperation(loggerName, "updateDynamicOsgiService", servicePID, contract);
         }
 
         private static SubRegistryLogicalOperation delete(final String loggerName,
                                                           final String servicePID,
-                                                          final Class<?> contract,
-                                                          final BundleContext context){
-            return new SubRegistryLogicalOperation(loggerName, "deleteDynamicOsgiService", servicePID, contract, context);
+                                                          final Class<?> contract){
+            return new SubRegistryLogicalOperation(loggerName, "deleteDynamicOsgiService", servicePID, contract);
         }
     }
 
@@ -441,16 +434,12 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             logger.log(Level.SEVERE, String.format("Unable to deactivate service with PID %s", servicePID), e);
         }
 
-        private BundleContext getBundleContext(){
-            return getBundleContextByObject(this);
-        }
-
         LogicalOperation createLogicalOperationForUpdate(final String servicePID){
-            return DynamicServiceLogicalOperation.update(factoryPID, servicePID, getBundleContext());
+            return DynamicServiceLogicalOperation.update(factoryPID, servicePID);
         }
 
         LogicalOperation createLogicalOperationForDelete(final String servicePID){
-            return DynamicServiceLogicalOperation.delete(factoryPID, servicePID, getBundleContext());
+            return DynamicServiceLogicalOperation.delete(factoryPID, servicePID);
         }
 
         /**
@@ -474,17 +463,19 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                 @Override
                 public synchronized void updated(final String pid, final Dictionary<String, ?> properties) throws ConfigurationException {
                     TService service;
-                    try (final LogicalOperation logger = createLogicalOperationForUpdate(pid)) {
-                        try {
-                            service = containsKey(pid) ?
-                                    updateService(get(pid), properties, dependencies) :
-                                    activateService(pid, properties, dependencies);
-                        } catch (final ConfigurationException e) {
-                            throw e;
-                        } catch (final Exception e) {
-                            service = null;
-                            failedToUpdateService(logger, pid, properties, e);
-                        }
+                    final LogicalOperation logger = createLogicalOperationForUpdate(pid);
+                    try {
+                        service = containsKey(pid) ?
+                                updateService(get(pid), properties, dependencies) :
+                                activateService(pid, properties, dependencies);
+                    } catch (final ConfigurationException e) {
+                        throw e;
+                    } catch (final Exception e) {
+                        service = null;
+                        failedToUpdateService(logger, pid, properties, e);
+                    }
+                    finally {
+                        logger.close();
                     }
                     if (service == null)
                         remove(pid);
@@ -494,13 +485,12 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
 
                 @Override
                 public synchronized void deleted(final String pid) {
-                    try (final LogicalOperation logger = createLogicalOperationForDelete(pid)) {
-                        try {
-                            if (containsKey(pid))
-                                dispose(remove(pid), false);
-                        } catch (final Exception e) {
-                            failedToCleanupService(logger, pid, e);
-                        }
+                    final LogicalOperation logger = createLogicalOperationForDelete(pid);
+                    try {
+                        if (containsKey(pid))
+                            dispose(remove(pid), false);
+                    } catch (final Exception e) {
+                        failedToCleanupService(logger, pid, e);
                     }
                 }
             };
@@ -602,18 +592,14 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             this.serviceContract = serviceContract;
         }
 
-        private BundleContext getBundleContext(){
-            return getBundleContextByObject(this);
-        }
-
         @Override
         final LogicalOperation createLogicalOperationForUpdate(final String servicePID) {
-            return SubRegistryLogicalOperation.update(factoryPID, servicePID, serviceContract, getBundleContext());
+            return SubRegistryLogicalOperation.update(factoryPID, servicePID, serviceContract);
         }
 
         @Override
         final LogicalOperation createLogicalOperationForDelete(final String servicePID) {
-            return SubRegistryLogicalOperation.delete(factoryPID, servicePID, serviceContract, getBundleContext());
+            return SubRegistryLogicalOperation.delete(factoryPID, servicePID, serviceContract);
         }
 
         /**

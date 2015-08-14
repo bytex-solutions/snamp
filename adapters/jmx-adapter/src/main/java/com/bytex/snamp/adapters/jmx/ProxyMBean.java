@@ -1,6 +1,5 @@
 package com.bytex.snamp.adapters.jmx;
 
-import com.bytex.snamp.core.LoggingScope;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -295,10 +294,6 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
         }
     }
 
-    private LoggingScope createLoggingScope(){
-        return new LoggingScope(this.logger, Utils.getBundleContextByObject(this));
-    }
-
     /**
      * Get the values of several attributes of the Dynamic MBean.
      *
@@ -313,9 +308,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
             try {
                 result.add(new Attribute(attributeName, getAttribute(attributeName)));
             } catch (final JMException e) {
-                try(final LoggingScope logger = createLoggingScope()) {
-                    logger.log(Level.WARNING, "Unable to get value of %s attribute", attributeName, e);
-                }
+                logger.log(Level.WARNING, String.format("Unable to get value of %s attribute", attributeName), e);
             }
         return result;
     }
@@ -338,12 +331,10 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
                     result.add(entry);
                 }
                 catch (final JMException e) {
-                    try(final LoggingScope logger = createLoggingScope()) {
                         logger.log(Level.WARNING,
-                                "Unable to set attribute %s",
-                                entry,
+                                String.format("Unable to set attribute %s",
+                                entry),
                                 e);
-                    }
                 }
         return result;
     }

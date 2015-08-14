@@ -15,18 +15,16 @@ public class ReadAttributeLogicalOperation extends AttributeRelatedLogicalOperat
 
     public ReadAttributeLogicalOperation(final Logger logger,
                                          final String attributeName,
-                                         final String attributeID,
-                                         final BundleContext context){
-        super(logger, OPERATION_NAME, attributeName, attributeID, context);
+                                         final String attributeID){
+        super(logger, OPERATION_NAME, attributeName, attributeID);
     }
 
     public ReadAttributeLogicalOperation(final Logger logger,
                                          final String attributeName,
                                          final String attributeID,
                                          final String propertyName,
-                                         final Object propertyValue,
-                                         final BundleContext context){
+                                         final Object propertyValue){
         super(logger, OPERATION_NAME, attributeName, attributeID,
-                propertyName, propertyValue, context);
+                propertyName, propertyValue);
     }
 }

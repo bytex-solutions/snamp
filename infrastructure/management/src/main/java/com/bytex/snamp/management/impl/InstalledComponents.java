@@ -1,6 +1,5 @@
 package com.bytex.snamp.management.impl;
 
-import com.bytex.snamp.core.LoggingScope;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.Maps;
 import com.bytex.snamp.SafeConsumer;
@@ -67,7 +66,7 @@ final class InstalledComponents extends OpenMBean.OpenAttribute<TabularData, Tab
         this.manager = Objects.requireNonNull(manager);
     }
 
-    private CompositeData createRow(final SnampComponentDescriptor component) throws OpenDataException{
+    private CompositeData createRow(final SnampComponentDescriptor component) throws OpenDataException {
         final Map<String, Object> row = Maps.newHashMapWithExpectedSize(INSTALLED_COMPONENT.keySet().size());
         row.put(NAME_COLUMN, component.getName(null));
         row.put(DESCRIPTION_COLUMN, component.getDescription(null));
@@ -88,11 +87,8 @@ final class InstalledComponents extends OpenMBean.OpenAttribute<TabularData, Tab
                     row.put(IS_CONFIG_DESCR_AVAIL_COLUMN, input != null);
                 }
             });
-        }
-        catch (final Exception e){
-            try(final LoggingScope logger = new LoggingScope(MonitoringUtils.getLogger(), Utils.getBundleContextByObject(this))) {
-                logger.log(Level.SEVERE, e.getLocalizedMessage(), e);
-            }
+        } catch (final Exception e) {
+            MonitoringUtils.getLogger().log(Level.SEVERE, e.getLocalizedMessage(), e);
         }
         return INSTALLED_COMPONENT_BUILDER.build(row);
     }
