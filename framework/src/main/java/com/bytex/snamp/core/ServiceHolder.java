@@ -238,4 +238,9 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
     public final int hashCode() {
         return serviceRef.hashCode();
     }
+
+    @Override
+    public String toString() {
+        return Objects.toString(serviceImpl, "Released");
+    }
 }

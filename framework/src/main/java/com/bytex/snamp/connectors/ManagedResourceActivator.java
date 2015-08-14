@@ -1,8 +1,5 @@
 package com.bytex.snamp.connectors;
 
-import static com.bytex.snamp.connectors.ManagedResourceConnector.CONNECTOR_NAME_MANIFEST_HEADER;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.configuration.*;
@@ -10,12 +7,13 @@ import com.bytex.snamp.connectors.discovery.AbstractDiscoveryService;
 import com.bytex.snamp.connectors.discovery.DiscoveryService;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.FrameworkService;
-import com.bytex.snamp.core.LogicalOperation;
-import com.bytex.snamp.core.OSGiLoggingContext;
+import com.bytex.snamp.core.LoggingScope;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.internal.annotations.MethodStub;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.management.Maintainable;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.osgi.framework.*;
 import org.osgi.service.cm.ConfigurationAdmin;
 
@@ -26,6 +24,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
+import static com.bytex.snamp.connectors.ManagedResourceConnector.CONNECTOR_NAME_MANIFEST_HEADER;
 
 /**
  * Represents a base class for management connector bundle.
@@ -371,14 +370,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
             return getActivationPropertyValue(PREREQUISITES_CHECK_HOLDER);
         }
 
-        private OSGiLoggingContext getLoggingContext() {
-            Logger logger = getActivationPropertyValue(LOGGER_HOLDER);
-            if (logger == null)
-                logger = AbstractManagedResourceConnector.getLogger(connectorType);
-            return OSGiLoggingContext.get(logger,
-                    Utils.getBundleContextByObject(controller));
-        }
-
         private void updateFeatures(final TConnector connector,
                             final Dictionary<String, ?> configuration) throws Exception {
             controller.updateConnector(connector,
@@ -431,34 +422,33 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
         /**
          * Log error details when {@link #updateService(Object, java.util.Dictionary, com.bytex.snamp.core.AbstractBundleActivator.RequiredService[])} failed.
-         *
+         * @param logger
          * @param servicePID    The persistent identifier associated with the service.
          * @param configuration The configuration of the service.
          * @param e             An exception occurred when updating service.
          */
         @Override
-        protected void failedToUpdateService(final String servicePID, final Dictionary<String, ?> configuration, final Exception e) {
-            try (final OSGiLoggingContext logger = getLoggingContext()) {
-                logger.log(Level.SEVERE, String.format("Unable to update connector. Connection string: %s, connection parameters: %s. Context: %s",
-                                PersistentConfigurationManager.getConnectionString(configuration),
-                                PersistentConfigurationManager.getResourceConnectorParameters(configuration),
-                                LogicalOperation.current()),
-                        e);
-            }
+        protected void failedToUpdateService(final Logger logger,
+                                             final String servicePID,
+                                             final Dictionary<String, ?> configuration,
+                                             final Exception e) {
+            logger.log(Level.SEVERE, String.format("Unable to update connector. Connection string: %s, connection parameters: %s",
+                            PersistentConfigurationManager.getConnectionString(configuration),
+                            PersistentConfigurationManager.getResourceConnectorParameters(configuration)),
+                    e);
         }
 
         /**
          * Logs error details when {@link #dispose(Object, boolean)} failed.
-         *
+         * @param logger
          * @param servicePID The persistent identifier of the service to dispose.
          * @param e          An exception occurred when disposing service.
          */
         @Override
-        protected void failedToCleanupService(final String servicePID, final Exception e) {
-            try (final OSGiLoggingContext logger = getLoggingContext()) {
-                logger.log(Level.SEVERE, String.format("Unable to dispose connector. Context: %s",
-                        LogicalOperation.current()), e);
-            }
+        protected void failedToCleanupService(final Logger logger,
+                                              final String servicePID,
+                                              final Exception e) {
+            logger.log(Level.SEVERE, "Unable to dispose connector", e);
         }
 
         /**
@@ -853,7 +843,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
             checkPrerequisites();
         } catch (final PrerequisiteException e) {
             if (e.abortStarting()) throw e;
-            else try (final OSGiLoggingContext logger = getLoggingContext()) {
+            else try (final LoggingScope logger = getLoggingContext()) {
                 logger.log(Level.WARNING, String.format("Preconditions for %s connector are not met", getConnectorType()), e);
             }
             finally {
@@ -875,10 +865,9 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         activationProperties.publish(LOGGER_HOLDER, getLogger());
         activationProperties.publish(CONNECTOR_TYPE_HOLDER, getConnectorType());
         activationProperties.publish(PREREQUISITES_CHECK_HOLDER, prerequisitesOK);
-        try(final OSGiLoggingContext logger = getLoggingContext()){
-            logger.info(String.format("Activating resource connectors of type %s. Context: %s",
-                    getConnectorType(),
-                    LogicalOperation.current()));
+        try(final LoggingScope logger = getLoggingContext()){
+            logger.log(Level.INFO, "Activating resource connectors of type %s",
+                    getConnectorType());
         }
     }
 
@@ -894,8 +883,8 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         return Utils.getBundleContextByObject(this);
     }
 
-    private OSGiLoggingContext getLoggingContext(){
-        return OSGiLoggingContext.get(getLogger(), getBundleContext());
+    private LoggingScope getLoggingContext(){
+        return new LoggingScope(getLogger(), getBundleContext());
     }
 
     /**
@@ -906,10 +895,9 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      */
     @Override
     protected void activationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
-        try (final OSGiLoggingContext logger = getLoggingContext()) {
-            logger.log(Level.SEVERE, String.format("Unable to instantiate %s connector. Context: %s",
-                    getConnectorType(),
-                    LogicalOperation.current()), e);
+        try (final LoggingScope logger = getLoggingContext()) {
+            logger.log(Level.SEVERE, String.format("Unable to instantiate %s connector",
+                    getConnectorType()), e);
         }
     }
 
@@ -922,10 +910,9 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      */
     @Override
     protected void deactivationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
-        try (final OSGiLoggingContext logger = getLoggingContext()) {
-            logger.log(Level.SEVERE, String.format("Unable to release %s connector instance. Context: %s",
-                    getConnectorType(),
-                    LogicalOperation.current()), e);
+        try (final LoggingScope logger = getLoggingContext()) {
+            logger.log(Level.SEVERE, String.format("Unable to release %s connector instance",
+                    getConnectorType()), e);
         }
     }
 
@@ -937,10 +924,8 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     @Override
     @MethodStub
     protected final void deactivate(final ActivationPropertyReader activationProperties) {
-        try(final OSGiLoggingContext logger = getLoggingContext()){
-            logger.info(String.format("Unloading connectors of type %s. Context: %s",
-                    getConnectorType(),
-                    LogicalOperation.current()));
+        try(final LoggingScope logger = getLoggingContext()){
+            logger.log(Level.INFO, "Unloading connectors of type %s", getConnectorType());
         }
     }
 

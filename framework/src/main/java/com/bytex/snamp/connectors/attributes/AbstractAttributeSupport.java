@@ -1,21 +1,25 @@
 package com.bytex.snamp.connectors.attributes;
 
-import com.bytex.snamp.jmx.CompositeTypeBuilder;
-import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.AbstractFeatureModeler;
-import com.bytex.snamp.core.LogicalOperation;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
 import com.bytex.snamp.internal.annotations.ThreadSafe;
+import com.bytex.snamp.jmx.CompositeTypeBuilder;
 import com.bytex.snamp.jmx.JMExceptionUtils;
+import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 
 import javax.management.*;
-import javax.management.openmbean.*;
+import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.CompositeType;
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.OpenType;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -356,8 +360,8 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
                                                    final String attributeID,
                                                    final String attributeName,
                                                    final Exception e) {
-        logger.log(logLevel, String.format("Failed to connect attribute %s with ID %s. Context: %s",
-                attributeName, attributeID, LogicalOperation.current()), e);
+        logger.log(logLevel, String.format("Failed to connect attribute %s with ID %s",
+                attributeName, attributeID), e);
     }
 
     /**
@@ -424,8 +428,7 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
                                                final Level logLevel,
                                                final String attributeID,
                                                final Exception e) {
-        logger.log(logLevel, String.format("Failed to get attribute %s. Context: %s",
-                attributeID, LogicalOperation.current()), e);
+        logger.log(logLevel, String.format("Failed to get attribute %s", attributeID), e);
     }
 
     /**
@@ -496,8 +499,7 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
                                                final String attributeID,
                                                final Object value,
                                                final Exception e) {
-        logger.log(logLevel, String.format("Failed to update attribute %s with %s value. Context: %s",
-                attributeID, value, LogicalOperation.current()), e);
+        logger.log(logLevel, String.format("Failed to update attribute %s with %s value", attributeID, value), e);
     }
 
     /**
@@ -516,7 +518,6 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
      * Removes the attribute from the connector.
      *
      * @param attributeInfo An attribute metadata.
-     * @return {@literal true}, if the attribute successfully disconnected; otherwise, {@literal false}.
      */
     protected void disconnectAttribute(final M attributeInfo) {
     }

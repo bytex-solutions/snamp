@@ -1,11 +1,12 @@
 package com.bytex.snamp.core;
 
-import com.google.common.collect.ImmutableList;
 import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.concurrent.Monitor;
 import com.bytex.snamp.internal.annotations.MethodStub;
 import com.bytex.snamp.internal.annotations.SpecialUse;
 import com.bytex.snamp.internal.annotations.ThreadSafe;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.osgi.framework.*;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedServiceFactory;
@@ -17,6 +18,7 @@ import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextByObject;
 
@@ -31,47 +33,47 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         private static final String SERVICE_CONTRACT_PARAMETER = "serviceContract";
         private static final String EXPORTING_BUNDLE_NAME_PARAMETER = "exportingBundleName";
 
-        private ProvidedServiceLogicalOperation(final String operationName,
+        private ProvidedServiceLogicalOperation(final String loggerName,
+                                                final String operationName,
                                                 final Class<?> serviceContract,
-                                                final String exportingBundle){
-            super(operationName, SERVICE_CONTRACT_PARAMETER, serviceContract,
-                    EXPORTING_BUNDLE_NAME_PARAMETER, exportingBundle);
+                                                final BundleContext context){
+            super(loggerName, operationName, ImmutableMap.of(SERVICE_CONTRACT_PARAMETER, serviceContract,
+                    EXPORTING_BUNDLE_NAME_PARAMETER, context.getBundle().getSymbolicName()), context);
         }
 
-        Class getServiceContract(){
-            return getProperty(SERVICE_CONTRACT_PARAMETER, Class.class, null);
-        }
-
-        String getExportingBundleName(){
-            return getProperty(EXPORTING_BUNDLE_NAME_PARAMETER, String.class,
-                    getProperty(BundleLogicalOperation.BUNDLE_NAME_PROPERTY, String.class, ""));
-        }
-
-        private static ProvidedServiceLogicalOperation expose(final Class<?> contract,
+        private static ProvidedServiceLogicalOperation expose(final String loggerName,
+                                                              final Class<?> contract,
                                                               final BundleContext context){
-            return new ProvidedServiceLogicalOperation("exposeOsgiService", contract, context.getBundle().getSymbolicName());
+            return new ProvidedServiceLogicalOperation(loggerName, "exposeOsgiService", contract, context);
         }
 
-        private static ProvidedServiceLogicalOperation unregister(final Class<?> contract,
+        private static ProvidedServiceLogicalOperation unregister(final String loggerName,
+                                                                  final Class<?> contract,
                                                                   final BundleContext context){
-            return new ProvidedServiceLogicalOperation("unregisterOsgiService", contract, context.getBundle().getSymbolicName());
+            return new ProvidedServiceLogicalOperation(loggerName, "unregisterOsgiService", contract, context);
         }
     }
 
     private static final class DynamicServiceLogicalOperation extends RichLogicalOperation{
         private static final String SERVICE_PID_PARAMETER = "servicePID";
 
-        private DynamicServiceLogicalOperation(final String operationName,
-                                               final String servicePID){
-            super(operationName, SERVICE_PID_PARAMETER, servicePID);
+        private DynamicServiceLogicalOperation(final String loggerName,
+                                               final String operationName,
+                                               final String servicePID,
+                                               final BundleContext context){
+            super(loggerName, operationName, ImmutableMap.of(SERVICE_PID_PARAMETER, servicePID), context);
         }
 
-        private static DynamicServiceLogicalOperation update(final String servicePID){
-            return new DynamicServiceLogicalOperation("updateDynamicService", servicePID);
+        private static DynamicServiceLogicalOperation update(final String loggerName,
+                                                             final String servicePID,
+                                                             final BundleContext context){
+            return new DynamicServiceLogicalOperation(loggerName, "updateDynamicService", servicePID, context);
         }
 
-        private static DynamicServiceLogicalOperation delete(final String servicePID){
-            return new DynamicServiceLogicalOperation("deleteDynamicService", servicePID);
+        private static DynamicServiceLogicalOperation delete(final String loggerName,
+                                                             final String servicePID,
+                                                             final BundleContext context){
+            return new DynamicServiceLogicalOperation(loggerName, "deleteDynamicService", servicePID, context);
         }
     }
 
@@ -79,19 +81,30 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         private static final String SERVICE_PID_PARAMETER = DynamicServiceLogicalOperation.SERVICE_PID_PARAMETER;
         private static final String SERVICE_CONTRACT_PARAMETER = ProvidedServiceLogicalOperation.SERVICE_CONTRACT_PARAMETER;
 
-        private SubRegistryLogicalOperation(final String operationName,
+        private SubRegistryLogicalOperation(final String loggerName,
+                                            final String operationName,
                                             final String servicePID,
-                                            final Class<?> serviceContract){
-            super(operationName, SERVICE_PID_PARAMETER, servicePID,
-                    SERVICE_CONTRACT_PARAMETER, serviceContract);
+                                            final Class<?> serviceContract,
+                                            final BundleContext context){
+            super(loggerName,
+                    operationName,
+                    ImmutableMap.of(SERVICE_PID_PARAMETER, servicePID,
+                            SERVICE_CONTRACT_PARAMETER, serviceContract),
+                    context);
         }
 
-        private static SubRegistryLogicalOperation update(final String servicePID, final Class<?> contract){
-            return new SubRegistryLogicalOperation("updateDynamicOsgiService", servicePID, contract);
+        private static SubRegistryLogicalOperation update(final String loggerName,
+                                                          final String servicePID,
+                                                          final Class<?> contract,
+                                                          final BundleContext context){
+            return new SubRegistryLogicalOperation(loggerName, "updateDynamicOsgiService", servicePID, contract, context);
         }
 
-        private static SubRegistryLogicalOperation delete(final String servicePID, final Class<?> contract){
-            return new SubRegistryLogicalOperation("deleteDynamicOsgiService", servicePID, contract);
+        private static SubRegistryLogicalOperation delete(final String loggerName,
+                                                          final String servicePID,
+                                                          final Class<?> contract,
+                                                          final BundleContext context){
+            return new SubRegistryLogicalOperation(loggerName, "deleteDynamicOsgiService", servicePID, contract, context);
         }
     }
 
@@ -189,33 +202,36 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             switch (getState()){
                 case PUBLISHED:
                     //dependency lost but service is activated
-                    if(resolvedDependencies != ownDependencies.size())
-                        try(final LogicalOperation ignored = ProvidedServiceLogicalOperation.unregister(serviceContract, context)){
-                            if(registration != null) {
+                    if(resolvedDependencies != ownDependencies.size()) {
+                        final LogicalOperation logger = ProvidedServiceLogicalOperation.unregister(getClass().getName(),
+                                serviceContract,
+                                context);
+                        try {
+                            if (registration != null) {
                                 registration.unregister();
                                 cleanupService(registration.serviceInstance, false);
                             }
-                        }
-                        catch (final Exception e){
-                            throw new ServiceException(String.format("Unable to cleanup service %s", serviceContract),
-                                    ServiceException.UNREGISTERED,
-                                    e);
-                        }
-                        finally {
+                        } catch (final Exception e) {
+                            logger.log(Level.SEVERE, String.format("Unable to cleanup service %s", serviceContract), e);
+                        } finally {
                             this.registration = null;
+                            logger.close();
                         }
+                    }
                 return;
                 case NOT_PUBLISHED:
-                    if(resolvedDependencies == ownDependencies.size())
-                        try(final LogicalOperation ignored = ProvidedServiceLogicalOperation.expose(serviceContract, context)) {
+                    if(resolvedDependencies == ownDependencies.size()) {
+                        final LogicalOperation logger = ProvidedServiceLogicalOperation.expose(getClass().getName(), serviceContract, context);
+                        try {
                             activateAndRegisterService(context);
-                        }
-                        catch (final Exception e) {
-                            if(registration != null) registration.unregister();
+                        } catch (final Exception e) {
+                            logger.log(Level.SEVERE, String.format("Unable to activate %s service", serviceContract), e);
+                            if (registration != null) registration.unregister();
                             this.registration = null;
-                            throw new ServiceException(String.format("Unable to activate %s service", serviceContract),
-                                    ServiceException.FACTORY_EXCEPTION, e);
+                        } finally {
+                            logger.close();
                         }
+                    }
             }
         }
 
@@ -399,44 +415,42 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
 
         /**
          * Log error details when {@link #updateService(Object, java.util.Dictionary, com.bytex.snamp.core.AbstractBundleActivator.RequiredService[])} failed.
+         * @param logger Logger used to write information about error.
          * @param servicePID The persistent identifier associated with the service.
          * @param configuration The configuration of the service.
          * @param e An exception occurred when updating service.
          */
-        protected void failedToUpdateService(final String servicePID,
+        protected void failedToUpdateService(final Logger logger,
+                                             final String servicePID,
                                              final Dictionary<String, ?> configuration,
-                                             final Exception e){
-            try(final OSGiLoggingContext logger = getLoggingContext()){
-                logger.log(Level.SEVERE, String.format("Unable to update service with PID %s and %s configuration. Context: %s",
-                        servicePID, configuration, LogicalOperation.current()),
-                        e);
-            }
+                                             final Exception e) {
+            logger.log(Level.SEVERE,
+                    String.format("Unable to update service with PID %s and %s configuration", servicePID, configuration),
+                    e);
         }
 
         /**
          * Logs error details when {@link #dispose(Object, boolean)} failed.
+         * @param logger Logger used to write information about error.
          * @param servicePID The persistent identifier of the service to dispose.
          * @param e An exception occurred when disposing service.
          */
-        protected void failedToCleanupService(final String servicePID,
-                                              final Exception e){
-            try(final OSGiLoggingContext logger = getLoggingContext()){
-                logger.log(Level.SEVERE, String.format("Unable to deactivate service with PID %s. Context: %s",
-                        servicePID, LogicalOperation.current()),
-                        e);
-            }
+        protected void failedToCleanupService(final Logger logger,
+                                              final String servicePID,
+                                              final Exception e) {
+            logger.log(Level.SEVERE, String.format("Unable to deactivate service with PID %s", servicePID), e);
         }
 
-        private OSGiLoggingContext getLoggingContext(){
-            return OSGiLoggingContext.getLogger(factoryPID, getBundleContextByObject(this));
+        private BundleContext getBundleContext(){
+            return getBundleContextByObject(this);
         }
 
         LogicalOperation createLogicalOperationForUpdate(final String servicePID){
-            return DynamicServiceLogicalOperation.update(servicePID);
+            return DynamicServiceLogicalOperation.update(factoryPID, servicePID, getBundleContext());
         }
 
         LogicalOperation createLogicalOperationForDelete(final String servicePID){
-            return DynamicServiceLogicalOperation.delete(servicePID);
+            return DynamicServiceLogicalOperation.delete(factoryPID, servicePID, getBundleContext());
         }
 
         /**
@@ -460,15 +474,17 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                 @Override
                 public synchronized void updated(final String pid, final Dictionary<String, ?> properties) throws ConfigurationException {
                     TService service;
-                    try (final LogicalOperation ignored = createLogicalOperationForUpdate(pid)) {
-                        service = containsKey(pid) ?
-                                updateService(get(pid), properties, dependencies) :
-                                activateService(pid, properties, dependencies);
-                    } catch (final ConfigurationException e) {
-                        throw e;
-                    } catch (final Exception e) {
-                        service = null;
-                        failedToUpdateService(pid, properties, e);
+                    try (final LogicalOperation logger = createLogicalOperationForUpdate(pid)) {
+                        try {
+                            service = containsKey(pid) ?
+                                    updateService(get(pid), properties, dependencies) :
+                                    activateService(pid, properties, dependencies);
+                        } catch (final ConfigurationException e) {
+                            throw e;
+                        } catch (final Exception e) {
+                            service = null;
+                            failedToUpdateService(logger, pid, properties, e);
+                        }
                     }
                     if (service == null)
                         remove(pid);
@@ -478,11 +494,13 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
 
                 @Override
                 public synchronized void deleted(final String pid) {
-                    try(final LogicalOperation ignored = createLogicalOperationForDelete(pid)) {
-                        if (containsKey(pid))
-                            dispose(remove(pid), false);
-                    } catch (final Exception e) {
-                        failedToCleanupService(pid, e);
+                    try (final LogicalOperation logger = createLogicalOperationForDelete(pid)) {
+                        try {
+                            if (containsKey(pid))
+                                dispose(remove(pid), false);
+                        } catch (final Exception e) {
+                            failedToCleanupService(logger, pid, e);
+                        }
                     }
                 }
             };
@@ -584,14 +602,18 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             this.serviceContract = serviceContract;
         }
 
+        private BundleContext getBundleContext(){
+            return getBundleContextByObject(this);
+        }
+
         @Override
         final LogicalOperation createLogicalOperationForUpdate(final String servicePID) {
-            return SubRegistryLogicalOperation.update(servicePID, serviceContract);
+            return SubRegistryLogicalOperation.update(factoryPID, servicePID, serviceContract, getBundleContext());
         }
 
         @Override
         final LogicalOperation createLogicalOperationForDelete(final String servicePID) {
-            return SubRegistryLogicalOperation.delete(servicePID, serviceContract);
+            return SubRegistryLogicalOperation.delete(factoryPID, servicePID, serviceContract, getBundleContext());
         }
 
         /**

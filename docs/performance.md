@@ -37,7 +37,7 @@ According to RAM calculation methodology you may specify minimum and maximum Jav
 
 Additional JVM settings can be specified in `EXTRA_JAVA_OPTS` environment parameter. The following example demonstrates setup of _G1GC_ garbage collector:
 ```bash
-export EXTRA_JAVA_OPTS="-XX:+UseG1GC -XX:-UseAdaptiveSizePolicy"
+export EXTRA_JAVA_OPTS="-XX:+UseG1GC"
 ```
 
 More information about memory tuning:
@@ -63,7 +63,7 @@ Also, you can specify `-XX:GCTimeRatio=<N>` JVM option. For example, `-XX:GCTime
 ### Response time first
 If response time is more important than overall throughput and garbage collection pauses must be kept shorter than approximately one second, then you may choose one of the following collectors:
 * Concurrent Mark & Sweep `-XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled`. Additionally, specify `-XX:+CMSIncrementalMode` if only two cores are available.
-* G1 collector with `-XX:+UseG1GC -XX:-UseAdaptiveSizePolicy`. That requires large heaps - about 6GB or larger, and stable and predictable pause time below 0.5 seconds.
+* G1 collector with `-XX:+UseG1GC`. That requires large heaps - about 6GB or larger, and stable and predictable pause time below 0.5 seconds.
 
 
 ## Number of cores

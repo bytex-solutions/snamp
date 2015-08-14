@@ -8,7 +8,7 @@ import com.bytex.snamp.concurrent.Repeater;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.connectors.notifications.NotificationSupport;
-import com.bytex.snamp.core.OSGiLoggingContext;
+import com.bytex.snamp.core.LoggingScope;
 import com.bytex.snamp.internal.annotations.SpecialUse;
 import com.bytex.snamp.io.Communicator;
 import com.bytex.snamp.jmx.DescriptorUtils;
@@ -209,35 +209,35 @@ abstract class ManagedResourceScript extends Script implements ManagedResourceSc
 
     @SpecialUse
     protected static void error(final String message) {
-        try(final OSGiLoggingContext logger = OSGiLoggingContext.get(getLogger(), getBundleContext())){
+        try(final LoggingScope logger = new LoggingScope(getLogger(), getBundleContext())){
             logger.severe(message);
         }
     }
 
     @SpecialUse
     protected static void warning(final String message) {
-        try(final OSGiLoggingContext logger = OSGiLoggingContext.get(getLogger(), getBundleContext())){
+        try(final LoggingScope logger = new LoggingScope(getLogger(), getBundleContext())){
             logger.warning(message);
         }
     }
 
     @SpecialUse
     protected static void info(final String message) {
-        try(final OSGiLoggingContext logger = OSGiLoggingContext.get(getLogger(), getBundleContext())){
+        try(final LoggingScope logger = new LoggingScope(getLogger(), getBundleContext())){
             logger.info(message);
         }
     }
 
     @SpecialUse
     protected static void debug(final String message) {
-        try(final OSGiLoggingContext logger = OSGiLoggingContext.get(getLogger(), getBundleContext())){
+        try(final LoggingScope logger = new LoggingScope(getLogger(), getBundleContext())){
             logger.config(message);
         }
     }
 
     @SpecialUse
     protected static void fine(final String message) {
-        try(final OSGiLoggingContext logger = OSGiLoggingContext.get(getLogger(), getBundleContext())){
+        try(final LoggingScope logger = new LoggingScope(getLogger(), getBundleContext())){
             logger.fine(message);
         }
     }

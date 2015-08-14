@@ -68,17 +68,6 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
             this(getAdapterName(factory), factory, dependencies);
         }
 
-        private BundleContext getBundleContext(){
-            return Utils.getBundleContextByObject(adapterFactory);
-        }
-
-        private OSGiLoggingContext getLoggingContext() {
-            Logger logger = getActivationPropertyValue(LOGGER_HOLDER);
-            if (logger == null)
-                logger = AbstractResourceAdapter.getLogger(adapterName);
-            return OSGiLoggingContext.get(logger, getBundleContext());
-        }
-
         @Override
         protected TAdapter update(final TAdapter adapter,
                                   final Dictionary<String, ?> configuration,
@@ -110,37 +99,24 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
             adapter.close();
         }
 
-        /**
-         * Log error details when {@link #updateService(Object, java.util.Dictionary, com.bytex.snamp.core.AbstractBundleActivator.RequiredService[])} failed.
-         *
-         * @param servicePID    The persistent identifier associated with the service.
-         * @param configuration The configuration of the service.
-         * @param e             An exception occurred when updating service.
-         */
         @Override
-        protected void failedToUpdateService(final String servicePID, final Dictionary<String, ?> configuration, final Exception e) {
-            try(final OSGiLoggingContext logger = getLoggingContext()){
-                logger.log(Level.SEVERE, String.format("Unable to update adapter. Name: %s, instance: %s. Context: %s",
+        protected void failedToUpdateService(final Logger logger,
+                                             final String servicePID,
+                                             final Dictionary<String, ?> configuration,
+                                             final Exception e) {
+            logger.log(Level.SEVERE,
+                    String.format("Unable to update adapter. Name: %s, instance: %s",
                             adapterName,
-                            PersistentConfigurationManager.getAdapterInstanceName(configuration),
-                            LogicalOperation.current()),
-                        e);
-            }
+                            PersistentConfigurationManager.getAdapterInstanceName(configuration)),
+                    e);
         }
 
-        /**
-         * Logs error details when {@link #dispose(Object, boolean)} failed.
-         *
-         * @param servicePID The persistent identifier of the service to dispose.
-         * @param e          An exception occurred when disposing service.
-         */
         @Override
-        protected void failedToCleanupService(final String servicePID, final Exception e) {
-            try(final OSGiLoggingContext logger = getLoggingContext()){
-                logger.log(Level.SEVERE, String.format("Unable to release adapter. Name: %s. Context: %s",
-                        LogicalOperation.current(),
-                        adapterName), e);
-            }
+        protected void failedToCleanupService(final Logger logger,
+                                              final String servicePID,
+                                              final Exception e) {
+            logger.log(Level.SEVERE, String.format("Unable to release adapter. Name: %s", adapterName),
+                    e);
         }
     }
 
@@ -325,9 +301,9 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
     protected final void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception {
         activationProperties.publish(ADAPTER_NAME_HOLDER, getAdapterName());
         activationProperties.publish(LOGGER_HOLDER, getLogger());
-        try(final OSGiLoggingContext logger = getLoggingContext()){
-            logger.info(String.format("Activating resource adapters of type %s. Context: %s", getAdapterName(),
-                    LogicalOperation.current()));
+        try (final LoggingScope logger = getLoggingContext()) {
+            logger.log(Level.INFO, "Activating resource adapters of type %s",
+                    getAdapterName());
         }
     }
 
@@ -352,15 +328,13 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
      */
     @Override
     protected final void deactivate(final ActivationPropertyReader activationProperties) throws Exception {
-        try(final OSGiLoggingContext logger = getLoggingContext()){
-            logger.info(String.format("Unloading adapters of type %s. Context: %s",
-                    getAdapterName(),
-                    LogicalOperation.current()));
+        try(final LoggingScope logger = getLoggingContext()){
+            logger.log(Level.INFO, "Unloading adapters of type %s", getAdapterName());
         }
     }
 
-    private OSGiLoggingContext getLoggingContext(){
-        return OSGiLoggingContext.get(getLogger(), getAdapterContext());
+    private LoggingScope getLoggingContext(){
+        return new LoggingScope(getLogger(), getAdapterContext());
     }
 
     /**
@@ -371,10 +345,10 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
      */
     @Override
     protected void activationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
-        try(final OSGiLoggingContext logger = getLoggingContext()) {
-            logger.log(Level.SEVERE, String.format("Unable to activate %s resource adapter instance. Context: %s",
+        try (final LoggingScope logger = getLoggingContext()) {
+            logger.log(Level.SEVERE, "Unable to activate %s resource adapter instance",
                     getAdapterName(),
-                    LogicalOperation.current()), e);
+                    e);
         }
     }
 
@@ -386,10 +360,10 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
      */
     @Override
     protected void deactivationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
-        try(final OSGiLoggingContext logger = getLoggingContext()){
-            logger.log(Level.SEVERE, String.format("Unable to deactivate %s resource adapter instance. Context: %s",
+        try (final LoggingScope logger = getLoggingContext()) {
+            logger.log(Level.SEVERE, "Unable to deactivate %s resource adapter instance",
                     getAdapterName(),
-                    LogicalOperation.current()), e);
+                    e);
         }
     }
 

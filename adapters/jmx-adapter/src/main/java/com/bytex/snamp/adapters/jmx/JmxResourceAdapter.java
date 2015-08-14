@@ -73,7 +73,7 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
         if(exposedBeans.containsKey(resourceName))
             bean = exposedBeans.get(resourceName);
         else {
-            exposedBeans.put(bean = new ProxyMBean(resourceName));
+            exposedBeans.put(bean = new ProxyMBean(resourceName, getLogger()));
             if(rootObjectName != null) {
                 //register bean
                 if (usePlatformMBean)

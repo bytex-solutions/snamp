@@ -1,8 +1,7 @@
 package com.bytex.snamp.concurrent;
 
-import com.google.common.base.Stopwatch;
 import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.core.LogicalOperation;
+import com.google.common.base.Stopwatch;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -57,7 +56,7 @@ public abstract class SpinWait<T, E extends Throwable> implements Awaitor<T, E> 
         final Stopwatch timer = Stopwatch.createStarted();
         T result;
         while ((result = get()) == null)
-            if(timer.elapsed(TimeUnit.MILLISECONDS) > timeout.toMillis()) throw new TimeoutException(String.format("Spin wait timed out. Context: %s", LogicalOperation.current()));
+            if(timer.elapsed(TimeUnit.MILLISECONDS) > timeout.toMillis()) throw new TimeoutException("Spin wait timed out");
             else if(Thread.interrupted()) throw spinWaitInterrupted();
             else if(delay != null) Thread.sleep(delay.toMillis());
         return result;

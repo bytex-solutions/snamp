@@ -1,15 +1,14 @@
 package com.bytex.snamp.connectors.operations;
 
+import com.bytex.snamp.TimeSpan;
+import com.bytex.snamp.connectors.AbstractFeatureModeler;
+import com.bytex.snamp.internal.AbstractKeyedObjects;
+import com.bytex.snamp.internal.KeyedObjects;
+import com.bytex.snamp.internal.annotations.MethodStub;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.connectors.AbstractFeatureModeler;
-import com.bytex.snamp.core.LogicalOperation;
-import com.bytex.snamp.internal.AbstractKeyedObjects;
-import com.bytex.snamp.internal.KeyedObjects;
-import com.bytex.snamp.internal.annotations.MethodStub;
 
 import javax.management.*;
 import javax.management.openmbean.CompositeData;
@@ -342,8 +341,8 @@ public abstract class AbstractOperationSupport<M extends MBeanOperationInfo> ext
                                                       final String userDefinedName,
                                                       final String operationName,
                                                       final Exception e){
-        logger.log(logLevel, String.format("Failed to enable operation '%s' with name '%s'. Context: %s",
-                operationName, userDefinedName, LogicalOperation.current()), e);
+        logger.log(logLevel, String.format("Failed to enable operation '%s' with name '%s'",
+                operationName, userDefinedName), e);
     }
 
     /**

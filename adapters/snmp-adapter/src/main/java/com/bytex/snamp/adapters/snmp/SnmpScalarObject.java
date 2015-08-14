@@ -4,7 +4,9 @@ import com.bytex.snamp.adapters.modeling.AttributeAccessor;
 import com.bytex.snamp.adapters.modeling.ReadAttributeLogicalOperation;
 import com.bytex.snamp.adapters.modeling.WriteAttributeLogicalOperation;
 import com.bytex.snamp.core.LogicalOperation;
+import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.WellKnownType;
+import org.osgi.framework.BundleContext;
 import org.snmp4j.agent.DuplicateRegistrationException;
 import org.snmp4j.agent.MOServer;
 import org.snmp4j.agent.mo.MOAccessImpl;
@@ -21,6 +23,7 @@ import java.lang.reflect.Type;
 import java.text.ParseException;
 import java.util.Objects;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static com.bytex.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.parseOID;
 import static com.bytex.snamp.adapters.snmp.SnmpHelpers.getAccessRestrictions;
@@ -33,16 +36,20 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
     private static final String OID_PARAMETER = "OID";
 
     private static final class SnmpWriteAttributeLogicalOperation extends WriteAttributeLogicalOperation{
-        private SnmpWriteAttributeLogicalOperation(final AttributeAccessor accessor,
-                                                   final OID oid){
-            super(accessor.getName(), accessor.toString(), OID_PARAMETER, oid);
+        private SnmpWriteAttributeLogicalOperation(final Logger logger,
+                                                   final AttributeAccessor accessor,
+                                                   final OID oid,
+                                                   final BundleContext context){
+            super(logger, accessor.getName(), accessor.toString(), OID_PARAMETER, oid, context);
         }
     }
 
     private static final class SnmpReadAttributeLogicalOperation extends ReadAttributeLogicalOperation{
-        private SnmpReadAttributeLogicalOperation(final AttributeAccessor accessor,
-                                                  final OID oid){
-            super(accessor.getName(), accessor.toString(), OID_PARAMETER, oid);
+        private SnmpReadAttributeLogicalOperation(final Logger logger,
+                                                  final AttributeAccessor accessor,
+                                                  final OID oid,
+                                                  final BundleContext context){
+            super(logger, accessor.getName(), accessor.toString(), OID_PARAMETER, oid, context);
         }
     }
 
@@ -95,13 +102,20 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
     @Override
     public final T getValue() {
         Object result;
-        try(final LogicalOperation ignored = new SnmpReadAttributeLogicalOperation(accessor, getOid())) {
+        final LogicalOperation logger =
+                new SnmpReadAttributeLogicalOperation(SnmpHelpers.getLogger(),
+                        accessor,
+                        getOid(),
+                        Utils.getBundleContextByObject(this));
+        try {
             result = accessor.getValue();
         }
         catch (final JMException e) {
-            SnmpHelpers.log(Level.WARNING, "Read operation failed for %s attribute. Context: %s",
-                    accessor, LogicalOperation.current(), e);
+            logger.log(Level.WARNING, "Read operation failed for %s attribute", accessor.getName(), e);
             result = getDefaultValue();
+        }
+        finally {
+            logger.close();
         }
         return result == null ? getDefaultValue() : convert(result);
     }
@@ -115,15 +129,18 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
     @Override
     public final int setValue(final T value) {
         int result;
-        try(final LogicalOperation ignored = new SnmpWriteAttributeLogicalOperation(accessor, getOid())) {
+        final LogicalOperation logger =
+                new SnmpWriteAttributeLogicalOperation(SnmpHelpers.getLogger(), accessor, getOid(), Utils.getBundleContextByObject(this));
+        try {
             accessor.setValue(convert(value));
             result = SnmpConstants.SNMP_ERROR_SUCCESS;
         } catch (final JMException e) {
-            SnmpHelpers.log(Level.WARNING, "Writing operation failed for %s attribute. Context: %s",
+            logger.log(Level.WARNING, "Writing operation failed for %s attribute",
                     accessor,
-                    LogicalOperation.current(),
                     e);
             result = SnmpConstants.SNMP_ERROR_RESOURCE_UNAVAILABLE;
+        } finally {
+            logger.close();
         }
         return result;
     }

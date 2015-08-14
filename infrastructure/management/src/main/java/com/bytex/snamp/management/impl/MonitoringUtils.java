@@ -1,15 +1,11 @@
 package com.bytex.snamp.management.impl;
 
 import com.google.common.collect.ImmutableMap;
-import com.bytex.snamp.Consumer;
-import com.bytex.snamp.SafeConsumer;
-import com.bytex.snamp.core.OSGiLoggingContext;
 
 import javax.management.openmbean.*;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -23,37 +19,6 @@ final class MonitoringUtils {
 
     private MonitoringUtils(){
 
-    }
-
-    /**
-     * With logger.
-     *
-     * @param <E>  the type parameter
-     * @param loggerHandler the logger handler
-     * @throws E the e
-     */
-    static <E extends Exception> void withLogger(final Consumer<Logger, E> loggerHandler) throws E{
-        OSGiLoggingContext.within(LOGGER_NAME, loggerHandler);
-    }
-
-    private static void log(final Level lvl, final String message, final Object[] args, final Throwable e){
-        withLogger(new SafeConsumer<Logger>() {
-            @Override
-            public void accept(final Logger logger) {
-                logger.log(lvl, String.format(message, args), e);
-            }
-        });
-    }
-
-    /**
-     * Log void.
-     *
-     * @param lvl the lvl
-     * @param message the message
-     * @param e the e
-     */
-    static void log(final Level lvl, final String message, final Throwable e){
-        log(lvl, message, new Object[0], e);
     }
 
     /**

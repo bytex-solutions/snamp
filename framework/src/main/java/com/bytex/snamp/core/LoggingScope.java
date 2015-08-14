@@ -1,12 +1,14 @@
 package com.bytex.snamp.core;
 
-import com.bytex.snamp.Consumer;
 import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.internal.annotations.MethodStub;
+import com.bytex.snamp.internal.annotations.ThreadSafe;
+import com.google.common.base.Joiner;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Strings;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogService;
 
-import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.logging.*;
 
@@ -17,31 +19,46 @@ import java.util.logging.*;
  * @version 1.0
  * @since 1.0
  */
-public class OSGiLoggingContext extends Logger implements AutoCloseable {
-
+@ThreadSafe(false)
+public class LoggingScope extends Logger implements AutoCloseable {
+    private static final Object[] EMPTY_ARRAY = new String[0];
+    private static final Joiner LOG_JOINER = Joiner.on(',').skipNulls();
     private final Logger logger;
-    private LogService service;
-    private ServiceReference<LogService> logServiceRef;
+    private ServiceHolder<LogService> service;
     private BundleContext context;
 
     /**
      * Initializes a new logging context that attaches the specified logger
      * to the {@link org.osgi.service.log.LogService} service.
      * @param underlyingLogger The underlying logger. Cannot be {@literal null}.
+     * @param context The bundle context.
+     */
+    public LoggingScope(final Logger underlyingLogger,
+                           final BundleContext context) {
+        super(underlyingLogger.getName(), underlyingLogger.getResourceBundleName());
+        this.context = context == null ? Utils.getBundleContextByObject(this) : context;
+        this.service = new ServiceHolder<>(this.context, LogService.class);
+        this.logger = underlyingLogger;
+    }
+
+    /**
+     * Initializes a new logging context that attaches the specified logger
+     * to the {@link org.osgi.service.log.LogService} service.
+     * @param loggerName The name of the logger to be attached.
+     * @param context The bundle context.
+     */
+    public LoggingScope(final String loggerName,
+                        final BundleContext context){
+        this(Logger.getLogger(loggerName), context);
+    }
+
+    /**
+     * Initializes a new logging context that attaches anonymous logger
+     * to the {@link org.osgi.service.log.LogService} service.
      * @param context The bundle context. Cannot be {@literal null}.
      */
-    protected OSGiLoggingContext(final Logger underlyingLogger,
-                                 final BundleContext context) {
-        super(underlyingLogger.getName(), underlyingLogger.getResourceBundleName());
-        logServiceRef = context.getServiceReference(LogService.class);
-        if (logServiceRef != null) {
-            this.service = context.getService(logServiceRef);
-            this.context = context;
-        } else {
-            this.service = null;
-            this.context = null;
-        }
-        this.logger = underlyingLogger;
+    public LoggingScope(final BundleContext context){
+        this(Logger.getAnonymousLogger(), context);
     }
 
     /**
@@ -265,9 +282,46 @@ public class OSGiLoggingContext extends Logger implements AutoCloseable {
         logger.log(record);
         final Filter theFilter = getFilter();
         if (theFilter == null || theFilter.isLoggable(record) && isLoggable(record.getLevel()))
-            service.log(transformLogLevel(record.getLevel()),
+            service.get().log(transformLogLevel(record.getLevel()),
                     transformRecord(record),
                     record.getThrown());
+    }
+
+    public final void log(final Level level,
+                          final String format,
+                          final Object param1,
+                          final Throwable e){
+        super.log(level, String.format(format, param1), e);
+    }
+
+    public final void log(final Level level,
+                          final String format,
+                          final Object param1,
+                          final Object param2,
+                          final Throwable e){
+        super.log(level, String.format(format, param1, param2), e);
+    }
+
+    public final void log(final Level level,
+                          final String format,
+                          final Object param1,
+                          final Object param2,
+                          final Object param3,
+                          final Throwable e){
+        super.log(level, String.format(format, param1, param2, param3), e);
+    }
+
+    private static String getCallerInfo(final LogRecord record){
+        String callerInfo;
+        if(!Strings.isNullOrEmpty(record.getSourceClassName())){
+            callerInfo = record.getSourceClassName();
+            if(!Strings.isNullOrEmpty(record.getSourceMethodName()))
+                callerInfo += "::" + record.getSourceMethodName();
+        }
+        else if(!Strings.isNullOrEmpty(record.getSourceMethodName()))
+            callerInfo = record.getSourceMethodName();
+        else callerInfo = "Thread ID " + record.getThreadID();
+        return callerInfo;
     }
 
     /**
@@ -277,7 +331,14 @@ public class OSGiLoggingContext extends Logger implements AutoCloseable {
      * @return A string representation of the {@link LogRecord} instance.
      */
     protected String transformRecord(final LogRecord record) {
-        return record.getMessage();
+        @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
+        final Object parts[] = {
+                getCallerInfo(record),
+                String.format(record.getMessage(),
+                        MoreObjects.firstNonNull(record.getParameters(), EMPTY_ARRAY)),
+                record.getThrown()
+        };
+        return LOG_JOINER.join(parts);
     }
 
     /**
@@ -296,39 +357,43 @@ public class OSGiLoggingContext extends Logger implements AutoCloseable {
      * @return Log level for OSGi logging service.
      */
     protected int transformLogLevel(final Level logLevel) {
-        if (Objects.equals(logLevel, Level.CONFIG))
+        if (Level.CONFIG.equals(logLevel))
             return LogService.LOG_DEBUG;
-        else if (Objects.equals(logLevel, Level.WARNING))
+        else if (Level.WARNING.equals(logLevel))
             return LogService.LOG_WARNING;
-        else if (Objects.equals(logLevel, Level.SEVERE))
+        else if (Level.SEVERE.equals(logLevel))
             return LogService.LOG_ERROR;
         else return LogService.LOG_INFO;
     }
 
     /**
-     * Returns a string representation of the object. In general, the
-     * {@code toString} method returns a string that
-     * "textually represents" this object. The result should
-     * be a concise but informative representation that is easy for a
-     * person to read.
-     * It is recommended that all subclasses override this method.
-     * <p/>
-     * The {@code toString} method for class {@code Object}
-     * returns a string consisting of the name of the class of which the
-     * object is an instance, the at-sign character `{@code @}', and
-     * the unsigned hexadecimal representation of the hash code of the
-     * object. In other words, this method returns a string equal to the
-     * value of:
-     * <blockquote>
-     * <pre>
-     * getClass().getName() + '@' + Integer.toHexString(hashCode())
-     * </pre></blockquote>
-     *
-     * @return a string representation of the object.
+     * Returns a string representation of this scope.
+     * @return A string representation of this scope.
      */
     @Override
-    public final String toString() {
+    public String toString() {
         return logger.toString();
+    }
+
+    /**
+     * Determines whether this scope is closed.
+     * @return {@literal true}, if this scope is closed; otherwise, {@literal false}.
+     */
+    public final boolean isClosed(){
+        return context == null || service.get() == null;
+    }
+
+    final Logger getLogger(){
+        return logger;
+    }
+
+    final BundleContext getBundleContext(){
+        return context;
+    }
+
+    @MethodStub
+    protected void beforeClose(){
+
     }
 
     /**
@@ -336,46 +401,13 @@ public class OSGiLoggingContext extends Logger implements AutoCloseable {
      */
     @Override
     public final void close() {
-        if (logServiceRef != null && context != null && service != null)
-            context.ungetService(logServiceRef);
-        logServiceRef = null;
-        service = null;
-        context = null;
-    }
-
-    /**
-     * Gets the logging context and connect the specified logger to the {@link org.osgi.service.log.LogService}.
-     * @param logger The logger to connect to the {@link org.osgi.service.log.LogService}. Cannot be {@literal null}.
-     * @param context The bundle context used to obtain a reference to {@link org.osgi.service.log.LogService}. Cannot be {@literal null}.
-     * @return A new closeable logging context.
-     */
-    public static OSGiLoggingContext get(final Logger logger, final BundleContext context) {
-        return new OSGiLoggingContext(logger, context);
-    }
-
-    protected static <E extends Exception> void within(final Logger logger,
-                                                    final Consumer<Logger, E> contextBody) throws E {
-        if (Utils.isInOSGiContainer(contextBody.getClass()))
-            try (final OSGiLoggingContext context = new OSGiLoggingContext(logger, Utils.getBundleContextByObject(contextBody))) {
-                contextBody.accept(context);
-            }
-        else contextBody.accept(logger);
-    }
-
-    public static <E extends Exception> void within(final String loggerName,
-                                                    final Consumer<Logger, E> contextBody) throws E{
-        within(getLogger(loggerName), contextBody);
-    }
-
-    public static OSGiLoggingContext getAnonymousLogger(final BundleContext context){
-        return get(getAnonymousLogger(), context);
-    }
-
-    public static OSGiLoggingContext getLogger(final String loggerName, final BundleContext context){
-        return get(getLogger(loggerName), context);
-    }
-
-    public static OSGiLoggingContext getGlobal(final BundleContext context){
-        return get(getGlobal(), context);
+        try {
+            beforeClose();
+        }
+        finally {
+            if (context != null)
+                service.release(context);
+            context = null;
+        }
     }
 }

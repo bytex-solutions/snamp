@@ -11,7 +11,7 @@ import com.bytex.snamp.connectors.notifications.AbstractNotificationSupport;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 import com.bytex.snamp.connectors.notifications.NotificationListenerInvoker;
 import com.bytex.snamp.connectors.notifications.NotificationListenerInvokerFactory;
-import com.bytex.snamp.core.OSGiLoggingContext;
+import com.bytex.snamp.core.LoggingScope;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.base.Function;
 import org.osgi.framework.BundleContext;
@@ -103,7 +103,7 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
 
         @Override
         protected void failedToEnableNotifications(final String listID, final String category, final Exception e) {
-            try(final OSGiLoggingContext logger = OSGiLoggingContext.get(getLoggerImpl(), getBundleContext())){
+            try(final LoggingScope logger = new LoggingScope(getLoggerImpl(), getBundleContext())){
                 failedToEnableNotifications(logger, Level.SEVERE, listID, category, e);
             }
         }

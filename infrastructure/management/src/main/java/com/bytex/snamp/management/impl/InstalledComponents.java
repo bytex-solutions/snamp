@@ -1,5 +1,7 @@
 package com.bytex.snamp.management.impl;
 
+import com.bytex.snamp.core.LoggingScope;
+import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.Maps;
 import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
@@ -88,7 +90,9 @@ final class InstalledComponents extends OpenMBean.OpenAttribute<TabularData, Tab
             });
         }
         catch (final Exception e){
-            MonitoringUtils.getLogger().log(Level.WARNING, e.getLocalizedMessage(), e);
+            try(final LoggingScope logger = new LoggingScope(MonitoringUtils.getLogger(), Utils.getBundleContextByObject(this))) {
+                logger.log(Level.SEVERE, e.getLocalizedMessage(), e);
+            }
         }
         return INSTALLED_COMPONENT_BUILDER.build(row);
     }

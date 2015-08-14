@@ -20,7 +20,6 @@ public final class ResourceConnectorInfo {
      */
     public static final String NAME = "groovy";
     private ResourceConnectorInfo(){
-
     }
 
     public static Logger getLogger(){

@@ -1,6 +1,8 @@
 package com.bytex.snamp.testing.connectors;
 
+import com.bytex.snamp.core.RichLogicalOperation;
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 import com.bytex.snamp.ArrayUtils;
@@ -33,6 +35,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Logger;
 
 /**
  * Represents an abstract class for all integration tests that checks management connectors.
@@ -43,20 +46,22 @@ import java.util.concurrent.TimeoutException;
 public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegrationTest {
     private static final String CONNECTOR_TYPE_PROPERTY = "connectorType";
 
-    private static final class ConnectorTestLogicalOperation extends TestLogicalOperation{
+    private static final class ConnectorTestLogicalOperation extends RichLogicalOperation{
 
 
         private ConnectorTestLogicalOperation(final String operationName,
                                      final String connectorType,
                                      final TestName testName){
-            super(operationName, testName, CONNECTOR_TYPE_PROPERTY, connectorType);
+            super(Logger.getLogger(testName.getMethodName()), operationName, ImmutableMap.of(CONNECTOR_TYPE_PROPERTY, connectorType));
         }
 
-        private static ConnectorTestLogicalOperation startResourceConnector(final String connectorType, final TestName name){
+        private static ConnectorTestLogicalOperation startResourceConnector(final String connectorType,
+                                                                            final TestName name){
             return new ConnectorTestLogicalOperation("startResourceConnector", connectorType, name);
         }
 
-        private static ConnectorTestLogicalOperation stopResourceConnector(final String connectorType, final TestName name){
+        private static ConnectorTestLogicalOperation stopResourceConnector(final String connectorType,
+                                                                           final TestName name){
             return new ConnectorTestLogicalOperation("stopResourceConnector", connectorType, name);
         }
     }

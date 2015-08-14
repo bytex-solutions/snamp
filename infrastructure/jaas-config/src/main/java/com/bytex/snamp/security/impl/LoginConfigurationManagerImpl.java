@@ -1,15 +1,14 @@
 package com.bytex.snamp.security.impl;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Multimap;
-import com.google.common.net.MediaType;
-import com.google.gson.Gson;
 import com.bytex.snamp.AbstractAggregator;
+import com.bytex.snamp.core.LoggingScope;
 import com.bytex.snamp.core.ServiceHolder;
-import com.bytex.snamp.core.OSGiLoggingContext;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.security.LoginConfigurationManager;
 import com.bytex.snamp.security.auth.login.json.JsonConfiguration;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multimap;
+import com.google.gson.Gson;
 import org.apache.karaf.jaas.config.JaasRealm;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
@@ -30,7 +29,6 @@ import java.util.logging.Logger;
  */
 final class LoginConfigurationManagerImpl extends AbstractAggregator implements LoginConfigurationManager {
     private static final String LOGGER_NAME = "com.bytex.snamp.login.config";
-    static final String CONFIGURATION_MIME_TYPE = MediaType.JSON_UTF_8.toString();
     private final Gson formatter;
 
     LoginConfigurationManagerImpl(final Gson formatter){
@@ -73,7 +71,7 @@ final class LoginConfigurationManagerImpl extends AbstractAggregator implements 
             dumpConfiguration(getContext(), formatter, out);
         }
         catch (final InvalidSyntaxException | IOException e) {
-            try(final OSGiLoggingContext logger = OSGiLoggingContext.get(getLogger(), getContext())){
+            try(final LoggingScope logger = new LoggingScope(getLogger(), getContext())){
                 logger.log(Level.SEVERE, "Unable to dump JAAS configuration", e);
             }
         }

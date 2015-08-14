@@ -17,7 +17,7 @@ import com.bytex.snamp.connectors.notifications.NotificationSupport;
 import com.bytex.snamp.connectors.operations.OperationAddedEvent;
 import com.bytex.snamp.connectors.operations.OperationRemovingEvent;
 import com.bytex.snamp.core.LogicalOperation;
-import com.bytex.snamp.core.OSGiLoggingContext;
+import com.bytex.snamp.core.LoggingScope;
 import com.bytex.snamp.core.RichLogicalOperation;
 import com.bytex.snamp.internal.RecordReader;
 import com.bytex.snamp.internal.Utils;
@@ -64,13 +64,20 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
     private static final class AdapterLogicalOperation extends RichLogicalOperation {
         private static final String ADAPTER_INSTANCE_NAME_PROPERTY = "adapterInstanceName";
 
-        private AdapterLogicalOperation(final String operationName,
-                                        final String adapterInstanceName){
-            super(operationName, ADAPTER_INSTANCE_NAME_PROPERTY, adapterInstanceName);
+        private AdapterLogicalOperation(final Logger logger,
+                                        final String operationName,
+                                        final String adapterInstanceName,
+                                        final BundleContext context){
+            super(logger,
+                    operationName,
+                    ImmutableMap.of(ADAPTER_INSTANCE_NAME_PROPERTY, adapterInstanceName),
+                    context);
         }
 
-        private static AdapterLogicalOperation connectorChangesDetected(final String adapterInstanceName){
-            return new AdapterLogicalOperation("processResourceConnectorChanges", adapterInstanceName);
+        private static AdapterLogicalOperation connectorChangesDetected(final Logger logger,
+                                                                        final String adapterInstanceName,
+                                                                        final BundleContext context){
+            return new AdapterLogicalOperation(logger, "processResourceConnectorChanges", adapterInstanceName, context);
         }
     }
 
@@ -321,7 +328,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * @param e The exception.
      */
     protected void failedToAddFeature(final String resourceName, final MBeanFeatureInfo feature, final Exception e){
-        try(final OSGiLoggingContext logger = getLoggingContext()){
+        try(final LoggingScope logger = getLoggingContext()){
             logger.log(Level.WARNING, String.format("Failed to add %s resource feature %s", resourceName, feature), e);
         }
     }
@@ -344,7 +351,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
     }
 
     protected void failedToRemoveFeatures(final String resourceName, final Exception e){
-        try(final OSGiLoggingContext logger = getLoggingContext()){
+        try(final LoggingScope logger = getLoggingContext()){
             logger.log(Level.SEVERE, String.format("Failed to remove %s resource features", resourceName), e);
         }
     }
@@ -374,7 +381,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
     protected void failedToRemoveFeature(final String resourceName,
                                          final MBeanFeatureInfo feature,
                                          final Exception e){
-        try(final OSGiLoggingContext logger = getLoggingContext()){
+        try(final LoggingScope logger = getLoggingContext()){
             logger.log(Level.SEVERE, String.format("Failed to remove %s resource feature %s", resourceName, feature), e);
         }
     }
@@ -555,7 +562,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
     @Override
     public final void serviceChanged(final ServiceEvent event) {
         if (ManagedResourceConnectorClient.isResourceConnector(event.getServiceReference()))
-            try (final LogicalOperation ignored = AdapterLogicalOperation.connectorChangesDetected(adapterInstanceName)) {
+            try (final LogicalOperation logger = AdapterLogicalOperation.connectorChangesDetected(getLogger(), adapterInstanceName, getBundleContext())) {
                 @SuppressWarnings("unchecked")
                 final ServiceReference<ManagedResourceConnector> connectorRef = (ServiceReference<ManagedResourceConnector>) event.getServiceReference();
                 final String resourceName = ManagedResourceConnectorClient.getManagedResourceName(connectorRef);
@@ -568,13 +575,10 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                         addResource(connectorRef);
                         break;
                     default:
-                        try (final OSGiLoggingContext logger = getLoggingContext()) {
-                            logger.info(String.format("Unexpected event %s captured by adapter %s for resource %s. Context: %s",
-                                    event.getType(),
-                                    adapterInstanceName,
-                                    resourceName,
-                                    LogicalOperation.current()));
-                        }
+                        logger.log(Level.INFO, "Unexpected event %s captured by adapter %s for resource %s",
+                                new Object[]{event.getType(),
+                                        adapterInstanceName,
+                                        resourceName});
                 }
             }
     }
@@ -628,8 +632,8 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         return getBundleContextByObject(this);
     }
 
-    private OSGiLoggingContext getLoggingContext(){
-        return OSGiLoggingContext.get(getLogger(), getBundleContext());
+    private LoggingScope getLoggingContext(){
+        return new LoggingScope(getLogger(), getBundleContext());
     }
 
     /**

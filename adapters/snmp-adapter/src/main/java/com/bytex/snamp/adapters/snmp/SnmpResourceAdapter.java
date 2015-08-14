@@ -287,6 +287,6 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
      */
     @Override
     public Logger getLogger() {
-        return getLogger(SnmpHelpers.ADAPTER_NAME);
+        return SnmpHelpers.getLogger();
     }
 }

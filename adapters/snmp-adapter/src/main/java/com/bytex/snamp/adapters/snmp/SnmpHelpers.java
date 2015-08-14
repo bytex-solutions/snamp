@@ -1,12 +1,12 @@
 package com.bytex.snamp.adapters.snmp;
 
-import com.google.common.primitives.Shorts;
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.Consumer;
-import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.adapters.AbstractResourceAdapter;
-import com.bytex.snamp.core.OSGiLoggingContext;
+import com.bytex.snamp.core.LoggingScope;
 import com.bytex.snamp.io.IOUtils;
+import com.google.common.primitives.Shorts;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
 import org.snmp4j.SNMP4JSettings;
 import org.snmp4j.agent.MOAccess;
 import org.snmp4j.agent.mo.MOAccessImpl;
@@ -348,17 +348,18 @@ final class SnmpHelpers {
         return result;
     }
 
-    static <E extends Exception> void withLogger(final Consumer<Logger, E> contextBody) throws E {
-        OSGiLoggingContext.within(LOGGER_NAME, contextBody);
+    private static BundleContext getBundleContext(){
+        return FrameworkUtil.getBundle(SnmpHelpers.class).getBundleContext();
+    }
+
+    static Logger getLogger(){
+        return Logger.getLogger(LOGGER_NAME);
     }
 
     private static void log(final Level lvl, final String message, final Object[] args, final Throwable e){
-        withLogger(new SafeConsumer<Logger>() {
-            @Override
-            public void accept(final Logger logger) {
-                logger.log(lvl, String.format(message, args), e);
-            }
-        });
+        try(final LoggingScope logger = new LoggingScope(getLogger(), getBundleContext())){
+            logger.log(lvl, String.format(message, args), e);
+        }
     }
 
     static void log(final Level lvl, final String message, final Throwable e){

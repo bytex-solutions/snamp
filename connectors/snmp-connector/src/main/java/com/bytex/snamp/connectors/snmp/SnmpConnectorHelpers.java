@@ -1,10 +1,10 @@
 package com.bytex.snamp.connectors.snmp;
 
-import com.bytex.snamp.Consumer;
-import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
-import com.bytex.snamp.core.OSGiLoggingContext;
+import com.bytex.snamp.core.LoggingScope;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
 import org.snmp4j.smi.OID;
 
 import javax.management.openmbean.ArrayType;
@@ -12,7 +12,6 @@ import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.SimpleType;
 import java.util.Arrays;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author Roman Sakno
@@ -38,17 +37,14 @@ final class SnmpConnectorHelpers {
         return oid.startsWith(prefix) ? new OID(getPostfix(prefix.getValue(), oid.getValue())) : new OID();
     }
 
-    static <E extends Exception> void withLogger(final Consumer<Logger, E> contextBody) throws E {
-        OSGiLoggingContext.within(LOGGER_NAME, contextBody);
+    private static BundleContext getBundleContext(){
+        return FrameworkUtil.getBundle(SnmpConnectorHelpers.class).getBundleContext();
     }
 
     private static void log(final Level lvl, final String message, final Object[] args, final Throwable e){
-        withLogger(new SafeConsumer<Logger>() {
-            @Override
-            public void accept(final Logger logger) {
-                logger.log(lvl, String.format(message, args), e);
-            }
-        });
+        try(final LoggingScope logger = new LoggingScope(LOGGER_NAME, getBundleContext())){
+            logger.log(lvl, String.format(message, args), e);
+        }
     }
 
     static void log(final Level lvl, final String message, final Throwable e){

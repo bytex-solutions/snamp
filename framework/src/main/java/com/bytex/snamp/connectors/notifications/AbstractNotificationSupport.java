@@ -1,17 +1,19 @@
 package com.bytex.snamp.connectors.notifications;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.bytex.snamp.connectors.AbstractFeatureModeler;
-import com.bytex.snamp.core.LogicalOperation;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
 import com.bytex.snamp.internal.annotations.MethodStub;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 
 import javax.management.*;
 import javax.management.openmbean.CompositeData;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -375,8 +377,8 @@ public abstract class AbstractNotificationSupport<M extends MBeanNotificationInf
                                                       final String listID,
                                                       final String category,
                                                       final Exception e){
-        logger.log(logLevel, String.format("Failed to enable notifications '%s' for %s subscription list. Context: %s",
-                category, listID, LogicalOperation.current()), e);
+        logger.log(logLevel, String.format("Failed to enable notifications '%s' for %s subscription list",
+                category, listID), e);
     }
 
     /**

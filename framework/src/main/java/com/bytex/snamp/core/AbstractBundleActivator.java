@@ -1,6 +1,7 @@
 package com.bytex.snamp.core;
 
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
 import com.bytex.snamp.Attribute;
 import com.bytex.snamp.AttributeReader;
@@ -10,6 +11,7 @@ import com.bytex.snamp.internal.annotations.MethodStub;
 import org.osgi.framework.*;
 
 import java.util.*;
+import java.util.logging.Logger;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextByObject;
 import static com.bytex.snamp.internal.Utils.isInstanceOf;
@@ -25,25 +27,29 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
     final static class BundleLogicalOperation extends RichLogicalOperation {
         static final String BUNDLE_NAME_PROPERTY = "bundleName";
 
-        private BundleLogicalOperation(final String operationName,
-                                       final String bundleName){
-            super(operationName, BUNDLE_NAME_PROPERTY, bundleName);
+        private BundleLogicalOperation(final Logger logger,
+                                       final String operationName,
+                                       final BundleContext context) {
+            super(logger,
+                    operationName,
+                    ImmutableMap.of(BUNDLE_NAME_PROPERTY, context.getBundle().getSymbolicName()),
+                    context);
         }
 
-        private String getBundleName(){
+        private String getBundleName() {
             return getProperty(BUNDLE_NAME_PROPERTY, String.class, "");
         }
 
-        private static BundleLogicalOperation startBundle(final BundleContext context){
-            return new BundleLogicalOperation("startBundle", context.getBundle().getSymbolicName());
+        private static BundleLogicalOperation startBundle(final Logger logger, final BundleContext context) {
+            return new BundleLogicalOperation(logger, "startBundle", context);
         }
 
-        private static BundleLogicalOperation stopBundle(final BundleContext context){
-            return new BundleLogicalOperation("stopBundle", context.getBundle().getSymbolicName());
+        private static BundleLogicalOperation stopBundle(final Logger logger, final BundleContext context) {
+            return new BundleLogicalOperation(logger, "stopBundle", context);
         }
 
-        private static BundleLogicalOperation processServiceChanged(final BundleContext context){
-            return new BundleLogicalOperation("bundleServiceChanged", context.getBundle().getSymbolicName());
+        private static BundleLogicalOperation processServiceChanged(final Logger logger, final BundleContext context) {
+            return new BundleLogicalOperation(logger, "bundleServiceChanged", context);
         }
     }
 
@@ -747,7 +753,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
     @Override
     public final void serviceChanged(final ServiceEvent event) {
         final BundleContext context = getBundleContextByObject(this);
-        try(final LogicalOperation ignored = BundleLogicalOperation.processServiceChanged(context)) {
+        try(final LogicalOperation ignored = BundleLogicalOperation.processServiceChanged(getLogger(), context)) {
             serviceChanged(context, event);
         }
     }
@@ -759,7 +765,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      */
     @Override
     public final void start(final BundleContext context) throws Exception {
-        try (final LogicalOperation ignored = BundleLogicalOperation.startBundle(context)) {
+        try (final LogicalOperation ignored = BundleLogicalOperation.startBundle(getLogger(), context)) {
             start(context, bundleLevelDependencies);
             //try to resolve bundle-level dependencies immediately
             final DependencyListeningFilter filter = new DependencyListeningFilter();
@@ -784,13 +790,21 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
     }
 
     /**
+     * Gets logger associated with this activator.
+     * @return The logger associated with this activator.
+     */
+    protected Logger getLogger(){
+        return Logger.getLogger(getClass().getName());
+    }
+
+    /**
      * Stops the bundle.
      * @param context The execution context of the bundle being stopped.
      * @throws Exception An exception occurred during bundle stopping.
      */
     @Override
     public final void stop(final BundleContext context) throws Exception {
-        try (final LogicalOperation ignored = BundleLogicalOperation.stopBundle(context)) {
+        try (final LogicalOperation ignored = BundleLogicalOperation.stopBundle(getLogger(), context)) {
             context.removeServiceListener(this);
             if (state == ActivationState.ACTIVATED) {
                 state = ActivationState.DEACTIVATING;

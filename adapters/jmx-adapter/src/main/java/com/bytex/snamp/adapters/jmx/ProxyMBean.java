@@ -1,5 +1,7 @@
 package com.bytex.snamp.adapters.jmx;
 
+import com.bytex.snamp.core.LoggingScope;
+import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -23,6 +25,7 @@ import java.nio.*;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Represents proxy MBean that is used to expose attributes and notifications
@@ -145,14 +148,16 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     private final NotificationListenerList listeners;
     private final String resourceName;
     private ServiceRegistration<?> registration;
+    private final Logger logger;
 
-    ProxyMBean(final String resourceName){
+    ProxyMBean(final String resourceName, final Logger logger){
         super(MBeanResources.class);
         this.resourceName = resourceName;
         this.notifications = new ResourceNotificationList<>();
         this.attributes = new ResourceAttributeList<>();
         this.listeners = new NotificationListenerList();
         this.registration = null;
+        this.logger = Objects.requireNonNull(logger);
     }
 
     String getResourceName(){
@@ -290,6 +295,10 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
         }
     }
 
+    private LoggingScope createLoggingScope(){
+        return new LoggingScope(this.logger, Utils.getBundleContextByObject(this));
+    }
+
     /**
      * Get the values of several attributes of the Dynamic MBean.
      *
@@ -304,7 +313,9 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
             try {
                 result.add(new Attribute(attributeName, getAttribute(attributeName)));
             } catch (final JMException e) {
-                JmxAdapterHelpers.log(Level.WARNING, "Unable to get value of %s attribute", attributeName, e);
+                try(final LoggingScope logger = createLoggingScope()) {
+                    logger.log(Level.WARNING, "Unable to get value of %s attribute", attributeName, e);
+                }
             }
         return result;
     }
@@ -327,10 +338,12 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
                     result.add(entry);
                 }
                 catch (final JMException e) {
-                    JmxAdapterHelpers.log(Level.WARNING,
-                            "Unable to set attribute %s",
-                            entry,
-                            e);
+                    try(final LoggingScope logger = createLoggingScope()) {
+                        logger.log(Level.WARNING,
+                                "Unable to set attribute %s",
+                                entry,
+                                e);
+                    }
                 }
         return result;
     }

@@ -3,7 +3,6 @@ package com.bytex.snamp.concurrent;
 import com.bytex.snamp.Consumer;
 import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.core.LogicalOperation;
 
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
@@ -91,7 +90,7 @@ public class SynchronizationEvent<T> {
         public T await(final TimeSpan timeout) throws TimeoutException, InterruptedException {
             if (timeout == TimeSpan.INFINITE) return await();
             else if (tryAcquireSharedNanos(1, timeout.toNanos())) return eventObj;
-            else throw new TimeoutException(String.format("Event timed out. Context: %s", LogicalOperation.current()));
+            else throw new TimeoutException("Event timed out");
         }
 
         /**

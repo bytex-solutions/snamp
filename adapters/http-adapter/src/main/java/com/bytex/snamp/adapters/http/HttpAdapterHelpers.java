@@ -1,16 +1,9 @@
 package com.bytex.snamp.adapters.http;
 
-import com.bytex.snamp.Consumer;
-import com.bytex.snamp.SafeConsumer;
-import com.bytex.snamp.adapters.AbstractResourceAdapter;
-import com.bytex.snamp.core.OSGiLoggingContext;
 import com.bytex.snamp.internal.annotations.SpecialUse;
 import com.bytex.snamp.jmx.WellKnownType;
 import org.eclipse.jetty.continuation.Continuation;
 import org.eclipse.jetty.continuation.Servlet3Continuation;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author Roman Sakno
@@ -18,8 +11,6 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 final class HttpAdapterHelpers {
-    static final String ADAPTER_NAME = "http";
-    private static final String LOGGER_NAME = AbstractResourceAdapter.getLoggerName(ADAPTER_NAME);
 
     private HttpAdapterHelpers(){
 
@@ -29,31 +20,6 @@ final class HttpAdapterHelpers {
     @SpecialUse
     private static Class<? extends Continuation> getJettyContinuationClass(){
         return Servlet3Continuation.class;
-    }
-
-    static <E extends Exception> void withLogger(final Consumer<Logger, E> contextBody) throws E {
-        OSGiLoggingContext.within(LOGGER_NAME, contextBody);
-    }
-
-    private static void log(final Level lvl, final String message, final Object[] args, final Throwable e){
-        withLogger(new SafeConsumer<Logger>() {
-            @Override
-            public void accept(final Logger logger) {
-                logger.log(lvl, String.format(message, args), e);
-            }
-        });
-    }
-
-    static void log(final Level lvl, final String message, final Throwable e){
-        log(lvl, message, new Object[0], e);
-    }
-
-    static void log(final Level lvl, final String message, final Object arg0, final Throwable e){
-        log(lvl, message, new Object[]{arg0}, e);
-    }
-
-    static void log(final Level lvl, final String message, final Object arg0, final Object arg1, final Throwable e){
-        log(lvl, message, new Object[]{arg0, arg1}, e);
     }
 
     static String getJsonType(final WellKnownType type){

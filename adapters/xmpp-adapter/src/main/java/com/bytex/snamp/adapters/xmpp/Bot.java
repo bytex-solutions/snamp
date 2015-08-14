@@ -4,7 +4,8 @@ import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.concurrent.VolatileBox;
-import com.bytex.snamp.core.OSGiLoggingContext;
+import com.bytex.snamp.core.LoggingScope;
+import com.bytex.snamp.core.LogicalOperation;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.ExpressionBasedDescriptorFilter;
 import org.jivesoftware.smack.SmackException;
@@ -34,6 +35,15 @@ import java.util.regex.Pattern;
  */
 final class Bot implements ChatManagerListener, Closeable {
     private static final Pattern COMMAND_DELIMITER = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
+    private static final class SayHelloLogicalOperation extends LogicalOperation {
+        private static final CorrelationIdentifierGenerator CORREL_ID_GEN =
+                new DefaultCorrelationIdentifierGenerator();
+
+        private SayHelloLogicalOperation(final Logger logger,
+                                         final BundleContext context) {
+            super(logger, "sayHello", CORREL_ID_GEN, context);
+        }
+    }
 
     private static final class ChatSession<A extends AttributeReader & AttributeWriter> extends WeakReference<Chat> implements ChatMessageListener, Closeable, NotificationListener{
         private final Logger logger;
@@ -128,7 +138,7 @@ final class Bot implements ChatManagerListener, Closeable {
         }
 
         private void unableToSendMessage(final Exception e) {
-            try (final OSGiLoggingContext context = OSGiLoggingContext.get(logger, getBundleContext())) {
+            try (final LoggingScope context = new LoggingScope(logger, getBundleContext())) {
                 context.log(Level.WARNING, "Unable to send XMPP message", e);
             }
         }
@@ -197,14 +207,15 @@ final class Bot implements ChatManagerListener, Closeable {
         sayHello(chat);
     }
 
-    private void sayHello(final Chat chat){
+    private void sayHello(final Chat chat) {
+        final LogicalOperation logger = new SayHelloLogicalOperation(this.logger, getBundleContext());
         try {
             chat.sendMessage(String.format("Hi, %s!", chat.getParticipant()));
+        } catch (final SmackException.NotConnectedException e) {
+            logger.log(Level.WARNING, "Unable to send Hello message", e);
         }
-        catch (final SmackException.NotConnectedException e) {
-            try(final OSGiLoggingContext context = OSGiLoggingContext.get(logger, getBundleContext())){
-                context.log(Level.WARNING, "Unable to send Hello message", e);
-            }
+        finally {
+            logger.close();
         }
     }
 

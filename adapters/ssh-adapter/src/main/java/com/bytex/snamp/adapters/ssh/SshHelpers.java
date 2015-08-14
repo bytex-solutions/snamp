@@ -1,13 +1,15 @@
 package com.bytex.snamp.adapters.ssh;
 
+import com.bytex.snamp.adapters.AbstractResourceAdapter;
+import com.bytex.snamp.adapters.modeling.ReadAttributeLogicalOperation;
+import com.bytex.snamp.adapters.modeling.WriteAttributeLogicalOperation;
+import com.bytex.snamp.core.LoggingScope;
+import com.bytex.snamp.jmx.json.Formatters;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.bytex.snamp.Consumer;
-import com.bytex.snamp.SafeConsumer;
-import com.bytex.snamp.adapters.AbstractResourceAdapter;
-import com.bytex.snamp.core.OSGiLoggingContext;
-import com.bytex.snamp.jmx.json.Formatters;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
 
 import java.util.Map;
 import java.util.logging.Level;
@@ -31,17 +33,24 @@ final class SshHelpers {
 
     }
 
-    static <E extends Exception> void withLogger(final Consumer<Logger, E> contextBody) throws E {
-        OSGiLoggingContext.within(LOGGER_NAME, contextBody);
+    private static BundleContext getBundleContext(){
+        return FrameworkUtil.getBundle(SshHelpers.class).getBundleContext();
+    }
+
+    static ReadAttributeLogicalOperation readAttributeLogicalOperation(final String originalName,
+                                                                       final String attributeName) {
+        return new ReadAttributeLogicalOperation(Logger.getLogger(LOGGER_NAME), originalName, attributeName, getBundleContext());
+    }
+
+    static WriteAttributeLogicalOperation writeAttributeLogicalOperation(final String originalName,
+                                                                         final String attributeName){
+        return new WriteAttributeLogicalOperation(Logger.getLogger(LOGGER_NAME), originalName, attributeName, getBundleContext());
     }
 
     private static void log(final Level lvl, final String message, final Object[] args, final Throwable e){
-        withLogger(new SafeConsumer<Logger>() {
-            @Override
-            public void accept(final Logger logger) {
-                logger.log(lvl, String.format(message, args), e);
-            }
-        });
+        try(final LoggingScope logger = new LoggingScope(LOGGER_NAME, getBundleContext())){
+            logger.log(lvl, String.format(message, args), e);
+        }
     }
 
     static void log(final Level lvl, final String message, final Throwable e){

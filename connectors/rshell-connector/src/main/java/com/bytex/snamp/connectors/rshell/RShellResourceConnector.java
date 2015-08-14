@@ -1,17 +1,16 @@
 package com.bytex.snamp.connectors.rshell;
 
-import com.google.common.base.Function;
 import com.bytex.jcommands.CommandExecutionChannel;
 import com.bytex.jcommands.impl.TypeTokens;
 import com.bytex.jcommands.impl.XmlCommandLineToolProfile;
 import com.bytex.jcommands.impl.XmlParserDefinition;
 import com.bytex.jcommands.impl.XmlParsingResultType;
 import com.bytex.snamp.ExceptionPlaceholder;
-import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
 import com.bytex.snamp.connectors.attributes.*;
+import com.bytex.snamp.core.LoggingScope;
 import com.bytex.snamp.internal.RecordReader;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.CompositeTypeBuilder;
@@ -19,6 +18,7 @@ import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.TabularDataUtils;
 import com.bytex.snamp.jmx.TabularTypeBuilder;
 import com.bytex.snamp.scripting.OSGiScriptEngineManager;
+import com.google.common.base.Function;
 
 import javax.management.openmbean.*;
 import javax.script.ScriptEngineManager;
@@ -191,16 +191,18 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
     }
 
     private static final class RShellAttributes extends AbstractAttributeSupport<RShellAttributeInfo> {
-
         private final CommandExecutionChannel executionChannel;
         private final ScriptEngineManager scriptEngineManager;
+        private final Logger logger;
 
         private RShellAttributes(final String resourceName,
                                  final CommandExecutionChannel channel,
-                                 final ScriptEngineManager engineManager) {
+                                 final ScriptEngineManager engineManager,
+                                 final Logger logger) {
             super(resourceName, RShellAttributeInfo.class);
             this.executionChannel = Objects.requireNonNull(channel);
             this.scriptEngineManager = engineManager;
+            this.logger = Objects.requireNonNull(logger);
         }
 
         /**
@@ -213,12 +215,9 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
          */
         @Override
         protected void failedToConnectAttribute(final String attributeID, final String attributeName, final Exception e) {
-            RShellConnectorHelpers.withLogger(new SafeConsumer<Logger>() {
-                @Override
-                public void accept(final Logger logger) {
-                    failedToConnectAttribute(logger, Level.SEVERE, attributeID, attributeName, e);
-                }
-            });
+            try(final LoggingScope logger = new LoggingScope(this.logger, Utils.getBundleContextByObject(this))){
+                failedToConnectAttribute(logger, Level.WARNING, attributeID, attributeName, e);
+            }
         }
 
         /**
@@ -230,12 +229,9 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
          */
         @Override
         protected void failedToGetAttribute(final String attributeID, final Exception e) {
-            RShellConnectorHelpers.withLogger(new SafeConsumer<Logger>() {
-                @Override
-                public void accept(final Logger logger) {
-                    failedToGetAttribute(logger, Level.WARNING, attributeID, e);
-                }
-            });
+            try(final LoggingScope logger = new LoggingScope(this.logger, Utils.getBundleContextByObject(this))){
+                failedToGetAttribute(logger, Level.WARNING, attributeID, e);
+            }
         }
 
         /**
@@ -248,12 +244,9 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
          */
         @Override
         protected void failedToSetAttribute(final String attributeID, final Object value, final Exception e) {
-            RShellConnectorHelpers.withLogger(new SafeConsumer<Logger>() {
-                @Override
-                public void accept(final Logger logger) {
-                    failedToSetAttribute(logger, Level.WARNING, attributeID, value, e);
-                }
-            });
+            try(final LoggingScope logger = new LoggingScope(this.logger, Utils.getBundleContextByObject(this))){
+                failedToSetAttribute(logger, Level.WARNING, attributeID, value, e);
+            }
         }
 
         /**
@@ -319,7 +312,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
             throw new InstantiationException(String.format("Unknown channel: %s", connectionOptions));
         attributes = new RShellAttributes(resourceName,
                 executionChannel,
-                new OSGiScriptEngineManager(Utils.getBundleContextByObject(this)));
+                new OSGiScriptEngineManager(Utils.getBundleContextByObject(this)), getLogger());
     }
 
     RShellResourceConnector(final String resourceName,

@@ -1,6 +1,10 @@
 package com.bytex.snamp.adapters;
 
 import com.bytex.snamp.core.RichLogicalOperation;
+import com.google.common.collect.ImmutableMap;
+import org.osgi.framework.BundleContext;
+
+import java.util.logging.Logger;
 
 /**
  * @author Roman Sakno
@@ -11,34 +15,25 @@ public class AttributeRelatedLogicalOperation extends RichLogicalOperation {
     public static final String ATTRIBUTE_ID_PARAMETER = "attributeID";
     public static final String ATTRIBUTE_NAME_PARAMETER = "attributeName";
 
-    protected AttributeRelatedLogicalOperation(final String operationName,
+    protected AttributeRelatedLogicalOperation(final Logger logger,
+                                               final String operationName,
                                          final String attributeName,
-                                         final String attributeID){
-        super(operationName, ATTRIBUTE_ID_PARAMETER, attributeID,
-                ATTRIBUTE_NAME_PARAMETER, attributeName);
+                                         final String attributeID,
+                                               final BundleContext context){
+        super(logger, operationName, ImmutableMap.of(ATTRIBUTE_ID_PARAMETER, attributeID,
+                ATTRIBUTE_NAME_PARAMETER, attributeName), context);
     }
 
-    public AttributeRelatedLogicalOperation(final String operationName,
+    public AttributeRelatedLogicalOperation(final Logger logger,
+                                            final String operationName,
                                          final String attributeName,
                                          final String attributeID,
                                          final String propertyName,
-                                         final Object propertyValue){
-        super(operationName, ATTRIBUTE_ID_PARAMETER, attributeID,
+                                         final Object propertyValue,
+                                            final BundleContext context){
+        super(logger, operationName, ImmutableMap.of(ATTRIBUTE_ID_PARAMETER, attributeID,
                 ATTRIBUTE_NAME_PARAMETER, attributeName,
-                propertyName, propertyValue);
-    }
-
-    public AttributeRelatedLogicalOperation(final String operationName,
-                                         final String attributeName,
-                                         final String attributeID,
-                                         final String propertyName1,
-                                         final Object propertyValue1,
-                                         final String propertyName2,
-                                         final Object propertyValue2){
-        super(operationName, ATTRIBUTE_ID_PARAMETER, attributeID,
-                ATTRIBUTE_NAME_PARAMETER, attributeName,
-                propertyName1, propertyValue1,
-                propertyName2, propertyValue2);
+                propertyName, propertyValue), context);
     }
 
     public final String getAttributeID(){

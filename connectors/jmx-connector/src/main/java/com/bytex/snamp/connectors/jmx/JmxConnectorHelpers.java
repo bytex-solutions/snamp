@@ -1,14 +1,13 @@
 package com.bytex.snamp.connectors.jmx;
 
-import com.bytex.snamp.Consumer;
-import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
-import com.bytex.snamp.core.OSGiLoggingContext;
+import com.bytex.snamp.core.LoggingScope;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
 
 import javax.management.InvalidAttributeValueException;
 import javax.management.JMException;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author Roman Sakno
@@ -35,17 +34,14 @@ final class JmxConnectorHelpers {
         };
     }
 
-    static <E extends Exception> void withLogger(final Consumer<Logger, E> contextBody) throws E {
-        OSGiLoggingContext.within(LOGGER_NAME, contextBody);
+    private static BundleContext getBundleContext(){
+        return FrameworkUtil.getBundle(JmxConnectorHelpers.class).getBundleContext();
     }
 
     private static void log(final Level lvl, final String message, final Object[] args, final Throwable e){
-        withLogger(new SafeConsumer<Logger>() {
-            @Override
-            public void accept(final Logger logger) {
-                logger.log(lvl, String.format(message, args), e);
-            }
-        });
+        try(final LoggingScope logger = new LoggingScope(LOGGER_NAME, getBundleContext())){
+            logger.log(lvl, String.format(message, args), e);
+        }
     }
 
     static void log(final Level lvl, final String message){

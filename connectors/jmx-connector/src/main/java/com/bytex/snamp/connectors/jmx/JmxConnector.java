@@ -1,9 +1,5 @@
 package com.bytex.snamp.connectors.jmx;
 
-import com.google.common.base.Function;
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.Sets;
-import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.GroupedThreadFactory;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
@@ -17,7 +13,12 @@ import com.bytex.snamp.connectors.operations.AbstractOperationSupport;
 import com.bytex.snamp.connectors.operations.OperationDescriptor;
 import com.bytex.snamp.connectors.operations.OperationDescriptorRead;
 import com.bytex.snamp.connectors.operations.OperationSupport;
+import com.bytex.snamp.core.LoggingScope;
+import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.google.common.base.Function;
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.Sets;
 
 import javax.management.*;
 import javax.management.openmbean.*;
@@ -196,16 +197,17 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
             return callInfo.getMetadata().invoke(connectionManager, callInfo.toArray());
         }
 
+        private LoggingScope createLoggingScope(){
+            return new LoggingScope(getLoggerImpl(), Utils.getBundleContextByObject(this));
+        }
+
         @Override
         protected void failedToEnableOperation(final String userDefinedName,
                                                final String operationName,
                                                final Exception e) {
-            JmxConnectorHelpers.withLogger(new SafeConsumer<Logger>() {
-                @Override
-                public void accept(final Logger logger) {
-                    failedToEnableOperation(logger, Level.SEVERE, userDefinedName, operationName, e);
-                }
-            });
+            try (final LoggingScope logger = createLoggingScope()) {
+                failedToEnableOperation(logger, Level.WARNING, userDefinedName, operationName, e);
+            }
         }
 
         @Override
@@ -288,6 +290,10 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
             this.connectionManager = connectionManager;
         }
 
+        private LoggingScope createLoggingScope(){
+            return new LoggingScope(getLoggerImpl(), Utils.getBundleContextByObject(this));
+        }
+
         /**
          * Reports an error when connecting attribute.
          *
@@ -298,12 +304,9 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
          */
         @Override
         protected void failedToConnectAttribute(final String attributeID, final String attributeName, final Exception e) {
-            JmxConnectorHelpers.withLogger(new SafeConsumer<Logger>() {
-                @Override
-                public void accept(final Logger logger) {
-                    failedToConnectAttribute(logger, Level.SEVERE, attributeID, attributeName, e);
-                }
-            });
+            try(final LoggingScope logger = createLoggingScope()){
+                failedToConnectAttribute(logger, Level.WARNING, attributeID, attributeName, e);
+            }
         }
 
         /**
@@ -315,12 +318,9 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
          */
         @Override
         protected void failedToGetAttribute(final String attributeID, final Exception e) {
-            JmxConnectorHelpers.withLogger(new SafeConsumer<Logger>() {
-                @Override
-                public void accept(final Logger logger) {
-                    failedToGetAttribute(logger, Level.WARNING, attributeID, e);
-                }
-            });
+            try(final LoggingScope logger = createLoggingScope()){
+                failedToGetAttribute(logger, Level.WARNING, attributeID, e);
+            }
         }
 
         /**
@@ -333,12 +333,9 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
          */
         @Override
         protected void failedToSetAttribute(final String attributeID, final Object value, final Exception e) {
-            JmxConnectorHelpers.withLogger(new SafeConsumer<Logger>() {
-                @Override
-                public void accept(final Logger logger) {
-                    failedToSetAttribute(logger, Level.WARNING, attributeID, value, e);
-                }
-            });
+            try(final LoggingScope logger = createLoggingScope()){
+                failedToSetAttribute(logger, Level.WARNING, attributeID, value, e);
+            }
         }
 
         private static JmxAttributeInfo createPlainAttribute(final JmxConnectionManager connectionManager,
@@ -499,6 +496,10 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
             return listenerInvoker;
         }
 
+        private LoggingScope createLoggingScope(){
+            return new LoggingScope(getLoggerImpl(), Utils.getBundleContextByObject(this));
+        }
+
         /**
          * Reports an error when enabling notifications.
          *
@@ -509,12 +510,9 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
          */
         @Override
         protected void failedToEnableNotifications(final String listID, final String category, final Exception e) {
-            JmxConnectorHelpers.withLogger(new SafeConsumer<Logger>() {
-                @Override
-                public void accept(final Logger logger) {
-                    failedToEnableNotifications(logger, Level.WARNING, listID, category, e);
-                }
-            });
+            try(final LoggingScope logger = createLoggingScope()){
+                failedToEnableNotifications(logger, Level.WARNING, listID, category, e);
+            }
         }
 
         private Set<ObjectName> getNotificationTargets() {

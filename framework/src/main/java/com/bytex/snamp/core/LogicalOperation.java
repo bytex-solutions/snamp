@@ -1,17 +1,17 @@
 package com.bytex.snamp.core;
 
-import com.bytex.snamp.Consumer;
 import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.internal.annotations.MethodStub;
 import com.google.common.base.Joiner;
 import com.google.common.base.Stopwatch;
-import com.google.common.base.Ticker;
+import org.osgi.framework.BundleContext;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Stack;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 /**
  *
@@ -19,9 +19,8 @@ import java.util.concurrent.atomic.AtomicLong;
  * @version 1.0
  * @since 1.0
  */
-public class LogicalOperation implements AutoCloseable {
-    private static final ThreadLocal<LogicalOperation> operations = new ThreadLocal<>();
-    static final CorrelationIdentifierGenerator correlIdGenerator = new DefaultCorrelationIdentifierGenerator();
+public class LogicalOperation extends LoggingScope {
+    static final CorrelationIdentifierGenerator CORREL_ID_GEN = new DefaultCorrelationIdentifierGenerator();
     private static final Joiner.MapJoiner TO_STRING_JOINER = Joiner.on(',').withKeyValueSeparator("=");
 
     /**
@@ -56,49 +55,65 @@ public class LogicalOperation implements AutoCloseable {
     }
 
     private final String name;
-    private LogicalOperation parent;
-    private final Stopwatch timer;
     private final long correlationID;
+    private final Stopwatch timer;
+    private boolean initialized = false;
 
-    /**
-     * Initializes a new logical operation and push it into the stack.
-     * @param name The name of the logical operation.
-     * @param correlationID The correlation identifier generator.
-     * @param ticker The ticker used to measure duration of the logical operation execution.
-     */
-    protected LogicalOperation(final String name,
-                               final CorrelationIdentifierGenerator correlationID,
-                               final Ticker ticker){
-        this.name = name;
-        timer = Stopwatch.createStarted(ticker);
-        if((parent = current()) != null)
-            this.correlationID = parent.getCorrelationID();
-        else if(correlationID != null)
-            this.correlationID = correlationID.generate();
-        else this.correlationID = -1;
-        operations.set(this);
+    private LogicalOperation(final Logger logger,
+                             final String name,
+                             final long correlationID,
+                             final BundleContext context){
+        super(logger, context);
+        this.name = Objects.requireNonNull(name);
+        this.correlationID = correlationID;
+        this.timer = Stopwatch.createStarted();
+        entering(null, name);
+        initialized = true;
     }
 
     /**
-     * Initializes a new logical operation and push it into the stack.
+     * Initializes a new logical operation.
+     * @param logger The underlying logger. Cannot be {@literal null}.
      * @param name The name of the logical operation.
      * @param correlationID The correlation identifier generator.
+     * @param context The bundle context. May be {@literal null}.
+     */
+    public LogicalOperation(final Logger logger,
+                            final String name,
+                               final CorrelationIdentifierGenerator correlationID,
+                            final BundleContext context) {
+        this(logger,
+                name,
+                correlationID != null ? correlationID.generate() : -1L,
+                context);
+    }
+
+    /**
+     * Initializes a new logical operation.
+     * @param logger The underlying logger. Cannot be {@literal null}.
+     * @param name The name of the logical operation.
+     * @param correlationID The correlation identifier generator.
+     */
+    protected LogicalOperation(final Logger logger,
+                            final String name,
+                            final CorrelationIdentifierGenerator correlationID) {
+        this(logger,
+                name,
+                correlationID != null ? correlationID.generate() : -1L,
+                null);
+    }
+
+    /**
+     * Initializes a new logical operation that is connected with the specified parent operation.
+     * @param name The name of the logical operation.
+     * @param parent The parent logical operation. Cannot be {@literal null}.
      */
     public LogicalOperation(final String name,
-                            final CorrelationIdentifierGenerator correlationID){
-        this(name, correlationID, Ticker.systemTicker());
-    }
-
-    /**
-     * Initializes a new logical operation and push it into the stack.
-     * <p>
-     *     This constructor generates a new unique correlation identifier
-     *     across all threads in the application.
-     * </p>
-     * @param name The name of the logical operation.
-     */
-    public LogicalOperation(final String name){
-        this(name, correlIdGenerator);
+                            final LogicalOperation parent) {
+        this(parent.getLogger(),
+                name,
+                parent.getCorrelationID(),
+                parent.getBundleContext());
     }
 
     /**
@@ -127,107 +142,18 @@ public class LogicalOperation implements AutoCloseable {
     }
 
     /**
-     * Gets parent logical operation.
-     * @return The parent logical operation.
-     * @throws java.lang.IllegalStateException This operation is closed.
+     * Returns a textual log message constructed from {@link LogRecord} instance.
+     *
+     * @param record The record to transform.
+     * @return A string representation of the {@link LogRecord} instance.
      */
-    public final LogicalOperation getParent(){
-        return parent;
-    }
-
-    /**
-     * Gets a value indicating that this operation is closed.
-     * @return {@literal true}, if this operation is closed; otherwise, {@literal false}.
-     */
-    public final boolean isClosed(){
-        return parent == null;
-    }
-
-    /**
-     * Gets name of this logical operation.
-     * @return The name of this logical operation.
-     */
-    public final String getName(){
-        return name;
-    }
-
-    /**
-     * Gets current logical operation.
-     * @return The current logical operation.
-     */
-    public static LogicalOperation current(){
-        return operations.get();
-    }
-
-    /**
-     * Processes the current logical operation.
-     * @param handler The logical operation handler.
-     * @param <E> Type of the exception that may be produced by handler.
-     * @return {@literal true}, if the caller method is in logical operation; otherwise, {@literal false}.
-     * @throws E Unable to process logical operation.
-     */
-    public static <E extends Throwable> boolean current(final Consumer<LogicalOperation, E> handler) throws E{
-        final LogicalOperation current = current();
-        if(current != null){
-            handler.accept(current);
-            return true;
-        }
-        else return false;
-    }
-
-    private static LogicalOperation pop() {
-        final LogicalOperation current = operations.get();
-        if (current != null)
-            if(current.parent == null)
-                operations.remove();
-            else
-                operations.set(current.parent);
-        return current;
-    }
-
-    /**
-     * Captures the stack of logical operations at the current thread.
-     * @return The stack of logical operations.
-     */
-    public static Stack<LogicalOperation> dumpStack(){
-        final Stack<LogicalOperation> result = new Stack<>();
-        LogicalOperation lookup = current();
-        while (lookup != null){
-            result.add(0, lookup);
-            lookup = lookup.getParent();
-        }
+    @Override
+    protected final String transformRecord(final LogRecord record) {
+        record.setSourceMethodName(name);
+        String result = super.transformRecord(record);
+        if(initialized)
+            result += ". Context: " + toString();
         return result;
-    }
-
-    protected final  <L extends LogicalOperation> L findParent(final Class<L> operationClass){
-        LogicalOperation lookup = getParent();
-        while (lookup != null)
-            if(operationClass.isInstance(lookup)) return operationClass.cast(lookup);
-            else lookup = lookup.parent;
-        return null;
-    }
-
-    /**
-     * Finds logical operation in the logical operation stack of the current thread by its type.
-     * @param operationClass The type of the logical operation.
-     * @param <L> The type of the logical operation.
-     * @return The logical operation; or {@literal null} if the current stack doesn't contain
-     *  the logical operation of appropriate type.
-     */
-    public static <L extends LogicalOperation> L find(final Class<L> operationClass){
-        LogicalOperation lookup = current();
-        if(lookup == null) return null;
-        else if(operationClass.isInstance(lookup))
-            return operationClass.cast(lookup);
-        else return lookup.findParent(operationClass);
-    }
-
-    /**
-     * Invokes at the end of the logical operation.
-     */
-    @MethodStub
-    protected void onClose(){
-
     }
 
     /**
@@ -251,18 +177,10 @@ public class LogicalOperation implements AutoCloseable {
         return TO_STRING_JOINER.join(result);
     }
 
-    /**
-     * Pops the logical operation from the stack.
-     */
     @Override
-    public final void close() {
-        try{
-            onClose();
-        }
-        finally {
-            pop();
-            timer.stop();
-            parent = null;
-        }
+    protected final void beforeClose() {
+        exiting(null, name);
+        timer.stop();
+        initialized = false;
     }
 }
