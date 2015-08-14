@@ -1,7 +1,6 @@
 package com.bytex.snamp.core;
 
 import com.google.common.collect.ImmutableMap;
-import org.osgi.framework.BundleContext;
 
 import java.util.Map;
 import java.util.Set;
@@ -96,7 +95,7 @@ public class RichLogicalOperation extends LogicalOperation {
      * @param output An output map to populate with string data.
      */
     @Override
-    protected void collectStringData(final Map<String, Object> output) {
+    protected final void collectStringData(final Map<String, Object> output) {
         super.collectStringData(output);
         output.putAll(properties);
     }

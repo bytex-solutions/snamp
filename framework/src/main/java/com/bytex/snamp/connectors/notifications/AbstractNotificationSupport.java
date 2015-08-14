@@ -1,5 +1,6 @@
 package com.bytex.snamp.connectors.notifications;
 
+import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.connectors.AbstractFeatureModeler;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
@@ -39,7 +40,7 @@ public abstract class AbstractNotificationSupport<M extends MBeanNotificationInf
         }
 
         private String getNotifType(){
-            return getMetadata().getNotifTypes()[0];
+            return ArrayUtils.getFirst(getMetadata().getNotifTypes());
         }
 
         private boolean equals(final String category, final CompositeData options){

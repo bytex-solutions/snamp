@@ -20,6 +20,8 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static com.bytex.snamp.ArrayUtils.emptyArray;
+
 /**
  * Represents base support of operations.
  * @author Roman Sakno
@@ -44,7 +46,7 @@ public abstract class AbstractOperationSupport<M extends MBeanOperationInfo> ext
         private OperationCallInfo(final M metadata,
                                   final Object[] args){
             this.metadata = Objects.requireNonNull(metadata);
-            this.arguments = args != null ? args : new Object[0];
+            this.arguments = args != null ? args : emptyArray(Object[].class);
         }
 
         /**

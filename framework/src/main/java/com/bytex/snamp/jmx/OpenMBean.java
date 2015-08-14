@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
+import static com.bytex.snamp.ArrayUtils.emptyArray;
 
 /**
  * Represents an abstract class for building Open MBeans.
@@ -627,7 +628,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
         return new OpenMBeanInfoSupport(getClass().getName(),
                 getDescription(),
                 getAttributes(),
-                new OpenMBeanConstructorInfo[0],
+                emptyArray(OpenMBeanConstructorInfo[].class),
                 getOperations(),
                 getNotifications(),
                 getDescriptor());
@@ -655,7 +656,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
         public final OpenMBeanOperationInfoSupport get() {
             return new OpenMBeanOperationInfoSupport(name,
                     getDescription(),
-                    null,
+                    emptyArray(OpenMBeanParameterInfo[].class),
                     SimpleType.VOID,
                     getImpact(),
                     getDescriptor());

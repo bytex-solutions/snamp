@@ -1,5 +1,6 @@
 package com.bytex.snamp.connectors.jmx;
 
+import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.GroupedThreadFactory;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
@@ -13,7 +14,6 @@ import com.bytex.snamp.connectors.operations.AbstractOperationSupport;
 import com.bytex.snamp.connectors.operations.OperationDescriptor;
 import com.bytex.snamp.connectors.operations.OperationDescriptorRead;
 import com.bytex.snamp.connectors.operations.OperationSupport;
-import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.internal.annotations.SpecialUse;
 import com.google.common.base.Function;
 import com.google.common.base.MoreObjects;
@@ -588,10 +588,10 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
                         for(final MBeanNotificationInfo notificationInfo: connection.getMBeanInfo(objectName).getNotifications()){
                             if(notificationInfo.getNotifTypes().length < 1) continue;
                             final String notificationId = generateName ?
-                                    notificationInfo.getNotifTypes()[0] + counter++ :
-                                    notificationInfo.getNotifTypes()[0];
+                                    ArrayUtils.getFirst(notificationInfo.getNotifTypes()) + counter++ :
+                                    ArrayUtils.getFirst(notificationInfo.getNotifTypes());
                             final JmxNotificationInfo event = enableNotifications(notificationId,
-                                    notificationInfo.getNotifTypes()[0],
+                                    ArrayUtils.getFirst(notificationInfo.getNotifTypes()),
                                     toConfigurationParameters(globalObjectName));
                             if(event != null) output.add(event);
                         }

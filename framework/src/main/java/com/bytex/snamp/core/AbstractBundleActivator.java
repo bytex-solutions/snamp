@@ -1,12 +1,9 @@
 package com.bytex.snamp.core;
 
+import com.bytex.snamp.*;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
-import com.bytex.snamp.Attribute;
-import com.bytex.snamp.AttributeReader;
-import com.bytex.snamp.StringAppender;
-import com.bytex.snamp.TypeTokens;
 import com.bytex.snamp.internal.annotations.MethodStub;
 import org.osgi.framework.*;
 
@@ -340,7 +337,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
             catch (final InvalidSyntaxException e) {
                 refs = null;
             }
-            return refs != null ? refs : new ServiceReference<?>[0];
+            return refs != null ? refs : ArrayUtils.emptyArray(ServiceReference[].class);
         }
     }
 
@@ -679,7 +676,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
     /**
      * Represents an empty array of required services.
      */
-    protected static final RequiredService<?>[] EMPTY_REQUIRED_SERVICES = new RequiredService<?>[0];
+    protected static final RequiredService<?>[] EMPTY_REQUIRED_SERVICES = ArrayUtils.emptyArray(RequiredService[].class);
 
     private final List<RequiredService<?>> bundleLevelDependencies;
     private final ActivationProperties properties;

@@ -1,9 +1,5 @@
 package com.bytex.snamp.adapters.jmx;
 
-import com.bytex.snamp.internal.Utils;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.adapters.modeling.*;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
@@ -13,6 +9,9 @@ import com.bytex.snamp.internal.RecordReader;
 import com.bytex.snamp.io.Buffers;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.management.OpenMBeanProvider;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
@@ -387,8 +386,8 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
         return new OpenMBeanInfoSupport(getClass().getName(),
                 String.format("Represents %s resource as MBean", resourceName),
                 getAttributeInfo(),
-                new OpenMBeanConstructorInfo[0],
-                new OpenMBeanOperationInfo[0],
+                ArrayUtils.emptyArray(OpenMBeanConstructorInfo[].class),
+                ArrayUtils.emptyArray(OpenMBeanOperationInfo[].class),
                 getNotificationInfo());
     }
 

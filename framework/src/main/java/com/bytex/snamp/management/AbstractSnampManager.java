@@ -16,6 +16,7 @@ import java.util.*;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextByObject;
 import static com.bytex.snamp.internal.Utils.isInstanceOf;
+import static com.bytex.snamp.ArrayUtils.emptyArray;
 
 /**
  * Represents partial implementation of {@link com.bytex.snamp.management.SnampManager} service.
@@ -96,7 +97,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
             final Bundle bnd = context.getBundle(getBundleID());
             boolean result = false;
             final ServiceReference<?>[] refs = bnd.getRegisteredServices();
-            for (final ServiceReference<?> candidate : refs != null ? refs : new ServiceReference<?>[0])
+            for (final ServiceReference<?> candidate : refs != null ? refs : emptyArray(ServiceReference[].class))
                 if (isInstanceOf(candidate, serviceType))
                     try {
                         serviceInvoker.accept(serviceType.cast(context.getService(candidate)));

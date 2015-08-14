@@ -4,6 +4,7 @@ import com.bytex.snamp.management.AbstractMaintainable;
 
 import java.util.Locale;
 import java.util.logging.Logger;
+import static com.bytex.snamp.ArrayUtils.emptyArray;
 
 /**
  * @author Roman Sakno
@@ -20,7 +21,7 @@ public final class MQConnectorMaintainer extends AbstractMaintainable<Maintenanc
     protected Object[] parseArguments(final MaintenanceActions action,
                                       final String arguments,
                                       final Locale loc) {
-        return new Object[0];
+        return emptyArray(Object[].class);
     }
 
     @Action

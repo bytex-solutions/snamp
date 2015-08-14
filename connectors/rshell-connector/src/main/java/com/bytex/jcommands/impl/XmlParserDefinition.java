@@ -22,6 +22,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Pattern;
+import static com.bytex.snamp.ArrayUtils.emptyArray;
 
 /**
  * Represents parser for command-line output result.
@@ -860,7 +861,7 @@ public class XmlParserDefinition {
                                     final ScriptEngine engine) throws ScriptException {
         return parseScalar(parsingTemplate,
                 engine,
-                format, new byte[0]);
+                format, emptyArray(byte[].class));
     }
 
     private static void runPlaceholder(final String fragment, final ScriptEngine engine) throws ScriptException {

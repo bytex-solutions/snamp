@@ -1,9 +1,6 @@
 package com.bytex.snamp.connectors;
 
-import com.google.common.collect.Iterables;
-import com.google.common.util.concurrent.Futures;
 import com.bytex.snamp.Aggregator;
-import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
@@ -11,8 +8,11 @@ import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.configuration.PersistentConfigurationManager;
 import com.bytex.snamp.connectors.discovery.DiscoveryService;
 import com.bytex.snamp.core.FrameworkService;
+import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.core.SupportService;
 import com.bytex.snamp.management.Maintainable;
+import com.google.common.collect.Iterables;
+import com.google.common.util.concurrent.Futures;
 import org.osgi.framework.*;
 import org.osgi.service.cm.ConfigurationAdmin;
 
@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Future;
 
+import static com.bytex.snamp.ArrayUtils.emptyArray;
 import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfiguration;
 
 /**
@@ -270,7 +271,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
         if(context == null) return Collections.emptyMap();
         else try {
             ServiceReference<?>[] connectors = context.getAllServiceReferences(ManagedResourceConnector.class.getName(), null);
-            if(connectors == null) connectors = new ServiceReference<?>[0];
+            if(connectors == null) connectors = emptyArray(ServiceReference[].class);
             final Map<String, ServiceReference<ManagedResourceConnector>> result = new HashMap<>(connectors.length);
             for(final ServiceReference<?> serviceRef: connectors) {
                 @SuppressWarnings("unchecked")

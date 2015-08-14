@@ -1,5 +1,6 @@
 package com.bytex.snamp.adapters.modeling;
 
+import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.connectors.FeatureModifiedEvent;
 import com.bytex.snamp.connectors.notifications.NotificationAddedEvent;
 import com.bytex.snamp.connectors.notifications.NotificationRemovingEvent;
@@ -85,7 +86,7 @@ public abstract class NotificationAccessor extends FeatureAccessor<MBeanNotifica
      * @return The notification type.
      */
     public final String getType(){
-        return getMetadata().getNotifTypes()[0];
+        return ArrayUtils.getFirst(getMetadata().getNotifTypes());
     }
 
     /**

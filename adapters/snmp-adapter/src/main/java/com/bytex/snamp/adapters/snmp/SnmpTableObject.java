@@ -285,7 +285,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
             return createColumns((CompositeType)type, typeMapper, access);
         else if(type instanceof TabularType)
             return createColumns((TabularType)type, typeMapper, access, useRowStatus);
-        else return new MONamedColumn[0];
+        else return ArrayUtils.emptyArray(MONamedColumn[].class);
     }
 
     private static OID makeRowID(final int rowIndex){

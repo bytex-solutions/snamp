@@ -1,6 +1,5 @@
 package com.bytex.snamp.connectors;
 
-import com.google.common.base.Strings;
 import com.bytex.snamp.Descriptive;
 import com.bytex.snamp.connectors.attributes.AbstractAttributeSupport;
 import com.bytex.snamp.connectors.attributes.AttributeSupport;
@@ -11,12 +10,15 @@ import com.bytex.snamp.core.AbstractFrameworkService;
 import com.bytex.snamp.internal.IllegalStateFlag;
 import com.bytex.snamp.internal.annotations.ThreadSafe;
 import com.bytex.snamp.jmx.JMExceptionUtils;
+import com.google.common.base.Strings;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 
 import javax.management.*;
 import java.util.*;
 import java.util.logging.Logger;
+
+import static com.bytex.snamp.ArrayUtils.emptyArray;
 
 /**
  * Represents an abstract class for building custom management connectors.
@@ -182,7 +184,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      */
     public MBeanAttributeInfo[] getAttributeInfo() {
         final AttributeSupport attributes = queryObject(AttributeSupport.class);
-        return attributes != null ? attributes.getAttributeInfo() : new MBeanAttributeInfo[0];
+        return attributes != null ? attributes.getAttributeInfo() : emptyArray(MBeanAttributeInfo[].class);
     }
 
     public MBeanAttributeInfo getAttributeInfo(final String attributeName){
@@ -196,7 +198,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      */
     public MBeanNotificationInfo[] getNotificationInfo(){
         final NotificationSupport notifs = queryObject(NotificationSupport.class);
-        return notifs != null ? notifs.getNotificationInfo() : new MBeanNotificationInfo[0];
+        return notifs != null ? notifs.getNotificationInfo() : emptyArray(MBeanNotificationInfo[].class);
     }
 
     public MBeanNotificationInfo getNotificationInfo(final String notificationType){
@@ -210,7 +212,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      */
     public MBeanOperationInfo[] getOperationInfo(){
         final OperationSupport ops = queryObject(OperationSupport.class);
-        return ops != null ? ops.getOperationInfo() : new MBeanOperationInfo[0];
+        return ops != null ? ops.getOperationInfo() : emptyArray(MBeanOperationInfo[].class);
     }
 
     public MBeanOperationInfo getOperationInfo(final String operationName){
@@ -229,7 +231,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
         return new MBeanInfo(getClassName(),
                 getDescription(Locale.getDefault()),
                 getAttributeInfo(),
-                new MBeanConstructorInfo[0],
+                emptyArray(MBeanConstructorInfo[].class),
                 getOperationInfo(),
                 getNotificationInfo());
     }

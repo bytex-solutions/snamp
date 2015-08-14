@@ -1,5 +1,6 @@
 package com.bytex.snamp.management.impl;
 
+import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.TabularDataBuilderRowFill;
@@ -50,7 +51,7 @@ final class GetBindingOfEventsOperation extends AbstractBindingInfoOperation<MBe
         final String category = NotificationDescriptor.getNotificationCategory(bindingInfo.getMetadata());
 
         row
-                .cell(LIST_ID_COLUMN, bindingInfo.getMetadata().getNotifTypes()[0])
+                .cell(LIST_ID_COLUMN, ArrayUtils.getFirst(bindingInfo.getMetadata().getNotifTypes(), ""))
                 .cell(CATEGORY_COLUMN, category)
                 .cell(ATTACHMENT_TYPE_COLUMN, attachmentType);
     }

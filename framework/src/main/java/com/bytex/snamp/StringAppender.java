@@ -21,7 +21,6 @@ import java.util.Iterator;
  */
 public class StringAppender extends CharArrayWriter implements Appendable, CharSequence, Serializable {
     private static final long serialVersionUID = 5383532773187026410L;
-    private static final char[] EMPTY_CHAR_ARRAY = new char[0];
 
     public StringAppender(){
         this(32);
@@ -280,7 +279,7 @@ public class StringAppender extends CharArrayWriter implements Appendable, CharS
      */
     @Override
     public void close() {
-        buf = EMPTY_CHAR_ARRAY;
+        buf = ArrayUtils.emptyArray(char[].class);
         count = 0;
     }
 }

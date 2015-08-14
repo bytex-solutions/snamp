@@ -1,6 +1,9 @@
 package com.bytex.snamp;
 
 import com.google.common.base.Predicate;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import com.google.common.collect.ObjectArrays;
 
@@ -10,7 +13,10 @@ import javax.management.openmbean.*;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Objects;
 
 /**
  * Represents advanced routines to work with arrays.
@@ -19,7 +25,33 @@ import java.util.*;
  * @since 1.0
  */
 public final class ArrayUtils {
+    private static final LoadingCache<Class<?>, Object> EMPTY_ARRAYS = CacheBuilder
+            .newBuilder()
+            .softValues()
+            .build(new CacheLoader<Class<?>, Object>() {
+                @Override
+                public Object load(final Class<?> componentType) throws NegativeArraySizeException, IllegalArgumentException {
+                    return Array.newInstance(componentType, 0);
+                }
+            });
+
     private ArrayUtils(){
+    }
+
+    private static Object emptyArrayImpl(final Class<?> componentType){
+        return EMPTY_ARRAYS.getUnchecked(componentType);
+    }
+
+    /**
+     * Creates an empty array of the specified type.
+     * @param arrayType Array type. Cannot be {@literal null}.
+     * @param <T> Array type.
+     * @return Empty array.
+     */
+    public static <T> T emptyArray(final Class<T> arrayType) {
+        if (arrayType.isArray())
+            return arrayType.cast(emptyArrayImpl(arrayType.getComponentType()));
+        else throw new IllegalArgumentException("Invalid array type: " + arrayType);
     }
 
     /**
@@ -28,7 +60,7 @@ public final class ArrayUtils {
      * @return {@literal true}, if the specified object is an array; otherwise, {@literal false}.
      */
     public static boolean isArray(final Object candidate){
-        return candidate != null && (candidate instanceof Object[] || candidate.getClass().isArray());
+        return candidate instanceof Object[] || candidate != null && candidate.getClass().isArray();
     }
 
     /**
@@ -174,7 +206,7 @@ public final class ArrayUtils {
     public static <T> T[] filter(final T[] array, final Predicate<T> filter, final Class<T> elementType){
         final ArrayList<T> result = Lists.newArrayListWithExpectedSize(array.length);
         for(final T item: array)
-            if(filter.apply(item)) result.add(item);
+            if (filter.apply(item)) result.add(item);
         return toArray(result, elementType);
     }
 
@@ -249,8 +281,9 @@ public final class ArrayUtils {
         else return false;
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> T[] emptyIfNull(final T[] items, final Class<T> elementType) {
-        return items == null ? ObjectArrays.newArray(elementType, 0) : items;
+        return items == null ? (T[])emptyArrayImpl(elementType) : items;
     }
 
     @SafeVarargs
@@ -285,5 +318,26 @@ public final class ArrayUtils {
         if(elementType instanceof SimpleType<?>)
             return createArrayType((SimpleType<T>)elementType);
         else return ArrayType.getArrayType(elementType);
+    }
+
+    /**
+     * Gets the first element in the array.
+     * @param array Array instance. Cannot be {@literal null}.
+     * @param defval Value returned from the method if array is empty.
+     * @param <T> Type of array elements.
+     * @return The first element in the specified array; or default value.
+     */
+    public static <T> T getFirst(final T[] array, final T defval){
+        return array.length > 0 ? array[0] : defval;
+    }
+
+    /**
+     * Gets the first element in the array.
+     * @param array Array instance. Cannot be {@literal null}.
+     * @param <T> Type of array elements.
+     * @return The first element in the specified array; or {@literal null}, if array is empty.
+     */
+    public static <T> T getFirst(final T[] array){
+        return getFirst(array, null);
     }
 }

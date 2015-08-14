@@ -1,9 +1,9 @@
 package com.bytex.snamp.core;
 
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.TimeSpan;
 import com.google.common.base.Joiner;
 import com.google.common.base.Stopwatch;
-import com.google.common.base.Strings;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,7 +19,7 @@ import java.util.logging.*;
  * @version 1.0
  * @since 1.0
  */
-public class LogicalOperation extends Logger implements AutoCloseable {
+public class LogicalOperation extends Logger implements SafeCloseable {
     static final CorrelationIdentifierGenerator CORREL_ID_GEN = new DefaultCorrelationIdentifierGenerator();
     private static final Joiner.MapJoiner TO_STRING_JOINER = Joiner.on(',').withKeyValueSeparator("=");
 
@@ -58,7 +58,6 @@ public class LogicalOperation extends Logger implements AutoCloseable {
     private final long correlationID;
     private final Stopwatch timer;
     private final Logger logger;
-    private boolean initialized = false;
 
     private LogicalOperation(final Logger logger,
                              final String operationName,
@@ -68,8 +67,7 @@ public class LogicalOperation extends Logger implements AutoCloseable {
         this.correlationID = correlationID;
         this.timer = Stopwatch.createStarted();
         this.logger = logger;
-        entering(null, operationName);
-        initialized = true; //do not place this assignment before entering()
+        logger.entering(null, operationName);
     }
 
     /**
@@ -325,9 +323,7 @@ public class LogicalOperation extends Logger implements AutoCloseable {
     @Override
     public final void log(final LogRecord record) {
         record.setSourceMethodName(operationName);
-        logger.log(record);
-        if(initialized)
-            record.setMessage(record.getMessage() + " Context: " + toString());
+        record.setMessage(record.getMessage() + " Context: " + toString());
         logger.log(record);
     }
 
@@ -411,10 +407,12 @@ public class LogicalOperation extends Logger implements AutoCloseable {
         return TO_STRING_JOINER.join(result);
     }
 
+    /**
+     * Closes scope of the logical operation.
+     */
     @Override
     public final void close() {
         exiting(null, operationName);
         timer.stop();
-        initialized = false;
     }
 }

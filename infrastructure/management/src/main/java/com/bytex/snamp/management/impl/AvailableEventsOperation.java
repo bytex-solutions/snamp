@@ -1,5 +1,6 @@
 package com.bytex.snamp.management.impl;
 
+import com.bytex.snamp.ArrayUtils;
 import com.google.common.base.MoreObjects;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 import com.bytex.snamp.internal.Utils;
@@ -56,7 +57,7 @@ final class AvailableEventsOperation extends AvailableFeaturesOperation<MBeanNot
         final String category = NotificationDescriptor.getNotificationCategory(notificationInfo);
         final WellKnownType attachmentType = WellKnownType.getType(NotificationDescriptor.getUserDataType(notificationInfo));
         row
-                .cell(LIST_ID_COLUMN, notificationInfo.getNotifTypes()[0])
+                .cell(LIST_ID_COLUMN, ArrayUtils.getFirst(notificationInfo.getNotifTypes(), ""))
                 .cell(PARAMETERS_COLUMN, toTabularData(notificationInfo))
                 .cell(DESCRIPTION_COLUMN, MoreObjects.firstNonNull(description, ""))
                 .cell(ATTACHMENT_TYPE_COLUMN, attachmentType == null ? "" : attachmentType.getDisplayName())

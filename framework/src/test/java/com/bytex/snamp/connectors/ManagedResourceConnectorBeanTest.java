@@ -1,5 +1,6 @@
 package com.bytex.snamp.connectors;
 
+import com.bytex.snamp.ArrayUtils;
 import com.google.common.collect.ImmutableMap;
 import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.TimeSpan;
@@ -170,7 +171,7 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         assertEquals(SimpleType.STRING, AttributeDescriptor.getOpenType(md));
         //enables operations
         assertNotNull(connector.enableOperation("sum", "computeSum", TimeSpan.INFINITE, ConfigParameters.empty()));
-        final Object result = connector.invoke("sum", new Object[]{4, 5}, new String[0]);
+        final Object result = connector.invoke("sum", new Object[]{4, 5}, ArrayUtils.emptyArray(String[].class));
         assertTrue(result instanceof Integer);
         assertEquals(9, result);
     }

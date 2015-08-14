@@ -1,11 +1,8 @@
 package com.bytex.snamp.adapters.snmp;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.adapters.AbstractResourceAdapter;
 import com.bytex.snamp.io.IOUtils;
 import com.google.common.primitives.Shorts;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
 import org.snmp4j.SNMP4JSettings;
 import org.snmp4j.agent.MOAccess;
 import org.snmp4j.agent.mo.MOAccessImpl;
@@ -31,6 +28,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.bytex.snamp.ArrayUtils.emptyArray;
 
 /**
  * @author Roman Sakno
@@ -134,7 +133,7 @@ final class SnmpHelpers {
                 return output.toByteArray();
             }
             catch (final IOException e){
-                return new byte[0];
+                return emptyArray(byte[].class);
             }
         }
 
@@ -354,7 +353,7 @@ final class SnmpHelpers {
     }
 
     static void log(final Level lvl, final String message, final Throwable e){
-        log(lvl, message, new Object[0], e);
+        log(lvl, message, emptyArray(String[].class), e);
     }
 
     static void log(final Level lvl, final String message, final Object arg0, final Throwable e){

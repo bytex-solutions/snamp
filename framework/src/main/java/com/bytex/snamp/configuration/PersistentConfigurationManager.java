@@ -37,7 +37,6 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     private static final TypeToken<SerializableMap<String, AttributeConfiguration>> ATTRS_MAP_TYPE = new TypeToken<SerializableMap<String, AttributeConfiguration>>() {};
     private static final TypeToken<SerializableMap<String, EventConfiguration>> EVENTS_MAP_TYPE = new TypeToken<SerializableMap<String, EventConfiguration>>() {};
     private static final TypeToken<SerializableMap<String, OperationConfiguration>> OPS_MAP_TYPE = new TypeToken<SerializableMap<String, OperationConfiguration>>() {};
-    private static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
 
     private static final String ADAPTER_PID_TEMPLATE = "com.bytex.snamp.adapters.%s";
     private static final String ADAPTER_INSTANCE_NAME_PROPERTY = "$adapterInstanceName$";
@@ -306,7 +305,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         byte[] serializedForm = Utils.getProperty(resourceConfig,
                 featureHolder,
                 byte[].class,
-                EMPTY_BYTE_ARRAY);
+                ArrayUtils.emptyArray(byte[].class));
         return serializedForm != null && serializedForm.length > 0 ?
                 IOUtils.deserialize(serializedForm, featureType):
                 ImmutableMap.<String, F>of();

@@ -7,6 +7,7 @@ import javax.management.openmbean.ArrayType;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.SimpleType;
 import java.util.Arrays;
+import static com.bytex.snamp.ArrayUtils.emptyArray;
 
 /**
  * @author Roman Sakno
@@ -23,7 +24,7 @@ final class SnmpConnectorHelpers {
     private static int[] getPostfix(final int[] prefix, final int[] full){
         return full.length > prefix.length ?
                 Arrays.copyOfRange(full, prefix.length, full.length):
-                new int[0];
+                emptyArray(int[].class);
     }
 
     public static OID getPostfix(final OID prefix, final OID oid){

@@ -1,5 +1,7 @@
 package com.bytex.snamp.adapters.modeling;
 
+import com.bytex.snamp.ArrayUtils;
+
 import javax.management.MBeanNotificationInfo;
 
 /**
@@ -25,6 +27,6 @@ public class ResourceNotificationList<TAccessor extends NotificationAccessor> ex
      */
     @Override
     protected String getKey(final MBeanNotificationInfo feature) {
-        return feature.getNotifTypes()[0];
+        return ArrayUtils.getFirst(feature.getNotifTypes());
     }
 }

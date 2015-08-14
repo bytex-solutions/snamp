@@ -126,9 +126,9 @@ abstract class ConfigurationSchemaOperation extends OpenMBean.OpenOperation<Comp
                 parameter.put(INPUT_PATTERN, descriptor.getValuePattern(loc));
                 parameter.put(REQUIRED, descriptor.isRequired());
                 parameter.put(SUGGESTIONS_SUPPORTED, description instanceof SelectableAdapterParameterDescriptor || description instanceof SelectableConnectorParameterDescriptor);
-                parameter.put(EXCLUDES, new String[0]);
-                parameter.put(EXTENDS, new String[0]);
-                parameter.put(ASSOCIATED, new String[0]);
+                parameter.put(EXCLUDES, ArrayUtils.emptyArray(String[].class));
+                parameter.put(EXTENDS, ArrayUtils.emptyArray(String[].class));
+                parameter.put(ASSOCIATED, ArrayUtils.emptyArray(String[].class));
                 //related params
                 for(final ConfigurationEntityDescription.ParameterRelationship rel: ConfigurationEntityDescription.ParameterRelationship.values()){
                     final Set<String> relationship = new HashSet<>();
