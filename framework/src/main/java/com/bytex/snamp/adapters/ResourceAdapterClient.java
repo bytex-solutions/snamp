@@ -81,6 +81,7 @@ public final class ResourceAdapterClient extends ServiceHolder<ResourceAdapter> 
      * @param instanceName The name of the instance.
      * @return A reference to the instance of resource adapter; or {@literal null} if instance doesn't exist.
      */
+    @SuppressWarnings("unchecked")
     public static ServiceReference<ResourceAdapter> getResourceAdapter(final BundleContext context,
                                                                                   final String instanceName) {
         try {

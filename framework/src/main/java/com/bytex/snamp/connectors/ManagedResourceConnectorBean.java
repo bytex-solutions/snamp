@@ -770,7 +770,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         private final Logger logger;
         private final Set<? extends ManagementNotificationType<?>> notifTypes;
         private final NotificationListenerInvoker listenerInvoker;
-        private static Class<CustomNotificationInfo> FEATURE_TYPE = CustomNotificationInfo.class;
+        private static final Class<CustomNotificationInfo> FEATURE_TYPE = CustomNotificationInfo.class;
 
         private JavaBeanNotificationSupport(final String resourceName,
                                             final Set<? extends ManagementNotificationType<?>> notifTypes,

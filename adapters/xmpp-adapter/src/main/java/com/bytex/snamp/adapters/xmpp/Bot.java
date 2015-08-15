@@ -5,7 +5,6 @@ import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.concurrent.VolatileBox;
 import com.bytex.snamp.core.LogicalOperation;
-import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.ExpressionBasedDescriptorFilter;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.chat.Chat;
@@ -14,7 +13,6 @@ import org.jivesoftware.smack.chat.ChatMessageListener;
 import org.jivesoftware.smack.packet.ExtensionElement;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.XMPPError;
-import org.osgi.framework.BundleContext;
 
 import java.io.Closeable;
 import java.lang.ref.WeakReference;

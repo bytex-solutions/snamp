@@ -10,7 +10,6 @@ import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.attributes.OpenTypeAttributeInfo;
 import com.bytex.snamp.connectors.groovy.*;
 import com.bytex.snamp.connectors.notifications.*;
-import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.internal.annotations.MethodStub;
 import com.google.common.base.Function;
 import com.google.common.base.Splitter;

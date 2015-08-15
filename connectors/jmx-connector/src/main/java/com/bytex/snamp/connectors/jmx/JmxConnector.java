@@ -273,7 +273,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
     private static final class JmxAttributeSupport extends AbstractAttributeSupport<JmxAttributeInfo> {
         private final JmxConnectionManager connectionManager;
         private final ObjectName globalObjectName;
-        private static Class<JmxAttributeInfo> FEATURE_TYPE = JmxAttributeInfo.class;
+        private static final Class<JmxAttributeInfo> FEATURE_TYPE = JmxAttributeInfo.class;
 
         private JmxAttributeSupport(final String resourceName,
                                     final ObjectName globalName,

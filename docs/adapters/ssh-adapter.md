@@ -22,7 +22,7 @@ There are following supported commands:
 1. `get -n <name> -r <resource> [-t|-j]` - displays attribute value of the specified resource
   - `-n <name>`, `--name <name>` - specifies user-defined name of the attribute
   - `-r <resource>`, `--resource <resource>` - specifies user-defined name of the connected resource
-  - `-t`, `--text` - specifies textual format for attribute value output. Uuseful for scalar data types
+  - `-t`, `--text` - specifies textual format for attribute value output. Useful for scalar data types
   - `-j`, `--json` - specifies JSON format for attribute value output. Useful for dictionaries and tables
 1. `set -n <name> -r <resource> -v <value-as-json>` - sets value of attribute of the specified resource
   - `-n <name>`, `--name <name>` - specifies user-defined name of the attribute

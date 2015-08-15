@@ -8,7 +8,6 @@ import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
 import com.bytex.snamp.connectors.attributes.*;
 import com.bytex.snamp.connectors.notifications.*;
-import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.Buffers;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.bytex.snamp.jmx.JMExceptionUtils;

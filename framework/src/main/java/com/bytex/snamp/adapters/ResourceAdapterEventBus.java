@@ -2,7 +2,6 @@ package com.bytex.snamp.adapters;
 
 import com.bytex.snamp.concurrent.AsyncEventListener;
 import com.bytex.snamp.concurrent.GroupedThreadFactory;
-import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.internal.WeakMultimap;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -10,7 +9,6 @@ import com.google.common.collect.Multimap;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.logging.Level;
 
 /**
  * @author Roman Sakno

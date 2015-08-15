@@ -2,7 +2,6 @@ package com.bytex.snamp.adapters;
 
 import com.bytex.snamp.core.RichLogicalOperation;
 import com.google.common.collect.ImmutableMap;
-import org.osgi.framework.BundleContext;
 
 import java.util.logging.Logger;
 

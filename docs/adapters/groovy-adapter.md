@@ -170,11 +170,11 @@ Groovy Resource Adapter provides convenient way to work with connected resources
 * `resources.resName.entityName` - gets the access to the feature of resource `resName`. This property can return attribute or event and its behavior depends on the user-defined name of the attribute or event used in SNAMP configuration
 * `resources.resName.attributes` - gets the collection of all attributes exposed by resource `resName`
 * `resources.resName.events` - gets the collection of all events exposed by resource `resName`
-* `resources.resName.getAttribute("attrName")` - gets the access to the attribute `attrName`. The same as `resources.resName.attrName`
-* `resources.resName.getEvent("eventName")` - getsthe  access to the event `eventName`. The same as `resources.resName.eventName`
-* `resources.resName.attrName.value` - gets or sets the value of the attribute if `attrName` is a name of an attribute (not event)
-* `resources.resName.attrName.metadata.configProperty` - gets the value of the configuration parameter declared in the configuration section for attribute `attrName`
-* `resources.resName.eventName.configProperty` - gets the value of the configuration parameter declared in the configuration section for attribute `attrName`
+* `resources.resName.getAttribute("attrName")` - gets access to the attribute `attrName`. The same as `resources.resName.attrName`
+* `resources.resName.getEvent("eventName")` - gets access to the event `eventName`. The same as `resources.resName.eventName`
+* `resources.resName.attrName.value` - gets or sets value of the attribute if `attrName` is a name of an attribute (not event)
+* `resources.resName.attrName.metadata.configProperty` - gets value of the configuration parameter declared in the configuration section for attribute `attrName`
+* `resources.resName.eventName.configProperty` - gets value of the configuration parameter declared in the configuration section for attribute `attrName`
 
 Following example demonstrates how to DSL extensions:
 ```groovy

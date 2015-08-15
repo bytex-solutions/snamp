@@ -1,7 +1,6 @@
 package com.bytex.snamp.adapters.modeling;
 
 import com.bytex.snamp.adapters.AttributeRelatedLogicalOperation;
-import org.osgi.framework.BundleContext;
 
 import java.util.logging.Logger;
 
