@@ -36,10 +36,6 @@ public final class TimeSpan implements Serializable {
      */
     public static final TimeSpan ZERO = new TimeSpan(0L, TimeUnit.NANOSECONDS);
 
-    /**
-     * Represents maximum value.
-     */
-    public static final TimeSpan MAX_VALUE = new TimeSpan(Long.MAX_VALUE, TimeUnit.DAYS);
     private static final long serialVersionUID = -5363358862646385345L;
 
     /**
@@ -67,7 +63,6 @@ public final class TimeSpan implements Serializable {
      * @param seconds Time span, in seconds.
      * @return A new time span.
      */
-    @SuppressWarnings("UnusedDeclaration")
     public static TimeSpan fromSeconds(final long seconds){
         return new TimeSpan(seconds, TimeUnit.SECONDS);
     }
@@ -77,7 +72,6 @@ public final class TimeSpan implements Serializable {
      * @param minutes Time span, in minutes.
      * @return A new time span.
      */
-    @SuppressWarnings("UnusedDeclaration")
     public static TimeSpan fromMinutes(final long minutes){
         return new TimeSpan(minutes, TimeUnit.MINUTES);
     }
@@ -87,7 +81,6 @@ public final class TimeSpan implements Serializable {
      * @param hours Time span, in hours.
      * @return A new time span.
      */
-    @SuppressWarnings("UnusedDeclaration")
     public static TimeSpan fromHours(final long hours){
         return new TimeSpan(hours, TimeUnit.HOURS);
     }
@@ -97,7 +90,6 @@ public final class TimeSpan implements Serializable {
      * @param days Time span, in days.
      * @return A new time span.
      */
-    @SuppressWarnings("UnusedDeclaration")
     public static TimeSpan fromDays(final long days){
         return new TimeSpan(days, TimeUnit.DAYS);
     }
@@ -148,40 +140,6 @@ public final class TimeSpan implements Serializable {
             case HOURS: return convert(TimeUnit.DAYS);
             default: return this;
         }
-    }
-
-    /**
-     * Returns the auto-scaled time interval.<br/>
-     * <p>
-     *     <b>Example:</b><br/>
-     *     <pre>{@code
-     *         TimeSpan value = new TimeSpan(60000);<br/>
-     *         value = value.autoScale();//new time span has duration value = 1 and unit = MINUTES<br/>
-     *     }</pre>
-     * </p>
-     * @return The auto-scaled time interval.
-     * @see #autoScale(long, java.util.concurrent.TimeUnit)
-     */
-    @ThreadSafe
-    public final TimeSpan autoScale(){
-        TimeSpan result = this;
-        while (result.duration > 0 && result.unit != TimeUnit.DAYS)
-            result = result.up();
-        return result;
-    }
-
-    /**
-     * Creates a new auto-scaled time interval.
-     * @param duration The interval value.
-     * @param unit The interval measurement unit.
-     * @return Auto-scaled time interval.
-     * @see #autoScale()
-     */
-    @ThreadSafe
-    @SuppressWarnings("UnusedDeclaration")
-    public static TimeSpan autoScale(final long duration, final TimeUnit unit){
-        final TimeSpan temp = new TimeSpan(duration, unit);
-        return temp.autoScale();
     }
 
     /**
