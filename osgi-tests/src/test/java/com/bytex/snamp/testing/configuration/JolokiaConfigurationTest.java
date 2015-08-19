@@ -184,7 +184,32 @@ public final class JolokiaConfigurationTest extends AbstractSnampIntegrationTest
                 .getAsJsonObject().get("oid")
                 .getAsJsonObject();
         assertEquals(new JsonPrimitive("1.1.10.1"), oidProperty.get("Value"));
-
+        //remove attribute
+        assertNotNull(config
+                .getAsJsonObject().get("ManagedResources")
+                .getAsJsonObject().get("glassfish-v4")
+                .getAsJsonObject().get("Connector")
+                .getAsJsonObject().get("Attributes")
+                .getAsJsonObject().remove("cpuLoad"));
+        writeAttribute(SNAMP_CORE_MBEAN, "configuration", config);
+        //verify changed configuration
+        oidProperty = config
+                .getAsJsonObject().get("ManagedResources")
+                .getAsJsonObject().get("glassfish-v4")
+                .getAsJsonObject().get("Connector")
+                .getAsJsonObject().get("Attributes")
+                .getAsJsonObject().get("memoryUsage")
+                .getAsJsonObject().get("Attribute")
+                .getAsJsonObject().get("AdditionalProperties")
+                .getAsJsonObject().get("oid")
+                .getAsJsonObject();
+        assertEquals(new JsonPrimitive("1.1.10.1"), oidProperty.get("Value"));
+        assertFalse(config
+                .getAsJsonObject().get("ManagedResources")
+                .getAsJsonObject().get("glassfish-v4")
+                .getAsJsonObject().get("Connector")
+                .getAsJsonObject().get("Attributes")
+                .getAsJsonObject().has("cpuLoad"));
     }
 
     @Override
