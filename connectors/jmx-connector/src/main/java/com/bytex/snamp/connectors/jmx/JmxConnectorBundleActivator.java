@@ -7,7 +7,7 @@ import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfigura
 import com.bytex.snamp.connectors.ManagedResourceActivator;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.management.AbstractMaintainable;
 import com.bytex.snamp.management.Maintainable;
 import org.osgi.framework.BundleContext;

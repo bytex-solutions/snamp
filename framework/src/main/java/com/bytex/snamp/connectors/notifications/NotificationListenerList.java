@@ -1,7 +1,7 @@
 package com.bytex.snamp.connectors.notifications;
 
 import com.bytex.snamp.concurrent.ThreadSafeObject;
-import com.bytex.snamp.internal.annotations.ThreadSafe;
+import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 
 import javax.management.ListenerNotFoundException;

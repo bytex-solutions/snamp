@@ -1,6 +1,6 @@
 package com.bytex.snamp.adapters.snmp;
 
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.jmx.WellKnownType;
 import org.snmp4j.smi.Integer32;
 import org.snmp4j.smi.Variable;

@@ -1,7 +1,7 @@
 package com.bytex.snamp.adapters.snmp;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.jmx.WellKnownType;
 import org.snmp4j.smi.OctetString;

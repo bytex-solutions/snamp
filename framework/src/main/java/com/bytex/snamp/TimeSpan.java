@@ -1,7 +1,6 @@
 package com.bytex.snamp;
 
 import com.google.common.primitives.Longs;
-import com.bytex.snamp.internal.annotations.ThreadSafe;
 
 import java.io.Serializable;
 import java.util.Date;

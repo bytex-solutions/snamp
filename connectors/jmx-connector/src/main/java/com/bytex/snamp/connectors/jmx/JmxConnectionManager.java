@@ -2,8 +2,8 @@ package com.bytex.snamp.connectors.jmx;
 
 import com.bytex.snamp.concurrent.Repeater;
 import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.internal.annotations.Internal;
-import com.bytex.snamp.internal.annotations.ThreadSafe;
+import com.bytex.snamp.Internal;
+import com.bytex.snamp.ThreadSafe;
 
 import javax.management.*;
 import javax.management.remote.JMXConnectionNotification;

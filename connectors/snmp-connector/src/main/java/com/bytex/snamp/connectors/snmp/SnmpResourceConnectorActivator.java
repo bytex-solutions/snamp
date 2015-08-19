@@ -3,7 +3,7 @@ package com.bytex.snamp.connectors.snmp;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 import org.snmp4j.log.OSGiLogFactory;
 
 import javax.management.openmbean.CompositeData;

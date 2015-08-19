@@ -1,7 +1,7 @@
 package com.bytex.snamp.adapters.ssh;
 
 import com.bytex.snamp.concurrent.WriteOnceRef;
-import com.bytex.snamp.internal.annotations.MethodStub;
+import com.bytex.snamp.MethodStub;
 import com.google.common.base.Joiner;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;

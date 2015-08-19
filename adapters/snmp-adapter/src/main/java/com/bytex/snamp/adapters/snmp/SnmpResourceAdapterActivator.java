@@ -1,7 +1,7 @@
 package com.bytex.snamp.adapters.snmp;
 
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 import org.osgi.service.jndi.JNDIContextManager;
 import org.snmp4j.log.OSGiLogFactory;
 

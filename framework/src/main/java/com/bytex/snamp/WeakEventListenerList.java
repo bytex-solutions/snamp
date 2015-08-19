@@ -1,7 +1,5 @@
 package com.bytex.snamp;
 
-import com.bytex.snamp.internal.annotations.ThreadSafe;
-
 import java.lang.ref.Reference;
 import java.util.*;
 
@@ -86,10 +84,8 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
      */
     @Override
     public final void clear() {
-        final Iterator<? extends Reference<L>> refs = iterator();
-        while (refs.hasNext()){
-            refs.next().clear();    //help GC
-            refs.remove();
-        }
+        for (final Reference<L> ref : this)
+            ref.clear();    //help GC
+        super.clear();
     }
 }

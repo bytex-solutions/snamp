@@ -1,7 +1,7 @@
 package com.bytex.snamp.connectors.notifications;
 
 import com.google.common.base.Supplier;
-import com.bytex.snamp.internal.annotations.ThreadSafe;
+import com.bytex.snamp.ThreadSafe;
 
 import javax.management.Notification;
 import java.util.Date;

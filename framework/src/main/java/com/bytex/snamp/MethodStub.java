@@ -1,4 +1,4 @@
-package com.bytex.snamp.internal.annotations;
+package com.bytex.snamp;
 
 import java.lang.annotation.*;
 

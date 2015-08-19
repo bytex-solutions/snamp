@@ -3,7 +3,6 @@ package com.bytex.snamp;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.collect.Iterators;
-import com.bytex.snamp.internal.annotations.MethodStub;
 
 import java.io.CharArrayWriter;
 import java.io.Flushable;
@@ -153,7 +152,7 @@ public class StringAppender extends CharArrayWriter implements Appendable, CharS
      */
     @Override
     public final StringAppender append(final char c) {
-        write(c);
+        super.append(c);
         return this;
     }
 
@@ -266,20 +265,47 @@ public class StringAppender extends CharArrayWriter implements Appendable, CharS
     }
 
     /**
-     * Nothing to do, but you can override this behavior.
-     */
-    @Override
-    @MethodStub
-    public void flush() {
-
-    }
-
-    /**
      * Destroys underlying buffer.
      */
     @Override
     public void close() {
         buf = ArrayUtils.emptyArray(char[].class);
         count = 0;
+    }
+
+    /**
+     * Concatenates strings into a single string.
+     * @param value1 The first operand in concatenation.
+     * @param value2 The second operand in concatenation.
+     * @return Concatenation result.
+     */
+    public static String concat(final String value1, final Object value2){
+        return value1.concat(String.valueOf(value2));
+    }
+
+    /**
+     * Concatenates strings into a single string.
+     * @param value1 The first operand in concatenation.
+     * @param value2 The second operand in concatenation.
+     * @param value3 The third operand in concatenation.
+     * @return Concatenation result.
+     */
+    public static String concat(final String value1, final String value2, final String value3) {
+        final char[] result = new char[value1.length() + value2.length() + value3.length()];
+        value1.getChars(0, value1.length(), result, 0);
+        value2.getChars(0, value2.length(), result, value1.length());
+        value3.getChars(0, value3.length(), result, value1.length() + value2.length());
+        return new String(result);
+    }
+
+    /**
+     * Concatenates strings into a single string.
+     * @param value1 The first operand in concatenation.
+     * @param value2 The second operand in concatenation.
+     * @param value3 The third operand in concatenation.
+     * @return Concatenation result.
+     */
+    public static String concat(final Object value1, final Object value2, final Object value3){
+        return concat(String.valueOf(value1), String.valueOf(value2), String.valueOf(value3));
     }
 }

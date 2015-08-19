@@ -8,7 +8,7 @@ import com.bytex.snamp.connectors.discovery.DiscoveryService;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.internal.annotations.MethodStub;
+import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.management.Maintainable;
 import com.google.common.collect.Maps;

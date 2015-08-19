@@ -4,7 +4,7 @@ import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.connectors.AbstractFeatureModeler;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
-import com.bytex.snamp.internal.annotations.MethodStub;
+import com.bytex.snamp.MethodStub;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 

@@ -4,7 +4,7 @@ import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
 import com.bytex.snamp.connectors.groovy.ManagedResourceInfo;
 import com.bytex.snamp.connectors.groovy.ManagedResourceScriptEngine;
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
 

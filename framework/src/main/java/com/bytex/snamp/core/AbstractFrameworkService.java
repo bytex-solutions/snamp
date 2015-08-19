@@ -1,7 +1,7 @@
 package com.bytex.snamp.core;
 
 import com.bytex.snamp.AbstractAggregator;
-import com.bytex.snamp.internal.annotations.Internal;
+import com.bytex.snamp.Internal;
 
 import java.util.logging.Logger;
 

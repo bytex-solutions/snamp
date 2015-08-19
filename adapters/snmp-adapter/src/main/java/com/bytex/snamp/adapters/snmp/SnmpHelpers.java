@@ -241,7 +241,7 @@ final class SnmpHelpers {
 
         private static String addLeadingZeroes(final String value, final int requiredLength){
             if(value == null) return addLeadingZeroes("", requiredLength);
-            else if(value.length() < requiredLength) return addLeadingZeroes("0" + value, requiredLength);
+            else if(value.length() < requiredLength) return addLeadingZeroes("0".concat(value), requiredLength);
             else return value;
         }
 

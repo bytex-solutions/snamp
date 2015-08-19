@@ -1,6 +1,5 @@
 package com.bytex.snamp;
 
-import com.bytex.snamp.internal.annotations.SpecialUse;
 import org.junit.Assert;
 import org.junit.Test;
 

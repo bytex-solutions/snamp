@@ -1,6 +1,6 @@
 package com.bytex.snamp.connectors.wmq;
 
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.management.MaintenanceActionInfo;
 
 import java.util.Locale;

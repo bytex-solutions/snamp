@@ -1,8 +1,8 @@
 package com.bytex.snamp.internal;
 
 import com.bytex.snamp.concurrent.WriteOnceRef;
-import com.bytex.snamp.internal.annotations.Internal;
-import com.bytex.snamp.internal.annotations.ThreadSafe;
+import com.bytex.snamp.Internal;
+import com.bytex.snamp.ThreadSafe;
 
 /**
  * Represents object state flag that can be aggregated inside of stateful objects.

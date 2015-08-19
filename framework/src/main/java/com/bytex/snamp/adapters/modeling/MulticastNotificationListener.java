@@ -4,7 +4,7 @@ import com.bytex.snamp.WeakEventListenerList;
 import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
-import com.bytex.snamp.internal.annotations.Internal;
+import com.bytex.snamp.Internal;
 
 import java.util.Objects;
 

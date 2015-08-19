@@ -6,7 +6,7 @@ import com.bytex.snamp.connectors.notifications.NotificationAddedEvent;
 import com.bytex.snamp.connectors.notifications.NotificationRemovingEvent;
 import com.bytex.snamp.connectors.notifications.NotificationSupport;
 import com.bytex.snamp.connectors.notifications.TypeBasedNotificationFilter;
-import com.bytex.snamp.internal.annotations.MethodStub;
+import com.bytex.snamp.MethodStub;
 
 import javax.management.*;
 

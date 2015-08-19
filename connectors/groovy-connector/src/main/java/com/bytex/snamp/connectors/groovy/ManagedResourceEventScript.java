@@ -1,6 +1,6 @@
 package com.bytex.snamp.connectors.groovy;
 
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 
 import java.lang.ref.WeakReference;
 

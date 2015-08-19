@@ -4,7 +4,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.*;
 import com.bytex.snamp.WeakEventListenerList;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
-import com.bytex.snamp.internal.annotations.ThreadSafe;
+import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.io.IOUtils;
 
 import javax.management.MBeanFeatureInfo;

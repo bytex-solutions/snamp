@@ -3,7 +3,7 @@ package com.bytex.snamp.internal;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.Wrapper;
-import com.bytex.snamp.internal.annotations.Internal;
+import com.bytex.snamp.Internal;
 import com.google.common.base.*;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;

@@ -97,7 +97,7 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
             case "tcp": return ModbusTransportType.TCP;
             case "udp": return ModbusTransportType.UDP;
             case "rtu-ip": return ModbusTransportType.RTU_IP;
-            default: throw new MalformedURLException("Unsupported schema type: " + connectionString.getScheme());
+            default: throw new MalformedURLException("Unsupported schema type: ".concat(connectionString.getScheme()));
         }
     }
 

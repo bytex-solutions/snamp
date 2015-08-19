@@ -2,8 +2,8 @@ package com.bytex.snamp.connectors.rshell;
 
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
-import com.bytex.snamp.internal.annotations.MethodStub;
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.MethodStub;
+import com.bytex.snamp.SpecialUse;
 
 import javax.management.openmbean.CompositeData;
 import java.util.Map;

@@ -1,6 +1,6 @@
 package com.bytex.snamp.concurrent;
 
-import com.bytex.snamp.internal.annotations.ThreadSafe;
+import com.bytex.snamp.ThreadSafe;
 
 /**
  * Represents a single thread-safe cache.

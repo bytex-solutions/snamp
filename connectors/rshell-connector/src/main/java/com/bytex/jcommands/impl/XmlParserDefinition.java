@@ -5,8 +5,8 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.bytex.snamp.*;
 import com.bytex.snamp.internal.RecordReader;
-import com.bytex.snamp.internal.annotations.Internal;
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.Internal;
+import com.bytex.snamp.SpecialUse;
 
 import javax.script.*;
 import javax.xml.bind.DatatypeConverter;

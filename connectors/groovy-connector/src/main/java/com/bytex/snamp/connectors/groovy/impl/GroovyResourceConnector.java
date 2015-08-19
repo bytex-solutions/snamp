@@ -10,7 +10,7 @@ import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.attributes.OpenTypeAttributeInfo;
 import com.bytex.snamp.connectors.groovy.*;
 import com.bytex.snamp.connectors.notifications.*;
-import com.bytex.snamp.internal.annotations.MethodStub;
+import com.bytex.snamp.MethodStub;
 import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import com.google.common.base.StandardSystemProperty;
@@ -98,7 +98,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
                                           final EventConnector connector){
             super(resourceName, GroovyNotificationInfo.class);
             this.connector = Objects.requireNonNull(connector);
-            final ExecutorService executor = Executors.newSingleThreadExecutor(new GroupedThreadFactory("notifs-" + resourceName));
+            final ExecutorService executor = Executors.newSingleThreadExecutor(new GroupedThreadFactory("notifs-".concat(resourceName)));
             this.listenerInvoker = createListenerInvoker(executor);
         }
 

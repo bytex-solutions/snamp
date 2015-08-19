@@ -1,7 +1,7 @@
 package com.bytex.snamp.adapters.syslog;
 
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 
 /**
  * @author Roman Sakno

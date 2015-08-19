@@ -3,7 +3,7 @@ package com.bytex.snamp.concurrent;
 import com.google.common.base.Function;
 import com.google.common.base.Supplier;
 import com.bytex.snamp.Wrapper;
-import com.bytex.snamp.internal.annotations.ThreadSafe;
+import com.bytex.snamp.ThreadSafe;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;

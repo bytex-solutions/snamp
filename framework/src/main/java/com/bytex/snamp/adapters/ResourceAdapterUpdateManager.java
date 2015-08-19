@@ -1,6 +1,6 @@
 package com.bytex.snamp.adapters;
 
-import com.bytex.snamp.internal.annotations.MethodStub;
+import com.bytex.snamp.MethodStub;
 
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -23,7 +23,7 @@ public class ResourceAdapterUpdateManager implements AutoCloseable {
         private final ResourceAdapterUpdatedCallback callback;
 
         private ResumeTimer(final ResourceAdapterUpdatedCallback callback) {
-            super("ResourceAdapterRestartManager:" + adapterInstanceName);
+            super("ResourceAdapterRestartManager:".concat(adapterInstanceName));
             setDaemon(true);
             setPriority(3);
             this.timeout = new AtomicLong(restartTimeout);

@@ -58,7 +58,7 @@ public final class SyslogAdapterTest extends AbstractJmxConnectorTest<TestOpenMB
         try{
             connector.setAttribute(new Attribute("3.0", 80));
             try(final Socket socket = server.accept()){
-                assertTrue(IOUtils.waitForData(socket.getInputStream(), 1000L));
+                assertTrue(IOUtils.waitForData(socket.getInputStream(), TimeSpan.fromSeconds(1L)));
             }
         }
         finally {

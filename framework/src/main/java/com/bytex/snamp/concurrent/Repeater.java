@@ -1,7 +1,7 @@
 package com.bytex.snamp.concurrent;
 
 import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.internal.annotations.MethodStub;
+import com.bytex.snamp.MethodStub;
 
 import java.io.Closeable;
 import java.util.concurrent.TimeUnit;

@@ -1,6 +1,6 @@
 package com.bytex.snamp.core.maintenance;
 
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.management.AbstractMaintainable;
 import com.bytex.snamp.management.Maintainable;
 import com.bytex.snamp.management.MaintenanceActionInfo;

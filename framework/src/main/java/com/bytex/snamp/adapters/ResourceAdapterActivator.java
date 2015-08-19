@@ -5,7 +5,7 @@ import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.configuration.PersistentConfigurationManager;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.FrameworkService;
-import com.bytex.snamp.internal.annotations.MethodStub;
+import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.management.Maintainable;
 import org.osgi.framework.*;
 import org.osgi.service.cm.ConfigurationAdmin;

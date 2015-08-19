@@ -1,6 +1,6 @@
 package com.bytex.snamp.adapters.groovy.dsl;
 
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 
 import javax.management.*;
 import java.util.Collection;

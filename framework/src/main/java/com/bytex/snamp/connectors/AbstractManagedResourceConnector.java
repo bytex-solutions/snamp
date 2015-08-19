@@ -8,7 +8,7 @@ import com.bytex.snamp.connectors.notifications.NotificationSupport;
 import com.bytex.snamp.connectors.operations.OperationSupport;
 import com.bytex.snamp.core.AbstractFrameworkService;
 import com.bytex.snamp.internal.IllegalStateFlag;
-import com.bytex.snamp.internal.annotations.ThreadSafe;
+import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 import com.google.common.base.Strings;
 import org.osgi.framework.Bundle;

@@ -2,9 +2,9 @@ package com.bytex.snamp.core;
 
 import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.concurrent.Monitor;
-import com.bytex.snamp.internal.annotations.MethodStub;
-import com.bytex.snamp.internal.annotations.SpecialUse;
-import com.bytex.snamp.internal.annotations.ThreadSafe;
+import com.bytex.snamp.MethodStub;
+import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.ThreadSafe;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.osgi.framework.*;

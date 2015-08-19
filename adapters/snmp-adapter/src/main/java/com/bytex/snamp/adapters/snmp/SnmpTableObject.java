@@ -8,7 +8,7 @@ import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.modeling.AttributeAccessor;
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.jmx.TabularDataUtils;
 import org.snmp4j.agent.*;
 import org.snmp4j.agent.mo.*;

@@ -4,7 +4,7 @@ import com.google.common.collect.Maps;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.connectors.attributes.AttributeSpecifier;
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.bytex.snamp.jmx.CompositeTypeBuilder;
 import com.bytex.snamp.jmx.TabularDataUtils;

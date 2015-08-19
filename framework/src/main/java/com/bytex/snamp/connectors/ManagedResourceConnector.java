@@ -2,7 +2,7 @@ package com.bytex.snamp.connectors;
 
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.core.FrameworkService;
-import com.bytex.snamp.internal.annotations.ThreadSafe;
+import com.bytex.snamp.ThreadSafe;
 
 import javax.management.DynamicMBean;
 import javax.management.MBeanFeatureInfo;

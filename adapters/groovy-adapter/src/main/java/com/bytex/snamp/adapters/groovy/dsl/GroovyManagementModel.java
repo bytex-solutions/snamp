@@ -4,7 +4,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.internal.CallableSupplier;
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 import groovy.lang.GroovyObjectSupport;
 
 import java.util.concurrent.ExecutionException;

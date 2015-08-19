@@ -124,7 +124,7 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
 
     @Override
     protected synchronized void start(final SnmpResourceAdapterProfile profile) throws IOException, DuplicateRegistrationException, SnmpAdapterAbsentParameterException {
-        getLogger().fine("Starting instance " + getInstanceName());
+        getLogger().fine("Starting instance ".concat(getInstanceName()));
         //initialize restart manager and start SNMP agent
         updateManager = new SnmpAdapterUpdateManager(getInstanceName(),
                 profile,

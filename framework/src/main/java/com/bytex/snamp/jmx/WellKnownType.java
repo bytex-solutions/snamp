@@ -5,7 +5,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.reflect.TypeToken;
-import com.bytex.snamp.internal.annotations.Internal;
+import com.bytex.snamp.Internal;
 
 import javax.management.openmbean.*;
 import java.io.Serializable;

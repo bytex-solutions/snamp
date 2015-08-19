@@ -9,7 +9,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.SynchronizationEvent;
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 
 import java.util.EventListener;
 import java.util.concurrent.Callable;

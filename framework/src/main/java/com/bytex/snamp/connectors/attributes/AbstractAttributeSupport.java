@@ -4,7 +4,7 @@ import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.AbstractFeatureModeler;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
-import com.bytex.snamp.internal.annotations.ThreadSafe;
+import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.jmx.CompositeTypeBuilder;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 import com.google.common.base.Predicate;

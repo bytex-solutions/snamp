@@ -9,7 +9,7 @@ import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.adapters.groovy.dsl.GroovyManagementModel;
 import com.bytex.snamp.concurrent.Repeater;
 import com.bytex.snamp.internal.RecordReader;
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.io.Communicator;
 import groovy.lang.Closure;
 import groovy.lang.Script;

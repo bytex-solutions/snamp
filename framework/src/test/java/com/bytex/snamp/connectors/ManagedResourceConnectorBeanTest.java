@@ -12,7 +12,7 @@ import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.attributes.CustomAttributeInfo;
 import com.bytex.snamp.connectors.discovery.DiscoveryService;
 import com.bytex.snamp.connectors.notifications.SynchronizationListener;
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 import org.junit.Assert;
 import org.junit.Test;
 

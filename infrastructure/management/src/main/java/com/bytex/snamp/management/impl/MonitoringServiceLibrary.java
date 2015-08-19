@@ -2,7 +2,7 @@ package com.bytex.snamp.management.impl;
 
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.ExposedServiceHandler;
-import com.bytex.snamp.internal.annotations.MethodStub;
+import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.management.FrameworkMBean;
 import com.bytex.snamp.management.OpenMBeanProvider;
 import com.bytex.snamp.management.SnampManager;

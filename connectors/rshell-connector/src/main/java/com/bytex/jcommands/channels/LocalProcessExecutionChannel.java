@@ -5,7 +5,7 @@ import com.bytex.jcommands.ChannelProcessingMode;
 import com.bytex.jcommands.ChannelProcessor;
 import com.bytex.jcommands.CommandExecutionChannel;
 import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.internal.annotations.MethodStub;
+import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.io.IOUtils;
 import org.apache.commons.exec.ExecuteException;
 

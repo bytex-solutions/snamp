@@ -1,7 +1,7 @@
 package com.bytex.snamp.jmx;
 
 import com.bytex.snamp.ArrayEnumerator;
-import com.bytex.snamp.internal.annotations.ThreadSafe;
+import com.bytex.snamp.ThreadSafe;
 
 import javax.management.Descriptor;
 import java.util.Dictionary;

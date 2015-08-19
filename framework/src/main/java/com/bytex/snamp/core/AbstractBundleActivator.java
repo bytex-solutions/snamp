@@ -4,7 +4,7 @@ import com.bytex.snamp.*;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
-import com.bytex.snamp.internal.annotations.MethodStub;
+import com.bytex.snamp.MethodStub;
 import org.osgi.framework.*;
 
 import java.util.*;

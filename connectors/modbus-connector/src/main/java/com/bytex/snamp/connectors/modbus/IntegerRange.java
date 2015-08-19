@@ -1,5 +1,7 @@
 package com.bytex.snamp.connectors.modbus;
 
+import com.bytex.snamp.StringAppender;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,7 +26,7 @@ final class IntegerRange {
             lowerBound = Integer.parseInt(result.group("lower"));
             upperBound = Integer.parseInt(result.group("upper"));
             checkRange(lowerBound, upperBound);
-        } else throw new IllegalArgumentException("Incorrect range: " + range);
+        } else throw new IllegalArgumentException("Incorrect range: ".concat(range));
     }
 
     public int size() {
@@ -46,6 +48,6 @@ final class IntegerRange {
 
     @Override
     public String toString() {
-        return lowerBound + ".." + upperBound;
+        return StringAppender.concat(lowerBound, "..", upperBound);
     }
 }

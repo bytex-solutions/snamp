@@ -6,7 +6,7 @@ import com.bytex.snamp.adapters.modeling.ModelOfAttributes;
 import com.bytex.snamp.adapters.modeling.AttributeAccessor;
 import com.bytex.snamp.adapters.modeling.PeriodicPassiveChecker;
 import com.bytex.snamp.concurrent.WriteOnceRef;
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 import groovy.lang.Closure;
 import org.osgi.framework.InvalidSyntaxException;
 

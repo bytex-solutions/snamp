@@ -1,7 +1,7 @@
 package com.bytex.snamp.connectors.groovy;
 
 import com.google.common.collect.ImmutableList;
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 import groovy.lang.Binding;
 
 import java.util.Collection;

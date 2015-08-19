@@ -2,7 +2,7 @@ package com.bytex.snamp.adapters.modeling;
 
 import com.google.common.base.Supplier;
 import com.bytex.snamp.connectors.FeatureModifiedEvent;
-import com.bytex.snamp.internal.annotations.Internal;
+import com.bytex.snamp.Internal;
 
 import javax.management.Descriptor;
 import javax.management.DescriptorRead;

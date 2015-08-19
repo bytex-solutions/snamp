@@ -5,7 +5,7 @@ import com.bytex.snamp.SerializableMap;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.internal.RecordReader;
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 
 import java.io.*;
 import java.util.HashMap;

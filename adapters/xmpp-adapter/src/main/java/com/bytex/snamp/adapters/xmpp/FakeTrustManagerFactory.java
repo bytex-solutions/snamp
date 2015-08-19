@@ -1,7 +1,7 @@
 package com.bytex.snamp.adapters.xmpp;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.internal.annotations.MethodStub;
+import com.bytex.snamp.MethodStub;
 
 import javax.net.ssl.*;
 import java.security.KeyStore;

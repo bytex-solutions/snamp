@@ -1,6 +1,6 @@
 package com.bytex.snamp.adapters.http;
 
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.jmx.WellKnownType;
 import org.eclipse.jetty.continuation.Continuation;
 import org.eclipse.jetty.continuation.Servlet3Continuation;

@@ -4,7 +4,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import com.bytex.snamp.internal.annotations.ThreadSafe;
 
 import java.util.Objects;
 
