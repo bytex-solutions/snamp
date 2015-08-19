@@ -76,23 +76,27 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
     }
 
     private static void copyAttributes(final Map<String, ManagedResourceConfiguration.AttributeConfiguration> input, final Map<String, ManagedResourceConfiguration.AttributeConfiguration> output, final Supplier<ManagedResourceConfiguration.AttributeConfiguration> attributeFactory){
-        if(input != null && output != null)
-            for(final Map.Entry<String, ManagedResourceConfiguration.AttributeConfiguration> entry: input.entrySet()){
+        if(input != null && output != null) {
+            output.clear();
+            for (final Map.Entry<String, ManagedResourceConfiguration.AttributeConfiguration> entry : input.entrySet()) {
                 final ManagedResourceConfiguration.AttributeConfiguration inputAttr = entry.getValue();
                 final ManagedResourceConfiguration.AttributeConfiguration outputAttr = attributeFactory.get();
                 copy(inputAttr, outputAttr);
                 output.put(entry.getKey(), outputAttr);
             }
+        }
     }
 
     private static void copyEvents(final Map<String, ManagedResourceConfiguration.EventConfiguration> input, final Map<String, ManagedResourceConfiguration.EventConfiguration> output, final Supplier<ManagedResourceConfiguration.EventConfiguration> eventFactory){
-        if(input != null && output != null)
-            for(final Map.Entry<String, ManagedResourceConfiguration.EventConfiguration> entry: input.entrySet()){
+        if(input != null && output != null) {
+            output.clear();
+            for (final Map.Entry<String, ManagedResourceConfiguration.EventConfiguration> entry : input.entrySet()) {
                 final ManagedResourceConfiguration.EventConfiguration inputEv = entry.getValue();
                 final ManagedResourceConfiguration.EventConfiguration outputEv = eventFactory.get();
                 copy(inputEv, outputEv);
                 output.put(entry.getKey(), outputEv);
             }
+        }
     }
 
     public static void copy(final ManagedResourceConfiguration input, final ManagedResourceConfiguration output){

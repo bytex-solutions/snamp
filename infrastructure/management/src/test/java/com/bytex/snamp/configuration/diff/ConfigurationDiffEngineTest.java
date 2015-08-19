@@ -16,6 +16,51 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
  */
 public final class ConfigurationDiffEngineTest extends Assert {
     @Test
+    public void attributeAddRemoveTest(){
+        final AgentConfiguration baseline = new SerializableAgentConfiguration();
+        ManagedResourceConfiguration resource = baseline.newConfigurationEntity(ManagedResourceConfiguration.class);
+        ManagedResourceConfiguration.AttributeConfiguration attr = resource.newElement(ManagedResourceConfiguration.AttributeConfiguration.class);
+        attr.setAttributeName("attribute");
+        attr.setReadWriteTimeout(TimeSpan.fromSeconds(1));
+        resource.getElements(ManagedResourceConfiguration.AttributeConfiguration.class).put("attr", attr);
+        resource.setConnectionString("connection-string");
+        resource.setConnectionType("jmx");
+        resource.getParameters().put("param", "value");
+        baseline.getManagedResources().put("resource1", resource);
+
+        //add attribute
+        AgentConfiguration target = baseline.clone();
+        resource = target.getManagedResources().get("resource1");
+        attr = resource.newElement(ManagedResourceConfiguration.AttributeConfiguration.class);
+        attr.setAttributeName("attribute2");
+        attr.getParameters().put("param2", "value2");
+        resource.getElements(ManagedResourceConfiguration.AttributeConfiguration.class).put("attr2", attr);
+
+        ConfigurationDiffEngine.merge(target, baseline);
+
+        assertEquals("value2", baseline.getManagedResources()
+                .get("resource1")
+                .getElements(ManagedResourceConfiguration.AttributeConfiguration.class)
+                .get("attr2")
+                .getParameters()
+                .get("param2"));
+
+        //remove attribute
+        target = baseline.clone();
+        assertNotNull(target.getManagedResources()
+                .get("resource1")
+                .getElements(ManagedResourceConfiguration.AttributeConfiguration.class)
+                .remove("attr2"));
+
+        ConfigurationDiffEngine.merge(target, baseline);
+
+        assertNull(baseline.getManagedResources()
+                .get("resource1")
+                .getElements(ManagedResourceConfiguration.AttributeConfiguration.class)
+                .get("attr2"));
+    }
+
+    @Test
     public void diffTest(){
         final AgentConfiguration baseline = new SerializableAgentConfiguration();
         final ManagedResourceConfiguration resource = baseline.newConfigurationEntity(ManagedResourceConfiguration.class);
