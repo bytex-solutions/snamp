@@ -40,7 +40,7 @@ final class SnmpAttributeAccessorImpl extends SnmpAttributeAccessor {
 
     private static ManagedObject unregisterManagedObject(final OID attributeID,
                                                          final MOServer server){
-        final MOQuery query = new DefaultMOQuery(new DefaultMOContextScope(null, attributeID, true, attributeID, true));
+        final MOQuery query = new DefaultMOQuery(new DefaultMOContextScope(null, attributeID, true, attributeID.nextPeer(), true));
         ManagedObject result = server.lookup(query);
         if(result != null)
             result = server.unregister(result, null);
