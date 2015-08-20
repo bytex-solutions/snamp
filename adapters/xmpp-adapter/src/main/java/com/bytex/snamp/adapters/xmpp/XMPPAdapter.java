@@ -9,7 +9,7 @@ import com.bytex.snamp.adapters.AbstractResourceAdapter;
 import com.bytex.snamp.adapters.modeling.AttributeSet;
 import com.bytex.snamp.adapters.modeling.FeatureAccessor;
 import com.bytex.snamp.adapters.modeling.NotificationSet;
-import com.bytex.snamp.internal.RecordReader;
+import com.bytex.snamp.internal.EntryReader;
 import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
@@ -90,7 +90,7 @@ final class XMPPAdapter extends AbstractResourceAdapter {
 
     private static Multimap<String, ? extends FeatureBindingInfo<MBeanAttributeInfo>> getAttributes(final AttributeSet<XMPPAttributeAccessor> attributes){
         final Multimap<String, ReadOnlyFeatureBindingInfo<MBeanAttributeInfo>> result = HashMultimap.create();
-        attributes.forEachAttribute(new RecordReader<String, XMPPAttributeAccessor, ExceptionPlaceholder>() {
+        attributes.forEachAttribute(new EntryReader<String, XMPPAttributeAccessor, ExceptionPlaceholder>() {
             @Override
             public boolean read(final String resourceName, final XMPPAttributeAccessor accessor) {
                 final ImmutableMap.Builder<String, String> parameters = ImmutableMap.builder();
@@ -106,7 +106,7 @@ final class XMPPAdapter extends AbstractResourceAdapter {
 
     private static Multimap<String, ? extends FeatureBindingInfo<MBeanNotificationInfo>> getNotifications(final NotificationSet<XMPPNotificationAccessor> notifs) {
         final Multimap<String, ReadOnlyFeatureBindingInfo<MBeanNotificationInfo>> result = HashMultimap.create();
-        notifs.forEachNotification(new RecordReader<String, XMPPNotificationAccessor, ExceptionPlaceholder>() {
+        notifs.forEachNotification(new EntryReader<String, XMPPNotificationAccessor, ExceptionPlaceholder>() {
             @Override
             public boolean read(final String resourceName, final XMPPNotificationAccessor accessor) {
                 return result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor, "listen-command", accessor.getListenCommand()));

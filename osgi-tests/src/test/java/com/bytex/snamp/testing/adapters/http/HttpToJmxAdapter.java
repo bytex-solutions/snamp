@@ -11,7 +11,7 @@ import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.adapters.ResourceAdapterClient;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
-import com.bytex.snamp.internal.RecordReader;
+import com.bytex.snamp.internal.EntryReader;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.bytex.snamp.jmx.TabularDataBuilder;
@@ -277,7 +277,7 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
     public void attributeBindingTest() throws TimeoutException, InterruptedException {
         final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.fromSeconds(2));
         try {
-            assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new RecordReader<String, FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
+            assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new EntryReader<String, FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
                 @Override
                 public boolean read(final String resourceName, final FeatureBindingInfo<MBeanAttributeInfo> bindingInfo) {
                     return bindingInfo.getProperty("path") instanceof String &&
@@ -293,7 +293,7 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
     public void notificationBindingTest() throws TimeoutException, InterruptedException {
         final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.fromSeconds(2));
         try {
-            assertTrue(client.forEachFeature(MBeanNotificationInfo.class, new RecordReader<String, FeatureBindingInfo<MBeanNotificationInfo>, ExceptionPlaceholder>() {
+            assertTrue(client.forEachFeature(MBeanNotificationInfo.class, new EntryReader<String, FeatureBindingInfo<MBeanNotificationInfo>, ExceptionPlaceholder>() {
                 @Override
                 public boolean read(final String resourceName, final FeatureBindingInfo<MBeanNotificationInfo> bindingInfo) {
                     return bindingInfo.getProperty("path") instanceof String;

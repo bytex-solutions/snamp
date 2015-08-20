@@ -8,7 +8,7 @@ import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.adapters.groovy.dsl.GroovyManagementModel;
 import com.bytex.snamp.concurrent.Repeater;
-import com.bytex.snamp.internal.RecordReader;
+import com.bytex.snamp.internal.EntryReader;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.io.Communicator;
 import groovy.lang.Closure;
@@ -120,7 +120,7 @@ public abstract class ResourceAdapterScript extends Script implements AutoClosea
     }
 
     private static void processAttributes(final AttributesRootAPI model, final Closure<?> closure) throws JMException {
-        model.processAttributes(new RecordReader<String, AttributeAccessor, JMException>() {
+        model.processAttributes(new EntryReader<String, AttributeAccessor, JMException>() {
             @Override
             public boolean read(final String resourceName, final AttributeAccessor accessor) throws JMException {
                 switch (closure.getMaximumNumberOfParameters()) {
@@ -148,7 +148,7 @@ public abstract class ResourceAdapterScript extends Script implements AutoClosea
     }
 
     private static void processEvents(final EventsRootAPI model, final Closure<?> closure) throws JMException {
-        model.processEvents(new RecordReader<String, NotificationAccessor, JMException>() {
+        model.processEvents(new EntryReader<String, NotificationAccessor, JMException>() {
             @Override
             public boolean read(final String resourceName, final NotificationAccessor accessor) throws JMException {
                 switch (closure.getMaximumNumberOfParameters()) {

@@ -16,6 +16,32 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
  */
 public final class ConfigurationDiffEngineTest extends Assert {
     @Test
+    public void renameResourceTest(){
+        final AgentConfiguration baseline = new SerializableAgentConfiguration();
+        final ManagedResourceConfiguration resource = baseline.newConfigurationEntity(ManagedResourceConfiguration.class);
+        final ManagedResourceConfiguration.AttributeConfiguration attr = resource.newElement(ManagedResourceConfiguration.AttributeConfiguration.class);
+        attr.setAttributeName("attribute");
+        attr.setReadWriteTimeout(TimeSpan.fromSeconds(1));
+        resource.getElements(ManagedResourceConfiguration.AttributeConfiguration.class).put("attr", attr);
+        resource.setConnectionString("connection-string");
+        resource.setConnectionType("jmx");
+        resource.getParameters().put("param", "value");
+        baseline.getManagedResources().put("resource1", resource);
+
+        final AgentConfiguration target = baseline.clone();
+        //remove old resource
+        target.getManagedResources().remove("resource1");
+        //add the same resource but with different name
+        target.getManagedResources().put("resource2", resource);
+
+        //merge and verify
+        ConfigurationDiffEngine.merge(target, baseline);
+        assertEquals(1, baseline.getManagedResources().size());
+        assertNull(baseline.getManagedResources().get("resource1"));
+        assertNotNull(baseline.getManagedResources().get("resource2"));
+    }
+
+    @Test
     public void attributeAddRemoveTest(){
         final AgentConfiguration baseline = new SerializableAgentConfiguration();
         ManagedResourceConfiguration resource = baseline.newConfigurationEntity(ManagedResourceConfiguration.class);

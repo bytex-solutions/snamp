@@ -1,7 +1,7 @@
 package com.bytex.snamp.adapters.modeling;
 
 import com.bytex.snamp.concurrent.ThreadSafeObject;
-import com.bytex.snamp.internal.RecordReader;
+import com.bytex.snamp.internal.EntryReader;
 
 /**
  * @author Roman Sakno
@@ -33,6 +33,6 @@ public abstract class ModelOfNotifications<TAccessor extends NotificationAccesso
      * @param <E>
      * @throws E
      */
-    public abstract <E extends Exception> void forEachNotification(final RecordReader<String, ? super TAccessor, E> notificationReader) throws E;
+    public abstract <E extends Exception> void forEachNotification(final EntryReader<String, ? super TAccessor, E> notificationReader) throws E;
 
 }

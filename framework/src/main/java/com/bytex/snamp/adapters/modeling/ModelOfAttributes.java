@@ -5,7 +5,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.bytex.snamp.Consumer;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
-import com.bytex.snamp.internal.RecordReader;
+import com.bytex.snamp.internal.EntryReader;
 import com.bytex.snamp.ThreadSafe;
 
 import javax.management.*;
@@ -167,7 +167,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
      * @param <E> Type of the exception that may be produced by reader.
      * @throws E Unable to process attribute.
      */
-    public final <E extends Exception> void forEachAttribute(final RecordReader<String, ? super TAccessor, E> attributeReader) throws E{
+    public final <E extends Exception> void forEachAttribute(final EntryReader<String, ? super TAccessor, E> attributeReader) throws E{
         try(final LockScope ignored = beginRead()) {
             for (final Map.Entry<String, ResourceAttributeList<TAccessor>> entry: attributes.entrySet())
                 for(final TAccessor accessor: entry.getValue().values())

@@ -124,13 +124,11 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
 
     @Override
     protected synchronized void start(final SnmpResourceAdapterProfile profile) throws IOException, DuplicateRegistrationException, SnmpAdapterAbsentParameterException {
-        getLogger().fine("Starting instance ".concat(getInstanceName()));
         //initialize restart manager and start SNMP agent
         updateManager = new SnmpAdapterUpdateManager(getInstanceName(),
                 profile,
                 contextFactory);
         updateManager.startAgent(attributes.values(), notifications.values());
-        getLogger().fine(String.format("Instance %s started", getInstanceName()));
     }
 
     private SnmpNotificationAcessor addNotification(final String resourceName,
@@ -167,8 +165,8 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
 
     @Override
     protected synchronized Iterable<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception {
-        final Iterable<SnmpNotificationAcessor> notifs = notifications.removeAll(resourceName);
-        final Collection<? extends SnmpAttributeAccessor> accessors = attributes.removeAll(resourceName);
+        final Iterable<? extends SnmpNotificationAcessor> notifs = notifications.removeAll(resourceName);
+        final Iterable<? extends SnmpAttributeAccessor> accessors = attributes.removeAll(resourceName);
         final SnmpAdapterUpdateManager updateManager = this.updateManager;
         if(updateManager != null){
             beginUpdate(updateManager, updateManager.getCallback());

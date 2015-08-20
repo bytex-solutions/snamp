@@ -1,7 +1,7 @@
 package com.bytex.snamp.adapters.groovy;
 
 import com.bytex.snamp.adapters.modeling.NotificationAccessor;
-import com.bytex.snamp.internal.RecordReader;
+import com.bytex.snamp.internal.EntryReader;
 
 /**
  * Represents root-level DSL for working with events.
@@ -11,5 +11,5 @@ import com.bytex.snamp.internal.RecordReader;
  */
 public interface EventsRootAPI {
     ResourceNotificationsAnalyzer eventsAnalyzer();
-    <E extends Exception> void processEvents(final RecordReader<String, NotificationAccessor, E> closure) throws E;
+    <E extends Exception> void processEvents(final EntryReader<String, NotificationAccessor, E> closure) throws E;
 }

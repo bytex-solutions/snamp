@@ -10,7 +10,7 @@ import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
 import com.bytex.snamp.connectors.attributes.*;
-import com.bytex.snamp.internal.RecordReader;
+import com.bytex.snamp.internal.EntryReader;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.CompositeTypeBuilder;
 import com.bytex.snamp.jmx.DescriptorUtils;
@@ -114,7 +114,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
                                                       final XmlParserDefinition definition) throws OpenDataException{
             final TabularTypeBuilder builder = new TabularTypeBuilder();
             builder.addColumn(INDEX_COLUMN, "The index of the row", SimpleType.INTEGER, true);
-            definition.exportTableOrDictionaryType(new RecordReader<String, XmlParsingResultType, ExceptionPlaceholder>() {
+            definition.exportTableOrDictionaryType(new EntryReader<String, XmlParsingResultType, ExceptionPlaceholder>() {
                 @Override
                 public boolean read(final String index, final XmlParsingResultType value) {
                     builder.addColumn(index, index, value.getOpenType(), false);
@@ -166,7 +166,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
         private static CompositeType getCompositeType(final AttributeDescriptor descriptor,
                                                     final XmlParserDefinition definition) throws OpenDataException{
             final CompositeTypeBuilder builder = new CompositeTypeBuilder();
-            definition.exportTableOrDictionaryType(new RecordReader<String, XmlParsingResultType, ExceptionPlaceholder>() {
+            definition.exportTableOrDictionaryType(new EntryReader<String, XmlParsingResultType, ExceptionPlaceholder>() {
                 @Override
                 public boolean read(final String index, final XmlParsingResultType value) {
                     builder.addItem(index, index, value.getOpenType());

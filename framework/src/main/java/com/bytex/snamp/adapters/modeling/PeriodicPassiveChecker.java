@@ -3,7 +3,7 @@ package com.bytex.snamp.adapters.modeling;
 import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.Repeater;
-import com.bytex.snamp.internal.RecordReader;
+import com.bytex.snamp.internal.EntryReader;
 
 import java.util.Objects;
 
@@ -42,7 +42,7 @@ public abstract class PeriodicPassiveChecker<TAccessor extends AttributeAccessor
      */
     @Override
     protected final void doAction() {
-        attributes.forEachAttribute(new RecordReader<String, TAccessor, ExceptionPlaceholder>() {
+        attributes.forEachAttribute(new EntryReader<String, TAccessor, ExceptionPlaceholder>() {
             @Override
             public boolean read(final String resourceName, final TAccessor attribute) {
                 processAttribute(resourceName, attribute);

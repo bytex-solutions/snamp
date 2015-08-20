@@ -10,7 +10,7 @@ import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.*;
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.adapters.modeling.*;
-import com.bytex.snamp.internal.RecordReader;
+import com.bytex.snamp.internal.EntryReader;
 
 import javax.management.*;
 import java.util.HashMap;
@@ -112,7 +112,7 @@ final class NSCAAdapter extends AbstractResourceAdapter {
         }
 
         @Override
-        public <E extends Exception> void forEachNotification(final RecordReader<String, ? super NSCANotificationAccessor, E> notificationReader) throws E {
+        public <E extends Exception> void forEachNotification(final EntryReader<String, ? super NSCANotificationAccessor, E> notificationReader) throws E {
             try (final LockScope ignored = beginRead()) {
                 for (final ResourceNotificationList<NSCANotificationAccessor> list : notifications.values())
                     for (final NSCANotificationAccessor accessor : list.values())

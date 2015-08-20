@@ -4,7 +4,7 @@ import com.google.common.base.Supplier;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.bytex.snamp.*;
-import com.bytex.snamp.internal.RecordReader;
+import com.bytex.snamp.internal.EntryReader;
 import com.bytex.snamp.Internal;
 import com.bytex.snamp.SpecialUse;
 
@@ -1004,7 +1004,7 @@ public class XmlParserDefinition {
         }
     }
 
-    public final <E extends Exception> void exportTableOrDictionaryType(final RecordReader<String, XmlParsingResultType, E> reader) throws E {
+    public final <E extends Exception> void exportTableOrDictionaryType(final EntryReader<String, XmlParsingResultType, E> reader) throws E {
         for (final Object templateFragment : getParsingTemplate())
             if (templateFragment instanceof TableColumnParsingRule) {
                 final TableColumnParsingRule rule = (TableColumnParsingRule) templateFragment;

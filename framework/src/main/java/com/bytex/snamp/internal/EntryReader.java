@@ -9,7 +9,7 @@ package com.bytex.snamp.internal;
  * @version 1.0
  * @since 1.0
  */
-public interface RecordReader<I, R, E extends Exception> {
+public interface EntryReader<I, R, E extends Exception> {
     /**
      * Processes the single record.
      * @param index An index of the record.

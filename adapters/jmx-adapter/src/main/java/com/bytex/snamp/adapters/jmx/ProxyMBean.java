@@ -5,7 +5,7 @@ import com.bytex.snamp.adapters.modeling.*;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.notifications.NotificationListenerList;
-import com.bytex.snamp.internal.RecordReader;
+import com.bytex.snamp.internal.EntryReader;
 import com.bytex.snamp.io.Buffers;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.management.OpenMBeanProvider;
@@ -444,7 +444,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
         listeners.handleNotification(notification, handback);
     }
 
-    <E extends Exception> boolean forEachAttribute(final RecordReader<String, ? super JmxAttributeAccessor, E> attributeReader) throws E {
+    <E extends Exception> boolean forEachAttribute(final EntryReader<String, ? super JmxAttributeAccessor, E> attributeReader) throws E {
         try(final LockScope ignored = beginRead(MBeanResources.ATTRIBUTES)){
             for(final JmxAttributeAccessor accessor: attributes.values())
                 if(!attributeReader.read(resourceName, accessor)) return false;
@@ -452,7 +452,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
         return true;
     }
 
-    <E extends Exception> boolean forEachNotification(final RecordReader<String, ? super JmxNotificationAccessor, E> notificationReader) throws E {
+    <E extends Exception> boolean forEachNotification(final EntryReader<String, ? super JmxNotificationAccessor, E> notificationReader) throws E {
         try(final LockScope ignored = beginRead(MBeanResources.NOTIFICATIONS)){
             for(final JmxNotificationAccessor accessor: notifications.values())
                 if(!notificationReader.read(resourceName, accessor)) return false;

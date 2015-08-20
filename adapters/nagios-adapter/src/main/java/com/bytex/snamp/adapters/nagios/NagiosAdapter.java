@@ -6,7 +6,7 @@ import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.adapters.AbstractResourceAdapter;
 import com.bytex.snamp.adapters.modeling.AttributeSet;
 import com.bytex.snamp.adapters.modeling.FeatureAccessor;
-import com.bytex.snamp.internal.RecordReader;
+import com.bytex.snamp.internal.EntryReader;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 
@@ -74,7 +74,7 @@ final class NagiosAdapter extends AbstractResourceAdapter {
                                                                                                     final AttributeSet<NagiosAttributeAccessor> attributes){
         final Multimap<String, ReadOnlyFeatureBindingInfo<MBeanAttributeInfo>> result =
                 HashMultimap.create();
-        attributes.forEachAttribute(new RecordReader<String, NagiosAttributeAccessor, ExceptionPlaceholder>() {
+        attributes.forEachAttribute(new EntryReader<String, NagiosAttributeAccessor, ExceptionPlaceholder>() {
             @Override
             public boolean read(final String resourceName, final NagiosAttributeAccessor accessor)  {
                 return result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor,

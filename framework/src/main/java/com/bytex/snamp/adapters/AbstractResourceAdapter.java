@@ -18,7 +18,7 @@ import com.bytex.snamp.connectors.operations.OperationAddedEvent;
 import com.bytex.snamp.connectors.operations.OperationRemovingEvent;
 import com.bytex.snamp.core.LogicalOperation;
 import com.bytex.snamp.core.RichLogicalOperation;
-import com.bytex.snamp.internal.RecordReader;
+import com.bytex.snamp.internal.EntryReader;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import org.osgi.framework.*;
@@ -560,10 +560,10 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                     case ServiceEvent.MODIFIED_ENDMATCH:
                     case ServiceEvent.UNREGISTERING:
                         removeResource(connectorRef);
-                        break;
+                        return;
                     case ServiceEvent.REGISTERED:
                         addResource(connectorRef);
-                        break;
+                        return;
                     default:
                         logger.info(String.format("Unexpected event %s captured by adapter %s for resource %s",
                                 event.getType(),
@@ -673,7 +673,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
 
     protected static <TAccessor extends AttributeAccessor & FeatureBindingInfo<MBeanAttributeInfo>> Multimap<String, ? extends FeatureBindingInfo<MBeanAttributeInfo>> getBindings(final AttributeSet<TAccessor> model){
         final Multimap<String, TAccessor> result = HashMultimap.create();
-        model.forEachAttribute(new RecordReader<String, TAccessor, ExceptionPlaceholder>() {
+        model.forEachAttribute(new EntryReader<String, TAccessor, ExceptionPlaceholder>() {
             @Override
             public boolean read(final String resourceName, final TAccessor accessor) {
                 return result.put(resourceName, accessor);
@@ -684,7 +684,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
 
     protected static <TAccessor extends NotificationAccessor & FeatureBindingInfo<MBeanNotificationInfo>> Multimap<String, ? extends FeatureBindingInfo<MBeanNotificationInfo>> getBindings(final NotificationSet<TAccessor> model){
         final Multimap<String, TAccessor> result = HashMultimap.create();
-        model.forEachNotification(new RecordReader<String, TAccessor, ExceptionPlaceholder>() {
+        model.forEachNotification(new EntryReader<String, TAccessor, ExceptionPlaceholder>() {
             @Override
             public boolean read(final String resourceName, final TAccessor accessor) {
                 return result.put(resourceName, accessor);

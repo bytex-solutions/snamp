@@ -7,7 +7,7 @@ import com.bytex.snamp.adapters.modeling.AttributeSet;
 import com.bytex.snamp.adapters.modeling.FeatureAccessor;
 import com.bytex.snamp.adapters.modeling.NotificationSet;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
-import com.bytex.snamp.internal.RecordReader;
+import com.bytex.snamp.internal.EntryReader;
 import com.bytex.snamp.internal.Utils;
 import org.osgi.framework.BundleContext;
 
@@ -35,13 +35,13 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
         }
 
         @Override
-        public <E extends Exception> void forEachAttribute(final RecordReader<String, ? super JmxAttributeAccessor, E> attributeReader) throws E {
+        public <E extends Exception> void forEachAttribute(final EntryReader<String, ? super JmxAttributeAccessor, E> attributeReader) throws E {
             for (final ProxyMBean bean : values())
                 if (!bean.forEachAttribute(attributeReader)) return;
         }
 
         @Override
-        public <E extends Exception> void forEachNotification(final RecordReader<String, ? super JmxNotificationAccessor, E> notificationReader) throws E {
+        public <E extends Exception> void forEachNotification(final EntryReader<String, ? super JmxNotificationAccessor, E> notificationReader) throws E {
             for(final ProxyMBean bean: values())
                 if(!bean.forEachNotification(notificationReader)) return;
         }

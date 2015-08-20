@@ -12,7 +12,7 @@ import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.core.SupportService;
-import com.bytex.snamp.internal.RecordReader;
+import com.bytex.snamp.internal.EntryReader;
 import com.bytex.snamp.management.Maintainable;
 import org.osgi.framework.*;
 
@@ -299,7 +299,7 @@ public final class ResourceAdapterClient extends ServiceHolder<ResourceAdapter> 
     }
 
     public <M extends MBeanFeatureInfo, E extends Exception> boolean forEachFeature(final Class<M> featureType,
-                                                            final RecordReader<String, ? super FeatureBindingInfo<M>, E> reader) throws E {
+                                                            final EntryReader<String, ? super FeatureBindingInfo<M>, E> reader) throws E {
         final Multimap<String, ? extends FeatureBindingInfo<M>> features =
                 get().getBindings(featureType);
         for (final String resourceName : features.keySet())

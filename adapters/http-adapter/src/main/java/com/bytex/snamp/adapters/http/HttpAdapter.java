@@ -9,7 +9,7 @@ import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.adapters.modeling.*;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
-import com.bytex.snamp.internal.RecordReader;
+import com.bytex.snamp.internal.EntryReader;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.json.Formatters;
 import com.sun.jersey.api.core.DefaultResourceConfig;
@@ -186,7 +186,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
         }
 
         @Override
-        public <E extends Exception> void forEachNotification(final RecordReader<String, ? super HttpNotificationAccessor, E> notificationReader) throws E {
+        public <E extends Exception> void forEachNotification(final EntryReader<String, ? super HttpNotificationAccessor, E> notificationReader) throws E {
             try (final LockScope ignored = beginRead()) {
                 for (final NotificationBroadcaster broadcaster : notifications.values())
                     for (final HttpNotificationAccessor accessor : broadcaster.notifications.values())
@@ -319,7 +319,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
                                                                                                     final AttributeSet<HttpAttributeAccessor> attributes){
         final Multimap<String, ReadOnlyFeatureBindingInfo<MBeanAttributeInfo>> result =
                 HashMultimap.create();
-        attributes.forEachAttribute(new RecordReader<String, HttpAttributeAccessor, ExceptionPlaceholder>() {
+        attributes.forEachAttribute(new EntryReader<String, HttpAttributeAccessor, ExceptionPlaceholder>() {
             @Override
             public boolean read(final String resourceName, final HttpAttributeAccessor accessor) {
                 return result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor,
@@ -335,7 +335,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
                                                                                                           final NotificationSet<HttpNotificationAccessor> notifs){
         final Multimap<String, ReadOnlyFeatureBindingInfo<MBeanNotificationInfo>> result =
                 HashMultimap.create();
-        notifs.forEachNotification(new RecordReader<String, HttpNotificationAccessor, ExceptionPlaceholder>() {
+        notifs.forEachNotification(new EntryReader<String, HttpNotificationAccessor, ExceptionPlaceholder>() {
             @Override
             public boolean read(final String resourceName, final HttpNotificationAccessor accessor) {
                 return result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor,

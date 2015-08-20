@@ -3,7 +3,7 @@ package com.bytex.snamp.management.impl;
 
 import com.google.common.collect.Maps;
 import com.bytex.snamp.adapters.ResourceAdapterClient;
-import com.bytex.snamp.internal.RecordReader;
+import com.bytex.snamp.internal.EntryReader;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.KeyValueTypeBuilder;
 import com.bytex.snamp.jmx.TabularDataBuilderRowFill;
@@ -73,7 +73,7 @@ abstract class AbstractBindingInfoOperation<F extends MBeanFeatureInfo> extends 
         final ResourceAdapterClient client = new ResourceAdapterClient(context, instanceName);
         try {
             final TabularDataBuilderRowFill result = new TabularDataBuilderRowFill(returnType);
-            client.forEachFeature(featureType, new RecordReader<String, FeatureBindingInfo<F>, OpenDataException>() {
+            client.forEachFeature(featureType, new EntryReader<String, FeatureBindingInfo<F>, OpenDataException>() {
                 @Override
                 public boolean read(final String resourceName, final FeatureBindingInfo<F> bindingInfo) throws OpenDataException {
                     final TabularDataBuilderRowFill.RowBuilder row = result.newRow()

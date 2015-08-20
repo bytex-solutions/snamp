@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.bytex.snamp.adapters.modeling.MulticastNotificationListener;
 import com.bytex.snamp.adapters.modeling.NotificationSet;
 import com.bytex.snamp.adapters.modeling.ResourceNotificationList;
-import com.bytex.snamp.internal.RecordReader;
+import com.bytex.snamp.internal.EntryReader;
 
 import javax.management.MBeanNotificationInfo;
 import java.util.HashMap;
@@ -74,7 +74,7 @@ final class XMPPModelOfNotifications extends MulticastNotificationListener imple
     }
 
     @Override
-    public <E extends Exception> void forEachNotification(final RecordReader<String, ? super XMPPNotificationAccessor, E> notificationReader) throws E {
+    public <E extends Exception> void forEachNotification(final EntryReader<String, ? super XMPPNotificationAccessor, E> notificationReader) throws E {
         try(final LockScope ignored = beginRead(XNMResource.NOTIFICATIONS)){
             for(final ResourceNotificationList<XMPPNotificationAccessor> list: notifications.values())
                 for(final XMPPNotificationAccessor accessor: list.values())

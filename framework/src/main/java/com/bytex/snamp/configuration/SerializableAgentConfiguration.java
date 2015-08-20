@@ -4,7 +4,7 @@ import com.google.common.collect.ForwardingMap;
 import com.bytex.snamp.SerializableMap;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.internal.RecordReader;
+import com.bytex.snamp.internal.EntryReader;
 import com.bytex.snamp.SpecialUse;
 
 import java.io.*;
@@ -152,7 +152,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
             entities = new HashMap<>(10);
         }
 
-        private <ERROR extends Exception> void modifiedEntries(final RecordReader<String, ? super E, ERROR> reader) throws ERROR{
+        private <ERROR extends Exception> void modifiedEntries(final EntryReader<String, ? super E, ERROR> reader) throws ERROR{
             for(final Entry<String, E> e: entrySet()){
                 final E entity = e.getValue();
                 final String name = e.getKey();
@@ -1091,16 +1091,16 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
      * @param <E> Type of the exception that may be produced by handler.
      * @throws E Unable to process modified configuration entity.
      */
-    public <E extends Exception> void modifiedEntities(final RecordReader<String, ? super EntityConfiguration, E> handler) throws E {
+    public <E extends Exception> void modifiedEntities(final EntryReader<String, ? super EntityConfiguration, E> handler) throws E {
         modifiedResources(handler);
         modifiedAdapters(handler);
     }
 
-    public <E extends Exception> void modifiedResources(final RecordReader<String, ? super ManagedResourceConfiguration, E> handler) throws E{
+    public <E extends Exception> void modifiedResources(final EntryReader<String, ? super ManagedResourceConfiguration, E> handler) throws E{
         resources.modifiedEntries(handler);
     }
 
-    public <E extends Exception> void modifiedAdapters(final RecordReader<String, ? super ResourceAdapterConfiguration, E> handler) throws E{
+    public <E extends Exception> void modifiedAdapters(final EntryReader<String, ? super ResourceAdapterConfiguration, E> handler) throws E{
         adapters.modifiedEntries(handler);
     }
 

@@ -7,7 +7,7 @@ import com.google.common.reflect.TypeToken;
 import com.bytex.snamp.*;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.ThreadSafe;
-import com.bytex.snamp.internal.RecordReader;
+import com.bytex.snamp.internal.EntryReader;
 import com.bytex.snamp.io.IOUtils;
 import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
@@ -50,7 +50,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     private static final String EVENTS_PROPERTY = "$events$";
     private static final String OPERATIONS_PROPERTY = "$operations";
 
-    private static final Consumer<Configuration, IOException> clearAllConsumer = new Consumer<Configuration, IOException>() {
+    private static final Consumer<Configuration, IOException> CLEAR_CONFIG_CONSUMER = new Consumer<Configuration, IOException>() {
         @Override
         public void accept(final Configuration config) throws IOException {
             config.delete();
@@ -231,17 +231,6 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         forEachAdapter(admin, ALL_ADAPTERS_QUERY, reader);
     }
 
-    public static void forEachAdapter(final ConfigurationAdmin admin,
-                                                            final RecordReader<String, ResourceAdapterConfiguration, ? extends Exception> reader) throws Exception {
-        forEachAdapter(admin, new Consumer<Configuration, Exception>() {
-            @Override
-            public void accept(final Configuration config) throws Exception {
-                final ConfigurationEntry<ResourceAdapterConfiguration> entry = readAdapterConfiguration(config);
-                reader.read(entry.getKey(), entry.getValue());
-            }
-        });
-    }
-
     private static void readAdapters(final ConfigurationAdmin admin,
                                      final Map<String, ResourceAdapterConfiguration> output) throws IOException, InvalidSyntaxException {
         forEachAdapter(admin, new Consumer<Configuration, IOException>() {
@@ -382,7 +371,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     }
 
     public static void forEachResource(final ConfigurationAdmin admin,
-                                     final RecordReader<String, ManagedResourceConfiguration, ? extends Exception> reader) throws Exception{
+                                     final EntryReader<String, ManagedResourceConfiguration, ? extends Exception> reader) throws Exception{
         forEachResource(admin, new Consumer<Configuration, Exception>() {
             @Override
             public void accept(final Configuration config) throws Exception {
@@ -394,7 +383,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
 
     private static void readResources(final ConfigurationAdmin admin,
                                       final Map<String, ManagedResourceConfiguration> output) throws Exception {
-        forEachResource(admin, new RecordReader<String, ManagedResourceConfiguration, ExceptionPlaceholder>() {
+        forEachResource(admin, new EntryReader<String, ManagedResourceConfiguration, ExceptionPlaceholder>() {
             @Override
             public boolean read(final String resourceName, final ManagedResourceConfiguration config) {
                 output.put(resourceName, config);
@@ -516,25 +505,14 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
 
     public static void save(final SerializableAgentConfiguration config, final ConfigurationAdmin output) throws IOException{
         if(config.isEmpty())try{
-            forEachResource(output, clearAllConsumer);
-            forEachAdapter(output, clearAllConsumer);
+            forEachResource(output, CLEAR_CONFIG_CONSUMER);
+            forEachAdapter(output, CLEAR_CONFIG_CONSUMER);
         }
         catch (final InvalidSyntaxException e){
             throw new IOException(e);
         }
         else {
             try {
-                //remove all unnecessary resources
-                forEachResource(output, new Consumer<Configuration, IOException>() {
-                    private final Map<String, ManagedResourceConfiguration> resources = config.getManagedResources();
-
-                    @Override
-                    public void accept(final Configuration config) throws IOException {
-                        final String resourceName = Utils.getProperty(config.getProperties(), RESOURCE_NAME_PROPERTY, String.class, "");
-                        if (!resources.containsKey(resourceName))
-                            config.delete();
-                    }
-                });
                 //remove all unnecessary adapters
                 forEachAdapter(output, new Consumer<Configuration, IOException>() {
                     private final Map<String, ResourceAdapterConfiguration> adapters = config.getResourceAdapters();
@@ -546,11 +524,22 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
                             config.delete();
                     }
                 });
+                //remove all unnecessary resources
+                forEachResource(output, new Consumer<Configuration, IOException>() {
+                    private final Map<String, ManagedResourceConfiguration> resources = config.getManagedResources();
+
+                    @Override
+                    public void accept(final Configuration config) throws IOException {
+                        final String resourceName = Utils.getProperty(config.getProperties(), RESOURCE_NAME_PROPERTY, String.class, "");
+                        if (!resources.containsKey(resourceName))
+                            config.delete();
+                    }
+                });
             } catch (final InvalidSyntaxException e) {
                 throw new IOException(e);
             }
             //save each modified resource or adapter
-            config.modifiedAdapters(new RecordReader<String, ResourceAdapterConfiguration, IOException>() {
+            config.modifiedAdapters(new EntryReader<String, ResourceAdapterConfiguration, IOException>() {
                 @Override
                 public boolean read(final String adapterInstance, final ResourceAdapterConfiguration config) throws IOException {
                     if (config instanceof Modifiable && ((Modifiable) config).isModified())
@@ -558,7 +547,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
                     return true;
                 }
             });
-            config.modifiedResources(new RecordReader<String, ManagedResourceConfiguration, IOException>() {
+            config.modifiedResources(new EntryReader<String, ManagedResourceConfiguration, IOException>() {
                 @Override
                 public boolean read(final String resourceName, final ManagedResourceConfiguration config) throws IOException {
                     if (config instanceof Modifiable && ((Modifiable) config).isModified())
