@@ -157,6 +157,14 @@
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>com.bytex.snamp</groupId>
+                                    <artifactId>mda-connector-feature</artifactId>
+                                    <version>${snamp.connectors.mda.version}</version>
+                                    <type>kar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${karaf.folder.deploy}</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.bytex.snamp</groupId>
                                     <artifactId>groovy-adapter-feature</artifactId>
                                     <version>${snamp.adapters.groovy.version}</version>
                                     <type>kar</type>

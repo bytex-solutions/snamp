@@ -321,6 +321,26 @@ public final class ArrayUtils {
     }
 
     /**
+     * Gets empty array of the specified type.
+     * @param arrayType An array type. Must be single-dimensional.
+     * @param <T> Type of elements in the array.
+     * @return Empty array.
+     * @throws IllegalArgumentException Incorrect array type.
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T emptyArray(final ArrayType<T> arrayType){
+        if(arrayType.getDimension() > 1)
+            throw new IllegalArgumentException("Wrong number of dimensions: " + arrayType.getDimension());
+        final Class<?> elementType;
+        try{
+            elementType = Class.forName(arrayType.getClassName()).getComponentType();
+        } catch (final ClassNotFoundException e) {
+            throw new IllegalArgumentException(e);
+        }
+        return (T)emptyArrayImpl(elementType);
+    }
+
+    /**
      * Gets the first element in the array.
      * @param array Array instance. Cannot be {@literal null}.
      * @param defval Value returned from the method if array is empty.

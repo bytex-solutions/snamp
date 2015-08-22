@@ -89,11 +89,11 @@ public abstract class ForwardingAgentConfiguration extends ForwardingObject impl
             /**
              * Sets attribute value invoke/write operation timeout.
              *
-             * @param time
+             * @param value Read/write timeout.
              */
             @Override
-            public void setReadWriteTimeout(final TimeSpan time) {
-                delegate().setReadWriteTimeout(time);
+            public void setReadWriteTimeout(final TimeSpan value) {
+                delegate().setReadWriteTimeout(value);
             }
 
             /**

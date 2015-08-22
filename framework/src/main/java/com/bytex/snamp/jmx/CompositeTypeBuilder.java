@@ -116,12 +116,12 @@ public final class CompositeTypeBuilder implements OpenTypeBuilder<CompositeType
 
     /**
      * Constructs a new composite data.
-     * @param values
-     * @return
-     * @throws OpenDataException
+     * @param items The mappings of all the item names to their values
+     * @return A new instance of composite data.
+     * @throws OpenDataException Invalid items.
      */
-    public final CompositeData build(final Map<String, ?> values) throws OpenDataException {
-        return new CompositeDataSupport(build(), values);
+    public final CompositeData build(final Map<String, ?> items) throws OpenDataException {
+        return new CompositeDataSupport(build(), items);
     }
 
     final int size(){

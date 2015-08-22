@@ -1,12 +1,12 @@
 package com.bytex.snamp.adapters.xmpp;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.bytex.snamp.StringAppender;
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.adapters.modeling.NotificationRouter;
 import com.bytex.snamp.jmx.DescriptorUtils;
-import com.bytex.snamp.jmx.json.Formatters;
+import com.bytex.snamp.jmx.json.JsonUtils;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.jivesoftware.smack.packet.ExtensionElement;
 import org.jivesoftware.smackx.jiveproperties.packet.JivePropertiesExtension;
 
@@ -25,7 +25,7 @@ import java.util.Map;
 final class XMPPNotificationAccessor extends NotificationRouter {
     static final String LISTEN_COMMAND_PATTERN = "notifs %s";
     final String resourceName;
-    private static final Gson FORMATTER = Formatters.enableAll(new GsonBuilder())
+    private static final Gson FORMATTER = JsonUtils.registerTypeAdapters(new GsonBuilder())
             .serializeSpecialFloatingPointValues()
             .serializeNulls()
             .create();

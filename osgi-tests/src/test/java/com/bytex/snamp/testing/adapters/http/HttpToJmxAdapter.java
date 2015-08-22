@@ -1,10 +1,5 @@
 package com.bytex.snamp.testing.adapters.http;
 
-import com.google.common.base.Supplier;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonPrimitive;
 import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.TimeSpan;
@@ -15,13 +10,18 @@ import com.bytex.snamp.internal.EntryReader;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.bytex.snamp.jmx.TabularDataBuilder;
-import com.bytex.snamp.jmx.json.Formatters;
+import com.bytex.snamp.jmx.json.JsonUtils;
 import com.bytex.snamp.testing.CollectionSizeAwaitor;
 import com.bytex.snamp.testing.ImportPackages;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connectors.jmx.TestOpenMBean;
+import com.google.common.base.Supplier;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
 import org.atmosphere.wasync.*;
 import org.atmosphere.wasync.impl.AtmosphereClient;
 import org.junit.Test;
@@ -42,12 +42,12 @@ import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeoutException;
 
+import static com.bytex.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import static com.bytex.snamp.jmx.json.JsonUtils.toJsonArray;
 import static com.bytex.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
-import static com.bytex.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
 
 /**
  * @author Roman Sakno
@@ -188,7 +188,7 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
                 .queryObject(TabularDataBuilder.class)
                 .add(false, 2, "pp")
                 .build();
-        final Gson formatter = Formatters.enableOpenTypeSystemSupport(new GsonBuilder()).create();
+        final Gson formatter = JsonUtils.registerOpenTypeAdapters(new GsonBuilder()).create();
         testAttribute("7.1", formatter.toJsonTree(data));
     }
 
@@ -200,7 +200,7 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
             .put("col2", "desc", 42)
             .put("col3", "desc", "Hello, world!")
             .build();
-        final Gson formatter = Formatters.enableOpenTypeSystemSupport(new GsonBuilder()).create();
+        final Gson formatter = JsonUtils.registerOpenTypeAdapters(new GsonBuilder()).create();
         testAttribute("6.1", formatter.toJsonTree(data));
 
     }

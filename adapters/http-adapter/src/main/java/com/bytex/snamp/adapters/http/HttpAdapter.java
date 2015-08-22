@@ -1,17 +1,21 @@
 package com.bytex.snamp.adapters.http;
 
-import com.google.common.collect.*;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.bytex.snamp.ExceptionPlaceholder;
-import com.bytex.snamp.adapters.*;
+import com.bytex.snamp.adapters.AbstractResourceAdapter;
+import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.adapters.modeling.*;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
-import com.bytex.snamp.internal.KeyedObjects;
 import com.bytex.snamp.internal.EntryReader;
+import com.bytex.snamp.internal.KeyedObjects;
 import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.jmx.json.Formatters;
+import com.bytex.snamp.jmx.json.JsonUtils;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Multimap;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.sun.jersey.api.core.DefaultResourceConfig;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
 import org.atmosphere.cpr.AtmosphereConfig;
@@ -145,7 +149,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
 
     private static final class HttpModelOfNotifications extends ModelOfNotifications<HttpNotificationAccessor> implements NotificationSupport{
         private final KeyedObjects<String, NotificationBroadcaster> notifications;
-        private static final Gson FORMATTER = Formatters.enableAll(new GsonBuilder())
+        private static final Gson FORMATTER = JsonUtils.registerTypeAdapters(new GsonBuilder())
                 .serializeSpecialFloatingPointValues()
                 .serializeNulls()
                 .create();

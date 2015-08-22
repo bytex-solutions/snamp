@@ -63,7 +63,7 @@ public final class JsonFormattingTests extends Assert {
         final ObjectName name = new ObjectName("com.bytex.snamp.testing:type=TestOpenMBean");
         final JsonElement element = formatter.toJsonTree(name);
         assertTrue(element.isJsonPrimitive());
-        assertEquals("com.bytex.bytex.testing:type=TestOpenMBean", element.getAsString());
+        assertEquals("com.bytex.snamp.testing:type=TestOpenMBean", element.getAsString());
         assertEquals(name, formatter.fromJson(element, ObjectName.class));
     }
 

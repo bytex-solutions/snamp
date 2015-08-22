@@ -3,7 +3,7 @@ package com.bytex.snamp.adapters.ssh;
 import com.bytex.snamp.adapters.AbstractResourceAdapter;
 import com.bytex.snamp.adapters.modeling.ReadAttributeLogicalOperation;
 import com.bytex.snamp.adapters.modeling.WriteAttributeLogicalOperation;
-import com.bytex.snamp.jmx.json.Formatters;
+import com.bytex.snamp.jmx.json.JsonUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -20,7 +20,7 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
 final class SshHelpers {
     static final String ADAPTER_NAME = "ssh";
     private static final String LOGGER_NAME = AbstractResourceAdapter.getLoggerName(ADAPTER_NAME);
-    static final Gson FORMATTER = Formatters.enableAll(new GsonBuilder())
+    static final Gson FORMATTER = JsonUtils.registerTypeAdapters(new GsonBuilder())
             .serializeSpecialFloatingPointValues()
             .serializeNulls()
             .create();

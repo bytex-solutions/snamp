@@ -1,9 +1,9 @@
 package com.bytex.snamp.adapters.http;
 
+import com.bytex.snamp.adapters.modeling.AttributeAccessor;
+import com.bytex.snamp.jmx.json.JsonUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.bytex.snamp.adapters.modeling.AttributeAccessor;
-import com.bytex.snamp.jmx.json.Formatters;
 
 import javax.management.MBeanAttributeInfo;
 
@@ -23,8 +23,8 @@ final class HttpAttributeAccessor extends AttributeAccessor implements HttpAcces
         GsonBuilder builder = new GsonBuilder();
         if (dateFormat != null && dateFormat.length() > 0)
             builder = builder.setDateFormat(dateFormat);
-        builder = Formatters.enableBufferSupport(builder);
-        builder = Formatters.enableOpenTypeSystemSupport(builder);
+        builder = JsonUtils.registerBufferAdapters(builder);
+        builder = JsonUtils.registerOpenTypeAdapters(builder);
         formatter = builder
                 .serializeSpecialFloatingPointValues()
                 .serializeNulls().create();

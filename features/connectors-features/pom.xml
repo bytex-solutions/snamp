@@ -19,6 +19,7 @@
         <module>ibmwmq-connector-feature</module>
         <module>groovy-connector-feature</module>
         <module>modbus-connector-feature</module>
+        <module>mda-connector-feature</module>
     </modules>
 
 </project>
