@@ -1,4 +1,4 @@
-package com.bytex.snamp.connectors.mda;
+package com.bytex.snamp.connectors.mda.http;
 
 import com.bytex.snamp.jmx.DefaultValues;
 import com.bytex.snamp.jmx.WellKnownType;
@@ -19,16 +19,21 @@ import java.util.Set;
  * @version 1.0
  * @since 1.0
  */
-final class CompositeAttributeStorage extends AttributeStorage {
+final class CompositeAttributeManager extends HttpAttributeManager {
     private final CompositeData defaultValue;
 
-    CompositeAttributeStorage(final CompositeType type,
+    CompositeAttributeManager(final CompositeType type,
                               final String slotName) throws OpenDataException {
         super(type, slotName);
         final Map<String, Object> items = Maps.newHashMapWithExpectedSize(type.keySet().size());
         for (final String itemName : type.keySet())
             items.put(itemName, DefaultValues.get(type.getType(itemName)));
         defaultValue = new CompositeDataSupport(type, items);
+    }
+
+    @Override
+    CompositeData getDefaultValue() {
+        return defaultValue;
     }
 
     private static CompositeData deserialize(final Set<Map.Entry<String, JsonElement>> items,
@@ -43,15 +48,10 @@ final class CompositeAttributeStorage extends AttributeStorage {
         return new CompositeDataSupport(type, result);
     }
 
-    private static CompositeData deserialize(final JsonObject items,
+    static CompositeData deserialize(final JsonObject items,
                                              final Gson formatter,
                                              final CompositeType type) throws OpenDataException {
         return deserialize(items.entrySet(), formatter, type);
-    }
-
-    @Override
-    CompositeData getDefaultValue() {
-        return defaultValue;
     }
 
     @Override

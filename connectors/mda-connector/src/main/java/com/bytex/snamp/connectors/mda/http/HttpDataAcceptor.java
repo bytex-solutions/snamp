@@ -1,35 +1,49 @@
-package com.bytex.snamp.connectors.mda;
+package com.bytex.snamp.connectors.mda.http;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.TimeSpan;
+import com.bytex.snamp.concurrent.VolatileBox;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
 import com.bytex.snamp.connectors.attributes.AbstractAttributeSupport;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
+import com.bytex.snamp.connectors.mda.DataAcceptor;
+import com.bytex.snamp.connectors.notifications.AbstractNotificationSupport;
+import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
+import com.bytex.snamp.connectors.notifications.NotificationListenerInvoker;
+import com.bytex.snamp.connectors.notifications.NotificationListenerInvokerFactory;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.JMExceptionUtils;
+import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.jmx.json.JsonUtils;
 import com.google.common.base.Function;
+import com.google.common.base.Supplier;
 import com.google.common.collect.Maps;
 import com.google.gson.*;
 import com.hazelcast.core.HazelcastInstance;
 import com.sun.jersey.spi.resource.Singleton;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.http.HttpService;
+import org.osgi.service.http.NamespaceException;
 
 import javax.management.AttributeNotFoundException;
 import javax.management.InvalidAttributeValueException;
+import javax.management.JMException;
 import javax.management.openmbean.*;
+import javax.servlet.ServletException;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -42,12 +56,72 @@ import static com.bytex.snamp.connectors.mda.MdaResourceConfigurationDescriptorP
  */
 @Path("/")
 @Singleton
-public final class MonitoringDataAcceptor extends AbstractManagedResourceConnector {
+public final class HttpDataAcceptor extends AbstractManagedResourceConnector implements DataAcceptor {
+    private static final class MDANotificationSupport extends AbstractNotificationSupport<MdaNotificationAccessor>{
+        private static final Class<MdaNotificationAccessor> FEATURE_TYPE = MdaNotificationAccessor.class;
+        private final Logger logger;
+        private final Gson jsonFormatter;
+        private final NotificationListenerInvoker listenerInvoker;
+
+        private MDANotificationSupport(final String resourceName,
+                                       final Logger logger,
+                                       final Gson formatter,
+                                       final ExecutorService threadPool){
+            super(resourceName, FEATURE_TYPE);
+            this.logger = Objects.requireNonNull(logger);
+            this.jsonFormatter = Objects.requireNonNull(formatter);
+            listenerInvoker =
+                    NotificationListenerInvokerFactory.createParallelInvoker(threadPool);
+        }
+
+        /**
+         * Gets the invoker used to executed notification listeners.
+         *
+         * @return The notification listener invoker.
+         */
+        @Override
+        protected NotificationListenerInvoker getListenerInvoker() {
+            return listenerInvoker;
+        }
+
+        @Override
+        protected MdaNotificationAccessor enableNotifications(final String notifType,
+                                                              final NotificationDescriptor metadata) throws OpenDataException{
+            return new MdaNotificationAccessor(notifType, metadata, jsonFormatter);
+        }
+
+        private void fire(final String category, final JsonObject notification) throws JsonParseException {
+            fire(new NotificationCollector() {
+                @Override
+                protected void process(final MdaNotificationAccessor metadata) {
+                    if (category.equals(metadata.getDescriptor().getNotificationCategory()))
+                        enqueue(metadata,
+                                metadata.getMessage(notification),
+                                metadata.getSequenceNumber(notification),
+                                metadata.getTimeStamp(notification),
+                                metadata.getUserData(notification));
+                }
+            });
+        }
+
+        private void fire(final String category, final String notification) throws JsonParseException{
+            final JsonElement notif = jsonFormatter.fromJson(notification, JsonElement.class);
+            if(notif != null && notif.isJsonObject())
+                fire(category, notif.getAsJsonObject());
+            else throw new JsonParseException("JSON Object expected");
+        }
+
+        @Override
+        protected void failedToEnableNotifications(final String listID, final String category, final Exception e) {
+            failedToEnableNotifications(logger, Level.WARNING, listID, category, e);
+        }
+    }
+
     private static final class MDAAttributeSupport extends AbstractAttributeSupport<MdaAttributeAccessor>{
         private static final Class<MdaAttributeAccessor> FEATURE_TYPE = MdaAttributeAccessor.class;
         private final ConcurrentMap<String, Object> storage;
         private final Logger logger;
-        private final Map<String, AttributeStorage> parsers;
+        private final Map<String, HttpAttributeManager> parsers;
 
         private MDAAttributeSupport(final String resourceName, final Logger logger) {
             super(resourceName, FEATURE_TYPE);
@@ -75,19 +149,20 @@ public final class MonitoringDataAcceptor extends AbstractManagedResourceConnect
 
         @Override
         protected MdaAttributeAccessor connectAttribute(final String attributeID,
-                                                            final AttributeDescriptor descriptor) throws Exception {
+                                                            final AttributeDescriptor descriptor) throws JMException {
             final OpenType<?> attributeType = parseType(descriptor);
-            final AttributeStorage result;
+            final HttpAttributeManager result;
             if (parsers.containsKey(descriptor.getAttributeName()))
                 result = parsers.get(descriptor.getAttributeName());
             else if (attributeType instanceof SimpleType<?>) {
-                result = new SimpleAttributeStorage((SimpleType<?>) attributeType, descriptor.getAttributeName());
+                result = new SimpleAttributeManager(WellKnownType.getType(attributeType), descriptor.getAttributeName());
                 result.saveTo(parsers);
-            } else if (attributeType instanceof CompositeType) {
-                result = new CompositeAttributeStorage((CompositeType) attributeType, descriptor.getAttributeName());
+            }
+            else if (attributeType instanceof CompositeType) {
+                result = new CompositeAttributeManager((CompositeType) attributeType, descriptor.getAttributeName());
                 result.saveTo(parsers);
             } else {
-                result = new FallbackAttributeStorage(descriptor.getAttributeName());
+                result = new FallbackAttributeManager(descriptor.getAttributeName());
                 result.saveTo(parsers);
             }
             final MdaAttributeAccessor accessor = new MdaAttributeAccessor(attributeID, attributeType, descriptor, result);
@@ -106,14 +181,14 @@ public final class MonitoringDataAcceptor extends AbstractManagedResourceConnect
         }
 
         private String getAttribute(final String attributeName, final Gson formatter) throws AttributeNotFoundException{
-            final AttributeStorage attribute = parsers.get(attributeName);
+            final HttpAttributeManager attribute = parsers.get(attributeName);
             if(attribute == null)
                 throw JMExceptionUtils.attributeNotFound(attributeName);
             else return attribute.getValue(formatter, storage);
         }
 
         private String setAttribute(final String attributeName, final Gson formatter, final String value) throws AttributeNotFoundException, InvalidAttributeValueException, OpenDataException {
-            final AttributeStorage attribute = parsers.get(attributeName);
+            final HttpAttributeManager attribute = parsers.get(attributeName);
             if(attribute == null)
                 throw JMExceptionUtils.attributeNotFound(attributeName);
             else return attribute.setValue(value, formatter, storage);
@@ -135,14 +210,22 @@ public final class MonitoringDataAcceptor extends AbstractManagedResourceConnect
         }
     }
 
-    final String resourceName;
     private final Gson formatter;
     private final MDAAttributeSupport attributes;
+    private final MDANotificationSupport notifications;
+    private final String servletContext;
+    private final ExecutorService threadPool;
+    private final VolatileBox<HttpService> publisherRef;
 
-    MonitoringDataAcceptor(final String resourceName) {
-        this.resourceName = resourceName;
+    HttpDataAcceptor(final String resourceName,
+                     final String context,
+                            final Supplier<? extends ExecutorService> threadPoolFactory) {
+        this.servletContext = Objects.requireNonNull(context);
+        this.publisherRef = new VolatileBox<>();
+        this.threadPool = threadPoolFactory.get();
         this.formatter = JsonUtils.registerTypeAdapters(new GsonBuilder().serializeNulls()).create();
         this.attributes = new MDAAttributeSupport(resourceName, getLogger());
+        this.notifications = new MDANotificationSupport(resourceName, getLogger(), formatter, threadPool);
     }
 
     private Response setAttributes(final JsonObject items){
@@ -255,6 +338,21 @@ public final class MonitoringDataAcceptor extends AbstractManagedResourceConnect
         }
     }
 
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("/notifications/{category}")
+    public void sendNotification(@PathParam("category")final String category, final String notification) throws WebApplicationException{
+        try {
+            notifications.fire(category, notification);
+        }
+        catch (final JsonParseException e){
+            throw new WebApplicationException(e, Response.Status.BAD_REQUEST);
+        }
+        catch (final Exception e){
+            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     /**
      * Adds a new listener for the connector-related events.
      * <p/>
@@ -264,7 +362,7 @@ public final class MonitoringDataAcceptor extends AbstractManagedResourceConnect
      */
     @Override
     public void addResourceEventListener(final ResourceEventListener listener) {
-        addResourceEventListener(listener, attributes);
+        addResourceEventListener(listener, attributes, notifications);
     }
 
     /**
@@ -274,7 +372,7 @@ public final class MonitoringDataAcceptor extends AbstractManagedResourceConnect
      */
     @Override
     public void removeResourceEventListener(final ResourceEventListener listener) {
-        removeResourceEventListener(listener, attributes);
+        removeResourceEventListener(listener, attributes, notifications);
     }
 
     /**
@@ -288,17 +386,47 @@ public final class MonitoringDataAcceptor extends AbstractManagedResourceConnect
         return findObject(objectType, new Function<Class<T>, T>() {
             @Override
             public T apply(final Class<T> objectType) {
-                return MonitoringDataAcceptor.super.queryObject(objectType);
+                return HttpDataAcceptor.super.queryObject(objectType);
             }
-        }, attributes);
+        }, attributes, notifications);
     }
 
-    boolean addAttribute(final String attributeID, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+    @Override
+    public boolean addAttribute(final String attributeID, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
         return attributes.addAttribute(attributeID, attributeName, readWriteTimeout, options) != null;
     }
 
-    void removeAttributesExcept(final Set<String> attributes) {
+    @Override
+    public void removeAttributesExcept(final Set<String> attributes) {
         this.attributes.removeAllExcept(attributes);
+    }
+
+    @Override
+    public boolean enableNotifications(final String listId, final String category, final CompositeData options) {
+        return notifications.enableNotifications(listId, category, options) != null;
+    }
+
+    @Override
+    public void disableNotificationsExcept(final Set<String> notifications) {
+        this.notifications.removeAllExcept(notifications);
+    }
+
+    private void beginAccept(final HttpService publisher) throws IOException {
+        publisherRef.set(publisher);
+        try {
+            publisher.registerServlet(servletContext, new MdaServlet(this), null, null);
+        } catch (final ServletException | NamespaceException e) {
+            throw new IOException(e);
+        }
+    }
+
+    @Override
+    public void beginAccept(final Object... dependencies) throws IOException{
+        for(final Object dep: dependencies)
+            if(dep instanceof HttpService){
+                beginAccept((HttpService)dep);
+                return;
+            }
     }
 
     /**
@@ -308,8 +436,13 @@ public final class MonitoringDataAcceptor extends AbstractManagedResourceConnect
      */
     @Override
     public void close() throws Exception {
+        final HttpService publisher = publisherRef.getAndSet(null);
+        if(publisher != null)
+            publisher.unregister(servletContext);
+        threadPool.shutdown();
         attributes.removeAll(true);
         attributes.parsers.clear();
+        notifications.removeAll(true, true);
         super.close();
     }
 }

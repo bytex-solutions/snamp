@@ -1,4 +1,4 @@
-package com.bytex.snamp.connectors.mda;
+package com.bytex.snamp.connectors.mda.http;
 
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.attributes.AttributeSpecifier;
@@ -16,12 +16,12 @@ import java.util.concurrent.ConcurrentMap;
  * @since 1.0
  */
 final class MdaAttributeAccessor extends OpenTypeAttributeInfo {
-    private final AttributeStorage storageManager;
+    private final HttpAttributeManager storageManager;
 
     MdaAttributeAccessor(final String name,
                          final OpenType<?> type,
                          final AttributeDescriptor descriptor,
-                         final AttributeStorage storage) {
+                         final HttpAttributeManager storage) {
         super(name, type, descriptor.getDescription(name), AttributeSpecifier.READ_WRITE, descriptor);
         this.storageManager = Objects.requireNonNull(storage);
     }

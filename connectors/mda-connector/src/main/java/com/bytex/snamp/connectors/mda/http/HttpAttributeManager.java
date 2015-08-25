@@ -1,4 +1,4 @@
-package com.bytex.snamp.connectors.mda;
+package com.bytex.snamp.connectors.mda.http;
 
 import com.google.gson.Gson;
 
@@ -14,14 +14,15 @@ import java.util.concurrent.ConcurrentMap;
  * @version 1.0
  * @since 1.0
  */
-abstract class AttributeStorage {
+abstract class HttpAttributeManager {
     private final OpenType<?> attributeType;
     private final String storageSlotName;
 
-    protected AttributeStorage(final OpenType<?> type,
-                               final String slotName){
+    protected HttpAttributeManager(final OpenType<?> type,
+                                   final String slotName){
         this.attributeType = Objects.requireNonNull(type);
         this.storageSlotName = slotName;
+
     }
 
     abstract Object getDefaultValue();
@@ -52,7 +53,8 @@ abstract class AttributeStorage {
         return serialize(getValue(storage), formatter);
     }
 
-    final void saveTo(final Map<String, AttributeStorage> parsers){
+    final void saveTo(final Map<String, HttpAttributeManager> parsers){
         parsers.put(storageSlotName, this);
     }
+
 }

@@ -11,10 +11,7 @@ import com.google.common.collect.Lists;
 import javax.management.*;
 import javax.management.openmbean.CompositeData;
 import java.math.BigInteger;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -79,8 +76,35 @@ public abstract class AbstractNotificationSupport<M extends MBeanNotificationInf
         protected final void enqueue(final MBeanNotificationInfo metadata,
                                      final String message,
                                      final Object userData){
+            enqueue(metadata,
+                    message,
+                    sequenceCounter.getAndIncrement(),
+                    System.currentTimeMillis(),
+                    userData);
+        }
+
+        /**
+         * Enqueues a notification to sent in future.
+         * @param metadata Notification metadata.
+         * @param message Notification message.
+         * @param sequenceNumber Unique ID of notification.
+         * @param timeStamp Time stamp of notification.
+         * @param userData Advanced data to be associated with the notification.
+         */
+        protected final void enqueue(final MBeanNotificationInfo metadata,
+                                     final String message,
+                                     final long sequenceNumber,
+                                     final long timeStamp,
+                                     final Object userData){
             for(final String listID: metadata.getNotifTypes())
-                add(createNotification(listID, message, userData));
+                add(new NotificationBuilder()
+                        .setTimeStamp(timeStamp)
+                        .setSequenceNumber(sequenceNumber)
+                        .setType(listID)
+                        .setSource(AbstractNotificationSupport.this)
+                        .setMessage(message)
+                        .setUserData(userData)
+                        .get());
         }
     }
 
@@ -135,19 +159,6 @@ public abstract class AbstractNotificationSupport<M extends MBeanNotificationInf
      */
     protected abstract NotificationListenerInvoker getListenerInvoker();
 
-    private Notification createNotification(final String listID,
-                                                   final String message,
-                                                   final Object userData){
-        return new NotificationBuilder()
-                .setTimeStamp()
-                .setSequenceNumber(sequenceCounter.getAndIncrement())
-                .setType(listID)
-                .setSource(this)
-                .setMessage(message)
-                .setUserData(userData)
-                .get();
-    }
-
     /**
      * Collects notifications in batch manner.
      * @param sender An object used to collect notifications
@@ -171,15 +182,28 @@ public abstract class AbstractNotificationSupport<M extends MBeanNotificationInf
     protected final void fire(final String category,
                               final String message,
                               final Object userData) {
+        fire(category, message, sequenceCounter.getAndIncrement(), System.currentTimeMillis(), userData);
+    }
+
+    protected final void fire(final String category,
+                              final String message,
+                              final long sequenceNumber,
+                              final long timeStamp,
+                              final Object userData){
         final Collection<Notification> notifs;
         try (final LockScope ignored = beginRead(ANSResource.NOTIFICATIONS)) {
             notifs = Lists.newArrayListWithExpectedSize(notifications.size());
             for (final NotificationHolder<M> holder : notifications.values())
                 if (Objects.equals(NotificationDescriptor.getNotificationCategory(holder.getMetadata()), category))
-                    for (final String listId : holder.getMetadata().getNotifTypes()) {
-                        final Notification n = createNotification(listId,
-                                message,
-                                userData);
+                    for (final String listID : holder.getMetadata().getNotifTypes()) {
+                        final Notification n = new NotificationBuilder()
+                                .setTimeStamp(timeStamp)
+                                .setSequenceNumber(sequenceNumber)
+                                .setType(listID)
+                                .setSource(this)
+                                .setMessage(message)
+                                .setUserData(userData)
+                                .get();
                         notifs.add(n);
                     }
         }

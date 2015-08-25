@@ -18,7 +18,7 @@ import java.util.List;
  * @version 1.0
  * @since 1.0
  */
-final class MdaResourceConfigurationDescriptorProvider extends ConfigurationEntityDescriptionProviderImpl {
+public final class MdaResourceConfigurationDescriptorProvider extends ConfigurationEntityDescriptionProviderImpl {
     private static final String TYPE_PARAM = "expectedType";
     private static final String ITEM_NAMES_PARAM = "dictionaryItemNames";
     private static final String ITEM_TYPES_PARAM = "dictionaryItemTypes";
@@ -40,7 +40,7 @@ final class MdaResourceConfigurationDescriptorProvider extends ConfigurationEnti
         return builder.build();
     }
 
-    static OpenType<?> parseType(final Descriptor descriptor) throws OpenDataException {
+    public static OpenType<?> parseType(final Descriptor descriptor) throws OpenDataException {
         final String displayName = DescriptorUtils.getField(descriptor, TYPE_PARAM, String.class);
         final WellKnownType result = WellKnownType.parse(displayName);
         if(result == null)

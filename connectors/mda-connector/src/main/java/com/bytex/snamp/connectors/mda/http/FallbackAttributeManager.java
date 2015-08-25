@@ -1,4 +1,4 @@
-package com.bytex.snamp.connectors.mda;
+package com.bytex.snamp.connectors.mda.http;
 
 import com.google.gson.Gson;
 
@@ -9,8 +9,8 @@ import javax.management.openmbean.SimpleType;
  * @version 1.0
  * @since 1.0
  */
-final class FallbackAttributeStorage extends AttributeStorage {
-    FallbackAttributeStorage(final String slotName) {
+final class FallbackAttributeManager extends HttpAttributeManager {
+    FallbackAttributeManager(final String slotName) {
         super(SimpleType.STRING, slotName);
     }
 

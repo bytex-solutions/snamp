@@ -634,6 +634,8 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
             }
             fire(notification.getType(),
                     notification.getMessage(),
+                    notification.getSequenceNumber(),
+                    notification.getTimeStamp(),
                     userData);
         }
 

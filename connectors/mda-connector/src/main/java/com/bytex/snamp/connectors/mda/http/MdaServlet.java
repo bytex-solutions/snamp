@@ -1,4 +1,4 @@
-package com.bytex.snamp.connectors.mda;
+package com.bytex.snamp.connectors.mda.http;
 
 import com.sun.jersey.api.core.DefaultResourceConfig;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
@@ -14,13 +14,13 @@ import java.util.Objects;
 final class MdaServlet extends ServletContainer {
     private static final long serialVersionUID = 6190598618730093687L;
 
-    private static Application createResourceConfig(final MonitoringDataAcceptor serviceInstance){
+    private static Application createResourceConfig(final HttpDataAcceptor serviceInstance){
         final DefaultResourceConfig result = new DefaultResourceConfig();
         result.getSingletons().add(serviceInstance);
         return result;
     }
 
-    MdaServlet(final MonitoringDataAcceptor serviceImpl) {
+    public MdaServlet(final HttpDataAcceptor serviceImpl) {
         super(createResourceConfig(Objects.requireNonNull(serviceImpl)));
     }
 }

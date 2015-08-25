@@ -1,5 +1,6 @@
 package com.bytex.snamp.connectors.notifications;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.bytex.snamp.configuration.ConfigParameters;
@@ -122,6 +123,11 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
 
     public final String getDescription(){
         return getDescription(this);
+    }
+
+    public final String getDescription(final String defval){
+        final String result = getDescription();
+        return Strings.isNullOrEmpty(result) ? defval : result;
     }
 
     public static String getDescription(final Descriptor metadata){

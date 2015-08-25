@@ -181,4 +181,11 @@ public final class JsonUtils {
             result[i] = jsonArray.get(i).getAsString();
         return result;
     }
+
+    public static byte[] parseByteArray(final JsonArray jsonArray) {
+        final byte[] result = new byte[jsonArray.size()];
+        for(int i = 0; i < jsonArray.size(); i++)
+            result[i] = jsonArray.get(i).getAsByte();
+        return result;
+    }
 }

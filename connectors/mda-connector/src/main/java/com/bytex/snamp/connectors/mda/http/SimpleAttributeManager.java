@@ -1,25 +1,23 @@
-package com.bytex.snamp.connectors.mda;
+package com.bytex.snamp.connectors.mda.http;
 
 import com.bytex.snamp.jmx.DefaultValues;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.google.gson.Gson;
-
-import javax.management.openmbean.SimpleType;
 
 /**
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-final class SimpleAttributeStorage extends AttributeStorage {
+final class SimpleAttributeManager extends HttpAttributeManager {
     private final Class<?> attributeType;
     private final Object defaultValue;
 
-    SimpleAttributeStorage(final SimpleType<?> type, final String slotName) {
-        super(type, slotName);
-        this.attributeType = WellKnownType.getType(type).getJavaType();
+    SimpleAttributeManager(final WellKnownType knownType, final String slotName) {
+        super(knownType.getOpenType(), slotName);
+        this.attributeType = knownType.getJavaType();
         assert attributeType != null;
-        this.defaultValue = DefaultValues.get(type);
+        this.defaultValue = DefaultValues.get(knownType.getOpenType());
     }
 
     @Override
@@ -36,5 +34,4 @@ final class SimpleAttributeStorage extends AttributeStorage {
     protected String serialize(final Object value, final Gson formatter) {
         return formatter.toJson(value, attributeType);
     }
-
 }
