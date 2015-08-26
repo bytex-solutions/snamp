@@ -1,11 +1,11 @@
 package com.bytex.snamp.connectors.mda.http;
 
+import com.google.common.cache.Cache;
 import com.google.gson.Gson;
 
 import javax.management.InvalidAttributeValueException;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentMap;
 
@@ -22,7 +22,6 @@ abstract class HttpAttributeManager {
                                    final String slotName){
         this.attributeType = Objects.requireNonNull(type);
         this.storageSlotName = slotName;
-
     }
 
     abstract Object getDefaultValue();
@@ -53,7 +52,7 @@ abstract class HttpAttributeManager {
         return serialize(getValue(storage), formatter);
     }
 
-    final void saveTo(final Map<String, HttpAttributeManager> parsers){
+    final void saveTo(final Cache<String, HttpAttributeManager> parsers){
         parsers.put(storageSlotName, this);
     }
 

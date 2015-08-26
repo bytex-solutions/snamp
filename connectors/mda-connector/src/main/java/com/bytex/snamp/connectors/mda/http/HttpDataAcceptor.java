@@ -8,6 +8,7 @@ import com.bytex.snamp.connectors.ResourceEventListener;
 import com.bytex.snamp.connectors.attributes.AbstractAttributeSupport;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.mda.DataAcceptor;
+import com.bytex.snamp.connectors.mda.SimpleTimer;
 import com.bytex.snamp.connectors.notifications.AbstractNotificationSupport;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 import com.bytex.snamp.connectors.notifications.NotificationListenerInvoker;
@@ -19,6 +20,8 @@ import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.jmx.json.JsonUtils;
 import com.google.common.base.Function;
 import com.google.common.base.Supplier;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Maps;
 import com.google.gson.*;
 import com.hazelcast.core.HazelcastInstance;
@@ -44,6 +47,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -57,19 +61,22 @@ import static com.bytex.snamp.connectors.mda.MdaResourceConfigurationDescriptorP
 @Path("/")
 @Singleton
 public final class HttpDataAcceptor extends AbstractManagedResourceConnector implements DataAcceptor {
-    private static final class MDANotificationSupport extends AbstractNotificationSupport<MdaNotificationAccessor>{
-        private static final Class<MdaNotificationAccessor> FEATURE_TYPE = MdaNotificationAccessor.class;
+    private static final class MDANotificationSupport extends AbstractNotificationSupport<HttpNotificationAccessor>{
+        private static final Class<HttpNotificationAccessor> FEATURE_TYPE = HttpNotificationAccessor.class;
         private final Logger logger;
         private final Gson jsonFormatter;
         private final NotificationListenerInvoker listenerInvoker;
+        private final SimpleTimer lastWriteAccess;
 
         private MDANotificationSupport(final String resourceName,
+                                       final SimpleTimer lastWriteAccess,
                                        final Logger logger,
                                        final Gson formatter,
                                        final ExecutorService threadPool){
             super(resourceName, FEATURE_TYPE);
             this.logger = Objects.requireNonNull(logger);
             this.jsonFormatter = Objects.requireNonNull(formatter);
+            this.lastWriteAccess = Objects.requireNonNull(lastWriteAccess);
             listenerInvoker =
                     NotificationListenerInvokerFactory.createParallelInvoker(threadPool);
         }
@@ -85,15 +92,16 @@ public final class HttpDataAcceptor extends AbstractManagedResourceConnector imp
         }
 
         @Override
-        protected MdaNotificationAccessor enableNotifications(final String notifType,
+        protected HttpNotificationAccessor enableNotifications(final String notifType,
                                                               final NotificationDescriptor metadata) throws OpenDataException{
-            return new MdaNotificationAccessor(notifType, metadata, jsonFormatter);
+            return new HttpNotificationAccessor(notifType, metadata, jsonFormatter);
         }
 
         private void fire(final String category, final JsonObject notification) throws JsonParseException {
+
             fire(new NotificationCollector() {
                 @Override
-                protected void process(final MdaNotificationAccessor metadata) {
+                protected void process(final HttpNotificationAccessor metadata) {
                     if (category.equals(metadata.getDescriptor().getNotificationCategory()))
                         enqueue(metadata,
                                 metadata.getMessage(notification),
@@ -102,6 +110,7 @@ public final class HttpDataAcceptor extends AbstractManagedResourceConnector imp
                                 metadata.getUserData(notification));
                 }
             });
+            lastWriteAccess.reset();
         }
 
         private void fire(final String category, final String notification) throws JsonParseException{
@@ -117,18 +126,25 @@ public final class HttpDataAcceptor extends AbstractManagedResourceConnector imp
         }
     }
 
-    private static final class MDAAttributeSupport extends AbstractAttributeSupport<MdaAttributeAccessor>{
-        private static final Class<MdaAttributeAccessor> FEATURE_TYPE = MdaAttributeAccessor.class;
+    private static final class MDAAttributeSupport extends AbstractAttributeSupport<HttpAttributeAccessor>{
+        private static final Class<HttpAttributeAccessor> FEATURE_TYPE = HttpAttributeAccessor.class;
         private final ConcurrentMap<String, Object> storage;
         private final Logger logger;
-        private final Map<String, HttpAttributeManager> parsers;
+        private final Cache<String, HttpAttributeManager> parsers;
+        private final long expirationTime;
+        private final SimpleTimer lastWriteAccess;
 
-        private MDAAttributeSupport(final String resourceName, final Logger logger) {
+        private MDAAttributeSupport(final String resourceName,
+                                    final long expirationTime,
+                                    final SimpleTimer lastWriteAccess,
+                                    final Logger logger) {
             super(resourceName, FEATURE_TYPE);
             this.logger = Objects.requireNonNull(logger);
             //try to discover hazelcast
             storage = createStorage(resourceName, Utils.getBundleContextByObject(this));
-            parsers = Maps.newHashMapWithExpectedSize(20);
+            parsers = CacheBuilder.newBuilder().weakValues().build();
+            this.expirationTime = expirationTime;
+            this.lastWriteAccess = Objects.requireNonNull(lastWriteAccess);
         }
 
         private static ConcurrentMap<String, Object> createStorage(final String resourceName,
@@ -148,12 +164,13 @@ public final class HttpDataAcceptor extends AbstractManagedResourceConnector imp
         }
 
         @Override
-        protected MdaAttributeAccessor connectAttribute(final String attributeID,
+        protected HttpAttributeAccessor connectAttribute(final String attributeID,
                                                             final AttributeDescriptor descriptor) throws JMException {
             final OpenType<?> attributeType = parseType(descriptor);
-            final HttpAttributeManager result;
-            if (parsers.containsKey(descriptor.getAttributeName()))
-                result = parsers.get(descriptor.getAttributeName());
+            HttpAttributeManager result = parsers.getIfPresent(descriptor.getAttributeName());
+            if (result != null){
+                //do nothing
+            }
             else if (attributeType instanceof SimpleType<?>) {
                 result = new SimpleAttributeManager(WellKnownType.getType(attributeType), descriptor.getAttributeName());
                 result.saveTo(parsers);
@@ -165,7 +182,7 @@ public final class HttpDataAcceptor extends AbstractManagedResourceConnector imp
                 result = new FallbackAttributeManager(descriptor.getAttributeName());
                 result.saveTo(parsers);
             }
-            final MdaAttributeAccessor accessor = new MdaAttributeAccessor(attributeID, attributeType, descriptor, result);
+            final HttpAttributeAccessor accessor = new HttpAttributeAccessor(attributeID, attributeType, descriptor, result);
             accessor.setValue(accessor.getDefaultValue(), storage);
             return accessor;
         }
@@ -176,22 +193,29 @@ public final class HttpDataAcceptor extends AbstractManagedResourceConnector imp
         }
 
         @Override
-        protected Object getAttribute(final MdaAttributeAccessor metadata) {
-            return metadata.getValue(storage);
+        protected Object getAttribute(final HttpAttributeAccessor metadata) {
+            if(lastWriteAccess.checkInterval(expirationTime, TimeUnit.MILLISECONDS) > 0)
+                throw new IllegalStateException("Attribute value is too old. Backend component must supply a fresh value");
+            else
+                return metadata.getValue(storage);
         }
 
         private String getAttribute(final String attributeName, final Gson formatter) throws AttributeNotFoundException{
-            final HttpAttributeManager attribute = parsers.get(attributeName);
+            final HttpAttributeManager attribute = parsers.getIfPresent(attributeName);
             if(attribute == null)
                 throw JMExceptionUtils.attributeNotFound(attributeName);
             else return attribute.getValue(formatter, storage);
         }
 
         private String setAttribute(final String attributeName, final Gson formatter, final String value) throws AttributeNotFoundException, InvalidAttributeValueException, OpenDataException {
-            final HttpAttributeManager attribute = parsers.get(attributeName);
+            final HttpAttributeManager attribute = parsers.getIfPresent(attributeName);
             if(attribute == null)
                 throw JMExceptionUtils.attributeNotFound(attributeName);
-            else return attribute.setValue(value, formatter, storage);
+            else {
+                final String result = attribute.setValue(value, formatter, storage);
+                lastWriteAccess.reset();
+                return result;
+            }
         }
 
         @Override
@@ -200,8 +224,9 @@ public final class HttpDataAcceptor extends AbstractManagedResourceConnector imp
         }
 
         @Override
-        protected void setAttribute(final MdaAttributeAccessor attribute, final Object value) throws InvalidAttributeValueException {
+        protected void setAttribute(final HttpAttributeAccessor attribute, final Object value) throws InvalidAttributeValueException {
             attribute.setValue(value, storage);
+            lastWriteAccess.reset();
         }
 
         @Override
@@ -219,13 +244,16 @@ public final class HttpDataAcceptor extends AbstractManagedResourceConnector imp
 
     HttpDataAcceptor(final String resourceName,
                      final String context,
-                            final Supplier<? extends ExecutorService> threadPoolFactory) {
+                     final long expirationTime,
+                     final Supplier<? extends ExecutorService> threadPoolFactory) {
         this.servletContext = Objects.requireNonNull(context);
         this.publisherRef = new VolatileBox<>();
         this.threadPool = threadPoolFactory.get();
         this.formatter = JsonUtils.registerTypeAdapters(new GsonBuilder().serializeNulls()).create();
-        this.attributes = new MDAAttributeSupport(resourceName, getLogger());
-        this.notifications = new MDANotificationSupport(resourceName, getLogger(), formatter, threadPool);
+
+        final SimpleTimer lastWriteAccess = new SimpleTimer();
+        this.attributes = new MDAAttributeSupport(resourceName, expirationTime, lastWriteAccess, getLogger());
+        this.notifications = new MDANotificationSupport(resourceName, lastWriteAccess, getLogger(), formatter, threadPool);
     }
 
     private Response setAttributes(final JsonObject items){
@@ -441,7 +469,7 @@ public final class HttpDataAcceptor extends AbstractManagedResourceConnector imp
             publisher.unregister(servletContext);
         threadPool.shutdown();
         attributes.removeAll(true);
-        attributes.parsers.clear();
+        attributes.parsers.invalidateAll();
         notifications.removeAll(true, true);
         super.close();
     }

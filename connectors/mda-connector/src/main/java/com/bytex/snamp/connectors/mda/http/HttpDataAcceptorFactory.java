@@ -2,9 +2,11 @@ package com.bytex.snamp.connectors.mda.http;
 
 import com.bytex.snamp.connectors.mda.DataAcceptorFactory;
 import com.bytex.snamp.connectors.mda.MdaThreadPoolConfig;
-import com.google.common.base.Strings;
 
 import java.util.Map;
+
+import static com.bytex.snamp.connectors.mda.MdaResourceConfigurationDescriptorProvider.parseExpireTime;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents factory of {@link HttpDataAcceptor} class.
@@ -23,13 +25,16 @@ public final class HttpDataAcceptorFactory implements DataAcceptorFactory {
     public HttpDataAcceptor create(final String resourceName,
                                String servletContext,
                                final Map<String, String> parameters) throws Exception {
-        if(Strings.isNullOrEmpty(servletContext))
+        if(isNullOrEmpty(servletContext))
             servletContext = getServletContext(resourceName);
-        return new HttpDataAcceptor(resourceName, servletContext, new MdaThreadPoolConfig(resourceName, parameters));
+        return new HttpDataAcceptor(resourceName,
+                servletContext,
+                parseExpireTime(parameters),
+                new MdaThreadPoolConfig(resourceName, parameters));
     }
 
     @Override
     public boolean canCreateFrom(final String connectionString) {
-        return Strings.isNullOrEmpty(connectionString) || !connectionString.contains(":/");
+        return isNullOrEmpty(connectionString) || !connectionString.contains(":/");
     }
 }

@@ -2,7 +2,7 @@ package com.bytex.snamp.connectors.mda.http;
 
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.attributes.AttributeSpecifier;
-import com.bytex.snamp.connectors.attributes.OpenTypeAttributeInfo;
+import com.bytex.snamp.connectors.mda.MdaAttributeAccessor;
 
 import javax.management.InvalidAttributeValueException;
 import javax.management.openmbean.OpenType;
@@ -15,16 +15,17 @@ import java.util.concurrent.ConcurrentMap;
  * @version 1.0
  * @since 1.0
  */
-final class MdaAttributeAccessor extends OpenTypeAttributeInfo {
+final class HttpAttributeAccessor extends MdaAttributeAccessor {
     private final HttpAttributeManager storageManager;
 
-    MdaAttributeAccessor(final String name,
-                         final OpenType<?> type,
-                         final AttributeDescriptor descriptor,
-                         final HttpAttributeManager storage) {
+    HttpAttributeAccessor(final String name,
+                          final OpenType<?> type,
+                          final AttributeDescriptor descriptor,
+                          final HttpAttributeManager storage) {
         super(name, type, descriptor.getDescription(name), AttributeSpecifier.READ_WRITE, descriptor);
         this.storageManager = Objects.requireNonNull(storage);
     }
+
     /**
      * Returns the default value for this parameter, if it has one, or
      * <tt>null</tt> otherwise.
@@ -36,11 +37,13 @@ final class MdaAttributeAccessor extends OpenTypeAttributeInfo {
         return storageManager.getDefaultValue();
     }
 
-    final Object setValue(final Object value, final ConcurrentMap<String, Object> storage) throws InvalidAttributeValueException {
+    @Override
+    public final Object setValue(final Object value, final ConcurrentMap<String, Object> storage) throws InvalidAttributeValueException {
         return storageManager.setValue(value, storage);
     }
 
-    final Object getValue(final ConcurrentMap<String, ?> storage) {
+    @Override
+    public final Object getValue(final ConcurrentMap<String, ?> storage) {
         return storageManager.getValue(storage);
     }
 }

@@ -12,6 +12,7 @@ import javax.management.openmbean.CompositeType;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Roman Sakno
@@ -23,6 +24,7 @@ public final class MdaResourceConfigurationDescriptorProvider extends Configurat
     private static final String ITEM_NAMES_PARAM = "dictionaryItemNames";
     private static final String ITEM_TYPES_PARAM = "dictionaryItemTypes";
     private static final String TYPE_NAME_PARAM = "dictionaryName";
+    private static final String EXPIRE_TIME_PARAM = "expireTime";
 
     private static final Splitter ITEMS_SPLITTER = Splitter.on(',').trimResults();
 
@@ -56,5 +58,11 @@ public final class MdaResourceConfigurationDescriptorProvider extends Configurat
         else if(result.isPrimitive() || result.isSimpleArray())
             return result.getOpenType();
         else return null;
+    }
+
+    public static long parseExpireTime(final Map<String, String> parameters){
+        if(parameters.containsKey(EXPIRE_TIME_PARAM))
+            return Integer.parseInt(parameters.get(EXPIRE_TIME_PARAM));
+        else return Long.MAX_VALUE;
     }
 }

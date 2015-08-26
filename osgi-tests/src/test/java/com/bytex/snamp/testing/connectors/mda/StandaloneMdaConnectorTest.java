@@ -9,6 +9,7 @@ import com.bytex.snamp.connectors.notifications.SynchronizationListener;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.bytex.snamp.jmx.json.JsonUtils;
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -19,7 +20,6 @@ import javax.management.Notification;
 import javax.management.openmbean.CompositeData;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
@@ -34,7 +34,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
  */
 public final class StandaloneMdaConnectorTest extends AbstractMdaConnectorTest {
     public StandaloneMdaConnectorTest() {
-        super(Collections.<String, String>emptyMap());
+        super(ImmutableMap.of("expireTime", "10000"));
     }
 
     @Override
@@ -153,7 +153,6 @@ public final class StandaloneMdaConnectorTest extends AbstractMdaConnectorTest {
         final ManagedResourceConnector connector = getManagementConnector();
         try {
             assertEquals(901L, connector.getAttribute("attr7"));
-            assertEquals(901L, connector.getAttribute("attr7"));
         }
         finally {
             releaseManagementConnector();
@@ -225,6 +224,30 @@ public final class StandaloneMdaConnectorTest extends AbstractMdaConnectorTest {
         assertEquals(10L, received.getSequenceNumber());
         assertEquals(50L, received.getTimeStamp());
         assertEquals(100500.0, received.getUserData());
+    }
+
+    @Test
+    public void longAttributeExpirationTest() throws IOException, JMException, InterruptedException {
+        JsonElement result = setAttributeViaHttp("long", new JsonPrimitive(502L));
+        assertEquals(0L, result.getAsLong());
+        result = getAttributeViaHttp("long");
+        assertEquals(502L, result.getAsLong());
+
+        final ManagedResourceConnector connector = getManagementConnector();
+        try {
+            assertEquals(502L, connector.getAttribute("attr7"));
+            Thread.sleep(10010);
+            try {
+                connector.getAttribute("attr7");
+            }catch (final JMException e){
+                assertTrue(e.getCause() instanceof IllegalStateException);
+                return;
+            }
+            fail("No exception");
+        }
+        finally {
+            releaseManagementConnector();
+        }
     }
 
     @Override

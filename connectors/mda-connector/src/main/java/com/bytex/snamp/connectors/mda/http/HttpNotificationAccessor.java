@@ -21,7 +21,7 @@ import static com.bytex.snamp.connectors.mda.MdaResourceConfigurationDescriptorP
  * @version 1.0
  * @since 1.0
  */
-final class MdaNotificationAccessor extends CustomNotificationInfo {
+final class HttpNotificationAccessor extends CustomNotificationInfo {
     private static final String MESSAGE_FIELD  = "message";
     private static final String TIME_STAMP_FIELD = "timeStamp";
     private static final String SEQ_NUM_FIELD = "sequenceNumber";
@@ -89,9 +89,9 @@ final class MdaNotificationAccessor extends CustomNotificationInfo {
     private final AtomicLong sequenceNumberCounter;
     private final Function<JsonElement, ?> attachmentParser;
 
-    MdaNotificationAccessor(final String notifType,
-                            final NotificationDescriptor descriptor,
-                            final Gson formatter) throws OpenDataException {
+    HttpNotificationAccessor(final String notifType,
+                             final NotificationDescriptor descriptor,
+                             final Gson formatter) throws OpenDataException {
         super(notifType, descriptor.getDescription(descriptor.getNotificationCategory()), descriptor);
         sequenceNumberCounter = new AtomicLong(0L);
         this.attachmentParser = createAttachmentParser(formatter, parseType(descriptor));

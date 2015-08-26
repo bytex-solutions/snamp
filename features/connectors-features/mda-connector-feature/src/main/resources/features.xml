@@ -3,6 +3,7 @@
     <feature name="${project.artifactId}" description="${project.name}" version="${project.version}">
         <details>${project.description}</details>
         <feature version="[${snamp.framework.version}, ${snamp.framework.maxVersion})">platform-feature</feature>
+        <bundle>mvn:org.apache.thrift/libthrift/${thrift.version}</bundle>
         <bundle start="true">mvn:org.apache.geronimo.specs/geronimo-servlet_3.0_spec/1.0</bundle>
         <bundle start="true">mvn:com.sun.jersey/jersey-core/${jersey.version}</bundle>
         <bundle start="true">mvn:com.sun.jersey/jersey-server/${jersey.version}</bundle>
