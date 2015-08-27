@@ -1,5 +1,6 @@
 package com.bytex.snamp.connectors.mda.thrift;
 
+import com.google.common.cache.Cache;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TProtocol;
 
@@ -49,5 +50,9 @@ abstract class ThriftAttributeManager {
 
     final void getValue(final TProtocol output, final ConcurrentMap<String, ?> storage) throws TException {
         serialize(getValue(storage), output);
+    }
+
+    final void saveTo(final Cache<String, ThriftAttributeManager> parsers) {
+        parsers.put(storageSlotName, this);
     }
 }

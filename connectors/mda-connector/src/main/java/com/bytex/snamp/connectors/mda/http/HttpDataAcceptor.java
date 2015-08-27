@@ -5,16 +5,14 @@ import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.VolatileBox;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
-import com.bytex.snamp.connectors.attributes.AbstractAttributeSupport;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.mda.DataAcceptor;
+import com.bytex.snamp.connectors.mda.MDAAttributeSupport;
 import com.bytex.snamp.connectors.mda.SimpleTimer;
 import com.bytex.snamp.connectors.notifications.AbstractNotificationSupport;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 import com.bytex.snamp.connectors.notifications.NotificationListenerInvoker;
 import com.bytex.snamp.connectors.notifications.NotificationListenerInvokerFactory;
-import com.bytex.snamp.core.ServiceHolder;
-import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.jmx.json.JsonUtils;
@@ -22,12 +20,8 @@ import com.google.common.base.Function;
 import com.google.common.base.Supplier;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.Maps;
 import com.google.gson.*;
-import com.hazelcast.core.HazelcastInstance;
 import com.sun.jersey.spi.resource.Singleton;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 
@@ -45,9 +39,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -61,18 +53,18 @@ import static com.bytex.snamp.connectors.mda.MdaResourceConfigurationDescriptorP
 @Path("/")
 @Singleton
 public final class HttpDataAcceptor extends AbstractManagedResourceConnector implements DataAcceptor {
-    private static final class MDANotificationSupport extends AbstractNotificationSupport<HttpNotificationAccessor>{
+    private static final class HttpNotificationSupport extends AbstractNotificationSupport<HttpNotificationAccessor>{
         private static final Class<HttpNotificationAccessor> FEATURE_TYPE = HttpNotificationAccessor.class;
         private final Logger logger;
         private final Gson jsonFormatter;
         private final NotificationListenerInvoker listenerInvoker;
         private final SimpleTimer lastWriteAccess;
 
-        private MDANotificationSupport(final String resourceName,
-                                       final SimpleTimer lastWriteAccess,
-                                       final Logger logger,
-                                       final Gson formatter,
-                                       final ExecutorService threadPool){
+        private HttpNotificationSupport(final String resourceName,
+                                        final SimpleTimer lastWriteAccess,
+                                        final Logger logger,
+                                        final Gson formatter,
+                                        final ExecutorService threadPool){
             super(resourceName, FEATURE_TYPE);
             this.logger = Objects.requireNonNull(logger);
             this.jsonFormatter = Objects.requireNonNull(formatter);
@@ -126,41 +118,16 @@ public final class HttpDataAcceptor extends AbstractManagedResourceConnector imp
         }
     }
 
-    private static final class MDAAttributeSupport extends AbstractAttributeSupport<HttpAttributeAccessor>{
+    private static final class HttpAttributeSupport extends MDAAttributeSupport<HttpAttributeAccessor> {
         private static final Class<HttpAttributeAccessor> FEATURE_TYPE = HttpAttributeAccessor.class;
-        private final ConcurrentMap<String, Object> storage;
-        private final Logger logger;
         private final Cache<String, HttpAttributeManager> parsers;
-        private final long expirationTime;
-        private final SimpleTimer lastWriteAccess;
 
-        private MDAAttributeSupport(final String resourceName,
-                                    final long expirationTime,
-                                    final SimpleTimer lastWriteAccess,
-                                    final Logger logger) {
-            super(resourceName, FEATURE_TYPE);
-            this.logger = Objects.requireNonNull(logger);
-            //try to discover hazelcast
-            storage = createStorage(resourceName, Utils.getBundleContextByObject(this));
+        private HttpAttributeSupport(final String resourceName,
+                                     final long expirationTime,
+                                     final SimpleTimer lastWriteAccess,
+                                     final Logger logger) {
+            super(resourceName, FEATURE_TYPE, expirationTime, lastWriteAccess, logger);
             parsers = CacheBuilder.newBuilder().weakValues().build();
-            this.expirationTime = expirationTime;
-            this.lastWriteAccess = Objects.requireNonNull(lastWriteAccess);
-        }
-
-        private static ConcurrentMap<String, Object> createStorage(final String resourceName,
-                                                                   final BundleContext context){
-            final ServiceReference<HazelcastInstance> hazelcast = context.getServiceReference(HazelcastInstance.class);
-            if(hazelcast == null) //local storage
-                return Maps.newConcurrentMap();
-            else {
-                final ServiceHolder<HazelcastInstance> holder = new ServiceHolder<>(context, hazelcast);
-                try{
-                    return holder.get().getMap(resourceName);
-                }
-                finally {
-                    holder.release(context);
-                }
-            }
         }
 
         @Override
@@ -171,7 +138,7 @@ public final class HttpDataAcceptor extends AbstractManagedResourceConnector imp
             if (result != null){
                 //do nothing
             }
-            else if (attributeType instanceof SimpleType<?>) {
+            else if (attributeType instanceof SimpleType<?> || attributeType instanceof ArrayType<?>) {
                 result = new SimpleAttributeManager(WellKnownType.getType(attributeType), descriptor.getAttributeName());
                 result.saveTo(parsers);
             }
@@ -185,19 +152,6 @@ public final class HttpDataAcceptor extends AbstractManagedResourceConnector imp
             final HttpAttributeAccessor accessor = new HttpAttributeAccessor(attributeID, attributeType, descriptor, result);
             accessor.setValue(accessor.getDefaultValue(), storage);
             return accessor;
-        }
-
-        @Override
-        protected void failedToConnectAttribute(final String attributeID, final String attributeName, final Exception e) {
-            failedToConnectAttribute(logger, Level.WARNING, attributeID, attributeName, e);
-        }
-
-        @Override
-        protected Object getAttribute(final HttpAttributeAccessor metadata) {
-            if(lastWriteAccess.checkInterval(expirationTime, TimeUnit.MILLISECONDS) > 0)
-                throw new IllegalStateException("Attribute value is too old. Backend component must supply a fresh value");
-            else
-                return metadata.getValue(storage);
         }
 
         private String getAttribute(final String attributeName, final Gson formatter) throws AttributeNotFoundException{
@@ -217,27 +171,11 @@ public final class HttpDataAcceptor extends AbstractManagedResourceConnector imp
                 return result;
             }
         }
-
-        @Override
-        protected void failedToGetAttribute(final String attributeID, final Exception e) {
-            failedToGetAttribute(logger, Level.SEVERE, attributeID, e);
-        }
-
-        @Override
-        protected void setAttribute(final HttpAttributeAccessor attribute, final Object value) throws InvalidAttributeValueException {
-            attribute.setValue(value, storage);
-            lastWriteAccess.reset();
-        }
-
-        @Override
-        protected void failedToSetAttribute(final String attributeID, final Object value, final Exception e) {
-            failedToSetAttribute(logger, Level.SEVERE, attributeID, value, e);
-        }
     }
 
     private final Gson formatter;
-    private final MDAAttributeSupport attributes;
-    private final MDANotificationSupport notifications;
+    private final HttpAttributeSupport attributes;
+    private final HttpNotificationSupport notifications;
     private final String servletContext;
     private final ExecutorService threadPool;
     private final VolatileBox<HttpService> publisherRef;
@@ -252,8 +190,8 @@ public final class HttpDataAcceptor extends AbstractManagedResourceConnector imp
         this.formatter = JsonUtils.registerTypeAdapters(new GsonBuilder().serializeNulls()).create();
 
         final SimpleTimer lastWriteAccess = new SimpleTimer();
-        this.attributes = new MDAAttributeSupport(resourceName, expirationTime, lastWriteAccess, getLogger());
-        this.notifications = new MDANotificationSupport(resourceName, lastWriteAccess, getLogger(), formatter, threadPool);
+        this.attributes = new HttpAttributeSupport(resourceName, expirationTime, lastWriteAccess, getLogger());
+        this.notifications = new HttpNotificationSupport(resourceName, lastWriteAccess, getLogger(), formatter, threadPool);
     }
 
     private Response setAttributes(final JsonObject items){

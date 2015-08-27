@@ -6,6 +6,7 @@ import com.bytex.snamp.jmx.DefaultValues;
 import com.bytex.snamp.jmx.WellKnownType;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.protocol.TType;
 
 import javax.management.ObjectName;
 import java.math.BigDecimal;
@@ -31,8 +32,7 @@ final class SimpleAttributeManager extends ThriftAttributeManager {
         return DefaultValues.get(attributeType.getOpenType());
     }
 
-    @Override
-    protected void serialize(final Object input, final TProtocol output) throws TException {
+    static void serialize(final Object input, final WellKnownType attributeType, final TProtocol output) throws TException{
         switch (attributeType){
             case BOOL:
                 output.writeBool((boolean)input);
@@ -79,12 +79,16 @@ final class SimpleAttributeManager extends ThriftAttributeManager {
         }
     }
 
+    @Override
+    protected void serialize(final Object input, final TProtocol output) throws TException {
+        serialize(input, attributeType, output);
+    }
+
     private static char toChar(final String value){
         return value.isEmpty() ? '\0' : value.charAt(0);
     }
 
-    @Override
-    protected Object deserialize(final TProtocol input) throws TException {
+    static Object deserialize(final TProtocol input, final WellKnownType attributeType) throws TException {
         switch (attributeType){
             case BOOL:
                 return input.readBool();
@@ -119,5 +123,10 @@ final class SimpleAttributeManager extends ThriftAttributeManager {
             default:
                 return null;
         }
+    }
+
+    @Override
+    protected Object deserialize(final TProtocol input) throws TException {
+        return deserialize(input, attributeType);
     }
 }

@@ -25,10 +25,7 @@ final class CompositeAttributeManager extends HttpAttributeManager {
     CompositeAttributeManager(final CompositeType type,
                               final String slotName) throws OpenDataException {
         super(type, slotName);
-        final Map<String, Object> items = Maps.newHashMapWithExpectedSize(type.keySet().size());
-        for (final String itemName : type.keySet())
-            items.put(itemName, DefaultValues.get(type.getType(itemName)));
-        defaultValue = new CompositeDataSupport(type, items);
+        defaultValue = DefaultValues.get(type);
     }
 
     @Override

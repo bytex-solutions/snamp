@@ -9,6 +9,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
 
+import static com.bytex.snamp.connectors.mda.MdaResourceConfigurationDescriptorProvider.parseExpireTime;
 import static com.bytex.snamp.connectors.mda.MdaResourceConfigurationDescriptorProvider.parseSocketTimeout;
 
 /**
@@ -23,7 +24,9 @@ public final class ThriftDataAcceptorFactory implements DataAcceptorFactory {
     static ThriftDataAcceptor create(final String resourceName,
                         final URI connectionString,
                         final Map<String, String> parameters) throws TTransportException {
-        return new ThriftDataAcceptor(InetSocketAddress.createUnresolved(connectionString.getHost(), connectionString.getPort()),
+        return new ThriftDataAcceptor(resourceName,
+                parseExpireTime(parameters),
+                InetSocketAddress.createUnresolved(connectionString.getHost(), connectionString.getPort()),
                 parseSocketTimeout(parameters),
                 new MdaThreadPoolConfig(resourceName, parameters));
     }

@@ -2,16 +2,15 @@ package com.bytex.snamp.jmx;
 
 import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
-import javax.management.openmbean.ArrayType;
-import javax.management.openmbean.OpenDataException;
-import javax.management.openmbean.OpenType;
-import javax.management.openmbean.SimpleType;
+import javax.management.openmbean.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
@@ -83,6 +82,17 @@ public final class DefaultValues {
 
     }
 
+    public static CompositeData get(final CompositeType type) throws OpenDataException {
+        final Map<String, Object> items = Maps.newHashMapWithExpectedSize(type.keySet().size());
+        for (final String itemName : type.keySet()) {
+            final OpenType<?> itemType = type.getType(itemName);
+            if (itemType instanceof CompositeType)
+                items.put(itemName, get((CompositeType) itemType));
+            else items.put(itemName, get(itemType));
+        }
+        return new CompositeDataSupport(type, items);
+    }
+
     /**
      * Gets default value of the specified OpenType.
      * @param type OpenType instance. Cannot be {@literal null}.
@@ -93,4 +103,6 @@ public final class DefaultValues {
     public static <T> T get(final OpenType<T> type){
         return (T)values.get(type);
     }
+
+
 }

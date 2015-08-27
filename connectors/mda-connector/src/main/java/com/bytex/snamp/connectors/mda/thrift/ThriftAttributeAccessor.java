@@ -19,10 +19,9 @@ final class ThriftAttributeAccessor extends MdaAttributeAccessor {
 
     protected ThriftAttributeAccessor(final String name,
                                       final OpenType<?> type,
-                                      final AttributeSpecifier specifier,
                                       final AttributeDescriptor descriptor,
                                       final ThriftAttributeManager manager) {
-        super(name, type, specifier, descriptor);
+        super(name, type, AttributeSpecifier.READ_WRITE, descriptor);
         this.parser = Objects.requireNonNull(manager);
     }
 

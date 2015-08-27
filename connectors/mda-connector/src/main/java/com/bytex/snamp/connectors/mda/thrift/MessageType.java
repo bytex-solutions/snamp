@@ -25,6 +25,12 @@ enum MessageType {
     private static final String NOTIFY_MESSAGE = "notify_";
     private static final Pattern NOTIFY_PREFIX = Pattern.compile(NOTIFY_MESSAGE);
 
+    /**
+     * Parses message type.
+     * @param message Input message to be processed.
+     * @param entityName A name of the attribute or notification extracted from the message.
+     * @return
+     */
     static MessageType get(final TMessage message, final Box<String> entityName) {
         if (message.name.startsWith(GETTER_MESSAGE)) {
             entityName.set(GETTER_PREFIX.matcher(message.name).replaceFirst(""));
