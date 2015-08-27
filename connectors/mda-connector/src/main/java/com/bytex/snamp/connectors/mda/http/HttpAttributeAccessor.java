@@ -22,7 +22,7 @@ final class HttpAttributeAccessor extends MdaAttributeAccessor {
                           final OpenType<?> type,
                           final AttributeDescriptor descriptor,
                           final HttpAttributeManager storage) {
-        super(name, type, descriptor.getDescription(name), AttributeSpecifier.READ_WRITE, descriptor);
+        super(name, type, AttributeSpecifier.READ_WRITE, descriptor);
         this.storageManager = Objects.requireNonNull(storage);
     }
 

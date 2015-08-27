@@ -1,16 +1,23 @@
 package com.bytex.snamp.connectors.mda.thrift;
 
+import com.bytex.snamp.Box;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
 import com.bytex.snamp.connectors.mda.DataAcceptor;
+import com.google.common.base.Supplier;
 import org.apache.thrift.TException;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.transport.TNonblockingServerSocket;
+import org.apache.thrift.transport.TServerTransport;
+import org.apache.thrift.transport.TTransportException;
 
 import javax.management.openmbean.CompositeData;
-import java.io.IOException;
+import java.lang.ref.WeakReference;
+import java.net.InetSocketAddress;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
 /**
  * @author Roman Sakno
@@ -18,6 +25,31 @@ import java.util.Set;
  * @since 1.0
  */
 final class ThriftDataAcceptor extends AbstractManagedResourceConnector implements DataAcceptor, TProcessor {
+    private static final class WeakProcessor extends WeakReference<TProcessor> implements TProcessor{
+        private WeakProcessor(final TProcessor value){
+            super(value);
+        }
+
+        @Override
+        public boolean process(final TProtocol in, final TProtocol out) throws TException {
+            final TProcessor processor = get();
+            return processor != null && processor.process(in, out);
+        }
+    }
+
+    private static final class MDAAttributeSupport{
+
+    }
+    private final MdaThriftServer thriftServer;
+    private final TServerTransport transport;
+
+    ThriftDataAcceptor(final InetSocketAddress host,
+                       final int socketTimeout,
+                       final Supplier<? extends ExecutorService> threadPoolFactory) throws TTransportException {
+        this.transport = new TNonblockingServerSocket(host, socketTimeout);
+        this.thriftServer = new MdaThriftServer(this.transport, threadPoolFactory.get(), new WeakProcessor(this));
+    }
+
     @Override
     public boolean addAttribute(final String attributeID, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
         return false;
@@ -39,8 +71,8 @@ final class ThriftDataAcceptor extends AbstractManagedResourceConnector implemen
     }
 
     @Override
-    public void beginAccept(final Object... dependencies) throws IOException {
-
+    public void beginAccept(final Object... dependencies) {
+        thriftServer.serve();
     }
 
     /**
@@ -67,6 +99,29 @@ final class ThriftDataAcceptor extends AbstractManagedResourceConnector implemen
 
     @Override
     public boolean process(final TProtocol in, final TProtocol out) throws TException {
-        return false;
+        final Box<String> entityName = new Box<>();
+        final MessageType messageType = MessageType.get(in.readMessageBegin(), entityName);
+        if (messageType != null)
+            try {
+                switch (messageType) {
+                    default:
+                        return false;
+                }
+            } finally {
+                in.readMessageEnd();
+            }
+        else return false;
+    }
+
+    /**
+     * Releases all resources associated with this connector.
+     *
+     * @throws Exception Unable to release resources associated with this connector.
+     */
+    @Override
+    public void close() throws Exception {
+        super.close();
+        thriftServer.stop();
+        transport.close();
     }
 }

@@ -18,10 +18,9 @@ public abstract class MdaAttributeAccessor extends OpenTypeAttributeInfo {
 
     protected MdaAttributeAccessor(final String name,
                                    final OpenType<?> type,
-                                   final String description,
                                    final AttributeSpecifier specifier,
                                    final AttributeDescriptor descriptor) {
-        super(name, type, description, specifier, descriptor);
+        super(name, type, descriptor.getDescription(name), specifier, descriptor);
     }
 
     public abstract Object setValue(final Object value, final ConcurrentMap<String, Object> storage) throws InvalidAttributeValueException;

@@ -25,6 +25,7 @@ public final class MdaResourceConfigurationDescriptorProvider extends Configurat
     private static final String ITEM_TYPES_PARAM = "dictionaryItemTypes";
     private static final String TYPE_NAME_PARAM = "dictionaryName";
     private static final String EXPIRE_TIME_PARAM = "expireTime";
+    private static final String SOCKET_TIMEOUT_PARAM = "socketTimeout";
 
     private static final Splitter ITEMS_SPLITTER = Splitter.on(',').trimResults();
 
@@ -64,5 +65,11 @@ public final class MdaResourceConfigurationDescriptorProvider extends Configurat
         if(parameters.containsKey(EXPIRE_TIME_PARAM))
             return Integer.parseInt(parameters.get(EXPIRE_TIME_PARAM));
         else return Long.MAX_VALUE;
+    }
+
+    public static int parseSocketTimeout(final Map<String, String> parameters){
+        if(parameters.containsKey(SOCKET_TIMEOUT_PARAM))
+            return Integer.parseInt(parameters.get(SOCKET_TIMEOUT_PARAM));
+        else return 4000;
     }
 }
