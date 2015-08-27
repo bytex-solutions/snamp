@@ -9,6 +9,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
 import javax.management.InvalidAttributeValueException;
+import java.io.Closeable;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
@@ -18,7 +19,7 @@ import java.util.logging.Logger;
 /**
  * Represents abstract support of MDA attributes.
  */
-public abstract class MDAAttributeSupport<M extends MdaAttributeAccessor> extends AbstractAttributeSupport<M> {
+public abstract class MDAAttributeSupport<M extends MdaAttributeAccessor> extends AbstractAttributeSupport<M> implements Closeable {
     private final Logger logger;
     private final long expirationTime;
     /**
@@ -86,5 +87,11 @@ public abstract class MDAAttributeSupport<M extends MdaAttributeAccessor> extend
                 holder.release(context);
             }
         }
+    }
+
+    @Override
+    public void close() {
+        removeAll(true);
+        storage.clear();
     }
 }

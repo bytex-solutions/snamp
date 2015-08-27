@@ -1,19 +1,21 @@
 package com.bytex.snamp.connectors.mda.thrift;
 
+import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.jmx.DefaultValues;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.google.common.collect.Maps;
 import org.apache.thrift.TException;
+import org.apache.thrift.protocol.TField;
 import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.protocol.TStruct;
+import org.apache.thrift.protocol.TType;
 
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeDataSupport;
 import javax.management.openmbean.CompositeType;
 import javax.management.openmbean.OpenDataException;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 /**
  * Represents serializer/deserializer of CompositeData.
@@ -21,41 +23,54 @@ import java.util.TreeSet;
  * <p>
  *     CompositeData will be serialized into a set of fields according with 
  */
-final class CompositeAttributeManager extends ThriftAttributeManager {
+final class CompositeValueParser implements ThriftValueParser {
     private final CompositeData defaultValue;
-    private final SortedSet<String> sortedItems;
+    private final String[] sortedItems;
+    private final TStruct struct;
 
-    CompositeAttributeManager(final CompositeType type, final String slotName) throws OpenDataException {
-        super(type, slotName);
+    CompositeValueParser(final CompositeType type) throws OpenDataException {
         defaultValue = DefaultValues.get(type);
-        sortedItems = new TreeSet<>(type.keySet());
+        sortedItems = ArrayUtils.toArray(type.keySet(), String.class);
+        Arrays.sort(sortedItems);
+        this.struct = new TStruct(type.getTypeName());
     }
 
     @Override
-    CompositeData getDefaultValue() {
+    public CompositeData getDefaultValue() {
         return defaultValue;
     }
 
     private void serialize(final CompositeData input, final TProtocol output) throws TException{
+        short index = 0;
+        output.writeStructBegin(struct);
         for(final String itemName: sortedItems){
             final WellKnownType itemType = WellKnownType.getItemType(input.getCompositeType(), itemName);
-            SimpleAttributeManager.serialize(input.get(itemName), itemType, output);
+            SimpleValueParser.serialize(input.get(itemName), itemType, output, index++, itemName);
         }
+        output.writeFieldStop();
+        output.writeStructEnd();
     }
 
     @Override
-    protected void serialize(final Object input, final TProtocol output) throws TException {
+    public void serialize(final Object input, final TProtocol output) throws TException {
         if(input instanceof CompositeData)
             serialize(((CompositeData)input), output);
     }
 
     @Override
-    protected CompositeData deserialize(final TProtocol input) throws TException {
-        final Map<String, Object> items = Maps.newHashMapWithExpectedSize(sortedItems.size());
-        for(final String itemName: sortedItems){
+    public CompositeData deserialize(final TProtocol input) throws TException {
+        final Map<String, Object> items = Maps.newHashMapWithExpectedSize(sortedItems.length);
+        input.readStructBegin();
+        while (true){
+            final TField field = input.readFieldBegin();
+            if(field.type == TType.STOP) break;
+            final String itemName = sortedItems[field.id];
             final WellKnownType itemType = WellKnownType.getItemType(defaultValue.getCompositeType(), itemName);
-            items.put(itemName, SimpleAttributeManager.deserialize(input, itemType));
+            items.put(itemName, SimpleValueParser.deserializeNaked(input, itemType));
+            input.readFieldEnd();
         }
+        input.readStructEnd();
+
         try {
             return new CompositeDataSupport(defaultValue.getCompositeType(), items);
         } catch (final OpenDataException e) {

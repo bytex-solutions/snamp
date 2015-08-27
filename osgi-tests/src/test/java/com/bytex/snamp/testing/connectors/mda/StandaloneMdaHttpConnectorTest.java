@@ -32,14 +32,14 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
  * @version 1.0
  * @since 1.0
  */
-public final class StandaloneMdaConnectorTest extends AbstractMdaConnectorTest {
-    public StandaloneMdaConnectorTest() {
+public final class StandaloneMdaHttpConnectorTest extends AbstractMdaConnectorTest {
+    public StandaloneMdaHttpConnectorTest() {
         super(ImmutableMap.of("expireTime", "10000"));
     }
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return true;
+        return false;
     }
 
     @Test
@@ -223,7 +223,7 @@ public final class StandaloneMdaConnectorTest extends AbstractMdaConnectorTest {
         assertEquals("Frank Underwood", received.getMessage());
         assertEquals(10L, received.getSequenceNumber());
         assertEquals(50L, received.getTimeStamp());
-        assertEquals(100500.0, received.getUserData());
+        assertEquals(100500L, received.getUserData());
     }
 
     @Test
@@ -254,6 +254,7 @@ public final class StandaloneMdaConnectorTest extends AbstractMdaConnectorTest {
     protected void fillEvents(final Map<String, EventConfiguration> events, final Supplier<EventConfiguration> eventFactory) {
         EventConfiguration event = eventFactory.get();
         event.setCategory("testEvent1");
+        event.getParameters().put("expectedType", "int64");
         events.put("e1", event);
     }
 

@@ -27,7 +27,11 @@ public abstract class AbstractMdaConnectorTest extends AbstractResourceConnector
     protected final Gson formatter;
 
     protected AbstractMdaConnectorTest(final Map<String, String> parameters){
-        super(CONNECTOR_TYPE, "", parameters);
+        this("", parameters);
+    }
+
+    protected AbstractMdaConnectorTest(final String connectionString, final Map<String, String> parameters){
+        super(CONNECTOR_TYPE, connectionString, parameters);
         formatter = new Gson();
     }
 

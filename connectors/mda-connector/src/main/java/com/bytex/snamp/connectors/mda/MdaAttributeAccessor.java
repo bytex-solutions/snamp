@@ -23,7 +23,22 @@ public abstract class MdaAttributeAccessor extends OpenTypeAttributeInfo {
         super(name, type, descriptor.getDescription(name), specifier, descriptor);
     }
 
-    public abstract Object setValue(final Object value, final ConcurrentMap<String, Object> storage) throws InvalidAttributeValueException;
+    protected static String getStorageName(final AttributeDescriptor descriptor){
+        return descriptor.getAttributeName();
+    }
 
-    public abstract Object getValue(final ConcurrentMap<String, ?> storage);
+    private String getStorageName(){
+        return getStorageName(getDescriptor());
+    }
+
+    public final Object getValue(final ConcurrentMap<String, ?> storage){
+        return storage.get(getStorageName());
+    }
+
+    public final Object setValue(final Object value,
+                                 final ConcurrentMap<String, Object> storage) throws InvalidAttributeValueException {
+        if(getOpenType().isValue(value))
+            return storage.put(getStorageName(), value);
+        else throw new InvalidAttributeValueException(String.format("Value '%s' doesn't match to type '%s'", value, getOpenType()));
+    }
 }

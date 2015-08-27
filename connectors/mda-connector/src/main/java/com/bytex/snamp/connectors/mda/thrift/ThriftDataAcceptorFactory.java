@@ -4,9 +4,7 @@ import com.bytex.snamp.connectors.mda.DataAcceptorFactory;
 import com.bytex.snamp.connectors.mda.MdaThreadPoolConfig;
 import org.apache.thrift.transport.TTransportException;
 
-import java.net.InetSocketAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.*;
 import java.util.Map;
 
 import static com.bytex.snamp.connectors.mda.MdaResourceConfigurationDescriptorProvider.parseExpireTime;
@@ -23,10 +21,10 @@ public final class ThriftDataAcceptorFactory implements DataAcceptorFactory {
 
     static ThriftDataAcceptor create(final String resourceName,
                         final URI connectionString,
-                        final Map<String, String> parameters) throws TTransportException {
+                        final Map<String, String> parameters) throws TTransportException, UnknownHostException {
         return new ThriftDataAcceptor(resourceName,
                 parseExpireTime(parameters),
-                InetSocketAddress.createUnresolved(connectionString.getHost(), connectionString.getPort()),
+                new InetSocketAddress(InetAddress.getByName(connectionString.getHost()), connectionString.getPort()),
                 parseSocketTimeout(parameters),
                 new MdaThreadPoolConfig(resourceName, parameters));
     }
@@ -34,7 +32,7 @@ public final class ThriftDataAcceptorFactory implements DataAcceptorFactory {
     @Override
     public ThriftDataAcceptor create(final String resourceName,
                                final String connectionString,
-                               final Map<String, String> parameters) throws URISyntaxException, TTransportException {
+                               final Map<String, String> parameters) throws URISyntaxException, TTransportException, UnknownHostException {
         return create(resourceName, new URI(connectionString), parameters);
     }
 

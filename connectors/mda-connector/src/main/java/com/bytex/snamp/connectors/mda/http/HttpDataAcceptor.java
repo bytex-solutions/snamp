@@ -56,18 +56,15 @@ public final class HttpDataAcceptor extends AbstractManagedResourceConnector imp
     private static final class HttpNotificationSupport extends AbstractNotificationSupport<HttpNotificationAccessor>{
         private static final Class<HttpNotificationAccessor> FEATURE_TYPE = HttpNotificationAccessor.class;
         private final Logger logger;
-        private final Gson jsonFormatter;
         private final NotificationListenerInvoker listenerInvoker;
         private final SimpleTimer lastWriteAccess;
 
         private HttpNotificationSupport(final String resourceName,
                                         final SimpleTimer lastWriteAccess,
                                         final Logger logger,
-                                        final Gson formatter,
                                         final ExecutorService threadPool){
             super(resourceName, FEATURE_TYPE);
             this.logger = Objects.requireNonNull(logger);
-            this.jsonFormatter = Objects.requireNonNull(formatter);
             this.lastWriteAccess = Objects.requireNonNull(lastWriteAccess);
             listenerInvoker =
                     NotificationListenerInvokerFactory.createParallelInvoker(threadPool);
@@ -86,29 +83,33 @@ public final class HttpDataAcceptor extends AbstractManagedResourceConnector imp
         @Override
         protected HttpNotificationAccessor enableNotifications(final String notifType,
                                                               final NotificationDescriptor metadata) throws OpenDataException{
-            return new HttpNotificationAccessor(notifType, metadata, jsonFormatter);
+            return new HttpNotificationAccessor(notifType, metadata);
         }
 
-        private void fire(final String category, final JsonObject notification) throws JsonParseException {
+        private void fire(final String category, final JsonObject notification, final Gson formatter) throws JsonParseException {
 
             fire(new NotificationCollector() {
                 @Override
                 protected void process(final HttpNotificationAccessor metadata) {
                     if (category.equals(metadata.getDescriptor().getNotificationCategory()))
-                        enqueue(metadata,
-                                metadata.getMessage(notification),
-                                metadata.getSequenceNumber(notification),
-                                metadata.getTimeStamp(notification),
-                                metadata.getUserData(notification));
+                        try {
+                            enqueue(metadata,
+                                    metadata.getMessage(notification),
+                                    metadata.getSequenceNumber(notification),
+                                    metadata.getTimeStamp(notification),
+                                    metadata.getUserData(notification, formatter));
+                        } catch (final OpenDataException e) {
+                            logger.log(Level.SEVERE, "Unable to process notification " + notification, e);
+                        }
                 }
             });
             lastWriteAccess.reset();
         }
 
-        private void fire(final String category, final String notification) throws JsonParseException{
-            final JsonElement notif = jsonFormatter.fromJson(notification, JsonElement.class);
+        private void fire(final String category, final String notification, final Gson formatter) throws JsonParseException{
+            final JsonElement notif = formatter.fromJson(notification, JsonElement.class);
             if(notif != null && notif.isJsonObject())
-                fire(category, notif.getAsJsonObject());
+                fire(category, notif.getAsJsonObject(), formatter);
             else throw new JsonParseException("JSON Object expected");
         }
 
@@ -120,7 +121,7 @@ public final class HttpDataAcceptor extends AbstractManagedResourceConnector imp
 
     private static final class HttpAttributeSupport extends MDAAttributeSupport<HttpAttributeAccessor> {
         private static final Class<HttpAttributeAccessor> FEATURE_TYPE = HttpAttributeAccessor.class;
-        private final Cache<String, HttpAttributeManager> parsers;
+        private final Cache<String, HttpValueParser> parsers;
 
         private HttpAttributeSupport(final String resourceName,
                                      final long expirationTime,
@@ -134,42 +135,48 @@ public final class HttpDataAcceptor extends AbstractManagedResourceConnector imp
         protected HttpAttributeAccessor connectAttribute(final String attributeID,
                                                             final AttributeDescriptor descriptor) throws JMException {
             final OpenType<?> attributeType = parseType(descriptor);
-            HttpAttributeManager result = parsers.getIfPresent(descriptor.getAttributeName());
+            HttpValueParser result = parsers.getIfPresent(descriptor.getAttributeName());
             if (result != null){
                 //do nothing
             }
-            else if (attributeType instanceof SimpleType<?> || attributeType instanceof ArrayType<?>) {
-                result = new SimpleAttributeManager(WellKnownType.getType(attributeType), descriptor.getAttributeName());
-                result.saveTo(parsers);
-            }
-            else if (attributeType instanceof CompositeType) {
-                result = new CompositeAttributeManager((CompositeType) attributeType, descriptor.getAttributeName());
-                result.saveTo(parsers);
-            } else {
-                result = new FallbackAttributeManager(descriptor.getAttributeName());
-                result.saveTo(parsers);
-            }
+            else if (attributeType instanceof SimpleType<?> || attributeType instanceof ArrayType<?>)
+                HttpAttributeAccessor.saveParser(result = new SimpleValueParser(WellKnownType.getType(attributeType)),
+                        descriptor,
+                        parsers);
+            else if (attributeType instanceof CompositeType)
+                HttpAttributeAccessor.saveParser(result = new CompositeValueParser((CompositeType) attributeType),
+                        descriptor,
+                        parsers);
+            else
+                HttpAttributeAccessor.saveParser(result = FallbackValueParser.INSTANCE, descriptor, parsers);
             final HttpAttributeAccessor accessor = new HttpAttributeAccessor(attributeID, attributeType, descriptor, result);
             accessor.setValue(accessor.getDefaultValue(), storage);
             return accessor;
         }
 
-        private String getAttribute(final String attributeName, final Gson formatter) throws AttributeNotFoundException{
-            final HttpAttributeManager attribute = parsers.getIfPresent(attributeName);
-            if(attribute == null)
+        private JsonElement getAttribute(final String attributeName, final Gson formatter) throws AttributeNotFoundException{
+            final HttpValueParser parser = parsers.getIfPresent(attributeName);
+            if(parser == null)
                 throw JMExceptionUtils.attributeNotFound(attributeName);
-            else return attribute.getValue(formatter, storage);
+            else return HttpAttributeAccessor.getValue(attributeName, parser, formatter, storage);
         }
 
-        private String setAttribute(final String attributeName, final Gson formatter, final String value) throws AttributeNotFoundException, InvalidAttributeValueException, OpenDataException {
-            final HttpAttributeManager attribute = parsers.getIfPresent(attributeName);
-            if(attribute == null)
+        private JsonElement setAttribute(final String attributeName, final Gson formatter, final JsonElement value) throws AttributeNotFoundException, InvalidAttributeValueException, OpenDataException {
+            final HttpValueParser parser = parsers.getIfPresent(attributeName);
+            if(parser == null)
                 throw JMExceptionUtils.attributeNotFound(attributeName);
             else {
-                final String result = attribute.setValue(value, formatter, storage);
+                final JsonElement result = HttpAttributeAccessor.setValue(attributeName, parser, value, formatter, storage);
                 lastWriteAccess.reset();
                 return result;
             }
+        }
+
+        @Override
+        public void close() {
+            super.close();
+            parsers.invalidateAll();
+            parsers.cleanUp();
         }
     }
 
@@ -191,18 +198,18 @@ public final class HttpDataAcceptor extends AbstractManagedResourceConnector imp
 
         final SimpleTimer lastWriteAccess = new SimpleTimer();
         this.attributes = new HttpAttributeSupport(resourceName, expirationTime, lastWriteAccess, getLogger());
-        this.notifications = new HttpNotificationSupport(resourceName, lastWriteAccess, getLogger(), formatter, threadPool);
+        this.notifications = new HttpNotificationSupport(resourceName, lastWriteAccess, getLogger(), threadPool);
     }
 
     private Response setAttributes(final JsonObject items){
         final JsonObject result = new JsonObject();
         for(final Map.Entry<String, JsonElement> attribute: items.entrySet())
             try {
-                final String previous = attributes.setAttribute(attribute.getKey(),
+                final JsonElement previous = attributes.setAttribute(attribute.getKey(),
                         formatter,
-                        formatter.toJson(attribute.getValue())
+                        attribute.getValue()
                 );
-                result.add(attribute.getKey(), formatter.fromJson(previous, JsonElement.class));
+                result.add(attribute.getKey(), previous);
             } catch (final AttributeNotFoundException e) {
                 return Response
                         .status(Response.Status.NOT_FOUND)
@@ -259,9 +266,9 @@ public final class HttpDataAcceptor extends AbstractManagedResourceConnector imp
     public Response setAttribute(@PathParam("name")final String attributeName,
                              final String value){
         try {
-            final String result = attributes.setAttribute(attributeName, formatter, value);
+            final JsonElement result = attributes.setAttribute(attributeName, formatter, formatter.fromJson(value, JsonElement.class));
             return Response
-                    .ok(result, MediaType.APPLICATION_JSON_TYPE)
+                    .ok(formatter.toJson(result), MediaType.APPLICATION_JSON_TYPE)
                     .build();
         } catch (final AttributeNotFoundException e) {
             return Response
@@ -294,12 +301,12 @@ public final class HttpDataAcceptor extends AbstractManagedResourceConnector imp
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/attributes/{name}")
     public String getAttribute(@PathParam("name") final String attributeName,
-                               @Context final UriInfo info) throws WebApplicationException{
+                               @Context final UriInfo info) throws WebApplicationException {
         try {
-            return attributes.getAttribute(attributeName, formatter);
+            return formatter.toJson(attributes.getAttribute(attributeName, formatter));
         } catch (final AttributeNotFoundException e) {
             throw new WebApplicationException(e, Response.Status.NOT_FOUND);
-        } catch (final Exception e){
+        } catch (final Exception e) {
             throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
@@ -309,7 +316,7 @@ public final class HttpDataAcceptor extends AbstractManagedResourceConnector imp
     @Path("/notifications/{category}")
     public void sendNotification(@PathParam("category")final String category, final String notification) throws WebApplicationException{
         try {
-            notifications.fire(category, notification);
+            notifications.fire(category, notification, formatter);
         }
         catch (final JsonParseException e){
             throw new WebApplicationException(e, Response.Status.BAD_REQUEST);
@@ -406,8 +413,7 @@ public final class HttpDataAcceptor extends AbstractManagedResourceConnector imp
         if(publisher != null)
             publisher.unregister(servletContext);
         threadPool.shutdown();
-        attributes.removeAll(true);
-        attributes.parsers.invalidateAll();
+        attributes.close();
         notifications.removeAll(true, true);
         super.close();
     }

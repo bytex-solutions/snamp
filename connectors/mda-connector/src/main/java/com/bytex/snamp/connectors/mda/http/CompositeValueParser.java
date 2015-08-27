@@ -19,17 +19,15 @@ import java.util.Set;
  * @version 1.0
  * @since 1.0
  */
-final class CompositeAttributeManager extends HttpAttributeManager {
+final class CompositeValueParser implements HttpValueParser {
     private final CompositeData defaultValue;
 
-    CompositeAttributeManager(final CompositeType type,
-                              final String slotName) throws OpenDataException {
-        super(type, slotName);
+    CompositeValueParser(final CompositeType type) throws OpenDataException {
         defaultValue = DefaultValues.get(type);
     }
 
     @Override
-    CompositeData getDefaultValue() {
+    public CompositeData getDefaultValue() {
         return defaultValue;
     }
 
@@ -52,10 +50,9 @@ final class CompositeAttributeManager extends HttpAttributeManager {
     }
 
     @Override
-    protected CompositeData deserialize(final String value, final Gson formatter) throws OpenDataException {
-        final JsonElement obj = formatter.fromJson(value, JsonElement.class);
-        return obj.isJsonObject() ?
-                deserialize(obj.getAsJsonObject(), formatter, defaultValue.getCompositeType()) :
+    public CompositeData deserialize(final JsonElement value, final Gson formatter) throws OpenDataException {
+        return value.isJsonObject() ?
+                deserialize(value.getAsJsonObject(), formatter, defaultValue.getCompositeType()) :
                 defaultValue;
     }
 
@@ -67,9 +64,9 @@ final class CompositeAttributeManager extends HttpAttributeManager {
     }
 
     @Override
-    protected String serialize(final Object value, final Gson formatter) {
-        return formatter.toJson(value instanceof CompositeData ?
+    public JsonObject serialize(final Object value, final Gson formatter) {
+        return value instanceof CompositeData ?
                 serialize((CompositeData) value, formatter) :
-                serialize(defaultValue, formatter));
+                serialize(defaultValue, formatter);
     }
 }
