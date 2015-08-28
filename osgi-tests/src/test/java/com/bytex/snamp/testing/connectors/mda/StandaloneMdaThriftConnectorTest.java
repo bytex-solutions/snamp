@@ -96,7 +96,7 @@ public final class StandaloneMdaThriftConnectorTest extends AbstractMdaConnector
         attr.getParameters().put("expectedType", "dictionary");
         attr.getParameters().put("dictionaryName", "MemoryStatus");
         attr.getParameters().put("dictionaryItemNames", "free, total");
-        attr.getParameters().put("dictionaryItemTypes", "int32, int32");
+        attr.getParameters().put("dictionaryItemTypes", "int32, int64");
         attributes.put("attr8", attr);
     }
 }

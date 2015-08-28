@@ -1,29 +1,59 @@
 SNAMP 1.0.0
 ====
-Read-to-use in production environment version of SNAMP
+Read-to-use in production environment version of SNAMP.
 
-## Overview
+## Components
 The following components are released as parts of SNAMP:
 
-Component Name| Version | Changelog
----- | ---- | ----
-SNAMP Platform | 1.0.0 | First production release
-SNMP Resource Connector | 1.0.0 | First production release
-JMX Resource Connector | 1.0.0 | First production release
-RShell Resource Connector | 1.0.0 | First production release
-Groovy Resource Connector | 1.0.0 | First production release
-Aggregator Resource Connector | 1.0.0 | First production release
-IBM WebSphere MQ Resource Connector | 1.0.0 | First production release
-IBM WebSphere Integration Bus (Message Broker) | 1.0.0 | First production release
-JMX Resource Adapter | 1.0.0 | First production release
-SSH Resource Adapter | 1.0.0 | First production release
-HTTP Resource Adapter | 1.0.0 | First production release
-XMPP Resource Adapter | 1.0.0 | First production release
-Syslog Resource Adapter | 1.0.0 | First production release
-Nagios Resource Adapter | 1.0.0 | First production release
-NSCA Resource Adapter | 1.0.0 | First production release
-NRDP Resource Adapter | 1.0.0 | First production release
+### SNAMP Platform 1.0.0
+First production release of SNAMP core components.
+
+### SNMP Resource Connector 1.0.0
+First production release of SNMP Resource Connector.
+
+### JMX Resource Connector 1.0.0
+First production release of JMX Resource Connector.
+
+### RShell Resource Connector 1.0.0
+First production release of RShell Resource Connector.
+
+### Groovy Resource Connector 1.0.0
+First production release of Groovy Resource Connector.
+
+### Resource Aggregator 1.0.0
+First production release of Resource Aggregator.
+
+### IBM WebSphere MQ Resource Connector
+First production release of WebSphere MQ Resource Connector.
+
+### Monitoring Data Acceptor 1.0.0
+First production release of MDA Resource Connector.
+
+### JMX Resource Adapter 1.0.0
+First production release of JMX Resource Adapter.
+
+### SSH Resource Adapter 1.0.0
+First production release of SSH Resource Adapter.
+
+### HTTP Resource Adapter 1.0.0
+First production release of HTTP Resource Adapter.
+
+### XMPP Resource Adapter 1.0.0
+First production release of XMPP Resource Adapter.
+
+### Syslog Resource Adapter 1.0.0
+First production release of Syslog Resource Adapter.
+
+### Nagios Resource Adapter 1.0.0
+First production release of Nagios Resource Adapter.
+
+### Nagios Service Check Acceptor (NSCA) Adapter 1.0.0
+First production release of NSCA Resource Adapter.
+
+### Nagios Remote Data Processor (NRDP) Adapter 1.0.0
+First production release of NRDP Resource Adapter.
 
 ## Dependencies
 Java SE 7
 Apache Karaf 3.0.3
+Hazelcast

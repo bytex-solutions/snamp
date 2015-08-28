@@ -20,3 +20,4 @@ Display name | System name | Supported Protocols | Attributes | Notifications | 
 [Resource Aggregator](aggregator-connector.md) | aggregator | _Not Applicable_ | Yes | Yes | No | No
 [Groovy Resource Connector](groovy-connector.md) | groovy | _Any_ | Yes | Yes | No | No
 [Modbus Resource Connector](modbus-connector.md) | modbus | Modbus/TCP, Modbus/UDP, Modbus RTU-IP | Yes | No | No | No
+[Monitoring Data Acceptor](mda-connector.md) | mda | HTTP, Thrift | Yes | Yes | No | No
