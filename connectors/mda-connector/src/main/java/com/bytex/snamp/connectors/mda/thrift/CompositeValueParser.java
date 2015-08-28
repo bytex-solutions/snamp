@@ -5,10 +5,7 @@ import com.bytex.snamp.jmx.DefaultValues;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.google.common.collect.Maps;
 import org.apache.thrift.TException;
-import org.apache.thrift.protocol.TField;
-import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.protocol.TStruct;
-import org.apache.thrift.protocol.TType;
+import org.apache.thrift.protocol.*;
 
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeDataSupport;
@@ -41,12 +38,17 @@ final class CompositeValueParser implements ThriftValueParser {
     }
 
     private void serialize(final CompositeData input, final TProtocol output) throws TException{
-        short index = 0;
+        short index = 1;
+        output.writeStructBegin(new TStruct("Result"));
+        output.writeFieldBegin(new TField("value", TType.STRUCT, (short)0));
         output.writeStructBegin(struct);
         for(final String itemName: sortedItems){
             final WellKnownType itemType = WellKnownType.getItemType(input.getCompositeType(), itemName);
             SimpleValueParser.serialize(input.get(itemName), itemType, output, index++, itemName);
         }
+        output.writeFieldStop();
+        output.writeStructEnd();
+        output.writeFieldEnd();
         output.writeFieldStop();
         output.writeStructEnd();
     }
@@ -64,7 +66,7 @@ final class CompositeValueParser implements ThriftValueParser {
         while (true){
             final TField field = input.readFieldBegin();
             if(field.type == TType.STOP) break;
-            final String itemName = sortedItems[field.id];
+            final String itemName = sortedItems[field.id - 1];
             final WellKnownType itemType = WellKnownType.getItemType(defaultValue.getCompositeType(), itemName);
             items.put(itemName, SimpleValueParser.deserializeNaked(input, itemType));
             input.readFieldEnd();

@@ -28,7 +28,10 @@ service MonitoringDataAcceptor{
     i64 set_long(1:i64 value)
 
     MemoryStatus get_dict()
-    MemoryStatus set_dict(1:MemoryStatus value)
+    MemoryStatus set_dict(1:i32 free, 2:i64 total)
 
-    void notify_testEvent1(1:string message, 2:i64 seqnum, 3:i64 timeStamp, 4:i64 userData)
+    list<i64> get_longArray()
+    list<i64> set_longArray(1:list<i64> value)
+
+    oneway void notify_testEvent1(1:string message, 2:i64 seqnum, 3:i64 timeStamp, 4:i64 userData)
 }

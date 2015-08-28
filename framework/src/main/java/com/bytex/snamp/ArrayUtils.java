@@ -158,8 +158,50 @@ public final class ArrayUtils {
         return result;
     }
 
+    public static Short[] boxArray(final short[] values) {
+        final Short[] result = new Short[values.length];
+        for (int i = 0; i < values.length; i++)
+            result[i] = values[i];
+        return result;
+    }
+
+    public static Float[] boxArray(final float[] values) {
+        final Float[] result = new Float[values.length];
+        for (int i = 0; i < values.length; i++)
+            result[i] = values[i];
+        return result;
+    }
+
+    public static Double[] boxArray(final double[] values) {
+        final Double[] result = new Double[values.length];
+        for (int i = 0; i < values.length; i++)
+            result[i] = values[i];
+        return result;
+    }
+
+    public static Character[] boxArray(final char[] values) {
+        final Character[] result = new Character[values.length];
+        for (int i = 0; i < values.length; i++)
+            result[i] = values[i];
+        return result;
+    }
+
+    public static Long[] boxArray(final long[] values) {
+        final Long[] result = new Long[values.length];
+        for (int i = 0; i < values.length; i++)
+            result[i] = values[i];
+        return result;
+    }
+
     public static byte[] unboxArray(final Byte[] value) {
         final byte[] result = new byte[value.length];
+        for(int i = 0; i < value.length; i++)
+            result[i] = value[i];
+        return result;
+    }
+
+    public static short[] unboxArray(final Short[] value) {
+        final short[] result = new short[value.length];
         for(int i = 0; i < value.length; i++)
             result[i] = value[i];
         return result;
@@ -174,6 +216,34 @@ public final class ArrayUtils {
 
     public static int[] unboxArray(final Integer[] value){
         final int[] result = new int[value.length];
+        for(int i = 0; i < value.length; i++)
+            result[i] = value[i];
+        return result;
+    }
+
+    public static long[] unboxArray(final Long[] value){
+        final long[] result = new long[value.length];
+        for(int i = 0; i < value.length; i++)
+            result[i] = value[i];
+        return result;
+    }
+
+    public static float[] unboxArray(final Float[] value){
+        final float[] result = new float[value.length];
+        for(int i = 0; i < value.length; i++)
+            result[i] = value[i];
+        return result;
+    }
+
+    public static double[] unboxArray(final Double[] value){
+        final double[] result = new double[value.length];
+        for(int i = 0; i < value.length; i++)
+            result[i] = value[i];
+        return result;
+    }
+
+    public static char[] unboxArray(final Character[] value){
+        final char[] result = new char[value.length];
         for(int i = 0; i < value.length; i++)
             result[i] = value[i];
         return result;

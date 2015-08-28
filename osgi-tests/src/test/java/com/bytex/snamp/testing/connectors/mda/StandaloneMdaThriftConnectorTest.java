@@ -1,6 +1,9 @@
 package com.bytex.snamp.testing.connectors.mda;
 
+import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.io.Buffers;
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -10,6 +13,8 @@ import org.apache.thrift.transport.TTransportException;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.util.Map;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -43,6 +48,87 @@ public final class StandaloneMdaThriftConnectorTest extends AbstractMdaConnector
         short result = client.set_short((short)50);
         assertEquals(0, result);
         assertEquals(50, client.get_short());
+    }
+
+    @Test
+    public void dateAttributeTest() throws IOException, TException{
+        final Client client = createClient();
+        final long date = System.currentTimeMillis();
+        final long result = client.set_date(date);
+        assertEquals(0L, result);
+        assertEquals(date, client.get_date());
+    }
+
+    @Test
+    public void bigintAttributeTest() throws IOException, TException{
+        final Client client = createClient();
+        final BigInteger expectedValue = new BigInteger("100500");
+        final BigInteger result = new BigInteger(client.set_biginteger(expectedValue.toString()));
+        assertEquals(BigInteger.ZERO, result);
+        assertEquals(expectedValue, new BigInteger(client.get_biginteger()));
+    }
+
+    @Test
+    public void strAttributeTest() throws IOException, TException{
+        final Client client = createClient();
+        final String expectedValue = "Frank Underwood";
+        final String result = client.set_str(expectedValue);
+        assertEquals("", result);
+        assertEquals(expectedValue, client.get_str());
+    }
+
+    @Test
+    public void arrayAttributeTest() throws IOException, TException {
+        final Client client = createClient();
+        final byte[] expectedValue = {3, 90, 50, 7};
+        final ByteBuffer result = client.set_array(Buffers.wrap(expectedValue));
+        assertArrayEquals(ArrayUtils.emptyArray(byte[].class), Buffers.readRemaining(result));
+        assertArrayEquals(expectedValue, Buffers.readRemaining(client.get_array()));
+    }
+
+    @Test
+    public void booleanAttributeTest() throws IOException, TException{
+        final Client client = createClient();
+        final boolean result = client.set_boolean(true);
+        assertFalse(result);
+        assertTrue(client.get_boolean());
+    }
+
+    @Test
+    public void longAttributeTest() throws IOException, TException{
+        final Client client = createClient();
+        final long expectedValue = 42L;
+        final long result = client.set_long(expectedValue);
+        assertEquals(0L, result);
+        assertEquals(expectedValue, client.get_long());
+        assertEquals(expectedValue, client.get_long());
+    }
+
+    @Test
+    public void longReadTest() throws IOException, TException {
+        final Client client = createClient();
+        assertEquals(0L, client.get_long());
+        assertEquals(0L, client.get_long());
+    }
+
+    @Test
+    public void dictAttributeTest() throws IOException, TException{
+        final Client client = createClient();
+        final MemoryStatus expectedValue = new MemoryStatus(32, 100L);
+        final MemoryStatus result = client.set_dict(32, 100L);
+        assertEquals(0, result.free);
+        assertEquals(0L, result.total);
+        assertEquals(expectedValue.free, client.get_dict().free);
+        assertEquals(expectedValue.total, client.get_dict().total);
+    }
+
+    @Test
+    public void longArrayAttributeTest() throws IOException, TException {
+        final Client client = createClient();
+        final Long[] expectedValue = {3L, 90L, 50L, 7L};
+        final Long[] result = ArrayUtils.toArray(client.set_longArray(ImmutableList.copyOf(expectedValue)), Long.class);
+        assertArrayEquals(ArrayUtils.emptyArray(Long[].class), result);
+        assertArrayEquals(expectedValue, ArrayUtils.toArray(client.get_longArray(), Long.class));
     }
 
     @Override
@@ -98,5 +184,10 @@ public final class StandaloneMdaThriftConnectorTest extends AbstractMdaConnector
         attr.getParameters().put("dictionaryItemNames", "free, total");
         attr.getParameters().put("dictionaryItemTypes", "int32, int64");
         attributes.put("attr8", attr);
+
+        attr = attributeFactory.get();
+        attr.setAttributeName("longArray");
+        attr.getParameters().put("expectedType", "array(int64)");
+        attributes.put("attr9", attr);
     }
 }

@@ -267,6 +267,9 @@ final class ThriftDataAcceptor extends AbstractManagedResourceConnector implemen
             try {
                 switch (messageType) {
                     case GET_ATTRIBUTE:
+                        in.readStructBegin();
+                        ThriftUtils.skipStopField(in);  //skip empty list of arguments
+                        in.readStructEnd();
                         return attributes.getAttribute(entityName.get(), out);
                     case SET_ATTRIBUTE:
                         return attributes.setAttribute(entityName.get(), in, out);

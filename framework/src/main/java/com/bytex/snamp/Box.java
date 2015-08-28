@@ -1,6 +1,7 @@
 package com.bytex.snamp;
 
 import com.google.common.base.Function;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Supplier;
 
 import java.io.Serializable;
@@ -81,7 +82,7 @@ public class Box<T> implements Wrapper<T>, Supplier<T>, SafeConsumer<T>, Cloneab
      * @return An object stored in this box; or {@code defval} if stored object is {@literal null}.
      */
     public final T getOrDefault(final T defval){
-        return value != null ? value : defval;
+        return MoreObjects.firstNonNull(value, defval);
     }
 
     /**
