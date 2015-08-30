@@ -1,14 +1,14 @@
 package com.bytex.snamp.connectors.mda.thrift;
 
 import com.bytex.snamp.connectors.mda.DataAcceptorFactory;
-import com.bytex.snamp.connectors.mda.MdaThreadPoolConfig;
+import com.bytex.snamp.connectors.mda.MDAThreadPoolConfig;
 import org.apache.thrift.transport.TTransportException;
 
 import java.net.*;
 import java.util.Map;
 
-import static com.bytex.snamp.connectors.mda.MdaResourceConfigurationDescriptorProvider.parseExpireTime;
-import static com.bytex.snamp.connectors.mda.MdaResourceConfigurationDescriptorProvider.parseSocketTimeout;
+import static com.bytex.snamp.connectors.mda.MDAResourceConfigurationDescriptorProvider.parseExpireTime;
+import static com.bytex.snamp.connectors.mda.MDAResourceConfigurationDescriptorProvider.parseSocketTimeout;
 
 /**
  * Represents factory of {@link ThriftDataAcceptor} class.
@@ -26,7 +26,7 @@ public final class ThriftDataAcceptorFactory implements DataAcceptorFactory {
                 parseExpireTime(parameters),
                 new InetSocketAddress(InetAddress.getByName(connectionString.getHost()), connectionString.getPort()),
                 parseSocketTimeout(parameters),
-                new MdaThreadPoolConfig(resourceName, parameters));
+                new MDAThreadPoolConfig(resourceName, parameters));
     }
 
     @Override

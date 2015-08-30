@@ -10,10 +10,7 @@ import java.util.Map;
  * @since 1.0
  */
 final class SshThreadPoolConfig extends ThreadPoolConfig {
-    private static final int DEFAULT_MIN_POOL_SIZE = 1;
-    private static final int DEFAULT_MAX_POOL_SIZE = 5;
     private static final long DEFAULT_KEEP_ALIVE_TIME = 2000;
-    private static final int DEFAULT_PRIORITY = Thread.NORM_PRIORITY;
 
     private static String createThreadGroup(final String adapterInstanceName){
         return String.format("%s:%s", SshHelpers.ADAPTER_NAME, adapterInstanceName);
@@ -21,11 +18,7 @@ final class SshThreadPoolConfig extends ThreadPoolConfig {
 
     SshThreadPoolConfig(final String instanceName,
                         final Map<String, String> parameters){
-        super(createThreadGroup(instanceName),
-                DEFAULT_MIN_POOL_SIZE,
-                DEFAULT_MAX_POOL_SIZE,
-                INFINITE_QUEUE_SIZE,
-                DEFAULT_KEEP_ALIVE_TIME,
-                DEFAULT_PRIORITY);
+        super(parameters, createThreadGroup(instanceName),
+                DEFAULT_KEEP_ALIVE_TIME);
     }
 }

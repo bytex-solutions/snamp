@@ -1,11 +1,15 @@
 package com.bytex.snamp.connectors.mda;
 
+import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
+import com.bytex.snamp.core.ServiceSpinWait;
 import com.bytex.snamp.jmx.CompositeTypeBuilder;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+import com.hazelcast.core.HazelcastInstance;
+import org.osgi.framework.BundleContext;
 
 import javax.management.Descriptor;
 import javax.management.openmbean.CompositeType;
@@ -13,19 +17,21 @@ import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 /**
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-public final class MdaResourceConfigurationDescriptorProvider extends ConfigurationEntityDescriptionProviderImpl {
+public final class MDAResourceConfigurationDescriptorProvider extends ConfigurationEntityDescriptionProviderImpl {
     private static final String TYPE_PARAM = "expectedType";
     private static final String ITEM_NAMES_PARAM = "dictionaryItemNames";
     private static final String ITEM_TYPES_PARAM = "dictionaryItemTypes";
     private static final String TYPE_NAME_PARAM = "dictionaryName";
     private static final String EXPIRE_TIME_PARAM = "expireTime";
     private static final String SOCKET_TIMEOUT_PARAM = "socketTimeout";
+    private static final String WAIT_FOR_HZ_PARAM = "waitForHazelcast";
 
     private static final Splitter ITEMS_SPLITTER = Splitter.on(',').trimResults();
 
@@ -71,5 +77,14 @@ public final class MdaResourceConfigurationDescriptorProvider extends Configurat
         if(parameters.containsKey(SOCKET_TIMEOUT_PARAM))
             return Integer.parseInt(parameters.get(SOCKET_TIMEOUT_PARAM));
         else return 4000;
+    }
+
+    static boolean waitForHazelcast(final Map<String, String> parameters, final BundleContext context) throws TimeoutException, InterruptedException {
+        if(parameters.containsKey(WAIT_FOR_HZ_PARAM)){
+            final long timeout = Long.parseLong(parameters.get(WAIT_FOR_HZ_PARAM));
+            final ServiceSpinWait<HazelcastInstance> hazelcastWait = new ServiceSpinWait<>(context, HazelcastInstance.class);
+            return hazelcastWait.await(new TimeSpan(timeout)) != null;
+        }
+        else return false;
     }
 }

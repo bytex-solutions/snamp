@@ -24,7 +24,7 @@ public final class LoginConfigurationManagerTest extends AbstractSnampIntegratio
     @Test
     public void jaasTest() throws InterruptedException, TimeoutException, InvalidSyntaxException {
         assertNotNull(manager);
-        JsonConfiguration conf = new JsonConfiguration();
+        final JsonConfiguration conf = new JsonConfiguration();
         manager.dumpConfiguration(conf);
         assertEquals(2, conf.size());
     }

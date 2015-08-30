@@ -9,7 +9,7 @@ import org.apache.thrift.protocol.TProtocol;
 
 import javax.management.openmbean.*;
 
-import static com.bytex.snamp.connectors.mda.MdaResourceConfigurationDescriptorProvider.parseType;
+import static com.bytex.snamp.connectors.mda.MDAResourceConfigurationDescriptorProvider.parseType;
 
 /**
  * @author Roman Sakno

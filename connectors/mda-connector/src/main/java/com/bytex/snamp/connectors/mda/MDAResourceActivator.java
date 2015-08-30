@@ -4,19 +4,21 @@ import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
+import com.bytex.snamp.internal.Utils;
 import org.osgi.service.http.HttpService;
 
 import javax.management.openmbean.CompositeData;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.Set;
+import static com.bytex.snamp.connectors.mda.MDAResourceConfigurationDescriptorProvider.waitForHazelcast;
 
 /**
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-public final class MdaResourceActivator extends ManagedResourceActivator<DataAcceptor> {
+public final class MDAResourceActivator extends ManagedResourceActivator<DataAcceptor> {
 
 
     private static final class MonitoringDataAcceptorFactory extends ManagedResourceConnectorModeler<DataAcceptor>{
@@ -59,6 +61,7 @@ public final class MdaResourceActivator extends ManagedResourceActivator<DataAcc
 
         @Override
         public DataAcceptor createConnector(final String resourceName, final String connectionString, final Map<String, String> connectionParameters, final RequiredService<?>... dependencies) throws Exception {
+            waitForHazelcast(connectionParameters, Utils.getBundleContextByObject(this));
             for(final DataAcceptorFactory factory: dataAcceptors)
                 if(factory.canCreateFrom(connectionString)){
                     final DataAcceptor acceptor = factory.create(resourceName, connectionString, connectionParameters);
@@ -71,7 +74,7 @@ public final class MdaResourceActivator extends ManagedResourceActivator<DataAcc
     }
 
     @SpecialUse
-    public MdaResourceActivator() {
+    public MDAResourceActivator() {
         super(new MonitoringDataAcceptorFactory(),
                 new RequiredService<?>[]{new SimpleDependency<>(HttpService.class)},
                 ArrayUtils.emptyArray(SupportConnectorServiceManager[].class));

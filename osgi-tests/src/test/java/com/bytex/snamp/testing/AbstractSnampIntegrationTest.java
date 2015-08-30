@@ -12,6 +12,7 @@ import com.bytex.snamp.SpecialUse;
 import org.junit.After;
 import org.junit.Before;
 import org.ops4j.pax.exam.karaf.options.KarafFeaturesOption;
+import org.ops4j.pax.exam.options.MavenArtifactUrlReference;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.cm.ConfigurationAdmin;
 
@@ -57,6 +58,23 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
                 fire(e.getSource());
         }
     }
+    private static final EnvironmentBuilder SNAMP_ENV_BUILDER = new EnvironmentBuilder() {
+        @Override
+        public Collection<KarafFeaturesOption> getFeatures(final Class<? extends AbstractIntegrationTest> testType) {
+            final Collection<KarafFeaturesOption> result = new LinkedList<>();
+            for (final SnampDependencies deps : TestUtils.getAnnotations(testType, SnampDependencies.class))
+                for (final SnampFeature feature : deps.value())
+                    try {
+                        result.add(new SnampFeatureOption(feature));
+                    } catch (final MalformedURLException e) {
+                        fail(e.getMessage());
+                    }
+            for(final MavenDependencies deps: TestUtils.getAnnotations(testType, MavenDependencies.class))
+                for(final MavenFeature feature: deps.value())
+                    result.add(new KarafFeaturesOption(new MavenArtifactUrlReference().artifactId(feature.artifactId()).groupId(feature.groupId()).version(feature.version()).type("xml").classifier("features"), feature.name()));
+            return result;
+        }
+    };
 
     private PersistentConfigurationManager configManager = null;
     @Inject
@@ -64,20 +82,7 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
     private ConfigurationAdmin configAdmin = null;
 
     protected AbstractSnampIntegrationTest(){
-        super(new EnvironmentBuilder() {
-            @Override
-            public Collection<KarafFeaturesOption> getFeatures(final Class<? extends AbstractIntegrationTest> testType) {
-                final Collection<KarafFeaturesOption> result = new LinkedList<>();
-                for (final SnampDependencies deps : TestUtils.getAnnotations(testType, SnampDependencies.class))
-                    for (final SnampFeature feature : deps.value())
-                        try {
-                            result.add(new SnampFeatureOption(feature));
-                        } catch (final MalformedURLException e) {
-                            fail(e.getMessage());
-                        }
-                return result;
-            }
-        });
+        super(SNAMP_ENV_BUILDER);
         //WORKAROUND for system properties with relative path
         if(!isInTestContainer()){
             expandSystemPropertyFileName(SnampSystemProperties.JAAS_CONFIG_FILE);

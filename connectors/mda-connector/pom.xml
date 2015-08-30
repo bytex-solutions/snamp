@@ -22,7 +22,7 @@
                 <configuration>
                     <instructions>
                         <Bundle-SymbolicName>com.bytex.snamp.connectors.mda</Bundle-SymbolicName>
-                        <Bundle-Activator>com.bytex.snamp.connectors.mda.MdaResourceActivator</Bundle-Activator>
+                        <Bundle-Activator>com.bytex.snamp.connectors.mda.MDAResourceActivator</Bundle-Activator>
                         <Export-Package/>
                         <!--SNAMP specific header-->
                         <SNAMP-Resource-Connector>mda</SNAMP-Resource-Connector>

@@ -20,10 +20,34 @@ public class ThreadPoolConfig implements Supplier<ExecutorService> {
      * Represents infinite queue size.
      */
     public static final int INFINITE_QUEUE_SIZE = Integer.MAX_VALUE;
+    /**
+     * Recommended minimum count of threads in the pool.
+     */
+    public static final int RECOMMENDED_MIN_POOL_SIZE = 1;
+
+    /**
+     * Recommended maximum count of threads in the pool.
+     */
+    public static final int RECOMMENDED_MAX_POOL_SIZE = Runtime.getRuntime().availableProcessors();
+
+    /**
+     * Recommended priority of threads in the pool.
+     */
+    public static final int RECOMMENDED_PRIORITY = Thread.NORM_PRIORITY;
+
+    /**
+     * Minimum count of threads in the pool.
+     */
     protected final int minPoolSize;
+    /**
+     * Maximum count of threads in the pool.
+     */
     protected final int maxPoolSize;
     protected final long keepAliveTime;
     protected final int queueSize;
+    /**
+     * Thread factory used to create new threads in the pool.
+     */
     protected final GroupedThreadFactory threadFactory;
 
     public ThreadPoolConfig(final String threadGroupName,
@@ -45,7 +69,7 @@ public class ThreadPoolConfig implements Supplier<ExecutorService> {
                             final int defaultMaxPoolSize,
                             final int defaultQueueSize,
                             final long defaultKeepAliveTimeMillis,
-                            final int defaultThreadPriority) {
+                            final int defaultThreadPriority) throws NumberFormatException{
         this(threadGroupName,
                 properties.containsKey(MIN_POOL_SIZE_PROPERTY) ?
                         Integer.parseInt(properties.get(MIN_POOL_SIZE_PROPERTY)) :
@@ -70,7 +94,7 @@ public class ThreadPoolConfig implements Supplier<ExecutorService> {
                             final int defaultMaxPoolSize,
                             final int defaultQueueSize,
                             final long defaultKeepAliveTimeMillis,
-                            final int defaultThreadPriority) {
+                            final int defaultThreadPriority) throws NumberFormatException{
         this(entity.getParameters(), threadGroupName,
                 defaultMinPoolSize,
                 defaultMaxPoolSize,
@@ -79,14 +103,29 @@ public class ThreadPoolConfig implements Supplier<ExecutorService> {
                 defaultThreadPriority);
     }
 
+    public ThreadPoolConfig(final Map<String, String> parameters,
+                            final String threadGroupName,
+                            final long defaultKeepAliveTimeMillis) throws NumberFormatException{
+        this(parameters,
+                threadGroupName,
+                RECOMMENDED_MIN_POOL_SIZE,
+                RECOMMENDED_MAX_POOL_SIZE,
+                INFINITE_QUEUE_SIZE,
+                defaultKeepAliveTimeMillis,
+                RECOMMENDED_PRIORITY);
+    }
+
     /**
      * Creates a new instance of the empty task queue.
      * @return A new instance of the empty task queue.
      */
-    protected final BlockingQueue<Runnable> createTaskQueue(){
-        if(queueSize == INFINITE_QUEUE_SIZE)
-            return new LinkedBlockingQueue<>();
-        else return new ArrayBlockingQueue<>(queueSize);
+    protected final BlockingQueue<Runnable> createTaskQueue() {
+        switch (queueSize) {
+            case INFINITE_QUEUE_SIZE:
+                return new LinkedBlockingQueue<>();
+            default:
+                return new ArrayBlockingQueue<>(queueSize);
+        }
     }
 
     /**
@@ -100,6 +139,7 @@ public class ThreadPoolConfig implements Supplier<ExecutorService> {
                 maxPoolSize,
                 keepAliveTime,
                 TimeUnit.MILLISECONDS,
-                createTaskQueue(), threadFactory);
+                createTaskQueue(),
+                threadFactory);
     }
 }

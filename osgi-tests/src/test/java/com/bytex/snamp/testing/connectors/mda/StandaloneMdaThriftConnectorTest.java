@@ -1,10 +1,8 @@
 package com.bytex.snamp.testing.connectors.mda;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.concurrent.SynchronizationEvent;
+import com.bytex.snamp.connectors.notifications.NotificationBox;
 import com.bytex.snamp.connectors.notifications.NotificationSupport;
-import com.bytex.snamp.connectors.notifications.SynchronizationListener;
 import com.bytex.snamp.io.Buffers;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
@@ -21,6 +19,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -39,7 +38,7 @@ public final class StandaloneMdaThriftConnectorTest extends AbstractMdaConnector
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return true;
+        return false;
     }
 
     private static Client createClient() throws IOException, TTransportException {
@@ -141,25 +140,25 @@ public final class StandaloneMdaThriftConnectorTest extends AbstractMdaConnector
     @Test
     public void notificationTest() throws IOException, TException, TimeoutException, InterruptedException {
         final NotificationSupport notifications = getManagementConnector().queryObject(NotificationSupport.class);
-        final SynchronizationEvent.EventAwaitor<Notification> awaitor;
-        try{
-            final SynchronizationListener listener = new SynchronizationListener();
-            notifications.addNotificationListener(listener, null, null);
-            awaitor = listener.getAwaitor();
-        }
-        finally {
+        final NotificationBox mailbox = new NotificationBox(2);
+        try {
+            notifications.addNotificationListener(mailbox, null, null);
+        } finally {
             releaseManagementConnector();
         }
         final Client client = createClient();
         final long timeStamp;
         client.notify_testEvent("Frank Underwood", 1L, timeStamp = System.currentTimeMillis(), 42L);
-        final Notification n = awaitor.await(TimeSpan.fromSeconds(100000L));
+        //verify that Thrift binary stream is parsed successfully
+        assertEquals(0L, client.get_long());
+        Notification n;
+        do {
+            n = mailbox.poll(1, TimeUnit.MILLISECONDS);
+        } while (n == null);
         assertEquals("Frank Underwood", n.getMessage());
         assertEquals(1L, n.getSequenceNumber());
         assertEquals(timeStamp, n.getTimeStamp());
         assertEquals(42L, n.getUserData());
-        //verify that Thrift binary stream is parsed successfully
-        assertEquals(0L, client.get_long());
     }
 
     @Override

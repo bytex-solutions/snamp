@@ -1,11 +1,11 @@
 package com.bytex.snamp.connectors.notifications;
 
 import com.bytex.snamp.concurrent.SynchronizationEvent;
+import com.google.common.base.Strings;
 
 import javax.management.Notification;
 import javax.management.NotificationFilter;
 import javax.management.NotificationListener;
-import java.util.Objects;
 
 /**
  * Represents notification listener that can be used to handle the notification
@@ -34,7 +34,7 @@ public final class SynchronizationListener extends SynchronizationEvent<Notifica
      */
     public SynchronizationListener(final String subscriptionList){
         super(true);
-        expectedSubscriptionList = subscriptionList == null || subscriptionList.isEmpty() ?
+        expectedSubscriptionList = Strings.isNullOrEmpty(subscriptionList) ?
                 ANY_SUBSCRIPTION_LIST: subscriptionList;
     }
 
@@ -64,7 +64,7 @@ public final class SynchronizationListener extends SynchronizationEvent<Notifica
      */
     @Override
     public boolean isNotificationEnabled(final Notification n) {
-        return Objects.equals(n.getType(), expectedSubscriptionList) ||
-                Objects.equals(expectedSubscriptionList, ANY_SUBSCRIPTION_LIST);
+        return expectedSubscriptionList.equals(n.getType()) ||
+                ANY_SUBSCRIPTION_LIST.equals(expectedSubscriptionList);
     }
 }

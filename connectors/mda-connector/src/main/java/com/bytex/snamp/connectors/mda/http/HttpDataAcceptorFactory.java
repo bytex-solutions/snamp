@@ -1,11 +1,11 @@
 package com.bytex.snamp.connectors.mda.http;
 
 import com.bytex.snamp.connectors.mda.DataAcceptorFactory;
-import com.bytex.snamp.connectors.mda.MdaThreadPoolConfig;
+import com.bytex.snamp.connectors.mda.MDAThreadPoolConfig;
 
 import java.util.Map;
 
-import static com.bytex.snamp.connectors.mda.MdaResourceConfigurationDescriptorProvider.parseExpireTime;
+import static com.bytex.snamp.connectors.mda.MDAResourceConfigurationDescriptorProvider.parseExpireTime;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
@@ -30,7 +30,7 @@ public final class HttpDataAcceptorFactory implements DataAcceptorFactory {
         return new HttpDataAcceptor(resourceName,
                 servletContext,
                 parseExpireTime(parameters),
-                new MdaThreadPoolConfig(resourceName, parameters));
+                new MDAThreadPoolConfig(resourceName, parameters));
     }
 
     @Override

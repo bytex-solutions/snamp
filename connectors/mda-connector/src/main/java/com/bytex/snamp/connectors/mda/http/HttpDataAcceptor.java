@@ -43,7 +43,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.bytex.snamp.connectors.mda.MdaResourceConfigurationDescriptorProvider.parseType;
+import static com.bytex.snamp.connectors.mda.MDAResourceConfigurationDescriptorProvider.parseType;
 
 /**
  * @author Roman Sakno

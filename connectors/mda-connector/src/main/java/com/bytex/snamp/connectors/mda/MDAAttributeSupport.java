@@ -41,7 +41,7 @@ public abstract class MDAAttributeSupport<M extends MdaAttributeAccessor> extend
         this.expirationTime = expirationTime;
         this.logger = Objects.requireNonNull(logger);
         //try to discover hazelcast
-        storage = createStorage(resourceName, Utils.getBundleContextByObject(this));
+        storage = createStorage(resourceName, Utils.getBundleContextByObject(this), logger);
     }
 
     @Override
@@ -74,13 +74,17 @@ public abstract class MDAAttributeSupport<M extends MdaAttributeAccessor> extend
     }
 
     private static ConcurrentMap<String, Object> createStorage(final String resourceName,
-                                                               final BundleContext context){
+                                                               final BundleContext context,
+                                                               final Logger logger){
         final ServiceReference<HazelcastInstance> hazelcast = context.getServiceReference(HazelcastInstance.class);
-        if(hazelcast == null) //local storage
+        if(hazelcast == null) { //local storage
+            logger.info(String.format("%s MDA Connector uses local in-memory local storage for monitoring data", resourceName));
             return Maps.newConcurrentMap();
+        }
         else {
             final ServiceHolder<HazelcastInstance> holder = new ServiceHolder<>(context, hazelcast);
             try{
+                logger.info(String.format("%s MDA Connector uses in-memory data grid (%s) for monitoring data", resourceName, holder.get().getName()));
                 return holder.get().getMap(resourceName);
             }
             finally {

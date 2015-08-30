@@ -34,7 +34,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.bytex.snamp.connectors.mda.MdaResourceConfigurationDescriptorProvider.parseType;
+import static com.bytex.snamp.connectors.mda.MDAResourceConfigurationDescriptorProvider.parseType;
 
 /**
  * @author Roman Sakno
@@ -100,27 +100,27 @@ final class ThriftDataAcceptor extends AbstractManagedResourceConnector implemen
                         final TField field = input.readFieldBegin();
                         final boolean next;
                         if(next = field.type != TType.STOP)
-                            switch (field.id){
-                            case 1:
-                                message = input.readString();
-                                counter += 1;
-                                break;
-                            case 2:
-                                sequenceNumber = input.readI64();
-                                counter += 1;
-                                break;
-                            case 3:
-                                timeStamp = input.readI64();
-                                counter += 1;
-                                break;
-                            case 4:
-                                userData = metadata.parseUserData(input);
-                                counter += 1;
-                                break;
-                            default:
-                                TProtocolUtil.skip(input, field.type);
-                                break;
-                        }
+                            switch (field.id) {
+                                case 1:
+                                    message = input.readString();
+                                    counter += 1;
+                                    break;
+                                case 2:
+                                    sequenceNumber = input.readI64();
+                                    counter += 1;
+                                    break;
+                                case 3:
+                                    timeStamp = input.readI64();
+                                    counter += 1;
+                                    break;
+                                case 4:
+                                    userData = metadata.parseUserData(input);
+                                    counter += 1;
+                                    break;
+                                default:
+                                    TProtocolUtil.skip(input, field.type);
+                                    break;
+                            }
                         input.readFieldEnd();
                         if(!next) break;
                     }

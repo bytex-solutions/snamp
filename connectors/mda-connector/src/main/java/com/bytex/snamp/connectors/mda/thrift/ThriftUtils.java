@@ -1,10 +1,7 @@
 package com.bytex.snamp.connectors.mda.thrift;
 
 import org.apache.thrift.TException;
-import org.apache.thrift.protocol.TField;
-import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.protocol.TProtocolException;
-import org.apache.thrift.protocol.TType;
+import org.apache.thrift.protocol.*;
 
 /**
  * @author Roman Sakno
@@ -18,6 +15,7 @@ final class ThriftUtils {
 
     static TField skipField(final TProtocol protocol) throws TException {
         final TField result = protocol.readFieldBegin();
+        TProtocolUtil.skip(protocol, result.type);
         protocol.readFieldEnd();
         return result;
     }

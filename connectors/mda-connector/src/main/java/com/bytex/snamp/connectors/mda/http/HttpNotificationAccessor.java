@@ -9,7 +9,7 @@ import com.google.gson.JsonObject;
 import javax.management.openmbean.*;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static com.bytex.snamp.connectors.mda.MdaResourceConfigurationDescriptorProvider.parseType;
+import static com.bytex.snamp.connectors.mda.MDAResourceConfigurationDescriptorProvider.parseType;
 
 /**
  * @author Roman Sakno

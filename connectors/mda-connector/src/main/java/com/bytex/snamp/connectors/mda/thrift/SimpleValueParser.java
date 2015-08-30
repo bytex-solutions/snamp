@@ -473,8 +473,9 @@ final class SimpleValueParser implements ThriftValueParser {
         return result;
     }
 
-    static Object deserialize(final TProtocol input,
-                              final WellKnownType attributeType) throws TException {
+
+    @Override
+    public Object deserialize(final TProtocol input) throws TException {
         switch (attributeType) {
             case BOOL:
                 return input.readBool();
@@ -561,11 +562,5 @@ final class SimpleValueParser implements ThriftValueParser {
             default:
                 return null;
         }
-    }
-
-
-    @Override
-    public Object deserialize(final TProtocol input) throws TException {
-        return deserialize(input, attributeType);
     }
 }
