@@ -15,8 +15,8 @@ import org.osgi.service.cm.ConfigurationAdmin;
 
 import javax.security.auth.login.AppConfigurationEntry;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.Reader;
+import java.io.Writer;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -45,7 +45,7 @@ final class LoginConfigurationManagerImpl extends AbstractAggregator implements 
      * @throws java.io.IOException Some I/O problem occurred.
      */
     @Override
-    public void dumpConfiguration(final OutputStream out) throws IOException {
+    public void dumpConfiguration(final Writer out) throws IOException {
         final JsonConfiguration config = new JsonConfiguration();
         try {
             dumpConfiguration(Utils.getBundleContextByObject(this), formatter, config);
@@ -80,7 +80,7 @@ final class LoginConfigurationManagerImpl extends AbstractAggregator implements 
      * @throws java.io.IOException Some I/O problem occurred.
      */
     @Override
-    public void loadConfiguration(final InputStream in) throws IOException {
+    public void loadConfiguration(final Reader in) throws IOException {
         final JsonConfiguration config = JsonConfiguration.deserialize(formatter, in);
         final BundleContext context = getContext();
         final ServiceHolder<ConfigurationAdmin> adminRef = new ServiceHolder<>(context,

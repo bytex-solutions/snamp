@@ -21,11 +21,9 @@ import java.util.Date;
  */
 final class SimpleValueParser implements ThriftValueParser {
     private final WellKnownType attributeType;
-    private final TStruct struct;
 
-    protected SimpleValueParser(final WellKnownType type, final String structName) {
+    protected SimpleValueParser(final WellKnownType type) {
         this.attributeType = type;
-        this.struct = new TStruct(structName.concat("_struct"));
     }
 
     @Override
@@ -163,214 +161,183 @@ final class SimpleValueParser implements ThriftValueParser {
         output.writeListEnd();
     }
 
-    static void serialize(final Object input,
-                          final WellKnownType attributeType,
-                          final TProtocol output,
-                          final short index,
-                          final String fieldName) throws TException{
+    @Override
+    public byte getType() {
+        switch (attributeType){
+            case BYTE:
+                return TType.BYTE;
+            case BOOL:
+                return TType.BOOL;
+            case SHORT:
+                return TType.I16;
+            case INT:
+                return TType.I32;
+            case FLOAT:
+            case DOUBLE:
+                return TType.DOUBLE;
+            case DATE:
+            case LONG:
+                return TType.I64;
+            case SHORT_BUFFER:
+            case SHORT_ARRAY:
+            case WRAPPED_SHORT_ARRAY:
+            case INT_BUFFER:
+            case INT_ARRAY:
+            case WRAPPED_INT_ARRAY:
+            case LONG_BUFFER:
+            case LONG_ARRAY:
+            case WRAPPED_LONG_ARRAY:
+            case FLOAT_BUFFER:
+            case FLOAT_ARRAY:
+            case WRAPPED_FLOAT_ARRAY:
+            case DOUBLE_ARRAY:
+            case WRAPPED_DOUBLE_ARRAY:
+            case DOUBLE_BUFFER:
+            case WRAPPED_BOOL_ARRAY:
+            case BOOL_ARRAY:
+            case STRING_ARRAY:
+            case OBJECT_NAME_ARRAY:
+            case BIG_INT_ARRAY:
+            case BIG_DECIMAL_ARRAY:
+            case DATE_ARRAY:
+                return TType.LIST;
+            case STRING:
+            case BIG_INT:
+            case BIG_DECIMAL:
+            case CHAR:
+            case OBJECT_NAME:
+            case CHAR_ARRAY:
+            case CHAR_BUFFER:
+            case WRAPPED_CHAR_ARRAY:
+            case BYTE_ARRAY:
+            case BYTE_BUFFER:
+            case WRAPPED_BYTE_ARRAY:
+            default:
+                return TType.STRING;
+        }
+    }
+
+    @Override
+    public void serialize(final Object input, final TProtocol output) throws TException {
         switch (attributeType){
             case BOOL:
-                output.writeFieldBegin(new TField(fieldName, TType.BOOL, index));
                 output.writeBool((boolean) input);
-                output.writeFieldEnd();
                 return;
             case BYTE:
-                output.writeFieldBegin(new TField(fieldName, TType.BYTE, index));
                 output.writeByte((byte) input);
-                output.writeFieldEnd();
                 return;
             case SHORT:
-                output.writeFieldBegin(new TField(fieldName, TType.I16, index));
                 output.writeI16((short) input);
-                output.writeFieldEnd();
                 return;
             case INT:
-                output.writeFieldBegin(new TField(fieldName, TType.I32, index));
                 output.writeI32((int) input);
-                output.writeFieldEnd();
                 return;
             case LONG:
-                output.writeFieldBegin(new TField(fieldName, TType.I64, index));
                 output.writeI64((long) input);
-                output.writeFieldEnd();
                 return;
             case FLOAT:
-                output.writeFieldBegin(new TField(fieldName, TType.DOUBLE, index));
                 output.writeDouble((float) input);
-                output.writeFieldEnd();
                 return;
             case DOUBLE:
-                output.writeFieldBegin(new TField(fieldName, TType.DOUBLE, index));
                 output.writeDouble((double) input);
-                output.writeFieldEnd();
                 return;
             case DATE:
-                output.writeFieldBegin(new TField(fieldName, TType.I64, index));
                 output.writeI64(((Date) input).getTime());
-                output.writeFieldEnd();
                 return;
             case BYTE_ARRAY:
-                output.writeFieldBegin(new TField(fieldName, TType.STRING, index));
                 output.writeBinary(Buffers.wrap((byte[]) input));
-                output.writeFieldEnd();
                 return;
             case WRAPPED_BYTE_ARRAY:
-                output.writeFieldBegin(new TField(fieldName, TType.STRING, index));
                 output.writeBinary(Buffers.wrap(ArrayUtils.unboxArray((Byte[]) input)));
-                output.writeFieldEnd();
                 return;
             case BYTE_BUFFER:
-                output.writeFieldBegin(new TField(fieldName, TType.STRING, index));
                 output.writeBinary((ByteBuffer) input);
-                output.writeFieldEnd();
                 return;
             case SHORT_ARRAY:
-                output.writeFieldBegin(new TField(fieldName, TType.LIST, index));
                 serialize((short[]) input, output);
-                output.writeFieldEnd();
                 return;
             case WRAPPED_SHORT_ARRAY:
-                output.writeFieldBegin(new TField(fieldName, TType.LIST, index));
                 serialize(ArrayUtils.unboxArray((Short[]) input), output);
-                output.writeFieldEnd();
                 return;
             case SHORT_BUFFER:
-                output.writeFieldBegin(new TField(fieldName, TType.LIST, index));
                 serialize((ShortBuffer) input, output);
-                output.writeFieldEnd();
                 return;
             case INT_ARRAY:
-                output.writeFieldBegin(new TField(fieldName, TType.LIST, index));
-                serialize((int[])input, output);
-                output.writeFieldEnd();
+                serialize((int[]) input, output);
                 return;
             case WRAPPED_INT_ARRAY:
-                output.writeFieldBegin(new TField(fieldName, TType.LIST, index));
-                serialize(ArrayUtils.unboxArray((Integer[])input), output);
-                output.writeFieldEnd();
+                serialize(ArrayUtils.unboxArray((Integer[]) input), output);
                 return;
             case INT_BUFFER:
-                output.writeFieldBegin(new TField(fieldName, TType.LIST, index));
                 serialize((IntBuffer) input, output);
-                output.writeFieldEnd();
                 return;
             case LONG_ARRAY:
-                output.writeFieldBegin(new TField(fieldName, TType.LIST, index));
-                serialize((long[])input, output);
-                output.writeFieldEnd();
+                serialize((long[]) input, output);
                 return;
             case WRAPPED_LONG_ARRAY:
-                output.writeFieldBegin(new TField(fieldName, TType.LIST, index));
-                serialize(ArrayUtils.unboxArray((Long[])input), output);
-                output.writeFieldEnd();
+                serialize(ArrayUtils.unboxArray((Long[]) input), output);
                 return;
             case LONG_BUFFER:
-                output.writeFieldBegin(new TField(fieldName, TType.LIST, index));
                 serialize((LongBuffer) input, output);
-                output.writeFieldEnd();
                 return;
             case FLOAT_ARRAY:
-                output.writeFieldBegin(new TField(fieldName, TType.LIST, index));
-                serialize((float[])input, output);
-                output.writeFieldEnd();
+                serialize((float[]) input, output);
                 return;
             case WRAPPED_FLOAT_ARRAY:
-                output.writeFieldBegin(new TField(fieldName, TType.LIST, index));
-                serialize(ArrayUtils.unboxArray((Float[])input), output);
-                output.writeFieldEnd();
+                serialize(ArrayUtils.unboxArray((Float[]) input), output);
                 return;
             case FLOAT_BUFFER:
-                output.writeFieldBegin(new TField(fieldName, TType.LIST, index));
                 serialize((FloatBuffer) input, output);
-                output.writeFieldEnd();
                 return;
             case DOUBLE_ARRAY:
-                output.writeFieldBegin(new TField(fieldName, TType.LIST, index));
-                serialize((double[])input, output);
-                output.writeFieldEnd();
+                serialize((double[]) input, output);
                 return;
             case WRAPPED_DOUBLE_ARRAY:
-                output.writeFieldBegin(new TField(fieldName, TType.LIST, index));
-                serialize(ArrayUtils.unboxArray((Double[])input), output);
-                output.writeFieldEnd();
+                serialize(ArrayUtils.unboxArray((Double[]) input), output);
                 return;
             case DOUBLE_BUFFER:
-                output.writeFieldBegin(new TField(fieldName, TType.LIST, index));
                 serialize((DoubleBuffer) input, output);
-                output.writeFieldEnd();
                 return;
             case CHAR_ARRAY:
-                output.writeFieldBegin(new TField(fieldName, TType.LIST, index));
                 serialize((char[]) input, output);
-                output.writeFieldEnd();
                 return;
             case WRAPPED_CHAR_ARRAY:
-                output.writeFieldBegin(new TField(fieldName, TType.LIST, index));
-                serialize(ArrayUtils.unboxArray((Character[])input), output);
-                output.writeFieldEnd();
+                serialize(ArrayUtils.unboxArray((Character[]) input), output);
                 return;
             case CHAR_BUFFER:
-                output.writeFieldBegin(new TField(fieldName, TType.LIST, index));
                 serialize((CharBuffer) input, output);
-                output.writeFieldEnd();
                 return;
             case BOOL_ARRAY:
-                output.writeFieldBegin(new TField(fieldName, TType.LIST, index));
                 serialize((boolean[]) input, output);
-                output.writeFieldEnd();
                 return;
             case WRAPPED_BOOL_ARRAY:
-                output.writeFieldBegin(new TField(fieldName, TType.LIST, index));
                 serialize(ArrayUtils.unboxArray((Boolean[]) input), output);
-                output.writeFieldEnd();
                 return;
             case STRING_ARRAY:
-                output.writeFieldBegin(new TField(fieldName, TType.LIST, index));
                 serialize((String[]) input, output);
-                output.writeFieldEnd();
                 return;
             case OBJECT_NAME_ARRAY:
-                output.writeFieldBegin(new TField(fieldName, TType.LIST, index));
                 serialize((ObjectName[]) input, output);
-                output.writeFieldEnd();
                 return;
             case DATE_ARRAY:
-                output.writeFieldBegin(new TField(fieldName, TType.LIST, index));
                 serialize((Date[]) input, output);
-                output.writeFieldEnd();
                 return;
             case BIG_INT_ARRAY:
-                output.writeFieldBegin(new TField(fieldName, TType.LIST, index));
                 serialize((BigInteger[]) input, output);
-                output.writeFieldEnd();
                 return;
             case BIG_DECIMAL_ARRAY:
-                output.writeFieldBegin(new TField(fieldName, TType.LIST, index));
                 serialize((BigDecimal[]) input, output);
-                output.writeFieldEnd();
                 return;
             case OBJECT_NAME:
-                output.writeFieldBegin(new TField(fieldName, TType.STRING, index));
                 output.writeString(((ObjectName) input).getCanonicalName());
-                output.writeFieldEnd();
                 return;
             case STRING:
             case BIG_INT:
             case BIG_DECIMAL:
             case CHAR:
             default:
-                output.writeFieldBegin(new TField(fieldName, TType.STRING, index));
                 output.writeString(String.valueOf(input));
-                output.writeFieldEnd();
         }
-    }
-
-    @Override
-    public void serialize(final Object input, final TProtocol output) throws TException {
-        output.writeStructBegin(struct);
-        serialize(input, attributeType, output, (short) 0, "value");
-        output.writeFieldStop();
-        output.writeStructEnd();
     }
 
     private static char toChar(final String value){
@@ -506,7 +473,7 @@ final class SimpleValueParser implements ThriftValueParser {
         return result;
     }
 
-    static Object deserializeNaked(final TProtocol input,
+    static Object deserialize(final TProtocol input,
                               final WellKnownType attributeType) throws TException {
         switch (attributeType) {
             case BOOL:
@@ -599,15 +566,6 @@ final class SimpleValueParser implements ThriftValueParser {
 
     @Override
     public Object deserialize(final TProtocol input) throws TException {
-        input.readStructBegin();
-        input.readFieldBegin();
-        try {
-            return deserializeNaked(input, attributeType);
-        }
-        finally {
-            ThriftUtils.skipStopField(input);
-            input.readFieldEnd();
-            input.readStructEnd();
-        }
+        return deserialize(input, attributeType);
     }
 }

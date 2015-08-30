@@ -1,12 +1,12 @@
 package com.bytex.snamp.security;
 
-import com.google.common.collect.Multimap;
 import com.bytex.snamp.core.SupportService;
+import com.google.common.collect.Multimap;
 
 import javax.security.auth.login.AppConfigurationEntry;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.Reader;
+import java.io.Writer;
 
 /**
  * Represents supporting service provided by SNAMP to configure JAAS login modules.
@@ -29,7 +29,7 @@ public interface LoginConfigurationManager extends SupportService {
      * @param out An output stream that accepts configuration content.
      * @throws IOException Some I/O problem occurred.
      */
-    void dumpConfiguration(final OutputStream out) throws IOException;
+    void dumpConfiguration(final Writer out) throws IOException;
 
     void dumpConfiguration(final Multimap<String, AppConfigurationEntry> out);
 
@@ -38,5 +38,5 @@ public interface LoginConfigurationManager extends SupportService {
      * @param in An input stream containing the configuration. Cannot be {@literal null}.
      * @throws IOException Some I/O problem occurred.
      */
-    void loadConfiguration(final InputStream in) throws IOException;
+    void loadConfiguration(final Reader in) throws IOException;
 }

@@ -1,7 +1,10 @@
 package com.bytex.snamp.connectors.mda.thrift;
 
 import com.bytex.snamp.Consumer;
+import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TMessage;
+import org.apache.thrift.protocol.TMessageType;
+import org.apache.thrift.protocol.TProtocol;
 
 import java.util.regex.Pattern;
 
@@ -14,7 +17,26 @@ import java.util.regex.Pattern;
 enum MessageType {
     GET_ATTRIBUTE,
     SET_ATTRIBUTE,
-    SEND_NOTIFICATION;
+    SEND_NOTIFICATION{
+        @Override
+        void beginResponse(final TProtocol output, final String name, final int seqid) throws TException {
+
+        }
+
+        @Override
+        void endResponse(final TProtocol output) throws TException {
+
+        }
+    };
+
+    void beginResponse(final TProtocol output, final String name, final int seqid) throws TException {
+        output.writeMessageBegin(new TMessage(name, TMessageType.REPLY, seqid));
+    }
+
+    void endResponse(final TProtocol output) throws TException {
+        output.writeMessageEnd();
+        output.getTransport().flush();
+    }
 
     private static final String GETTER_MESSAGE = "get_";
     private static final Pattern GETTER_PREFIX = Pattern.compile(GETTER_MESSAGE);

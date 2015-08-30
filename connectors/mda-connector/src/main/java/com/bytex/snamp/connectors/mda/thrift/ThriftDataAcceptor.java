@@ -13,6 +13,7 @@ import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 import com.bytex.snamp.connectors.notifications.NotificationListenerInvoker;
 import com.bytex.snamp.connectors.notifications.NotificationListenerInvokerFactory;
 import com.bytex.snamp.jmx.WellKnownType;
+import com.google.common.base.Function;
 import com.google.common.base.Supplier;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -92,35 +93,52 @@ final class ThriftDataAcceptor extends AbstractManagedResourceConnector implemen
                 private String message = "";
                 private boolean dataAvailable = false;
 
-                private void readNotificationData(ThriftNotificationAccessor metadata) throws TException{
+                private boolean readNotificationData(final ThriftNotificationAccessor metadata) throws TException{
                     input.readStructBegin();
+                    int counter = 0;
                     while (true){
                         final TField field = input.readFieldBegin();
-                        if(field.type == TType.STOP) break;
-                        else switch (field.id){
-                            case 0: message = input.readString(); continue;
-                            case 1: sequenceNumber = input.readI64(); continue;
-                            case 2: timeStamp = input.readI64(); continue;
-                            case 3: userData = metadata.parseUserData(input); continue;
-                            default: break;
+                        final boolean next;
+                        if(next = field.type != TType.STOP)
+                            switch (field.id){
+                            case 1:
+                                message = input.readString();
+                                counter += 1;
+                                break;
+                            case 2:
+                                sequenceNumber = input.readI64();
+                                counter += 1;
+                                break;
+                            case 3:
+                                timeStamp = input.readI64();
+                                counter += 1;
+                                break;
+                            case 4:
+                                userData = metadata.parseUserData(input);
+                                counter += 1;
+                                break;
+                            default:
+                                TProtocolUtil.skip(input, field.type);
+                                break;
                         }
+                        input.readFieldEnd();
+                        if(!next) break;
                     }
                     input.readStructEnd();
+                    return counter == 4;
                 }
 
                 @Override
                 protected void process(final ThriftNotificationAccessor metadata) {
-                    if(category.equals(metadata.getDescriptor().getNotificationCategory())){
-                        if(!dataAvailable)
+                    if(category.equals(metadata.getDescriptor().getNotificationCategory())) {
+                        if (!dataAvailable)
                             try {
-                                readNotificationData(metadata);
+                                dataAvailable = readNotificationData(metadata);
                             } catch (final TException e) {
                                 logger.log(Level.SEVERE, "Unable to parse user data from notification " + sequenceNumber, e);
                             }
-                            finally {
-                                dataAvailable = true;
-                            }
-                        enqueue(metadata, message, sequenceNumber, timeStamp, userData);
+                        if (dataAvailable)
+                            enqueue(metadata, message, sequenceNumber, timeStamp, userData);
                     }
                 }
             });
@@ -150,7 +168,7 @@ final class ThriftDataAcceptor extends AbstractManagedResourceConnector implemen
 
             }
             else if(attributeType instanceof SimpleType<?> || attributeType instanceof ArrayType<?>)
-                ThriftAttributeAccessor.saveParser(parser = new SimpleValueParser(WellKnownType.getType(attributeType), descriptor.getAttributeName()),
+                ThriftAttributeAccessor.saveParser(parser = new SimpleValueParser(WellKnownType.getType(attributeType)),
                         descriptor,
                         parsers);
             else if(attributeType instanceof CompositeType)
@@ -159,7 +177,7 @@ final class ThriftDataAcceptor extends AbstractManagedResourceConnector implemen
                         parsers);
             else
                 ThriftAttributeAccessor.saveParser(parser = FallbackValueParser.INSTANCE, descriptor, parsers);
-            final ThriftAttributeAccessor accessor = new ThriftAttributeAccessor(attributeID, attributeType, descriptor, parser);
+            final ThriftAttributeAccessor accessor = new ThriftAttributeAccessor(attributeID, attributeType, descriptor);
             accessor.setValue(parser.getDefaultValue(), storage);
             return accessor;
         }
@@ -222,12 +240,12 @@ final class ThriftDataAcceptor extends AbstractManagedResourceConnector implemen
 
     @Override
     public boolean enableNotifications(final String listId, final String category, final CompositeData options) {
-        return false;
+        return notifications.enableNotifications(listId, category, options) != null;
     }
 
     @Override
     public void disableNotificationsExcept(final Set<String> notifications) {
-
+        this.notifications.removeAllExcept(notifications);
     }
 
     @Override
@@ -244,7 +262,7 @@ final class ThriftDataAcceptor extends AbstractManagedResourceConnector implemen
      */
     @Override
     public void addResourceEventListener(final ResourceEventListener listener) {
-        addResourceEventListener(listener, attributes);
+        addResourceEventListener(listener, attributes, notifications);
     }
 
     /**
@@ -254,7 +272,7 @@ final class ThriftDataAcceptor extends AbstractManagedResourceConnector implemen
      */
     @Override
     public void removeResourceEventListener(final ResourceEventListener listener) {
-        removeResourceEventListener(listener, attributes);
+        removeResourceEventListener(listener, attributes, notifications);
     }
 
     @Override
@@ -263,7 +281,7 @@ final class ThriftDataAcceptor extends AbstractManagedResourceConnector implemen
         final TMessage message = in.readMessageBegin();
         final MessageType messageType = MessageType.get(message, entityName);
         if (messageType != null) {
-            out.writeMessageBegin(new TMessage(message.name, TMessageType.REPLY, message.seqid));
+            messageType.beginResponse(out, message.name, message.seqid);
             try {
                 switch (messageType) {
                     case GET_ATTRIBUTE:
@@ -280,11 +298,26 @@ final class ThriftDataAcceptor extends AbstractManagedResourceConnector implemen
                 }
             } finally {
                 in.readMessageEnd();
-                out.writeMessageEnd();
-                out.getTransport().flush();
+                messageType.endResponse(out);
             }
         }
         else return false;
+    }
+
+    /**
+     * Retrieves the aggregated object.
+     *
+     * @param objectType Type of the aggregated object.
+     * @return An instance of the requested object; or {@literal null} if object is not available.
+     */
+    @Override
+    public <T> T queryObject(final Class<T> objectType) {
+        return findObject(objectType, new Function<Class<T>, T>() {
+            @Override
+            public T apply(final Class<T> objectType) {
+                return ThriftDataAcceptor.super.queryObject(objectType);
+            }
+        }, attributes, notifications);
     }
 
     /**
@@ -299,5 +332,6 @@ final class ThriftDataAcceptor extends AbstractManagedResourceConnector implemen
         transport.close();
         threadPool.shutdown();
         attributes.close();
+        notifications.removeAll(true, true);
     }
 }

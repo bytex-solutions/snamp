@@ -5,11 +5,11 @@ import com.bytex.snamp.connectors.attributes.AttributeSpecifier;
 import com.bytex.snamp.connectors.mda.MdaAttributeAccessor;
 import com.google.common.cache.Cache;
 import org.apache.thrift.TException;
+import org.apache.thrift.protocol.TField;
 import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.protocol.TStruct;
 
-import javax.management.InvalidAttributeValueException;
 import javax.management.openmbean.OpenType;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentMap;
 
 /**
@@ -18,25 +18,11 @@ import java.util.concurrent.ConcurrentMap;
  * @since 1.0
  */
 final class ThriftAttributeAccessor extends MdaAttributeAccessor {
-    private final ThriftValueParser parser;
 
     protected ThriftAttributeAccessor(final String name,
                                       final OpenType<?> type,
-                                      final AttributeDescriptor descriptor,
-                                      final ThriftValueParser manager) {
+                                      final AttributeDescriptor descriptor) {
         super(name, type, AttributeSpecifier.READ_WRITE, descriptor);
-        this.parser = Objects.requireNonNull(manager);
-    }
-
-    final void setValue(final TProtocol input,
-                        final TProtocol output,
-                        final ConcurrentMap<String, Object> storage) throws TException, InvalidAttributeValueException {
-        final Object previous = setValue(parser.deserialize(input), storage);
-        parser.serialize(previous, output);
-    }
-
-    final void getValue(final TProtocol output, final ConcurrentMap<String, ?> storage) throws TException {
-        parser.serialize(getValue(storage), output);
     }
 
     static void saveParser(final ThriftValueParser parser,
@@ -49,15 +35,29 @@ final class ThriftAttributeAccessor extends MdaAttributeAccessor {
                          final ConcurrentMap<String, Object> storage,
                          final TProtocol output,
                          final ThriftValueParser parser) throws TException {
+        output.writeStructBegin(new TStruct(storageName));
+        output.writeFieldBegin(new TField("value", parser.getType(), (short) 0));
         parser.serialize(storage.get(storageName), output);
+        output.writeFieldStop();
+        output.writeStructEnd();
     }
 
-    public static void setValue(final String storageName,
+    static void setValue(final String storageName,
                                 final ConcurrentMap<String, Object> storage,
                                 final TProtocol input,
                                 final TProtocol output,
                                 final ThriftValueParser parser) throws TException {
+        input.readStructBegin();
+        input.readFieldBegin();
         final Object previous = storage.put(storageName, parser.deserialize(input));
+        ThriftUtils.skipStopField(input);
+        input.readFieldEnd();
+        input.readStructEnd();
+
+        output.writeStructBegin(new TStruct(storageName));
+        output.writeFieldBegin(new TField("value", parser.getType(), (short) 0));
         parser.serialize(previous, output);
+        output.writeFieldStop();
+        output.writeStructEnd();
     }
 }

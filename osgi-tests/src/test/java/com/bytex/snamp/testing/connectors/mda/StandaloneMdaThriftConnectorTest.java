@@ -1,6 +1,10 @@
 package com.bytex.snamp.testing.connectors.mda;
 
 import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.TimeSpan;
+import com.bytex.snamp.concurrent.SynchronizationEvent;
+import com.bytex.snamp.connectors.notifications.NotificationSupport;
+import com.bytex.snamp.connectors.notifications.SynchronizationListener;
 import com.bytex.snamp.io.Buffers;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
@@ -12,10 +16,12 @@ import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.junit.Test;
 
+import javax.management.Notification;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
@@ -28,7 +34,7 @@ import static com.bytex.snamp.testing.connectors.mda.MonitoringDataAcceptor.Clie
  */
 public final class StandaloneMdaThriftConnectorTest extends AbstractMdaConnectorTest {
     public StandaloneMdaThriftConnectorTest(){
-        super("thrift://localhost:9540", ImmutableMap.<String, String>of());
+        super("thrift://localhost:9540", ImmutableMap.of("socketTimeout", "10000"));
     }
 
     @Override
@@ -37,7 +43,7 @@ public final class StandaloneMdaThriftConnectorTest extends AbstractMdaConnector
     }
 
     private static Client createClient() throws IOException, TTransportException {
-        final TTransport transport = new TSocket("localhost", 9540);
+        final TTransport transport = new TSocket("localhost", 9540, 10000);
         transport.open();
         return new Client(new TBinaryProtocol(transport));
     }
@@ -95,7 +101,7 @@ public final class StandaloneMdaThriftConnectorTest extends AbstractMdaConnector
     }
 
     @Test
-    public void longAttributeTest() throws IOException, TException{
+    public void longAttributeTest() throws IOException, TException {
         final Client client = createClient();
         final long expectedValue = 42L;
         final long result = client.set_long(expectedValue);
@@ -105,9 +111,10 @@ public final class StandaloneMdaThriftConnectorTest extends AbstractMdaConnector
     }
 
     @Test
-    public void longReadTest() throws IOException, TException {
+    public void longReadTest() throws IOException, TException, InterruptedException {
         final Client client = createClient();
         assertEquals(0L, client.get_long());
+        Thread.sleep(1000);
         assertEquals(0L, client.get_long());
     }
 
@@ -115,7 +122,7 @@ public final class StandaloneMdaThriftConnectorTest extends AbstractMdaConnector
     public void dictAttributeTest() throws IOException, TException{
         final Client client = createClient();
         final MemoryStatus expectedValue = new MemoryStatus(32, 100L);
-        final MemoryStatus result = client.set_dict(32, 100L);
+        final MemoryStatus result = client.set_dict(expectedValue);
         assertEquals(0, result.free);
         assertEquals(0L, result.total);
         assertEquals(expectedValue.free, client.get_dict().free);
@@ -131,10 +138,34 @@ public final class StandaloneMdaThriftConnectorTest extends AbstractMdaConnector
         assertArrayEquals(expectedValue, ArrayUtils.toArray(client.get_longArray(), Long.class));
     }
 
+    @Test
+    public void notificationTest() throws IOException, TException, TimeoutException, InterruptedException {
+        final NotificationSupport notifications = getManagementConnector().queryObject(NotificationSupport.class);
+        final SynchronizationEvent.EventAwaitor<Notification> awaitor;
+        try{
+            final SynchronizationListener listener = new SynchronizationListener();
+            notifications.addNotificationListener(listener, null, null);
+            awaitor = listener.getAwaitor();
+        }
+        finally {
+            releaseManagementConnector();
+        }
+        final Client client = createClient();
+        final long timeStamp;
+        client.notify_testEvent("Frank Underwood", 1L, timeStamp = System.currentTimeMillis(), 42L);
+        final Notification n = awaitor.await(TimeSpan.fromSeconds(100000L));
+        assertEquals("Frank Underwood", n.getMessage());
+        assertEquals(1L, n.getSequenceNumber());
+        assertEquals(timeStamp, n.getTimeStamp());
+        assertEquals(42L, n.getUserData());
+        //verify that Thrift binary stream is parsed successfully
+        assertEquals(0L, client.get_long());
+    }
+
     @Override
     protected void fillEvents(final Map<String, EventConfiguration> events, final Supplier<EventConfiguration> eventFactory) {
         EventConfiguration event = eventFactory.get();
-        event.setCategory("testEvent1");
+        event.setCategory("testEvent");
         event.getParameters().put("expectedType", "int64");
         events.put("e1", event);
     }

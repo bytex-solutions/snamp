@@ -24,7 +24,7 @@ final class ThriftNotificationAccessor extends CustomNotificationInfo {
         super(notifType, descriptor.getDescription(descriptor.getNotificationCategory()), descriptor);
         final OpenType<?> attachmentType = parseType(descriptor);
         if(attachmentType instanceof SimpleType<?> || attachmentType instanceof ArrayType<?>)
-            attachmentParser = new SimpleValueParser(WellKnownType.getType(attachmentType), descriptor.getNotificationCategory());
+            attachmentParser = new SimpleValueParser(WellKnownType.getType(attachmentType));
         else if(attachmentType instanceof CompositeType)
             attachmentParser = new CompositeValueParser((CompositeType)attachmentType);
         else attachmentParser = null;

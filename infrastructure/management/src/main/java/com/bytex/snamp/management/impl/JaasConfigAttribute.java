@@ -1,16 +1,17 @@
 package com.bytex.snamp.management.impl;
 
+import com.bytex.snamp.StringAppender;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.jmx.OpenMBean;
 import com.bytex.snamp.security.LoginConfigurationManager;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
-import javax.management.openmbean.ArrayType;
 import javax.management.openmbean.OpenDataException;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import javax.management.openmbean.SimpleType;
 import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextByObject;
 
@@ -19,7 +20,7 @@ import static com.bytex.snamp.internal.Utils.getBundleContextByObject;
  *
  * @author Evgeniy Kirichenko
  */
-final class JaasConfigAttribute extends OpenMBean.OpenAttribute<byte[], ArrayType<byte[]>> {
+final class JaasConfigAttribute extends OpenMBean.OpenAttribute<String, SimpleType<String>> {
     private static final String NAME = "jaasConfig";
 
     /**
@@ -28,33 +29,33 @@ final class JaasConfigAttribute extends OpenMBean.OpenAttribute<byte[], ArrayTyp
      * @throws OpenDataException the open data exception
      */
     JaasConfigAttribute() throws OpenDataException {
-        super(NAME, ArrayType.getPrimitiveArrayType(byte[].class));
+        super(NAME, SimpleType.STRING);
     }
 
     @Override
-    public byte[] getValue() throws IOException {
+    public String getValue() throws IOException {
         final BundleContext context = getBundleContextByObject(this);
         final ServiceReference<LoginConfigurationManager> managerRef =
                 context.getServiceReference(LoginConfigurationManager.class);
         if (managerRef == null) return null;
         final ServiceHolder<LoginConfigurationManager> manager = new ServiceHolder<>(context, managerRef);
-        try (final ByteArrayOutputStream out = new ByteArrayOutputStream(1024)) {
+        try (final StringAppender out = new StringAppender(1024)) {
             manager.get().dumpConfiguration(out);
-            return out.toByteArray();
+            return out.toString();
         } finally {
             manager.release(context);
         }
     }
 
     @Override
-    public void setValue(final byte[] content) throws IOException {
+    public void setValue(final String content) throws IOException {
         final BundleContext context = getBundleContextByObject(this);
         final ServiceReference<LoginConfigurationManager> managerRef =
                 context.getServiceReference(LoginConfigurationManager.class);
         if (managerRef == null) throw new RuntimeException("Cannot take LoginConfigurationManager reference");
         final ServiceHolder<LoginConfigurationManager> manager = new ServiceHolder<>(context, managerRef);
-        try {
-            manager.get().loadConfiguration(new ByteArrayInputStream(content));
+        try(final Reader reader = new StringReader(content)) {
+            manager.get().loadConfiguration(reader);
         } catch (final Exception e) {
             throw new RuntimeException(e);
         } finally {

@@ -39,16 +39,13 @@ final class CompositeValueParser implements ThriftValueParser {
 
     private void serialize(final CompositeData input, final TProtocol output) throws TException{
         short index = 1;
-        output.writeStructBegin(new TStruct("Result"));
-        output.writeFieldBegin(new TField("value", TType.STRUCT, (short)0));
         output.writeStructBegin(struct);
         for(final String itemName: sortedItems){
-            final WellKnownType itemType = WellKnownType.getItemType(input.getCompositeType(), itemName);
-            SimpleValueParser.serialize(input.get(itemName), itemType, output, index++, itemName);
+            final ThriftValueParser parser = new SimpleValueParser(WellKnownType.getItemType(input.getCompositeType(), itemName));
+            output.writeFieldBegin(new TField(itemName, parser.getType(), index++));
+            parser.serialize(input.get(itemName), output);
+            output.writeFieldEnd();
         }
-        output.writeFieldStop();
-        output.writeStructEnd();
-        output.writeFieldEnd();
         output.writeFieldStop();
         output.writeStructEnd();
     }
@@ -68,7 +65,7 @@ final class CompositeValueParser implements ThriftValueParser {
             if(field.type == TType.STOP) break;
             final String itemName = sortedItems[field.id - 1];
             final WellKnownType itemType = WellKnownType.getItemType(defaultValue.getCompositeType(), itemName);
-            items.put(itemName, SimpleValueParser.deserializeNaked(input, itemType));
+            items.put(itemName, SimpleValueParser.deserialize(input, itemType));
             input.readFieldEnd();
         }
         input.readStructEnd();
@@ -78,5 +75,10 @@ final class CompositeValueParser implements ThriftValueParser {
         } catch (final OpenDataException e) {
             throw new TException(e);
         }
+    }
+
+    @Override
+    public byte getType() {
+        return TType.STRUCT;
     }
 }

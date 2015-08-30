@@ -55,13 +55,13 @@ public class MonitoringDataAcceptor {
 
     public MemoryStatus get_dict() throws org.apache.thrift.TException;
 
-    public MemoryStatus set_dict(int free, long total) throws org.apache.thrift.TException;
+    public MemoryStatus set_dict(MemoryStatus value) throws org.apache.thrift.TException;
 
     public List<Long> get_longArray() throws org.apache.thrift.TException;
 
     public List<Long> set_longArray(List<Long> value) throws org.apache.thrift.TException;
 
-    public void notify_testEvent1(String message, long seqnum, long timeStamp, long userData) throws org.apache.thrift.TException;
+    public void notify_testEvent(String message, long seqnum, long timeStamp, long userData) throws org.apache.thrift.TException;
 
   }
 
@@ -97,13 +97,13 @@ public class MonitoringDataAcceptor {
 
     public void get_dict(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void set_dict(int free, long total, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void set_dict(MemoryStatus value, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void get_longArray(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void set_longArray(List<Long> value, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void notify_testEvent1(String message, long seqnum, long timeStamp, long userData, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void notify_testEvent(String message, long seqnum, long timeStamp, long userData, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
   }
 
@@ -464,17 +464,16 @@ public class MonitoringDataAcceptor {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "get_dict failed: unknown result");
     }
 
-    public MemoryStatus set_dict(int free, long total) throws org.apache.thrift.TException
+    public MemoryStatus set_dict(MemoryStatus value) throws org.apache.thrift.TException
     {
-      send_set_dict(free, total);
+      send_set_dict(value);
       return recv_set_dict();
     }
 
-    public void send_set_dict(int free, long total) throws org.apache.thrift.TException
+    public void send_set_dict(MemoryStatus value) throws org.apache.thrift.TException
     {
       set_dict_args args = new set_dict_args();
-      args.setFree(free);
-      args.setTotal(total);
+      args.setValue(value);
       sendBase("set_dict", args);
     }
 
@@ -533,19 +532,19 @@ public class MonitoringDataAcceptor {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "set_longArray failed: unknown result");
     }
 
-    public void notify_testEvent1(String message, long seqnum, long timeStamp, long userData) throws org.apache.thrift.TException
+    public void notify_testEvent(String message, long seqnum, long timeStamp, long userData) throws org.apache.thrift.TException
     {
-      send_notify_testEvent1(message, seqnum, timeStamp, userData);
+      send_notify_testEvent(message, seqnum, timeStamp, userData);
     }
 
-    public void send_notify_testEvent1(String message, long seqnum, long timeStamp, long userData) throws org.apache.thrift.TException
+    public void send_notify_testEvent(String message, long seqnum, long timeStamp, long userData) throws org.apache.thrift.TException
     {
-      notify_testEvent1_args args = new notify_testEvent1_args();
+      notify_testEvent_args args = new notify_testEvent_args();
       args.setMessage(message);
       args.setSeqnum(seqnum);
       args.setTimeStamp(timeStamp);
       args.setUserData(userData);
-      sendBase("notify_testEvent1", args);
+      sendBase("notify_testEvent", args);
     }
 
   }
@@ -1022,27 +1021,24 @@ public class MonitoringDataAcceptor {
       }
     }
 
-    public void set_dict(int free, long total, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void set_dict(MemoryStatus value, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      set_dict_call method_call = new set_dict_call(free, total, resultHandler, this, ___protocolFactory, ___transport);
+      set_dict_call method_call = new set_dict_call(value, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class set_dict_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private int free;
-      private long total;
-      public set_dict_call(int free, long total, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private MemoryStatus value;
+      public set_dict_call(MemoryStatus value, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
-        this.free = free;
-        this.total = total;
+        this.value = value;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("set_dict", org.apache.thrift.protocol.TMessageType.CALL, 0));
         set_dict_args args = new set_dict_args();
-        args.setFree(free);
-        args.setTotal(total);
+        args.setValue(value);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -1118,19 +1114,19 @@ public class MonitoringDataAcceptor {
       }
     }
 
-    public void notify_testEvent1(String message, long seqnum, long timeStamp, long userData, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void notify_testEvent(String message, long seqnum, long timeStamp, long userData, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      notify_testEvent1_call method_call = new notify_testEvent1_call(message, seqnum, timeStamp, userData, resultHandler, this, ___protocolFactory, ___transport);
+      notify_testEvent_call method_call = new notify_testEvent_call(message, seqnum, timeStamp, userData, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class notify_testEvent1_call extends org.apache.thrift.async.TAsyncMethodCall {
+    public static class notify_testEvent_call extends org.apache.thrift.async.TAsyncMethodCall {
       private String message;
       private long seqnum;
       private long timeStamp;
       private long userData;
-      public notify_testEvent1_call(String message, long seqnum, long timeStamp, long userData, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public notify_testEvent_call(String message, long seqnum, long timeStamp, long userData, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, true);
         this.message = message;
         this.seqnum = seqnum;
@@ -1139,8 +1135,8 @@ public class MonitoringDataAcceptor {
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("notify_testEvent1", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        notify_testEvent1_args args = new notify_testEvent1_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("notify_testEvent", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        notify_testEvent_args args = new notify_testEvent_args();
         args.setMessage(message);
         args.setSeqnum(seqnum);
         args.setTimeStamp(timeStamp);
@@ -1189,7 +1185,7 @@ public class MonitoringDataAcceptor {
       processMap.put("set_dict", new set_dict());
       processMap.put("get_longArray", new get_longArray());
       processMap.put("set_longArray", new set_longArray());
-      processMap.put("notify_testEvent1", new notify_testEvent1());
+      processMap.put("notify_testEvent", new notify_testEvent());
       return processMap;
     }
 
@@ -1516,7 +1512,7 @@ public class MonitoringDataAcceptor {
 
       public set_dict_result getResult(I iface, set_dict_args args) throws org.apache.thrift.TException {
         set_dict_result result = new set_dict_result();
-        result.success = iface.set_dict(args.free, args.total);
+        result.success = iface.set_dict(args.value);
         return result;
       }
     }
@@ -1561,21 +1557,21 @@ public class MonitoringDataAcceptor {
       }
     }
 
-    public static class notify_testEvent1<I extends Iface> extends org.apache.thrift.ProcessFunction<I, notify_testEvent1_args> {
-      public notify_testEvent1() {
-        super("notify_testEvent1");
+    public static class notify_testEvent<I extends Iface> extends org.apache.thrift.ProcessFunction<I, notify_testEvent_args> {
+      public notify_testEvent() {
+        super("notify_testEvent");
       }
 
-      public notify_testEvent1_args getEmptyArgsInstance() {
-        return new notify_testEvent1_args();
+      public notify_testEvent_args getEmptyArgsInstance() {
+        return new notify_testEvent_args();
       }
 
       protected boolean isOneway() {
         return true;
       }
 
-      public org.apache.thrift.TBase getResult(I iface, notify_testEvent1_args args) throws org.apache.thrift.TException {
-        iface.notify_testEvent1(args.message, args.seqnum, args.timeStamp, args.userData);
+      public org.apache.thrift.TBase getResult(I iface, notify_testEvent_args args) throws org.apache.thrift.TException {
+        iface.notify_testEvent(args.message, args.seqnum, args.timeStamp, args.userData);
         return null;
       }
     }
@@ -1611,7 +1607,7 @@ public class MonitoringDataAcceptor {
       processMap.put("set_dict", new set_dict());
       processMap.put("get_longArray", new get_longArray());
       processMap.put("set_longArray", new set_longArray());
-      processMap.put("notify_testEvent1", new notify_testEvent1());
+      processMap.put("notify_testEvent", new notify_testEvent());
       return processMap;
     }
 
@@ -2435,7 +2431,7 @@ public class MonitoringDataAcceptor {
       }
 
       public void start(I iface, set_dict_args args, org.apache.thrift.async.AsyncMethodCallback<MemoryStatus> resultHandler) throws TException {
-        iface.set_dict(args.free, args.total,resultHandler);
+        iface.set_dict(args.value,resultHandler);
       }
     }
 
@@ -2541,13 +2537,13 @@ public class MonitoringDataAcceptor {
       }
     }
 
-    public static class notify_testEvent1<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, notify_testEvent1_args, Void> {
-      public notify_testEvent1() {
-        super("notify_testEvent1");
+    public static class notify_testEvent<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, notify_testEvent_args, Void> {
+      public notify_testEvent() {
+        super("notify_testEvent");
       }
 
-      public notify_testEvent1_args getEmptyArgsInstance() {
-        return new notify_testEvent1_args();
+      public notify_testEvent_args getEmptyArgsInstance() {
+        return new notify_testEvent_args();
       }
 
       public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
@@ -2564,8 +2560,8 @@ public class MonitoringDataAcceptor {
         return true;
       }
 
-      public void start(I iface, notify_testEvent1_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
-        iface.notify_testEvent1(args.message, args.seqnum, args.timeStamp, args.userData,resultHandler);
+      public void start(I iface, notify_testEvent_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
+        iface.notify_testEvent(args.message, args.seqnum, args.timeStamp, args.userData,resultHandler);
       }
     }
 
@@ -12360,8 +12356,7 @@ public class MonitoringDataAcceptor {
   public static class set_dict_args implements org.apache.thrift.TBase<set_dict_args, set_dict_args._Fields>, java.io.Serializable, Cloneable, Comparable<set_dict_args>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("set_dict_args");
 
-    private static final org.apache.thrift.protocol.TField FREE_FIELD_DESC = new org.apache.thrift.protocol.TField("free", org.apache.thrift.protocol.TType.I32, (short)1);
-    private static final org.apache.thrift.protocol.TField TOTAL_FIELD_DESC = new org.apache.thrift.protocol.TField("total", org.apache.thrift.protocol.TType.I64, (short)2);
+    private static final org.apache.thrift.protocol.TField VALUE_FIELD_DESC = new org.apache.thrift.protocol.TField("value", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -12369,13 +12364,11 @@ public class MonitoringDataAcceptor {
       schemes.put(TupleScheme.class, new set_dict_argsTupleSchemeFactory());
     }
 
-    public int free; // required
-    public long total; // required
+    public MemoryStatus value; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      FREE((short)1, "free"),
-      TOTAL((short)2, "total");
+      VALUE((short)1, "value");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -12390,10 +12383,8 @@ public class MonitoringDataAcceptor {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // FREE
-            return FREE;
-          case 2: // TOTAL
-            return TOTAL;
+          case 1: // VALUE
+            return VALUE;
           default:
             return null;
         }
@@ -12434,16 +12425,11 @@ public class MonitoringDataAcceptor {
     }
 
     // isset id assignments
-    private static final int __FREE_ISSET_ID = 0;
-    private static final int __TOTAL_ISSET_ID = 1;
-    private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.FREE, new org.apache.thrift.meta_data.FieldMetaData("free", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-      tmpMap.put(_Fields.TOTAL, new org.apache.thrift.meta_data.FieldMetaData("total", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+      tmpMap.put(_Fields.VALUE, new org.apache.thrift.meta_data.FieldMetaData("value", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, MemoryStatus.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(set_dict_args.class, metaDataMap);
     }
@@ -12452,23 +12438,19 @@ public class MonitoringDataAcceptor {
     }
 
     public set_dict_args(
-      int free,
-      long total)
+      MemoryStatus value)
     {
       this();
-      this.free = free;
-      setFreeIsSet(true);
-      this.total = total;
-      setTotalIsSet(true);
+      this.value = value;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public set_dict_args(set_dict_args other) {
-      __isset_bitfield = other.__isset_bitfield;
-      this.free = other.free;
-      this.total = other.total;
+      if (other.isSetValue()) {
+        this.value = new MemoryStatus(other.value);
+      }
     }
 
     public set_dict_args deepCopy() {
@@ -12477,73 +12459,40 @@ public class MonitoringDataAcceptor {
 
     @Override
     public void clear() {
-      setFreeIsSet(false);
-      this.free = 0;
-      setTotalIsSet(false);
-      this.total = 0;
+      this.value = null;
     }
 
-    public int getFree() {
-      return this.free;
+    public MemoryStatus getValue() {
+      return this.value;
     }
 
-    public set_dict_args setFree(int free) {
-      this.free = free;
-      setFreeIsSet(true);
+    public set_dict_args setValue(MemoryStatus value) {
+      this.value = value;
       return this;
     }
 
-    public void unsetFree() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __FREE_ISSET_ID);
+    public void unsetValue() {
+      this.value = null;
     }
 
-    /** Returns true if field free is set (has been assigned a value) and false otherwise */
-    public boolean isSetFree() {
-      return EncodingUtils.testBit(__isset_bitfield, __FREE_ISSET_ID);
+    /** Returns true if field value is set (has been assigned a value) and false otherwise */
+    public boolean isSetValue() {
+      return this.value != null;
     }
 
-    public void setFreeIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __FREE_ISSET_ID, value);
-    }
-
-    public long getTotal() {
-      return this.total;
-    }
-
-    public set_dict_args setTotal(long total) {
-      this.total = total;
-      setTotalIsSet(true);
-      return this;
-    }
-
-    public void unsetTotal() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __TOTAL_ISSET_ID);
-    }
-
-    /** Returns true if field total is set (has been assigned a value) and false otherwise */
-    public boolean isSetTotal() {
-      return EncodingUtils.testBit(__isset_bitfield, __TOTAL_ISSET_ID);
-    }
-
-    public void setTotalIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __TOTAL_ISSET_ID, value);
+    public void setValueIsSet(boolean value) {
+      if (!value) {
+        this.value = null;
+      }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case FREE:
+      case VALUE:
         if (value == null) {
-          unsetFree();
+          unsetValue();
         } else {
-          setFree((Integer)value);
-        }
-        break;
-
-      case TOTAL:
-        if (value == null) {
-          unsetTotal();
-        } else {
-          setTotal((Long)value);
+          setValue((MemoryStatus)value);
         }
         break;
 
@@ -12552,11 +12501,8 @@ public class MonitoringDataAcceptor {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case FREE:
-        return Integer.valueOf(getFree());
-
-      case TOTAL:
-        return Long.valueOf(getTotal());
+      case VALUE:
+        return getValue();
 
       }
       throw new IllegalStateException();
@@ -12569,10 +12515,8 @@ public class MonitoringDataAcceptor {
       }
 
       switch (field) {
-      case FREE:
-        return isSetFree();
-      case TOTAL:
-        return isSetTotal();
+      case VALUE:
+        return isSetValue();
       }
       throw new IllegalStateException();
     }
@@ -12590,21 +12534,12 @@ public class MonitoringDataAcceptor {
       if (that == null)
         return false;
 
-      boolean this_present_free = true;
-      boolean that_present_free = true;
-      if (this_present_free || that_present_free) {
-        if (!(this_present_free && that_present_free))
+      boolean this_present_value = true && this.isSetValue();
+      boolean that_present_value = true && that.isSetValue();
+      if (this_present_value || that_present_value) {
+        if (!(this_present_value && that_present_value))
           return false;
-        if (this.free != that.free)
-          return false;
-      }
-
-      boolean this_present_total = true;
-      boolean that_present_total = true;
-      if (this_present_total || that_present_total) {
-        if (!(this_present_total && that_present_total))
-          return false;
-        if (this.total != that.total)
+        if (!this.value.equals(that.value))
           return false;
       }
 
@@ -12624,22 +12559,12 @@ public class MonitoringDataAcceptor {
 
       int lastComparison = 0;
 
-      lastComparison = Boolean.valueOf(isSetFree()).compareTo(other.isSetFree());
+      lastComparison = Boolean.valueOf(isSetValue()).compareTo(other.isSetValue());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetFree()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.free, other.free);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetTotal()).compareTo(other.isSetTotal());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetTotal()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.total, other.total);
+      if (isSetValue()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.value, other.value);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -12664,12 +12589,12 @@ public class MonitoringDataAcceptor {
       StringBuilder sb = new StringBuilder("set_dict_args(");
       boolean first = true;
 
-      sb.append("free:");
-      sb.append(this.free);
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("total:");
-      sb.append(this.total);
+      sb.append("value:");
+      if (this.value == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.value);
+      }
       first = false;
       sb.append(")");
       return sb.toString();
@@ -12678,6 +12603,9 @@ public class MonitoringDataAcceptor {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (value != null) {
+        value.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -12690,8 +12618,6 @@ public class MonitoringDataAcceptor {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
-        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
-        __isset_bitfield = 0;
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -12716,18 +12642,11 @@ public class MonitoringDataAcceptor {
             break;
           }
           switch (schemeField.id) {
-            case 1: // FREE
-              if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-                struct.free = iprot.readI32();
-                struct.setFreeIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // TOTAL
-              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-                struct.total = iprot.readI64();
-                struct.setTotalIsSet(true);
+            case 1: // VALUE
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.value = new MemoryStatus();
+                struct.value.read(iprot);
+                struct.setValueIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -12747,12 +12666,11 @@ public class MonitoringDataAcceptor {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        oprot.writeFieldBegin(FREE_FIELD_DESC);
-        oprot.writeI32(struct.free);
-        oprot.writeFieldEnd();
-        oprot.writeFieldBegin(TOTAL_FIELD_DESC);
-        oprot.writeI64(struct.total);
-        oprot.writeFieldEnd();
+        if (struct.value != null) {
+          oprot.writeFieldBegin(VALUE_FIELD_DESC);
+          struct.value.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -12771,32 +12689,23 @@ public class MonitoringDataAcceptor {
       public void write(org.apache.thrift.protocol.TProtocol prot, set_dict_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetFree()) {
+        if (struct.isSetValue()) {
           optionals.set(0);
         }
-        if (struct.isSetTotal()) {
-          optionals.set(1);
-        }
-        oprot.writeBitSet(optionals, 2);
-        if (struct.isSetFree()) {
-          oprot.writeI32(struct.free);
-        }
-        if (struct.isSetTotal()) {
-          oprot.writeI64(struct.total);
+        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetValue()) {
+          struct.value.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, set_dict_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.free = iprot.readI32();
-          struct.setFreeIsSet(true);
-        }
-        if (incoming.get(1)) {
-          struct.total = iprot.readI64();
-          struct.setTotalIsSet(true);
+          struct.value = new MemoryStatus();
+          struct.value.read(iprot);
+          struct.setValueIsSet(true);
         }
       }
     }
@@ -14617,8 +14526,8 @@ public class MonitoringDataAcceptor {
 
   }
 
-  public static class notify_testEvent1_args implements org.apache.thrift.TBase<notify_testEvent1_args, notify_testEvent1_args._Fields>, java.io.Serializable, Cloneable, Comparable<notify_testEvent1_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("notify_testEvent1_args");
+  public static class notify_testEvent_args implements org.apache.thrift.TBase<notify_testEvent_args, notify_testEvent_args._Fields>, java.io.Serializable, Cloneable, Comparable<notify_testEvent_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("notify_testEvent_args");
 
     private static final org.apache.thrift.protocol.TField MESSAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("message", org.apache.thrift.protocol.TType.STRING, (short)1);
     private static final org.apache.thrift.protocol.TField SEQNUM_FIELD_DESC = new org.apache.thrift.protocol.TField("seqnum", org.apache.thrift.protocol.TType.I64, (short)2);
@@ -14627,8 +14536,8 @@ public class MonitoringDataAcceptor {
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new notify_testEvent1_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new notify_testEvent1_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new notify_testEvent_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new notify_testEvent_argsTupleSchemeFactory());
     }
 
     public String message; // required
@@ -14720,13 +14629,13 @@ public class MonitoringDataAcceptor {
       tmpMap.put(_Fields.USER_DATA, new org.apache.thrift.meta_data.FieldMetaData("userData", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(notify_testEvent1_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(notify_testEvent_args.class, metaDataMap);
     }
 
-    public notify_testEvent1_args() {
+    public notify_testEvent_args() {
     }
 
-    public notify_testEvent1_args(
+    public notify_testEvent_args(
       String message,
       long seqnum,
       long timeStamp,
@@ -14745,7 +14654,7 @@ public class MonitoringDataAcceptor {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public notify_testEvent1_args(notify_testEvent1_args other) {
+    public notify_testEvent_args(notify_testEvent_args other) {
       __isset_bitfield = other.__isset_bitfield;
       if (other.isSetMessage()) {
         this.message = other.message;
@@ -14755,8 +14664,8 @@ public class MonitoringDataAcceptor {
       this.userData = other.userData;
     }
 
-    public notify_testEvent1_args deepCopy() {
-      return new notify_testEvent1_args(this);
+    public notify_testEvent_args deepCopy() {
+      return new notify_testEvent_args(this);
     }
 
     @Override
@@ -14774,7 +14683,7 @@ public class MonitoringDataAcceptor {
       return this.message;
     }
 
-    public notify_testEvent1_args setMessage(String message) {
+    public notify_testEvent_args setMessage(String message) {
       this.message = message;
       return this;
     }
@@ -14798,7 +14707,7 @@ public class MonitoringDataAcceptor {
       return this.seqnum;
     }
 
-    public notify_testEvent1_args setSeqnum(long seqnum) {
+    public notify_testEvent_args setSeqnum(long seqnum) {
       this.seqnum = seqnum;
       setSeqnumIsSet(true);
       return this;
@@ -14821,7 +14730,7 @@ public class MonitoringDataAcceptor {
       return this.timeStamp;
     }
 
-    public notify_testEvent1_args setTimeStamp(long timeStamp) {
+    public notify_testEvent_args setTimeStamp(long timeStamp) {
       this.timeStamp = timeStamp;
       setTimeStampIsSet(true);
       return this;
@@ -14844,7 +14753,7 @@ public class MonitoringDataAcceptor {
       return this.userData;
     }
 
-    public notify_testEvent1_args setUserData(long userData) {
+    public notify_testEvent_args setUserData(long userData) {
       this.userData = userData;
       setUserDataIsSet(true);
       return this;
@@ -14941,12 +14850,12 @@ public class MonitoringDataAcceptor {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof notify_testEvent1_args)
-        return this.equals((notify_testEvent1_args)that);
+      if (that instanceof notify_testEvent_args)
+        return this.equals((notify_testEvent_args)that);
       return false;
     }
 
-    public boolean equals(notify_testEvent1_args that) {
+    public boolean equals(notify_testEvent_args that) {
       if (that == null)
         return false;
 
@@ -14995,7 +14904,7 @@ public class MonitoringDataAcceptor {
     }
 
     @Override
-    public int compareTo(notify_testEvent1_args other) {
+    public int compareTo(notify_testEvent_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -15059,7 +14968,7 @@ public class MonitoringDataAcceptor {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("notify_testEvent1_args(");
+      StringBuilder sb = new StringBuilder("notify_testEvent_args(");
       boolean first = true;
 
       sb.append("message:");
@@ -15108,15 +15017,15 @@ public class MonitoringDataAcceptor {
       }
     }
 
-    private static class notify_testEvent1_argsStandardSchemeFactory implements SchemeFactory {
-      public notify_testEvent1_argsStandardScheme getScheme() {
-        return new notify_testEvent1_argsStandardScheme();
+    private static class notify_testEvent_argsStandardSchemeFactory implements SchemeFactory {
+      public notify_testEvent_argsStandardScheme getScheme() {
+        return new notify_testEvent_argsStandardScheme();
       }
     }
 
-    private static class notify_testEvent1_argsStandardScheme extends StandardScheme<notify_testEvent1_args> {
+    private static class notify_testEvent_argsStandardScheme extends StandardScheme<notify_testEvent_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, notify_testEvent1_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, notify_testEvent_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -15169,7 +15078,7 @@ public class MonitoringDataAcceptor {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, notify_testEvent1_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, notify_testEvent_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -15193,16 +15102,16 @@ public class MonitoringDataAcceptor {
 
     }
 
-    private static class notify_testEvent1_argsTupleSchemeFactory implements SchemeFactory {
-      public notify_testEvent1_argsTupleScheme getScheme() {
-        return new notify_testEvent1_argsTupleScheme();
+    private static class notify_testEvent_argsTupleSchemeFactory implements SchemeFactory {
+      public notify_testEvent_argsTupleScheme getScheme() {
+        return new notify_testEvent_argsTupleScheme();
       }
     }
 
-    private static class notify_testEvent1_argsTupleScheme extends TupleScheme<notify_testEvent1_args> {
+    private static class notify_testEvent_argsTupleScheme extends TupleScheme<notify_testEvent_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, notify_testEvent1_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, notify_testEvent_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetMessage()) {
@@ -15233,7 +15142,7 @@ public class MonitoringDataAcceptor {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, notify_testEvent1_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, notify_testEvent_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(4);
         if (incoming.get(0)) {

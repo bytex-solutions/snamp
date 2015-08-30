@@ -16,4 +16,5 @@ interface ThriftValueParser {
 
     Object deserialize(final TProtocol input) throws TException;
 
+    byte getType();
 }
