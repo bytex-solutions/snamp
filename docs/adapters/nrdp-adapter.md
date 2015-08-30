@@ -2,6 +2,8 @@ NRDP Resource Adapter
 ====
 NRDP Resource Adapter allows to collect monitoring and management information from all resources connected to SNAMP using [passive check](http://nagios.sourceforge.net/docs/3_0/passivechecks.html). It utilizes [Nagiod Remote Data Processing](https://assets.nagios.com/downloads/nrdp/docs/NRDP_Overview.pdf) technology. So, you need to configure NRDP remote server to receive information in XML format from SNAMP.
 
+![Communication Scheme](nrdp-adapter.png)
+
 The resource adapter sends check information about connected resources in XML format to NRDP agent at the specified period of time.
 
 NRDP Resource Adapter supports following features (if these features are supported by managed resources as well):

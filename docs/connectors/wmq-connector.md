@@ -4,6 +4,8 @@ WMQ Resource Connector allows to monitor WebSphere MQ queues using Queue Manager
 
 The named queue (or topic) is interpreted as Managed Resource by this connector.
 
+![Communication Scheme](wmq-connector.png)
+
 ## Initial setup
 SNAMP distribution package doesn't contain IBM WebSphere MQ classes for Java due to license restrictions. These classes should be installed into OSGi environment manually:
 1. Verify IBM WebSphere MQ server installation

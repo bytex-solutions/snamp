@@ -4,6 +4,8 @@ XMPP Resource Adapter provides access to the monitoring & management information
 
 > Note that XMPP Adapter acting as a chat bot. Therefore, it must be connected to Jabber server.
 
+![Communication Scheme](xmpp-adapter.png)
+
 XMPP Resource Adapter supports the following features (in case these features are supported by managed resources too):
 
 Feature | Description

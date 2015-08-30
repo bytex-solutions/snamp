@@ -3,6 +3,8 @@ JMX Resource Adapter
 
 JMX Resource Adapter allows to manage and monitor connected resources via JMX protocol even if connected resources are not JMX-compliant (and non-Java software). Each instance of the resource adapter exposes MBean through existing MBean Server. This MBean provides access to monitoring and management features (attributes, notifications and operations) of non-JMX resources.
 
+![Communication Scheme](jmx-adapter.png)
+
 Each managed resource will be exposed as separated MBean. Each MBean has similar _ObjectName_ used for registration at MBean Server. You should specify the root _ObjectName_ that will be used to construct derived _ObjectNames_ for each exposed resource.
 
 For example, you specify `com.acme.mbeans:type=RootBean` as a root _ObjectName_ and your configuration contains two managed resources with `network-switch-1` and `native-app-1` names. In this case, JMX Resource Adapter will expose two MBeans: `com.acme.mbeans:type=RootBean,resource=network-switch-1` and `com.acme.mbeans:type=RootBean,resource=native-app-1`.

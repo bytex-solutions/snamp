@@ -6,6 +6,8 @@ RShell Resource Connector is a multiprotocol connector that allows to monitor re
 * Local Process Execution - executes any process on the same OS where SNAMP installed
 * [Secure Shell](http://en.wikipedia.org/wiki/Secure_Shell) - allows to execute process on remote machine using _SSH_ protocol
 
+![Communication Scheme](rshell-connector.png)
+
 This connector uses one of the supported protocols to execute a process (local or remote) and convert information from its STDOUT into the management information. Many command-line utilities provide useful information about OS and hardware state, such as:
 * GNU Core Utilities:
   * `df` - disk free space on file systems

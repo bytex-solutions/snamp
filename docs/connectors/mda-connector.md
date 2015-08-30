@@ -2,6 +2,8 @@ MDA Resource Connector
 ====
 MDA is an acronym of Monitoring Data Acceptor. This means that the connector is passive and doesn't establish direct connection to the managed resource unlike many other active connectors. In other words, the data flow directed from managed resource to resource connector. The managed resources responsible for delivery monitoring data to the connector. This approach is very helpful for monitoring Public/Private Clouds with hundreds or even thousands of components.
 
+![Communication Scheme](mda-connector.png)
+
 MDA Resource Connector provides two type of transport for delivering monitoring data:
 
 Transport | Description
@@ -30,4 +32,4 @@ http://<snamp-host>:3535/snamp/connectors/mda/<resource-name>
 ```
 where `resource-name` is a name of the managed resource in SNAMP configuration.
 
-URL context can be changed by specifying 
+URL context can be changed by specifying

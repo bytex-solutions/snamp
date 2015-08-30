@@ -2,6 +2,8 @@ Syslog Resource Adapter
 ====
 Syslog Resource Adapter allows to collect monitoring and management information from all resources connected to SNAMP using Syslog ([RFC-3164](http://www.ietf.org/rfc/rfc3164.txt) or [RFC-5424](http://www.ietf.org/rfc/rfc5424.txt)) protocol. So, you need to configure Syslog server to receive information in binary format from SNAMP.
 
+![Communication Scheme](syslog-adapter.png)
+
 The resource adapter sends check information about connected resources in binary format to Syslog server at the specified period of time.
 
 Syslog Resource Adapter supports the following features (if they are supported by managed resources as well):

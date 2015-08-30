@@ -5,6 +5,8 @@ JMX Resource Connector allows you to manage and monitor Java components via JMX 
 * Java components
 * Java standalone application
 
+![Communication Scheme](jmx-connector.png)
+
 Short list of supported features:
 
 Feature | Comments

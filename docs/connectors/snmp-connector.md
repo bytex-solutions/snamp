@@ -3,6 +3,8 @@ SNMP Resource Connector
 SNMP Resource Connector allows to manage and monitor managed resources (software components, networks switchers and routers) accessible through SNMPv2/SNMPv3 protocol.
 > SNMPv1 protocol is not supported. UDP is the only supported transport protocol. `TCP` binding is not supported.
 
+![Communication Scheme](snmp-connector.png)
+
 Short list of supported features:
 
 Feature name | Description

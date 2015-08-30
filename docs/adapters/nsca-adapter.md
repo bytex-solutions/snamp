@@ -2,6 +2,8 @@ NSCA Resource Adapter
 ====
 NSCA Resource Adapter allows to collect monitoring and management information from all resources connected to SNAMP using [passive check](http://nagios.sourceforge.net/docs/3_0/passivechecks.html). It utilizes [Nagios Service Check Acceptor](http://nagios.sourceforge.net/download/contrib/documentation/misc/NSCA_Setup.pdf) technology. So, you need to configure NSCA remote server to receive information in binary format from SNAMP.
 
+![Communication Scheme](nsca-adapter.png)
+
 The resource adapter sends check information about connected resources in binary format to NSCA agent at the specified period of time.
 
 NSCA Resource Adapter supports the following features (if these features are supported by managed resources as well):

@@ -5,6 +5,8 @@ Modbus Resource Connector acting as Modbus Master device that can be connected t
 * Modbus-TCP
 * Modbus-RTU/IP
 
+![Communication Scheme](modbus-connector.png)
+
 > Serial port is not supported
 
 List of devices that can handled by the connector:

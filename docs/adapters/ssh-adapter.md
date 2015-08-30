@@ -2,6 +2,8 @@ SSH Resource Adapter
 ====
 SSH Resource Adapter provides remote command-line using SSH console. It allows administrators to monitor & manage state of connected resources. You may read or write all attributes and receive notifications that displayed asynchronously in the terminal window. So, you may use _PuTTY_, _WinSCP_, _OpenSSH_ or any other SSH client.
 
+![Communication Scheme](ssh-adapter.png)
+
 SSH Resource Adapter supports following features (if they are supported by managed resources as well):
 
 Feature | Description

@@ -3,6 +3,8 @@ HTTP Resource Adapter
 
 HTTP Resource Adapter allows to manage and monitor connected resources via HTTP protocol. This adapter exposes REST service which uses JSON data exchange format.
 
+![Communication Scheme](http-adapter.png)
+
 By default, REST service is available at the following URL:
 ```
 http://<snamp-host>:3535/snamp/adapters/http/<adapter-instance-name>

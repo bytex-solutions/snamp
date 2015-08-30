@@ -2,6 +2,8 @@ SNMP Resource Adapter
 ====
 SNMP Resource Adapter exposes management information about connected resources through SNMP protocol. It supports SNMPv2 and SNMPv3 protocol versions. You may use many powerful tools such as `snmpwalk`, Nagios (there is a separate adapter, but can work with SNMP adapter as well), HP OpenView, OpenNMS, Microsoft System Center Operations Manager, Zabbix for monitoring components connected to SNAMP.
 
+![Communication Scheme](snmp-adapter.png)
+
 SNMP Resource Adapter supports following features (if these features are supported by managed resources as well):
 
 Feature | Description

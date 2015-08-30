@@ -2,6 +2,8 @@ Nagios Resource Adapter
 ====
 Nagios Resource Adapter allows to collect monitoring and management information from all resources connected to SNAMP using [active check](http://nagios.sourceforge.net/docs/3_0/activechecks.html). Simply, this adapter is just a HTTP endpoint that returns information in [Nagios Plugin Format](http://nagios.sourceforge.net/docs/3_0/pluginapi.html) about managed resource.
 
+![Communication Scheme](nagios-adapter.png)
+
 Nagios Resource Adapter supports following features (if these features are supported by managed resources as well):
 
 Feature | Description

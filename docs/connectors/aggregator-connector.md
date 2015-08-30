@@ -2,6 +2,8 @@ Aggregator Connector
 ====
 Aggregator (or Resource Aggregator) can be used to aggregate management information from other connected managed resources without any scripting and other heavyweight settings. This connector can't be used to connect real managed resources.
 
+![Communication Scheme](aggregator-connector.png)
+
 Short list of supported features:
 
 Feature | Comments
