@@ -3,6 +3,7 @@ package com.bytex.snamp.connectors.mda.thrift;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.jmx.DefaultValues;
 import com.bytex.snamp.jmx.WellKnownType;
+import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TField;
@@ -27,7 +28,7 @@ import java.util.TreeMap;
 final class CompositeValueParser implements ThriftValueParser {
     private final CompositeData defaultValue;
     private final String[] sortedNames;
-    private final SortedMap<String, ? extends ThriftValueParser> sortedItems;
+    private final ImmutableSortedMap<String, ? extends ThriftValueParser> sortedItems;
     private final TStruct struct;
 
     CompositeValueParser(final CompositeType type) throws OpenDataException {
@@ -41,7 +42,7 @@ final class CompositeValueParser implements ThriftValueParser {
             parsers.put(itemName, new SimpleValueParser(itemType));
         }
         sortedNames = ArrayUtils.toArray(parsers.keySet(), String.class);
-        sortedItems = parsers;
+        sortedItems = ImmutableSortedMap.copyOfSorted(parsers);
     }
 
     @Override
