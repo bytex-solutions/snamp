@@ -6,11 +6,13 @@ This document provides step-by-step guide of SNAMP deployment and configuration.
 Let's identify required capabilities of the target configuration:
 1. Monitoring Java Application Server via SNMPv2 using JMX-to-SNMP bridge
 1. Monitoring Java Application Server via HTTP using JMX-to-HTTP bridge
+1. Observing monitoring data transmitted by external component via HTTP or Apache Thrift
 1. Collecting monitoring data using third-party programs and exposing this data via HTTP or SNMPv2
 
 Following SNAMP components will be used to implement requirements described above:
 1. JMX Resource Connector - allows to connect Java Application Server with SNAMP via JMX protocol
 1. RShell Resource Connector - allows to execute any local process and parse its output into the the necessary monitoring information
+1. MDA Resource Connector - allows to store monitoring data received from external component via HTTP or Apache Thrift
 1. HTTP Resource Adapter - provides access to the management information exposed by all connectors using simple HTTP requests
 1. SNMP Resource Adapter - provides access to the management information exposed by all connectors using SNMPv2 protocol
 
@@ -151,6 +153,11 @@ Hit '<ctrl-d>' or type 'system:shutdown' or 'logout' to shutdown SNAMP.
 snamp.root@karaf>
 ```
 
+Install Apache Karaf Cellar from SNAMP console:
+```
+snamp.root@karaf> feature:install cellar
+```
+
 ## Configuration
 Verify that initial SNAMP configuration is empty:
 ```bash
@@ -228,6 +235,52 @@ Go to the home directory and create file with name `config.json`and following co
         }
     },
     "ManagedResources": {
+      "operatingSystemInfo": {
+      "UserDefinedName": "operatingSystemInfo",
+      "Connector": {
+        "Parameters": {
+          "waitForHazelcast": {
+            "Key": "waitForHazelcast",
+            "Value": "30000"
+          }
+        },
+        "ConnectionString": "",
+        "Attributes": {
+          "testString": {
+            "UserDefinedName": "testString",
+            "Attribute": {
+              "Name": "str",
+              "ReadWriteTimeout": 5000,
+              "AdditionalProperties": {
+                "expectedType": {
+                  "Key": "expectedType",
+                  "Value": "string"
+                },
+                "oid": {
+                    "Value": "1.1.15.0",
+                    "Key": "oid"
+                }
+              }
+            }
+          }
+        },
+        "Events": {
+          "testEvent": {
+            "UserDefinedName": "testEvent",
+            "Event": {
+              "Category": "AsyncEvent",
+              "AdditionalProperties": {
+                "expectedType": {
+                  "Key": "expectedType",
+                  "Value": "int64"
+                }
+              }
+            }
+          }
+        },
+        "ConnectionType": "mda"
+      }
+    },
 	"processes":{
 		"Connector": {
                 "Parameters": {},
@@ -398,4 +451,11 @@ curl http://127.0.0.1:3535/snamp/adapters/http/httpmon/attributes/glassfish-v4/m
         "used": 189431512
     }
 }
+```
+
+
+Create file `data.json` with content `"Test string"`. Read/write test attribute value from/to MDA Connector:
+```
+curl -X PUT -H "Accept: application/json" -T data.json http://127.0.0.1:3535/snamp/connectors/operatingSystemInfo/attributes/str
+curl http://127.0.0.1:3535/snamp/connectors/mda/operatingSystemInfo/attributes/str
 ```
