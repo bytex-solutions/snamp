@@ -34,7 +34,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
  */
 public final class StandaloneMdaHttpConnectorTest extends AbstractMdaConnectorTest {
     public StandaloneMdaHttpConnectorTest() {
-        super(ImmutableMap.of("expireTime", "10000"));
+        super(ImmutableMap.of("expirationTime", "10000"));
     }
 
     @Override

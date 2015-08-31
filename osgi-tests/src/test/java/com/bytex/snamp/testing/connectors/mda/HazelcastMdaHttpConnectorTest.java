@@ -37,7 +37,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
 @MavenDependencies(@MavenFeature(groupId = "org.apache.karaf.cellar", artifactId = "apache-karaf-cellar", version = "3.0.3", name = "cellar"))
 public final class HazelcastMdaHttpConnectorTest extends AbstractMdaConnectorTest {
     public HazelcastMdaHttpConnectorTest() {
-        super(ImmutableMap.of("expireTime", "10000", "waitForHazelcast", "15000"));
+        super(ImmutableMap.of("expirationTime", "10000", "waitForHazelcast", "15000"));
     }
 
     @Override

@@ -26,6 +26,43 @@
     }
   },
   "ManagedResources": {
+    "operatingSystemInfo": {
+      "UserDefinedName": "operatingSystemInfo",
+      "Connector": {
+        "Parameters": {
+          "waitForHazelcast": {
+            "Key": "waitForHazelcast",
+            "Value": "20000"
+          },
+          "expireTime": {
+            "Key": "expirationTime",
+            "Value": "4000"
+          }
+        },
+        "ConnectionString": "",
+        "Attributes": {
+          "testString": {
+            "Name": "str",
+            "UserDefinedName": "testString",
+            "ReadWriteTimeout": 5000,
+            "AdditionalProperties": {
+              "expectedType": {
+                "Key": "expectedType",
+                "Value": "string"
+              }
+            }
+          }
+        },
+        "Events": {
+          "testEvent": {
+            "UserDefinedName": "testEvent",
+            "Category": "AsyncEvent",
+            "AdditionalProperties": { }
+          }
+        },
+        "ConnectorType": "mda"
+      }
+    },
     "glassfish-v4": {
       "Connector": {
         "Parameters": {},

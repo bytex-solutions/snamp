@@ -29,7 +29,7 @@ public final class MDAResourceConfigurationDescriptorProvider extends Configurat
     private static final String ITEM_NAMES_PARAM = "dictionaryItemNames";
     private static final String ITEM_TYPES_PARAM = "dictionaryItemTypes";
     private static final String TYPE_NAME_PARAM = "dictionaryName";
-    private static final String EXPIRE_TIME_PARAM = "expireTime";
+    private static final String EXPIRE_TIME_PARAM = "expirationTime";
     private static final String SOCKET_TIMEOUT_PARAM = "socketTimeout";
     private static final String WAIT_FOR_HZ_PARAM = "waitForHazelcast";
 
