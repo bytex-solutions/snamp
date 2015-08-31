@@ -6,20 +6,31 @@
  */
 package com.bytex.snamp.testing.connectors.mda;
 
-import org.apache.thrift.EncodingUtils;
-import org.apache.thrift.TException;
-import org.apache.thrift.async.AsyncMethodCallback;
-import org.apache.thrift.protocol.TTupleProtocol;
 import org.apache.thrift.scheme.IScheme;
 import org.apache.thrift.scheme.SchemeFactory;
 import org.apache.thrift.scheme.StandardScheme;
+
 import org.apache.thrift.scheme.TupleScheme;
-import org.apache.thrift.server.AbstractNonblockingServer.AsyncFrameBuffer;
+import org.apache.thrift.protocol.TTupleProtocol;
+import org.apache.thrift.protocol.TProtocolException;
+import org.apache.thrift.EncodingUtils;
+import org.apache.thrift.TException;
+import org.apache.thrift.async.AsyncMethodCallback;
+import org.apache.thrift.server.AbstractNonblockingServer.*;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.EnumMap;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.EnumSet;
+import java.util.Collections;
+import java.util.BitSet;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.nio.ByteBuffer;
-import java.util.*;
 
 public class MonitoringDataAcceptor {
 
@@ -63,6 +74,8 @@ public class MonitoringDataAcceptor {
 
     public void notify_testEvent(String message, long seqnum, long timeStamp, long userData) throws org.apache.thrift.TException;
 
+    public void reset() throws org.apache.thrift.TException;
+
   }
 
   public interface AsyncIface {
@@ -104,6 +117,8 @@ public class MonitoringDataAcceptor {
     public void set_longArray(List<Long> value, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void notify_testEvent(String message, long seqnum, long timeStamp, long userData, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+
+    public void reset(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
   }
 
@@ -545,6 +560,17 @@ public class MonitoringDataAcceptor {
       args.setTimeStamp(timeStamp);
       args.setUserData(userData);
       sendBase("notify_testEvent", args);
+    }
+
+    public void reset() throws org.apache.thrift.TException
+    {
+      send_reset();
+    }
+
+    public void send_reset() throws org.apache.thrift.TException
+    {
+      reset_args args = new reset_args();
+      sendBase("reset", args);
     }
 
   }
@@ -1154,6 +1180,34 @@ public class MonitoringDataAcceptor {
       }
     }
 
+    public void reset(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+      checkReady();
+      reset_call method_call = new reset_call(resultHandler, this, ___protocolFactory, ___transport);
+      this.___currentMethod = method_call;
+      ___manager.call(method_call);
+    }
+
+    public static class reset_call extends org.apache.thrift.async.TAsyncMethodCall {
+      public reset_call(org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+        super(client, protocolFactory, transport, resultHandler, true);
+      }
+
+      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("reset", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        reset_args args = new reset_args();
+        args.write(prot);
+        prot.writeMessageEnd();
+      }
+
+      public void getResult() throws org.apache.thrift.TException {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
+          throw new IllegalStateException("Method call not finished!");
+        }
+        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
+        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
+      }
+    }
+
   }
 
   public static class Processor<I extends Iface> extends org.apache.thrift.TBaseProcessor<I> implements org.apache.thrift.TProcessor {
@@ -1186,6 +1240,7 @@ public class MonitoringDataAcceptor {
       processMap.put("get_longArray", new get_longArray());
       processMap.put("set_longArray", new set_longArray());
       processMap.put("notify_testEvent", new notify_testEvent());
+      processMap.put("reset", new reset());
       return processMap;
     }
 
@@ -1576,6 +1631,25 @@ public class MonitoringDataAcceptor {
       }
     }
 
+    public static class reset<I extends Iface> extends org.apache.thrift.ProcessFunction<I, reset_args> {
+      public reset() {
+        super("reset");
+      }
+
+      public reset_args getEmptyArgsInstance() {
+        return new reset_args();
+      }
+
+      protected boolean isOneway() {
+        return true;
+      }
+
+      public org.apache.thrift.TBase getResult(I iface, reset_args args) throws org.apache.thrift.TException {
+        iface.reset();
+        return null;
+      }
+    }
+
   }
 
   public static class AsyncProcessor<I extends AsyncIface> extends org.apache.thrift.TBaseAsyncProcessor<I> {
@@ -1608,6 +1682,7 @@ public class MonitoringDataAcceptor {
       processMap.put("get_longArray", new get_longArray());
       processMap.put("set_longArray", new set_longArray());
       processMap.put("notify_testEvent", new notify_testEvent());
+      processMap.put("reset", new reset());
       return processMap;
     }
 
@@ -2562,6 +2637,34 @@ public class MonitoringDataAcceptor {
 
       public void start(I iface, notify_testEvent_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
         iface.notify_testEvent(args.message, args.seqnum, args.timeStamp, args.userData,resultHandler);
+      }
+    }
+
+    public static class reset<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, reset_args, Void> {
+      public reset() {
+        super("reset");
+      }
+
+      public reset_args getEmptyArgsInstance() {
+        return new reset_args();
+      }
+
+      public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+        final org.apache.thrift.AsyncProcessFunction fcall = this;
+        return new AsyncMethodCallback<Void>() { 
+          public void onComplete(Void o) {
+          }
+          public void onError(Exception e) {
+          }
+        };
+      }
+
+      protected boolean isOneway() {
+        return true;
+      }
+
+      public void start(I iface, reset_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
+        iface.reset(resultHandler);
       }
     }
 
@@ -15161,6 +15264,252 @@ public class MonitoringDataAcceptor {
           struct.userData = iprot.readI64();
           struct.setUserDataIsSet(true);
         }
+      }
+    }
+
+  }
+
+  public static class reset_args implements org.apache.thrift.TBase<reset_args, reset_args._Fields>, java.io.Serializable, Cloneable, Comparable<reset_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("reset_args");
+
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new reset_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new reset_argsTupleSchemeFactory());
+    }
+
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+;
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(reset_args.class, metaDataMap);
+    }
+
+    public reset_args() {
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public reset_args(reset_args other) {
+    }
+
+    public reset_args deepCopy() {
+      return new reset_args(this);
+    }
+
+    @Override
+    public void clear() {
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof reset_args)
+        return this.equals((reset_args)that);
+      return false;
+    }
+
+    public boolean equals(reset_args that) {
+      if (that == null)
+        return false;
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      return 0;
+    }
+
+    @Override
+    public int compareTo(reset_args other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("reset_args(");
+      boolean first = true;
+
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class reset_argsStandardSchemeFactory implements SchemeFactory {
+      public reset_argsStandardScheme getScheme() {
+        return new reset_argsStandardScheme();
+      }
+    }
+
+    private static class reset_argsStandardScheme extends StandardScheme<reset_args> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, reset_args struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, reset_args struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class reset_argsTupleSchemeFactory implements SchemeFactory {
+      public reset_argsTupleScheme getScheme() {
+        return new reset_argsTupleScheme();
+      }
+    }
+
+    private static class reset_argsTupleScheme extends TupleScheme<reset_args> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, reset_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, reset_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
       }
     }
 

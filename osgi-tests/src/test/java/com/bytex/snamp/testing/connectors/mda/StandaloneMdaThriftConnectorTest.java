@@ -88,7 +88,7 @@ public final class StandaloneMdaThriftConnectorTest extends AbstractMdaConnector
         final String expectedValue = "Frank Underwood";
         assertEquals("", client.set_str(expectedValue));
         assertEquals(expectedValue, client.get_str());
-        //client.reset();
+        client.reset();
         assertEquals("", client.get_str());
     }
 
