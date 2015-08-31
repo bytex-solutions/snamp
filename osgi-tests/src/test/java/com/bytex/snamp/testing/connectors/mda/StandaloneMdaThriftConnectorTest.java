@@ -83,6 +83,16 @@ public final class StandaloneMdaThriftConnectorTest extends AbstractMdaConnector
     }
 
     @Test
+    public void resetTest() throws IOException, TException{
+        final Client client = createClient();
+        final String expectedValue = "Frank Underwood";
+        assertEquals("", client.set_str(expectedValue));
+        assertEquals(expectedValue, client.get_str());
+        //client.reset();
+        assertEquals("", client.get_str());
+    }
+
+    @Test
     public void arrayAttributeTest() throws IOException, TException {
         final Client client = createClient();
         final byte[] expectedValue = {3, 90, 50, 7};

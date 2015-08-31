@@ -203,6 +203,12 @@ final class ThriftDataAcceptor extends AbstractManagedResourceConnector implemen
         }
 
         @Override
+        protected Object getDefaultValue(final String storageName) {
+            final ThriftValueParser parser = parsers.getIfPresent(storageName);
+            return parser != null ? parser.getDefaultValue() : null;
+        }
+
+        @Override
         public void close() {
             super.close();
             parsers.invalidateAll();
@@ -284,6 +290,12 @@ final class ThriftDataAcceptor extends AbstractManagedResourceConnector implemen
             messageType.beginResponse(out, message.name, message.seqid);
             try {
                 switch (messageType) {
+                    case RESET:
+                        in.readStructBegin();
+                        ThriftUtils.skipStopField(in);  //skip empty list of arguments
+                        in.readStructEnd();
+                        attributes.reset();
+                        return true;
                     case GET_ATTRIBUTE:
                         in.readStructBegin();
                         ThriftUtils.skipStopField(in);  //skip empty list of arguments

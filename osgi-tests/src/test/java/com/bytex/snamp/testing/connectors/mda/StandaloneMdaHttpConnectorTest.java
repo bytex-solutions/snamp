@@ -2,6 +2,7 @@ package com.bytex.snamp.testing.connectors.mda;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.TimeSpan;
+import com.bytex.snamp.TypeTokens;
 import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.notifications.NotificationSupport;
@@ -10,6 +11,8 @@ import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.bytex.snamp.jmx.json.JsonUtils;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.reflect.TypeToken;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -26,6 +29,7 @@ import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 
 /**
  * @author Roman Sakno
@@ -48,15 +52,19 @@ public final class StandaloneMdaHttpConnectorTest extends AbstractMdaConnectorTe
         assertEquals(0, result.getAsShort());
         result = getAttributeViaHttp("short");
         assertEquals(52, result.getAsShort());
+        testAttribute("attr1", TypeTokens.SHORT, (short) 52, true);
+        testAttribute("alias", TypeTokens.SHORT, (short)52, true);
+    }
 
-        final ManagedResourceConnector connector = getManagementConnector();
-        try {
-            assertEquals((short)52, connector.getAttribute("attr1"));
-            assertEquals((short)52, connector.getAttribute("alias"));
-        }
-        finally {
-            releaseManagementConnector();
-        }
+    @Test
+    public void resetTest() throws IOException {
+        JsonElement result = setAttributeViaHttp("short", new JsonPrimitive((short) 52));
+        assertEquals(0, result.getAsShort());
+        result = getAttributeViaHttp("short");
+        assertEquals((short) 52, result.getAsShort());
+        resetAttributes();
+        result = getAttributeViaHttp("short");
+        assertEquals((short) 0, result.getAsShort());
     }
 
     @Test
@@ -83,14 +91,7 @@ public final class StandaloneMdaHttpConnectorTest extends AbstractMdaConnectorTe
         assertEquals(BigInteger.ZERO, result.getAsBigInteger());
         result = getAttributeViaHttp("biginteger");
         assertEquals(expectedValue, result.getAsBigInteger());
-
-        final ManagedResourceConnector connector = getManagementConnector();
-        try {
-            assertEquals(expectedValue, connector.getAttribute("attr3"));
-        }
-        finally {
-            releaseManagementConnector();
-        }
+        testAttribute("attr3", TypeTokens.BIG_INTEGER, expectedValue, true);
     }
 
     @Test
@@ -100,14 +101,7 @@ public final class StandaloneMdaHttpConnectorTest extends AbstractMdaConnectorTe
         assertEquals("", result.getAsString());
         result = getAttributeViaHttp("str");
         assertEquals(expectedValue, result.getAsString());
-
-        final ManagedResourceConnector connector = getManagementConnector();
-        try {
-            assertEquals(expectedValue, connector.getAttribute("attr4"));
-        }
-        finally {
-            releaseManagementConnector();
-        }
+        testAttribute("attr4", TypeTokens.STRING, expectedValue, true);
     }
 
     @Test
@@ -117,14 +111,7 @@ public final class StandaloneMdaHttpConnectorTest extends AbstractMdaConnectorTe
         assertArrayEquals(ArrayUtils.emptyArray(byte[].class), JsonUtils.parseByteArray(result.getAsJsonArray()));
         result = getAttributeViaHttp("array");
         assertArrayEquals(expectedValue, JsonUtils.parseByteArray(result.getAsJsonArray()));
-
-        final ManagedResourceConnector connector = getManagementConnector();
-        try {
-            assertArrayEquals(expectedValue, connector.getAttribute("attr5"));
-        }
-        finally {
-            releaseManagementConnector();
-        }
+        testAttribute("attr5", TypeToken.of(byte[].class), expectedValue, arrayEquator(), true);
     }
 
     @Test
@@ -133,14 +120,7 @@ public final class StandaloneMdaHttpConnectorTest extends AbstractMdaConnectorTe
         assertFalse(result.getAsBoolean());
         result = getAttributeViaHttp("boolean");
         assertTrue(result.getAsBoolean());
-
-        final ManagedResourceConnector connector = getManagementConnector();
-        try {
-            assertEquals(Boolean.TRUE, connector.getAttribute("attr6"));
-        }
-        finally {
-            releaseManagementConnector();
-        }
+        testAttribute("attr6", TypeTokens.BOOLEAN, Boolean.TRUE, true);
     }
 
     @Test
@@ -149,14 +129,7 @@ public final class StandaloneMdaHttpConnectorTest extends AbstractMdaConnectorTe
         assertEquals(0L, result.getAsLong());
         result = getAttributeViaHttp("long");
         assertEquals(901L, result.getAsLong());
-
-        final ManagedResourceConnector connector = getManagementConnector();
-        try {
-            assertEquals(901L, connector.getAttribute("attr7"));
-        }
-        finally {
-            releaseManagementConnector();
-        }
+        testAttribute("attr7", TypeTokens.LONG, 901L, true);
     }
 
     @Test
@@ -193,15 +166,9 @@ public final class StandaloneMdaHttpConnectorTest extends AbstractMdaConnectorTe
         values.addProperty("boolean", true);
         values.addProperty("str", "Barry Burton");
         assertNotNull(setAttributesViaHttp(values));
-        final ManagedResourceConnector connector = getManagementConnector();
-        try {
-            assertEquals(506L, connector.getAttribute("attr7"));
-            assertEquals(Boolean.TRUE, connector.getAttribute("attr6"));
-            assertEquals("Barry Burton", connector.getAttribute("attr4"));
-        }
-        finally {
-            releaseManagementConnector();
-        }
+        testAttribute("attr7", TypeTokens.LONG, 506L, true);
+        testAttribute("attr6", TypeTokens.BOOLEAN, Boolean.TRUE, true);
+        testAttribute("attr4", TypeTokens.STRING, "Barry Burton", true);
     }
 
     @Test
@@ -232,22 +199,36 @@ public final class StandaloneMdaHttpConnectorTest extends AbstractMdaConnectorTe
         assertEquals(0L, result.getAsLong());
         result = getAttributeViaHttp("long");
         assertEquals(502L, result.getAsLong());
-
-        final ManagedResourceConnector connector = getManagementConnector();
+        testAttribute("attr7", TypeTokens.LONG, 502L, true);
+        Thread.sleep(10010);
         try {
-            assertEquals(502L, connector.getAttribute("attr7"));
-            Thread.sleep(10010);
-            try {
-                connector.getAttribute("attr7");
-            }catch (final JMException e){
-                assertTrue(e.getCause() instanceof IllegalStateException);
-                return;
-            }
-            fail("No exception");
+            testAttribute("attr7", TypeTokens.LONG, 502L, true);
+        }catch (final JMException e){
+            assertTrue(e.getCause() instanceof IllegalStateException);
+            return;
         }
-        finally {
-            releaseManagementConnector();
-        }
+        fail("No exception");
+    }
+
+    @Test
+    public void configurationTest(){
+        testConfigurationDescriptor(AttributeConfiguration.class, ImmutableSet.of(
+                "expectedType",
+                "dictionaryItemNames",
+                "dictionaryItemTypes",
+                "dictionaryName"
+        ));
+        testConfigurationDescriptor(EventConfiguration.class, ImmutableSet.of(
+                "expectedType",
+                "dictionaryItemNames",
+                "dictionaryItemTypes",
+                "dictionaryName"
+        ));
+        testConfigurationDescriptor(ManagedResourceConfiguration.class, ImmutableSet.of(
+                "waitForHazelcast",
+                "socketTimeout",
+                "expirationTime"
+        ));
     }
 
     @Override

@@ -44,6 +44,22 @@ public abstract class MDAAttributeSupport<M extends MdaAttributeAccessor> extend
         storage = createStorage(resourceName, Utils.getBundleContextByObject(this), logger);
     }
 
+    /**
+     * Gets default value of the named storage slot.
+     * @param storageName The name of the storage slot.
+     * @return Default value of the storage slot.
+     */
+    protected abstract Object getDefaultValue(final String storageName);
+
+    /**
+     * Resets all values in the storage to default.
+     */
+    public final void reset(){
+        for(final String storageName: storage.keySet())
+            storage.put(storageName, getDefaultValue(storageName));
+        lastWriteAccess.reset();
+    }
+
     @Override
     protected final Object getAttribute(final M metadata) {
         if(lastWriteAccess.checkInterval(expirationTime, TimeUnit.MILLISECONDS) > 0)
@@ -96,6 +112,5 @@ public abstract class MDAAttributeSupport<M extends MdaAttributeAccessor> extend
     @Override
     public void close() {
         removeAll(true);
-        storage.clear();
     }
 }

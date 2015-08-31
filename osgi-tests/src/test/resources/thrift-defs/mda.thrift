@@ -34,4 +34,6 @@ service MonitoringDataAcceptor{
     list<i64> set_longArray(1:list<i64> value)
 
     oneway void notify_testEvent(1:string message, 2:i64 seqnum, 3:i64 timeStamp, 4:i64 userData)
+
+    oneway void reset()
 }

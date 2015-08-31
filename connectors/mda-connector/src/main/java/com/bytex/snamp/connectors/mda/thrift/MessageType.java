@@ -19,13 +19,22 @@ enum MessageType {
     SET_ATTRIBUTE,
     SEND_NOTIFICATION{
         @Override
-        void beginResponse(final TProtocol output, final String name, final int seqid) throws TException {
+        void beginResponse(final TProtocol output, final String name, final int seqid) {
 
         }
 
         @Override
-        void endResponse(final TProtocol output) throws TException {
+        void endResponse(final TProtocol output) {
 
+        }
+    },
+    RESET{
+        @Override
+        void beginResponse(final TProtocol output, final String name, final int seqid) {
+        }
+
+        @Override
+        void endResponse(final TProtocol output) {
         }
     };
 
@@ -47,6 +56,8 @@ enum MessageType {
     private static final String NOTIFY_MESSAGE = "notify_";
     private static final Pattern NOTIFY_PREFIX = Pattern.compile(NOTIFY_MESSAGE);
 
+    private static final String RESET_MESSAGE = "reset";
+
     /**
      * Parses message type.
      * @param message Input message to be processed.
@@ -64,6 +75,10 @@ enum MessageType {
         } else if (message.name.startsWith(NOTIFY_MESSAGE)) {
             entityName.accept(NOTIFY_PREFIX.matcher(message.name).replaceFirst(""));
             return SEND_NOTIFICATION;
-        } else return null;
+        } else if(RESET_MESSAGE.equals(message.name)){
+            entityName.accept(null);
+            return RESET;
+        }
+        else return null;
     }
 }

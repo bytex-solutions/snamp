@@ -2,6 +2,7 @@ package com.bytex.snamp.connectors.mda;
 
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
+import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import com.bytex.snamp.core.ServiceSpinWait;
 import com.bytex.snamp.jmx.CompositeTypeBuilder;
 import com.bytex.snamp.jmx.DescriptorUtils;
@@ -18,6 +19,8 @@ import javax.management.openmbean.OpenType;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 
 /**
  * @author Roman Sakno
@@ -25,6 +28,7 @@ import java.util.concurrent.TimeoutException;
  * @since 1.0
  */
 public final class MDAResourceConfigurationDescriptorProvider extends ConfigurationEntityDescriptionProviderImpl {
+    private static final Splitter ITEMS_SPLITTER = Splitter.on(',').trimResults();
     private static final String TYPE_PARAM = "expectedType";
     private static final String ITEM_NAMES_PARAM = "dictionaryItemNames";
     private static final String ITEM_TYPES_PARAM = "dictionaryItemTypes";
@@ -33,7 +37,33 @@ public final class MDAResourceConfigurationDescriptorProvider extends Configurat
     private static final String SOCKET_TIMEOUT_PARAM = "socketTimeout";
     private static final String WAIT_FOR_HZ_PARAM = "waitForHazelcast";
 
-    private static final Splitter ITEMS_SPLITTER = Splitter.on(',').trimResults();
+    private static final class AttributeConfigurationDescriptor extends ResourceBasedConfigurationEntityDescription<AttributeConfiguration>{
+        private static final String RESOURCE_NAME = "MdaAttributeConfig";
+
+        private AttributeConfigurationDescriptor(){
+            super(RESOURCE_NAME, AttributeConfiguration.class, TYPE_PARAM, ITEM_NAMES_PARAM, ITEM_TYPES_PARAM, TYPE_NAME_PARAM);
+        }
+    }
+
+    private static final class EventConfigurationDescriptor extends ResourceBasedConfigurationEntityDescription<EventConfiguration>{
+        private static final String RESOURCE_NAME = "MdaEventConfig";
+
+        private EventConfigurationDescriptor(){
+            super(RESOURCE_NAME, EventConfiguration.class, TYPE_PARAM, ITEM_NAMES_PARAM, ITEM_TYPES_PARAM, TYPE_NAME_PARAM);
+        }
+    }
+
+    private static final class ConnectorConfigurationDescriptor extends ResourceBasedConfigurationEntityDescription<ManagedResourceConfiguration>{
+        private static final String RESOURCE_NAME = "MdaConnectorConfig";
+
+        private ConnectorConfigurationDescriptor(){
+            super(RESOURCE_NAME, ManagedResourceConfiguration.class, WAIT_FOR_HZ_PARAM, SOCKET_TIMEOUT_PARAM, EXPIRE_TIME_PARAM);
+        }
+    }
+
+    MDAResourceConfigurationDescriptorProvider(){
+        super(new AttributeConfigurationDescriptor(), new EventConfigurationDescriptor(), new ConnectorConfigurationDescriptor());
+    }
 
     private static CompositeType parseCompositeType(final String typeName,
                                                     final List<String> itemNames,

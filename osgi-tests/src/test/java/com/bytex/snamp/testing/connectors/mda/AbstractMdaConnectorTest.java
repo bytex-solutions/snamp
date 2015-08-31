@@ -61,6 +61,19 @@ public abstract class AbstractMdaConnectorTest extends AbstractResourceConnector
         connection.disconnect();
     }
 
+    protected final void resetAttributes() throws IOException{
+        final URL requestUrl = createURL("attributes");
+        final HttpURLConnection connection = (HttpURLConnection)requestUrl.openConnection();
+        connection.setRequestMethod("DELETE");
+        connection.connect();
+        try{
+            assertEquals(204, connection.getResponseCode());
+        }
+        finally {
+            connection.disconnect();
+        }
+    }
+
     protected final JsonElement getAttributeViaHttp(final String attributeName) throws IOException{
         final URL requestUrl = createURL("attributes/" + attributeName);
         final HttpURLConnection connection = (HttpURLConnection)requestUrl.openConnection();

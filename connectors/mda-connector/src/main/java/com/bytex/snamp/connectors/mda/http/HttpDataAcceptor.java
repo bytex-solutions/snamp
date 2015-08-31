@@ -173,6 +173,12 @@ public final class HttpDataAcceptor extends AbstractManagedResourceConnector imp
         }
 
         @Override
+        protected Object getDefaultValue(final String storageName) {
+            final HttpValueParser parser = parsers.getIfPresent(storageName);
+            return parser != null ? parser.getDefaultValue() : null;
+        }
+
+        @Override
         public void close() {
             super.close();
             parsers.invalidateAll();
@@ -250,6 +256,12 @@ public final class HttpDataAcceptor extends AbstractManagedResourceConnector imp
         else return Response.status(Response.Status.BAD_REQUEST)
                         .entity("JSON Object expected")
                         .build();
+    }
+
+    @DELETE
+    @Path("/attributes")
+    public void reset(){
+        this.attributes.reset();
     }
 
     /**
