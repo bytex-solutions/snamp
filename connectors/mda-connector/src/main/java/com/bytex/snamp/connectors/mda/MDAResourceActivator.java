@@ -1,6 +1,5 @@
 package com.bytex.snamp.connectors.mda;
 
-import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
@@ -11,6 +10,7 @@ import javax.management.openmbean.CompositeData;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.Set;
+
 import static com.bytex.snamp.connectors.mda.MDAResourceConfigurationDescriptorProvider.waitForHazelcast;
 
 /**
@@ -73,10 +73,18 @@ public final class MDAResourceActivator extends ManagedResourceActivator<DataAcc
         }
     }
 
+    private static final class MDAConfigurationEntityDescriptionManager extends ConfigurationEntityDescriptionManager<MDAResourceConfigurationDescriptorProvider>{
+
+        @Override
+        protected MDAResourceConfigurationDescriptorProvider createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
+            return new MDAResourceConfigurationDescriptorProvider();
+        }
+    }
+
     @SpecialUse
     public MDAResourceActivator() {
         super(new MonitoringDataAcceptorFactory(),
                 new RequiredService<?>[]{new SimpleDependency<>(HttpService.class)},
-                ArrayUtils.emptyArray(SupportConnectorServiceManager[].class));
+                new SupportConnectorServiceManager[]{new MDAConfigurationEntityDescriptionManager()});
     }
 }
