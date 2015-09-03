@@ -227,11 +227,12 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     }
 
     /**
-     * Used by webconsole for retrieving the list of the activated adapters.
-     * @param admin - configuration admin
-     * @param reader - reader instance
-     * @throws Exception - exception to be used
+     * Iterates through all configured resources adapters sequentially.
+     * @param admin Persistent configuration admin. Cannot be {@literal null}.
+     * @param reader Adapter configuration reader. Cannot be {@literal null}.
+     * @throws Exception Exception raised by reader.
      */
+    //used by SNAMP Management Console. Do not remove!!
     public static void forEachAdapter(final ConfigurationAdmin admin,
                                       final EntryReader<String, ResourceAdapterConfiguration, ? extends Exception> reader) throws Exception {
         forEachAdapter(admin, new Consumer<Configuration, Exception>() {
