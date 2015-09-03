@@ -226,6 +226,23 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
                 reader.accept(config);
     }
 
+    /**
+     * Used by webconsole for retrieving the list of the activated adapters.
+     * @param admin - configuration admin
+     * @param reader - reader instance
+     * @throws Exception - exception to be used
+     */
+    public static void forEachAdapter(final ConfigurationAdmin admin,
+                                      final EntryReader<String, ResourceAdapterConfiguration, ? extends Exception> reader) throws Exception {
+        forEachAdapter(admin, new Consumer<Configuration, Exception>() {
+            @Override
+            public void accept(final Configuration config) throws Exception {
+                final ConfigurationEntry<ResourceAdapterConfiguration> entry = readAdapterConfiguration(config);
+                reader.read(entry.getKey(), entry.getValue());
+            }
+        });
+    }
+
     private static <E extends Exception> void forEachAdapter(final ConfigurationAdmin admin,
                                                              final Consumer<Configuration, E> reader) throws E, IOException, InvalidSyntaxException {
         forEachAdapter(admin, ALL_ADAPTERS_QUERY, reader);
