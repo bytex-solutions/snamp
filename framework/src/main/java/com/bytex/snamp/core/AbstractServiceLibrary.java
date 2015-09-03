@@ -1,5 +1,6 @@
 package com.bytex.snamp.core;
 
+import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.concurrent.Monitor;
@@ -110,11 +111,6 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         NOT_PUBLISHED,
 
         /**
-         * Service publishing is in progress.
-         */
-        PUBLISHING,
-
-        /**
          * Service is published.
          */
         PUBLISHED
@@ -181,7 +177,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
 
         private synchronized void serviceChanged(final BundleContext context, final ServiceEvent event) {
             //avoid cyclic reference tracking
-            if(getState() == ProvidedServiceState.PUBLISHING || registration != null &&
+            if(registration != null &&
                     Objects.equals(registration.getReference(), event.getServiceReference())) return;
             int resolvedDependencies = 0;
             for(final RequiredService<?> dependency: ownDependencies){
@@ -197,17 +193,18 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                                 context);
                         try {
                             if (registration != null) {
+                                final T serviceInstance = registration.get();
                                 registration.unregister();
-                                cleanupService(registration.serviceInstance, false);
+                                cleanupService(serviceInstance, false);
                             }
                         } catch (final Exception e) {
                             logger.log(Level.SEVERE, String.format("Unable to cleanup service %s", serviceContract), e);
                         } finally {
-                            this.registration = null;
+                            registration = null;
                             logger.close();
                         }
                     }
-                return;
+                    return;
                 case NOT_PUBLISHED:
                     if(resolvedDependencies == ownDependencies.size()) {
                         final LogicalOperation logger = ProvidedServiceLogicalOperation.expose(getClass().getName(), serviceContract, context);
@@ -240,11 +237,9 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          */
         public final ProvidedServiceState getState() {
             final ServiceRegistrationHolder<S, T> registration = this.registration;
-            if (registration == null)
-                return ProvidedServiceState.NOT_PUBLISHED;
-            else if (registration.serviceInstance != null)
-                return ProvidedServiceState.PUBLISHED;
-            else return ProvidedServiceState.PUBLISHING;
+            return registration == null || registration.isUnregistered() ?
+                    ProvidedServiceState.NOT_PUBLISHED :
+                    ProvidedServiceState.PUBLISHED;
         }
 
         private void activateAndRegisterService(final BundleContext context) throws Exception{
@@ -282,18 +277,24 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         private void unregister(final BundleContext context) throws Exception {
             if (!ownDependencies.isEmpty()) context.removeServiceListener(this);
             //cancels registration
+            T serviceInstance = null;
             try {
-                if (registration != null) registration.unregister();
+                if (registration != null) {
+                    serviceInstance = registration.get();
+                    registration.unregister();
+                }
+                else serviceInstance = null;
             } catch (final IllegalStateException ignored) {
                 //unregister can throws this exception and it must be suppressed
-            }
-            //release service instance
-            try {
-                if (registration != null &&
-                        registration.serviceInstance != null)
-                    cleanupService(registration.serviceInstance, true);
             } finally {
                 registration = null;
+            }
+
+            //release service instance
+            try {
+                if (serviceInstance != null)
+                    cleanupService(serviceInstance, true);
+            } finally {
                 //releases all dependencies
                 for (final RequiredService<?> dependency : ownDependencies)
                     dependency.unbind(context);
@@ -328,7 +329,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
     private static abstract class ManagedServiceFactoryImpl<TService> extends HashMap<String, TService> implements ManagedServiceFactory{
         private static final long serialVersionUID = 6353271076932722292L;
 
-        private synchronized <V> V synchronizedInvoke(final Callable<V> action) throws Exception{
+        private synchronized <V, E extends Exception> V synchronizedInvoke(final ExceptionalCallable<V, E> action) throws E{
             return action.call();
         }
     }
@@ -488,9 +489,6 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                     } catch (final Exception e) {
                         failedToCleanupService(logger, pid, e);
                     }
-                    finally {
-                        logger.close();
-                    }
                 }
             };
         }
@@ -507,7 +505,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          */
         @Override
         protected final void cleanupService(final ManagedServiceFactoryImpl<TService> serviceInstance, final boolean stopBundle) throws Exception {
-            serviceInstance.synchronizedInvoke(new Callable<Void>() {
+            serviceInstance.synchronizedInvoke(new ExceptionalCallable<Void, Exception>() {
                 @Override
                 public Void call() throws Exception {
                     try {
@@ -519,6 +517,12 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                     return null;
                 }
             });
+            destroyManager();
+        }
+
+        @MethodStub
+        protected void destroyManager() throws Exception{
+
         }
     }
 
@@ -570,6 +574,10 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         @Override
         public String toString() {
             return registration.toString();
+        }
+
+        private boolean isUnregistered() {
+            return registration == null;
         }
     }
 
@@ -647,7 +655,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                 registration = null;
             else if (oldService != newService) {
                 //save the identity of the service and removes registration of the previous version of service
-                final Dictionary<String, ?> identity = unregister(registration, false);
+                final Dictionary<String, ?> identity = dispose(registration);
                 registration = new ServiceRegistrationHolder<>(serviceContract, newService, identity, getBundleContextByObject(this));
             }
             return registration;
@@ -680,8 +688,8 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         @Override
         @ThreadSafe
         protected final ServiceRegistrationHolder<S, T> activateService(final String servicePID,
-                                                               final Dictionary<String, ?> configuration,
-                                                               final RequiredService<?>... dependencies) throws Exception {
+                                                                        final Dictionary<String, ?> configuration,
+                                                                        final RequiredService<?>... dependencies) throws Exception {
             final Hashtable<String, Object> identity = new Hashtable<>(4);
             identity.put(Constants.SERVICE_PID, servicePID);
             final T service = createService(identity, configuration, dependencies);
@@ -698,7 +706,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         protected abstract void cleanupService(final T service,
                                                final Dictionary<String, ?> identity) throws Exception;
 
-        private Dictionary<String, ?> unregister(final ServiceRegistrationHolder<S, T> registration, final boolean bundleStop) throws Exception{
+        private Dictionary<String, ?> dispose(final ServiceRegistrationHolder<S, T> registration) throws Exception{
             final T serviceInstance = registration.get();
             final Dictionary<String, ?> properties = registration.dumpProperties();
             try {
@@ -717,7 +725,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          */
         @Override
         protected final void dispose(final ServiceRegistrationHolder<S, T> registration, final boolean bundleStop) throws Exception {
-            unregister(registration, bundleStop);
+            dispose(registration);
         }
     }
 
