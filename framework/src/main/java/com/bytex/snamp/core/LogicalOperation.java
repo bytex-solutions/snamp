@@ -5,8 +5,8 @@ import com.bytex.snamp.StringAppender;
 import com.bytex.snamp.TimeSpan;
 import com.google.common.base.Joiner;
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.Maps;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.ResourceBundle;
@@ -403,7 +403,7 @@ public class LogicalOperation extends Logger implements SafeCloseable {
      */
     @Override
     public final String toString() {
-        final Map<String, Object> result = new HashMap<>(10);
+        final Map<String, Object> result = Maps.newHashMap();
         collectStringData(result);
         return TO_STRING_JOINER.join(result);
     }

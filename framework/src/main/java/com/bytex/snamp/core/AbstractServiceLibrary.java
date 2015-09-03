@@ -1,6 +1,5 @@
 package com.bytex.snamp.core;
 
-import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.concurrent.Monitor;
@@ -329,7 +328,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
     private static abstract class ManagedServiceFactoryImpl<TService> extends HashMap<String, TService> implements ManagedServiceFactory{
         private static final long serialVersionUID = 6353271076932722292L;
 
-        private synchronized <V, E extends Exception> V synchronizedInvoke(final ExceptionalCallable<V, E> action) throws E{
+        private synchronized <V> V synchronizedInvoke(final Callable<V> action) throws Exception{
             return action.call();
         }
     }
@@ -489,6 +488,9 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                     } catch (final Exception e) {
                         failedToCleanupService(logger, pid, e);
                     }
+                    finally {
+                        logger.close();
+                    }
                 }
             };
         }
@@ -505,7 +507,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          */
         @Override
         protected final void cleanupService(final ManagedServiceFactoryImpl<TService> serviceInstance, final boolean stopBundle) throws Exception {
-            serviceInstance.synchronizedInvoke(new ExceptionalCallable<Void, Exception>() {
+            serviceInstance.synchronizedInvoke(new Callable<Void>() {
                 @Override
                 public Void call() throws Exception {
                     try {
@@ -517,12 +519,6 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                     return null;
                 }
             });
-            destroyManager();
-        }
-
-        @MethodStub
-        protected void destroyManager() throws Exception{
-
         }
     }
 
