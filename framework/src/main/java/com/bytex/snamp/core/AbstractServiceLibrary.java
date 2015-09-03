@@ -1,19 +1,16 @@
 package com.bytex.snamp.core;
 
 import com.bytex.snamp.ExceptionalCallable;
-import com.bytex.snamp.concurrent.Monitor;
 import com.bytex.snamp.MethodStub;
-import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.ThreadSafe;
+import com.bytex.snamp.concurrent.Monitor;
+import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.osgi.framework.*;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedServiceFactory;
 
-import java.io.IOException;
-import java.io.NotSerializableException;
-import java.io.ObjectOutputStream;
 import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -529,28 +526,34 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         }
     }
 
-    @SuppressWarnings("serial")
-    private static final class ServiceRegistrationHolder<S, T extends S> extends Hashtable<String, Object> implements ServiceRegistration<S>{
+    private static final class ServiceRegistrationHolder<S, T extends S> implements ServiceRegistration<S>, Supplier<T>{
         private final ServiceRegistration<S> registration;
-        private final T serviceInstance;
+        private T serviceInstance;
 
         private ServiceRegistrationHolder(final Class<S> serviceContract,
                                           final T service,
-                                          final Hashtable<String, ?> identity,
-                                          final BundleContext context){
-            super(identity);
+                                          final Dictionary<String, ?> identity,
+                                          final BundleContext context) {
+            serviceInstance = Objects.requireNonNull(service);
             registration = context.registerService(serviceContract, service, identity);
-            serviceInstance = service;
-        }
-
-        @SpecialUse
-        private void writeObject(final ObjectOutputStream oos) throws IOException {
-            throw new NotSerializableException();
         }
 
         @Override
         public void setProperties(final Dictionary<String, ?> properties) {
             registration.setProperties(properties);
+        }
+
+        private Dictionary<String, ?> dumpProperties(){
+            final String[] propertyNames = registration.getReference().getPropertyKeys();
+            final Dictionary<String, Object> result = new Hashtable<>(propertyNames.length * 2);
+            for(final String propertyName: propertyNames)
+                result.put(propertyName, registration.getReference().getProperty(propertyName));
+            return result;
+        }
+
+        @Override
+        public T get() {
+            return serviceInstance;
         }
 
         @Override
@@ -560,7 +563,17 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
 
         @Override
         public void unregister(){
-            registration.unregister();
+            try {
+                registration.unregister();
+            }
+            finally {
+                serviceInstance = null;
+            }
+        }
+
+        @Override
+        public String toString() {
+            return registration.toString();
         }
     }
 
@@ -632,18 +645,13 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         protected final ServiceRegistrationHolder<S, T> updateService(ServiceRegistrationHolder<S, T> registration,
                                                                       final Dictionary<String, ?> configuration,
                                                                       final RequiredService<?>... dependencies) throws Exception {
-            final T oldService = registration.serviceInstance;
+            final T oldService = registration.get();
             final T newService = update(oldService, configuration, dependencies);
             if (newService == null)
                 registration = null;
             else if (oldService != newService) {
-                //save the identity of the service
-                final ServiceReference<S> ref = registration.registration.getReference();
-                final Hashtable<String, Object> identity = new Hashtable<>(ref.getPropertyKeys().length);
-                for (final String key : registration.registration.getReference().getPropertyKeys())
-                    identity.put(key, ref.getProperty(key));
-                //re-register updated service
-                dispose(registration, false);
+                //save the identity of the service and removes registration of the previous version of service
+                final Dictionary<String, ?> identity = unregister(registration, false);
                 registration = new ServiceRegistrationHolder<>(serviceContract, newService, identity, getBundleContextByObject(this));
             }
             return registration;
@@ -694,6 +702,18 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         protected abstract void cleanupService(final T service,
                                                final Dictionary<String, ?> identity) throws Exception;
 
+        private Dictionary<String, ?> unregister(final ServiceRegistrationHolder<S, T> registration, final boolean bundleStop) throws Exception{
+            final T serviceInstance = registration.get();
+            final Dictionary<String, ?> properties = registration.dumpProperties();
+            try {
+                registration.unregister();
+            }
+            finally {
+                cleanupService(serviceInstance, properties);
+            }
+            return properties;
+        }
+
         /**
          * Automatically invokes by SNAMP when service is disposing.
          *
@@ -701,8 +721,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          */
         @Override
         protected final void dispose(final ServiceRegistrationHolder<S, T> registration, final boolean bundleStop) throws Exception {
-            registration.unregister();
-            cleanupService(registration.serviceInstance, registration);
+            unregister(registration, bundleStop);
         }
     }
 

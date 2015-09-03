@@ -455,7 +455,6 @@ curl http://127.0.0.1:3535/snamp/adapters/http/httpmon/attributes/glassfish-v4/m
 
 
 Create file `data.json` with content `"Test string"`. Read/write test attribute value from/to MDA Connector:
-```
+```bash
 curl -X PUT -H "Accept: application/json" -T data.json http://127.0.0.1:3535/snamp/connectors/operatingSystemInfo/attributes/str
-curl http://127.0.0.1:3535/snamp/connectors/mda/operatingSystemInfo/attributes/str
 ```
