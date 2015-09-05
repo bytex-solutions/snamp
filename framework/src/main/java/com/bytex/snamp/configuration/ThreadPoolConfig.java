@@ -116,30 +116,33 @@ public class ThreadPoolConfig implements Supplier<ExecutorService> {
     }
 
     /**
-     * Creates a new instance of the empty task queue.
-     * @return A new instance of the empty task queue.
-     */
-    protected final BlockingQueue<Runnable> createTaskQueue() {
-        switch (queueSize) {
-            case INFINITE_QUEUE_SIZE:
-                return new LinkedBlockingQueue<>();
-            default:
-                return new ArrayBlockingQueue<>(queueSize);
-        }
-    }
-
-    /**
      * Create a new thread pool.
      *
      * @return A new thread pool.
      */
     @Override
     public ExecutorService get() {
-        return new ThreadPoolExecutor(minPoolSize,
+        final BlockingQueue<Runnable> taskQueue;
+        final int corePoolSize;
+        switch (queueSize) {
+            case INFINITE_QUEUE_SIZE:
+                /*
+                    Using an unbounded queue  will cause new tasks to wait in the queue when all corePoolSize
+                    threads are busy. Thus, no more than corePoolSize threads will ever be created.
+                 */
+                taskQueue = new LinkedBlockingQueue<>();
+                corePoolSize = maxPoolSize;
+                break;
+            default:
+                taskQueue = new ArrayBlockingQueue<>(queueSize);
+                corePoolSize = minPoolSize;
+                break;
+        }
+        return new ThreadPoolExecutor(corePoolSize,
                 maxPoolSize,
                 keepAliveTime,
                 TimeUnit.MILLISECONDS,
-                createTaskQueue(),
+                taskQueue,
                 threadFactory);
     }
 }

@@ -18,6 +18,8 @@ Feature | Comments
 Attributes | Can be delivered via HTTP or Thrift and stored into Hazelcast or Java Heap
 Events | Can be delivered via HTTP or Thrift and propagated to all Resource Adapters
 
+> Note that this connector utilizes **its own internal thread pool that can be configured explicitly**.
+
 Appliance of MDA Connector limited by capability of making changes in the existing software components. You can select one of the following approaches:
 * Assembly you software with HTTP or Thrift client satisfied to MDA Connector Service Contract
 * Deploy daemon/service on the same machine with HTTP or Thrift client satisfied to MDA Connector Service Contract. This daemon uses another protocol for accessing data of your software component. This approach is very helpful when software component is legacy and modification is not allowed.
@@ -68,6 +70,13 @@ expectedType | Enum | Yes | Type of the attribute | `bool`
 dictionaryItemNames | Comma-separated list of strings | If **expectedType**=`dictionary` | Comma-separated list of dictionary fields | `total, used`
 dictionaryItemTypes | Comma-separated list of enum values |  If **expectedType**=`dictionary` | Comma-separated list of types for each field if **expectedType** is `dictionary` | `int32, int64`
 dictionaryName | String |  If **expectedType**=`dictionary` | The name of dictionary type | `MemoryStatus`
+
+Note that parameters related to thread pool are omitted. See **SNAMP Configuration Guide** page for more information about thread pool configuration. All other parameters will be ignored.
+
+### Thread Pool settings
+MDA Resource Connector uses thread pool in different ways. This behavior depends on transport type:
+* For `Thrift` transport, the connector uses thread pool for handling attributes and notifications
+* For `HTTP` transport, the connector uses thread pool for firing notifications only. Attributes is processing in HTTP Server threads configured globally for Apache Karaf instance.
 
 ### Supported types
 **expectedType** configuration parameter must have one of the following values:
