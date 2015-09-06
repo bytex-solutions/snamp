@@ -62,7 +62,7 @@
   <version>1.0.0</version>
   <organization>
         <name>Bytex</name>
-        <url>http://snamp.bytex.com/</url>
+        <url>http://snamp.bytex.solutions/</url>
   </organization>
   <build>
         <pluginManagement>

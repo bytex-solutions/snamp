@@ -82,7 +82,7 @@ Tool Profile is an XML file that describes following aspects of the textual stre
 
 * **Attribute Reader definition** - describes how to execute command-line program when reading the attribute value. If this section is omitted then attribute is write-only
   * _Input section_ - how to construct command-line (STDIN). Template can be constructed using [StringTemplate](http://www.stringtemplate.org/) syntax
-  * _Output section_ - how to parse STDOUT from program. Parser can be described in declarative DSL using XML tags from `http://snamp.bytex.com/schemas/command-line-tool-profile/v1.0` namespace. Additionally, you can mix declarative syntax with regular expressions and JavaScript code.
+  * _Output section_ - how to parse STDOUT from program. Parser can be described in declarative DSL using XML tags from `http://snamp.bytex.solutions/schemas/command-line-tool-profile/v1.0` namespace. Additionally, you can mix declarative syntax with regular expressions and JavaScript code.
 * **Attribute Writer definition** - describes how to execute command-line program when writing the attribute value. If this section is omitted then attribute is read-only
   * _Input section_ - how to construct command-line (STDIN). Template can be constructed using [StringTemplate](http://www.stringtemplate.org/) syntax
   * _Output section_ can be omitted
@@ -92,7 +92,7 @@ All template parameters used in _Input section_ should be specified as an attrib
 XSD schema of the Tool Profile:
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<xs:schema version="1.0" targetNamespace="http://snamp.bytex.com/schemas/command-line-tool-profile/v1.0" xmlns:tns="http://snamp.bytex.com/schemas/command-line-tool-profile/v1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:schema version="1.0" targetNamespace="http://snamp.bytex.solutions/schemas/command-line-tool-profile/v1.0" xmlns:tns="http://snamp.bytex.solutions/schemas/command-line-tool-profile/v1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
   <xs:element name="column" type="TableColumnParsingRule"/>
   <xs:element name="const" type="tns:Constant"/>

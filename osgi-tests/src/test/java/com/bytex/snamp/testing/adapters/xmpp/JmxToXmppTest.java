@@ -82,7 +82,7 @@ public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean>
         serverParameters.put("userName", USER_NAME);
         serverParameters.put("password", PASSWORD);
         serverParameters.put("keystore", getPathToFileInProjectRoot("xmpp_tls.cert"));
-        serverParameters.put("domain", "bytex.com");
+        serverParameters.put("domain", "bytex.solutions");
         serverParameters.put("keystorePassword", "boguspw");
         serverParameters.put("allowUnsafeCertificate", "true");
     }
@@ -190,7 +190,7 @@ public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean>
 
     @Override
     protected void beforeStartTest(final BundleContext context) throws Exception {
-        server = new XMPPServer("bytex.com");
+        server = new XMPPServer("bytex.solutions");
         final TCPEndpoint endpoint = new TCPEndpoint();
         final StorageProviderRegistry providerRegistry = new MemoryStorageProviderRegistry();
         endpoint.setPort(PORT);
@@ -199,8 +199,8 @@ public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean>
         server.setSASLMechanisms(ImmutableList.<SASLMechanism>of(new Plain()));
         final AccountManagement accountManagement =
                 (AccountManagement) providerRegistry.retrieve(AccountManagement.class);
-        accountManagement.addUser(EntityImpl.parse(USER_NAME + "@bytex.com"), PASSWORD);
-        accountManagement.addUser(EntityImpl.parse("tester@bytex.com"), "456");
+        accountManagement.addUser(EntityImpl.parse(USER_NAME + "@bytex.solutions"), PASSWORD);
+        accountManagement.addUser(EntityImpl.parse("tester@bytex.solutions"), "456");
         server.setTLSCertificateInfo(new File(getPathToFileInProjectRoot("xmpp_tls.cert")), "boguspw");
         server.start();
         server.addModule(new MUCModule());

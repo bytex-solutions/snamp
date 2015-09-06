@@ -167,7 +167,7 @@ curl -u karaf:karaf http://localhost:3535/jolokia/read/com.bytex.snamp.managemen
 Go to home directory and create file with name `freemem.xml` and following content:
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ns1:profile xmlns:ns1="http://snamp.bytex.com/schemas/command-line-tool-profile/v1.0">
+<ns1:profile xmlns:ns1="http://snamp.bytex.solutions/schemas/command-line-tool-profile/v1.0">
     <ns1:reader>
         <ns1:output ns1:language="regexp" ns1:type="dictionary" language="">
             <ns1:skip>[a-z]+</ns1:skip>
