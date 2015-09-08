@@ -339,7 +339,13 @@ Some Resource Connectors and Adapters supports explicit configuration of its int
 * If `queueSize` is not specified explicitly then SNAMP component uses unlimited capacity of the queue
 * Setting `keepAliveTime` to zero is not recommended due to performance penalties
 * If `priority` is not specified then SNAMP uses default OS priority for threads in pool
-* value ща `priority` must lie in the interval _1..10_, where _1_ is the lowest priority.
+* Value `priority` must lie in the interval _1..10_, where _1_ is the lowest priority.
+
+Generally, SNAMP supports four major configuration of thread pool:
+* Limited capacity of the queue, limited count of threads.
+* Unlimited capacity of the queue, limited count of threads. In this case you should specify _2147483647_ value for `queueSize` parameter.
+* Limited capacity of the queue, unlimited count of threads. In this case you should specify _2147483647_ value for `maxPoolSize`
+* Unlimited capacity of the queue, unlimited count of threads. In this case you should specify _2147483647_ value for `maxPoolSize` and `queueSize`.
 
 ## Configuring OSGi
 All configuration files are located in `<snamp>/etc` folder. These files supply a low-level access to Apache Karaf configuration.

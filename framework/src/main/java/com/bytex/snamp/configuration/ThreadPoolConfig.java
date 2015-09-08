@@ -140,8 +140,14 @@ public class ThreadPoolConfig implements Supplier<ExecutorService> {
                 }
                 break;
             default:
-                taskQueue = new ArrayBlockingQueue<>(queueSize);
-                corePoolSize = minPoolSize;
+                if(maxPoolSize == Integer.MAX_VALUE){
+                    taskQueue = new SynchronousQueue<>();
+                    corePoolSize = minPoolSize;
+                }
+                else {
+                    taskQueue = new ArrayBlockingQueue<>(queueSize);
+                    corePoolSize = minPoolSize;
+                }
                 break;
         }
         return new ThreadPoolExecutor(corePoolSize,
