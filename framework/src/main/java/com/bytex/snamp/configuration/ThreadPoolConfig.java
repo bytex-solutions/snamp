@@ -130,8 +130,14 @@ public class ThreadPoolConfig implements Supplier<ExecutorService> {
                     Using an unbounded queue  will cause new tasks to wait in the queue when all corePoolSize
                     threads are busy. Thus, no more than corePoolSize threads will ever be created.
                  */
-                taskQueue = new LinkedBlockingQueue<>();
-                corePoolSize = maxPoolSize;
+                if(maxPoolSize == Integer.MAX_VALUE){
+                    taskQueue = new SynchronousQueue<>();
+                    corePoolSize = minPoolSize;
+                }
+                else {
+                    taskQueue = new LinkedBlockingQueue<>();
+                    corePoolSize = maxPoolSize;
+                }
                 break;
             default:
                 taskQueue = new ArrayBlockingQueue<>(queueSize);
