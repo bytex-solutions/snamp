@@ -1,6 +1,6 @@
 SNAMP Overview
 ====
-SNAMP is a middleware acting as a bridge between **managed resources** and **monitoring & management tools** used in your enterprise and reduce complexity of monitoring & management. Various hardware and software components can be connected to SNAMP using different protocols, such as JMX, SNMP, SSH, HTTP, Modbus etc. Then you can choose a single unified interface to gather monitoring information provided by the connected components. This interface can be selected in respect of your existing monitoring & management software such as Nagios and Zabbix. SNAMP has generic and specialized adapters for various situations.
+SNAMP is a middleware acting as a bridge between **managed resources** and **monitoring & management tools** used in your enterprise and reduce complexity of monitoring & management. Various hardware and software components can be connected to SNAMP using different protocols, such as JMX, SNMP, SSH, HTTP, Modbus etc. You can choose a single unified interface (called Adapter) to gather monitoring information provided by the connected components. This interface can be selected in respect of your existing monitoring & management software such as Nagios and Zabbix. SNAMP has either generic and specialized adapters for various situations.
 
 ![Architecture Overview](images/snamp.png)
 
