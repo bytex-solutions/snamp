@@ -78,8 +78,8 @@
             <groupId>com.ghgande</groupId>
             <artifactId>j2mod</artifactId>
             <scope>system</scope>
-            <version>1.0.3</version>
-            <systemPath>${basedir}/lib/j2mod-1.03.jar</systemPath>
+            <version>1.0.6</version>
+            <systemPath>${basedir}/lib/j2mod-1.06.jar</systemPath>
         </dependency>
     </dependencies>
 </project>
