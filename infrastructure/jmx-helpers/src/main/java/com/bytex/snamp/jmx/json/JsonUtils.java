@@ -9,7 +9,6 @@ import javax.management.openmbean.OpenType;
 import javax.management.openmbean.TabularData;
 import java.nio.*;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * @author Roman Sakno
@@ -122,7 +121,7 @@ public final class JsonUtils {
         return result;
     }
 
-    public static JsonArray toJsonArray(final List<String> values){
+    public static JsonArray toJsonArray(final Iterable<String> values){
         final JsonArray result = new JsonArray();
         for(final String value: values)
             result.add(new JsonPrimitive(value));

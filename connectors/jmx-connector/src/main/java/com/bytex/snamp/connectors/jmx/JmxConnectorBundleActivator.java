@@ -93,6 +93,11 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
                                 }
                         return "OK";
                     }
+
+                    @Override
+                    public String toString() {
+                        return actionName + "-jmxConnectorActionThread";
+                    }
                 });
                 result.start();
                 return result;

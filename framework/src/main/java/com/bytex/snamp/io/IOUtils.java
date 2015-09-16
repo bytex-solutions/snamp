@@ -1,12 +1,12 @@
 package com.bytex.snamp.io;
 
+import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.TimeSpan;
+import com.bytex.snamp.TypeTokens;
 import com.google.common.base.Splitter;
 import com.google.common.base.StandardSystemProperty;
 import com.google.common.base.Strings;
 import com.google.common.reflect.TypeToken;
-import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.TypeTokens;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -37,8 +37,8 @@ public final class IOUtils {
     public static String toString(final InputStream stream, final Charset encoding) throws IOException {
         if (encoding == null) return toString(stream, Charset.defaultCharset());
         final StringBuilder result = new StringBuilder(1024);
+        final char[] buffer = new char[128];
         try (final InputStreamReader reader = new InputStreamReader(stream, encoding)) {
-            final char[] buffer = new char[128];
             int count;
             while ((count = reader.read(buffer)) > 0)
                 result.append(buffer, 0, count);
@@ -109,9 +109,9 @@ public final class IOUtils {
     }
 
     public static String toString(final Reader reader) throws IOException {
-        final StringBuilder result = new StringBuilder();
+        final StringBuilder result = new StringBuilder(512);
+        final char[] buffer = new char[10];
         while (reader.ready()) {
-            final char[] buffer = new char[10];
             final int count = reader.read(buffer);
             result.append(buffer, 0, count);
         }

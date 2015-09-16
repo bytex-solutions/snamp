@@ -11,6 +11,7 @@ import java.util.Objects;
  * @version 1.0
  * @since 1.0
  */
+@ThreadSafe(false)
 public final class ArrayEnumerator<T> implements Enumeration<T> {
     private final T[] array;
     private int currentIndex;
@@ -45,7 +46,7 @@ public final class ArrayEnumerator<T> implements Enumeration<T> {
      */
     @Override
     public T nextElement() throws NoSuchElementException{
-        if(currentIndex < array.length)
+        if(hasMoreElements())
             return array[currentIndex++];
         else throw new NoSuchElementException();
     }

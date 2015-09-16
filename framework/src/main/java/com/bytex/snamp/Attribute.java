@@ -6,7 +6,7 @@ import java.io.Serializable;
 
 /**
  * Represents typed attribute that can be used to store and retrieve typed data
- * from the registry.
+ * from abstract registry.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0

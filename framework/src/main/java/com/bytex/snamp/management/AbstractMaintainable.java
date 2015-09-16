@@ -104,6 +104,25 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
                 throw new UndeclaredThrowableException(e);
             }
         }
+
+        @Override
+        public int hashCode() {
+            return localeSpecific ? handle.hashCode() ^ 1 : handle.hashCode();
+        }
+
+        private boolean equals(final ActionHandle other){
+            return handle.equals(other.handle);
+        }
+
+        @Override
+        public boolean equals(final Object other) {
+            return other instanceof ActionHandle ? equals((ActionHandle)other) : handle.equals(other);
+        }
+
+        @Override
+        public String toString() {
+            return handle.toString();
+        }
     }
 
     private final Cache<T, ActionHandle> actionCache;
@@ -189,6 +208,11 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
             @Override
             public String call() throws Exception {
                 return action.doAction(arguments, loc);
+            }
+
+            @Override
+            public String toString() {
+                return action.toString();
             }
         });
     }

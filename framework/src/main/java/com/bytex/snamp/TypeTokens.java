@@ -2,10 +2,8 @@ package com.bytex.snamp;
 
 import com.google.common.reflect.TypeToken;
 
-import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -24,11 +22,6 @@ public final class TypeTokens {
      * Represents wrapped {@link java.lang.Character}.
      */
     public static final TypeToken<Character> CHAR = TypeToken.of(Character.class);
-
-    /**
-     * Represents wrapped {@link java.lang.Number}.
-     */
-    public static final TypeToken<Number> NUMBER = TypeToken.of(Number.class);
 
     /**
      * Represents wrapped {@link java.lang.Byte}.
@@ -85,16 +78,6 @@ public final class TypeTokens {
      */
     public static final TypeToken<String> STRING = TypeToken.of(String.class);
 
-    /**
-     * Represents wrapped {@link java.lang.Object}.
-     */
-    public static final TypeToken<Object> OBJECT = TypeToken.of(Object.class);
-
-    /**
-     * Represents wrapped {@link java.util.Calendar}.
-     */
-    public static final TypeToken<Calendar> CALENDAR = TypeToken.of(Calendar.class);
-
 
     @SuppressWarnings("unchecked")
     public static <T> T cast(final Object value, final TypeToken<T> target) throws ClassCastException {
@@ -110,14 +93,5 @@ public final class TypeTokens {
 
     public static boolean isInstance(final Object value, final TypeToken<?> target) {
         return value != null && target.isAssignableFrom(value.getClass());
-    }
-
-    public static boolean isAssignable(final Type from, final Type to) {
-        if (to == null) return from == null;
-        else if (to instanceof TypeToken<?>)
-            return ((TypeToken<?>) to).isAssignableFrom(from);
-        else if (to instanceof Class<?> && from instanceof Class<?>)
-            return ((Class<?>) to).isAssignableFrom((Class<?>) from);
-        else return TypeToken.of(to).isAssignableFrom(from);
     }
 }
