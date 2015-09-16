@@ -30,7 +30,8 @@
     <hazelcast.version>3.4.2</hazelcast.version>
     <thrift.version>0.9.2</thrift.version>
     <!--Versioning of SNAMP Components-->
-    <snmp4j.version>2.3.3</snmp4j.version>
+    <snmp4j.version>2.3.4</snmp4j.version>
+    <snmp4j.agent.version>2.4.0</snmp4j.agent.version>
     <sshj.version>0.10.0</sshj.version>
     <snamp.framework.version>1.0.0</snamp.framework.version>
     <snamp.framework.maxVersion>2</snamp.framework.maxVersion>

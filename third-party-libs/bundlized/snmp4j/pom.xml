@@ -40,7 +40,7 @@
         <dependency>
             <groupId>org.snmp4j</groupId>
             <artifactId>snmp4j-agent</artifactId>
-            <version>${snmp4j.version}</version>
+            <version>${snmp4j.agent.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -52,7 +52,7 @@
         <dependency>
             <groupId>org.snmp4j</groupId>
             <artifactId>snmp4j-agent</artifactId>
-            <version>${snmp4j.version}</version>
+            <version>${snmp4j.agent.version}</version>
             <classifier>sources</classifier>
             <scope>provided</scope>
         </dependency>
