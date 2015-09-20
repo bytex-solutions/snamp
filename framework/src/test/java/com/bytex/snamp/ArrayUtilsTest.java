@@ -25,9 +25,9 @@ public final class ArrayUtilsTest extends Assert {
 
     @Test
     public void emptyOpenArrayTest() throws OpenDataException {
-        byte[] array1 = ArrayUtils.emptyArray(new ArrayType<byte[]>(SimpleType.BYTE, true));
+        byte[] array1 = ArrayUtils.emptyArray(new ArrayType<byte[]>(SimpleType.BYTE, true), getClass().getClassLoader());
         assertTrue(array1.length == 0);
-        Byte[] array2 = ArrayUtils.emptyArray(new ArrayType<Byte[]>(SimpleType.BYTE, false));
+        Byte[] array2 = ArrayUtils.emptyArray(new ArrayType<Byte[]>(SimpleType.BYTE, false), getClass().getClassLoader());
         assertTrue(array2.length == 0);
     }
 }

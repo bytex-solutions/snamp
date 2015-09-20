@@ -64,10 +64,11 @@ final class XMPPNotificationAccessor extends NotificationRouter {
                 for(final Map.Entry<String, ?> entry: filterParams.entrySet())
                     return String.format(LISTEN_COMMAND_PATTERN, String.format("(%s=%s)", entry.getKey(), entry.getValue()));
             default:
-                final StringAppender filter = new StringAppender(30);
-                for(final Map.Entry<String, ?> entry: filterParams.entrySet())
-                    filter.append(null, "(%s=%s)", entry.getKey(), entry.getValue());
-                return String.format("(&(%s))", filter);
+                try(final StringAppender filter = new StringAppender(30)) {
+                    for (final Map.Entry<String, ?> entry : filterParams.entrySet())
+                        filter.append(null, "(%s=%s)", entry.getKey(), entry.getValue());
+                    return String.format("(&(%s))", filter);
+                }
         }
     }
 }

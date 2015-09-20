@@ -95,7 +95,7 @@ public final class IOUtils {
 
     public static boolean waitForData(final InputStream is,
                                       long timeout) throws IOException, InterruptedException {
-        while ((is.available() == 0) && timeout >= 0) {
+        while (timeout >= 0 && (is.available() == 0)) {
             final long PAUSE = 1L;
             Thread.sleep(PAUSE);
             timeout -= PAUSE;

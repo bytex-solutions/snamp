@@ -234,10 +234,11 @@ final class XMPPModelOfAttributes extends ModelOfAttributes<XMPPAttributeAccesso
         @Override
         protected String getValueAsText() throws JMException {
             final CompositeData value = getValue(CompositeData.class);
-            final StringAppender result = new StringAppender(64);
-            for (final String key : value.getCompositeType().keySet())
-                result.appendln("%s = %s", key, FORMATTER.toJson(value.get(key)));
-            return result.toString();
+            try(final StringAppender result = new StringAppender(64)) {
+                for (final String key : value.getCompositeType().keySet())
+                    result.appendln("%s = %s", key, FORMATTER.toJson(value.get(key)));
+                return result.toString();
+            }
         }
     }
 
@@ -327,8 +328,9 @@ final class XMPPModelOfAttributes extends ModelOfAttributes<XMPPAttributeAccesso
                                final String attributeID,
                                final boolean withNames,
                                final boolean details) {
-        final OptionsPrinter printer = new OptionsPrinter(withNames, details);
-        processAttribute(resourceName, attributeID, printer);
-        return printer.toString();
+        try(final OptionsPrinter printer = new OptionsPrinter(withNames, details)) {
+            processAttribute(resourceName, attributeID, printer);
+            return printer.toString();
+        }
     }
 }

@@ -757,10 +757,10 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      */
     @Override
     public final void start(final BundleContext context) throws Exception {
-        try (final LogicalOperation ignored = BundleLogicalOperation.startBundle(getLogger(), context)) {
+        try (final LogicalOperation ignored = BundleLogicalOperation.startBundle(getLogger(), context);
+             final DependencyListeningFilter filter = new DependencyListeningFilter()) {
             start(context, bundleLevelDependencies);
             //try to resolve bundle-level dependencies immediately
-            final DependencyListeningFilter filter = new DependencyListeningFilter();
             for (final RequiredService<?> dependency : bundleLevelDependencies) {
                 filter.append(dependency);
                 for (final ServiceReference<?> serviceRef : dependency.getCandidates(context))

@@ -392,18 +392,19 @@ public final class ArrayUtils {
 
     /**
      * Gets empty array of the specified type.
-     * @param arrayType An array type. Must be single-dimensional.
+     * @param arrayType An array type. Must be single-dimensional. Cannot be {@literal null}.
+     * @param loader Class loader used to resolve component type of array. May be {@literal null}.
      * @param <T> Type of elements in the array.
      * @return Empty array.
      * @throws IllegalArgumentException Incorrect array type.
      */
     @SuppressWarnings("unchecked")
-    public static <T> T emptyArray(final ArrayType<T> arrayType){
+    public static <T> T emptyArray(final ArrayType<T> arrayType, final ClassLoader loader){
         if(arrayType.getDimension() > 1)
             throw new IllegalArgumentException("Wrong number of dimensions: " + arrayType.getDimension());
         final Class<?> elementType;
         try{
-            elementType = Class.forName(arrayType.getClassName()).getComponentType();
+            elementType = Class.forName(arrayType.getClassName(), true, loader).getComponentType();
         } catch (final ClassNotFoundException e) {
             throw new IllegalArgumentException(e);
         }

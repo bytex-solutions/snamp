@@ -94,16 +94,6 @@ public class Box<T> implements Wrapper<T>, Supplier<T>, SafeConsumer<T>, Cloneab
     }
 
     /**
-     * Places a new value into this container.
-     * @param value The value to be transformed and placed into this container.
-     * @param transformer The transformer applied to input value.
-     * @param <I> Type of the value to be transformed.
-     */
-    public final <I> void set(final I value, final Function<I, T> transformer){
-        set(transformer.apply(value));
-    }
-
-    /**
      * Handles the wrapped object.
      * <p>
      * It is not recommended to return the original wrapped object from the handler.

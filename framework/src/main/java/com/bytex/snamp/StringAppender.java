@@ -269,7 +269,7 @@ public class StringAppender extends CharArrayWriter implements Appendable, CharS
      */
     @Override
     public void close() {
-        buf = ArrayUtils.emptyArray(char[].class);
+        buf = null;
         count = 0;
     }
 

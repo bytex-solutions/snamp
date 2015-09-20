@@ -46,14 +46,16 @@ final class ListOfAttributesCommand extends AbstractCommand {
         final boolean withNames = input.hasOption(SHOW_NAMES_OPTION.getOpt());
         final boolean details = input.hasOption(SHOW_DETAILS_OPTION.getOpt());
         final String resourceName = input.getOptionValue(RESOURCE_OPTION.getOpt(), "");
-        final StringAppender output = new StringAppender(64);
-        if (resourceName.isEmpty())
-            for (final String r : reader.getHostedResources())
-                printAttributes(r, withNames, details, output);
-        else printAttributes(resourceName, withNames, details, output);
-        final Message msg = new Message();
-        msg.setSubject("List of attributes");
-        msg.setBody(output.toString());
+        final Message msg;
+        try(final StringAppender output = new StringAppender(64)) {
+            if (resourceName.isEmpty())
+                for (final String r : reader.getHostedResources())
+                    printAttributes(r, withNames, details, output);
+            else printAttributes(resourceName, withNames, details, output);
+            msg = new Message();
+            msg.setSubject("List of attributes");
+            msg.setBody(output.toString());
+        }
         return msg;
     }
 }

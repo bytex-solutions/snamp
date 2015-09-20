@@ -75,7 +75,7 @@ public final class DefaultValues {
 
     private static void put(final ImmutableMap.Builder<OpenType<?>, Object> builder,
                                 final ArrayType<?> arrayType){
-        builder.put(arrayType, emptyArray(arrayType));
+        builder.put(arrayType, emptyArray(arrayType, null));
     }
 
     private DefaultValues(){
