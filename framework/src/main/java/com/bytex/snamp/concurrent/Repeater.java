@@ -230,27 +230,44 @@ public abstract class Repeater implements Closeable, Runnable {
         }
     }
 
+    private boolean tryStop(final TimeSpan timeout) throws TimeoutException, InterruptedException{
+        switch (state) {
+            case STOPPING:
+                repeatThread.join(timeout);
+                return true;
+            case STARTED:
+                repeatThread.interrupt();
+                state = State.STOPPING;
+                repeatThread.join(timeout);
+                state = State.STOPPED;
+                repeatThread = null;
+                return true;
+            default:
+                return false;
+        }
+    }
+
     /**
      * Stops the timer and blocks the current thread until pending the last executed action.
      * @param timeout Time to wait for pending of the last executed action.
      * @throws TimeoutException The last executed action is not completed in the specified time.
      * @throws InterruptedException The blocked thread is interrupted.
      */
-    public final synchronized void stop(final TimeSpan timeout) throws TimeoutException, InterruptedException{
-        switch (state){
-            case STOPPING:
-                repeatThread.join(timeout);
-                return;
-            case STARTED:
-                repeatThread.interrupt();
-                state = State.STOPPING;
-                repeatThread.join(timeout);
-                state = State.STOPPED;
+    public final synchronized void stop(final TimeSpan timeout) throws TimeoutException, InterruptedException {
+        if (!tryStop(timeout))
+            throw new IllegalStateException(String.format("The repeater must be in %s state but actual state is %s", State.STARTED, state));
+    }
 
-                return;
-            default:
-                throw new IllegalStateException(String.format("The repeater must be in %s state but actual state is %s", State.STARTED, state));
-        }
+    /**
+     * Stops the timer, blocks the current thread until pending the last execution and
+     * then releases all resources associated with this repeater.
+     * @param timeout Time to wait for pending of the last executed action.
+     * @throws TimeoutException The last executed action is not completed in the specified time.
+     * @throws InterruptedException The blocked thread is interrupted.
+     */
+    public final synchronized void close(final TimeSpan timeout) throws TimeoutException, InterruptedException{
+        tryStop(timeout);
+        close();
     }
 
     /**

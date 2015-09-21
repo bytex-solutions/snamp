@@ -651,8 +651,10 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                                                                       final RequiredService<?>... dependencies) throws Exception {
             final T oldService = registration.get();
             final T newService = update(oldService, configuration, dependencies);
-            if (newService == null)
+            if (newService == null) {
+                dispose(registration);
                 registration = null;
+            }
             else if (oldService != newService) {
                 //save the identity of the service and removes registration of the previous version of service
                 final Dictionary<String, ?> identity = dispose(registration);

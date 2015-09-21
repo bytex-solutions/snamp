@@ -54,7 +54,11 @@ final class JmxConnectionManager implements AutoCloseable {
         @Override
         public void close() throws IOException {
             final JMXConnector con = connection;
-            if (con != null) con.close();
+            if (con != null) try {
+                con.close();
+            } finally {
+                connection = null;
+            }
         }
     }
 
@@ -239,8 +243,9 @@ final class JmxConnectionManager implements AutoCloseable {
     public final void close() throws Exception {
         try {
             watchDog.reconnectionHandlers.clear();
-            watchDog.stop(watchPeriod);
-        } finally {
+            watchDog.close(watchPeriod);
+        }
+        finally {
             connectionHolder.close();
         }
     }
