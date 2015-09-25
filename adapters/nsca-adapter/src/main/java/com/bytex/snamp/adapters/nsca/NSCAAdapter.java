@@ -192,7 +192,7 @@ final class NSCAAdapter extends AbstractResourceAdapter {
     }
 
     @Override
-    protected void stop() {
+    protected void stop() throws InterruptedException {
         if(attributeChecker != null){
             attributeChecker.close();
         }

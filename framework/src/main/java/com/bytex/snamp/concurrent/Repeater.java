@@ -1,12 +1,14 @@
 package com.bytex.snamp.concurrent;
 
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.MethodStub;
+import com.bytex.snamp.ThreadSafe;
+import com.bytex.snamp.TimeSpan;
 
-import java.io.Closeable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Represents lightweight timer that is used to repeat some action in time.
@@ -14,7 +16,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @version 1.0
  * @since 1.0
  */
-public abstract class Repeater implements Closeable, Runnable {
+public abstract class Repeater implements AutoCloseable, Runnable {
     /**
      * Represents state of this timer.
      * @author Roman Sakno
@@ -53,7 +55,7 @@ public abstract class Repeater implements Closeable, Runnable {
     private volatile Throwable exception;
     private final TimeSpan period;
     private RepeaterThread repeatThread;
-
+    private final Lock monitor;
 
     /**
      * Initializes a new repeater.
@@ -66,6 +68,7 @@ public abstract class Repeater implements Closeable, Runnable {
         this.period = period;
         this.exception = null;
         this.repeatThread = null;
+        this.monitor = new ReentrantLock();
     }
 
     /**
@@ -117,11 +120,27 @@ public abstract class Repeater implements Closeable, Runnable {
      * </p>
      * @param s A new repeater state.
      */
-    @SuppressWarnings("UnusedParameters")
     @MethodStub
     protected void stateChanged(final State s){
 
     }
+
+    @ThreadSafe(false)
+    private void faultImpl(final Throwable e){
+        switch (state) {
+            case STARTED:
+                if (repeatThread != null && repeatThread.getId() == Thread.currentThread().getId()) {
+                    exception = e;
+                    stateChanged(state = State.FAILED);
+                    repeatThread.interrupt();
+                    repeatThread = null;
+                } else throw new IllegalStateException("This method should be called from the timer action.");
+                break;
+            default:
+                throw new IllegalStateException(String.format("The repeater must be in %s state but actual state is %s", State.STARTED, state));
+        }
+    }
+
 
     /**
      * Informs this repeater about unhandled exception in the repeatable action.
@@ -132,18 +151,14 @@ public abstract class Repeater implements Closeable, Runnable {
      * @throws java.lang.IllegalStateException This repeater is not in {@link State#STARTED} state;
      *  or this method is not called from the {@link #doAction()} method.
      */
-    protected synchronized final void fault(final Throwable e){
-        switch (state){
-            case STARTED:
-                if(repeatThread.getId() == Thread.currentThread().getId()){
-                    exception = e;
-                    stateChanged(state = State.FAILED);
-                    Thread.currentThread().interrupt();
-                }
-                else throw new IllegalStateException("This method should be called from the timer action.");
-            break;
-            default:
-                throw new IllegalStateException(String.format("The repeater must be in %s state but actual state is %s", State.STARTED, state));
+    @ThreadSafe
+    protected final void fault(final Throwable e){
+        monitor.lock();
+        try {
+            faultImpl(e);
+        }
+        finally {
+            monitor.unlock();
         }
     }
 
@@ -160,7 +175,8 @@ public abstract class Repeater implements Closeable, Runnable {
         void start();
         void interrupt();
         long getId();
-        void join(final TimeSpan timeout) throws InterruptedException, TimeoutException;
+        void join(final long timeout) throws InterruptedException;
+        boolean isAlive();
     }
 
     private final static class RepeaterThreadImpl extends Thread implements RepeaterThread{
@@ -177,7 +193,7 @@ public abstract class Repeater implements Closeable, Runnable {
 
         @Override
         public final void run() {
-            while (!Thread.interrupted()){
+            while (!isInterrupted()){
                 //sleep for a specified time
                 try{
                     Thread.sleep(period);
@@ -190,19 +206,13 @@ public abstract class Repeater implements Closeable, Runnable {
         }
 
         @Override
-        public final void join(final TimeSpan timeout) throws InterruptedException, TimeoutException{
-            if(timeout == TimeSpan.INFINITE) join();
-            else join(timeout.convert(TimeUnit.MILLISECONDS).duration);
-            if(isAlive()) throw new TimeoutException("Thread is not stopped.");
+        public String toString() {
+            return getName();
         }
     }
 
-    /**
-     * Executes the repeater.
-     * @throws java.lang.IllegalStateException This repeater is not in {@link State#STOPPED} or {@link State#FAILED} state.
-     */
-    @Override
-    public synchronized final void run() {
+    @ThreadSafe(false)
+    private void runImpl(){
         switch (state){
             case STOPPED:
             case FAILED:
@@ -224,27 +234,68 @@ public abstract class Repeater implements Closeable, Runnable {
                 repeatThread.start();
                 stateChanged(state = State.STARTED);
                 return;
-                default:
-                    throw new IllegalStateException(String.format("The repeater must be in %s state but actual state is %s", State.STOPPED, state));
+            default:
+                throw new IllegalStateException(String.format("The repeater must be in %s state but actual state is %s", State.STOPPED, state));
 
         }
     }
 
-    private boolean tryStop(final TimeSpan timeout) throws TimeoutException, InterruptedException{
+    /**
+     * Executes the repeater.
+     * @throws java.lang.IllegalStateException This repeater is not in {@link State#STOPPED} or {@link State#FAILED} state.
+     */
+    @Override
+    @ThreadSafe
+    public final void run() {
+        monitor.lock();
+        try{
+            runImpl();
+        }
+        finally {
+            monitor.unlock();
+        }
+    }
+
+    private static void join(final RepeaterThread th, final long timeout) throws InterruptedException, TimeoutException {
+        if (timeout > 0L) th.join(timeout);
+        if (th.isAlive())
+            throw new TimeoutException(String.format("Thread %s is alive", th));
+    }
+
+    @ThreadSafe(false)
+    private boolean tryStop(long timeout) throws TimeoutException, InterruptedException{
         switch (state) {
             case STOPPING:
-                repeatThread.join(timeout);
-                return true;
+                join(repeatThread, timeout);
+                break;
             case STARTED:
                 repeatThread.interrupt();
                 state = State.STOPPING;
-                repeatThread.join(timeout);
-                state = State.STOPPED;
-                repeatThread = null;
-                return true;
+                join(repeatThread, timeout);
+                break;
             default:
                 return false;
         }
+        state = State.STOPPED;
+        repeatThread = null;
+        return true;
+    }
+
+    @ThreadSafe
+    private void stop(long millis) throws TimeoutException, InterruptedException {
+        long duration = System.currentTimeMillis();
+        if (monitor.tryLock(millis, TimeUnit.MILLISECONDS)) {
+            duration -= System.currentTimeMillis();
+            millis -= duration;
+            final boolean stopped;
+            try {
+                stopped = tryStop(millis);
+            } finally {
+                monitor.unlock();
+            }
+            if (!stopped)
+                throw new IllegalStateException(String.format("The repeater must be in %s state but actual state is %s", State.STARTED, state));
+        } else throw new TimeoutException("Too small timeout " + millis);
     }
 
     /**
@@ -253,9 +304,28 @@ public abstract class Repeater implements Closeable, Runnable {
      * @throws TimeoutException The last executed action is not completed in the specified time.
      * @throws InterruptedException The blocked thread is interrupted.
      */
-    public final synchronized void stop(final TimeSpan timeout) throws TimeoutException, InterruptedException {
-        if (!tryStop(timeout))
-            throw new IllegalStateException(String.format("The repeater must be in %s state but actual state is %s", State.STARTED, state));
+    public final void stop(final TimeSpan timeout) throws TimeoutException, InterruptedException {
+        stop(timeout.toMillis());
+    }
+
+    private void closeImpl(){
+        if(repeatThread != null) repeatThread.interrupt();
+        state = State.CLOSED;
+        repeatThread = null;
+    }
+
+    private void close(long millis) throws InterruptedException, TimeoutException {
+        long duration = System.currentTimeMillis();
+        if (monitor.tryLock(millis, TimeUnit.MILLISECONDS)) {
+            duration -= System.currentTimeMillis();
+            millis -= duration;
+            try {
+                tryStop(millis);
+                closeImpl();    //must be closed before lock will be released
+            } finally {
+                monitor.unlock();
+            }
+        } else throw new TimeoutException("Too small timeout " + millis);
     }
 
     /**
@@ -265,9 +335,8 @@ public abstract class Repeater implements Closeable, Runnable {
      * @throws TimeoutException The last executed action is not completed in the specified time.
      * @throws InterruptedException The blocked thread is interrupted.
      */
-    public final synchronized void close(final TimeSpan timeout) throws TimeoutException, InterruptedException{
-        tryStop(timeout);
-        close();
+    public final void close(final TimeSpan timeout) throws TimeoutException, InterruptedException{
+        close(timeout.toMillis());
     }
 
     /**
@@ -275,9 +344,13 @@ public abstract class Repeater implements Closeable, Runnable {
      * action completion.
      */
     @Override
-    public final synchronized void close() {
-        if(repeatThread != null) repeatThread.interrupt();
-        state = State.CLOSED;
-        repeatThread = null;
+    public final void close() throws InterruptedException{
+        monitor.lockInterruptibly();
+        try{
+            closeImpl();
+        }
+        finally {
+            monitor.unlock();
+        }
     }
 }

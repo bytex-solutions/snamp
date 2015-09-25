@@ -187,7 +187,7 @@ final class NRDPAdapter extends AbstractResourceAdapter {
     }
 
     @Override
-    protected synchronized void stop() {
+    protected synchronized void stop() throws InterruptedException {
         if(attributeChecker != null){
             attributeChecker.close();
         }
