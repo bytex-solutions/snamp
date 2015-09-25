@@ -263,7 +263,7 @@ public abstract class Repeater implements AutoCloseable, Runnable {
     }
 
     @ThreadSafe(false)
-    private boolean tryStop(long timeout) throws TimeoutException, InterruptedException{
+    private boolean tryStop(final long timeout) throws TimeoutException, InterruptedException{
         switch (state) {
             case STOPPING:
                 join(repeatThread, timeout);
@@ -282,14 +282,13 @@ public abstract class Repeater implements AutoCloseable, Runnable {
     }
 
     @ThreadSafe
-    private void stop(long millis) throws TimeoutException, InterruptedException {
+    private void stop(final long millis) throws TimeoutException, InterruptedException {
         long duration = System.currentTimeMillis();
         if (monitor.tryLock(millis, TimeUnit.MILLISECONDS)) {
             duration -= System.currentTimeMillis();
-            millis -= duration;
             final boolean stopped;
             try {
-                stopped = tryStop(millis);
+                stopped = tryStop(millis - duration);
             } finally {
                 monitor.unlock();
             }
@@ -314,13 +313,12 @@ public abstract class Repeater implements AutoCloseable, Runnable {
         repeatThread = null;
     }
 
-    private void close(long millis) throws InterruptedException, TimeoutException {
+    private void close(final long millis) throws InterruptedException, TimeoutException {
         long duration = System.currentTimeMillis();
         if (monitor.tryLock(millis, TimeUnit.MILLISECONDS)) {
             duration -= System.currentTimeMillis();
-            millis -= duration;
             try {
-                tryStop(millis);
+                tryStop(millis - duration);
                 closeImpl();    //must be closed before lock will be released
             } finally {
                 monitor.unlock();
