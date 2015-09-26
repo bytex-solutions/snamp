@@ -61,7 +61,7 @@ final class MQConnector extends ManagedResourceConnectorBean implements CMQC, CM
         queueName = properties.getQueueName();
         channelName = properties.getChannelName();
         mqmonitor = properties.createMessageAgent();
-        bytesSentLast24Hours = new DiffLongAccumulator(TimeSpan.fromHours(24));
+        bytesSentLast24Hours = new DiffLongAccumulator(TimeSpan.fromDays(1));
         bytesSentLastHour = new DiffLongAccumulator(TimeSpan.fromHours(1));
         bytesReceivedLast24Hours = new DiffLongAccumulator(TimeSpan.fromHours(24));
         bytesReceivedLastHour = new DiffLongAccumulator(TimeSpan.fromHours(1));

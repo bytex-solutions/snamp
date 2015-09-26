@@ -151,13 +151,7 @@ public final class TimeSpan implements Serializable {
         return duration + " " + unit;
     }
 
-    /**
-     * Determines whether this instance represents the same duration as the specified object.
-     * @param obj An object to compare.
-     * @return {@literal true}, if this object the same duration as the specified object.
-     */
-    @ThreadSafe
-    public boolean equals(final TimeSpan obj) {
+    private boolean equals(final TimeSpan obj) {
         if(obj == null) return false;
         else if(unit == obj.unit) return duration == obj.duration;
         else return unit.toNanos(duration) == obj.unit.toNanos(obj.duration);
@@ -180,7 +174,7 @@ public final class TimeSpan implements Serializable {
      */
     @Override
     public int hashCode() {
-        return Longs.hashCode(unit.convert(duration, TimeUnit.NANOSECONDS));
+        return Longs.hashCode(toNanos());
     }
 
     /**
@@ -192,7 +186,7 @@ public final class TimeSpan implements Serializable {
      */
     @ThreadSafe
     public static TimeSpan diff(final Date left, final Date right, final TimeUnit unit){
-        final TimeSpan temp = new TimeSpan(left.getTime() - right.getTime(), TimeUnit.MILLISECONDS);
+        final TimeSpan temp = new TimeSpan(left.getTime() - right.getTime(), TimeUnit.NANOSECONDS);
         return temp.convert(unit);
     }
 
