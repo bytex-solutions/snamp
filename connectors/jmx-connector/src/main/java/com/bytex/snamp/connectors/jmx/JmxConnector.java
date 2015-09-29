@@ -236,7 +236,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
                     }
                 });
             } catch (final Exception e) {
-                getLoggerImpl().log(Level.WARNING, String.format("Unable to expand operations for resource %s", getResourceName()));
+                failedToExpand(getLoggerImpl(), Level.WARNING, e);
                 return Collections.emptyList();
             }
         }
@@ -409,7 +409,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
                     }
                 });
             } catch (final Exception e) {
-                getLoggerImpl().log(Level.WARNING, String.format("Unable to expand attributes for resource %s", getResourceName()));
+                failedToExpand(getLoggerImpl(), Level.WARNING, e);
                 return Collections.emptyList();
             }
         }
@@ -609,7 +609,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
                     }
                 });
             } catch (final Exception e) {
-                getLoggerImpl().log(Level.WARNING, String.format("Unable to expand events for resource %s", getResourceName()));
+                failedToExpand(getLoggerImpl(), Level.WARNING, e);
                 return Collections.emptyList();
             }
         }

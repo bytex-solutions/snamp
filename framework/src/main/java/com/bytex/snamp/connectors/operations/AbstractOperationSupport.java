@@ -478,4 +478,8 @@ public abstract class AbstractOperationSupport<M extends MBeanOperationInfo> ext
     public final Iterator<M> iterator() {
         return iterator(operations.values());
     }
+
+    protected final void failedToExpand(final Logger logger, final Level level, final Exception e){
+        logger.log(level, String.format("Unable to expand operations for resource %s", getResourceName()), e);
+    }
 }

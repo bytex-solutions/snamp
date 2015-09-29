@@ -760,7 +760,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
                     }
                 });
             } catch (final Exception e) {
-                logger.log(Level.WARNING, String.format("Unable to expand attributes of '%s' resource", getResourceName()), e);
+                failedToExpand(logger, Level.WARNING, e);
                 return Collections.emptyList();
             }
         }

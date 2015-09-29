@@ -615,4 +615,8 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
         }
         return result.build();
     }
+
+    protected final void failedToExpand(final Logger logger, final Level level, final Exception e){
+        logger.log(level, String.format("Unable to expand attributes for resource %s", getResourceName()), e);
+    }
 }

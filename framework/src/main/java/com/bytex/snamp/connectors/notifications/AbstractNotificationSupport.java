@@ -460,4 +460,8 @@ public abstract class AbstractNotificationSupport<M extends MBeanNotificationInf
     public final Iterator<M> iterator() {
         return iterator(notifications.values());
     }
+
+    protected final void failedToExpand(final Logger logger, final Level level, final Exception e){
+        logger.log(level, String.format("Unable to expand events for resource %s", getResourceName()), e);
+    }
 }
