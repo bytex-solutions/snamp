@@ -369,11 +369,11 @@ final class SnmpHelpers {
     }
 
     static OID generateOID(final OID prefix){
-        return new OID(prefix).append(POSTFIX_COUNTER.getAndIncrement());
+        return new OID(prefix).append(POSTFIX_COUNTER.getAndIncrement()).append(0);
     }
 
     static OID generateOID() throws ParseException {
-        final OID prefix = new OID(SNMP4JSettings.getOIDTextFormat().parse(System.getProperty(AUTO_PREFIX_PROPERTY, "1.1.1")));
+        final OID prefix = new OID(SNMP4JSettings.getOIDTextFormat().parse(System.getProperty(AUTO_PREFIX_PROPERTY, "1.1")));
         return generateOID(prefix);
     }
 }
