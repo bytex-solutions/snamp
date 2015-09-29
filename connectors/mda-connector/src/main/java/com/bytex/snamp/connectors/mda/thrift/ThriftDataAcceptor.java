@@ -6,9 +6,9 @@ import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.mda.DataAcceptor;
-import com.bytex.snamp.connectors.mda.MDAAttributeSupport;
+import com.bytex.snamp.connectors.mda.MDAAttributeRepository;
 import com.bytex.snamp.connectors.mda.SimpleTimer;
-import com.bytex.snamp.connectors.notifications.AbstractNotificationSupport;
+import com.bytex.snamp.connectors.notifications.AbstractNotificationRepository;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 import com.bytex.snamp.connectors.notifications.NotificationListenerInvoker;
 import com.bytex.snamp.connectors.notifications.NotificationListenerInvokerFactory;
@@ -54,16 +54,16 @@ final class ThriftDataAcceptor extends AbstractManagedResourceConnector implemen
         }
     }
 
-    private static final class ThriftNotificationSupport extends AbstractNotificationSupport<ThriftNotificationAccessor>{
+    private static final class ThriftNotificationRepository extends AbstractNotificationRepository<ThriftNotificationAccessor> {
         private static final Class<ThriftNotificationAccessor> FEATURE_TYPE = ThriftNotificationAccessor.class;
         private final Logger logger;
         private final NotificationListenerInvoker listenerInvoker;
         private final SimpleTimer lastWriteAccess;
 
-        private ThriftNotificationSupport(final String resourceName,
-                                          final ExecutorService threadPool,
-                                          final SimpleTimer lwa,
-                                          final Logger logger){
+        private ThriftNotificationRepository(final String resourceName,
+                                             final ExecutorService threadPool,
+                                             final SimpleTimer lwa,
+                                             final Logger logger){
             super(resourceName, FEATURE_TYPE);
             this.logger = Objects.requireNonNull(logger);
             this.lastWriteAccess = Objects.requireNonNull(lwa);
@@ -147,14 +147,14 @@ final class ThriftDataAcceptor extends AbstractManagedResourceConnector implemen
         }
     }
 
-    private static final class ThriftAttributeSupport extends MDAAttributeSupport<ThriftAttributeAccessor> {
+    private static final class ThriftAttributeRepository extends MDAAttributeRepository<ThriftAttributeAccessor> {
         private static final Class<ThriftAttributeAccessor> FEATURE_TYPE = ThriftAttributeAccessor.class;
         private final Cache<String, ThriftValueParser> parsers;
 
-        private ThriftAttributeSupport(final String resourceName,
-                                       final long expirationTime,
-                                       final SimpleTimer lwa,
-                                       final Logger logger){
+        private ThriftAttributeRepository(final String resourceName,
+                                          final long expirationTime,
+                                          final SimpleTimer lwa,
+                                          final Logger logger){
             super(resourceName, FEATURE_TYPE, expirationTime, lwa, logger);
             this.parsers = CacheBuilder.newBuilder().weakValues().build();
         }
@@ -217,9 +217,9 @@ final class ThriftDataAcceptor extends AbstractManagedResourceConnector implemen
     }
     private final MdaThriftServer thriftServer;
     private final TServerTransport transport;
-    private final ThriftAttributeSupport attributes;
+    private final ThriftAttributeRepository attributes;
     private final ExecutorService threadPool;
-    private final ThriftNotificationSupport notifications;
+    private final ThriftNotificationRepository notifications;
 
     ThriftDataAcceptor(final String resourceName,
                        final long expirationTime,
@@ -230,8 +230,8 @@ final class ThriftDataAcceptor extends AbstractManagedResourceConnector implemen
         this.threadPool = threadPoolFactory.get();
         this.thriftServer = new MdaThriftServer(this.transport, threadPool, new WeakProcessor(this));
         final SimpleTimer lastWriteAccess = new SimpleTimer();
-        this.attributes = new ThriftAttributeSupport(resourceName, expirationTime, lastWriteAccess, getLogger());
-        this.notifications = new ThriftNotificationSupport(resourceName, threadPool, lastWriteAccess, getLogger());
+        this.attributes = new ThriftAttributeRepository(resourceName, expirationTime, lastWriteAccess, getLogger());
+        this.notifications = new ThriftNotificationRepository(resourceName, threadPool, lastWriteAccess, getLogger());
     }
 
     @Override

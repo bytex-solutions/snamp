@@ -12,14 +12,13 @@ import java.math.BigInteger;
 import java.util.*;
 
 /**
- * Represents an abstract class for all modelers of managed resource features.
- * You cannot derive from this class directly.
- * @param <F> Type of the modeling feature.
+ * Represents repository of resource features such as attributes, notification, operations and etc.
+ * @param <F> Type of the features managed by repository.
  * @author Roman Sakno
  * @since 1.0
  * @version 1.0
  */
-public abstract class AbstractFeatureModeler<F extends MBeanFeatureInfo> extends ThreadSafeObject implements Iterable<F> {
+public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> extends ThreadSafeObject implements Iterable<F> {
 
     private static final class ResourceEventListenerList extends WeakEventListenerList<ResourceEventListener, ResourceEvent> {
         private static final long serialVersionUID = -9139754747382955308L;
@@ -96,17 +95,17 @@ public abstract class AbstractFeatureModeler<F extends MBeanFeatureInfo> extends
     }
 
     /**
-     * Metadata of the managed resource feature.
+     * Metadata of the resource feature stored in repository.
      */
     protected final Class<F> metadataType;
     private final ResourceEventListenerList resourceEventListeners;
     private final Enum<?> resourceEventListenerSyncGroup;
     private final String resourceName;
 
-    protected <G extends Enum<G>> AbstractFeatureModeler(final String resourceName,
-                                                       final Class<F> metadataType,
-                                                       final Class<G> resourceGroupDef,
-                                                       final G resourceEventListenerSyncGroup) {
+    protected <G extends Enum<G>> AbstractFeatureRepository(final String resourceName,
+                                                            final Class<F> metadataType,
+                                                            final Class<G> resourceGroupDef,
+                                                            final G resourceEventListenerSyncGroup) {
         super(resourceGroupDef);
         this.metadataType = Objects.requireNonNull(metadataType);
         this.resourceEventListeners = new ResourceEventListenerList();
@@ -124,9 +123,9 @@ public abstract class AbstractFeatureModeler<F extends MBeanFeatureInfo> extends
     }
 
     /**
-     * Adds a new feature modeler event listener.
+     * Adds a new repository event listener.
      *
-     * @param listener Feature modeler event listener to add.
+     * @param listener Repository event listener to add.
      */
     public final void addModelEventListener(final ResourceEventListener listener) {
         try (final LockScope ignored = beginWrite(resourceEventListenerSyncGroup)) {
@@ -135,7 +134,7 @@ public abstract class AbstractFeatureModeler<F extends MBeanFeatureInfo> extends
     }
 
     /**
-     * Removes the specified modeler event listener.
+     * Removes the specified repository event listener.
      *
      * @param listener The listener to remove.
      */
@@ -166,14 +165,6 @@ public abstract class AbstractFeatureModeler<F extends MBeanFeatureInfo> extends
     }
 
     /**
-     * Determines whether the specified feature is already registered in this model.
-     * @param featureID ID of the registered feature.
-     * @return {@literal true}, if the feature is already registered; otherwise, {@literal false}.
-     */
-    @ThreadSafe
-    public abstract boolean isRegistered(final String featureID);
-
-    /**
      * Gets feature by its ID.
      * @param featureID ID of the feature.
      * @return Feature instance; or {@literal null}, if feature with the specified ID doesn't exist.
@@ -182,8 +173,8 @@ public abstract class AbstractFeatureModeler<F extends MBeanFeatureInfo> extends
     public abstract F get(final String featureID);
 
     /**
-     * Gets the size of this model.
-     * @return The size of this model.
+     * Gets the size of this repository.
+     * @return The size of this repository.
      */
     public abstract int size();
 
@@ -217,17 +208,8 @@ public abstract class AbstractFeatureModeler<F extends MBeanFeatureInfo> extends
     }
 
     /**
-     * Removes all features which IDs are not present in the specified set.
-     * @param featureIDs A set of features which cannot be deleted.
-     * @return Collection of removes features.
-     */
-    public final Collection<F> removeAllExcept(final String... featureIDs){
-        return removeAllExcept(ImmutableSet.copyOf(featureIDs));
-    }
-
-    /**
-     * Expands this model.
-     * @return A list of expanded features; or empty list if this model doesn't support expansion.
+     * Expands this repository.
+     * @return A list of expanded features; or empty list if this repository doesn't support expansion.
      * @see ManagedResourceConnector#expand(Class)
      */
     public Collection<F> expand(){

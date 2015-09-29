@@ -1,6 +1,6 @@
 package com.bytex.snamp.connectors.mda;
 
-import com.bytex.snamp.connectors.attributes.AbstractAttributeSupport;
+import com.bytex.snamp.connectors.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.Maps;
@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 /**
  * Represents abstract support of MDA attributes.
  */
-public abstract class MDAAttributeSupport<M extends MdaAttributeAccessor> extends AbstractAttributeSupport<M> implements Closeable {
+public abstract class MDAAttributeRepository<M extends MdaAttributeAccessor> extends AbstractAttributeRepository<M> implements Closeable {
     private final Logger logger;
     private final long expirationTime;
     /**
@@ -31,11 +31,11 @@ public abstract class MDAAttributeSupport<M extends MdaAttributeAccessor> extend
      */
     protected final ConcurrentMap<String, Object> storage;
 
-    protected MDAAttributeSupport(final String resourceName,
-                                  final Class<M> attributeMetadataType,
-                                  final long expirationTime,
-                                  final SimpleTimer lwa,
-                                  final Logger logger) {
+    protected MDAAttributeRepository(final String resourceName,
+                                     final Class<M> attributeMetadataType,
+                                     final long expirationTime,
+                                     final SimpleTimer lwa,
+                                     final Logger logger) {
         super(resourceName, attributeMetadataType);
         this.lastWriteAccess = Objects.requireNonNull(lwa);
         this.expirationTime = expirationTime;

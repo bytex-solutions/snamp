@@ -13,7 +13,7 @@ import com.bytex.snamp.connectors.attributes.*;
 import com.bytex.snamp.connectors.discovery.DiscoveryResultBuilder;
 import com.bytex.snamp.connectors.discovery.DiscoveryService;
 import com.bytex.snamp.connectors.notifications.*;
-import com.bytex.snamp.connectors.operations.AbstractOperationSupport;
+import com.bytex.snamp.connectors.operations.AbstractOperationRepository;
 import com.bytex.snamp.connectors.operations.OperationDescriptor;
 import com.bytex.snamp.connectors.operations.OperationSupport;
 import com.bytex.snamp.internal.Utils;
@@ -443,14 +443,14 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         }
     }
 
-    private static final class JavaBeanOperationSupport extends AbstractOperationSupport<JavaBeanOperationInfo>{
+    private static final class JavaBeanOperationRepository extends AbstractOperationRepository<JavaBeanOperationInfo> {
         private final Logger logger;
         private final ManagedBeanDescriptor<?> descriptor;
         private static final Class<JavaBeanOperationInfo> FEATURE_TYPE = JavaBeanOperationInfo.class;
 
-        private JavaBeanOperationSupport(final String resourceName,
-                                      final ManagedBeanDescriptor<?> descriptor,
-                                      final Logger logger){
+        private JavaBeanOperationRepository(final String resourceName,
+                                            final ManagedBeanDescriptor<?> descriptor,
+                                            final Logger logger){
             super(resourceName, FEATURE_TYPE);
             this.logger = logger;
             this.descriptor = descriptor;
@@ -685,14 +685,14 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         }
     }
 
-    private static final class JavaBeanAttributeSupport extends AbstractAttributeSupport<JavaBeanAttributeInfo> {
+    private static final class JavaBeanAttributeRepository extends AbstractAttributeRepository<JavaBeanAttributeInfo> {
         private final Logger logger;
         private final ManagedBeanDescriptor<?> bean;
         private static final Class<JavaBeanAttributeInfo> FEATURE_TYPE = JavaBeanAttributeInfo.class;
 
-        private JavaBeanAttributeSupport(final String resourceName,
-                                         final ManagedBeanDescriptor<?> beanDesc,
-                                         final Logger logger){
+        private JavaBeanAttributeRepository(final String resourceName,
+                                            final ManagedBeanDescriptor<?> beanDesc,
+                                            final Logger logger){
             super(resourceName, FEATURE_TYPE);
             this.logger = Objects.requireNonNull(logger);
             this.bean = Objects.requireNonNull(beanDesc);
@@ -766,15 +766,15 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         }
     }
 
-    private static final class JavaBeanNotificationSupport extends AbstractNotificationSupport<CustomNotificationInfo> {
+    private static final class JavaBeanNotificationRepository extends AbstractNotificationRepository<CustomNotificationInfo> {
         private final Logger logger;
         private final Set<? extends ManagementNotificationType<?>> notifTypes;
         private final NotificationListenerInvoker listenerInvoker;
         private static final Class<CustomNotificationInfo> FEATURE_TYPE = CustomNotificationInfo.class;
 
-        private JavaBeanNotificationSupport(final String resourceName,
-                                            final Set<? extends ManagementNotificationType<?>> notifTypes,
-                                            final Logger logger) {
+        private JavaBeanNotificationRepository(final String resourceName,
+                                               final Set<? extends ManagementNotificationType<?>> notifTypes,
+                                               final Logger logger) {
             super(resourceName, FEATURE_TYPE);
             this.logger = Objects.requireNonNull(logger);
             this.notifTypes = Objects.requireNonNull(notifTypes);
@@ -895,17 +895,17 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         }
     }
 
-    private final JavaBeanAttributeSupport attributes;
-    private final JavaBeanNotificationSupport notifications;
-    private final JavaBeanOperationSupport operations;
+    private final JavaBeanAttributeRepository attributes;
+    private final JavaBeanNotificationRepository notifications;
+    private final JavaBeanOperationRepository operations;
 
     private ManagedResourceConnectorBean(final String resourceName,
                                          ManagedBeanDescriptor<?> descriptor,
                                          final Set<? extends ManagementNotificationType<?>> notifTypes) throws IntrospectionException {
         if(descriptor == null) descriptor = new SelfDescriptor(this);
-        attributes = new JavaBeanAttributeSupport(resourceName, descriptor, getLogger());
-        notifications = new JavaBeanNotificationSupport(resourceName, notifTypes, getLogger());
-        operations = new JavaBeanOperationSupport(resourceName, descriptor, getLogger());
+        attributes = new JavaBeanAttributeRepository(resourceName, descriptor, getLogger());
+        notifications = new JavaBeanNotificationRepository(resourceName, notifTypes, getLogger());
+        operations = new JavaBeanOperationRepository(resourceName, descriptor, getLogger());
     }
 
     /**
@@ -1228,8 +1228,8 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
 
     @Override
     public boolean canExpandWith(final Class<? extends MBeanFeatureInfo> featureType) {
-        return JavaBeanAttributeSupport.canExpandWith(featureType) ||
-                JavaBeanOperationSupport.canExpandWith(featureType);
+        return JavaBeanAttributeRepository.canExpandWith(featureType) ||
+                JavaBeanOperationRepository.canExpandWith(featureType);
     }
 
     @SuppressWarnings("unchecked")

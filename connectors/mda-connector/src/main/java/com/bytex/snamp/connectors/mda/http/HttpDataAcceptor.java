@@ -7,9 +7,9 @@ import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.mda.DataAcceptor;
-import com.bytex.snamp.connectors.mda.MDAAttributeSupport;
+import com.bytex.snamp.connectors.mda.MDAAttributeRepository;
 import com.bytex.snamp.connectors.mda.SimpleTimer;
-import com.bytex.snamp.connectors.notifications.AbstractNotificationSupport;
+import com.bytex.snamp.connectors.notifications.AbstractNotificationRepository;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 import com.bytex.snamp.connectors.notifications.NotificationListenerInvoker;
 import com.bytex.snamp.connectors.notifications.NotificationListenerInvokerFactory;
@@ -53,16 +53,16 @@ import static com.bytex.snamp.connectors.mda.MDAResourceConfigurationDescriptorP
 @Path("/")
 @Singleton
 public final class HttpDataAcceptor extends AbstractManagedResourceConnector implements DataAcceptor {
-    private static final class HttpNotificationSupport extends AbstractNotificationSupport<HttpNotificationAccessor>{
+    private static final class HttpNotificationRepository extends AbstractNotificationRepository<HttpNotificationAccessor> {
         private static final Class<HttpNotificationAccessor> FEATURE_TYPE = HttpNotificationAccessor.class;
         private final Logger logger;
         private final NotificationListenerInvoker listenerInvoker;
         private final SimpleTimer lastWriteAccess;
 
-        private HttpNotificationSupport(final String resourceName,
-                                        final SimpleTimer lastWriteAccess,
-                                        final Logger logger,
-                                        final ExecutorService threadPool){
+        private HttpNotificationRepository(final String resourceName,
+                                           final SimpleTimer lastWriteAccess,
+                                           final Logger logger,
+                                           final ExecutorService threadPool){
             super(resourceName, FEATURE_TYPE);
             this.logger = Objects.requireNonNull(logger);
             this.lastWriteAccess = Objects.requireNonNull(lastWriteAccess);
@@ -119,14 +119,14 @@ public final class HttpDataAcceptor extends AbstractManagedResourceConnector imp
         }
     }
 
-    private static final class HttpAttributeSupport extends MDAAttributeSupport<HttpAttributeAccessor> {
+    private static final class HttpAttributeRepository extends MDAAttributeRepository<HttpAttributeAccessor> {
         private static final Class<HttpAttributeAccessor> FEATURE_TYPE = HttpAttributeAccessor.class;
         private final Cache<String, HttpValueParser> parsers;
 
-        private HttpAttributeSupport(final String resourceName,
-                                     final long expirationTime,
-                                     final SimpleTimer lastWriteAccess,
-                                     final Logger logger) {
+        private HttpAttributeRepository(final String resourceName,
+                                        final long expirationTime,
+                                        final SimpleTimer lastWriteAccess,
+                                        final Logger logger) {
             super(resourceName, FEATURE_TYPE, expirationTime, lastWriteAccess, logger);
             parsers = CacheBuilder.newBuilder().weakValues().build();
         }
@@ -187,8 +187,8 @@ public final class HttpDataAcceptor extends AbstractManagedResourceConnector imp
     }
 
     private final Gson formatter;
-    private final HttpAttributeSupport attributes;
-    private final HttpNotificationSupport notifications;
+    private final HttpAttributeRepository attributes;
+    private final HttpNotificationRepository notifications;
     private final String servletContext;
     private final ExecutorService threadPool;
     private final VolatileBox<HttpService> publisherRef;
@@ -203,8 +203,8 @@ public final class HttpDataAcceptor extends AbstractManagedResourceConnector imp
         this.formatter = JsonUtils.registerTypeAdapters(new GsonBuilder().serializeNulls()).create();
 
         final SimpleTimer lastWriteAccess = new SimpleTimer();
-        this.attributes = new HttpAttributeSupport(resourceName, expirationTime, lastWriteAccess, getLogger());
-        this.notifications = new HttpNotificationSupport(resourceName, lastWriteAccess, getLogger(), threadPool);
+        this.attributes = new HttpAttributeRepository(resourceName, expirationTime, lastWriteAccess, getLogger());
+        this.notifications = new HttpNotificationRepository(resourceName, lastWriteAccess, getLogger(), threadPool);
     }
 
     private Response setAttributes(final JsonObject items){

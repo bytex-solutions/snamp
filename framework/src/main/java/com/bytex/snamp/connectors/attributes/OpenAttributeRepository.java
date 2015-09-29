@@ -8,15 +8,15 @@ import javax.management.InvalidAttributeValueException;
  * @version 1.0
  * @since 1.0
  */
-public abstract class OpenAttributeSupport<T extends OpenAttributeAccessor> extends AbstractAttributeSupport<T> {
+public abstract class OpenAttributeRepository<T extends OpenAttributeAccessor> extends AbstractAttributeRepository<T> {
     /**
      * Initializes a new support of management attributes.
      *
      * @param resourceName          The name of the managed resource.
      * @param attributeType         Type of the attribute.
      */
-    protected OpenAttributeSupport(final String resourceName,
-                                   final Class<T> attributeType) {
+    protected OpenAttributeRepository(final String resourceName,
+                                      final Class<T> attributeType) {
         super(resourceName, attributeType);
     }
 

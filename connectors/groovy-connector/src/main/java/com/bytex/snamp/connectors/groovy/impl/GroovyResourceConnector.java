@@ -5,7 +5,7 @@ import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.GroupedThreadFactory;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
-import com.bytex.snamp.connectors.attributes.AbstractAttributeSupport;
+import com.bytex.snamp.connectors.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.attributes.OpenTypeAttributeInfo;
 import com.bytex.snamp.connectors.groovy.*;
@@ -66,7 +66,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         }
     }
 
-    private static final class GroovyNotificationSupport extends AbstractNotificationSupport<GroovyNotificationInfo>{
+    private static final class GroovyNotificationRepository extends AbstractNotificationRepository<GroovyNotificationInfo> {
         private final EventConnector connector;
         private final NotificationListenerInvoker listenerInvoker;
 
@@ -94,8 +94,8 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
             }
         }
 
-        private GroovyNotificationSupport(final String resourceName,
-                                          final EventConnector connector){
+        private GroovyNotificationRepository(final String resourceName,
+                                             final EventConnector connector){
             super(resourceName, GroovyNotificationInfo.class);
             this.connector = Objects.requireNonNull(connector);
             final ExecutorService executor = Executors.newSingleThreadExecutor(new GroupedThreadFactory("notifs-".concat(resourceName)));
@@ -177,11 +177,11 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         }
     }
 
-    private static final class GroovyAttributeSupport extends AbstractAttributeSupport<GroovyAttributeInfo>{
+    private static final class GroovyAttributeRepository extends AbstractAttributeRepository<GroovyAttributeInfo> {
         private final AttributeConnector connector;
 
-        private GroovyAttributeSupport(final String resourceName,
-                                       final AttributeConnector connector){
+        private GroovyAttributeRepository(final String resourceName,
+                                          final AttributeConnector connector){
             super(resourceName, GroovyAttributeInfo.class);
             this.connector = Objects.requireNonNull(connector);
         }
@@ -259,10 +259,10 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
     }
 
     private static final String RESOURCE_NAME_VAR = ManagedResourceScriptBase.RESOURCE_NAME_VAR;
-    private final GroovyAttributeSupport attributes;
+    private final GroovyAttributeRepository attributes;
     private static final Splitter PATH_SPLITTER;
     private final ManagedResourceInfo groovyConnector;
-    private final GroovyNotificationSupport events;
+    private final GroovyNotificationRepository events;
 
     static {
         final String pathSeparator = StandardSystemProperty.PATH_SEPARATOR.value();
@@ -292,8 +292,8 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         groovyConnector = Strings.isNullOrEmpty(initScript) ?
                 null :
                 engine.init(initScript, params);
-        attributes = new GroovyAttributeSupport(resourceName, engine);
-        events = new GroovyNotificationSupport(resourceName, engine);
+        attributes = new GroovyAttributeRepository(resourceName, engine);
+        events = new GroovyNotificationRepository(resourceName, engine);
     }
 
     static Logger getLoggerImpl(){

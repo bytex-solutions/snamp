@@ -3,7 +3,7 @@ package com.bytex.snamp.connectors.aggregator;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
-import com.bytex.snamp.connectors.attributes.AbstractAttributeSupport;
+import com.bytex.snamp.connectors.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
@@ -39,7 +39,7 @@ final class Composer extends AbstractAttributeAggregation<CompositeData> {
                                                      final BundleContext context) throws InstanceNotFoundException, AbsentAggregatorAttributeParameterException, OpenDataException {
         final ManagedResourceConnectorClient client = getResource(descriptor, context);
         try {
-            return AbstractAttributeSupport.compose("ComposedAttributes",
+            return AbstractAttributeRepository.compose("ComposedAttributes",
                     "A set of composed attributes",
                     TYPE_FILTER,
                     client.getMBeanInfo().getAttributes());

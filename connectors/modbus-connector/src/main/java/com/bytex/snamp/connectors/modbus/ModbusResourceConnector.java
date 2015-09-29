@@ -5,7 +5,7 @@ import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
-import com.bytex.snamp.connectors.attributes.OpenAttributeSupport;
+import com.bytex.snamp.connectors.attributes.OpenAttributeRepository;
 import com.bytex.snamp.connectors.modbus.transport.ModbusMaster;
 import com.bytex.snamp.connectors.modbus.transport.ModbusTransportType;
 import com.bytex.snamp.jmx.JMExceptionUtils;
@@ -25,11 +25,11 @@ import java.util.logging.Logger;
  * Represents Modbus connector.
  */
 final class ModbusResourceConnector extends AbstractManagedResourceConnector {
-    private static final class ModbusAttributeSupport extends OpenAttributeSupport<ModbusAttributeInfo>{
+    private static final class ModbusAttributeRepository extends OpenAttributeRepository<ModbusAttributeInfo> {
         private final ModbusMaster client;
         private final Logger logger;
 
-        private ModbusAttributeSupport(final String resourceName, final ModbusMaster client, final Logger logger) {
+        private ModbusAttributeRepository(final String resourceName, final ModbusMaster client, final Logger logger) {
             super(resourceName, ModbusAttributeInfo.class);
             this.client = Objects.requireNonNull(client);
             this.logger = logger;
@@ -81,14 +81,14 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
         }
     }
     private final ModbusMaster client;
-    private final ModbusAttributeSupport attributes;
+    private final ModbusAttributeRepository attributes;
 
     ModbusResourceConnector(final String resourceName,
                             final ModbusTransportType transportType,
                             final String address,
                             final int port) throws IOException {
         client = transportType.createMaster(address, port);
-        attributes = new ModbusAttributeSupport(resourceName, client, getLogger());
+        attributes = new ModbusAttributeRepository(resourceName, client, getLogger());
 
     }
 

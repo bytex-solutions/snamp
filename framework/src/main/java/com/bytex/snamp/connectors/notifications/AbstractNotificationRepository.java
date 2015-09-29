@@ -1,7 +1,7 @@
 package com.bytex.snamp.connectors.notifications;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.connectors.AbstractFeatureModeler;
+import com.bytex.snamp.connectors.AbstractFeatureRepository;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
 import com.bytex.snamp.MethodStub;
@@ -23,7 +23,7 @@ import java.util.logging.Logger;
  * @since 1.0
  * @version 1.0
  */
-public abstract class AbstractNotificationSupport<M extends MBeanNotificationInfo> extends AbstractFeatureModeler<M> implements NotificationSupport {
+public abstract class AbstractNotificationRepository<M extends MBeanNotificationInfo> extends AbstractFeatureRepository<M> implements NotificationSupport {
     private enum ANSResource{
         NOTIFICATIONS,
         RESOURCE_EVENT_LISTENERS
@@ -101,7 +101,7 @@ public abstract class AbstractNotificationSupport<M extends MBeanNotificationInf
                         .setTimeStamp(timeStamp)
                         .setSequenceNumber(sequenceNumber)
                         .setType(listID)
-                        .setSource(AbstractNotificationSupport.this)
+                        .setSource(AbstractNotificationRepository.this)
                         .setMessage(message)
                         .setUserData(userData)
                         .get());
@@ -117,8 +117,8 @@ public abstract class AbstractNotificationSupport<M extends MBeanNotificationInf
      * @param resourceName The name of the managed resource.
      * @param notifMetadataType Type of the notification metadata;
      */
-    protected AbstractNotificationSupport(final String resourceName,
-                                          final Class<M> notifMetadataType) {
+    protected AbstractNotificationRepository(final String resourceName,
+                                             final Class<M> notifMetadataType) {
         super(resourceName,
                 notifMetadataType,
                 ANSResource.class,
@@ -435,13 +435,6 @@ public abstract class AbstractNotificationSupport<M extends MBeanNotificationInf
             listeners.clear();
         if(removeResourceEventListeners)
             super.removeAllResourceEventListeners();
-    }
-
-    @Override
-    public final boolean isRegistered(final String notifType) {
-        try(final LockScope ignored = beginWrite(ANSResource.NOTIFICATIONS)){
-            return notifications.containsKey(notifType);
-        }
     }
 
     @Override

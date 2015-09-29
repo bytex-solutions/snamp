@@ -6,8 +6,8 @@ import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.attributes.AttributeSupport;
-import com.bytex.snamp.connectors.attributes.OpenAttributeSupport;
-import com.bytex.snamp.connectors.notifications.AbstractNotificationSupport;
+import com.bytex.snamp.connectors.attributes.OpenAttributeRepository;
+import com.bytex.snamp.connectors.notifications.AbstractNotificationRepository;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 import com.bytex.snamp.connectors.notifications.NotificationListenerInvoker;
 import com.bytex.snamp.connectors.notifications.NotificationListenerInvokerFactory;
@@ -32,8 +32,8 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 public final class AggregatorResourceConnector extends AbstractManagedResourceConnector implements AttributeSupport {
-    private static final class AttributeAggregationSupport extends OpenAttributeSupport<AbstractAttributeAggregation>{
-        private AttributeAggregationSupport(final String resourceName){
+    private static final class AttributeAggregationRepository extends OpenAttributeRepository<AbstractAttributeAggregation> {
+        private AttributeAggregationRepository(final String resourceName){
             super(resourceName, AbstractAttributeAggregation.class);
         }
 
@@ -75,10 +75,10 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
         }
     }
 
-    private static final class NotificationAggregationSupport extends AbstractNotificationSupport<AbstractAggregatorNotification>{
+    private static final class NotificationAggregationRepository extends AbstractNotificationRepository<AbstractAggregatorNotification> {
         private final NotificationListenerInvoker invoker;
 
-        private NotificationAggregationSupport(final String resourceName) {
+        private NotificationAggregationRepository(final String resourceName) {
             super(resourceName, AbstractAggregatorNotification.class);
             invoker = NotificationListenerInvokerFactory.createSequentialInvoker();
         }
@@ -129,10 +129,10 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
     }
 
     private static final class NotificationSender extends Repeater{
-        private final NotificationAggregationSupport notifications;
+        private final NotificationAggregationRepository notifications;
 
         private NotificationSender(final TimeSpan period,
-                                   final NotificationAggregationSupport notifs) {
+                                   final NotificationAggregationRepository notifs) {
             super(period);
             this.notifications = notifs;
         }
@@ -143,14 +143,14 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
         }
     }
 
-    private final AttributeAggregationSupport attributes;
-    private final NotificationAggregationSupport notifications;
+    private final AttributeAggregationRepository attributes;
+    private final NotificationAggregationRepository notifications;
     private final NotificationSender sender;
 
     AggregatorResourceConnector(final String resourceName,
                                 final TimeSpan notificationFrequency) throws IntrospectionException {
-        attributes = new AttributeAggregationSupport(resourceName);
-        notifications = new NotificationAggregationSupport(resourceName);
+        attributes = new AttributeAggregationRepository(resourceName);
+        notifications = new NotificationAggregationRepository(resourceName);
         sender = new NotificationSender(notificationFrequency, notifications);
         sender.run();
     }

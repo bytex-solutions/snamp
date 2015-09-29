@@ -1,9 +1,9 @@
 package com.bytex.snamp.connectors;
 
 import com.bytex.snamp.Descriptive;
-import com.bytex.snamp.connectors.attributes.AbstractAttributeSupport;
+import com.bytex.snamp.connectors.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connectors.attributes.AttributeSupport;
-import com.bytex.snamp.connectors.notifications.AbstractNotificationSupport;
+import com.bytex.snamp.connectors.notifications.AbstractNotificationRepository;
 import com.bytex.snamp.connectors.notifications.NotificationSupport;
 import com.bytex.snamp.connectors.operations.OperationSupport;
 import com.bytex.snamp.core.AbstractFrameworkService;
@@ -25,8 +25,8 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
  * <p>
  *     This class provides a base support for the following management mechanisms:
  *     <ul>
- *         <li>{@link AbstractAttributeSupport} for resource management using attributes.</li>
- *         <li>{@link AbstractNotificationSupport} to receive management notifications from the managed resource.</li>
+ *         <li>{@link AbstractAttributeRepository} for resource management using attributes.</li>
+ *         <li>{@link AbstractNotificationRepository} to receive management notifications from the managed resource.</li>
  *     </ul>
  * @author Roman Sakno
  * @since 1.0
@@ -240,15 +240,15 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      * This method may be used for implementing {@link #addResourceEventListener(ResourceEventListener)}
      * method.
      * <p>
-     *     You can use instances of {@link AbstractAttributeSupport} and {@link AbstractNotificationSupport}
+     *     You can use instances of {@link AbstractAttributeRepository} and {@link AbstractNotificationRepository}
      *     as arguments for this method.
      *
      * @param listener The listener to be added to the specified modelers.
      * @param modelers A set of modelers.
      */
     protected static void addResourceEventListener(final ResourceEventListener listener,
-                                                   final AbstractFeatureModeler<?>... modelers){
-        for(final AbstractFeatureModeler<?> modeler: modelers)
+                                                   final AbstractFeatureRepository<?>... modelers){
+        for(final AbstractFeatureRepository<?> modeler: modelers)
             modeler.addModelEventListener(listener);
     }
 
@@ -259,8 +259,8 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      * @param modelers A set of modelers.
      */
     protected static void removeResourceEventListener(final ResourceEventListener listener,
-                                                      final AbstractFeatureModeler<?>... modelers){
-        for(final AbstractFeatureModeler<?> modeler: modelers)
+                                                      final AbstractFeatureRepository<?>... modelers){
+        for(final AbstractFeatureRepository<?> modeler: modelers)
             modeler.removeModelEventListener(listener);
     }
 

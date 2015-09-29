@@ -189,7 +189,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
         }
     }
 
-    private static final class RShellAttributes extends AbstractAttributeSupport<RShellAttributeInfo> {
+    private static final class RShellAttributes extends AbstractAttributeRepository<RShellAttributeInfo> {
         private final CommandExecutionChannel executionChannel;
         private final ScriptEngineManager scriptEngineManager;
         private final Logger logger;

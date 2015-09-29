@@ -66,14 +66,14 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
 
     }
 
-    private static final class SnmpNotificationSupport extends AbstractNotificationSupport<SnmpNotificationInfo> implements CommandResponder{
+    private static final class SnmpNotificationRepository extends AbstractNotificationRepository<SnmpNotificationInfo> implements CommandResponder{
         private final AbstractConcurrentResourceAccessor<SnmpClient> client;
         private final NotificationListenerInvoker listenerInvoker;
         private final Logger logger;
 
-        private SnmpNotificationSupport(final String resourceName,
-                                        final AbstractConcurrentResourceAccessor<SnmpClient> client,
-                                        final Logger logger){
+        private SnmpNotificationRepository(final String resourceName,
+                                           final AbstractConcurrentResourceAccessor<SnmpClient> client,
+                                           final Logger logger){
             super(resourceName, SnmpNotificationInfo.class);
             this.logger = Objects.requireNonNull(logger);
             this.client = client;
@@ -117,7 +117,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
                 client.write(new ConsistentAction<SnmpClient, Void>() {
                     @Override
                     public Void invoke(final SnmpClient client) {
-                        client.addCommandResponder(SnmpNotificationSupport.this);
+                        client.addCommandResponder(SnmpNotificationRepository.this);
                         return null;
                     }
                 });
@@ -131,7 +131,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
                     client.write(new ConsistentAction<SnmpClient, Void>() {
                         @Override
                         public Void invoke(final SnmpClient client) {
-                            client.removeCommandResponder(SnmpNotificationSupport.this);
+                            client.removeCommandResponder(SnmpNotificationRepository.this);
                             return null;
                         }
                     });
@@ -538,16 +538,16 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         }
     }
 
-    private static final class SnmpAttributeSupport extends AbstractAttributeSupport<SnmpAttributeInfo> {
+    private static final class SnmpAttributeRepository extends AbstractAttributeRepository<SnmpAttributeInfo> {
         private static final Class<SnmpAttributeInfo> FEATURE_TYPE = SnmpAttributeInfo.class;
         private static final TimeSpan BATCH_READ_WRITE_TIMEOUT = TimeSpan.fromSeconds(30);
         private final AbstractConcurrentResourceAccessor<SnmpClient> client;
         private final ExecutorService executor;
         private final Logger logger;
 
-        private SnmpAttributeSupport(final String resourceName,
-                                     final AbstractConcurrentResourceAccessor<SnmpClient> client,
-                                     final Logger logger){
+        private SnmpAttributeRepository(final String resourceName,
+                                        final AbstractConcurrentResourceAccessor<SnmpClient> client,
+                                        final Logger logger){
             super(resourceName, FEATURE_TYPE);
             this.client = client;
             this.logger = Objects.requireNonNull(logger);
@@ -766,16 +766,16 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         }
     }
 
-    private final SnmpAttributeSupport attributes;
-    private final SnmpNotificationSupport notifications;
+    private final SnmpAttributeRepository attributes;
+    private final SnmpNotificationRepository notifications;
     private final AbstractConcurrentResourceAccessor<SnmpClient> client;
     private final boolean smartMode;
 
     SnmpResourceConnector(final String resourceName,
                           final SnmpConnectionOptions snmpConnectionOptions) throws IOException {
         client = new ConcurrentResourceAccessor<>(snmpConnectionOptions.createSnmpClient());
-        attributes = new SnmpAttributeSupport(resourceName, client, getLogger());
-        notifications = new SnmpNotificationSupport(resourceName, client, getLogger());
+        attributes = new SnmpAttributeRepository(resourceName, client, getLogger());
+        notifications = new SnmpNotificationRepository(resourceName, client, getLogger());
         smartMode = snmpConnectionOptions.isSmartModeEnabled();
     }
 
@@ -923,7 +923,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
 
     @Override
     public boolean canExpandWith(final Class<? extends MBeanFeatureInfo> featureType) {
-        return smartMode && SnmpAttributeSupport.canExpandWith(featureType);
+        return smartMode && SnmpAttributeRepository.canExpandWith(featureType);
     }
 
     @SuppressWarnings("unchecked")

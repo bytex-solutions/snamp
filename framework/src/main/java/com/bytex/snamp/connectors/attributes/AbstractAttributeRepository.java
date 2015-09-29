@@ -1,7 +1,7 @@
 package com.bytex.snamp.connectors.attributes;
 
 import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.connectors.AbstractFeatureModeler;
+import com.bytex.snamp.connectors.AbstractFeatureRepository;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
 import com.bytex.snamp.ThreadSafe;
@@ -34,7 +34,7 @@ import java.util.logging.Logger;
  * @since 1.0
  * @version 1.0
  */
-public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> extends AbstractFeatureModeler<M> implements AttributeSupport {
+public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> extends AbstractFeatureRepository<M> implements AttributeSupport {
     private enum AASResource {
         ATTRIBUTES,
         RESOURCE_EVENT_LISTENERS
@@ -76,8 +76,8 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
      * @param resourceName          The name of the managed resource.
      * @param attributeMetadataType The type of the attribute metadata.
      */
-    protected AbstractAttributeSupport(final String resourceName,
-                                       final Class<M> attributeMetadataType) {
+    protected AbstractAttributeRepository(final String resourceName,
+                                          final Class<M> attributeMetadataType) {
         super(resourceName,
                 attributeMetadataType,
                 AASResource.class,
@@ -575,13 +575,6 @@ public abstract class AbstractAttributeSupport<M extends MBeanAttributeInfo> ext
     public final ImmutableSet<String> getIDs() {
         try(final LockScope ignored = beginRead(AASResource.ATTRIBUTES)){
             return ImmutableSet.copyOf(attributes.keySet());
-        }
-    }
-
-    @Override
-    public final boolean isRegistered(final String attributeID) {
-        try (final LockScope ignored = beginRead(AASResource.ATTRIBUTES)) {
-            return attributes.containsKey(attributeID);
         }
     }
 

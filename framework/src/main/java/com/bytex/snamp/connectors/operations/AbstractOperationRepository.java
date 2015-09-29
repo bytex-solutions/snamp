@@ -1,7 +1,7 @@
 package com.bytex.snamp.connectors.operations;
 
 import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.connectors.AbstractFeatureModeler;
+import com.bytex.snamp.connectors.AbstractFeatureRepository;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
 import com.bytex.snamp.MethodStub;
@@ -28,7 +28,7 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
  * @version 1.0
  * @since 1.0
  */
-public abstract class AbstractOperationSupport<M extends MBeanOperationInfo> extends AbstractFeatureModeler<M> implements OperationSupport {
+public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> extends AbstractFeatureRepository<M> implements OperationSupport {
     private enum AOSResource{
         OPERATIONS,
         RESOURCE_EVENT_LISTENERS
@@ -231,8 +231,8 @@ public abstract class AbstractOperationSupport<M extends MBeanOperationInfo> ext
 
     private final KeyedObjects<String, OperationHolder<M>> operations;
 
-    protected AbstractOperationSupport(final String resourceName,
-                                                           final Class<M> metadataType) {
+    protected AbstractOperationRepository(final String resourceName,
+                                          final Class<M> metadataType) {
         super(resourceName, metadataType, AOSResource.class, AOSResource.RESOURCE_EVENT_LISTENERS);
         operations = createOperations();
     }
@@ -441,13 +441,6 @@ public abstract class AbstractOperationSupport<M extends MBeanOperationInfo> ext
         }
         if (removeResourceListeners)
             removeAllResourceEventListeners();
-    }
-
-    @Override
-    public final boolean isRegistered(final String operationID) {
-        try (final LockScope ignored = beginWrite(AOSResource.OPERATIONS)) {
-            return operations.containsKey(operationID);
-        }
     }
 
     /**

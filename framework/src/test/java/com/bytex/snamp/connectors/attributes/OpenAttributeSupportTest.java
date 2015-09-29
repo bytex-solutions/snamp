@@ -40,7 +40,7 @@ public final class OpenAttributeSupportTest extends Assert {
         }
     }
 
-    private static final class Attributes extends OpenAttributeSupport{
+    private static final class Attributes extends OpenAttributeRepository {
         @SuppressWarnings("unchecked")
         private Attributes() {
             super("TEST RESOURCE", OpenAttributeAccessor.class);
