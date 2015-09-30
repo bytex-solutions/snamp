@@ -13,7 +13,7 @@
     <!--Global dependencies-->
     <karaf.version>3.0.3</karaf.version>
     <karaf.maxVersion>4</karaf.maxVersion>
-    <osgi.version>4.3.1</osgi.version>
+    <osgi.version>5.0.0</osgi.version>
     <junit.version>4.11</junit.version>
     <jetty.version>8.1.15.v20140411</jetty.version>
     <gson.version>2.3.1</gson.version>

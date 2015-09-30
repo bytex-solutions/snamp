@@ -13,7 +13,7 @@
     <artifactId>osgi-tests</artifactId>
     <version>${project.parent.version}</version>
     <properties>
-        <exam.version>4.4.0</exam.version>
+        <exam.version>4.6.0</exam.version>
     </properties>
     <build>
         <plugins>
