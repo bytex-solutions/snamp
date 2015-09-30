@@ -14,8 +14,6 @@
     <version>${project.parent.version}</version>
     <properties>
         <exam.version>4.4.0</exam.version>
-        <felix.gogo.version>0.14.0</felix.gogo.version>
-        <slf4jVersion>1.7.7</slf4jVersion>
     </properties>
     <build>
         <plugins>
@@ -94,7 +92,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>${slf4jVersion}</version>
+            <version>${slf4j.api.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.karaf.package</groupId>
@@ -132,18 +130,6 @@
                 <exclusion>
                     <groupId>org.eclipse</groupId>
                     <artifactId>org.eclipse.osgi</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.gogo.runtime</artifactId>
-            <version>${felix.gogo.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -316,7 +302,7 @@
         <dependency>
             <groupId>org.apache.sshd</groupId>
             <artifactId>sshd-core</artifactId>
-            <version>0.12.0</version>
+            <version>${sshd.version}</version>
             <scope>test</scope>
             <exclusions>
                 <exclusion>

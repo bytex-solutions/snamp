@@ -19,7 +19,7 @@
     <gson.version>2.3.1</gson.version>
     <guava.version>18.0</guava.version>
     <jersey.version>1.18.1</jersey.version>
-    <groovy.version>2.4.4</groovy.version>
+    <groovy.version>2.4.5</groovy.version>
     <apache.ivy.version>2.4.0</apache.ivy.version>
     <cellar.version>${karaf.version}</cellar.version>
     <jline.version>2.12</jline.version>
@@ -30,6 +30,8 @@
     <hazelcast.version>3.4.2</hazelcast.version>
     <thrift.version>0.9.2</thrift.version>
     <atmosphere.version>2.2.8</atmosphere.version>
+    <sshd.version>0.12.0</sshd.version>
+    <slf4j.api.version>1.7.7</slf4j.api.version>
     <!--Versioning of SNAMP Components-->
     <snmp4j.version>2.3.4</snmp4j.version>
     <snmp4j.agent.version>2.4.0</snmp4j.agent.version>
