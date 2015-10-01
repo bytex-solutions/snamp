@@ -38,6 +38,10 @@ public class LogicalOperation extends Logger implements SafeCloseable {
         long generate();
     }
 
+    /**
+     * Represents default CorrelID generator.
+     * This class cannot be inherited.
+     */
     protected static final class DefaultCorrelationIdentifierGenerator extends AtomicLong implements CorrelationIdentifierGenerator{
         private static final long serialVersionUID = 1744163230081925999L;
 
@@ -49,6 +53,10 @@ public class LogicalOperation extends Logger implements SafeCloseable {
             this(0L);
         }
 
+        /**
+         * Generates a new unique correlation identifier.
+         * @return A new unique correlation identifier.
+         */
         @Override
         public long generate() {
             return getAndIncrement();
