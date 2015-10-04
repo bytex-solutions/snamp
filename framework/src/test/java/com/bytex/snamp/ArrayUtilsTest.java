@@ -30,4 +30,15 @@ public final class ArrayUtilsTest extends Assert {
         Byte[] array2 = ArrayUtils.emptyArray(new ArrayType<Byte[]>(SimpleType.BYTE, false), getClass().getClassLoader());
         assertTrue(array2.length == 0);
     }
+
+    @Test
+    public void invalidateTest(){
+        final String[] array = ArrayUtils.emptyArray(String[].class);
+        assertNotNull(array);
+        assertTrue(array.length == 0);
+        ArrayUtils.invalidateEmptyArrays();
+        System.gc();
+        assertNotEquals(System.identityHashCode(array),
+                System.identityHashCode(ArrayUtils.emptyArray(String[].class)));
+    }
 }

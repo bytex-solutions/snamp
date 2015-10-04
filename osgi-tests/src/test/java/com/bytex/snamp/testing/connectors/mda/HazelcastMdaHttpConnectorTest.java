@@ -221,7 +221,7 @@ public final class HazelcastMdaHttpConnectorTest extends AbstractMdaConnectorTes
             releaseManagementConnector();
         }
         sendNotification("testEvent1", "Frank Underwood", 10L, 50L, new JsonPrimitive(100500L));
-        final Notification received = notifAwaitor.await(TimeSpan.fromSeconds(3));
+        final Notification received = notifAwaitor.await(TimeSpan.ofSeconds(3));
         assertNotNull(received);
         assertEquals("Frank Underwood", received.getMessage());
         assertEquals(10L, received.getSequenceNumber());

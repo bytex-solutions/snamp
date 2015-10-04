@@ -39,7 +39,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -80,7 +79,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
                 ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
                 return null;
             }
-        }, TimeSpan.fromSeconds(4));
+        }, TimeSpan.ofSeconds(4));
     }
 
     @Override
@@ -126,7 +125,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
 
     @Test
     public void startStopTest() throws Exception {
-        final TimeSpan TIMEOUT = TimeSpan.fromSeconds(14);
+        final TimeSpan TIMEOUT = TimeSpan.ofSeconds(14);
         //stop adapter and connector
         ResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
         stopResourceConnector(getTestBundleContext());
@@ -370,9 +369,9 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
         final SynchronizationEvent.EventAwaitor<SnmpNotification> awaitor2 = client.addNotificationListener(new OID("1.1.20.1"));
         final SynchronizationEvent.EventAwaitor<SnmpNotification> awaitor3 = client.addNotificationListener(new OID("1.1.21.1"));
         client.writeAttribute(new OID("1.1.1.0"), "NOTIFICATION TEST", String.class);
-        final SnmpNotification p1 = awaitor1.await(new TimeSpan(4, TimeUnit.MINUTES));
-        final SnmpNotification p2 = awaitor2.await(new TimeSpan(4, TimeUnit.MINUTES));
-        final SnmpNotification p3 = awaitor3.await(new TimeSpan(4, TimeUnit.MINUTES));
+        final SnmpNotification p1 = awaitor1.await(TimeSpan.ofSeconds(10));
+        final SnmpNotification p2 = awaitor2.await(TimeSpan.ofSeconds(10));
+        final SnmpNotification p3 = awaitor3.await(TimeSpan.ofSeconds(10));
         assertNotNull(p1);
         assertNotNull(p2);
         assertEquals(Severity.NOTICE, p1.getSeverity());
@@ -425,7 +424,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
 
     @Test
     public void attributesBindingTest() throws TimeoutException, InterruptedException {
-        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.fromSeconds(2));
+        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
         try {
             assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new EntryReader<String, ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
                 @Override
@@ -441,7 +440,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
 
     @Test
     public void notificationsBindingTest() throws TimeoutException, InterruptedException {
-        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.fromSeconds(2));
+        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
         try {
             assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new EntryReader<String, ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
                 @Override

@@ -1,15 +1,15 @@
 package com.bytex.snamp.adapters.snmp;
 
+import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.SafeConsumer;
+import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.TimeSpan;
+import com.bytex.snamp.adapters.modeling.AttributeAccessor;
+import com.bytex.snamp.jmx.TabularDataUtils;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.SafeConsumer;
-import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.adapters.modeling.AttributeAccessor;
-import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.jmx.TabularDataUtils;
 import org.snmp4j.agent.*;
 import org.snmp4j.agent.mo.*;
 import org.snmp4j.agent.request.Request;
@@ -27,15 +27,14 @@ import javax.management.openmbean.*;
 import java.lang.reflect.Array;
 import java.text.ParseException;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 
 import static com.bytex.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.parseOID;
 import static com.bytex.snamp.adapters.snmp.SnmpHelpers.getAccessRestrictions;
+import static com.bytex.snamp.adapters.snmp.SnmpResourceAdapterProfile.createDefaultTypeMapper;
 import static com.bytex.snamp.jmx.DescriptorUtils.getField;
 import static com.bytex.snamp.jmx.DescriptorUtils.hasField;
-import static com.bytex.snamp.adapters.snmp.SnmpResourceAdapterProfile.createDefaultTypeMapper;
 
 /**
  * Represents SNMP table.
@@ -207,7 +206,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
         }
 
         private UpdateManager(){
-            this(new TimeSpan(5, TimeUnit.SECONDS));
+            this(TimeSpan.ofSeconds(5));
         }
 
         private void reset(){
@@ -311,7 +310,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
         //save additional fields
         _connector = connector;
         cacheManager = hasField(connector.getMetadata().getDescriptor(), TABLE_CACHE_TIME_PARAM) ?
-                new UpdateManager(new TimeSpan(Integer.parseInt(getField(connector.getMetadata().getDescriptor(), TABLE_CACHE_TIME_PARAM, String.class)))):
+                new UpdateManager(TimeSpan.ofMillis(getField(connector.getMetadata().getDescriptor(), TABLE_CACHE_TIME_PARAM, String.class))):
                 new UpdateManager();
     }
 

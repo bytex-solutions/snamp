@@ -183,7 +183,7 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
 
         }
         if(generateNotifs){
-            final Repeater generator = new Repeater(TimeSpan.fromSeconds(2)) {
+            final Repeater generator = new Repeater(TimeSpan.ofSeconds(2)) {
                 @Override
                 protected void doAction() {
                     propertyChanged("ATTR", STRING_PROPERTY.getType(), "previous", "next");

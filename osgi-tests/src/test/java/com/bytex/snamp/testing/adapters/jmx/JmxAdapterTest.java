@@ -176,9 +176,9 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
             final Awaitor<Notification, ExceptionPlaceholder> eventWithAttachmentHolderAwaitor = eventWithAttachmentHolder.getAwaitor();
             //force attribute change
             connection.setAttribute(resourceObjectName, attr);
-            assertNotNull(attributeChangedEventAwaitor.await(TimeSpan.fromSeconds(10)));
-            assertNotNull(testEventAwaitor.await(TimeSpan.fromSeconds(10)));
-            final Notification withAttachment = eventWithAttachmentHolderAwaitor.await(TimeSpan.fromSeconds(10));
+            assertNotNull(attributeChangedEventAwaitor.await(TimeSpan.ofSeconds(10)));
+            assertNotNull(testEventAwaitor.await(TimeSpan.ofSeconds(10)));
+            final Notification withAttachment = eventWithAttachmentHolderAwaitor.await(TimeSpan.ofSeconds(10));
             assertNotNull(withAttachment);
             assertNotNull(withAttachment.getUserData() instanceof TabularData);
         }
@@ -194,7 +194,7 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
 
     @Test
     public void attributeBindingTest() throws TimeoutException, InterruptedException {
-        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.fromSeconds(2));
+        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
         try {
             assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new EntryReader<String, FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
                 @Override
@@ -209,7 +209,7 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
 
     @Test
     public void notificationBindingTest() throws TimeoutException, InterruptedException {
-        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.fromSeconds(2));
+        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
         try {
             assertTrue(client.forEachFeature(MBeanNotificationInfo.class, new EntryReader<String, FeatureBindingInfo<MBeanNotificationInfo>, ExceptionPlaceholder>() {
                 @Override
@@ -247,7 +247,7 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
                 ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
                 return null;
             }
-        }, TimeSpan.fromMinutes(4));
+        }, TimeSpan.ofMinutes(4));
     }
 
     @Override

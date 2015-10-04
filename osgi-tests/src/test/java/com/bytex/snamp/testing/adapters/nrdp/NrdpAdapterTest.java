@@ -77,7 +77,7 @@ public final class NrdpAdapterTest extends AbstractJmxConnectorTest<TestOpenMBea
             final Awaitor<?, ExceptionPlaceholder> awaitor = listener.getAwaitor();
             final HttpContext context = server.createContext("/context", listener);
             try{
-                awaitor.await(TimeSpan.fromSeconds(2));
+                awaitor.await(TimeSpan.ofSeconds(2));
             }
             finally {
                 server.removeContext(context);
@@ -100,7 +100,7 @@ public final class NrdpAdapterTest extends AbstractJmxConnectorTest<TestOpenMBea
 
     @Test
     public void attributeBindingTest() throws TimeoutException, InterruptedException {
-        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.fromSeconds(2));
+        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
         try {
             assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new EntryReader<String, ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
                 @Override
@@ -141,7 +141,7 @@ public final class NrdpAdapterTest extends AbstractJmxConnectorTest<TestOpenMBea
                 ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
                 return null;
             }
-        }, TimeSpan.fromMinutes(4));
+        }, TimeSpan.ofMinutes(4));
     }
 
     @Override

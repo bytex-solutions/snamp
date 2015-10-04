@@ -47,7 +47,8 @@ public class StringAppender extends CharArrayWriter implements Appendable, CharS
      * @throws IOException I/O error occurs.
      */
     public final void drainTo(final Appendable output) throws IOException {
-        output.append(new String(buf, 0, count));
+        if (count > 0)
+            output.append(new String(buf, 0, count));
     }
 
     /**

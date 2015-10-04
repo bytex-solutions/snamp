@@ -157,7 +157,7 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
                 target.setRetries(1);
                 final long MAX_TIMEOUT = Long.MAX_VALUE / 100;
                 if(timeout == TimeSpan.INFINITE || timeout.convert(TimeUnit.MILLISECONDS).duration > MAX_TIMEOUT)
-                    timeout = new TimeSpan(MAX_TIMEOUT);
+                    timeout = TimeSpan.ofMillis(MAX_TIMEOUT);
                 target.setTimeout(timeout.convert(TimeUnit.MILLISECONDS).duration);
                 target.setVersion(SnmpConstants.version3);
                 return target;
@@ -207,7 +207,7 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
                 target.setRetries(1);
                 final long MAX_TIMEOUT = Long.MAX_VALUE / 100;
                 if(timeout == TimeSpan.INFINITE || timeout.toMillis() > MAX_TIMEOUT)
-                    timeout = new TimeSpan(MAX_TIMEOUT);
+                    timeout = TimeSpan.ofMillis(MAX_TIMEOUT);
                 target.setTimeout(timeout.toMillis());
                 return target;
             }

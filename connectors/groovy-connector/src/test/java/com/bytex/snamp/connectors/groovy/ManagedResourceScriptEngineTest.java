@@ -24,7 +24,7 @@ public final class ManagedResourceScriptEngineTest extends Assert {
     public void dummyAttributeTest() throws Exception {
         final SerializableAttributeConfiguration config = new SerializableAttributeConfiguration("DummyAttribute");
         config.setParameter("configParam", "Hello, world!");
-        config.setReadWriteTimeout(TimeSpan.fromSeconds(2));
+        config.setReadWriteTimeout(TimeSpan.ofSeconds(2));
 
         final AttributeAccessor scr = engine.loadAttribute(new AttributeDescriptor(config));
         assertEquals(ManagedResourceAttributeScript.INT32, scr.type());

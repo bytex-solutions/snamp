@@ -134,7 +134,7 @@ final class SysLogConfigurationDescriptor extends ConfigurationEntityDescription
 
     static TimeSpan getPassiveCheckSendPeriod(final Map<String, String> parameters){
         if(parameters.containsKey(PASSIVE_CHECK_SEND_PERIOD_PARAM))
-            return new TimeSpan(Long.parseLong(parameters.get(PASSIVE_CHECK_SEND_PERIOD_PARAM)));
-        else return TimeSpan.fromSeconds(1L);
+            return TimeSpan.ofMillis(Long.parseLong(parameters.get(PASSIVE_CHECK_SEND_PERIOD_PARAM)));
+        else return TimeSpan.ofSeconds(1L);
     }
 }

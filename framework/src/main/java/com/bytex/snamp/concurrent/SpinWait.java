@@ -20,7 +20,7 @@ public abstract class SpinWait<T, E extends Throwable> implements Awaitor<T, E> 
     /**
      * Represents default value of the spin delay.
      */
-    protected static final TimeSpan DEFAULT_SPIN_DELAY = new TimeSpan(1);
+    protected static final TimeSpan DEFAULT_SPIN_DELAY = TimeSpan.ofMillis(1);
 
     protected SpinWait(final TimeSpan spinDelay){
         this.delay = spinDelay;

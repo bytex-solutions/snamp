@@ -166,7 +166,7 @@ final class JmxConnectionManager implements AutoCloseable {
         final ReentrantReadWriteLock coordinator = new ReentrantReadWriteLock();
         this.readLock = coordinator.readLock();
         connectionHolder = new ConnectionHolder(connectionString);
-        watchDog = new ConnectionWatchDog(this.watchPeriod = new TimeSpan(watchDogPeriod), connectionHolder, coordinator.writeLock(), logger);
+        watchDog = new ConnectionWatchDog(this.watchPeriod = TimeSpan.ofMillis(watchDogPeriod), connectionHolder, coordinator.writeLock(), logger);
         //staring the watch dog
         watchDog.run();
     }

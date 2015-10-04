@@ -86,7 +86,7 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
                 ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
                 return null;
             }
-        }, TimeSpan.fromSeconds(20));
+        }, TimeSpan.ofSeconds(20));
     }
 
     @Override

@@ -105,7 +105,7 @@ public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean>
             final String GET = String.format("get -n %s -r %s --json", attributeID, TEST_RESOURCE_NAME);
             client.beginChat("agent");
             client.peekMessage(SET);
-            final String response = client.sendMessage(GET, "Hi.*", TimeSpan.fromSeconds(10));
+            final String response = client.sendMessage(GET, "Hi.*", TimeSpan.ofSeconds(10));
             assertTrue(String.format("Expected %s. Actual %s", value, response),
                     equator.equate(response, value));
         }
@@ -152,7 +152,7 @@ public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean>
             client.peekMessage(SET);
             //Note: do not change Object to Message because Message class is not visible
             //from the PAX test bundle
-            final Object notification = notifAwaitor.await(TimeSpan.fromSeconds(5));
+            final Object notification = notifAwaitor.await(TimeSpan.ofSeconds(5));
             assertNotNull(notification);
         }
     }
@@ -175,7 +175,7 @@ public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean>
 
     @Test
     public void attributesBindingTest() throws TimeoutException, InterruptedException {
-        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.fromSeconds(2));
+        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
         try {
             assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new EntryReader<String, ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
                 @Override
@@ -217,7 +217,7 @@ public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean>
                 ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
                 return null;
             }
-        }, TimeSpan.fromMinutes(4));
+        }, TimeSpan.ofMinutes(4));
     }
 
     @Override

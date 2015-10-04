@@ -207,7 +207,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
             public void stop() {
                 if (notifSender != null)
                     try {
-                        notifSender.stop(TimeSpan.fromSeconds(1));
+                        notifSender.stop(TimeSpan.ofSeconds(1));
                     } catch (final Exception e) {
                         fail(e.getMessage());
                     }
@@ -224,7 +224,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
                 run();
                 if (coldStart) sendColdStartNotification();
                 coldStart = false;
-                notifSender = new Repeater(TimeSpan.fromSeconds(1)) {
+                notifSender = new Repeater(TimeSpan.ofSeconds(1)) {
                     @Override
                     protected void doAction() {
                         final VariableBinding[] bindings = {
@@ -341,7 +341,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
             assertNotNull(addresses);
             assertEquals(1, addresses.length);
             assertTrue(addresses[0] instanceof UdpAddress);
-            final Notification n = trap.getAwaitor().await(TimeSpan.fromSeconds(6));
+            final Notification n = trap.getAwaitor().await(TimeSpan.ofSeconds(6));
             assertNotNull(n);
             assertEquals("Hello, world! - 42", n.getMessage());
             assertEquals(0L, n.getSequenceNumber());

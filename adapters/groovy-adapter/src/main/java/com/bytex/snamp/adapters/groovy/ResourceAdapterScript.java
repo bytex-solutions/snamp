@@ -199,7 +199,7 @@ public abstract class ResourceAdapterScript extends Script implements AutoClosea
 
     @SpecialUse
     protected final ResourceAttributesAnalyzer<?> attributesAnalyzer(final long checkPeriod){
-        return attributesAnalyzer(new TimeSpan(checkPeriod));
+        return attributesAnalyzer(TimeSpan.ofMillis(checkPeriod));
     }
 
     @SpecialUse

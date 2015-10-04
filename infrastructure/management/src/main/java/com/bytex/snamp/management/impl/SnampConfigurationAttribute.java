@@ -98,7 +98,7 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
     private static TimeSpan convertTimeout(final long timeout){
         return timeout == Long.MAX_VALUE || timeout <= INFINITE_TIMEOUT ?
                 TimeSpan.INFINITE:
-                new TimeSpan(timeout);
+                TimeSpan.ofMillis(timeout);
     }
 
     private static long convertTimeout(final TimeSpan timeout){

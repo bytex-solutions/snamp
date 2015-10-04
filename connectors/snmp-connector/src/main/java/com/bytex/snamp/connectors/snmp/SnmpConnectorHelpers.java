@@ -41,6 +41,6 @@ final class SnmpConnectorHelpers {
     }
 
     static TimeSpan getDiscoveryTimeout(){
-        return new TimeSpan(Long.parseLong(System.getProperty(DISCOVERY_TIMEOUT_PROPERTY, "5000")));
+        return TimeSpan.ofMillis(System.getProperty(DISCOVERY_TIMEOUT_PROPERTY, "5000"));
     }
 }

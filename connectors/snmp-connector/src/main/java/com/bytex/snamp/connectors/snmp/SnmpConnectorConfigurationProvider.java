@@ -36,7 +36,7 @@ final class SnmpConnectorConfigurationProvider extends ConfigurationEntityDescri
     static final String SOCKET_TIMEOUT_PARAM = "socketTimeout";
     static final int DEFAULT_SOCKET_TIMEOUT = 3000;
     static final String RESPONSE_TIMEOUT_PARAM = "responseTimeout";
-    private static final TimeSpan DEFAULT_RESPONSE_TIMEOUT = TimeSpan.fromSeconds(6);
+    private static final TimeSpan DEFAULT_RESPONSE_TIMEOUT = TimeSpan.ofSeconds(6);
     //attribute related parameters
     static final String SNMP_CONVERSION_FORMAT_PARAM = "snmpConversionFormat";
     //event related parameters
@@ -95,7 +95,7 @@ final class SnmpConnectorConfigurationProvider extends ConfigurationEntityDescri
 
     static TimeSpan getResponseTimeout(final AttributeDescriptor attributeParams){
         return attributeParams.hasField(RESPONSE_TIMEOUT_PARAM) ?
-                new TimeSpan(Integer.parseInt(attributeParams.getField(RESPONSE_TIMEOUT_PARAM, String.class))):
+                TimeSpan.ofMillis(attributeParams.getField(RESPONSE_TIMEOUT_PARAM, String.class)):
                 DEFAULT_RESPONSE_TIMEOUT;
     }
 

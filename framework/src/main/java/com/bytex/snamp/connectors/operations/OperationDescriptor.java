@@ -145,7 +145,7 @@ public class OperationDescriptor extends ImmutableDescriptor implements Configur
     public static TimeSpan getInvocationTimeout(final Descriptor descriptor){
         final Object fieldValue = descriptor.getFieldValue(INVOCATION_TIMEOUT_FIELD);
         if(fieldValue instanceof Number)
-            return new TimeSpan(((Number)fieldValue).longValue());
+            return TimeSpan.ofMillis(((Number)fieldValue).longValue());
         else if(fieldValue instanceof TimeSpan)
             return (TimeSpan)fieldValue;
         else return TimeSpan.INFINITE;

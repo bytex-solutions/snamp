@@ -141,14 +141,14 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         final SynchronizationEvent.EventAwaitor<Notification> awaitor2 = listener2.getAwaitor();
         //force property changing
         attributeSupport.setAttribute(new Attribute("1.0", "Frank Underwood"));
-        final Notification notif1 = awaitor1.await(TimeSpan.fromSeconds(5L));
+        final Notification notif1 = awaitor1.await(TimeSpan.ofSeconds(5L));
         assertNotNull(notif1);
         assertEquals("Property string is changed", notif1.getMessage());
         assertTrue(notif1.getUserData() instanceof CompositeData);
         final CompositeData attachment = (CompositeData)notif1.getUserData();
         assertEquals("string", attachment.get("attributeName"));
         assertEquals(String.class.getName(), attachment.get("attributeType"));
-        final Notification notif2 = awaitor2.await(TimeSpan.fromSeconds(5L));
+        final Notification notif2 = awaitor2.await(TimeSpan.ofSeconds(5L));
         assertNotNull(notif2);
         assertEquals("Property changed", notif2.getMessage());
     }
@@ -178,14 +178,14 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         assertEquals("OK", ManagedResourceConnectorClient.invokeMaintenanceAction(getTestBundleContext(), CONNECTOR_NAME, "simulateConnectionAbort", null, null).get(3, TimeUnit.SECONDS));
         //force property changing
         attributeSupport.setAttribute(new Attribute("1.0", "Frank Underwood"));
-        final Notification notif1 = awaitor1.await(TimeSpan.fromSeconds(5L));
+        final Notification notif1 = awaitor1.await(TimeSpan.ofSeconds(5L));
         assertNotNull(notif1);
         assertEquals("Property string is changed", notif1.getMessage());
         assertTrue(notif1.getUserData() instanceof CompositeData);
         final CompositeData attachment = (CompositeData)notif1.getUserData();
         assertEquals("string", attachment.get("attributeName"));
         assertEquals(String.class.getName(), attachment.get("attributeType"));
-        final Notification notif2 = awaitor2.await(TimeSpan.fromSeconds(5L));
+        final Notification notif2 = awaitor2.await(TimeSpan.ofSeconds(5L));
         assertNotNull(notif2);
         assertEquals("Property changed", notif2.getMessage());
     }
@@ -293,8 +293,8 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         });
         stopResourceConnector(context);
         startResourceConnector(context);
-        assertTrue(unregistered.getAwaitor().await(TimeSpan.fromSeconds(2)));
-        assertTrue(registered.getAwaitor().await(TimeSpan.fromSeconds(2)));
+        assertTrue(unregistered.getAwaitor().await(TimeSpan.ofSeconds(2)));
+        assertTrue(registered.getAwaitor().await(TimeSpan.ofSeconds(2)));
     }
 
     @Test

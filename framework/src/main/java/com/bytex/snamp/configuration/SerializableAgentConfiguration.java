@@ -714,7 +714,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
             public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
                 attributeName = in.readUTF();
                 final long timeout = in.readLong();
-                readWriteTimeout = timeout < 0L ? TimeSpan.INFINITE : new TimeSpan(timeout);
+                readWriteTimeout = timeout < 0L ? TimeSpan.INFINITE : TimeSpan.ofMillis(timeout);
                 readParameters(in);
             }
 

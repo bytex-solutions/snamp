@@ -124,7 +124,7 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
 
     @Test
     public void attributesBindingTest() throws TimeoutException, InterruptedException {
-        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.fromSeconds(2));
+        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
         try {
             assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new EntryReader<String, ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
                 @Override
@@ -152,7 +152,7 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
                 ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
                 return null;
             }
-        }, TimeSpan.fromSeconds(60));
+        }, TimeSpan.ofSeconds(60));
     }
 
     @Override

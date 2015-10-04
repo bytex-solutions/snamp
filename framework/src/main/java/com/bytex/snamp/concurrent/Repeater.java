@@ -76,7 +76,7 @@ public abstract class Repeater implements AutoCloseable, Runnable {
      * @param period Time between successive task executions, in millis.
      */
     protected Repeater(final long period){
-        this(new TimeSpan(period));
+        this(TimeSpan.ofMillis(period));
     }
 
     /**

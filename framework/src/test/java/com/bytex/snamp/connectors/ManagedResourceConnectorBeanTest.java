@@ -1,18 +1,19 @@
 package com.bytex.snamp.connectors;
 
 import com.bytex.snamp.ArrayUtils;
-import com.google.common.collect.ImmutableMap;
 import com.bytex.snamp.ExceptionPlaceholder;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.modeling.AttributeValue;
 import com.bytex.snamp.concurrent.Awaitor;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
+import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import com.bytex.snamp.configuration.ConfigParameters;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.attributes.CustomAttributeInfo;
 import com.bytex.snamp.connectors.discovery.DiscoveryService;
 import com.bytex.snamp.connectors.notifications.SynchronizationListener;
-import com.bytex.snamp.SpecialUse;
+import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -23,7 +24,6 @@ import java.beans.IntrospectionException;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
@@ -152,7 +152,7 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         final TestManagementConnectorBean connector = new TestManagementConnectorBean();
         connector.field1 = "123";
         final MBeanAttributeInfo md;
-        assertNotNull(md = connector.addAttribute("0", "property1", TimeSpan.fromSeconds(1), ConfigParameters.empty()));
+        assertNotNull(md = connector.addAttribute("0", "property1", TimeSpan.ofSeconds(1), ConfigParameters.empty()));
         //enables notifications
         assertNotNull(connector.enableNotifications("list1", "propertyChanged", ConfigParameters.empty()));
         final SynchronizationListener listener = new SynchronizationListener();
@@ -160,7 +160,7 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         connector.addNotificationListener(listener, null, null);
         assertEquals(connector.getProperty1(), connector.getAttribute("0"));
         connector.setAttribute(new AttributeValue("0", "1234567890", SimpleType.STRING));
-        final Notification n = notifAwaitor.await(new TimeSpan(10, TimeUnit.SECONDS));
+        final Notification n = notifAwaitor.await(TimeSpan.ofSeconds(10));
         assertNotNull(n);
         assertEquals("Property property1 is changed", n.getMessage());
         assertEquals("Attachment string", n.getUserData());

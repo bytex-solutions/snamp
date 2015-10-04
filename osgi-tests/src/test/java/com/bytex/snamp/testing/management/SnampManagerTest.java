@@ -150,11 +150,11 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             }, null, null);
             final String eventPayload = "Hello, world!";
             logger.log(LogService.LOG_ERROR, eventPayload);
-            Notification notif = syncEvent.getAwaitor().await(TimeSpan.fromSeconds(3));
+            Notification notif = syncEvent.getAwaitor().await(TimeSpan.ofSeconds(3));
             assertEquals(eventPayload, notif.getMessage());
             assertEquals("com.bytex.snamp.monitoring.error", notif.getType());
             logger.log(LogService.LOG_WARNING, eventPayload, new Exception("WAAGH!"));
-            notif = syncEvent.getAwaitor().await(TimeSpan.fromSeconds(3));
+            notif = syncEvent.getAwaitor().await(TimeSpan.ofSeconds(3));
             //assertEquals(String.format("%s. Reason: %s", eventPayload, new Exception("WAAGH!")), notif.getMessage());
             assertEquals("com.bytex.snamp.monitoring.warning", notif.getType());
             final TabularData table = (TabularData)connection.getAttribute(commonsObj, "InstalledComponents");
@@ -677,7 +677,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
                 ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
                 return null;
             }
-        }, TimeSpan.fromSeconds(4));
+        }, TimeSpan.ofSeconds(4));
     }
 
     @Override

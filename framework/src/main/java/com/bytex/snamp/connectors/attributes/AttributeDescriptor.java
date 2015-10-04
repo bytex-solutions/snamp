@@ -156,9 +156,9 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
         if(timeout instanceof TimeSpan)
             return (TimeSpan)timeout;
         else if(timeout instanceof Number)
-            return new TimeSpan(((Number)timeout).longValue());
+            return TimeSpan.ofMillis(((Number)timeout).longValue());
         else if(timeout instanceof String)
-            return new TimeSpan(Long.parseLong(timeout.toString()));
+            return TimeSpan.ofMillis(Long.parseLong(timeout.toString()));
         else return null;
     }
 

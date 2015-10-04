@@ -392,7 +392,7 @@ public class LogicalOperation extends Logger implements SafeCloseable {
      * @return The duration of logical operation execution.
      */
     public final TimeSpan getDuration(){
-        return new TimeSpan(getDuration(TimeUnit.NANOSECONDS), TimeUnit.NANOSECONDS);
+        return TimeSpan.ofNanos(getDuration(TimeUnit.NANOSECONDS));
     }
 
     /**

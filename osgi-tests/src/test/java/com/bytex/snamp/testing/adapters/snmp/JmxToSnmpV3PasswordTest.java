@@ -1,7 +1,5 @@
 package com.bytex.snamp.testing.adapters.snmp;
 
-import com.google.common.base.Supplier;
-import com.google.common.collect.ImmutableList;
 import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
@@ -13,6 +11,8 @@ import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.SnmpTable;
 import com.bytex.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connectors.jmx.TestOpenMBean;
+import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableList;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
@@ -32,7 +32,6 @@ import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -81,7 +80,7 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
                 ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
                 return null;
             }
-        }, TimeSpan.fromSeconds(4));
+        }, TimeSpan.ofSeconds(4));
     }
 
     @Override
@@ -300,8 +299,8 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
         final SynchronizationEvent.EventAwaitor<SnmpNotification> awaitor1 = client.addNotificationListener(new OID("1.1.19.1"));
         final SynchronizationEvent.EventAwaitor<SnmpNotification> awaitor2 = client.addNotificationListener(new OID("1.1.20.1"));
         client.writeAttribute(new OID("1.1.1.0"), "NOTIFICATION TEST", String.class);
-        final SnmpNotification p1 = awaitor1.await(new TimeSpan(4, TimeUnit.MINUTES));
-        final SnmpNotification p2 = awaitor2.await(new TimeSpan(4, TimeUnit.MINUTES));
+        final SnmpNotification p1 = awaitor1.await(TimeSpan.ofSeconds(10));
+        final SnmpNotification p2 = awaitor2.await(TimeSpan.ofSeconds(7));
         assertNotNull(p1);
         assertNotNull(p2);
         assertEquals(Severity.NOTICE, p1.getSeverity());

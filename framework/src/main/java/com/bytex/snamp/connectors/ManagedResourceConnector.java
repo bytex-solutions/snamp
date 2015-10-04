@@ -46,7 +46,7 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
     /**
      * Recommended timeout for invocation of operations and attributes in smart mode.
      */
-    TimeSpan TIMEOUT_FOR_SMART_MODE = TimeSpan.fromSeconds(10);
+    TimeSpan TIMEOUT_FOR_SMART_MODE = TimeSpan.ofSeconds(10);
 
     /**
      * Represents an exception indicating that the resource connector cannot be updated

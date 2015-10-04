@@ -21,7 +21,7 @@ public final class ConfigurationDiffEngineTest extends Assert {
         final ManagedResourceConfiguration resource = baseline.newConfigurationEntity(ManagedResourceConfiguration.class);
         final ManagedResourceConfiguration.AttributeConfiguration attr = resource.newElement(ManagedResourceConfiguration.AttributeConfiguration.class);
         attr.setAttributeName("attribute");
-        attr.setReadWriteTimeout(TimeSpan.fromSeconds(1));
+        attr.setReadWriteTimeout(TimeSpan.ofSeconds(1));
         resource.getElements(ManagedResourceConfiguration.AttributeConfiguration.class).put("attr", attr);
         resource.setConnectionString("connection-string");
         resource.setConnectionType("jmx");
@@ -47,7 +47,7 @@ public final class ConfigurationDiffEngineTest extends Assert {
         ManagedResourceConfiguration resource = baseline.newConfigurationEntity(ManagedResourceConfiguration.class);
         ManagedResourceConfiguration.AttributeConfiguration attr = resource.newElement(ManagedResourceConfiguration.AttributeConfiguration.class);
         attr.setAttributeName("attribute");
-        attr.setReadWriteTimeout(TimeSpan.fromSeconds(1));
+        attr.setReadWriteTimeout(TimeSpan.ofSeconds(1));
         resource.getElements(ManagedResourceConfiguration.AttributeConfiguration.class).put("attr", attr);
         resource.setConnectionString("connection-string");
         resource.setConnectionType("jmx");
@@ -92,7 +92,7 @@ public final class ConfigurationDiffEngineTest extends Assert {
         final ManagedResourceConfiguration resource = baseline.newConfigurationEntity(ManagedResourceConfiguration.class);
         final ManagedResourceConfiguration.AttributeConfiguration attr = resource.newElement(ManagedResourceConfiguration.AttributeConfiguration.class);
         attr.setAttributeName("attribute");
-        attr.setReadWriteTimeout(TimeSpan.fromSeconds(1));
+        attr.setReadWriteTimeout(TimeSpan.ofSeconds(1));
         resource.getElements(ManagedResourceConfiguration.AttributeConfiguration.class).put("attr", attr);
         resource.setConnectionString("connection-string");
         resource.setConnectionType("jmx");

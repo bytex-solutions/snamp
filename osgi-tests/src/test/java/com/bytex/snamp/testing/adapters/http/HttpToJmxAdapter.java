@@ -121,7 +121,7 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
 
     @Test
     public void startStopTest() throws Exception {
-        final TimeSpan TIMEOUT = TimeSpan.fromSeconds(15);
+        final TimeSpan TIMEOUT = TimeSpan.ofSeconds(15);
         //stop adapter and connector
         ResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
         stopResourceConnector(getTestBundleContext());
@@ -217,7 +217,7 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
             //force attribute change
             testStringAttribute();
             //wait for notifications
-            assertNotNull(awaitor.await(TimeSpan.fromSeconds(3)));
+            assertNotNull(awaitor.await(TimeSpan.ofSeconds(3)));
         } catch (final InterruptedException | TimeoutException e) {
             fail(e.getMessage());
         } finally {
@@ -261,7 +261,7 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
                 ResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
                 return null;
             }
-        }, TimeSpan.fromSeconds(15));
+        }, TimeSpan.ofSeconds(15));
     }
 
     @Override
@@ -272,7 +272,7 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
 
     @Test
     public void attributeBindingTest() throws TimeoutException, InterruptedException {
-        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.fromSeconds(2));
+        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
         try {
             assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new EntryReader<String, FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
                 @Override
@@ -288,7 +288,7 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
 
     @Test
     public void notificationBindingTest() throws TimeoutException, InterruptedException {
-        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.fromSeconds(2));
+        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
         try {
             assertTrue(client.forEachFeature(MBeanNotificationInfo.class, new EntryReader<String, FeatureBindingInfo<MBeanNotificationInfo>, ExceptionPlaceholder>() {
                 @Override

@@ -90,8 +90,17 @@ public final class Communicator extends EventBus {
         }
     }
 
+    /**
+     * Posts message synchronously.
+     * @param message Message to send. Cannot be {@literal null}.
+     * @param responseFilter A filter object used to detect response. Cannot be {@literal null}.
+     * @param timeout Response timeout, in millis.
+     * @return Response message.
+     * @throws TimeoutException Unable to receive response in the specified amount of time.
+     * @throws InterruptedException The caller thread is interrupted.
+     */
     public Object post(final Object message, final Predicate<Object> responseFilter, final long timeout) throws TimeoutException, InterruptedException {
-        return post(message, responseFilter, new TimeSpan(timeout));
+        return post(message, responseFilter, TimeSpan.ofMillis(timeout));
     }
 
     public SynchronizationEvent<?> registerMessageSynchronizer(final Object except) {

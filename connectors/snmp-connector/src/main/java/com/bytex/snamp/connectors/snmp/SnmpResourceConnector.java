@@ -540,7 +540,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
 
     private static final class SnmpAttributeRepository extends AbstractAttributeRepository<SnmpAttributeInfo> {
         private static final Class<SnmpAttributeInfo> FEATURE_TYPE = SnmpAttributeInfo.class;
-        private static final TimeSpan BATCH_READ_WRITE_TIMEOUT = TimeSpan.fromSeconds(30);
+        private static final TimeSpan BATCH_READ_WRITE_TIMEOUT = TimeSpan.ofSeconds(30);
         private final AbstractConcurrentResourceAccessor<SnmpClient> client;
         private final ExecutorService executor;
         private final Logger logger;

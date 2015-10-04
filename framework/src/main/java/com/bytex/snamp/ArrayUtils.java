@@ -38,6 +38,13 @@ public final class ArrayUtils {
     private ArrayUtils(){
     }
 
+    /**
+     * Removes all empty arrays from the cache.
+     */
+    public static void invalidateEmptyArrays(){
+        EMPTY_ARRAYS.invalidateAll();
+    }
+
     private static Object emptyArrayImpl(final Class<?> componentType){
         return EMPTY_ARRAYS.getUnchecked(componentType);
     }

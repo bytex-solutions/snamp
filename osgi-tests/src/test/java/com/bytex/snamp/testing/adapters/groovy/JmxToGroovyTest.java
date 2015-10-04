@@ -66,7 +66,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     @Test
     public void stringAttributeTest() throws ExecutionException, TimeoutException, InterruptedException {
         final Communicator channel = Communicator.getSession(COMMUNICATION_CHANNEL);
-        final Object result = channel.post("changeStringAttribute", NON_NOTIF, TimeSpan.fromSeconds(10));
+        final Object result = channel.post("changeStringAttribute", NON_NOTIF, TimeSpan.ofSeconds(10));
         assertTrue(result instanceof String);
         assertEquals("Frank Underwood", result);
     }
@@ -74,7 +74,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     @Test
     public void booleanAttributeTest() throws ExecutionException, TimeoutException, InterruptedException {
         final Communicator channel = Communicator.getSession(COMMUNICATION_CHANNEL);
-        final Object result = channel.post("changeBooleanAttribute", NON_NOTIF, TimeSpan.fromSeconds(10));
+        final Object result = channel.post("changeBooleanAttribute", NON_NOTIF, TimeSpan.ofSeconds(10));
         assertTrue(result instanceof Boolean);
         assertEquals(Boolean.TRUE, result);
     }
@@ -82,7 +82,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     @Test
     public void integerAttributeTest() throws ExecutionException, TimeoutException, InterruptedException {
         final Communicator channel = Communicator.getSession(COMMUNICATION_CHANNEL);
-        final Object result = channel.post("changeIntegerAttribute", NON_NOTIF, TimeSpan.fromSeconds(10));
+        final Object result = channel.post("changeIntegerAttribute", NON_NOTIF, TimeSpan.ofSeconds(10));
         assertTrue(result instanceof Integer);
         assertEquals(1020, result);
     }
@@ -101,7 +101,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
         final String MESSAGE = "changeStringAttributeSilent";
         final SynchronizationEvent<?> awaitor = channel.registerMessageSynchronizer(MESSAGE);
         channel.post(MESSAGE);
-        final Object notification = awaitor.getAwaitor().await(TimeSpan.fromSeconds(3));
+        final Object notification = awaitor.getAwaitor().await(TimeSpan.ofSeconds(3));
         assertTrue(notification instanceof Notification);
     }
 
@@ -114,7 +114,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
 
     @Test
     public void attributesBindingTest() throws TimeoutException, InterruptedException {
-        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.fromSeconds(2));
+        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
         try {
             assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new EntryReader<String, ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
                 @Override
@@ -129,7 +129,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
 
     @Test
     public void notificationsBindingTest() throws TimeoutException, InterruptedException {
-        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.fromSeconds(2));
+        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
         try {
             assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new EntryReader<String, ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
                 @Override
@@ -240,7 +240,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
                 ResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
                 return null;
             }
-        }, TimeSpan.fromSeconds(15));
+        }, TimeSpan.ofSeconds(15));
     }
 
     @Override

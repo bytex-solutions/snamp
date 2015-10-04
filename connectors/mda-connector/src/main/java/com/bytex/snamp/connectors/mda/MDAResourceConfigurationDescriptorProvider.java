@@ -113,7 +113,7 @@ public final class MDAResourceConfigurationDescriptorProvider extends Configurat
         if(parameters.containsKey(WAIT_FOR_HZ_PARAM)){
             final long timeout = Long.parseLong(parameters.get(WAIT_FOR_HZ_PARAM));
             final ServiceSpinWait<HazelcastInstance> hazelcastWait = new ServiceSpinWait<>(context, HazelcastInstance.class);
-            return hazelcastWait.await(new TimeSpan(timeout)) != null;
+            return hazelcastWait.await(TimeSpan.ofMillis(timeout)) != null;
         }
         else return false;
     }
