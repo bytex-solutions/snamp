@@ -1,6 +1,7 @@
 package com.bytex.snamp.concurrent;
 
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.TimeSpan;
 
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
@@ -11,7 +12,7 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
  * @version 1.0
  * @since 1.0
  */
-public class FutureThread<V> extends Thread implements Future<V> {
+public class FutureThread<V> extends Thread implements Future<V>, Awaitor<V, ExecutionException>, Awaitable<V, ExecutionException> {
     /**
      * Represents state of this thread.
      * @author Roman Sakno
@@ -215,5 +216,39 @@ public class FutureThread<V> extends Thread implements Future<V> {
     public final V get(final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         join(unit.toMillis(timeout));
         return getResult();
+    }
+
+    /**
+     * Blocks the caller thread until the event will not be raised.
+     *
+     * @param timeout Event waiting timeout.
+     * @return The event data.
+     * @throws TimeoutException     timeout parameter too small for waiting.
+     * @throws InterruptedException Waiting thread is aborted.
+     */
+    @Override
+    public final V await(final TimeSpan timeout) throws TimeoutException, InterruptedException, ExecutionException {
+        return get(timeout.duration, timeout.unit);
+    }
+
+    /**
+     * Blocks the caller thread (may be infinitely) until the event will not be raised.
+     *
+     * @return The event data.
+     * @throws InterruptedException Waiting thread is aborted.
+     */
+    @Override
+    public final V await() throws InterruptedException, ExecutionException {
+        return get();
+    }
+
+    /**
+     * Gets awaitor for this asynchronous object.
+     *
+     * @return Awaitor for this object.
+     */
+    @Override
+    public final Awaitor<V, ExecutionException> getAwaitor() {
+        return this;
     }
 }

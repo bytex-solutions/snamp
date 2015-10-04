@@ -15,7 +15,7 @@ import java.util.concurrent.TimeoutException;
  * @version 1.0
  * @since 1.0
  */
-public abstract class SpinWait<T, E extends Throwable> implements Awaitor<T, E> {
+public abstract class SpinWait<T, E extends Throwable> implements Awaitor<T, E>, Awaitable<T, E> {
     private final TimeSpan delay;
     /**
      * Represents default value of the spin delay.
@@ -77,6 +77,16 @@ public abstract class SpinWait<T, E extends Throwable> implements Awaitor<T, E> 
             if(Thread.interrupted()) throw spinWaitInterrupted();
             else if(delay != null) Thread.sleep(delay.toMillis());
         return result;
+    }
+
+    /**
+     * Gets awaitor for this asynchronous object.
+     *
+     * @return Awaitor for this object.
+     */
+    @Override
+    public final Awaitor<T, E> getAwaitor() {
+        return this;
     }
 
     private static InterruptedException spinWaitInterrupted(){

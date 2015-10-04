@@ -32,7 +32,6 @@ final class ManagementShell implements Command, SessionAware {
     private static final Pattern COMMAND_DELIMITER = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
 
     private static final class CommandExecutionContextImpl extends Switch<Class<?>, Object> implements CommandExecutionContext{
-
         @SuppressWarnings("ResultOfMethodCallIgnored")
         private CommandExecutionContextImpl(final AdapterController controller,
                                             final ExecutorService executor){
@@ -50,7 +49,7 @@ final class ManagementShell implements Command, SessionAware {
 
         @Override
         public <T> T queryObject(final Class<T> objectType) {
-            return apply(objectType, objectType);
+            return objectType.cast(apply(objectType));
         }
     }
 

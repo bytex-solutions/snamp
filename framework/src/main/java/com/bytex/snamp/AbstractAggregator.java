@@ -36,7 +36,7 @@ public abstract class AbstractAggregator implements Aggregator {
 
         @Override
         public <T> T queryObject(final Class<T> objectType) {
-            return apply(objectType, objectType);
+            return objectType.cast(apply(objectType));
         }
     }
 

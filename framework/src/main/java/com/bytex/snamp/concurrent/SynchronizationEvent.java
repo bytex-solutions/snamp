@@ -14,7 +14,7 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
  * @version 1.0
  * @since 1.0
  */
-public class SynchronizationEvent<T> {
+public class SynchronizationEvent<T> implements Awaitable<T, ExceptionPlaceholder> {
     /**
      * Represents synchronization event awaitor.
      * @param <T> Type of the event.
@@ -162,6 +162,7 @@ public class SynchronizationEvent<T> {
      *
      * @return A new awaitor for this event.
      */
+    @Override
     public final EventAwaitor<T> getAwaitor() {
         return state;
     }
