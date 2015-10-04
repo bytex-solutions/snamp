@@ -95,3 +95,10 @@ Note that updating of SNAMP Platform might affect availability. You can avoid it
 5. Restore balancer configuration.
 
 ## Update Management Console
+1. Get `web-console-feature-X.Y.Z.kar` archive.
+2. Print `feature:uninstall platform-feature` in the shell console (or just remove corresponding artifact from <snamp>/deploy` folder)
+3. Copy downloaded artifact into `<snamp>/deploy` folder
+
+Verify your update using `feature:list -i`, `bundle:list` and `log:exception-display` shell commands.
+Open the [link](http://YOUR_HOST:8181/hawtio/login).
+8181 is a default port for web-console. In case of local installation you can check [this](http://localhost:8181/hawtio/login) link.

@@ -107,11 +107,11 @@ SNAMP Management Console allows you to configure and maintain SNAMP via user-fri
 > SNAMP Management Console available in paid subscription only
 
 The console supports the following configuration features:
-* Highlight available Resource Adapters
-* Highlight available Resource Connectors
-* Highlight available configuration properties
-* Discovers available attributes, events and operations
-* Start, stop and restart resource adapters and connectors
+* [Highlight available Resource Adapters, Resource Connectors, configuration properties, attributes, events and operations](webconsole/configuration.md)
+* [Start, stop and restart resource adapters and connectors](webconsole/managing.md)
+* [Configure JAAS settings](webconsole/jaas.md)
+* [License managing](webconsole/license.md)
+* [Detailed overview of platform and modules state](webconsole/general.md)
 
 SNAMP Management Console build on top of powerful [hawt.io](http://hawt.io) web console.
 

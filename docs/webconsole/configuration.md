@@ -1,0 +1,2 @@
+SNAMP main configuration tab
+====

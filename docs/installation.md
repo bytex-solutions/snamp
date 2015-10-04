@@ -250,4 +250,11 @@ Load balancer distributes requests between SNAMP nodes. The recommended ordering
 Note that Load Balancer might require a special configuration because interaction between your Monitoring & Management Tool and SNAMP might be based on connectionless protocol, such as SNMP.
 
 ## SNAMP Management Console
-How to install console.
+Snamp Console is available only in the paid version. Console is provided as an optional module for SNAMP - kar archive. You can get it according to our SLA conditions.
+
+1. Get `web-console-feature-X.Y.Z.kar` archive.
+2. Copy downloaded artifact into `<snamp>/deploy` folder
+
+Verify your installation using `feature:list -i`, `bundle:list` and `log:exception-display` shell commands.
+If web-console has been installed open the [link](http://YOUR_HOST:8181/hawtio/login).
+8181 is a default port for web-console. In case of local installation you can check [this](http://localhost:8181/hawtio/login) link.

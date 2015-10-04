@@ -15,6 +15,7 @@ This is a top-level page of SNAMP technical documentation. Here you can found al
 * [Configuration](configuration.md) - how to configure SNAMP
   * [Resource Adapters](adapters/introduction.md) - details about SNAMP Resource Adapters
   * [Resource Connectors](connectors/introduction.md) - details about SNAMP Resource Connectors
+* [Web-console](webconsole/overview.md) - how to configure SNAMP
 * [Management](mgmt.md) - how to manage SNAMP
 * [Updating](updating.md) - how to install new SNAMP components and update old ones
 * [Troubleshooting](troubleshooting.md) - how to fix the most common troubles
