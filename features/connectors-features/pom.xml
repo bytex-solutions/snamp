@@ -16,7 +16,7 @@
         <module>snmp-connector-feature</module>
         <module>rshell-connector-feature</module>
         <module>aggregator-connector-feature</module>
-        <module>ibmwmq-connector-feature</module>
+       <!-- <module>ibmwmq-connector-feature</module>-->
         <module>groovy-connector-feature</module>
         <module>modbus-connector-feature</module>
         <module>mda-connector-feature</module>
