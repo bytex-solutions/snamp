@@ -79,7 +79,7 @@ public abstract class SpinWait<T> implements Future<T> {
             }
             if (result != null && state.compareAndSet(SpinState.ACTIVE, SpinState.COMPLETED))
                  this.result = result;
-            else if (timer.elapsed(TimeUnit.MILLISECONDS) > timeoutMillis)
+            else if (timer.elapsed(TimeUnit.MILLISECONDS) >= timeoutMillis)
                 throw new TimeoutException("Spin wait timed out");
             else if (Thread.interrupted()) throw spinWaitInterrupted();
             else Thread.sleep(delayMillis);
