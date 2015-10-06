@@ -1,7 +1,5 @@
 package com.bytex.snamp.testing.adapters.xmpp;
 
-import com.google.common.base.Supplier;
-import com.google.common.collect.ImmutableList;
 import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.TimeSpan;
@@ -9,8 +7,6 @@ import com.bytex.snamp.adapters.ResourceAdapter;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.adapters.ResourceAdapterClient;
 import com.bytex.snamp.adapters.xmpp.client.XMPPClient;
-import com.bytex.snamp.concurrent.Awaitor;
-import com.bytex.snamp.configuration.AbsentConfigurationParameterException;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.internal.EntryReader;
 import com.bytex.snamp.testing.SnampDependencies;
@@ -18,6 +14,8 @@ import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connectors.AbstractResourceConnectorTest;
 import com.bytex.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connectors.jmx.TestOpenMBean;
+import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableList;
 import org.apache.vysper.mina.TCPEndpoint;
 import org.apache.vysper.storage.StorageProviderRegistry;
 import org.apache.vysper.storage.inmemory.MemoryStorageProviderRegistry;
@@ -38,10 +36,12 @@ import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import java.io.File;
 import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -94,7 +94,7 @@ public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean>
 
     private void testAttribute(final String attributeID,
                                final String value,
-                               final Equator<String> equator) throws AbsentConfigurationParameterException, GeneralSecurityException, IOException, TimeoutException, InterruptedException{
+                               final Equator<String> equator) throws Exception{
         final Map<String, String> parameters = new HashMap<>(10);
         fillParameters(parameters);
         parameters.put("userName", "tester");
@@ -123,17 +123,17 @@ public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean>
     }
 
     @Test
-    public void integerTest() throws AbsentConfigurationParameterException, GeneralSecurityException, IOException, TimeoutException, InterruptedException {
+    public void integerTest() throws Exception {
         testAttribute("3.0", "56", AbstractResourceConnectorTest.<String>valueEquator());
     }
 
     @Test
-    public void stringTest() throws InterruptedException, GeneralSecurityException, TimeoutException, AbsentConfigurationParameterException, IOException {
+    public void stringTest() throws Exception {
         testAttribute("1.0", "\"'Hello, world'\"", quotedEquator());
     }
 
     @Test
-    public void notificationTest() throws InterruptedException, GeneralSecurityException, TimeoutException, AbsentConfigurationParameterException, IOException{
+    public void notificationTest() throws Exception{
         final String ATTRIBUTE_ID = "3.0";
         final Map<String, String> parameters = new HashMap<>(10);
         fillParameters(parameters);
@@ -144,7 +144,7 @@ public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean>
             final String SET = String.format("set -n %s -r %s -v %s --silent", ATTRIBUTE_ID, TEST_RESOURCE_NAME, "82");
             client.beginChat("agent");
             //wait for message
-            final Awaitor<Message, ExceptionPlaceholder> notifAwaitor =
+            final Future<Message> notifAwaitor =
                     client.waitMessage("Hi.*");
             //enable notifs
             client.peekMessage("notifs -f (severity=notice)");
@@ -152,7 +152,7 @@ public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean>
             client.peekMessage(SET);
             //Note: do not change Object to Message because Message class is not visible
             //from the PAX test bundle
-            final Object notification = notifAwaitor.await(TimeSpan.ofSeconds(5));
+            final Object notification = notifAwaitor.get(5, TimeUnit.SECONDS);
             assertNotNull(notification);
         }
     }
@@ -174,7 +174,7 @@ public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean>
     }
 
     @Test
-    public void attributesBindingTest() throws TimeoutException, InterruptedException {
+    public void attributesBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
         final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
         try {
             assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new EntryReader<String, ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {

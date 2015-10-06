@@ -37,6 +37,8 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
@@ -217,8 +219,8 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
             //force attribute change
             testStringAttribute();
             //wait for notifications
-            assertNotNull(awaitor.await(TimeSpan.ofSeconds(3)));
-        } catch (final InterruptedException | TimeoutException e) {
+            assertNotNull(awaitor.get(3, TimeUnit.SECONDS));
+        } catch (final InterruptedException | TimeoutException | ExecutionException e) {
             fail(e.getMessage());
         } finally {
             sock.close();
@@ -271,7 +273,7 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
     }
 
     @Test
-    public void attributeBindingTest() throws TimeoutException, InterruptedException {
+    public void attributeBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
         final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
         try {
             assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new EntryReader<String, FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
@@ -287,7 +289,7 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
     }
 
     @Test
-    public void notificationBindingTest() throws TimeoutException, InterruptedException {
+    public void notificationBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
         final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
         try {
             assertTrue(client.forEachFeature(MBeanNotificationInfo.class, new EntryReader<String, FeatureBindingInfo<MBeanNotificationInfo>, ExceptionPlaceholder>() {

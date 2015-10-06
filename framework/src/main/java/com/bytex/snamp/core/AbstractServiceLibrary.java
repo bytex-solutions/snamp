@@ -3,7 +3,7 @@ package com.bytex.snamp.core;
 import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.ThreadSafe;
-import com.bytex.snamp.concurrent.Monitor;
+import com.bytex.snamp.concurrent.CriticalSection;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -152,7 +152,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * Returns the global synchronization object for the underlying service library.
          * @return The global synchronization object.
          */
-        protected final Monitor getGlobalMonitor(){
+        protected final CriticalSection getGlobalMonitor(){
             return properties.getValue(GLOBAL_MONITOR);
         }
 
@@ -764,7 +764,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         }
     }
 
-    private static final class GlobalMonitor extends Monitor{
+    private static final class GlobalMonitor extends CriticalSection {
         private static final String NAME = "GLOBAL_MONITOR";
         private GlobalMonitor(){
 
@@ -791,7 +791,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      *      The global monitor is used by service library when starting and stopping
      *      the bundle.
      */
-    private static final NamedActivationProperty<Monitor> GLOBAL_MONITOR = defineActivationProperty(GlobalMonitor.NAME, Monitor.class);
+    private static final NamedActivationProperty<CriticalSection> GLOBAL_MONITOR = defineActivationProperty(GlobalMonitor.NAME, CriticalSection.class);
     private static final NamedActivationProperty<WeakBundleReference> BUNDLE_REF = defineActivationProperty(WeakBundleReference.ACTIVATION_PROPERTY_NAME, WeakBundleReference.class);
     private final ProvidedServices serviceRegistry;
     private final List<ProvidedService<?, ?>> providedServices;

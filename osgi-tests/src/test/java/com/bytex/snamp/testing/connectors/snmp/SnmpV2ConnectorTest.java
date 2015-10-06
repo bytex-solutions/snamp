@@ -1,9 +1,5 @@
 package com.bytex.snamp.testing.connectors.snmp;
 
-import com.google.common.base.Supplier;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.reflect.TypeToken;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.TypeTokens;
 import com.bytex.snamp.concurrent.Repeater;
@@ -15,6 +11,10 @@ import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.connectors.notifications.NotificationSupport;
 import com.bytex.snamp.testing.connectors.AbstractResourceConnectorTest;
+import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.reflect.TypeToken;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.snmp4j.TransportMapping;
@@ -41,7 +41,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Represents SNMPv2 connector test with local SNMP agent.
@@ -323,7 +323,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     }
 
     @Test
-    public void notificationTest() throws TimeoutException, InterruptedException, JMException {
+    public void notificationTest() throws Exception {
         final ManagedResourceConnector connector = getManagementConnector();
         try {
             final NotificationSupport notifications = connector.queryObject(NotificationSupport.class);
@@ -341,7 +341,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
             assertNotNull(addresses);
             assertEquals(1, addresses.length);
             assertTrue(addresses[0] instanceof UdpAddress);
-            final Notification n = trap.getAwaitor().await(TimeSpan.ofSeconds(6));
+            final Notification n = trap.getAwaitor().get(6, TimeUnit.SECONDS);
             assertNotNull(n);
             assertEquals("Hello, world! - 42", n.getMessage());
             assertEquals(0L, n.getSequenceNumber());

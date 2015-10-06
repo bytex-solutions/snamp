@@ -14,6 +14,7 @@ import com.bytex.snamp.SpecialUse;
 import java.util.EventListener;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -38,7 +39,15 @@ public final class Communicator extends EventBus {
         @SpecialUse
         @AllowConcurrentEvents
         public void accept(final Object message) {
-            if (responseFilter.apply(message))
+            boolean success;
+            try{
+                success = responseFilter.apply(message);
+            }
+            catch (final Throwable e){
+                raise(e);
+                success = false;
+            }
+            if(success)
                 fire(message);
         }
     }
@@ -69,23 +78,24 @@ public final class Communicator extends EventBus {
         };
     }
 
-    public Object post(final Object message, final TimeSpan timeout) throws TimeoutException, InterruptedException {
+    public Object post(final Object message, final TimeSpan timeout) throws TimeoutException, InterruptedException, ExecutionException {
         return post(message, null, timeout);
     }
 
-    public Object post(final Object message, final long timeout) throws TimeoutException, InterruptedException {
+    public Object post(final Object message, final long timeout) throws TimeoutException, InterruptedException, ExecutionException {
         return post(message, null, timeout);
     }
 
-    public Object post(final Object message, Predicate<Object> responseFilter, final TimeSpan timeout) throws TimeoutException, InterruptedException {
+    public Object post(final Object message, Predicate<Object> responseFilter, final TimeSpan timeout) throws TimeoutException, InterruptedException, ExecutionException {
         responseFilter = Predicates.and(exceptIncoming(message), responseFilter);
         final IncomingMessageEvent event = new IncomingMessageEvent(responseFilter);
-        final IncomingMessageEvent.EventAwaitor<Object> awaitor = event.getAwaitor();
+        final Future<?> awaitor = event.getAwaitor();
         register(event);
         post(message);
         try {
-            return awaitor.await(timeout);
-        } finally {
+            return awaitor.get(timeout.duration, timeout.unit);
+        }
+        finally {
             unregister(event);
         }
     }
@@ -98,8 +108,9 @@ public final class Communicator extends EventBus {
      * @return Response message.
      * @throws TimeoutException Unable to receive response in the specified amount of time.
      * @throws InterruptedException The caller thread is interrupted.
+     * @throws ExecutionException Filter raises exception.
      */
-    public Object post(final Object message, final Predicate<Object> responseFilter, final long timeout) throws TimeoutException, InterruptedException {
+    public Object post(final Object message, final Predicate<Object> responseFilter, final long timeout) throws TimeoutException, InterruptedException, ExecutionException {
         return post(message, responseFilter, TimeSpan.ofMillis(timeout));
     }
 

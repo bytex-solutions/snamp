@@ -23,6 +23,7 @@ public class WellKnownTypeTest extends Assert {
             assertEquals(type, WellKnownType.getType(type.getJavaType()));
         }
         final long cacheSize = WellKnownType.cacheSize();
+        System.gc();
         //load all type tokens again
         for(final WellKnownType type: WellKnownType.values()) {
             assertEquals(type, WellKnownType.getType(type.getTypeToken()));

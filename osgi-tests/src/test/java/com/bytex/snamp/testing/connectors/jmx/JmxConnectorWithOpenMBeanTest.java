@@ -1,10 +1,5 @@
 package com.bytex.snamp.testing.connectors.jmx;
 
-import com.google.common.base.Supplier;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.reflect.TypeToken;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.TypeTokens;
 import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.configuration.AgentConfiguration;
@@ -18,9 +13,12 @@ import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.bytex.snamp.jmx.TabularDataBuilder;
 import com.bytex.snamp.testing.connectors.AbstractResourceConnectorTest;
+import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.reflect.TypeToken;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 
@@ -29,7 +27,9 @@ import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.SimpleType;
 import javax.management.openmbean.TabularData;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -127,7 +127,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
     }
 
     @Test
-    public final void notificationTest() throws TimeoutException, InterruptedException, JMException {
+    public final void notificationTest() throws Exception {
         final NotificationSupport notificationSupport = getManagementConnector(getTestBundleContext()).queryObject(NotificationSupport.class);
         final AttributeSupport attributeSupport = getManagementConnector(getTestBundleContext()).queryObject(AttributeSupport.class);
         assertNotNull(notificationSupport);
@@ -137,18 +137,18 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         final SynchronizationListener listener2 = new SynchronizationListener("20.1");
         notificationSupport.addNotificationListener(listener1, listener1, null);
         notificationSupport.addNotificationListener(listener2, listener2, null);
-        final SynchronizationEvent.EventAwaitor<Notification> awaitor1 = listener1.getAwaitor();
-        final SynchronizationEvent.EventAwaitor<Notification> awaitor2 = listener2.getAwaitor();
+        final Future<Notification> awaitor1 = listener1.getAwaitor();
+        final Future<Notification> awaitor2 = listener2.getAwaitor();
         //force property changing
         attributeSupport.setAttribute(new Attribute("1.0", "Frank Underwood"));
-        final Notification notif1 = awaitor1.await(TimeSpan.ofSeconds(5L));
+        final Notification notif1 = awaitor1.get(5, TimeUnit.SECONDS);
         assertNotNull(notif1);
         assertEquals("Property string is changed", notif1.getMessage());
         assertTrue(notif1.getUserData() instanceof CompositeData);
         final CompositeData attachment = (CompositeData)notif1.getUserData();
         assertEquals("string", attachment.get("attributeName"));
         assertEquals(String.class.getName(), attachment.get("attributeType"));
-        final Notification notif2 = awaitor2.await(TimeSpan.ofSeconds(5L));
+        final Notification notif2 = awaitor2.get(5, TimeUnit.SECONDS);
         assertNotNull(notif2);
         assertEquals("Property changed", notif2.getMessage());
     }
@@ -172,20 +172,20 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         final SynchronizationListener listener2 = new SynchronizationListener("20.1");
         notificationSupport.addNotificationListener(listener1, listener1, null);
         notificationSupport.addNotificationListener(listener2, listener2, null);
-        final SynchronizationEvent.EventAwaitor<Notification> awaitor1 = listener1.getAwaitor();
-        final SynchronizationEvent.EventAwaitor<Notification> awaitor2 = listener2.getAwaitor();
+        final Future<Notification> awaitor1 = listener1.getAwaitor();
+        final Future<Notification> awaitor2 = listener2.getAwaitor();
         //simulate connection abort
         assertEquals("OK", ManagedResourceConnectorClient.invokeMaintenanceAction(getTestBundleContext(), CONNECTOR_NAME, "simulateConnectionAbort", null, null).get(3, TimeUnit.SECONDS));
         //force property changing
         attributeSupport.setAttribute(new Attribute("1.0", "Frank Underwood"));
-        final Notification notif1 = awaitor1.await(TimeSpan.ofSeconds(5L));
+        final Notification notif1 = awaitor1.get(5, TimeUnit.SECONDS);
         assertNotNull(notif1);
         assertEquals("Property string is changed", notif1.getMessage());
         assertTrue(notif1.getUserData() instanceof CompositeData);
         final CompositeData attachment = (CompositeData)notif1.getUserData();
         assertEquals("string", attachment.get("attributeName"));
         assertEquals(String.class.getName(), attachment.get("attributeType"));
-        final Notification notif2 = awaitor2.await(TimeSpan.ofSeconds(5L));
+        final Notification notif2 = awaitor2.get(5, TimeUnit.SECONDS);
         assertNotNull(notif2);
         assertEquals("Property changed", notif2.getMessage());
     }
@@ -275,7 +275,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
     }
 
     @Test
-    public void testForResourceConnectorListener() throws BundleException, TimeoutException, InterruptedException {
+    public void testForResourceConnectorListener() throws Exception {
         final BundleContext context = getTestBundleContext();
         final SynchronizationEvent<Boolean> unregistered = new SynchronizationEvent<>(false);
         final SynchronizationEvent<Boolean> registered = new SynchronizationEvent<>(false);
@@ -293,8 +293,8 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         });
         stopResourceConnector(context);
         startResourceConnector(context);
-        assertTrue(unregistered.getAwaitor().await(TimeSpan.ofSeconds(2)));
-        assertTrue(registered.getAwaitor().await(TimeSpan.ofSeconds(2)));
+        assertTrue(unregistered.getAwaitor().get(2, TimeUnit.SECONDS));
+        assertTrue(registered.getAwaitor().get(2, TimeUnit.SECONDS));
     }
 
     @Test

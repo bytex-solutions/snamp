@@ -1,6 +1,5 @@
 package com.bytex.snamp.core;
 
-import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.concurrent.SpinWait;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
@@ -15,7 +14,7 @@ import java.util.Objects;
  * @version 1.0
  * @since 1.0
  */
-public final class ServiceSpinWait<S> extends SpinWait<ServiceReference<S>, ExceptionPlaceholder> {
+public final class ServiceSpinWait<S> extends SpinWait<ServiceReference<S>> {
     private final BundleContext context;
     private final Class<S> serviceContract;
 
@@ -33,7 +32,7 @@ public final class ServiceSpinWait<S> extends SpinWait<ServiceReference<S>, Exce
      * @return An object used as indicator to break the spinning.
      */
     @Override
-    protected ServiceReference<S> get() {
+    protected ServiceReference<S> spin() {
         return context.getServiceReference(serviceContract);
     }
 }

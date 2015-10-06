@@ -21,9 +21,12 @@ public final class SimpleCacheTest extends Assert {
             }
         };
         final AtomicLong initCounter = new AtomicLong(0L);
+        assertFalse(cache.isInitialized());
         cache.get(initCounter);
+        assertTrue(cache.isInitialized());
         cache.get(initCounter);
         cache.get(initCounter);
         assertEquals(1L, initCounter.get());
+        assertEquals("Hello, world", cache.getIfPresent());
     }
 }

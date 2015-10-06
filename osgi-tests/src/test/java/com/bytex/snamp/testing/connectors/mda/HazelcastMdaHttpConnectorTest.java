@@ -1,8 +1,6 @@
 package com.bytex.snamp.testing.connectors.mda;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.notifications.NotificationSupport;
 import com.bytex.snamp.connectors.notifications.SynchronizationListener;
@@ -24,7 +22,8 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.Map;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
@@ -208,8 +207,8 @@ public final class HazelcastMdaHttpConnectorTest extends AbstractMdaConnectorTes
     }
 
     @Test
-    public void notificationTest1() throws IOException, TimeoutException, InterruptedException {
-        final SynchronizationEvent.EventAwaitor<Notification> notifAwaitor;
+    public void notificationTest1() throws Exception {
+        final Future<Notification> notifAwaitor;
         final NotificationSupport connector = getManagementConnector().queryObject(NotificationSupport.class);
         assertNotNull(connector);
         try {
@@ -221,7 +220,7 @@ public final class HazelcastMdaHttpConnectorTest extends AbstractMdaConnectorTes
             releaseManagementConnector();
         }
         sendNotification("testEvent1", "Frank Underwood", 10L, 50L, new JsonPrimitive(100500L));
-        final Notification received = notifAwaitor.await(TimeSpan.ofSeconds(3));
+        final Notification received = notifAwaitor.get(3, TimeUnit.SECONDS);
         assertNotNull(received);
         assertEquals("Frank Underwood", received.getMessage());
         assertEquals(10L, received.getSequenceNumber());

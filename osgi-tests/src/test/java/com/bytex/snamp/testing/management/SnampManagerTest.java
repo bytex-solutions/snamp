@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
@@ -114,7 +115,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
      * @throws TimeoutException the timeout exception
      */
     @Test
-    public void jmxMonitoringTest() throws IOException, JMException, InterruptedException, TimeoutException {
+    public void jmxMonitoringTest() throws Exception {
         try(final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))){
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
             final ObjectName commonsObj = new ObjectName(SNAMP_MBEAN);
@@ -150,11 +151,11 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             }, null, null);
             final String eventPayload = "Hello, world!";
             logger.log(LogService.LOG_ERROR, eventPayload);
-            Notification notif = syncEvent.getAwaitor().await(TimeSpan.ofSeconds(3));
+            Notification notif = syncEvent.getAwaitor().get(3, TimeUnit.SECONDS);
             assertEquals(eventPayload, notif.getMessage());
             assertEquals("com.bytex.snamp.monitoring.error", notif.getType());
             logger.log(LogService.LOG_WARNING, eventPayload, new Exception("WAAGH!"));
-            notif = syncEvent.getAwaitor().await(TimeSpan.ofSeconds(3));
+            notif = syncEvent.getAwaitor().get(3, TimeUnit.SECONDS);
             //assertEquals(String.format("%s. Reason: %s", eventPayload, new Exception("WAAGH!")), notif.getMessage());
             assertEquals("com.bytex.snamp.monitoring.warning", notif.getType());
             final TabularData table = (TabularData)connection.getAttribute(commonsObj, "InstalledComponents");

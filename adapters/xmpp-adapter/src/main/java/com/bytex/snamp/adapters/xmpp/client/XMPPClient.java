@@ -1,9 +1,7 @@
 package com.bytex.snamp.adapters.xmpp.client;
 
-import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.xmpp.XMPPAdapterConfigurationProvider;
-import com.bytex.snamp.concurrent.Awaitor;
 import com.bytex.snamp.configuration.AbsentConfigurationParameterException;
 import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.SmackException;
@@ -18,6 +16,8 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -58,7 +58,7 @@ public final class XMPPClient implements Closeable {
 
     public String sendMessage(final String message,
                               final String ignoreFilter,
-                              final TimeSpan responseTimeout) throws IOException, TimeoutException, InterruptedException {
+                              final TimeSpan responseTimeout) throws IOException, TimeoutException, InterruptedException, ExecutionException {
         if(chat == null) throw new IOException("Chat doesn't exist");
         final ChatMessageEvent response = new ChatMessageEvent(ignoreFilter);
         chat.addMessageListener(response);
@@ -69,7 +69,7 @@ public final class XMPPClient implements Closeable {
         }
         final Message responseMsg;
         try{
-            responseMsg = response.getAwaitor().await(responseTimeout);
+            responseMsg = response.getAwaitor().get(responseTimeout.duration, responseTimeout.unit);
         }
         finally {
             chat.removeMessageListener(response);
@@ -77,7 +77,7 @@ public final class XMPPClient implements Closeable {
         return responseMsg.getBody();
     }
 
-    public Awaitor<Message, ExceptionPlaceholder> waitMessage(final String ignoreFilter) throws IOException {
+    public Future<Message> waitMessage(final String ignoreFilter) throws IOException {
         if (chat == null) throw new IOException("Chat doesn't exist");
         final ChatMessageEvent response = new ChatMessageEvent(ignoreFilter);
         chat.addMessageListener(new ChatMessageListener() {

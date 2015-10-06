@@ -1,6 +1,10 @@
 package com.bytex.snamp.concurrent;
 
+import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.ThreadSafe;
+import com.google.common.base.Function;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 
 /**
  * Represents a single thread-safe cache.
@@ -23,10 +27,20 @@ public abstract class SimpleCache<I, O, E extends Throwable> {
      */
     protected abstract O init(final I input) throws E;
 
-    private synchronized O getSynchronized(final I input) throws E {
+    private synchronized O getSynchronized(final Supplier<? extends I> input) throws E {
         if(value == null)
-            value = init(input);
+            value = init(input.get());
         return value;
+    }
+
+    /**
+     * Gets cached value.
+     * @param input A factory used to initialize cache.
+     * @return The cached object.
+     * @throws E Unable to initialize cache.
+     */
+    public final O get(final Supplier<? extends I> input) throws E{
+        return value == null ? getSynchronized(input) : value;
     }
 
     /**
@@ -36,7 +50,23 @@ public abstract class SimpleCache<I, O, E extends Throwable> {
      * @throws E Unable to initialize cache.
      */
     public final O get(final I input) throws E{
-        return value == null ? getSynchronized(input) : value;
+        return get(Suppliers.ofInstance(input));
+    }
+
+    /**
+     * Determines whether this cache is initialized.
+     * @return {@literal true}, if this cache is initialized; otherwise, {@literal false}.s
+     */
+    public final boolean isInitialized(){
+        return value != null;
+    }
+
+    /**
+     * Gets cached value if it is present.
+     * @return Cached value; or {@literal null}, if it is not available.
+     */
+    public final O getIfPresent(){
+        return value;
     }
 
     /**
@@ -47,5 +77,14 @@ public abstract class SimpleCache<I, O, E extends Throwable> {
         final O result = value;
         value = null;
         return result;
+    }
+
+    public static <I, O> SimpleCache<I, O, ExceptionPlaceholder> create(final Function<I, O> initializer){
+        return new SimpleCache<I, O, ExceptionPlaceholder>() {
+            @Override
+            protected O init(final I input) {
+                return initializer.apply(input);
+            }
+        };
     }
 }

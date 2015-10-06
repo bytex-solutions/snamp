@@ -28,6 +28,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
@@ -89,7 +90,7 @@ public final class NscaAdapterTest extends AbstractJmxConnectorTest<TestOpenMBea
     }
 
     @Test
-    public void attributeBindingTest() throws TimeoutException, InterruptedException {
+    public void attributeBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
         final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
         try {
             assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new EntryReader<String, ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {

@@ -1,15 +1,8 @@
 package com.bytex.snamp.testing.connectors;
 
-import com.bytex.snamp.core.RichLogicalOperation;
-import com.google.common.base.Supplier;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.reflect.TypeToken;
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.TypeTokens;
-import com.bytex.snamp.concurrent.Awaitor;
 import com.bytex.snamp.concurrent.SpinWait;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -21,7 +14,12 @@ import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.connectors.attributes.AttributeSupport;
 import com.bytex.snamp.core.LogicalOperation;
+import com.bytex.snamp.core.RichLogicalOperation;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
+import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.reflect.TypeToken;
 import org.junit.rules.TestName;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
@@ -34,6 +32,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
@@ -121,26 +121,26 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
 
     private static void waitForConnector(final TimeSpan timeout,
                                   final String resourceName,
-                                  final BundleContext context) throws TimeoutException, InterruptedException {
-        final Awaitor<ServiceReference<ManagedResourceConnector>, ExceptionPlaceholder> awaitor = new SpinWait<ServiceReference<ManagedResourceConnector>, ExceptionPlaceholder>() {
+                                  final BundleContext context) throws TimeoutException, InterruptedException, ExecutionException {
+        final Future<ServiceReference<ManagedResourceConnector>> awaitor = new SpinWait<ServiceReference<ManagedResourceConnector>>() {
             @Override
-            protected ServiceReference<ManagedResourceConnector> get() {
+            protected ServiceReference<ManagedResourceConnector> spin() {
                 return ManagedResourceConnectorClient.getResourceConnector(context, resourceName);
             }
         };
-        awaitor.await(timeout);
+        awaitor.get(timeout.duration, timeout.unit);
     }
 
     private static void waitForNoConnector(final TimeSpan timeout,
                                            final String resourceName,
-                                           final BundleContext context) throws TimeoutException, InterruptedException {
-        final Awaitor<Object, ExceptionPlaceholder> awaitor = new SpinWait<Object, ExceptionPlaceholder>() {
+                                           final BundleContext context) throws TimeoutException, InterruptedException, ExecutionException {
+        final Future<?> awaitor = new SpinWait<Object>() {
             @Override
-            protected Object get() {
+            protected Object spin() {
                 return ManagedResourceConnectorClient.getResourceConnector(context, resourceName) != null ? null : new Object();
             }
         };
-        awaitor.await(timeout);
+        awaitor.get(timeout.duration, timeout.unit);
     }
 
     protected final ManagedResourceConnector getManagementConnector(final BundleContext context){
@@ -180,28 +180,28 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
     public static void stopResourceConnector(final TestName testName,
                                               final String connectorType,
                                              final String resourceName,
-                                               final BundleContext context) throws TimeoutException, InterruptedException, BundleException {
+                                               final BundleContext context) throws TimeoutException, InterruptedException, BundleException, ExecutionException {
         try(final LogicalOperation ignored = ConnectorTestLogicalOperation.stopResourceConnector(connectorType, testName)) {
             ManagedResourceActivator.stopResourceConnector(context, connectorType);
             waitForNoConnector(TimeSpan.ofSeconds(10), resourceName, context);
         }
     }
 
-    protected final void stopResourceConnector(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
+    protected final void stopResourceConnector(final BundleContext context) throws BundleException, TimeoutException, InterruptedException, ExecutionException {
         stopResourceConnector(testName, connectorType, TEST_RESOURCE_NAME, context);
     }
 
     public static void startResourceConnector(final TestName testName,
                                               final String connectorType,
                                               final String resourceName,
-                                              final BundleContext context) throws TimeoutException, InterruptedException, BundleException {
+                                              final BundleContext context) throws TimeoutException, InterruptedException, BundleException, ExecutionException {
         try (final LogicalOperation ignored = ConnectorTestLogicalOperation.startResourceConnector(connectorType, testName)) {
             ManagedResourceActivator.startResourceConnector(context, connectorType);
             waitForConnector(TimeSpan.ofSeconds(10000), resourceName, context);
         }
     }
 
-    protected final void startResourceConnector(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
+    protected final void startResourceConnector(final BundleContext context) throws BundleException, TimeoutException, InterruptedException, ExecutionException {
         startResourceConnector(testName,
                 connectorType,
                 TEST_RESOURCE_NAME,

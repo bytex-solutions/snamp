@@ -27,6 +27,7 @@ import javax.management.ObjectName;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -123,7 +124,7 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
     }
 
     @Test
-    public void attributesBindingTest() throws TimeoutException, InterruptedException {
+    public void attributesBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
         final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
         try {
             assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new EntryReader<String, ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
@@ -144,7 +145,7 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
     }
 
     @Override
-    protected void afterStartTest(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
+    protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
         syncWithAdapterStartedEvent(ADAPTER_NAME, new ExceptionalCallable<Void, BundleException>() {
             @Override
@@ -156,7 +157,7 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
     }
 
     @Override
-    protected void beforeCleanupTest(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
+    protected void beforeCleanupTest(final BundleContext context) throws Exception {
         ResourceAdapterActivator.stopResourceAdapter(context, ADAPTER_NAME);
         stopResourceConnector(context);
     }

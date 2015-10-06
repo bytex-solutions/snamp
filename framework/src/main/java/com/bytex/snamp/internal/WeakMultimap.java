@@ -42,18 +42,21 @@ public final class WeakMultimap {
     }
 
     /**
-     * Removes dead references from the map.
+     * Iterates through entries in the multimap and, additionally, removes dead references.
      * @param map The map to update.
      * @param <K> Type of the keys in map.
      * @param <V> Type of the values in map.
+     * @param reader Entry reader.
      */
-    public static <K, V> void gc(final Multimap<K, WeakReference<V>> map){
+    public static <K, V, E extends Exception> void iterate(final Multimap<K, WeakReference<V>> map, final EntryReader<K, V, E> reader) throws E {
         final ImmutableSet<K> keys = ImmutableSet.copyOf(map.keySet());
-        for(final K key: keys)
-            for(final Iterator<WeakReference<V>> it = map.get(key).iterator(); it.hasNext();){
+        for (final K key : keys)
+            for (final Iterator<WeakReference<V>> it = map.get(key).iterator(); it.hasNext(); ) {
                 final WeakReference<V> ref = it.next();
-                if(ref == null || ref.get() == null)
+                final V value = ref != null ? ref.get() : null;
+                if (ref == null || value == null)
                     it.remove();
+                else if (!reader.read(key, value)) break;
             }
     }
 }

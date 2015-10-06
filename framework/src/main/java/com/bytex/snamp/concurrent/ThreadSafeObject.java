@@ -112,7 +112,7 @@ public abstract class ThreadSafeObject {
     private ThreadSafeObject(final EnumSet<?> groups) {
         switch (groups.size()) {
             case 0:
-                throw new IllegalArgumentException("Set is empty.");
+                throw new IllegalArgumentException("Empty resource groups");
             case 1:
                 resourceGroups = ImmutableMap.<Enum<?>, ReadWriteLockSlim>of(groups.iterator().next(), new ReentrantReadWriteLockSlim());
                 break;

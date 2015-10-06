@@ -1,10 +1,12 @@
 package com.bytex.snamp.concurrent;
 
-import com.google.common.base.Function;
-import com.google.common.base.Supplier;
 import com.bytex.snamp.Consumer;
 import com.bytex.snamp.ExceptionalCallable;
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.base.Supplier;
 
+import java.lang.invoke.MethodHandle;
 import java.util.concurrent.Callable;
 
 /**
@@ -17,7 +19,7 @@ import java.util.concurrent.Callable;
  * @version 1.0
  * @since 1.0
  */
-public class Monitor {
+public class CriticalSection {
 
     /**
      * Invokes the specified portion of code in synchronized manner.
@@ -67,12 +69,27 @@ public class Monitor {
     /**
      * Invokes the specified portion of code in synchronized manner.
      * @param block The block of code to be executed in synchronized manner.
-     * @param input The input value for code block.
+     * @param input The input value passed to code block.
      * @param <I> Type of the input value for code block.
      * @param <E> An exception that can be produced by the specified block of code.
      * @throws E An error occurred in the specified block of code.
      */
     public final synchronized <I, E extends Throwable> void synchronizedInvoke(final Consumer<I, E> block, final I input) throws E {
         block.accept(input);
+    }
+
+    /**
+     * Invokes the specified portion of code in synchronized manner.
+     * @param block The block of code to be executed in synchronized manner.
+     * @param input The input value passed to code block.
+     * @param <T> Type of the input value for code block.
+     * @return The result of the code block invocation.
+     */
+    public final synchronized <T> boolean synchronizedInvoke(final Predicate<T> block, final T input){
+        return block.apply(input);
+    }
+
+    public final synchronized Object synchronizedInvoke(final MethodHandle handle, final Object... arguments) throws Throwable {
+        return handle.invokeWithArguments(arguments);
     }
 }

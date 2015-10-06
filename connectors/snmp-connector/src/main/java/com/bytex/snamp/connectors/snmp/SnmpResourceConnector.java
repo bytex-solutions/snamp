@@ -620,7 +620,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
                 private final TimeSpan responseTimeout = SnmpConnectorConfigurationProvider.getResponseTimeout(descriptor);
 
                 @Override
-                public Variable invoke(final SnmpClient client) throws IOException, TimeoutException, InterruptedException {
+                public Variable invoke(final SnmpClient client) throws IOException, TimeoutException, InterruptedException, ExecutionException {
                     return client.get(new OID(descriptor.getAttributeName()), responseTimeout);
                 }
             });

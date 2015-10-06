@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -161,8 +162,12 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
         ResourceAdapterClient.addEventListener(adapterName, synchronizer);
         try {
             final V result = handler.call();
-            synchronizer.getAwaitor().await(timeout);
+            synchronizer.getAwaitor().get(timeout.duration, timeout.unit);
             return result;
+        }
+        catch (final ExecutionException e){
+            fail(e.getCause().getMessage());
+            return null;
         }
         finally {
             ResourceAdapterClient.removeEventListener(adapterName, synchronizer);
@@ -176,8 +181,11 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
         ResourceAdapterClient.addEventListener(adapterName, synchronizer);
         try {
             final V result = handler.call();
-            synchronizer.getAwaitor().await(timeout);
+            synchronizer.getAwaitor().get(timeout.duration, timeout.unit);
             return result;
+        } catch (final ExecutionException e){
+            fail(e.getCause().getMessage());
+            return null;
         }
         finally {
             ResourceAdapterClient.removeEventListener(adapterName, synchronizer);

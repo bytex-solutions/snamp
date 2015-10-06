@@ -1,6 +1,5 @@
 package com.bytex.snamp.connectors.mda;
 
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import com.bytex.snamp.core.ServiceSpinWait;
@@ -18,9 +17,13 @@ import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
+
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 
 /**
  * @author Roman Sakno
@@ -113,7 +116,11 @@ public final class MDAResourceConfigurationDescriptorProvider extends Configurat
         if(parameters.containsKey(WAIT_FOR_HZ_PARAM)){
             final long timeout = Long.parseLong(parameters.get(WAIT_FOR_HZ_PARAM));
             final ServiceSpinWait<HazelcastInstance> hazelcastWait = new ServiceSpinWait<>(context, HazelcastInstance.class);
-            return hazelcastWait.await(TimeSpan.ofMillis(timeout)) != null;
+            try {
+                return hazelcastWait.get(timeout, TimeUnit.MILLISECONDS) != null;
+            } catch (final ExecutionException ignored) {
+                return false;
+            }
         }
         else return false;
     }

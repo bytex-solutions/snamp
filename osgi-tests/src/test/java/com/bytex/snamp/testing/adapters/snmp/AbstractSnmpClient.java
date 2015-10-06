@@ -1,8 +1,8 @@
 package com.bytex.snamp.testing.adapters.snmp;
 
-import com.google.common.collect.ImmutableList;
 import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.testing.SnmpTable;
+import com.google.common.collect.ImmutableList;
 import org.snmp4j.*;
 import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.event.ResponseListener;
@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
 /**
@@ -141,7 +142,7 @@ abstract class AbstractSnmpClient implements SnmpClient {
      * @param notificationID
      * @return
      */
-    public final SynchronizationEvent.EventAwaitor<SnmpNotification> addNotificationListener(final OID notificationID){
+    public final Future<SnmpNotification> addNotificationListener(final OID notificationID){
         final SynchronizationEvent<SnmpNotification> signaller = new SynchronizationEvent<>();
         snmp.addCommandResponder(new CommandResponder() {
             @Override

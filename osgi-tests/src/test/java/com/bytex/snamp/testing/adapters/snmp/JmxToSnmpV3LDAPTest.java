@@ -4,7 +4,6 @@ import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
-import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.connectors.notifications.Severity;
 import com.bytex.snamp.testing.SnampDependencies;
@@ -35,6 +34,9 @@ import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
@@ -304,13 +306,13 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
     }
 
     @Test
-    public final void notificationTest() throws IOException, TimeoutException, InterruptedException, BundleException {
+    public final void notificationTest() throws IOException, TimeoutException, InterruptedException, BundleException, ExecutionException {
         try {
-            final SynchronizationEvent.EventAwaitor<SnmpNotification> awaitor1 = client.addNotificationListener(new OID("1.1.19.1"));
-            final SynchronizationEvent.EventAwaitor<SnmpNotification> awaitor2 = client.addNotificationListener(new OID("1.1.20.1"));
+            final Future<SnmpNotification> awaitor1 = client.addNotificationListener(new OID("1.1.19.1"));
+            final Future<SnmpNotification> awaitor2 = client.addNotificationListener(new OID("1.1.20.1"));
             client.writeAttribute(new OID("1.1.1.0"), "NOTIFICATION TEST", String.class);
-            final SnmpNotification p1 = awaitor1.await(TimeSpan.ofSeconds(4));
-            final SnmpNotification p2 = awaitor2.await(TimeSpan.ofSeconds(4));
+            final SnmpNotification p1 = awaitor1.get(4, TimeUnit.SECONDS);
+            final SnmpNotification p2 = awaitor2.get(4, TimeUnit.SECONDS);
             assertNotNull(p1);
             assertNotNull(p2);
             assertEquals(Severity.NOTICE, p1.getSeverity());
@@ -349,7 +351,7 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
     }
 
     @Override
-    protected void afterStartTest(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
+    protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
         syncWithAdapterStartedEvent(ADAPTER_NAME, new ExceptionalCallable<Void, BundleException>() {
             @Override

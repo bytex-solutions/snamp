@@ -1,11 +1,9 @@
 package com.bytex.snamp.connectors;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.modeling.AttributeValue;
-import com.bytex.snamp.concurrent.Awaitor;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import com.bytex.snamp.configuration.ConfigParameters;
@@ -24,7 +22,8 @@ import java.beans.IntrospectionException;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Locale;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 /**
@@ -148,7 +147,7 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
     }
 
     @Test
-    public final void testConnectorBean() throws IntrospectionException, JMException, InterruptedException, TimeoutException {
+    public final void testConnectorBean() throws Exception {
         final TestManagementConnectorBean connector = new TestManagementConnectorBean();
         connector.field1 = "123";
         final MBeanAttributeInfo md;
@@ -156,11 +155,11 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         //enables notifications
         assertNotNull(connector.enableNotifications("list1", "propertyChanged", ConfigParameters.empty()));
         final SynchronizationListener listener = new SynchronizationListener();
-        final Awaitor<Notification, ExceptionPlaceholder> notifAwaitor = listener.getAwaitor();
+        final Future<Notification> notifAwaitor = listener.getAwaitor();
         connector.addNotificationListener(listener, null, null);
         assertEquals(connector.getProperty1(), connector.getAttribute("0"));
         connector.setAttribute(new AttributeValue("0", "1234567890", SimpleType.STRING));
-        final Notification n = notifAwaitor.await(TimeSpan.ofSeconds(10));
+        final Notification n = notifAwaitor.get(10, TimeUnit.SECONDS);
         assertNotNull(n);
         assertEquals("Property property1 is changed", n.getMessage());
         assertEquals("Attachment string", n.getUserData());

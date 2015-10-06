@@ -26,6 +26,7 @@ import java.io.File;
 import java.math.BigInteger;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -101,7 +102,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
         final String MESSAGE = "changeStringAttributeSilent";
         final SynchronizationEvent<?> awaitor = channel.registerMessageSynchronizer(MESSAGE);
         channel.post(MESSAGE);
-        final Object notification = awaitor.getAwaitor().await(TimeSpan.ofSeconds(3));
+        final Object notification = awaitor.getAwaitor().get(3, TimeUnit.SECONDS);
         assertTrue(notification instanceof Notification);
     }
 
@@ -113,7 +114,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     }
 
     @Test
-    public void attributesBindingTest() throws TimeoutException, InterruptedException {
+    public void attributesBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
         final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
         try {
             assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new EntryReader<String, ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
@@ -128,7 +129,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     }
 
     @Test
-    public void notificationsBindingTest() throws TimeoutException, InterruptedException {
+    public void notificationsBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
         final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
         try {
             assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new EntryReader<String, ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {

@@ -28,7 +28,7 @@ public final class SwitchTest extends Assert {
     public void parallelTest() throws ExecutionException, InterruptedException {
         final Executor exec = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         final boolean result = new Switch<Long, Boolean>()
-                .equals(42L, Boolean.FALSE)
+                .theSame(42L, Boolean.FALSE)
                 .equals(43L, Boolean.FALSE)
                 .equals(44L, Boolean.FALSE)
                 .equals(45L, Boolean.FALSE)

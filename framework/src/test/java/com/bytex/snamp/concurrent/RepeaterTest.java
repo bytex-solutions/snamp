@@ -34,7 +34,7 @@ public class RepeaterTest extends Assert {
          * @param s A new repeater state.
          */
         @Override
-        protected final void stateChanged(final State s) {
+        protected final void stateChanged(final RepeaterState s) {
             switch (s){
                 case STARTED: c.getAndSet(0L);
             }
@@ -56,7 +56,7 @@ public class RepeaterTest extends Assert {
             Thread.sleep(5400);
             counter.stop(TimeSpan.ofMillis(400));
             assertEquals(5, counter.getValue());
-            assertEquals(Repeater.State.STOPPED, counter.getState());
+            assertEquals(Repeater.RepeaterState.STOPPED, counter.getState());
         }
     }
 
@@ -77,10 +77,10 @@ public class RepeaterTest extends Assert {
         }){
             rep.run();
             Thread.sleep(4000);
-            assertEquals(Repeater.State.FAILED, rep.getState());
+            assertEquals(Repeater.RepeaterState.FAILED, rep.getState());
             assertNotNull(rep.getException());
             assertEquals(exceptionMessage, rep.getException().getMessage());
-            assertEquals(Repeater.State.FAILED, rep.getState());
+            assertEquals(Repeater.RepeaterState.FAILED, rep.getState());
         }
     }
 }

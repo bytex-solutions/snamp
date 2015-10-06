@@ -1,12 +1,16 @@
 package com.bytex.snamp.adapters;
 
-import com.bytex.snamp.concurrent.AsyncEventListener;
+import com.bytex.snamp.ExceptionPlaceholder;
+import com.bytex.snamp.Internal;
+import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.GroupedThreadFactory;
+import com.bytex.snamp.internal.EntryReader;
 import com.bytex.snamp.internal.WeakMultimap;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
 import java.lang.ref.WeakReference;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -16,14 +20,56 @@ import java.util.concurrent.Executors;
  * @since 1.0
  */
 final class ResourceAdapterEventBus {
+    private static final ExecutorService EVENT_EXECUTOR =
+            Executors.newCachedThreadPool(new GroupedThreadFactory("ADAPTER_EVENT_BUS"));
+
+    private static final class AdapterEventHandler implements EntryReader<String, ResourceAdapterEventListener, ExceptionPlaceholder> {
+        private final String adapterName;
+        private final ResourceAdapterEvent event;
+
+        private AdapterEventHandler(final String adapterName,
+                                    final ResourceAdapterEvent event) {
+            this.adapterName = adapterName;
+            this.event = event;
+        }
+
+        private static Runnable eventWithListener(final ResourceAdapterEvent event, final ResourceAdapterEventListener listener) {
+            return new Runnable() {
+                @Override
+                public void run() {
+                    listener.handle(event);
+                }
+            };
+        }
+
+        @Override
+        public boolean read(final String adapterName, final ResourceAdapterEventListener listener) {
+            if (Objects.equals(this.adapterName, adapterName))
+                if (EVENT_EXECUTOR.isTerminated())
+                    listener.handle(event);
+                else EVENT_EXECUTOR.execute(eventWithListener(event, listener));
+            return true;
+        }
+    }
+
     private static final Multimap<String, WeakReference<ResourceAdapterEventListener>> listeners =
             HashMultimap.create(10, 3);
-    private static final ExecutorService eventExecutor =
-            Executors.newSingleThreadExecutor(new GroupedThreadFactory("ADAPTER_EVENTS"));
-
 
     private ResourceAdapterEventBus(){
+    }
 
+    /**
+     * Disables asynchronous mode used to process events in this bus.
+     * <p>
+     *     This method should be used for debugging purposes only.
+     * @param terminationTimeout Termination timeout of thread pool used to process events.
+     * @return {@literal true}, if Bus is switched to synchronous mode; otherwise, {@literal false}.
+     * @throws InterruptedException Switching is terminated.
+     */
+    @Internal
+    public static boolean disableAsyncMode(final TimeSpan terminationTimeout) throws InterruptedException {
+        EVENT_EXECUTOR.shutdown();
+        return EVENT_EXECUTOR.awaitTermination(terminationTimeout.duration, terminationTimeout.unit);
     }
 
     static boolean addEventListener(final String adapterName,
@@ -43,20 +89,9 @@ final class ResourceAdapterEventBus {
     }
 
     private static void fireAdapterListeners(final String adapterName,
-                                             final ResourceAdapterEvent event){
-        synchronized (listeners){
-            WeakMultimap.gc(listeners);
-            for(final WeakReference<ResourceAdapterEventListener> listenerRef: listeners.get(adapterName)){
-                final ResourceAdapterEventListener listener = listenerRef.get();
-                if(listener instanceof AsyncEventListener)
-                    eventExecutor.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            listener.handle(event);
-                        }
-                    });
-                else if(listener != null) listener.handle(event);
-            }
+                                             final ResourceAdapterEvent event) {
+        synchronized (listeners) {
+            WeakMultimap.iterate(listeners, new AdapterEventHandler(adapterName, event));
         }
     }
 

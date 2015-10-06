@@ -7,7 +7,6 @@ import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.adapters.ResourceAdapterClient;
-import com.bytex.snamp.concurrent.Awaitor;
 import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.internal.EntryReader;
@@ -34,6 +33,9 @@ import java.math.BigInteger;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -147,7 +149,7 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
     }
 
     @Test
-    public void notificationTest() throws BundleException, JMException, IOException, TimeoutException, InterruptedException {
+    public void notificationTest() throws BundleException, JMException, IOException, TimeoutException, InterruptedException, ExecutionException {
         final Attribute attr = new Attribute("1.0", "Garry Oldman");
         final String connectionString = String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/karaf-root", JMX_KARAF_PORT);
         try(final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(connectionString), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
@@ -171,14 +173,14 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
                     }
                 }
             }, null, null);
-            final Awaitor<Notification, ExceptionPlaceholder> attributeChangedEventAwaitor = attributeChangedEvent.getAwaitor();
-            final Awaitor<Notification, ExceptionPlaceholder> testEventAwaitor = testEvent.getAwaitor();
-            final Awaitor<Notification, ExceptionPlaceholder> eventWithAttachmentHolderAwaitor = eventWithAttachmentHolder.getAwaitor();
+            final Future<Notification> attributeChangedEventAwaitor = attributeChangedEvent.getAwaitor();
+            final Future<Notification> testEventAwaitor = testEvent.getAwaitor();
+            final Future<Notification> eventWithAttachmentHolderAwaitor = eventWithAttachmentHolder.getAwaitor();
             //force attribute change
             connection.setAttribute(resourceObjectName, attr);
-            assertNotNull(attributeChangedEventAwaitor.await(TimeSpan.ofSeconds(10)));
-            assertNotNull(testEventAwaitor.await(TimeSpan.ofSeconds(10)));
-            final Notification withAttachment = eventWithAttachmentHolderAwaitor.await(TimeSpan.ofSeconds(10));
+            assertNotNull(attributeChangedEventAwaitor.get(10, TimeUnit.SECONDS));
+            assertNotNull(testEventAwaitor.get(10, TimeUnit.SECONDS));
+            final Notification withAttachment = eventWithAttachmentHolderAwaitor.get(10, TimeUnit.SECONDS);
             assertNotNull(withAttachment);
             assertNotNull(withAttachment.getUserData() instanceof TabularData);
         }
@@ -193,7 +195,7 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
     }
 
     @Test
-    public void attributeBindingTest() throws TimeoutException, InterruptedException {
+    public void attributeBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
         final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
         try {
             assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new EntryReader<String, FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
@@ -208,7 +210,7 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
     }
 
     @Test
-    public void notificationBindingTest() throws TimeoutException, InterruptedException {
+    public void notificationBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
         final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
         try {
             assertTrue(client.forEachFeature(MBeanNotificationInfo.class, new EntryReader<String, FeatureBindingInfo<MBeanNotificationInfo>, ExceptionPlaceholder>() {

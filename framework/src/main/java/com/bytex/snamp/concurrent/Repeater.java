@@ -23,7 +23,7 @@ public abstract class Repeater implements AutoCloseable, Runnable {
      * @version 1.0
      * @since 1.0
      */
-    public enum State{
+    public enum RepeaterState {
         /**
          * The timer is started.
          */
@@ -51,8 +51,8 @@ public abstract class Repeater implements AutoCloseable, Runnable {
     }
 
     private static final AtomicLong THREAD_COUNTER = new AtomicLong(0L);
-    private volatile State state;
-    private volatile Throwable exception;
+    private RepeaterState state;
+    private Throwable exception;
     private final TimeSpan period;
     private RepeaterThread repeatThread;
     private final Lock monitor;
@@ -64,7 +64,7 @@ public abstract class Repeater implements AutoCloseable, Runnable {
      */
     protected Repeater(final TimeSpan period){
         if(period == null) throw new IllegalArgumentException("period is null.");
-        this.state = State.STOPPED;
+        this.state = RepeaterState.STOPPED;
         this.period = period;
         this.exception = null;
         this.repeatThread = null;
@@ -98,9 +98,9 @@ public abstract class Repeater implements AutoCloseable, Runnable {
     /**
      * Returns the state of this repeater.
      * @return The state of this repeater.
-     * @see Repeater.State
+     * @see RepeaterState
      */
-    public final State getState(){
+    public final RepeaterState getState(){
         return state;
     }
 
@@ -121,7 +121,7 @@ public abstract class Repeater implements AutoCloseable, Runnable {
      * @param s A new repeater state.
      */
     @MethodStub
-    protected void stateChanged(final State s){
+    protected void stateChanged(final RepeaterState s){
 
     }
 
@@ -131,13 +131,13 @@ public abstract class Repeater implements AutoCloseable, Runnable {
             case STARTED:
                 if (repeatThread != null && repeatThread.getId() == Thread.currentThread().getId()) {
                     exception = e;
-                    stateChanged(state = State.FAILED);
+                    stateChanged(state = RepeaterState.FAILED);
                     repeatThread.interrupt();
                     repeatThread = null;
                 } else throw new IllegalStateException("This method should be called from the timer action.");
                 break;
             default:
-                throw new IllegalStateException(String.format("The repeater must be in %s state but actual state is %s", State.STARTED, state));
+                throw new IllegalStateException(String.format("The repeater must be in %s state but actual state is %s", RepeaterState.STARTED, state));
         }
     }
 
@@ -148,7 +148,7 @@ public abstract class Repeater implements AutoCloseable, Runnable {
      *     This method can be called only from timer thread (from {@link #doAction() method}.
      * </p>
      * @param e An exception occurred in the repeatable action.
-     * @throws java.lang.IllegalStateException This repeater is not in {@link State#STARTED} state;
+     * @throws java.lang.IllegalStateException This repeater is not in {@link RepeaterState#STARTED} state;
      *  or this method is not called from the {@link #doAction()} method.
      */
     @ThreadSafe
@@ -232,17 +232,17 @@ public abstract class Repeater implements AutoCloseable, Runnable {
                 repeatThread = new RepeaterThreadImpl(worker, generateThreadName(), period);
                 //executes periodic thread
                 repeatThread.start();
-                stateChanged(state = State.STARTED);
+                stateChanged(state = RepeaterState.STARTED);
                 return;
             default:
-                throw new IllegalStateException(String.format("The repeater must be in %s state but actual state is %s", State.STOPPED, state));
+                throw new IllegalStateException(String.format("The repeater must be in %s state but actual state is %s", RepeaterState.STOPPED, state));
 
         }
     }
 
     /**
      * Executes the repeater.
-     * @throws java.lang.IllegalStateException This repeater is not in {@link State#STOPPED} or {@link State#FAILED} state.
+     * @throws java.lang.IllegalStateException This repeater is not in {@link RepeaterState#STOPPED} or {@link RepeaterState#FAILED} state.
      */
     @Override
     @ThreadSafe
@@ -270,13 +270,13 @@ public abstract class Repeater implements AutoCloseable, Runnable {
                 break;
             case STARTED:
                 repeatThread.interrupt();
-                state = State.STOPPING;
+                state = RepeaterState.STOPPING;
                 join(repeatThread, timeout);
                 break;
             default:
                 return false;
         }
-        state = State.STOPPED;
+        state = RepeaterState.STOPPED;
         repeatThread = null;
         return true;
     }
@@ -293,7 +293,7 @@ public abstract class Repeater implements AutoCloseable, Runnable {
                 monitor.unlock();
             }
             if (!stopped)
-                throw new IllegalStateException(String.format("The repeater must be in %s state but actual state is %s", State.STARTED, state));
+                throw new IllegalStateException(String.format("The repeater must be in %s state but actual state is %s", RepeaterState.STARTED, state));
         } else throw new TimeoutException("Too small timeout " + millis);
     }
 
@@ -309,8 +309,9 @@ public abstract class Repeater implements AutoCloseable, Runnable {
 
     private void closeImpl(){
         if(repeatThread != null) repeatThread.interrupt();
-        state = State.CLOSED;
+        state = RepeaterState.CLOSED;
         repeatThread = null;
+        exception = null;
     }
 
     private void close(final long millis) throws InterruptedException, TimeoutException {

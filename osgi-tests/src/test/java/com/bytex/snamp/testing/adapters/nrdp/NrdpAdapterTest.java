@@ -7,7 +7,6 @@ import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.ResourceAdapter;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.adapters.ResourceAdapterClient;
-import com.bytex.snamp.concurrent.Awaitor;
 import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
@@ -30,6 +29,9 @@ import javax.management.*;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
@@ -69,15 +71,15 @@ public final class NrdpAdapterTest extends AbstractJmxConnectorTest<TestOpenMBea
     }
 
     @Test
-    public void testIntAttribute() throws JMException, IOException, InterruptedException, TimeoutException {
+    public void testIntAttribute() throws Exception {
         final ManagedResourceConnector connector = getManagementConnector();
         try{
             connector.setAttribute(new Attribute("3.0", 80));
             final Mailbox listener = new Mailbox();
-            final Awaitor<?, ExceptionPlaceholder> awaitor = listener.getAwaitor();
+            final Future<?> awaitor = listener.getAwaitor();
             final HttpContext context = server.createContext("/context", listener);
             try{
-                awaitor.await(TimeSpan.ofSeconds(2));
+                awaitor.get(2, TimeUnit.SECONDS);
             }
             finally {
                 server.removeContext(context);
@@ -99,7 +101,7 @@ public final class NrdpAdapterTest extends AbstractJmxConnectorTest<TestOpenMBea
     }
 
     @Test
-    public void attributeBindingTest() throws TimeoutException, InterruptedException {
+    public void attributeBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
         final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
         try {
             assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new EntryReader<String, ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {

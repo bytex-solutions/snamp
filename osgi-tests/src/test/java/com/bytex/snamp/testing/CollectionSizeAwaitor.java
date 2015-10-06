@@ -1,6 +1,5 @@
 package com.bytex.snamp.testing;
 
-import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.concurrent.ConditionWait;
 
 import java.util.Collection;
@@ -10,7 +9,7 @@ import java.util.Collection;
  * @version 1.0
  * @since 1.0
  */
-public class CollectionSizeAwaitor extends ConditionWait<ExceptionPlaceholder> {
+public class CollectionSizeAwaitor extends ConditionWait {
     private final Collection<?> collection;
     private final int expectedSize;
 

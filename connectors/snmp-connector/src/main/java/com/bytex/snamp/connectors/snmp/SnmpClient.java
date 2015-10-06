@@ -22,10 +22,7 @@ import org.snmp4j.util.*;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -250,8 +247,8 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
     protected abstract Target createTarget(final TimeSpan timeout);
 
     @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
-    private static ResponseEvent waitForResponseEvent(final SynchronizationEvent.EventAwaitor<ResponseEvent> awaitor, final TimeSpan timeout) throws TimeoutException, IOException, InterruptedException {
-        final ResponseEvent response = awaitor.await(timeout);
+    private static ResponseEvent waitForResponseEvent(final Future<ResponseEvent> awaitor, final TimeSpan timeout) throws TimeoutException, IOException, InterruptedException, ExecutionException {
+        final ResponseEvent response = awaitor.get(timeout.duration, timeout.unit);
         if(response == null || response.getResponse() == null) throw new TimeoutException("PDU sending timeout.");
         else if(response.getError() != null)
             if(response.getError() instanceof IOException)
@@ -261,7 +258,7 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
     }
 
     @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
-    public final ResponseEvent send(final PDU data, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException {
+    public final ResponseEvent send(final PDU data, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException, ExecutionException {
         final SnmpResponseListener listener = new SnmpResponseListener();
         send(data, createTarget(timeout), null, listener);
         return waitForResponseEvent(listener.getAwaitor(), timeout);
@@ -279,7 +276,7 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
         }
     }
 
-    private Map<OID, Variable> get(final int pduType, final OID[] variables, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException {
+    private Map<OID, Variable> get(final int pduType, final OID[] variables, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException, ExecutionException {
         final PDU request = createPDU(pduType);
         if (pduType == PDU.GETBULK)
             for (int i = 0; i < variables.length; i++)
@@ -293,19 +290,19 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
         return result;
     }
 
-    public final Variable get(final OID variable, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException {
+    public final Variable get(final OID variable, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException, ExecutionException {
         return get(new OID[]{variable}, timeout).get(variable);
     }
 
-    public final Map<OID, Variable> get(final OID[] variables, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException {
+    public final Map<OID, Variable> get(final OID[] variables, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException, ExecutionException {
         return get(PDU.GET, variables, timeout);
     }
 
-    public final Map<OID, Variable> getBulk(final OID[] variables, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException {
+    public final Map<OID, Variable> getBulk(final OID[] variables, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException, ExecutionException {
         return get(PDU.GETBULK, variables, timeout);
     }
 
-    public final void set(final VariableBinding[] variables, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException {
+    public final void set(final VariableBinding[] variables, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException, ExecutionException {
         final PDU request = createPDU(PDU.SET);
         for (final VariableBinding v : variables)
             request.add(v);
@@ -335,7 +332,7 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
         return result;
     }
 
-    public final void set(final Map<OID, Variable> variables, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException{
+    public final void set(final Map<OID, Variable> variables, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException, ExecutionException {
         final Collection<VariableBinding> bindings = new ArrayList<>(variables.size());
         for(final Map.Entry<OID, Variable> entry: variables.entrySet())
             bindings.add(new VariableBinding(entry.getKey(), entry.getValue()));
