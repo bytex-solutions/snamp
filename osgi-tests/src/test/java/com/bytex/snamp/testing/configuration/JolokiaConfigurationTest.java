@@ -5,9 +5,6 @@ import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
-import com.bytex.snamp.testing.SnampDependencies;
-import com.bytex.snamp.testing.SnampFeature;
-import com.bytex.snamp.testing.SystemProperties;
 import com.google.common.base.Charsets;
 import com.google.gson.*;
 import org.junit.Test;
@@ -29,13 +26,6 @@ import static com.bytex.snamp.testing.connectors.jmx.AbstractJmxConnectorTest.JM
  * @version 1.0
  * @since 1.0
  */
-@SnampDependencies({SnampFeature.WRAPPED_LIBS})
-@SystemProperties({
-        "org.jolokia.agentContext=/jolokia",
-        "org.jolokia.realm=karaf",
-        "org.jolokia.user=" + JMX_LOGIN,
-        "org.jolokia.authMode=jaas"
-})
 public final class JolokiaConfigurationTest extends AbstractSnampIntegrationTest {
     private final Gson formatter = new Gson();
     private static final String SNAMP_CORE_MBEAN = "com.bytex.snamp.management:type=SnampCore";

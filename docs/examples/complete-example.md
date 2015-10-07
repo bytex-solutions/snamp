@@ -117,19 +117,6 @@ apt-get install curl
 ## Installation
 Download and unzip (or untar) the latest SNAMP version.
 
-Go to the `<snamp>/etc` folder, create file `org.jolokia.osgi.cfg` and append the necessary data:
-```bash
-vim ./snamp/etc/org.jolokia.osgi.cfg
-```
-
-Write the lines below into the file and save it:
-```
-org.jolokia.agentContext=/jolokia
-org.jolokia.realm=karaf
-org.jolokia.user=karaf
-org.jolokia.authMode=jaas
-```
-
 Execute SNAMP using the following command
 ```bash
 sh ./snamp/bin/karaf

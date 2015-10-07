@@ -30,26 +30,6 @@
                 <groupId>org.apache.karaf.tooling</groupId>
                 <artifactId>karaf-maven-plugin</artifactId>
                 <extensions>true</extensions>
-                <executions>
-                    <execution>
-                        <id>deploy-features</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>features-add-to-repository</goal>
-                        </goals>
-                        <configuration>
-                            <!-- This is the only way to pre-install cellar in Karaf due to bug in karaf-maven-plugin.
-                            For more info, see http://karaf.apache.org/manual/latest/developers-guide/karaf-maven-plugin-features-add-to-repository.html-->
-                            <descriptors>
-                                <descriptor>mvn:org.apache.karaf.cellar/apache-karaf-cellar/3.0.3/xml/features</descriptor>
-                            </descriptors>
-                            <features>
-                                <feature>cellar</feature>
-                            </features>
-                            <repository>${karaf.folder.repo}</repository>
-                        </configuration>
-                    </execution>
-                </executions>
                 <configuration>
                     <finalName>${project.parent.name}-{$project.version}</finalName>
                     <ignoreScopeProvided>true</ignoreScopeProvided>
@@ -68,6 +48,8 @@
                         <feature>http</feature>
                         <feature>war</feature>
                         <feature>http-whiteboard</feature>
+                        <feature>jolokia</feature>
+                        <feature>cellar</feature>
                     </installedFeatures>
                 </configuration>
             </plugin>
@@ -240,14 +222,6 @@
                                     <artifactId>xmpp-adapter-feature</artifactId>
                                     <version>${snamp.adapters.xmpp.version}</version>
                                     <type>kar</type>
-                                    <overWrite>true</overWrite>
-                                    <outputDirectory>${karaf.folder.deploy}</outputDirectory>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>org.jolokia</groupId>
-                                    <artifactId>jolokia-osgi</artifactId>
-                                    <version>${jolokia.version}</version>
-                                    <type>jar</type>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${karaf.folder.deploy}</outputDirectory>
                                 </artifactItem>

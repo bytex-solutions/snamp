@@ -132,24 +132,18 @@ Output:
 ```json
 {"timestamp":1433451551,"status":200,"request":{"type":"version"},"value":{"protocol":"7.2","config":{"useRestrictorService":"false","canonicalNaming":"true","includeStackTrace":"true","listenForHttpService":"true","historyMaxEntries":"10","agentId":"192.168.1.51-25946-69e862ec-osgi","debug":"false","realm":"jolokia","serializeException":"false","agentContext":"/jolokia","agentType":"servlet","policyLocation":"classpath:/jolokia-access.xml","debugMaxEntries":"100","authMode":"basic","mimeType":"text/plain"},"agent":"1.3.0","info":{"product":"felix","vendor":"Apache","version":"4.2.1"}}}
 ```
-If HawtIO is already installed then you can use http://localhost:3535/hawtio/jolokia path. Otherwise, Jolokia Basic Authentication need to be configured:
-1. Create `org.jolokia.osgi.cfg` file in `<snamp>/etc` directory
-2. Put the following configuration properties:
-```
-org.jolokia.agentContext=/jolokia
-org.jolokia.realm=karaf
-org.jolokia.user=karaf
-org.jolokia.authMode=jaas
-```
-3. Restart Jolokia bundle or SNAMP
 
-The second, obtain SNAMP configuration:
+> If HawtIO is already installed then you can use http://localhost:3535/hawtio/jolokia path.
+
+Now you can obtain SNAMP configuration:
 ```bash
 curl -u karaf:karaf http://localhost:3535/jolokia/read/com.bytex.snamp.management:type=SnampCore/configuration?maxDepth=20&maxCollectionSize=500&ignoreErrors=true&canonicalNaming=false
+```
 
+Output:
+```json
 {"timestamp":1433455091,"status":200,"request":{"mbean":"com.bytex.snamp.management:type=SnampCore","attribute":"configuration","type":"read"},"value":null}
 ```
-> If you have 403 error then read [this](http://modio.io/jolokia-in-karaf-3-0-x-fixing-the-403-access-error/) article
 
 `value` field in the resulting JSON holds SNAMP configuration in the form of the JSON tree. `null` means that SNAMP configuration is empty. JSON structure of the SNAMP configuration repeats its logical structure described above.
 

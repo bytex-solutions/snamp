@@ -6,6 +6,7 @@
         <!-- Third-party features -->
         <feature version="[${karaf.version}, ${karaf.maxVersion})">eventadmin</feature>
         <feature version="[${karaf.version}, ${karaf.maxVersion})">war</feature>
+        <feature version="[${jolokia.version}, 2)">jolokia</feature>
         <!-- Third-party bundles -->
         <bundle>mvn:com.google.code.gson/gson/${gson.version}</bundle>
         <bundle>mvn:com.google.guava/guava/${guava.version}</bundle>

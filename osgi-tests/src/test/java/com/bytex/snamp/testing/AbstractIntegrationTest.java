@@ -130,7 +130,6 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
         result.add(karafDistributionConfiguration().frameworkUrl(karafUrl)
                 .name("Apache Karaf")
                 .unpackDirectory(new File("exam")));
-        result.add(configureSecurity().enableKarafMBeanServerBuilder());
         result.add(logLevel(LogLevelOption.LogLevel.INFO));
         if(enableRemoteDebugging())
             result.add(debugConfiguration("32441", true));

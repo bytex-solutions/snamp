@@ -862,8 +862,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         activationProperties.publish(LOGGER_HOLDER, getLogger());
         activationProperties.publish(CONNECTOR_TYPE_HOLDER, getConnectorType());
         activationProperties.publish(PREREQUISITES_CHECK_HOLDER, prerequisitesOK);
-        getLogger().log(Level.INFO, "Activating resource connectors of type %s",
-                getConnectorType());
+        getLogger().log(Level.INFO, String.format("Activating resource connectors of type %s", getConnectorType()));
     }
 
     /**

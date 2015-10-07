@@ -60,54 +60,37 @@
       </dependency>
       <dependency>
           <groupId>org.apache.aries.jndi</groupId>
-          <artifactId>org.apache.aries.jndi</artifactId>
-          <version>${aries.version}</version>
-      </dependency>
-      <dependency>
-          <groupId>org.apache.aries.jndi</groupId>
           <artifactId>org.apache.aries.jndi.core</artifactId>
-          <version>${aries.version}</version>
+          <version>${aries.jndi.core.version}</version>
       </dependency>
       <dependency>
           <groupId>org.apache.aries.jndi</groupId>
           <artifactId>org.apache.aries.jndi.url</artifactId>
-          <version>${aries.api.version}</version>
+          <version>${aries.jndi.url.version}</version>
           <scope>provided</scope>
       </dependency>
       <dependency>
           <groupId>org.apache.aries.jndi</groupId>
           <artifactId>org.apache.aries.jndi.api</artifactId>
-          <version>${aries.api.version}</version>
+          <version>${aries.jndi.api.version}</version>
           <scope>provided</scope>
       </dependency>
       <dependency>
           <groupId>org.apache.aries.jndi</groupId>
           <artifactId>org.apache.aries.jndi.rmi</artifactId>
-          <version>${aries.version}</version>
+          <version>${aries.jndi.version}</version>
           <scope>provided</scope>
       </dependency>
       <dependency>
           <groupId>org.apache.aries</groupId>
           <artifactId>org.apache.aries.util</artifactId>
-          <version>${aries.version}</version>
+          <version>${aries.util.version}</version>
           <scope>provided</scope>
       </dependency>
       <dependency>
           <groupId>org.apache.aries.proxy</groupId>
           <artifactId>org.apache.aries.proxy.api</artifactId>
-          <version>${aries.version}</version>
-          <scope>provided</scope>
-      </dependency>
-      <dependency>
-          <groupId>org.apache.aries.proxy</groupId>
-          <artifactId>org.apache.aries.proxy</artifactId>
-          <version>${aries.version}</version>
-          <scope>provided</scope>
-      </dependency>
-      <dependency>
-          <groupId>org.apache.aries.proxy</groupId>
-          <artifactId>org.apache.aries.proxy.impl</artifactId>
-          <version>${aries.version}</version>
+          <version>${aries.proxy.api.version}</version>
           <scope>provided</scope>
       </dependency>
       <dependency>
