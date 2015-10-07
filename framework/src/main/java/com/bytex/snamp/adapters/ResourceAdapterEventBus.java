@@ -21,7 +21,7 @@ import java.util.concurrent.Executors;
  */
 final class ResourceAdapterEventBus {
     private static final ExecutorService EVENT_EXECUTOR =
-            Executors.newCachedThreadPool(new GroupedThreadFactory("ADAPTER_EVENT_BUS"));
+            Executors.newSingleThreadExecutor(new GroupedThreadFactory("ADAPTER_EVENT_BUS"));
 
     private static final class AdapterEventHandler implements EntryReader<String, ResourceAdapterEventListener, ExceptionPlaceholder> {
         private final String adapterName;
