@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicLongFieldUpdater;
  */
 public abstract class AbstractLongAccumulator extends AbstractAccumulator {
     private static final long serialVersionUID = -8909745382790738723L;
-    private static final AtomicLongFieldUpdater<AbstractLongAccumulator> CURRENT_VALUE_UPDATER =
+    private static final AtomicLongFieldUpdater<AbstractLongAccumulator> CURRENT_VALUE_ACCESSOR =
             AtomicLongFieldUpdater.newUpdater(AbstractLongAccumulator.class, "current");
     @SpecialUse
     private volatile long current;
@@ -37,21 +37,17 @@ public abstract class AbstractLongAccumulator extends AbstractAccumulator {
      */
     protected abstract long combine(final long current, final long newValue);
 
-    private synchronized long reset(final long initialValue){
-        final long startTime = timer;
-        final long currentTime = System.currentTimeMillis();
-        if(currentTime - startTime > timeToLive){
-            timer = currentTime;
-            current = initialValue;
-        }
-        return current;
+    private synchronized long reset(final long initialValue) {
+        if (isExpired(true))
+            CURRENT_VALUE_ACCESSOR.set(this, initialValue);
+        return CURRENT_VALUE_ACCESSOR.get(this);
     }
 
     private long updateImpl(final long value) {
         while (true) {
-            final long current = this.current;
+            final long current = CURRENT_VALUE_ACCESSOR.get(this);
             final long newValue = combine(current, value);
-            if (CURRENT_VALUE_UPDATER.compareAndSet(this, current, newValue))
+            if (CURRENT_VALUE_ACCESSOR.compareAndSet(this, current, newValue))
                 return newValue;
         }
     }
@@ -62,11 +58,7 @@ public abstract class AbstractLongAccumulator extends AbstractAccumulator {
      * @return Modified accumulator value.
      */
     public final long update(final long value){
-        final long startTime = timer;
-        final long currentTime = System.currentTimeMillis();
-        if(currentTime - startTime > timeToLive)
-            return reset(value);
-        else return updateImpl(value);
+        return isExpired(false) ? reset(value) : updateImpl(value);
     }
 
     /**
@@ -75,7 +67,7 @@ public abstract class AbstractLongAccumulator extends AbstractAccumulator {
      */
     @Override
     public final long longValue() {
-        return update(initialValue);
+        return isExpired(false) ? reset(initialValue) : CURRENT_VALUE_ACCESSOR.get(this);
     }
 
     /**
@@ -99,7 +91,7 @@ public abstract class AbstractLongAccumulator extends AbstractAccumulator {
      */
     @Override
     public final float floatValue() {
-        return (float)longValue();
+        return longValue();
     }
 
     /**
@@ -111,6 +103,6 @@ public abstract class AbstractLongAccumulator extends AbstractAccumulator {
      */
     @Override
     public final double doubleValue() {
-        return (double)longValue();
+        return longValue();
     }
 }

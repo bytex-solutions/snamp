@@ -58,16 +58,8 @@ final class ResourceAdapterEventBus {
     private ResourceAdapterEventBus(){
     }
 
-    /**
-     * Disables asynchronous mode used to process events in this bus.
-     * <p>
-     *     This method should be used for debugging purposes only.
-     * @param terminationTimeout Termination timeout of thread pool used to process events.
-     * @return {@literal true}, if Bus is switched to synchronous mode; otherwise, {@literal false}.
-     * @throws InterruptedException Switching is terminated.
-     */
     @Internal
-    public static boolean disableAsyncMode(final TimeSpan terminationTimeout) throws InterruptedException {
+    static boolean disableAsyncMode(final TimeSpan terminationTimeout) throws InterruptedException {
         EVENT_EXECUTOR.shutdown();
         return EVENT_EXECUTOR.awaitTermination(terminationTimeout.duration, terminationTimeout.unit);
     }

@@ -1,5 +1,6 @@
 package com.bytex.snamp.adapters;
 
+import com.bytex.snamp.TimeSpan;
 import com.google.common.collect.*;
 import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.ExceptionPlaceholder;
@@ -691,5 +692,17 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
             }
         });
         return result;
+    }
+
+    /**
+     * Disables asynchronous mode used to process events in this bus.
+     * <p>
+     *     This method should be used for debugging purposes only.
+     * @param terminationTimeout Termination timeout of thread pool used to process events.
+     * @return {@literal true}, if Bus is switched to synchronous mode; otherwise, {@literal false}.
+     * @throws InterruptedException Switching is terminated.
+     */
+    public static boolean disableEventAsyncMode(final TimeSpan terminationTimeout) throws InterruptedException {
+        return ResourceAdapterEventBus.disableAsyncMode(terminationTimeout);
     }
 }
