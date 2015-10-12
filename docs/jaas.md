@@ -53,3 +53,17 @@ Example:
 **The third**, edit `<snamp>/etc/users.properties` file and use any realm from JSON-based JAAS configuration.
 
 Popular use case of custom JAAS is importing existing users and groups from your Enterprise Directory using LDAP protocol. You can achieve this with `org.apache.karaf.jaas.modules.ldap.LDAPLoginModule` login module name.
+
+Updating JAAS configuration with SNAMP Management Console
+===
+You can update your JAAS settings using simple interface of SNAMP Management Console.
+
+In the "JAAS configuration" tab you can read and modify your current JAAS property. 
+
+You can update your JAAS settings using simple interface of SNAMP Management Console.
+
+Use "Change JAAS configuration" button to upload new JAAS settings:
+![JAAS Example](images/jaasWindow.png)
+
+Then change the lines:
+![JAAS Example](images/jaas.png)
