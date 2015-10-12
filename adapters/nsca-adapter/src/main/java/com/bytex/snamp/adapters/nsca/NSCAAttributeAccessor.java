@@ -1,9 +1,10 @@
 package com.bytex.snamp.adapters.nsca;
 
-import com.google.common.collect.ImmutableSet;
-import com.googlecode.jsendnsca.core.MessagePayload;
 import com.bytex.snamp.adapters.modeling.AttributeAccessor;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
+import com.google.common.base.Function;
+import com.google.common.collect.ImmutableSet;
+import com.googlecode.jsendnsca.core.MessagePayload;
 
 import javax.management.AttributeNotFoundException;
 import javax.management.JMException;
@@ -20,15 +21,16 @@ import static com.bytex.snamp.adapters.nsca.NSCAAdapterConfigurationDescriptor.g
 /**
  * Provides transformation between attribute of the resource and NSCA protocol.
  */
-final class NSCAAttributeAccessor extends AttributeAccessor implements FeatureBindingInfo<MBeanAttributeInfo> {
+final class NSCAAttributeAccessor extends AttributeAccessor implements FeatureBindingInfo<MBeanAttributeInfo>, Function<String, MessagePayload> {
     private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat();
 
     NSCAAttributeAccessor(final MBeanAttributeInfo metadata) {
         super(metadata);
     }
 
-    MessagePayload getMessage() {
+    MessagePayload getMessage(final String host) {
         final MessagePayload payload = new MessagePayload();
+        payload.setHostname(host);
         payload.setServiceName(getServiceName(getMetadata().getDescriptor(),
                 AttributeDescriptor.getAttributeName(getMetadata().getDescriptor())));
         try {
@@ -47,6 +49,11 @@ final class NSCAAttributeAccessor extends AttributeAccessor implements FeatureBi
             payload.setLevel(MessagePayload.LEVEL_CRITICAL);
         }
         return payload;
+    }
+
+    @Override
+    public MessagePayload apply(final String host) {
+        return getMessage(host);
     }
 
     @Override

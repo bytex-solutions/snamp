@@ -129,8 +129,7 @@ final class NRDPAdapter extends AbstractResourceAdapter {
 
         @Override
         protected void processAttribute(final String resourceName, final NRDPAttributeAccessor accessor) {
-            final NagiosCheckResult payload = accessor.getCheckResult(resourceName);
-            checkSender.send(payload);
+            checkSender.send(accessor, resourceName);
         }
     }
 

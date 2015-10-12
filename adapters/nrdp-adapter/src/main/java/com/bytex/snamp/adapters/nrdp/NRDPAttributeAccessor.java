@@ -2,9 +2,10 @@ package com.bytex.snamp.adapters.nrdp;
 
 import ch.shamu.jsendnrdp.domain.NagiosCheckResult;
 import ch.shamu.jsendnrdp.domain.State;
-import com.google.common.collect.ImmutableSet;
 import com.bytex.snamp.adapters.modeling.AttributeAccessor;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
+import com.google.common.base.Function;
+import com.google.common.collect.ImmutableSet;
 
 import javax.management.AttributeNotFoundException;
 import javax.management.JMException;
@@ -14,14 +15,14 @@ import java.text.ParseException;
 import java.util.Objects;
 import java.util.Set;
 
+import static com.bytex.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
 import static com.bytex.snamp.adapters.nrdp.NRDPAdapterConfigurationDescriptor.getServiceName;
 import static com.bytex.snamp.adapters.nrdp.NRDPAdapterConfigurationDescriptor.getUnitOfMeasurement;
-import static com.bytex.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
 
 /**
  * Provides transformation between attribute of the connected resource and NRDP protocol.
  */
-final class NRDPAttributeAccessor extends AttributeAccessor implements FeatureBindingInfo<MBeanAttributeInfo> {
+final class NRDPAttributeAccessor extends AttributeAccessor implements FeatureBindingInfo<MBeanAttributeInfo>, Function<String, NagiosCheckResult> {
     private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat();
 
     NRDPAttributeAccessor(final MBeanAttributeInfo metadata) {
@@ -49,6 +50,11 @@ final class NRDPAttributeAccessor extends AttributeAccessor implements FeatureBi
             state = State.CRITICAL;
         }
         return new NagiosCheckResult(host, service, state, message);
+    }
+
+    @Override
+    public NagiosCheckResult apply(final String host) {
+        return getCheckResult(host);
     }
 
     @Override

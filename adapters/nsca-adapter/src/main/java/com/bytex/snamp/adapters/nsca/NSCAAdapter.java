@@ -133,9 +133,7 @@ final class NSCAAdapter extends AbstractResourceAdapter {
 
         @Override
         protected void processAttribute(final String resourceName, final NSCAAttributeAccessor accessor) {
-            final MessagePayload payload = accessor.getMessage();
-            payload.setHostname(resourceName);
-            checkSender.send(payload);
+            checkSender.send(accessor, resourceName);
         }
     }
 
