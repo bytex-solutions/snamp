@@ -39,4 +39,10 @@ public interface LoginConfigurationManager extends SupportService {
      * @throws IOException Some I/O problem occurred.
      */
     void loadConfiguration(final Reader in) throws IOException;
+
+    /**
+     * Setup empty configuration.
+     * @throws IOException Unable to setup configuration.
+     */
+    void resetConfiguration() throws IOException;
 }

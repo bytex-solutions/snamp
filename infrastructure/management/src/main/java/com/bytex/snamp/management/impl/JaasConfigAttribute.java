@@ -54,10 +54,15 @@ final class JaasConfigAttribute extends OpenMBean.OpenAttribute<String, SimpleTy
                 context.getServiceReference(LoginConfigurationManager.class);
         if (managerRef == null) throw new RuntimeException("Cannot take LoginConfigurationManager reference");
         final ServiceHolder<LoginConfigurationManager> manager = new ServiceHolder<>(context, managerRef);
-        try(final Reader reader = new StringReader(content)) {
-            manager.get().loadConfiguration(reader);
+        try (final Reader reader = new StringReader(content)) {
+            if (content.isEmpty())
+                manager.get().resetConfiguration();
+            else
+                manager.get().loadConfiguration(reader);
+        } catch (final IOException e){
+            throw e;
         } catch (final Exception e) {
-            throw new RuntimeException(e);
+            throw new IOException(e);
         } finally {
             manager.release(context);
         }

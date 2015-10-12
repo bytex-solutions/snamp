@@ -330,7 +330,7 @@ public final class JsonConfiguration extends AdvancedConfiguration {
     }
 
     public void serialize(final Gson formatter, final Writer out) throws IOException {
-        formatter.toJson(this, JsonConfiguration.class);
+        formatter.toJson(this, out);
     }
 
     public void serialize(final Gson formatter, final File configFile) throws IOException{

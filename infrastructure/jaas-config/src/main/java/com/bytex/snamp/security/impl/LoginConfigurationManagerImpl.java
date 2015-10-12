@@ -74,6 +74,25 @@ final class LoginConfigurationManagerImpl extends AbstractAggregator implements 
     }
 
     /**
+     * Setup empty configuration.
+     *
+     * @throws IOException Unable to setup configuration.
+     */
+    @Override
+    public void resetConfiguration() throws IOException {
+        final BundleContext context = getContext();
+        final ServiceHolder<ConfigurationAdmin> adminRef = new ServiceHolder<>(context,
+                ConfigurationAdmin.class);
+        try{
+            JaasRealmImpl.deleteAll(adminRef.getService());
+        } catch (final InvalidSyntaxException e) {
+            throw new IOException(e);
+        } finally {
+            adminRef.release(context);
+        }
+    }
+
+    /**
      * Reloads JAAS configuration from the specified stream.
      *
      * @param in An input stream containing the configuration. Cannot be {@literal null}.

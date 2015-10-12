@@ -1,5 +1,6 @@
 package com.bytex.snamp.testing.management;
 
+import com.bytex.snamp.io.IOUtils;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
 import com.bytex.snamp.ArrayUtils;
@@ -30,7 +31,9 @@ import javax.management.openmbean.TabularData;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
@@ -60,6 +63,31 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
      */
     public SnampManagerTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(), new ObjectName(TestOpenMBean.BEAN_NAME));
+    }
+
+    @Test
+    public void jaasConfigurationTest() throws JMException, IOException{
+        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
+            final MBeanServerConnection connection = connector.getMBeanServerConnection();
+            final ObjectName commonsObj = new ObjectName(SNAMP_MBEAN);
+            final String JAAS_CONF_ATTR = "jaasConfig";
+            String config = (String)connection.getAttribute(commonsObj, JAAS_CONF_ATTR);
+            assertNotNull(config);
+            assertFalse(config.isEmpty());
+            //setup empty config
+            connection.setAttribute(commonsObj, new Attribute(JAAS_CONF_ATTR, ""));
+            config = (String)connection.getAttribute(commonsObj, JAAS_CONF_ATTR);
+            assertNotNull(config);
+            assertEquals("{}", config);
+            //setup normal config
+            try(final Reader reader = new FileReader(getPathToFileInProjectRoot("jaas.json"))){
+                config = IOUtils.toString(reader);
+            }
+            connection.setAttribute(commonsObj, new Attribute(JAAS_CONF_ATTR, config));
+            config = (String)connection.getAttribute(commonsObj, JAAS_CONF_ATTR);
+            assertNotNull(config);
+            assertFalse(config.isEmpty());
+        }
     }
 
     @Test
@@ -366,7 +394,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
 
