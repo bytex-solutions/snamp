@@ -1,7 +1,5 @@
 package com.bytex.snamp.management;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.Consumer;
@@ -10,13 +8,16 @@ import com.bytex.snamp.adapters.ResourceAdapterClient;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.core.SupportService;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 import org.osgi.framework.*;
 
 import java.util.*;
 
+import static com.bytex.snamp.ArrayUtils.emptyArray;
 import static com.bytex.snamp.internal.Utils.getBundleContextByObject;
 import static com.bytex.snamp.internal.Utils.isInstanceOf;
-import static com.bytex.snamp.ArrayUtils.emptyArray;
 
 /**
  * Represents partial implementation of {@link com.bytex.snamp.management.SnampManager} service.
