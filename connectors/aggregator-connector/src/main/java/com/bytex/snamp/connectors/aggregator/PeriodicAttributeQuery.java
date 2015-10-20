@@ -7,7 +7,6 @@ import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 import javax.management.AttributeNotFoundException;
 import javax.management.JMException;
 import java.util.logging.Logger;
-import static com.bytex.snamp.StringAppender.concat;
 
 /**
  * @author Roman Sakno
@@ -38,7 +37,7 @@ final class PeriodicAttributeQuery extends AbstractAggregatorNotification {
             failedToGetAttribute(foreignAttribute, e);
             return; //any exception must be ignored
         }
-        sender.sendNotification(this, concat("Attribute value = ", attributeValue), attributeValue);
+        sender.sendNotification(this, "Attribute value = " + attributeValue, attributeValue);
     }
 
     static SerializableEventConfiguration getConfiguration() {

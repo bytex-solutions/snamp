@@ -233,7 +233,7 @@ public final class TimeSpan implements Serializable, Comparable<TimeSpan> {
     @Override
     @ThreadSafe
     public final String toString() {
-        return StringAppender.concat(Long.toString(duration), " ", unit.toString());
+        return Long.toString(duration) + " " + unit;
     }
 
     private boolean equals(final TimeSpan obj) {

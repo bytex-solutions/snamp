@@ -1,7 +1,6 @@
 package com.bytex.snamp.core;
 
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.StringAppender;
 import com.bytex.snamp.TimeSpan;
 import com.google.common.base.Joiner;
 import com.google.common.base.Stopwatch;
@@ -332,7 +331,7 @@ public class LogicalOperation extends Logger implements SafeCloseable {
     @Override
     public final void log(final LogRecord record) {
         record.setSourceMethodName(operationName);
-        record.setMessage(StringAppender.concat(record.getMessage(), " Context: ", toString()));
+        record.setMessage(record.getMessage() + " Context: " + toString());
         logger.log(record);
     }
 

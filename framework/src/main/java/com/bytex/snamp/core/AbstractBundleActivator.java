@@ -1,6 +1,7 @@
 package com.bytex.snamp.core;
 
 import com.bytex.snamp.*;
+import com.bytex.snamp.io.IOUtils;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
@@ -341,12 +342,12 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
         }
     }
 
-    static final class DependencyListeningFilter extends StringAppender {
-        private static final long serialVersionUID = -7803401262064949694L;
+    static final class DependencyListeningFilter {
         private int appendCalledTimes = 0;
+        private final StringBuilder filter = new StringBuilder(64);
 
         void append(final RequiredService<?> dependency){
-            append(String.format("(%s=%s)", Constants.OBJECTCLASS, dependency.dependencyContract.getName()));
+            IOUtils.append(filter, "(%s=%s)", Constants.OBJECTCLASS, dependency.dependencyContract.getName());
             appendCalledTimes += 1;
         }
 
@@ -357,14 +358,13 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
             else context.addServiceListener(listener, filter);
         }
 
-        @SuppressWarnings("NullableProblems")
         @Override
         public String toString() {
             switch (appendCalledTimes){
                 case 0: return "";
-                case 1: return super.toString();
+                case 1: return filter.toString();
                 default:
-                    return String.format("(|%s)", super.toString());
+                    return String.format("(|%s)", filter);
             }
         }
     }
@@ -757,9 +757,9 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      */
     @Override
     public final void start(final BundleContext context) throws Exception {
-        try (final LogicalOperation ignored = BundleLogicalOperation.startBundle(getLogger(), context);
-             final DependencyListeningFilter filter = new DependencyListeningFilter()) {
+        try (final LogicalOperation ignored = BundleLogicalOperation.startBundle(getLogger(), context)) {
             start(context, bundleLevelDependencies);
+            final DependencyListeningFilter filter = new DependencyListeningFilter();
             //try to resolve bundle-level dependencies immediately
             for (final RequiredService<?> dependency : bundleLevelDependencies) {
                 filter.append(dependency);

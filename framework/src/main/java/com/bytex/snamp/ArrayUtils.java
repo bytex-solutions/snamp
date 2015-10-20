@@ -58,7 +58,7 @@ public final class ArrayUtils {
     public static <T> T emptyArray(final Class<T> arrayType) {
         if (arrayType.isArray())
             return arrayType.cast(emptyArrayImpl(arrayType.getComponentType()));
-        else throw new IllegalArgumentException(StringAppender.concat("Invalid array type: ", arrayType));
+        else throw new IllegalArgumentException("Invalid array type: " + arrayType);
     }
 
     /**

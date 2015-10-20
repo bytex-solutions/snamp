@@ -1,8 +1,8 @@
 package com.bytex.snamp.adapters.ssh;
 
-import com.bytex.snamp.StringAppender;
 import com.bytex.snamp.adapters.NotificationEventBox;
 import com.bytex.snamp.adapters.modeling.NotificationRouter;
+import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.jmx.DescriptorUtils;
 
 import javax.management.MBeanNotificationInfo;
@@ -31,17 +31,18 @@ final class SshNotificationAccessor extends NotificationRouter implements SshNot
 
     final String getListenCommand(){
         final Map<String, ?> filterParams = DescriptorUtils.toMap(getDescriptor());
-        switch (filterParams.size()){
-            case 0: return String.format(LISTEN_COMMAND_PATTERN, "");
+        switch (filterParams.size()) {
+            case 0:
+                return String.format(LISTEN_COMMAND_PATTERN, "");
             case 1:
-                for(final Map.Entry<String, ?> entry: filterParams.entrySet())
+                for (final Map.Entry<String, ?> entry : filterParams.entrySet())
                     return String.format(LISTEN_COMMAND_PATTERN, String.format("(%s=%s)", entry.getKey(), entry.getValue()));
             default:
-                try(final StringAppender filter = new StringAppender(30)) {
-                    for (final Map.Entry<String, ?> entry : filterParams.entrySet())
-                        filter.append(null, "(%s=%s)", entry.getKey(), entry.getValue());
-                    return String.format("(&(%s))", filter);
-                }
+                final StringBuilder filter = new StringBuilder(512);
+                for (final Map.Entry<String, ?> entry : filterParams.entrySet())
+                    IOUtils.append(filter, "(%s=%s)", entry.getKey(), entry.getValue());
+                return String.format("(&(%s))", filter);
+
         }
     }
 }

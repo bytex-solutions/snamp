@@ -1,7 +1,5 @@
 package com.bytex.snamp.connectors.modbus;
 
-import com.bytex.snamp.StringAppender;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -48,6 +46,6 @@ final class IntegerRange {
 
     @Override
     public String toString() {
-        return StringAppender.concat(lowerBound, "..", upperBound);
+        return lowerBound + ".." + upperBound;
     }
 }

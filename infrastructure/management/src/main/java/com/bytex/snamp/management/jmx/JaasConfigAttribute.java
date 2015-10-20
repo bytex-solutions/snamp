@@ -1,6 +1,5 @@
 package com.bytex.snamp.management.jmx;
 
-import com.bytex.snamp.StringAppender;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.jmx.OpenMBean;
 import com.bytex.snamp.security.LoginConfigurationManager;
@@ -9,9 +8,7 @@ import org.osgi.framework.ServiceReference;
 
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.SimpleType;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
+import java.io.*;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextByObject;
 
@@ -39,7 +36,7 @@ final class JaasConfigAttribute extends OpenMBean.OpenAttribute<String, SimpleTy
                 context.getServiceReference(LoginConfigurationManager.class);
         if (managerRef == null) return null;
         final ServiceHolder<LoginConfigurationManager> manager = new ServiceHolder<>(context, managerRef);
-        try (final StringAppender out = new StringAppender(1024)) {
+        try (final Writer out = new CharArrayWriter(1024)) {
             manager.get().dumpConfiguration(out);
             return out.toString();
         } finally {

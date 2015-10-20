@@ -1,6 +1,5 @@
 package com.bytex.snamp.management.shell;
 
-import com.bytex.snamp.StringAppender;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
@@ -8,6 +7,7 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 import java.util.Collection;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextByObject;
+import static com.bytex.snamp.io.IOUtils.appendln;
 
 /**
  * Prints a list of installed connectors.
@@ -23,9 +23,9 @@ public final class InstalledConnectorsCommand extends OsgiCommandSupport impleme
     @Override
     protected CharSequence doExecute() {
         final Collection<String> connectors = ManagedResourceActivator.getInstalledResourceConnectors(getBundleContextByObject(this));
-        final StringAppender result = new StringAppender(50);
-        for(final String name: connectors)
-            result.appendln(name);
+        final StringBuilder result = new StringBuilder(50);
+        for (final String name : connectors)
+            appendln(result, name);
         return result;
     }
 }
