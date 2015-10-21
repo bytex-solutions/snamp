@@ -10,6 +10,33 @@
         <command>
             <action class="com.bytex.snamp.management.shell.InstalledComponentsCommand"/>
         </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.RestartCommand"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.ConfiguredAdaptersCommand"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.ConfigAdapterInstanceCommand"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.DeleteAdapterInstanceCommand"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.DeleteAdapterParameterCommand"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.StartAdapterCommand"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.StopAdapterCommand"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.StartConnectorCommand"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.StopConnectorCommand"/>
+        </command>
     </command-bundle>
 
 </blueprint>

@@ -1,6 +1,10 @@
 package com.bytex.snamp.management.jmx;
 
+import com.bytex.snamp.adapters.ResourceAdapterActivator;
+import com.bytex.snamp.connectors.ManagedResourceActivator;
 import com.bytex.snamp.management.AbstractSnampManager;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
 
 import java.util.logging.Logger;
 
@@ -67,5 +71,16 @@ public final class SnampManagerImpl extends AbstractSnampManager {
     @Override
     public Logger getLogger() {
         return MonitoringUtils.getLogger();
+    }
+
+    public static void restart(final BundleContext context) throws BundleException {
+        //first, stop all adapters
+        ResourceAdapterActivator.stopResourceAdapters(context);
+        //second, stop all connectors
+        ManagedResourceActivator.stopResourceConnectors(context);
+        //third, start all connectors
+        ManagedResourceActivator.startResourceConnectors(context);
+        //fourth, start all adapters
+        ResourceAdapterActivator.startResourceAdapters(context);
     }
 }

@@ -1,5 +1,6 @@
 package com.bytex.snamp.testing.management;
 
+import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
@@ -10,6 +11,8 @@ import org.apache.felix.service.command.CommandSession;
 import org.junit.Test;
 
 import java.io.*;
+
+import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 
 /**
  * Shell commands test.
@@ -24,7 +27,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
         final File outFile = File.createTempFile("snamp", "out");
         final File errFile = File.createTempFile("snamp", "err");
         try (final PipedInputStream input = new PipedInputStream();
-             final OutputStreamWriter inputWriter = new OutputStreamWriter(new PipedOutputStream(input));
+             final PipedOutputStream inputWriter = new PipedOutputStream(input);
              final OutputStream out = new FileOutputStream(outFile);
              final OutputStream err = new FileOutputStream(errFile)) {
 
@@ -52,6 +55,34 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
         assertTrue(runCommand("snamp:installed-components").toString().contains(System.lineSeparator()));
     }
 
+    @Test
+    public void adapterInstancesTest() throws Exception{
+        assertTrue(runCommand("snamp:configured-adapters").toString().startsWith("Instance: adapterInst"));
+    }
+
+    @Test
+    public void configureAdapterTest() throws Exception{
+        runCommand("snamp:configure-adapter -p k=v -p key=value instance2 dummy");
+        //saving configuration is asynchronous process therefore it is necessary to wait
+        Thread.sleep(500);
+        processConfiguration(new SafeConsumer<AgentConfiguration>() {
+            @Override
+            public void accept(final AgentConfiguration config) {
+                assertTrue(config.getResourceAdapters().containsKey("instance2"));
+                assertEquals("dummy", config.getResourceAdapters().get("instance2").getAdapterName());
+                assertEquals("v", config.getResourceAdapters().get("instance2").getParameters().get("k"));
+            }
+        }, true, false);
+        runCommand("snamp:delete-adapter instance2");
+        Thread.sleep(500);
+        processConfiguration(new SafeConsumer<AgentConfiguration>() {
+            @Override
+            public void accept(final AgentConfiguration config) {
+                assertFalse(config.getResourceAdapters().containsKey("instance2"));
+            }
+        }, true, false);
+    }
+
     @Override
     protected boolean enableRemoteDebugging() {
         return true;
@@ -59,6 +90,9 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
 
     @Override
     protected void setupTestConfiguration(final AgentConfiguration config) {
-
+        final ResourceAdapterConfiguration adapter =
+                config.newConfigurationEntity(ResourceAdapterConfiguration.class);
+        adapter.setAdapterName("dummyAdapter");
+        config.getResourceAdapters().put("adapterInst", adapter);
     }
 }

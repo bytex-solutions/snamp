@@ -438,4 +438,12 @@ public final class ArrayUtils {
     public static <T> T getFirst(final T[] array){
         return getFirst(array, null);
     }
+
+    private static boolean isNullOrEmptyArray(final Object array){
+        return array == null || Array.getLength(array) == 0;
+    }
+
+    public static boolean isNullOrEmpty(final Object[] array) {
+        return isNullOrEmptyArray(array);
+    }
 }

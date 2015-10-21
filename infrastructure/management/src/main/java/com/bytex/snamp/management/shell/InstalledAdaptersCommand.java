@@ -6,7 +6,6 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 import java.util.Collection;
 
-import static com.bytex.snamp.internal.Utils.getBundleContextByObject;
 import static com.bytex.snamp.io.IOUtils.appendln;
 
 /**
@@ -22,7 +21,7 @@ public final class InstalledAdaptersCommand extends OsgiCommandSupport implement
 
     @Override
     protected CharSequence doExecute() {
-        final Collection<String> adapters = ResourceAdapterActivator.getInstalledResourceAdapters(getBundleContextByObject(this));
+        final Collection<String> adapters = ResourceAdapterActivator.getInstalledResourceAdapters(bundleContext);
         final StringBuilder result = new StringBuilder(50);
         for (final String name : adapters)
             appendln(result, name);

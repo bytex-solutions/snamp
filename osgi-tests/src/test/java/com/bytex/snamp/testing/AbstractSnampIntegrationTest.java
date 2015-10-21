@@ -107,6 +107,12 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
         return configManager;
     }
 
+    private void refreshConfiguration() throws IOException{
+        if(configManager == null)
+            configManager = new PersistentConfigurationManager(configAdmin);
+        configManager.load();
+    }
+
     /**
      * Creates a new configuration for running this test.
      * @param config The configuration to set.
@@ -116,6 +122,14 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
     protected final <E extends Throwable> void processConfiguration(final Consumer<? super SerializableAgentConfiguration, E> handler,
                                                                     final boolean saveChanges) throws E, IOException {
         getTestConfigurationManager().processConfiguration(handler, saveChanges);
+    }
+
+    protected final <E extends Throwable> void processConfiguration(final Consumer<? super SerializableAgentConfiguration, E> handler,
+                                                                    final boolean refresh,
+                                                                    final boolean saveChanges) throws E, IOException{
+        if(refresh)
+            refreshConfiguration();
+        processConfiguration(handler, saveChanges);
     }
 
     protected void beforeStartTest(final BundleContext context) throws Exception{
