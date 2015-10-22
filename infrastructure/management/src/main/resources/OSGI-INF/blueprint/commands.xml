@@ -37,6 +37,24 @@
         <command>
             <action class="com.bytex.snamp.management.shell.StopConnectorCommand"/>
         </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.DumpJaasConfigurationCommand"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.SetupJaasConfiguration"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.ConfiguredResourcesCommand"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.ConfigResourceCommand"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.DeleteResourceCommand"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.DeleteResourceParameterCommand"/>
+        </command>
     </command-bundle>
 
 </blueprint>

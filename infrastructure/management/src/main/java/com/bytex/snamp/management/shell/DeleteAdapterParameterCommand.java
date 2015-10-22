@@ -2,7 +2,6 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.AgentConfiguration;
-import com.bytex.snamp.io.IOUtils;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 
@@ -28,11 +27,11 @@ public final class DeleteAdapterParameterCommand extends ConfigurationCommand {
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
         if(configuration.getResourceAdapters().containsKey(instanceName)){
             configuration.getResourceAdapters().get(instanceName).getParameters().remove(paramName);
-            IOUtils.appendln(output, "Instance modified successfully");
+            output.append("Instance modified successfully");
             return true;
         }
         else {
-            IOUtils.appendln(output, "Instance doesn't exist");
+            output.append("Instance doesn't exist");
             return false;
         }
     }

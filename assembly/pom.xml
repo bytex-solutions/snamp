@@ -50,6 +50,7 @@
                         <feature>http-whiteboard</feature>
                         <feature>jolokia</feature>
                         <feature>cellar</feature>
+                        <feature>hawtio-offline</feature>
                     </installedFeatures>
                 </configuration>
             </plugin>
@@ -240,6 +241,14 @@
             <version>${karaf.version}</version>
             <scope>compile</scope>
             <type>kar</type>
+        </dependency>
+        <dependency>
+            <groupId>io.hawt</groupId>
+            <artifactId>hawtio-karaf</artifactId>
+            <version>${hawtio.version}</version>
+            <type>xml</type>
+            <classifier>features</classifier>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.bytex.snamp</groupId>

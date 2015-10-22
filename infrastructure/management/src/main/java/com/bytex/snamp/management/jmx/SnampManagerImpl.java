@@ -2,10 +2,16 @@ package com.bytex.snamp.management.jmx;
 
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
+import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.management.AbstractSnampManager;
+import com.bytex.snamp.security.LoginConfigurationManager;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.ServiceReference;
 
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 import java.util.logging.Logger;
 
 /**
@@ -82,5 +88,36 @@ public final class SnampManagerImpl extends AbstractSnampManager {
         ManagedResourceActivator.startResourceConnectors(context);
         //fourth, start all adapters
         ResourceAdapterActivator.startResourceAdapters(context);
+    }
+
+    public static void dumpJaasConfiguration(final BundleContext context, final Writer out) throws IOException {
+        final ServiceReference<LoginConfigurationManager> managerRef =
+                context.getServiceReference(LoginConfigurationManager.class);
+        if (managerRef == null) return;
+        final ServiceHolder<LoginConfigurationManager> manager = new ServiceHolder<>(context, managerRef);
+        try{
+            manager.get().dumpConfiguration(out);
+        } finally {
+            manager.release(context);
+        }
+    }
+
+    public static void saveJaasConfiguration(final BundleContext context, final Reader in) throws IOException {
+        final ServiceReference<LoginConfigurationManager> managerRef =
+                context.getServiceReference(LoginConfigurationManager.class);
+        if (managerRef == null) throw new RuntimeException("Cannot take LoginConfigurationManager reference");
+        final ServiceHolder<LoginConfigurationManager> manager = new ServiceHolder<>(context, managerRef);
+        try {
+            if (in == null)
+                manager.get().resetConfiguration();
+            else
+                manager.get().loadConfiguration(in);
+        } catch (final IOException e) {
+            throw e;
+        } catch (final Exception e) {
+            throw new IOException(e);
+        } finally {
+            manager.release(context);
+        }
     }
 }

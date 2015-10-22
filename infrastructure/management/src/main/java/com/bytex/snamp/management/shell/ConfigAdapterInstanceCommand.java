@@ -3,7 +3,6 @@ package com.bytex.snamp.management.shell;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.AgentConfiguration;
-import com.bytex.snamp.io.IOUtils;
 import com.google.common.base.Strings;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
@@ -29,7 +28,7 @@ public final class ConfigAdapterInstanceCommand extends ConfigurationCommand {
     @SpecialUse
     private String systemName = "";
 
-    @Option(name = "-p", aliases = {"-param", "--parameter"}, multiValued = true, required = false)
+    @Option(name = "-p", aliases = {"-param", "--parameter"}, multiValued = true, required = false, description = "Configuration parameters in the form of key=value")
     @SpecialUse
     private String[] parameters = ArrayUtils.emptyArray(String[].class);
 
@@ -39,12 +38,12 @@ public final class ConfigAdapterInstanceCommand extends ConfigurationCommand {
         final ResourceAdapterConfiguration adapter;
         if(configuration.getResourceAdapters().containsKey(instanceName)){//modify existing adapter
             adapter = configuration.getResourceAdapters().get(instanceName);
-            IOUtils.appendln(output, "Updated");
+            output.append("Updated");
         }
         else {  //create new adapter instance
             adapter = configuration.newConfigurationEntity(ResourceAdapterConfiguration.class);
             configuration.getResourceAdapters().put(instanceName, adapter);
-            IOUtils.appendln(output, "Created");
+            output.append("Created");
         }
         //setup system name
         if(!Strings.isNullOrEmpty(systemName))

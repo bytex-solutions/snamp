@@ -6,23 +6,23 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 
 /**
- * Deletes adapter instance.
+ * Deletes managed resource.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
-    name = "delete-adapter",
-    description = "Deletes adapter instance from configuration")
-public final class DeleteAdapterInstanceCommand extends ConfigurationCommand {
-    @Argument(index = 0, name = "instanceName", required = true, description = "The name of the adapter instance to remove")
+    name = "delete-resource",
+    description = "Deletes managed resource")
+public final class DeleteResourceCommand extends ConfigurationCommand {
     @SpecialUse
-    private String instanceName = "";
+    @Argument(index = 0, name = "resourceName", required = true, description = "Name of resource to remove")
+    private String resourceName = "";
 
     @Override
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
-        if(configuration.getResourceAdapters().remove(instanceName) == null){
-            output.append("Instance doesn't exist");
+        if(configuration.getManagedResources().remove(resourceName) == null){
+            output.append("Resource doesn't exist");
             return false;
         }
         else {

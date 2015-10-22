@@ -15,7 +15,7 @@ import static com.bytex.snamp.io.IOUtils.appendln;
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
-        name = "configured-adapters",
+        name = "adapter-instances",
         description = "List of configured adapter instances")
 public final class ConfiguredAdaptersCommand extends ConfigurationCommand {
     @Override

@@ -6,12 +6,15 @@ import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import org.apache.felix.service.command.CommandProcessor;
 import org.apache.felix.service.command.CommandSession;
 import org.junit.Test;
 
 import java.io.*;
 
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 
 /**
@@ -57,11 +60,11 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
 
     @Test
     public void adapterInstancesTest() throws Exception{
-        assertTrue(runCommand("snamp:configured-adapters").toString().startsWith("Instance: adapterInst"));
+        assertTrue(runCommand("snamp:adapter-instances").toString().startsWith("Instance: adapterInst"));
     }
 
     @Test
-    public void configureAdapterTest() throws Exception{
+    public void adapterConfigurationTest() throws Exception{
         runCommand("snamp:configure-adapter -p k=v -p key=value instance2 dummy");
         //saving configuration is asynchronous process therefore it is necessary to wait
         Thread.sleep(500);
@@ -73,12 +76,84 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
                 assertEquals("v", config.getResourceAdapters().get("instance2").getParameters().get("k"));
             }
         }, true, false);
+        runCommand("snamp:delete-adapter-param instance2 k");
+        Thread.sleep(500);
+        processConfiguration(new SafeConsumer<AgentConfiguration>() {
+            @Override
+            public void accept(final AgentConfiguration config) {
+                assertTrue(config.getResourceAdapters().containsKey("instance2"));
+                assertFalse(config.getResourceAdapters().get("instance2").getParameters().containsKey("k"));
+            }
+        }, true, false);
         runCommand("snamp:delete-adapter instance2");
         Thread.sleep(500);
         processConfiguration(new SafeConsumer<AgentConfiguration>() {
             @Override
             public void accept(final AgentConfiguration config) {
                 assertFalse(config.getResourceAdapters().containsKey("instance2"));
+            }
+        }, true, false);
+    }
+
+    @Test
+    public void startStopAdapterTest() throws Exception {
+        runCommand("snamp:stop-adapter groovy");
+        runCommand("snamp:start-adapter groovy");
+    }
+
+    @Test
+    public void startStopConnectorTest() throws Exception{
+        runCommand("snamp:stop-connector jmx");
+        runCommand("snamp:start-connector jmx");
+    }
+
+    @Test
+    public void jaasConfigTest() throws Exception{
+        runCommand(String.format("snamp:setup-jaas %s", getPathToFileInProjectRoot("jaas.json")));
+        final File jaasConfig = File.createTempFile("snamp", "jaas");
+        runCommand(String.format("snamp:dump-jaas %s", jaasConfig.getPath()));
+        try(final Reader reader = new FileReader(jaasConfig)){
+            final Gson formatter = new Gson();
+            final JsonElement element = formatter.fromJson(reader, JsonElement.class);
+            assertNotNull(element);
+        }
+    }
+
+    @Test
+    public void resourcesTest() throws Exception{
+        final String resources = runCommand("snamp:resources").toString();
+        assertTrue(resources.startsWith("Resource: resource1. Type: dummyConnector. Connection string: http://acme.com"));
+    }
+
+    @Test
+    public void configureResourceTest() throws Exception{
+        runCommand("snamp:configure-resource -p k=v resource2 dummy http://acme.com");
+        //saving configuration is asynchronous process therefore it is necessary to wait
+        Thread.sleep(500);
+        processConfiguration(new SafeConsumer<AgentConfiguration>() {
+            @Override
+            public void accept(final AgentConfiguration config) {
+                assertTrue(config.getManagedResources().containsKey("resource2"));
+                assertEquals("dummy", config.getManagedResources().get("resource2").getConnectionType());
+                assertEquals("http://acme.com", config.getManagedResources().get("resource2").getConnectionString());
+                assertEquals("v", config.getManagedResources().get("resource2").getParameters().get("k"));
+            }
+        }, true, false);
+        runCommand("snamp:delete-resource-param resource2 k");
+        Thread.sleep(500);
+        processConfiguration(new SafeConsumer<AgentConfiguration>() {
+            @Override
+            public void accept(final AgentConfiguration config) {
+                assertTrue(config.getManagedResources().containsKey("resource2"));
+                assertFalse(config.getManagedResources().get("resource2").getParameters().containsKey("k"));
+            }
+        }, true, false);
+        runCommand("snamp:delete-resource resource2");
+        Thread.sleep(500);
+        processConfiguration(new SafeConsumer<AgentConfiguration>() {
+            @Override
+            public void accept(final AgentConfiguration config) {
+                assertFalse(config.getManagedResources().containsKey("resource2"));
             }
         }, true, false);
     }
@@ -94,5 +169,9 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
                 config.newConfigurationEntity(ResourceAdapterConfiguration.class);
         adapter.setAdapterName("dummyAdapter");
         config.getResourceAdapters().put("adapterInst", adapter);
+        final ManagedResourceConfiguration resource = config.newConfigurationEntity(ManagedResourceConfiguration.class);
+        resource.setConnectionType("dummyConnector");
+        resource.setConnectionString("http://acme.com");
+        config.getManagedResources().put("resource1", resource);
     }
 }
