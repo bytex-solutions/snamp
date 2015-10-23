@@ -18,7 +18,8 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
-    name = "configure-resource")
+    name = "configure-resource",
+    description = "Configures managed resource")
 public final class ConfigResourceCommand extends ConfigurationCommand {
     @SpecialUse
     @Argument(index = 0, name = "resourceName", required = true, description = "Name of the resource")

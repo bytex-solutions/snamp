@@ -55,6 +55,15 @@
         <command>
             <action class="com.bytex.snamp.management.shell.DeleteResourceParameterCommand"/>
         </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.ConfigAttributeCommand"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.DeleteAttributeCommand"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.DeleteAttributeParameterCommand"/>
+        </command>
     </command-bundle>
 
 </blueprint>
