@@ -18,7 +18,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterCo
  */
 @Command(scope = SnampShellCommand.SCOPE,
     name = "configure-adapter",
-    description = "Configures new or existing adapter instance")
+    description = "Configure new or existing adapter instance")
 public final class ConfigAdapterInstanceCommand extends ConfigurationCommand {
     @Argument(name = "instanceName", index = 0, required = true, description = "Name of the adapter instance")
     @SpecialUse

@@ -13,7 +13,7 @@ import org.apache.karaf.shell.commands.Command;
  */
 @Command(scope = SnampShellCommand.SCOPE,
     name = "delete-adapter-param",
-    description = "Deletes configuration parameter of the adapter instance")
+    description = "Delete configuration parameter of the adapter instance")
 public final class DeleteAdapterParameterCommand extends ConfigurationCommand {
     @Argument(name = "instanceName", index = 0, required = true, description = "Name of the adapter instance to modify")
     @SpecialUse

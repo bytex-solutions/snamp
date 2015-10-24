@@ -64,6 +64,24 @@
         <command>
             <action class="com.bytex.snamp.management.shell.DeleteAttributeParameterCommand"/>
         </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.ConfigEventCommand"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.DeleteEventCommand"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.DeleteEventParameterCommand"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.ResetConfigurationCommand"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.ConfiguredAttributesCommand"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.ConfiguredEventsCommand"/>
+        </command>
     </command-bundle>
 
 </blueprint>

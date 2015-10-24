@@ -14,7 +14,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
  */
 @Command(scope = SnampShellCommand.SCOPE,
     name = "delete-attribute",
-    description = "Deletes attribute from managed resource")
+    description = "Delete attribute from managed resource")
 public final class DeleteAttributeCommand extends ConfigurationCommand {
     @Argument(index = 0, name = "resourceName", required = true, description = "Name of the managed resource to modify")
     @SpecialUse

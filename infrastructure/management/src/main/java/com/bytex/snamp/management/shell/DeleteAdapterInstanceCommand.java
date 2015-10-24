@@ -13,7 +13,7 @@ import org.apache.karaf.shell.commands.Command;
  */
 @Command(scope = SnampShellCommand.SCOPE,
     name = "delete-adapter",
-    description = "Deletes adapter instance from configuration")
+    description = "Delete adapter instance from configuration")
 public final class DeleteAdapterInstanceCommand extends ConfigurationCommand {
     @Argument(index = 0, name = "instanceName", required = true, description = "The name of the adapter instance to remove")
     @SpecialUse

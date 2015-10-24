@@ -18,7 +18,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
-    description = "Configures attribute of the managed resource",
+    description = "Configure attribute of the managed resource",
     name = "configure-attribute")
 public final class ConfigAttributeCommand extends ConfigurationCommand {
     private static final long INFINITE_TIMEOUT = -1;
