@@ -2,10 +2,12 @@ package com.bytex.snamp.connectors.groovy;
 
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
+import com.bytex.snamp.internal.Utils;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+
 import static com.bytex.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration;
 
 /**
@@ -17,7 +19,7 @@ public final class ManagedResourceScriptEngineTest extends Assert {
     private final ManagedResourceScriptEngine engine;
 
     public ManagedResourceScriptEngineTest() throws IOException {
-        engine = new ManagedResourceScriptEngine(getClass().getClassLoader(), "sample-groovy-scripts/");
+        engine = new ManagedResourceScriptEngine(getClass().getClassLoader(), Utils.IS_OS_WINDOWS ? "sample-groovy-scripts\\" : "sample-groovy-scripts/");
     }
 
     @Test
