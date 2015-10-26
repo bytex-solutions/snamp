@@ -15,7 +15,7 @@ Name                         | Version          | Installed | Repository        
 ------------------------------------------------------------------------------------------------------
 ibmwmq-connector-feature     | 1.0.0            | x         | snamp                   | IBM MQ Connector Karaf Feature
 nsca-adapter-feature         | 1.0.0            | x         | snamp                   | NSCA Adapter Karaf Feature
-jndi                         | 3.0.3            | x         | enterprise-3.0.3        | OSGi Service Registry JNDI access
+jndi                         | 3.0.5            | x         | enterprise-3.0.5        | OSGi Service Registry JNDI access
 nrdp-adapter-feature         | 1.0.0            | x         | snamp                   | NRDP Adapter Karaf Feature
 jmx-connector-feature        | 1.0.0            | x         | snamp                   | JMX Connector Karaf Feature
 http-adapter-feature         | 1.0.0            | x         | snamp                   | HTTP Adapter Karaf Feature
@@ -26,16 +26,16 @@ pax-jetty                    | 8.1.15.v20140411 | x         | org.ops4j.pax.web-
 pax-http                     | 3.1.4            | x         | org.ops4j.pax.web-3.1.4 | Implementation of the OSGI HTTP Service
 pax-http-whiteboard          | 3.1.4            | x         | org.ops4j.pax.web-3.1.4 | Provide HTTP Whiteboard pattern support
 pax-war                      | 3.1.4            | x         | org.ops4j.pax.web-3.1.4 | Provide support of a full WebContainer
-standard                     | 3.0.3            | x         | standard-3.0.3          | Karaf standard feature
-config                       | 3.0.3            | x         | standard-3.0.3          | Provide OSGi ConfigAdmin support
-region                       | 3.0.3            | x         | standard-3.0.3          | Provide Region Support
-package                      | 3.0.3            | x         | standard-3.0.3          | Package commands and mbeans
-http                         | 3.0.3            | x         | standard-3.0.3          | Implementation of the OSGI HTTP Service
-war                          | 3.0.3            | x         | standard-3.0.3          | Turn Karaf as a full WebContainer
-kar                          | 3.0.3            | x         | standard-3.0.3          | Provide KAR (KARaf archive) support
-ssh                          | 3.0.3            | x         | standard-3.0.3          | Provide a SSHd server on Karaf
-management                   | 3.0.3            | x         | standard-3.0.3          | Provide a JMX MBeanServer and a set of MBeans in K
-eventadmin                   | 3.0.3            | x         | standard-3.0.3          | OSGi Event Admin service specification for event-b
+standard                     | 3.0.5            | x         | standard-3.0.5          | Karaf standard feature
+config                       | 3.0.5            | x         | standard-3.0.5          | Provide OSGi ConfigAdmin support
+region                       | 3.0.5            | x         | standard-3.0.5          | Provide Region Support
+package                      | 3.0.5            | x         | standard-3.0.5          | Package commands and mbeans
+http                         | 3.0.5            | x         | standard-3.0.5          | Implementation of the OSGI HTTP Service
+war                          | 3.0.5            | x         | standard-3.0.5          | Turn Karaf as a full WebContainer
+kar                          | 3.0.5            | x         | standard-3.0.5          | Provide KAR (KARaf archive) support
+ssh                          | 3.0.5            | x         | standard-3.0.5          | Provide a SSHd server on Karaf
+management                   | 3.0.5            | x         | standard-3.0.5          | Provide a JMX MBeanServer and a set of MBeans in K
+eventadmin                   | 3.0.5            | x         | standard-3.0.5          | OSGi Event Admin service specification for event-b
 snmp-adapter-feature         | 1.0.0            | x         | snamp                   | SNMP Adapter Karaf Feature
 aggregator-connector-feature | 1.0.0            | x         | snamp                   | Resource Aggregator Karaf Feature
 jmx-adapter-feature          | 1.0.0            | x         | snamp                   | JMX Adapter Karaf Feature
@@ -87,7 +87,7 @@ SNAMP Platform is a core set of OSGi bundles with basic SNAMP functionality.
 
 Verify your installation using `feature:list -i`, `bundle:list` and `log:exception-display` shell commands.
 
-Note that updating of SNAMP Platform might affect availability. You can avoid it with following steps: 
+Note that updating of SNAMP Platform might affect availability. You can avoid it with following steps:
 1. Detach node from the cluster
 2. Update SNAMP Platform
 3. Setup balancer for updated node

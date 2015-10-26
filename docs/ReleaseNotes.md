@@ -23,7 +23,7 @@ First production release of Groovy Resource Connector.
 ### Resource Aggregator 1.0.0
 First production release of Resource Aggregator.
 
-### IBM WebSphere MQ Resource Connector
+### IBM WebSphere MQ Resource Connector 1.0.0
 First production release of WebSphere MQ Resource Connector.
 
 ### Monitoring Data Acceptor 1.0.0
@@ -55,5 +55,7 @@ First production release of NRDP Resource Adapter.
 
 ## Dependencies
 Java SE 7
-Apache Karaf 3.0.3
+
+Apache Karaf 3.0.5
+
 Hazelcast

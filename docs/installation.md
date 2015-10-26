@@ -30,6 +30,7 @@ Hardware:
 * 2 Cores (minimum)
 * 150 MB of free disk space
 > Disk space requirement ignores growing of log files
+
 * 2 GB RAM (minimum)
 
 Running SNAMP on ARM-based hardware (such as RaspberryPi) is possible as well - contact us for more information.
@@ -103,7 +104,7 @@ Start SNAMP and open the shell console, then print `bundle:list` and press ENTER
 START LEVEL 30 , List Threshold: 50
  ID | State     | Lvl | Version                    | Name
 ------------------------------------------------------------------------------------------
- 62 | Installed |  80 | 3.0.3                      | Apache Karaf :: JNDI :: Command
+ 62 | Installed |  80 | 3.0.5                      | Apache Karaf :: JNDI :: Command
  73 | Installed |  80 | 2.3.1                      | Gson
  74 | Installed |  80 | 18.0.0                     | Guava: Google Core Libraries for Java
  75 | Installed |  80 | 1.0.0                      | SNAMP Framework
@@ -180,19 +181,19 @@ If you want to manage SNAMP cluster located in the cloud then install _cellar-cl
 
 To verify Cellar installation print `feature:list |grep -i cellar` and you will see the following output:
 ```
-cellar-core                   | 3.0.1   |           | karaf-cellar-3.0.3 | Karaf clustering core
+cellar-core                   | 3.0.3   |           | karaf-cellar-3.0.3 | Karaf clustering core
 hazelcast                     | 3.2.3   |           | karaf-cellar-3.0.3 | In memory data grid
-cellar-hazelcast              | 3.0.1   |           | karaf-cellar-3.0.3 | Cellar implementation based on Hazelcast
-cellar-config                 | 3.0.1   |           | karaf-cellar-3.0.3 | ConfigAdmin cluster support
-cellar-features               | 3.0.1   |           | karaf-cellar-3.0.3 | Karaf features cluster support
-cellar-bundle                 | 3.0.1   |           | karaf-cellar-3.0.3 | Bundle cluster support
-cellar-shell                  | 3.0.1   |           | karaf-cellar-3.0.3 | Cellar shell support
-cellar                        | 3.0.1   |           | karaf-cellar-3.0.3 | Karaf clustering
-cellar-dosgi                  | 3.0.1   |           | karaf-cellar-3.0.3 | DOSGi support
-cellar-obr                    | 3.0.1   |           | karaf-cellar-3.0.3 | OBR cluster support
-cellar-eventadmin             | 3.0.1   |           | karaf-cellar-3.0.3 | OSGi events broadcasting in clusters
-cellar-cloud                  | 3.0.1   |           | karaf-cellar-3.0.3 | Cloud blobstore support in clusters
-cellar-webconsole             | 3.0.1   |           | karaf-cellar-3.0.3 | Cellar plugin for Karaf WebConsole
+cellar-hazelcast              | 3.0.3   |           | karaf-cellar-3.0.3 | Cellar implementation based on Hazelcast
+cellar-config                 | 3.0.3   |           | karaf-cellar-3.0.3 | ConfigAdmin cluster support
+cellar-features               | 3.0.3   |           | karaf-cellar-3.0.3 | Karaf features cluster support
+cellar-bundle                 | 3.0.3   |           | karaf-cellar-3.0.3 | Bundle cluster support
+cellar-shell                  | 3.0.3   |           | karaf-cellar-3.0.3 | Cellar shell support
+cellar                        | 3.0.3   |           | karaf-cellar-3.0.3 | Karaf clustering
+cellar-dosgi                  | 3.0.3   |           | karaf-cellar-3.0.3 | DOSGi support
+cellar-obr                    | 3.0.3   |           | karaf-cellar-3.0.3 | OBR cluster support
+cellar-eventadmin             | 3.0.3   |           | karaf-cellar-3.0.3 | OSGi events broadcasting in clusters
+cellar-cloud                  | 3.0.3   |           | karaf-cellar-3.0.3 | Cloud blobstore support in clusters
+cellar-webconsole             | 3.0.3   |           | karaf-cellar-3.0.3 | Cellar plugin for Karaf WebConsole
 ```
 
 Apache Karaf Cellar supports two kind of topologies:

@@ -139,18 +139,22 @@ public final class IOUtils {
 
     public static StringBuilder appendln(final StringBuilder builder,
                                          final String value){
-        return builder.append(value).append(System.lineSeparator());
+        return newLine(builder.append(value));
     }
 
     public static StringBuilder appendln(final StringBuilder builder,
                                          final String format,
                                          final Object... args){
-        return append(builder, format, args).append(System.lineSeparator());
+        return newLine(append(builder, format, args));
     }
 
     public static StringBuilder append(final StringBuilder builder,
                                        final String format,
                                        final Object... args){
         return builder.append(String.format(format, args));
+    }
+
+    public static StringBuilder newLine(final StringBuilder output) {
+        return output.append(System.lineSeparator());
     }
 }

@@ -6,6 +6,13 @@ import com.bytex.snamp.core.ServiceHolder;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 import org.osgi.service.cm.ConfigurationAdmin;
 
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
+
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
+
 /**
  * @author Roman Sakno
  * @version 1.0
@@ -35,5 +42,17 @@ abstract class ConfigurationCommand extends OsgiCommandSupport implements SnampS
         finally {
             adminRef.release(bundleContext);
         }
+    }
+
+    protected static <T extends FeatureConfiguration> Set<Map.Entry<String, T>> getFeatures(final ManagedResourceConfiguration resource,
+                                                                                            final Class<T> featureType){
+        final Map<String, T> features = resource.getElements(featureType);
+        return features != null ? features.entrySet() : Collections.<Map.Entry<String, T>>emptySet();
+    }
+
+    protected static <T extends FeatureConfiguration> Set<Map.Entry<String, T>> getFeatures(final AgentConfiguration config,
+                                                                                             final String resourceName,
+                                                                                            final Class<T> featureType) {
+        return getFeatures(config.getManagedResources().get(resourceName), featureType);
     }
 }

@@ -2,15 +2,19 @@ package com.bytex.snamp.management.shell;
 
 import com.google.common.base.Strings;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 
 /**
+ * Represents parameter/value pair.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-final class StringKeyValue implements Map.Entry<String, String> {
+final class StringKeyValue implements Map.Entry<String, String>, Serializable {
+    private static final long serialVersionUID = 7340706762238782487L;
+
     private final String key;
     private final String value;
 

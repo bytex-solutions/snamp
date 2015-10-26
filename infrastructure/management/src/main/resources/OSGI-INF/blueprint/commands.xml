@@ -77,10 +77,19 @@
             <action class="com.bytex.snamp.management.shell.ResetConfigurationCommand"/>
         </command>
         <command>
-            <action class="com.bytex.snamp.management.shell.ConfiguredAttributesCommand"/>
+            <action class="com.bytex.snamp.management.shell.ResourceInfoCommand"/>
         </command>
         <command>
-            <action class="com.bytex.snamp.management.shell.ConfiguredEventsCommand"/>
+            <action class="com.bytex.snamp.management.shell.AdapterInstanceInfoCommand"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.ConfigOperationCommand"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.DeleteOperationCommand"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.DeleteOperationParameterCommand"/>
         </command>
     </command-bundle>
 

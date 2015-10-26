@@ -16,7 +16,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
  */
 @Command(scope = SnampShellCommand.SCOPE,
     name = "resources",
-    description = "")
+    description = "List of configured managed resources")
 public final class ConfiguredResourcesCommand extends ConfigurationCommand {
     @Override
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
