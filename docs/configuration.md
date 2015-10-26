@@ -174,6 +174,11 @@ snamp:start-connector | Start bundle with individual resource connector
 snamp:stop-adapter | Stop bundle with individual adapter
 snamp:stop-connector | Stop bundle with individual resource connector
 
+Use `--help` flag to know more information about command and its parameters:
+```bash
+snamp:configure-resource --help
+```
+
 ## Using Management API
 There are several ways to change SNAMP configuration via management API:
 * Using JMX tool such as JConsole or VisualVM
