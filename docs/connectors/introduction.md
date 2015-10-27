@@ -3,6 +3,7 @@ SNAMP Resource Connectors
 **Resource Connector** (or **Managed Resource Connector**) is a software component used to connect **managed resource** to SNAMP environment using specific management protocol.
 
 Feature list of **Resource Connector** consists of the following items:
+
 * Supported Protocols - list of management protocols used for connecting **managed resource** to SNAMP
 * Attributes - how **Resource Connector** exposes **managed resource** attributes to **Resource Adapter**?
 * Notifications - how **Resource Connector** exposes **managed resource** notifications to the **Resource Adapter**
