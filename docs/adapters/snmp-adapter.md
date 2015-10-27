@@ -31,7 +31,7 @@ ldap-user | Distinguished name (DN) | No |  DN of the user used for LDAP authent
 ldap-password | String | No | Password applied for LDAP authentication | `qwerty`
 ldap-auth-protocol | Enum | No | LDAP authentication mechanism | `GSSAPI`
 ldap-base-dn | Distinguished name (DN) | No | Base DN of the LDAP database tree used in search operations | `dc=ad,dc=organization,dc=com`
-ldap-user-search-filter | _RFC 1960_-based expression | No | Filter used to search entries with user entries for SNMPv3 authentication | `(cn=User)``
+ldap-user-search-filter | _RFC 1960_-based expression | No | Filter used to search entries with user entries for SNMPv3 authentication | `(cn=User)`
 jndi-ldap-factory | String | No | Full name of Java class used for instantiating LDAP client. Default value is `com.sun.jndi.ldap.LdapCtxFactory`. This value is valid for Oracle JDK and OpenJDK only. You must specify this parameter for any other JVM | `com.sun.jndi.ldap.LdapCtxFactory`
 ldap-user-password-attribute-name | String | No | Property name in the LDAP entry which holds password of the SNMPv3 user. Default value is `userPassword` | `userPassword`
 
@@ -39,6 +39,7 @@ Note that parameters related to thread pool is omitted. See **SNAMP Configuratio
 
 ### SNMPv2 setup
 For SNMPv2 setup you need to use the following parameters:
+
 * `context`
 * `host`
 * `port`
@@ -49,6 +50,7 @@ The adapter uses `public` community for all managed objects.
 
 ### SNMPv3 setup without LDAP
 For SNMPv3 setup you need to use the following parameters:
+
 * `context`
 * `host`
 * `port`
@@ -58,6 +60,7 @@ For SNMPv3 setup you need to use the following parameters:
 * `snmpv3-groups`
 
 `snmpv3-groups` contains set of group names separated by semicolon symbol `;`. Each group should be described using configuration parameters with the following patterns:
+
 * `<groupName>-security-level` - security level for all users in the group. Possible values are:
   * `noAuthNoPriv` - no authentication and traffic encryption
   * `authNoPriv` - authentication is enabled but no traffic encryption is being used
@@ -69,6 +72,7 @@ For SNMPv3 setup you need to use the following parameters:
 * `<groupName>-users` - semicolon-separated list of users in the group
 
 Each user should be configured using configuration parameters with the following patterns:
+
 * `<userName>-password` - the password for the user
 * `<userName>-auth-protocol` - authentication protocol used to encrypt password. This parameter is not compatible with `noAuthNoPriv` security level. Possible values are:
   * `sha` - Secure Hash Authentication (SHA-1) used to protect password and user name
@@ -111,6 +115,7 @@ The name of the user should be used as a security name by SNMPv3 clients.
 
 ### SNMPv3 setup using LDAP
 For SNMPv3 setup you need to use the following parameters:
+
 * `context`
 * `host`
 * `port`
