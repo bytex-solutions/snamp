@@ -1,6 +1,7 @@
 Modbus Resource Connector
 ====
 Modbus Resource Connector acting as Modbus Master device that can be connected to the Modbus slave devices using TCP or UDP protocol directly or through serial device server (for example, a Moxa 5130). It is possible to collect the information from registers and coils of the device. Full set of supported protocols:
+
 * Modbus-UDP
 * Modbus-TCP
 * Modbus-RTU/IP
@@ -10,6 +11,7 @@ Modbus Resource Connector acting as Modbus Master device that can be connected t
 > Serial port is not supported
 
 List of devices that can handled by the connector:
+
 * **Coil** as a read/write attribute of `bool` data type
 * **Input Discrete** as a read-only attribute of `bool` data type
 * **Input Register** as a read-only attribute of `int16` data type
@@ -29,6 +31,7 @@ Modbus Resource Connector uses URL format to establish connection between SNAMP 
 ```
 
 Supported _protocols_ are:
+
 * `tcp` - Modbus/TCP protocol
 * `udp` - Modbus/UDP protocol
 * `rtu-ip` - SNAMP builds a Modbus-RTU message, including checksum, and then sends it over a TCP/IP connection to the gateway device, which puts the message on the Modbus wire - the server takes any modbus messages it receives over the modbus wire and sends them back over the TCP connection to the SNAMP
@@ -36,6 +39,7 @@ Supported _protocols_ are:
 _Slave device name_ must be a valid DNS-name of the Modbus Slave or Gateway device. _Port_ must be a valid socket port on the slave/gateway side.
 
 Examples:
+
 * `tcp://light-switcher:3232`
 * `rtu-ip://moxa-5130`
 
@@ -51,6 +55,7 @@ Any other parameters will be ignored.
 
 ## Configuring attributes
 Each attribute configured in JMX Resource Connector has following configuration schema:
+
 * `Name` - one of the predefined names:
   * `coil` - read/write access to device coil (of type `bool` or `array(bool)`)
   * `inputRegister` - read-only access to the register of device (of type `int16` or `array(int16)`)
