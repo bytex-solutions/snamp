@@ -14,6 +14,7 @@ Attributes | Each attribute is being displayed in JSON format. Also, you may rew
 Notifications | Each notification is being displayed in JSON format (if that is enabled)
 
 There are following supported commands:
+
 1. `help` - displays all available commands
 1. `exit` - closes chat session
 1. `resources` - displays list of connected resources
@@ -54,6 +55,7 @@ enableM2M | Boolean | No | Enable injection of machine-readable information as e
 
 ### SSL support
 If your Jabber server supports transport-level security (via SSL) and verification of X509 client certificate - you must specify correctly the following parameters:
+
 * `keystorePassword`
 * `keystore`
 * `keystoreType`
@@ -62,6 +64,7 @@ And, optionally, `allowUnsafeCertificate` parameter. `keystore` file can be gene
 
 ### Machine-to-Machine communication
 XMPP Resource Adapter is primarily oriented to human-to-machine communication (admin-to-SNAMP using Jabber client). But XMPP protocol is pretty useful as a messaging framework between two applications. If `enableM2M` parameter is enabled - adapter will add extra information to XMPP stanza (packet). This information is located in `properties` XML element with `http://www.jivesoftware.com/xmlns/xmpp/properties` namespace. Following properties will be injected:
+
 * For attributes
   * `writable` - boolean value indicating attribute is writable
   * `readable` - boolean value indicating attribute is readable
