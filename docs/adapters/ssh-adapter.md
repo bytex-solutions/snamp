@@ -14,6 +14,7 @@ Notifications | Each notification is being displayed in JSON format (if that is 
 Note that this adapter utilizes **its own internal thread pool that can be configured explicitly**.
 
 There are following supported commands:
+
 1. `help` - displays all available commands
 1. `exit` - closes SSH session
 1. `resources` - displays list of connected resources
@@ -55,6 +56,7 @@ publicKeyFileFormat | Filename | No | Type of the public key used by client | `p
 Note that parameters related to thread pool is omitted. See **SNAMP Configuration Guide** page for more information about thread pool configuration. Other parameters will be ignored.
 
 SSH Resource Adapter supports the following authentication techniques:
+
 1. Using simple _username/password_ pair - specify `userName` and `password` configuration parameters
 1. Using _username/password_ pairs defined in _JAAS_ realm - specify `jaasDomain` configuration parameter
 1. Using _public key_ - specify _publicKeyFile_ and, optionally, `publicKeyFileFormat` configuration parameters
