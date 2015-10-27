@@ -43,6 +43,7 @@ stringifier | Unary | string | Exposes value of the foreign attribute as a strin
 The attribute with any other name will no be exposed by connector.
 
 Configuration parameters of the attribute depend on its name:
+
 * _matcher_ = `foreignAttribute` matches to `value`
 
 Parameter | Type | Required | Meaning | Example
@@ -147,6 +148,7 @@ Value | Description
 Following use cases simplifie understanding of different aggregations:
 
 Example 1:
+
 * _Precondition_: managed resource `app-server` exposes `hasError` attribute returning `true` if resource is in error state at request time, and `false` otherwise
 * _Task_: how to compute a number of errors per second?
 * _Solution_: use `counter` attribute in Resource Aggregator with the following settings:
@@ -155,6 +157,7 @@ Example 1:
   * foreignAttribute = hasError
 
 Example 2:
+
 * _Precondition_: managed resource `app-server` exposes `cpuUtilizatin` attribute returning instant CPU load
 * _Task_: how to compute average CPU load at the specified time interval?
 * _Solution_: use `average` attribute in Resource Aggregator with the following settings:
@@ -163,6 +166,7 @@ Example 2:
   * foreignAttribute = cpuUtilization
 
 Example 3:
+
 * _Precondition_: managed resource `app-server` exposes `memoryUsage` attribute returning instant RAM usage
 * _Task_: how to compute peak RAM usage at the specified time interval?
 * _Solution_: use `peak` attribute in Resource Aggregator with the following settings:
