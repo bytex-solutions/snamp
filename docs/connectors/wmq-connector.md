@@ -8,6 +8,7 @@ The named queue (or topic) is interpreted as Managed Resource by this connector.
 
 ## Initial setup
 SNAMP distribution package doesn't contain IBM WebSphere MQ classes for Java due to license restrictions. These classes should be installed into OSGi environment manually:
+
 1. Verify IBM WebSphere MQ server installation
 1. Install IBM WebSphere MQ client on the same machine where SNAMP installed. See [Installing a WebSphere MQ client](http://www-01.ibm.com/support/knowledgecenter/SSFKSJ_7.5.0/com.ibm.mq.ins.doc/q008960_.htm) for more details.
 1. Copy JARs from `<MQ_INSTALLATION_PATH>/java/lib/OSGi` into `<snamp>/deploy` folder
@@ -15,12 +16,14 @@ SNAMP distribution package doesn't contain IBM WebSphere MQ classes for Java due
 1. Restart SNAMP if necessary
 
 Verify correctness of installation:
+
 1. With `bundle:list` command in the shell console. The output must contain following strings (version may depend on the IBM WebSphere MQ version):
 ```
 117 | Active    |  80 | 7.5.0.2                    | WMQ prereq Plug-in
 146 | Active    |  80 | 7.5.0.2                    | WebSphere MQ classes for Java Plug-in
 147 | Active    |  80 | 7.5.0.2                    | Common Services J2SE Plug-in
 ```
+
 1. With `log:exception-display`. Following message should not be presented in the log:
 ```
 com.bytex.snamp.connectors.wmq.MQConnectorActivator$WMQJavaClassesNotInstalled: WebSphere MQ classes for Java are not installed into OSGi environment
@@ -34,6 +37,7 @@ wsmq://<username>:<password>@<mq-server-host>:<port>/<channelName>/<queueName>
 WMQ Connector interacts with queue identified by _channelName_ and _queueName_ parameters. It is recommended to verify your connection string with `mqivp` tool. See [Verifying your WebSphere MQ classes for Java installation with the sample application](http://www-01.ibm.com/support/knowledgecenter/SSFKSJ_7.5.0/com.ibm.mq.dev.doc/q030690_.htm) for more details.
 
 Examples:
+
 * `wsmq://root:qwerty@192.168.0.1:1414/channel/topic`
 * `wsmq://192.168.0.1:1414/channel/topic2` for insecure connection
 
@@ -47,6 +51,7 @@ smartMode | Boolean | No | Enables or disables smart mode | `true`
 
 ## Configuring attributes
 Each attribute configured in WMQ Resource Connector has the following configuration schema:
+
 * `Name` - name of predefined attribute. Following names are supported (attribute types described in SNAMP **Management Information Model**):
 
 Name | Type | Meaning
