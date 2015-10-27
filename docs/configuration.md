@@ -1,6 +1,7 @@
 SNAMP Configuration Guide
 ====
 SNAMP can be configured using different ways:
+
 * via Web Browser
 * via JMX
 * via HTTP
@@ -15,7 +16,8 @@ See [SNAMP Management Interface](mgmt.md) for more information about SNAMP manag
 ## Configuration Model
 SNAMP configuration describes set of resource adapters, resource connectors and its attributes, notifications and operations.
 
-At high level, configuration model can be represented as a configurable elements tree:
+At high level, logical model of configuration can be represented as a configurable elements tree:
+
 * _Resource Adapters_ section may contain zero or more configured adapter instances
   * `Adapter Instance Name` - unique name of the configured resource adapter
     * `System Name`: system name of the resource adapter
@@ -30,24 +32,28 @@ At high level, configuration model can be represented as a configurable elements
     * _Operations_ section may contain zero or more configured operations
 
 _Attributes_ section:
+
 * `Attribute Instance Name` - unique name of the attribute. Resource Connector uses this name when exposing attributes to Resource Adapters
   * `Name` - name of the attribute declared by managed resource. Note that this name depends on the management information provided by managed resource. This parameter is required.
   * `Read/write timeout` - timeout (in millis) used when accessing attribute value. This is the optional parameter.
   * Additional configuration parameters in the form of key/value pairs
 
 _Events_ section:
+
 * `Event Name` - unique name of the event. Resource Connector uses this name as notification type when exposing notifications to Resource Adapters
   * `Category` - event category declared by managed resource. Note that the category depends on the management information provided by managed resource. This parameter is required.
   * Additional configuration parameters in the form of the key/value pairs
 
 _Operations_ section may contain zero:
+
 * `Operation instance name` - unique name of the operation. Resource Connector uses this name when exposing operations to Resource Adapters
   * `Operation Name` - name of the operation declared by managed resource. Note that operation name depends on the management information provided by managed resource. This parameter is required.
   * Additional configuration parameters in the form of the key/value pairs
 
 A set of additional configuration parameters depends on the particular Resource Adapter or Resource Connector.
 
-Let's consider the following example of the configuration model:
+Let's consider the following example of the configuration logical model:
+
 * _Resource Adapter_
   * `Adapter Instance Name`: adapter1
     * `System Name`: http
@@ -90,6 +96,7 @@ Let's consider the following example of the configuration model:
 In this example single managed resource named _partner-gateway_ connected via JMX protocol. The managed resource contains two MBeans (`Memory` and `Common`) with attributes and JMX notifications. This managed resource can be managed via two protocols: `http` and `xmpp` (Jabber). It is possible because configuration model contains three configured resource adapters. Two adapters have the same `http` system name. But these two adapters configured with different set of parameters. Each `http` adapter exposes REST API on its own URL context (`http://localhost/snamp/adapters/http/adapter1` and `http://localhost/snamp/adapters/http/adapter2`). The third resource adapter allows to managed resources via Jabber client (such as Miranda IM).
 
 Managed Resource `partner-gateway` is connected using `jmx` Resource Connector. This example demonstrates how to expose two JMX attributes with the same in MBean (`freeMemoryMB`) with different settings and instance names. Both attributes are visible from `http` resource adapter using the following URLs:
+
 * `http://localhost/snamp/adapters/http/adapter1/attributes/freeMemoryRaw`
 * `http://localhost/snamp/adapters/http/adapter2/attributes/freeMemoryRaw`
 * `http://localhost/snamp/adapters/http/adapter1/attributes/freeMemory`
@@ -107,6 +114,7 @@ SNAMP Management Console allows you to configure and maintain SNAMP via user-fri
 > SNAMP Management Console available in paid subscription only
 
 The console supports the following configuration features:
+
 * [Highlight available Resource Adapters, Resource Connectors, configuration properties, attributes, events and operations](webconsole/configuration.md)
 * [Start, stop and restart resource adapters and connectors](webconsole/managing.md)
 * [Configure JAAS settings](webconsole/jaas.md)
@@ -117,6 +125,7 @@ SNAMP Management Console build on top of powerful [hawt.io](http://hawt.io) web 
 
 ## Using command-line interface
 Execute SNAMP using the following command
+
 ```bash
 sh ./snamp/bin/karaf
 ```
@@ -212,14 +221,14 @@ Output:
 `value` field in the resulting JSON holds SNAMP configuration in the form of the JSON tree. `null` means that SNAMP configuration is empty. JSON structure of the SNAMP configuration repeats its logical structure described above.
 
 Following example shows setup of JMX-to-SNMP bridge:
-```javascript
+```json
 {
   "ResourceAdapters": {
-    "test-snmp": {  //adapter instance name
-      "UserDefinedName": "test-snmp", //adapter instance name
+    "test-snmp": {  
+      "UserDefinedName": "test-snmp",
       "Adapter": {
-        "Name": "snmp",   //adapter's system name
-        "Parameters": { //adapter-level configuration parameters
+        "Name": "snmp",   
+        "Parameters": {
           "port": {
             "Value": "3222",
             "Key": "port"
@@ -241,9 +250,9 @@ Following example shows setup of JMX-to-SNMP bridge:
     }
   },
   "ManagedResources": {
-    "test-target": {  //managed resource name
+    "test-target": { 
       "Connector": {
-        "Parameters": { //managed resource configuration parameters
+        "Parameters": {
           "login": {
             "Value": "karaf",
             "Key": "login"
@@ -254,10 +263,10 @@ Following example shows setup of JMX-to-SNMP bridge:
           }
         },
         "ConnectionString": "service:jmx:rmi:///jndi/rmi://localhost:1099/karaf-root",
-        "Attributes": { //a set of connected attributes
-          "attribute1": { //user-defined attribute name
+        "Attributes": { 
+          "attribute1": { 
             "Attribute": {
-              "Name": "int32",  //name of the attribute in remote MBean
+              "Name": "int32",  
               "AdditionalProperties": {
                 "objectName": {
                   "Value": "com.bytex.snamp:type=TestManagementBean",
@@ -308,10 +317,10 @@ Following example shows setup of JMX-to-SNMP bridge:
           }
         },
         "Events": {
-          "19.1": { //user-defined name of the notification
+          "19.1": {
             "Event": {
-              "Category": "jmx.attribute.change", //name of the JMX notification in MBean
-              "AdditionalProperties": {//event configuration parameters
+              "Category": "jmx.attribute.change", 
+              "AdditionalProperties": {
                 "objectName": {
                   "Value": "com.bytex.snamp:type=TestManagementBean",
                   "Key": "objectName"
@@ -334,12 +343,12 @@ Following example shows setup of JMX-to-SNMP bridge:
                 }
               }
             },
-            "UserDefinedName": "19.1" //user-defined name of the notification
+            "UserDefinedName": "19.1" 
           },
         },
-        "ConnectionType": "jmx"   //type of the managed resource connector
+        "ConnectionType": "jmx"   
       },
-      "UserDefinedName": "test-target"  //managed resource name
+      "UserDefinedName": "test-target" 
     }
   }
 }
@@ -350,7 +359,8 @@ If your SNAMP configuration is ready then save JSON into the file and use `curl`
 ```bash
 curl -u karaf:karaf -X POST -d @config.json http://localhost:3535/jolokia/
 ```
-The content of `config.json` file:
+
+The content of `config.json` file (used in previous command):
 ```json
 {
   "type": "write",
@@ -422,6 +432,7 @@ By default the HTTP Server listens on port `3535`. You can change the port by mo
 ```
 org.osgi.service.http.port=8181
 ```
+
 or by typing:
 ```
 root@karaf> config:property-set -p org.ops4j.pax.web org.osgi.service.http.port 3535
