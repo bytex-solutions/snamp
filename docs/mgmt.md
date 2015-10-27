@@ -6,6 +6,7 @@ SNAMP provides JMX management interface which allows you configure resource adap
 JMX management settings are located in `<snamp>/etc/org.apache.karaf.management.cfg`.
 
 Default settings are:
+
 * RMI Registry Port `1099`
 * RMI Server Port `44444`
 
@@ -18,6 +19,7 @@ service:jmx:rmi:///jndi/rmi://localhost:1099/karaf-root
 
 ## SNAMP MBeans
 `com.bytex.snamp.management:type=SnampCore` supplies the following useful attributes which can be used in health monitoring:
+
 * _StatisticRenewalTime_ - counters renewal time (ms)
 * _FaultsCount_ - number of faults caused in SNAMP. This attribute interprets a log entry with `error` level as a fault. This counter resets every time when _StatisticRenewalTime_ is reached.
 * _WarningMessagesCount_ - number of warnings caused in SNAMP. This attribute interprets a log entry with `warning` level as a fault. This counter resets every time when _StatisticRenewalTime_ is reached.
