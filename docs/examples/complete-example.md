@@ -4,12 +4,14 @@ This document provides step-by-step guide of SNAMP deployment and configuration.
 
 ## Overview
 Let's identify required capabilities of the target configuration:
+
 1. Monitoring Java Application Server via SNMPv2 using JMX-to-SNMP bridge
 1. Monitoring Java Application Server via HTTP using JMX-to-HTTP bridge
 1. Observing monitoring data transmitted by external component via HTTP or Apache Thrift
 1. Collecting monitoring data using third-party programs and exposing this data via HTTP or SNMPv2
 
 Following SNAMP components will be used to implement requirements described above:
+
 1. JMX Resource Connector - allows to connect Java Application Server with SNAMP via JMX protocol
 1. RShell Resource Connector - allows to execute any local process and parse its output into the the necessary monitoring information
 1. MDA Resource Connector - allows to store monitoring data received from external component via HTTP or Apache Thrift
@@ -28,6 +30,7 @@ Following SNAMP components will be used to implement requirements described abov
 
 ## Prerequisites
 Prepare your test environment as described below:
+
 1. Operating system: Linux (we highly recommended to use Debian 7/8)
 1. Java 7 or higher (make sure that `JAVA_HOME` environment variable points to a valid JRE location)
 1. Fresh version of SNAMP
