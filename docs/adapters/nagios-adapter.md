@@ -21,6 +21,7 @@ http://<snamp-host>:<port>/snamp/adapters/nagios/<adapter-instance-name>/attribu
 `3535` is a default port of a SNAMP web server.
 
 This adapter supports following output formats for each attribute:
+
 * Plain scalar value of the attribute
 * Service status with associated descriptive value
 * Extended output with thresholds as it is described in [Nagios Plugin Format](http://nagios.sourceforge.net/docs/3_0/pluginapi.html)
@@ -59,6 +60,7 @@ string OK: STRVAL
 ```
 
 Another example. You have an attribute `utilized` with the following configured parameters:
+
 * `serviceName = memory`
 * `maxValue = 100`
 * `minValue = 0`
