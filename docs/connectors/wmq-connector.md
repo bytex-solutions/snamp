@@ -24,7 +24,7 @@ Verify correctness of installation:
 147 | Active    |  80 | 7.5.0.2                    | Common Services J2SE Plug-in
 ```
 
-1. With `log:exception-display`. Following message should not be presented in the log:
+2. With `log:exception-display`. Following message should not be presented in the log:
 ```
 com.bytex.snamp.connectors.wmq.MQConnectorActivator$WMQJavaClassesNotInstalled: WebSphere MQ classes for Java are not installed into OSGi environment
 ```
