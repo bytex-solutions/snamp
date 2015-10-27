@@ -25,6 +25,7 @@ It is recommended to use IPv4 or IPv6 address instead of Host Name to avoid DNS 
 On Linux, you may use `snmpwalk` to test SNMP connection. Make sure that SNMP Agent is SNMPv2/SNMPv3 compatible.
 
 Examples of connection string:
+
 * `udp://127.0.0.1/161`
 * `udp://192.168.0.1/9293`
 
@@ -110,13 +111,14 @@ IP_ADDRESS | raw | int8 array
 
 ## Configuring events
 Each event configured in JMX Resource Connector has following configuration schema:
+
 * `Category` - OID of the SNMP Trap
 * Configuration parameters:
 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
 severity | String | No | Overrides severity level of the emitted notification | `warning`
-messageTemplate | String | No | Message template used to convert SNMP trap into its textual representation (not compatible with `messageOID` parameter) | `Hello from {1.0} object. ID is {2.0}``
+messageTemplate | String | No | Message template used to convert SNMP trap into its textual representation (not compatible with `messageOID` parameter) | `Hello from {1.0} object. ID is {2.0}`
 messageOID | OID | No | Message OID postfix which contains the notification message text | `1.1.2.0`
 
 If `messageTemplate` and `messageOID` parameters are not specified then notification message will be constructed using concatenation of all variables in the Trap.
