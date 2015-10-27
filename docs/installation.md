@@ -31,7 +31,7 @@ Hardware:
 * 150 MB of free disk space
 > Disk space requirement ignores growing of log files
 
-* 2 GB RAM (minimum)
+* 1 GB RAM (minimum), 2 GB RAM (recommended)
 
 Running SNAMP on ARM-based hardware (such as RaspberryPi) is possible as well - contact us for more information.
 
