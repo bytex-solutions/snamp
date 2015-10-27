@@ -21,6 +21,7 @@ Events | Can be delivered via HTTP or Thrift and propagated to all Resource Adap
 > Note that this connector utilizes **its own internal thread pool that can be configured explicitly**.
 
 Appliance of MDA Connector limited by capability of making changes in the existing software components. You can select one of the following approaches:
+
 * Assembly you software with HTTP or Thrift client satisfied to MDA Connector Service Contract
 * Deploy daemon/service on the same machine with HTTP or Thrift client satisfied to MDA Connector Service Contract. This daemon uses another protocol for accessing data of your software component. This approach is very helpful when software component is legacy and modification is not allowed.
 
@@ -42,6 +43,7 @@ Thrift transport can be established using the following format of Connection Str
 thrift://<host>:<port>
 ```
 Where `host` is IP-address or DNS-name of inbound interface used to listen and process incoming Thrift threads. `port` is a port number of inbound interface. Thrift is a binary procol running on top of TCP and can be used in Intranet only. It has the following advantages in comparison with HTTP/JSON:
+
 * Thrift is more compact protocol
 * Thrift supports persistent TCP connection and avoids the continuous TCP handshakes that HTTP incurs
 * Thrift generates the client code completely, so you don't have to deal with anything other than invoking the client
@@ -61,6 +63,7 @@ expirationTime | Integer | No | Expiration time (in millis) of attribute values 
 
 ## Configuring attributes
 Each attribute configured in MDA Resource Connector has the following configuration schema:
+
 * `Name` - name of attribute in REST API or Thrift IDL
 * Configuration parameters:
 
@@ -75,6 +78,7 @@ Note that parameters related to thread pool are omitted. See **SNAMP Configurati
 
 ### Thread Pool settings
 MDA Resource Connector uses thread pool in different ways. This behavior depends on transport type:
+
 * For `Thrift` transport, the connector uses thread pool for handling attributes and notifications
 * For `HTTP` transport, the connector uses thread pool for firing notifications only. Attributes is processing in HTTP Server threads configured globally for Apache Karaf instance.
 
@@ -113,6 +117,7 @@ dictionary | Composite structure consisting of several fields
 
 ## Configuring events
 Each event configured in MDA Resource Connector has the following configuration schema:
+
 * `Category` - category name used to send notifications using REST API or Thrift API
 * Configuration parameters:
 
@@ -172,6 +177,7 @@ array(objectname) | Array of Strings | `["java.lang:type=Memory"]`
 dictionary | JSON Object | `{"used": 25972875, "total": 22957285652}`
 
 Note that dictionary type mapping differs from convention used in HTTP Adapter. This is necessary to reduce volume of data passed from your components to MDA Connector. For example, you have an attribute configured as follows:
+
 * `expectedType = dictionary`
 * `dictionaryName = MemoryUsage`
 * `dictionaryItemNames = used, total`
@@ -203,16 +209,19 @@ HTTP PUT http://<snamp-host>:3535/snamp/connectors/mda/os-monitor/notifications/
 Thrift Endpoint is available only when you specify **thrift** scheme in Connection String. For example, it can be `thrift://0.0.0.0:9878`. It means that MDA Connector accepts incoming TCP requests on `9878` port and listen on all available network interfaces.
 
 Thrift transport provided MDA Connector has the following limitations;
+
 * Binary Protocol only, i.e. [TBinaryProtocol](http://thrift-tutorial.readthedocs.org/en/latest/thrift-stack.html#protocol-layer)
 * TCP underlying transport only
 * Blocking socket I/O for transport at server side, i.e. [TSocket](http://thrift-tutorial.readthedocs.org/en/latest/thrift-stack.html#tranport-layer). It is highly recommended to use the same transport at client-side
 
 Additionally, you should write Thrift IDL file and generate necessary clients for your programming language. There are special naming and signature convention exist for service operations defined in IDL:
+
 * Attribute getter must have the following form: `<attribute-type> get_XYZ()`, where `XYZ` is a system name of attribute (**not user-defined name!**)
 * Attribute setter must have the following form: `<attribute-type> set_XYZ(1:<attribute-type> value)`
 * Notification sender must have the following form: `oneway void notify_XYZ(1:string message, 2:i64 timeStamp, 3:i64 sequenceNumber, 4:<userData-type> value)`. The fourth parameter is optional. It must not be specified if `expectedType` configuration parameter is not defined on the event. `XYZ` is a category of the event as it is defined in Resource configuration.
 
 MDA Connector provides a set of predefined system operations:
+
 * `oneway void reset()` - resets all attributes to its defaults
 
 The following table shows mapping between JSON data type and SNAMP data type specified in `expectedType` configuration parameter of the attribute:
@@ -250,10 +259,12 @@ dictionary | struct
 Service name may be of any string, there is no limitations on that. The same is true for structure names.
 
 Mapping between SNAMP `dictionary` and Thrift `struct` has the following limitations:
+
 * Only scalar items
 * Order of fields in Thrift IDL depends on **natural** ordering of item names
 
 For example, you have the following configuration of `dictionary` data type on attribute `dictAttr`:
+
 * `expectedType = dictionary`
 * `dictionaryName = TestDict`
 * `dictionaryItemNames = avail, total, foo, bar`
