@@ -4,12 +4,14 @@ This page provides installation instructions and system requirements
 
 ## System requirements
 Environment:
+
 * Java SE Runtime Environment 7/8. Recommended JVMs:
     * OpenJDK
     * Oracle JRE
 * The `JAVA_HOME` environment variable must be set to the directory where the Java runtime is installed
 
 Supported operating systems:
+
 * Windows
     * Windows Vista SP2
     * Windows 7
@@ -23,6 +25,7 @@ Supported operating systems:
     * Suse Linux Enterprise Server 10 SP2, 11.x
 
 Hardware:
+
 * Processor architectures:
     * x86
     * x64
@@ -41,6 +44,7 @@ Running SNAMP on ARM-based hardware (such as RaspberryPi) is possible as well - 
 > There is no limitations for installation destination
 
 SNAMP may be launched in the following modes:
+
 * `regular` mode starts SNAMP in foreground, including the shell console
 * `server` mode starts SNAMP in foreground, without the shell console
 * `background` mode starts Apache Karaf in background.
@@ -86,6 +90,7 @@ bin\karaf.bat server
 Note that closing the console or shell window will cause Apache Karaf to terminate.
 
 You can connect to the shell console using SSH:
+
 * On Unix: `<snamp>/bin/client`
 * On Windows: `<snamp>\bin\client.bat`
 
@@ -161,6 +166,7 @@ SNAMP doesn't require `root` privileges for running. But if you want to use stan
 
 ## Integration in the operating system
 SNAMP may be integrated as an OS System Service:
+
 * like a native Windows Service
 * like a Unix daemon process
 
@@ -197,6 +203,7 @@ cellar-webconsole             | 3.0.3   |           | karaf-cellar-3.0.3 | Cella
 ```
 
 Apache Karaf Cellar supports two kind of topologies:
+
 * Cross topology
 * Star topology
 
@@ -237,11 +244,13 @@ Synchronizing cluster group default
 Cellar uses [Hazelcast](http://hazelcast.org/) as a cluster engine.
 
 When you install the _cellar_ feature, a _hazelcast_ feature is being automatically installed, providing the `<snamp>/etc/hazelcast.xml` configuration file. For most of the users, default configuration should be appropriate. If not, you can tailor this XML file according to your needs by adding/removing/modifying properties. Read more about Hazelcast configuration:
+
 * [Configuring Hazelcast](http://docs.hazelcast.org/docs/3.3/manual/html/configuringhazelcast.html)
 * [Cellar and Hazelcast](http://karaf.apache.org/manual/cellar/latest/user-guide/hazelcast.html)
 
 
 Advanced learning materials:
+
 * "Learning Karaf Cellar" by Jean-Baptiste Onofré, ISBN-10: 1783984600, ISBN-13: 978-1783984602
 * "Apache Karaf Cookbook" by Achim Nierbeck, ISBN-10: 1783985089, ISBN-13: 978-1783985081
 
