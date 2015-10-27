@@ -8,6 +8,7 @@ As far as you can see at the figure above, **Resource Connector** converts proto
 **Resource Adapter** uses this unified representation of the management information and transforms it to another management protocol (expected by **monitoring & management tool**).
 
 Management Information Model consists of the following entities:
+
 * Attributes
 * Events
 * Operations
@@ -20,6 +21,7 @@ The operation has its own set of _formal parameters_ and _return value_. Each pa
 
 ## Type System
 SNAMP supports the following set of data types:
+
 * Scalar types
   * datetime - number of milliseconds since January 1, 1970, 00:00:00 GMT
   * int8 - 8-bit signed integer
