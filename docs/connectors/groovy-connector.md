@@ -2,6 +2,7 @@ Groovy Resource Connector
 ====
 
 Groovy connector allows to monitor and manage your IT resources using Groovy scripts. It can be useful in following cases:
+
 * SNAMP doesn't provide Resource Connector for the specific protocol out-of-the-box. Possible uses cases:
   * Parsing log data and exposing results as an attributes
   * Extracting records from databases and exposing results as attributes
@@ -14,6 +15,7 @@ Groovy connector allows to monitor and manage your IT resources using Groovy scr
 > Groovy connector is based on Groovy 2.4.3
 
 The connector has following architecture:
+
 * Each attribute must be represented as a separated Groovy script. The attribute name will be interpreter as a script file name. For example, the logic for attribute `Memory` must be placed into `Memory.groovy` file
 * Each event must be represented as a separated Groovy script. The event category will be interpreted as a script file name. For example, the logic for event `Error` must be placed into `Error.groovy` file
 * Optionally, you may write initialization script that is used to initialize instance of the Managed Resource Connector
@@ -21,6 +23,7 @@ The connector has following architecture:
 
 ## Connection String
 Connection string specifies set of paths with Groovy scripts. You may specify more than one path using OS-specific path separator symbol:
+
 * `:` for Linux
 * `;` for Windows
 
@@ -45,6 +48,7 @@ All these parameters (including user-defined) will be visible as global variable
 
 ## Configuring attributes
 Each attribute configured in Groovy Resource Connector has following configuration schema:
+
 * `Name` - name of script file without `.groovy` file extension. The file must exists in the paths specified by connection string
 * There is no predefined configuration parameters. But all user-defined configuration parameters will be visible as global variables in the attribute script only.
 
@@ -52,6 +56,7 @@ For more information see **Programming attributes** section.
 
 ## Configuring events
 Each event configured in Groovy Resource Connector has following configuration schema:
+
 * `Category` - name of script file without `.groovy` file extension. The file must exists in the paths specified by connection string
 * Configuration parameters:
 
@@ -63,6 +68,7 @@ All user-defined configuration parameters will be visible as global variables in
 
 ## Scripting
 Groovy Resource Connector provides following features for Groovy scripting:
+
 * Simple DSL extensions of Groovy language
 * Accessing to attributes and notifications of any other connected managed resources
 * Full [Grape](http://www.groovy-lang.org/Grape) support so you can use any Groovy module or Java library published in Maven repository
@@ -76,6 +82,7 @@ println customParam
 ```
 
 Groovy connector provides following DSL extensions accessible from any type of scripts:
+
 * Global variables:
   * `resourceName` - contains the name of the managed resource as it specified in the SNAMP configuration. This variable is not available in the discovery mode
 * Logging subrouties (these routines written on top of OSGi logging infrastructure)
@@ -174,6 +181,7 @@ import groovy.json.JsonSlurper
 > Note that `@GrabConfig(initContextClassLoader = true)` must be used in conjunction with every `@Grab` annotation
 
 Initialization script supports additional DSL extensions:
+
 * Global variables:
   * `discovery` - determines whether initialization script is in discovery mode
 * Discovery services
@@ -181,6 +189,7 @@ Initialization script supports additional DSL extensions:
   * `void event(String category, Map parameters)` - declares new event with the specified category and default configuration parameters. This declaration will be displayed in the SNAMP Management Console while discovering the available events. The functionality of the event doesn't depend on this declaration
 
 Special functions that can be declared in the script:
+
 * `void close()` - called by SNAMP automatically when the resources acquired by the instance of the connector should be released
 
 Following example demonstrates simple initialization script:
@@ -204,6 +213,7 @@ void close(){
 
 ### Programming attributes
 Attribute script consists of the following parts:
+
 * Attribute type specification
 * Attribute initialization
 * Attribute reader
@@ -212,6 +222,7 @@ Attribute script consists of the following parts:
 All configuration parameters assigned to the attribute in SNAMP configuration will be visible as global variables in the attribute script.
 
 Attribute script supports additional DSL extensions:
+
 * Global constants
   * `INT8` - represents `int8` type from SNAMP Management Information Model
   * `INT16`- represents `int16` type from SNAMP Management Information Model
@@ -241,6 +252,7 @@ Attribute script supports additional DSL extensions:
   * `TabularData asTable(Map[] rows)` - convert a collection of rows into JMX tabular data (table in SNAMP terminology). This method can be used in `getValue` function to convert input value to TabularData
 
 Special functions that can be declared in the script:
+
 * `Object getValue()` - called by SNAMP automatically to read attribute value. If this function is not specified then the attribute is write-only
 * `Object setValue(Object value)` - called by SNAMP automatically to write attribute value. If this function is not specified then the attribute is read-only
 * `void close()` - called by SNAMP automatically when the resources acquired by instance of the attribute should be released
@@ -298,12 +310,14 @@ def setValue(value){
 
 ### Programming events
 Event script consists of the following parts:
+
 * Event initialization
 * Event emitting
 
 All configuration parameters assigned to the event in SNAMP configuration will be visible as global variables in the event script.
 
 Event script supports additional DSL extensions:
+
 * Functions:
   * `void emitNotification(String message)` - emit outgoing notification with the specified human-readable message
   * `void emitNotification(String messagem, Object userData)` - emit outgoing notification with the specified human-readable message and additional payload
