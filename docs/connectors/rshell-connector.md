@@ -1,6 +1,7 @@
 RShell Resource Connector
 ====
 RShell Resource Connector is a multiprotocol connector that allows to monitor resources using following protocols:
+
 * [Remote Process Execution](http://en.wikipedia.org/wiki/Remote_Process_Execution) - allows to execute process on remote machine using _rexec_ protocol
 * [Remote Shell](http://en.wikipedia.org/wiki/Remote_Shell), or _rsh_ - equivalent of _rexec_ protocol for BSD Unix systems
 * Local Process Execution - executes any process on the same OS where SNAMP installed
@@ -9,6 +10,7 @@ RShell Resource Connector is a multiprotocol connector that allows to monitor re
 ![Communication Scheme](rshell-connector.png)
 
 This connector uses one of the supported protocols to execute a process (local or remote) and convert information from its STDOUT into the management information. Many command-line utilities provide useful information about OS and hardware state, such as:
+
 * GNU Core Utilities:
   * `df` - disk free space on file systems
   * `du` - disk usage on file systems
@@ -24,12 +26,14 @@ Also, you can execute any `bash` or `powershell` script and expose its result as
 > RShell Connector doesn't support notifications
 
 Details of this connector operating are hidden in the XML-based `Tool Profile` (or Command-line tool profile). Tool Profile (TP) is XML file that describes how to parse output from process and prepare input from SNAMP. You can use following instruments for text parsing:
+
 * Regular expressions
 * JavaScript
 * [StringTemplate](http://www.stringtemplate.org/) - template for tool STDIN
 
 ## Connection String
 Connection string specifies protocol and the host name:
+
 * _rexec://host-name-or-ip:port_ - `rexec` protocol will be used. Remote \*nix machine is identified by the host name or IP address
 * _rsh://host-name-or-ip:port_ - `rsh` protocol will be used. Remote \*nix machine is identified by the host name or IP address
 * _ssh://host-name-or-ip:port_ - `ssh` protocol will be used.
@@ -37,6 +41,7 @@ Connection string specifies protocol and the host name:
 
 ## Configuration Parameters
 JMX Resource Connector recognizes following parameters:
+
 * For local processes only:
 
 Parameter | Type | Required | Meaning | Example
@@ -216,6 +221,7 @@ XSD schema of the Tool Profile:
 </xs:schema>
 ```
 Additional information about semantics of some XML elements:
+
 * `blobFormat` - sensitive only when `type=blob`
 * `dateTimeFormat` - sensitive only when `type=date`
 * `elementType` - sensitive only when `type=array`
@@ -226,11 +232,13 @@ Additional information about semantics of some XML elements:
 * `numberFormat` only for numeric types (`int8`, `int16`, `int32`, `int64`, `float32`, `float64`, `bigint`, `bigdecimal`)
 
 Supported values of `language` attribute:
+
 * `regexp` - regular expressions used as a parsing language
 * `JavaScript` - JS used as a parsing language
 * _Any JSR-223_ compliant scripting language installed into JVM globally
 
 There are several special global variables available for parsing script (except `regexp`):
+
 * `scan` - object of `java.util.Scanner` class which contains scanner of STDOUT
 * `parser` - data type converter with the following methods:
   * `byte parseByte(String value)`
