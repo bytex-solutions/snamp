@@ -6,11 +6,13 @@ This page contains information about SNAMP performance tuning.
 The minimum RAM requirement is 2 GB. This amount of memory is enough for launching single resource adapter and single resource connector.
 
 Recommended amount of memory required by SNAMP depends on number of configured adapters and connectors:
+
 * Single Resource Adapter memory requirement is based on number of configured attributes, notifications and operations in each connected managed resource. Use the following formula: ![Resource Adapter Memory](http://latex.codecogs.com/gif.latex?M=40&plus;\sum_{i=1}^{r}A\times&space;10&plus;N\times&space;5&plus;O), where `M` - amount of memory required by single Resource Adapter (in MB), `r` - number of connected managed resources, `A` - number of configured attributes for `i`-resource, `N` - number of configured notifications of `i`-resource, `O` - number of configured operations of `i`-resource
 * Single Resource Connector memory requirement is based on number of configured attributes, notifications and operations as well. Use the following formula: ![Resource Connector Memory](http://latex.codecogs.com/gif.latex?S=30&plus;A\times&space;6&plus;N\times&space;3&plus;O), where `S` - amount of memory required by single Resource Connector instance (in MB), `A` - number of configured attributes, `N` - number of configured notifications, `O` - number of configured operations
 * Recommended amount of memory: ![SNAMP Memory](http://latex.codecogs.com/gif.latex?R=2048&space;&plus;&space;\sum_{i=1}^{r}S_{i}&plus;\sum_{i=1}^{r}M_{i})
 
 For example, we have 1 resource adapter, 2 resource connectors (8 attributes and 2 notifications in the first connector, 6 attributes and 3 notifications in the second connector):
+
 * Resource adapter memory: `M = 40 + (8 * 10) + (2 * 5) + (6 * 10) + (3 * 5) = 205 MB`
 * Resource connectors memory: `S = S1 + S2 = 30 + (8 * 6) + (2 * 3) + 30 + (6 * 8) + (3 * 3) = 171 MB`
 * Recommended amount of memory: `R = 2048 + 205 + 171 = 2424 MB = 2.3 GB`
@@ -19,6 +21,7 @@ For example, we have 1 resource adapter, 2 resource connectors (8 attributes and
 
 ## JVM settings
 JVM tuning aims to minimize GC pauses. We offer two main strategies on GC tuning:
+
 1. Peak application performance is the first priority and there are no pause time requirements (or pauses of 1 second or longer are acceptable)
 1. Response time is more important than overall throughput
 
@@ -26,6 +29,7 @@ You may select the most convenient strategy based on your enterprise IT policies
 > In most scenarios, number of monitoring & management tools are fixed in time (i.e. number of clients are fixed). If that is your case - choose the second strategy.
 
 According to RAM calculation methodology you may specify minimum and maximum Java memory:
+
 * For Linux, go to `bin` directory (within the SNAMP folder) and open `bin/setnv` and specify
 	* `export JAVA_MIN_MEM=1G`
 	* `export JAVA_MAX_MEM=Xm`, where `X` is your calculated memory, for example `export JAVA_MAX_MEM=2424m`
@@ -41,6 +45,7 @@ export EXTRA_JAVA_OPTS="-XX:+UseG1GC"
 ```
 
 More information about memory tuning:
+
 * [Java 8 GC tuning](http://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/index.html)
 * [Java 6 GC tuning](http://www.oracle.com/technetwork/java/javase/gc-tuning-6-140523.html)
 * [Karaf Tuning](http://karaf.apache.org/manual/latest/users-guide/tuning.html)
@@ -48,6 +53,7 @@ More information about memory tuning:
 
 ### Memory utilization profile
 All the Java objects created during SNAMP execution can be divided by its lifecycle:
+
 * Long-lived objects
 * Short-lived objects
 
@@ -62,6 +68,7 @@ Also, you can specify `-XX:GCTimeRatio=<N>` JVM option. For example, `-XX:GCTime
 
 ### Response time first
 If response time is more important than overall throughput and garbage collection pauses must be kept shorter than approximately one second, then you may choose one of the following collectors:
+
 * Concurrent Mark & Sweep `-XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled`. Additionally, specify `-XX:+CMSIncrementalMode` if only two cores are available.
 * G1 collector with `-XX:+UseG1GC`. That requires large heaps - about 6GB or larger, and stable and predictable pause time below 0.5 seconds.
 
@@ -69,14 +76,16 @@ If response time is more important than overall throughput and garbage collectio
 ## Number of cores
 Each resource adapter or resource connector uses its own isolated thread pool.
 So, recommended number of cores (k) is based on the following metrics:
+
 * `λ` - expected workload from single monitoring tool, in TPS (requests per second)?
 * `t` - average response time from managed resources (in seconds)?
 * `P` - availability
 
 SNAMP represents multichannel Queuing System so [Queuing Theory](https://en.wikipedia.org/wiki/Queueing_theory) is applicable for necessary computations:
-1. Workload intensity: ![](http://latex.codecogs.com/gif.latex?\rho=\lambda\times&space;t)
-1. Downtime propability: ![](http://latex.codecogs.com/gif.latex?p_{0}=\frac{1}{\sum_{i=0}^{k}\frac{\rho^{i}}{i!}})
-1. Availability: ![](http://latex.codecogs.com/gif.latex?P=1-\frac{\rho^{k}}{k!}\rho_{0})
+
+1. Workload intensity: ![intensity formula](http://latex.codecogs.com/gif.latex?\rho=\lambda\times&space;t)
+1. Downtime propability: ![propability formula](http://latex.codecogs.com/gif.latex?p_{0}=\frac{1}{\sum_{i=0}^{k}\frac{\rho^{i}}{i!}})
+1. Availability: ![availability formula](http://latex.codecogs.com/gif.latex?P=1-\frac{\rho^{k}}{k!}\rho_{0})
 
 Availability formula contains the required number of cores in indirect form. There is no way to reduce this formula. Therefore, you can use the following simple JS program (use NodeJS) for computing required number of cores:
 ```js
