@@ -30,6 +30,15 @@ public class Switch<I, O> implements Function<I, O> {
                                         final Function<? super I, ? extends O> action) {
             return this.nextNode = new SwitchNode<>(condition, action);
         }
+
+        private Callable<O> createTask(final I value) {
+            return new ExceptionalCallable<O, ExceptionPlaceholder>() {
+                @Override
+                public O call() {
+                    return predicate.apply(value) ? transformer.apply(value) : null;
+                }
+            };
+        }
     }
 
     private SwitchNode<I, O> first = null;
@@ -114,19 +123,10 @@ public class Switch<I, O> implements Function<I, O> {
         return defaultCase != null ? defaultCase.apply(value) : null;
     }
 
-    private static <I, O> Callable<O> switchCaseTask(final SwitchNode<I, O> node, final I value){
-        return new Callable<O>() {
-            @Override
-            public O call() {
-                return node.predicate.apply(value) ? node.transformer.apply(value) : null;
-            }
-        };
-    }
-
     private O apply(final I value, final CompletionService<O> batch) throws InterruptedException, ExecutionException {
         int submitted = 0;
         for (SwitchNode<I, O> lookup = first; lookup != null; lookup = lookup.nextNode, submitted++)
-            batch.submit(switchCaseTask(lookup, value));
+            batch.submit(lookup.createTask(value));
         for(;submitted >0; submitted--){
             final O result = batch.take().get();
             if(result != null) return result;
