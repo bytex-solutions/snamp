@@ -1,9 +1,6 @@
 package com.bytex.snamp;
 
-import com.google.common.base.Function;
-import com.google.common.base.Functions;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
+import com.google.common.base.*;
 
 import java.util.Objects;
 import java.util.concurrent.*;
@@ -15,35 +12,133 @@ import java.util.concurrent.*;
  * @since 1.0
  */
 public class Switch<I, O> implements Function<I, O> {
-    private static final class SwitchNode<I, O> {
-        private final Predicate<? super I> predicate;
-        private final Function<? super I, ? extends O> transformer;
-        private SwitchNode<I, O> nextNode = null;
+    /**
+     * Represents combination of condition check and transformation action.
+     * @param <I> Type of the input value.
+     * @param <O> Type of the transformation result.
+     */
+    protected static abstract class CaseStatement<I, O> implements Function<I, O> {
+        private CaseStatement<I, O> nextNode;
 
-        private SwitchNode(final Predicate<? super I> condition,
-                           final Function<? super I, ? extends O> action) {
-            this.predicate = Objects.requireNonNull(condition, "condition is null.");
-            this.transformer = Objects.requireNonNull(action, "action is null.");
-        }
+        /**
+         * Determines whether transformation can be applied to the specified value.
+         * @param value The value to check.
+         * @return {@literal true}, if transformation can be applied to the specified value; otherwise, {@literal false}.
+         */
+        public abstract boolean match(final I value);
 
-        private SwitchNode<I, O> append(final Predicate<? super I> condition,
-                                        final Function<? super I, ? extends O> action) {
-            return this.nextNode = new SwitchNode<>(condition, action);
+        private CaseStatement<I, O> append(final CaseStatement<I, O> nextCase) {
+            return this.nextNode = nextCase;
         }
 
         private Callable<O> createTask(final I value) {
             return new ExceptionalCallable<O, ExceptionPlaceholder>() {
                 @Override
                 public O call() {
-                    return predicate.apply(value) ? transformer.apply(value) : null;
+                    return match(value) ? apply(value) : null;
                 }
             };
         }
+
+        /**
+         * Releases linked cases.
+         */
+        private void clear(){
+            if(nextNode != null)
+                nextNode.clear();
+            nextNode = null;
+        }
+
+        private CaseStatement<I, O> getNextNode(){
+            return nextNode;
+        }
     }
 
-    private SwitchNode<I, O> first = null;
-    private SwitchNode<I, O> last = null;
-    private Function<? super I, ? extends O> defaultCase = null;
+    /**
+     * Represents case-statement with forwarding of condition check and transformation
+     * to the specified instances of functional interfaces.
+     * @param <I> Input value to check.
+     * @param <O> Transformation result.
+     */
+    protected static final class ForwardingStatement<I, O> extends CaseStatement<I, O>{
+        private final Predicate<? super I> matcher;
+        private final Function<? super I, ? extends O> transformer;
+
+        public ForwardingStatement(final Predicate<? super I> matcher,
+                                 final Function<? super I, ? extends O> transformer){
+            this.matcher = Objects.requireNonNull(matcher, "matcher is null");
+            this.transformer = Objects.requireNonNull(transformer, "transformer is null");
+        }
+
+        @Override
+        public boolean match(final I value) {
+            return matcher.apply(value);
+        }
+
+        @Override
+        public O apply(final I input) {
+            return transformer.apply(input);
+        }
+    }
+
+    private CaseStatement<I, O> first;
+    private CaseStatement<I, O> last;
+    private Function<? super I, ? extends O> defaultCase;
+
+    private static <I, O> CaseStatement<I, O> equalsToNullStatement(final Supplier<? extends O> action){
+        return new CaseStatement<I, O>() {
+            @Override
+            public boolean match(final I value) {
+                return value == null;
+            }
+
+            @Override
+            public O apply(final Object input) {
+                return action.get();
+            }
+        };
+    }
+
+    private static <I, O> CaseStatement<I, O> equalsStatement(final I expected,
+                                                              final Function<? super I, ? extends O> action){
+        return new CaseStatement<I, O>() {
+            @Override
+            public boolean match(final I value) {
+                return Objects.equals(expected, value);
+            }
+
+            @Override
+            public O apply(final I input) {
+                return action.apply(input);
+            }
+        };
+    }
+
+    private static <I, O> CaseStatement<I, O> identityStatement(final I expected,
+                                                                  final Function<? super I, ? extends O> action){
+        return new CaseStatement<I, O>() {
+            @Override
+            public boolean match(final I value) {
+                return value == expected;
+            }
+
+            @Override
+            public O apply(final I input) {
+                return action.apply(input);
+            }
+        };
+    }
+
+    /**
+     * Adds a new case for this switch.
+     * @param stmt The case statement to append.
+     * @return A reference to the modified switch.
+     */
+    protected final Switch<I, O> addCase(final CaseStatement<I, O> stmt){
+        if(first == null) first = last = stmt;
+        else last = last.append(stmt);
+        return this;
+    }
 
     /**
      * Adds a new case for this switch.
@@ -54,37 +149,35 @@ public class Switch<I, O> implements Function<I, O> {
     @ThreadSafe(false)
     public final Switch<I, O> addCase(final Predicate<? super I> condition,
                         final Function<? super I, ? extends O> action){
-        if(first == null)
-            first = last = new SwitchNode<>(condition, action);
-        else last = last.append(condition, action);
-        return this;
+        return addCase(new ForwardingStatement<>(condition, action));
     }
 
     @ThreadSafe(false)
     public final Switch<I, O> equals(final I value,
                                final Function<? super I, ? extends O> action) {
-        return addCase(Predicates.equalTo(value), action);
+        return addCase(equalsStatement(value, action));
     }
 
     @ThreadSafe(false)
-    public final Switch<I, O> equals(final I value,
-                               final O output) {
-        return equals(value, Functions.constant(output));
+    public final Switch<I, O> equals(final I expected,
+                                     final O output) {
+        return equals(expected, Functions.constant(output));
     }
 
-    private static <I> Predicate<I> identityEquals(final I value){
-        return new Predicate<I>() {
-            @Override
-            public boolean apply(final I other) {
-                return System.identityHashCode(value) == System.identityHashCode(other);
-            }
-        };
+    @ThreadSafe(false)
+    public final Switch<I, O> equalsToNull(final Supplier<? extends O> action){
+        return addCase(Switch.<I, O>equalsToNullStatement(action));
+    }
+
+    @ThreadSafe(false)
+    public final Switch<I, O> equalsToNull(final O result){
+        return equalsToNull(Suppliers.ofInstance(result));
     }
 
     @ThreadSafe(false)
     public final Switch<I, O> theSame(final I value,
                                 final Function<? super I, ? extends O> action){
-        return addCase(identityEquals(value), action);
+        return addCase(identityStatement(value, action));
     }
 
     @ThreadSafe(false)
@@ -109,6 +202,17 @@ public class Switch<I, O> implements Function<I, O> {
         return defaultCase(Functions.constant(output));
     }
 
+    public final O apply(final I value, final Function<? super I, ? extends O> defaultCase){
+        for (CaseStatement<I, O> lookup = first; lookup != null; lookup = lookup.getNextNode())
+            if (lookup.match(value))
+                return lookup.apply(value);
+        return defaultCase != null ? defaultCase.apply(value) : null;
+    }
+
+    public final O apply(final I value, final O defaultResult){
+        return apply(value, Functions.constant(defaultResult));
+    }
+
     /**
      * Executes switch over conditions.
      * @param value The value to process.
@@ -117,15 +221,12 @@ public class Switch<I, O> implements Function<I, O> {
     @ThreadSafe
     @Override
     public final O apply(final I value) {
-        for (SwitchNode<I, O> lookup = first; lookup != null; lookup = lookup.nextNode)
-            if (lookup.predicate.apply(value))
-                return lookup.transformer.apply(value);
-        return defaultCase != null ? defaultCase.apply(value) : null;
+        return apply(value, defaultCase);
     }
 
     private O apply(final I value, final CompletionService<O> batch) throws InterruptedException, ExecutionException {
         int submitted = 0;
-        for (SwitchNode<I, O> lookup = first; lookup != null; lookup = lookup.nextNode, submitted++)
+        for (CaseStatement<I, O> lookup = first; lookup != null; lookup = lookup.getNextNode(), submitted++)
             batch.submit(lookup.createTask(value));
         for(;submitted >0; submitted--){
             final O result = batch.take().get();
@@ -150,7 +251,9 @@ public class Switch<I, O> implements Function<I, O> {
      * Removes all statements in this object.
      * @return This object.
      */
-    public final Switch<I, O> reset(){
+    public final Switch<I, O> reset() {
+        if (first != null)
+            first.clear();
         first = last = null;
         defaultCase = null;
         return this;

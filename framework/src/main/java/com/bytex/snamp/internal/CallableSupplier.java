@@ -28,4 +28,14 @@ public abstract class CallableSupplier<V> implements ExceptionalCallable<V, Exce
             }
         };
     }
+
+    public static <V> CallableSupplier<V> create(final Runnable action, final V value){
+        return new CallableSupplier<V>() {
+            @Override
+            public V get() {
+                action.run();
+                return value;
+            }
+        };
+    }
 }
