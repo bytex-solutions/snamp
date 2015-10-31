@@ -89,6 +89,10 @@ public class WriteOnceRef<T> implements Wrapper<T>, Supplier<T> {
         return v != null ? v.hashCode() : 0;
     }
 
+    private boolean equals(final WriteOnceRef<?> other){
+        return Objects.equals(value, other.get());
+    }
+
     /**
      * Determines whether the stored object equals to the specified object.
      * @param obj An object to compare.
@@ -97,7 +101,7 @@ public class WriteOnceRef<T> implements Wrapper<T>, Supplier<T> {
     @Override
     public boolean equals(final Object obj) {
         return obj instanceof WriteOnceRef<?> ?
-                equals(((WriteOnceRef<?>) obj).get()) :
+                equals(((WriteOnceRef<?>) obj)) :
                 Objects.equals(value, obj);
 
     }

@@ -1,8 +1,8 @@
 package com.bytex.snamp.concurrent;
 
-import com.google.common.collect.ImmutableMap;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.TimeSpan;
+import com.google.common.collect.ImmutableMap;
 
 import java.util.EnumSet;
 import java.util.concurrent.locks.Lock;
@@ -263,4 +263,5 @@ public abstract class ThreadSafeObject {
     protected final void endRead() {
         endRead(SingleResourceGroup.INSTANCE);
     }
+
 }

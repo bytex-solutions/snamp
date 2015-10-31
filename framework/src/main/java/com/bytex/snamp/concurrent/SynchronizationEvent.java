@@ -1,10 +1,7 @@
 package com.bytex.snamp.concurrent;
 
-import com.bytex.snamp.Consumer;
 import com.google.common.util.concurrent.AbstractFuture;
 import com.google.common.util.concurrent.ListenableFuture;
-
-import java.util.concurrent.Future;
 
 /**
  * Represents synchronization event that is used to synchronize with some
@@ -89,20 +86,5 @@ public class SynchronizationEvent<T> {
      */
     public final ListenableFuture<T> getAwaitor() {
         return state;
-    }
-
-    protected final <E extends Throwable> Future<T> getAwaitor(final Consumer<? super SynchronizationEvent<T>, E> handler) throws E{
-        final Future<T> awaitor = getAwaitor();
-        handler.accept(this);
-        return awaitor;
-    }
-
-    public static <T, E extends Throwable> Future<T> processEvent(final Consumer<? super SynchronizationEvent<T>, E> handler,
-                                                                 final boolean autoReset) throws E{
-        return new SynchronizationEvent<T>(autoReset).getAwaitor(handler);
-    }
-
-    public static <T, E extends Throwable> Future<T> processEvent(final Consumer<? super SynchronizationEvent<T>, E> handler) throws E{
-        return processEvent(handler, DEFAULT_AUTO_RESET);
     }
 }

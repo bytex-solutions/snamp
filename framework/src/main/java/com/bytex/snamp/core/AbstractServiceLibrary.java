@@ -3,7 +3,6 @@ package com.bytex.snamp.core;
 import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.ThreadSafe;
-import com.bytex.snamp.concurrent.CriticalSection;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -13,7 +12,6 @@ import org.osgi.service.cm.ManagedServiceFactory;
 
 import java.lang.ref.WeakReference;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -146,14 +144,6 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             ownDependencies = ImmutableList.copyOf(dependencies);
             registration = null;
             properties = emptyActivationPropertyReader;
-        }
-
-        /**
-         * Returns the global synchronization object for the underlying service library.
-         * @return The global synchronization object.
-         */
-        protected final CriticalSection getGlobalMonitor(){
-            return properties.getValue(GLOBAL_MONITOR);
         }
 
         /**
@@ -764,13 +754,6 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         }
     }
 
-    private static final class GlobalMonitor extends CriticalSection {
-        private static final String NAME = "GLOBAL_MONITOR";
-        private GlobalMonitor(){
-
-        }
-    }
-
     private static final class WeakBundleReference extends WeakReference<Bundle> implements BundleReference{
         private static final String ACTIVATION_PROPERTY_NAME = "BUNDLE_REF";
 
@@ -784,18 +767,9 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         }
     }
 
-    /**
-     * Represents activation property that holds a reference to the library-wide
-     * synchronization object.
-     * <p>
-     *      The global monitor is used by service library when starting and stopping
-     *      the bundle.
-     */
-    private static final NamedActivationProperty<CriticalSection> GLOBAL_MONITOR = defineActivationProperty(GlobalMonitor.NAME, CriticalSection.class);
     private static final NamedActivationProperty<WeakBundleReference> BUNDLE_REF = defineActivationProperty(WeakBundleReference.ACTIVATION_PROPERTY_NAME, WeakBundleReference.class);
     private final ProvidedServices serviceRegistry;
     private final List<ProvidedService<?, ?>> providedServices;
-    private final GlobalMonitor monitor;
 
     /**
      * Initializes a new bundle with the specified collection of provided services.
@@ -813,8 +787,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
     protected AbstractServiceLibrary(final ProvidedServices providedServices){
         if(providedServices == null) throw new IllegalArgumentException("providedServices is null.");
         this.serviceRegistry = providedServices;
-        this.providedServices = new ArrayList<>(10);
-        monitor = new GlobalMonitor();
+        this.providedServices = new LinkedList<>();
     }
 
     /**
@@ -832,14 +805,8 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      * @throws Exception The bundle cannot be started.
      */
     @Override
-    protected final void start(final BundleContext context, final Collection<RequiredService<?>> bundleLevelDependencies) throws Exception {
-        monitor.synchronizedInvoke(new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                start(bundleLevelDependencies);
-                return null;
-            }
-        });
+    protected final synchronized void start(final BundleContext context, final Collection<RequiredService<?>> bundleLevelDependencies) throws Exception {
+        start(bundleLevelDependencies);
     }
 
     /**
@@ -858,21 +825,14 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      * @throws Exception Bundle activation error.
      */
     @Override
-    protected final void activate(final BundleContext context,
+    protected final synchronized void activate(final BundleContext context,
                                   final ActivationPropertyPublisher activationProperties,
                                   final RequiredService<?>... dependencies) throws Exception {
-        monitor.synchronizedInvoke(new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                activationProperties.publish(GLOBAL_MONITOR, monitor);
-                activationProperties.publish(BUNDLE_REF, new WeakBundleReference(AbstractServiceLibrary.this));
-                activate(activationProperties, dependencies);
-                serviceRegistry.provide(providedServices, getActivationProperties(), dependencies);
-                for(final ProvidedService<?, ?> service: providedServices)
-                    service.register(context, getActivationProperties());
-                return null;
-            }
-        });
+        activationProperties.publish(BUNDLE_REF, new WeakBundleReference(AbstractServiceLibrary.this));
+        activate(activationProperties, dependencies);
+        serviceRegistry.provide(providedServices, getActivationProperties(), dependencies);
+        for (final ProvidedService<?, ?> service : providedServices)
+            service.register(context, getActivationProperties());
     }
 
     /**
@@ -899,15 +859,9 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      * @throws Exception Deactivation error.
      */
     @Override
-    protected final void deactivate(final BundleContext context, final ActivationPropertyReader activationProperties) throws Exception {
-        monitor.synchronizedInvoke(new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                unregister(context, providedServices);
-                deactivate(activationProperties);
-                return null;
-            }
-        });
+    protected final synchronized void deactivate(final BundleContext context, final ActivationPropertyReader activationProperties) throws Exception {
+        unregister(context, providedServices);
+        deactivate(activationProperties);
     }
 
     /**
@@ -917,14 +871,8 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      * @throws java.lang.Exception Abnormal library termination.
      */
     @Override
-    protected final void shutdown(final BundleContext context) throws Exception{
-        monitor.synchronizedInvoke(new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                shutdown();
-                return null;
-            }
-        });
+    protected final synchronized void shutdown(final BundleContext context) throws Exception {
+        shutdown();
     }
 
     /**

@@ -1,11 +1,11 @@
 package com.bytex.snamp.testing.connectors.jmx;
 
-import com.google.common.base.Supplier;
-import com.google.common.reflect.TypeToken;
-import com.bytex.snamp.TypeTokens;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
+import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.OperationConfiguration;
 import com.bytex.snamp.connectors.operations.OperationSupport;
 import com.bytex.snamp.testing.connectors.AbstractResourceConnectorTest;
+import com.google.common.base.Supplier;
+import com.google.common.reflect.TypeToken;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 
@@ -58,7 +58,7 @@ public final class JmxConnectorWithMXBeanTest extends AbstractJmxConnectorTest<M
 
     @Test
     public void testForAttributes() throws Exception {
-        testAttribute("1", TypeTokens.INTEGER, 0,
+        testAttribute("1", TypeToken.of(Integer.class), 0,
                 AbstractResourceConnectorTest.<Integer>valueEquator(),
                 true);
         testAttribute("2", TypeToken.of(CompositeData.class),

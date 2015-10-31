@@ -1,7 +1,6 @@
 package com.bytex.snamp.testing.connectors.snmp;
 
 import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.TypeTokens;
 import com.bytex.snamp.concurrent.Repeater;
 import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.configuration.AgentConfiguration;
@@ -368,7 +367,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
                 arrayEquator(),
                 false);
         testAttribute("ipAddressAsString",
-                TypeTokens.STRING,
+                TypeToken.of(String.class),
                 "192.168.0.1",
                 AbstractResourceConnectorTest.<String>valueEquator(),
                 false);
@@ -382,7 +381,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
                 arrayEquator(),
                 false);
         testAttribute("oidAsString",
-                TypeTokens.STRING,
+                TypeToken.of(String.class),
                 "1.4.5.3.1",
                 AbstractResourceConnectorTest.<String>valueEquator(),
                 false);
@@ -391,7 +390,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     @Test
     public void testForGauge32Property() throws JMException {
         testAttribute("gauge",
-                TypeTokens.LONG,
+                TypeToken.of(Long.class),
                 42L,
                 false);
     }
@@ -399,7 +398,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     @Test
     public void testForCounter64Property() throws JMException {
         testAttribute("counter64",
-                TypeTokens.LONG,
+                TypeToken.of(Long.class),
                 42L,
                 false);
     }
@@ -407,7 +406,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     @Test
     public void testForCounter32Property() throws JMException {
         testAttribute("counter32",
-                TypeTokens.LONG,
+                TypeToken.of(Long.class),
                 42L,
                 AbstractResourceConnectorTest.<Long>valueEquator(),
                 false);
@@ -416,11 +415,11 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     @Test
     public void testForTimeTicksProperty() throws JMException {
         testAttribute("timeTicksAsLong",
-                TypeTokens.LONG,
+                TypeToken.of(Long.class),
                 642584970L,
                 false);
         testAttribute("timeTicksAsString",
-                TypeTokens.STRING,
+                TypeToken.of(String.class),
                 new TimeTicks(642584974L).toString(),
                 false);
     }
@@ -428,7 +427,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     @Test
     public void testForUnsignedInteger32Property() throws JMException {
         testAttribute("uint32",
-                TypeTokens.LONG,
+                TypeToken.of(Long.class),
                 42L,
                 false);
     }
@@ -436,7 +435,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     @Test
     public void testForInteger32Property() throws JMException {
         testAttribute("int32",
-                TypeTokens.INTEGER,
+                TypeToken.of(Integer.class),
                 42,
                 false);
     }
@@ -444,11 +443,11 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     @Test
     public void testForOctetStringProperty() throws IOException, JMException {
         testAttribute("octetstring",
-                TypeTokens.STRING,
+                TypeToken.of(String.class),
                 "Jack Ryan",
                 false);
         testAttribute("hexstring",
-                TypeTokens.STRING,
+                TypeToken.of(String.class),
                 new OctetString("Java Enterprise Edition").toHexString(),
                 false);
         testAttribute("octetstringAsByteArray",

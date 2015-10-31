@@ -1,13 +1,12 @@
 package com.bytex.snamp.testing.connectors.modbus;
 
-import com.google.common.base.Supplier;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.reflect.TypeToken;
-import com.bytex.snamp.TypeTokens;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.bytex.snamp.connectors.modbus.transport.ModbusSlave;
 import com.bytex.snamp.connectors.modbus.transport.ModbusTransportType;
+import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.reflect.TypeToken;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 
@@ -54,13 +53,13 @@ public final class ModbusConnectorTest extends AbstractModbusConnectorTest {
 
     @Test
     public void coilReadWriteTest() throws JMException{
-        testAttribute("C_0", TypeTokens.BOOLEAN, true);
+        testAttribute("C_0", TypeToken.of(Boolean.class), true);
     }
 
     @Test
     public void inputDiscreteReadTest() throws JMException{
-        testAttribute("ID_0", TypeTokens.BOOLEAN, DI_0.getValue(), true);
-        testAttribute("ID_1", TypeTokens.BOOLEAN, DI_1.getValue(), true);
+        testAttribute("ID_0", TypeToken.of(Boolean.class), DI_0.getValue(), true);
+        testAttribute("ID_1", TypeToken.of(Boolean.class), DI_1.getValue(), true);
     }
 
     @Test
@@ -74,8 +73,8 @@ public final class ModbusConnectorTest extends AbstractModbusConnectorTest {
 
     @Test
     public void inputRegisterReadTest() throws JMException, URISyntaxException {
-        testAttribute("IR_0", TypeTokens.SHORT, IR_0.getValue(), true);
-        testAttribute("IR_1", TypeTokens.SHORT, IR_1.getValue(), true);
+        testAttribute("IR_0", TypeToken.of(Short.class), IR_0.getValue(), true);
+        testAttribute("IR_1", TypeToken.of(Short.class), IR_1.getValue(), true);
     }
 
     @Test
@@ -89,7 +88,7 @@ public final class ModbusConnectorTest extends AbstractModbusConnectorTest {
 
     @Test
     public void registerReadWriteTest() throws JMException{
-        testAttribute("OR_0", TypeTokens.SHORT, (short)97);
+        testAttribute("OR_0", TypeToken.of(Short.class), (short)97);
     }
 
     @Test

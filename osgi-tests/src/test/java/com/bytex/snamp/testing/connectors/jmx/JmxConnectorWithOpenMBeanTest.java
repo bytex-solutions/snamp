@@ -246,32 +246,32 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
 
     @Test
     public final void testForDateProperty() throws Exception {
-        testAttribute("9.0", TypeTokens.DATE, new Date());
+        testAttribute("9.0", TypeToken.of(Date.class), new Date());
     }
 
     @Test
     public final void testForFloatProperty() throws Exception {
-        testAttribute("8.0", TypeTokens.FLOAT, 3.14F);
+        testAttribute("8.0", TypeToken.of(Float.class), 3.14F);
     }
 
     @Test
-    public final void testForBigIntProperty() throws Exception {
-        testAttribute("4.0", TypeTokens.BIG_INTEGER, BigInteger.valueOf(100500));
+    public void testForBigIntProperty() throws Exception {
+        testAttribute("4.0", TypeToken.of(BigInteger.class), BigInteger.valueOf(100500));
     }
 
     @Test
-    public final void testForInt32Property() throws Exception {
-        testAttribute("3.0", TypeTokens.INTEGER, 42);
+    public void testForInt32Property() throws Exception {
+        testAttribute("3.0", TypeToken.of(Integer.class), 42);
     }
 
     @Test
-    public final void testForBooleanProperty() throws Exception {
-        testAttribute("2.0", TypeTokens.BOOLEAN, Boolean.TRUE);
+    public void testForBooleanProperty() throws Exception {
+        testAttribute("2.0", TypeToken.of(Boolean.class), Boolean.TRUE);
     }
 
     @Test
-    public final void testForStringProperty() throws Exception {
-        testAttribute("1.0", TypeTokens.STRING, "Frank Underwood");
+    public void testForStringProperty() throws Exception {
+        testAttribute("1.0", TypeToken.of(String.class), "Frank Underwood");
     }
 
     @Test

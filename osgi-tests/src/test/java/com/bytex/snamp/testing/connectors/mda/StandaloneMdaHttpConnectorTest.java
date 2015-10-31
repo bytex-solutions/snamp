@@ -1,7 +1,6 @@
 package com.bytex.snamp.testing.connectors.mda;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.TypeTokens;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.notifications.NotificationSupport;
 import com.bytex.snamp.connectors.notifications.SynchronizationListener;
@@ -51,8 +50,8 @@ public final class StandaloneMdaHttpConnectorTest extends AbstractMdaConnectorTe
         assertEquals(0, result.getAsShort());
         result = getAttributeViaHttp("short");
         assertEquals(52, result.getAsShort());
-        testAttribute("attr1", TypeTokens.SHORT, (short) 52, true);
-        testAttribute("alias", TypeTokens.SHORT, (short)52, true);
+        testAttribute("attr1", TypeToken.of(Short.class), (short) 52, true);
+        testAttribute("alias", TypeToken.of(Short.class), (short)52, true);
     }
 
     @Test
@@ -90,7 +89,7 @@ public final class StandaloneMdaHttpConnectorTest extends AbstractMdaConnectorTe
         assertEquals(BigInteger.ZERO, result.getAsBigInteger());
         result = getAttributeViaHttp("biginteger");
         assertEquals(expectedValue, result.getAsBigInteger());
-        testAttribute("attr3", TypeTokens.BIG_INTEGER, expectedValue, true);
+        testAttribute("attr3", TypeToken.of(BigInteger.class), expectedValue, true);
     }
 
     @Test
@@ -100,7 +99,7 @@ public final class StandaloneMdaHttpConnectorTest extends AbstractMdaConnectorTe
         assertEquals("", result.getAsString());
         result = getAttributeViaHttp("str");
         assertEquals(expectedValue, result.getAsString());
-        testAttribute("attr4", TypeTokens.STRING, expectedValue, true);
+        testAttribute("attr4", TypeToken.of(String.class), expectedValue, true);
     }
 
     @Test
@@ -119,7 +118,7 @@ public final class StandaloneMdaHttpConnectorTest extends AbstractMdaConnectorTe
         assertFalse(result.getAsBoolean());
         result = getAttributeViaHttp("boolean");
         assertTrue(result.getAsBoolean());
-        testAttribute("attr6", TypeTokens.BOOLEAN, Boolean.TRUE, true);
+        testAttribute("attr6", TypeToken.of(Boolean.class), Boolean.TRUE, true);
     }
 
     @Test
@@ -128,7 +127,7 @@ public final class StandaloneMdaHttpConnectorTest extends AbstractMdaConnectorTe
         assertEquals(0L, result.getAsLong());
         result = getAttributeViaHttp("long");
         assertEquals(901L, result.getAsLong());
-        testAttribute("attr7", TypeTokens.LONG, 901L, true);
+        testAttribute("attr7", TypeToken.of(Long.class), 901L, true);
     }
 
     @Test
@@ -165,9 +164,9 @@ public final class StandaloneMdaHttpConnectorTest extends AbstractMdaConnectorTe
         values.addProperty("boolean", true);
         values.addProperty("str", "Barry Burton");
         assertNotNull(setAttributesViaHttp(values));
-        testAttribute("attr7", TypeTokens.LONG, 506L, true);
-        testAttribute("attr6", TypeTokens.BOOLEAN, Boolean.TRUE, true);
-        testAttribute("attr4", TypeTokens.STRING, "Barry Burton", true);
+        testAttribute("attr7", TypeToken.of(Long.class), 506L, true);
+        testAttribute("attr6", TypeToken.of(Boolean.class), Boolean.TRUE, true);
+        testAttribute("attr4", TypeToken.of(String.class), "Barry Burton", true);
     }
 
     @Test
@@ -198,10 +197,10 @@ public final class StandaloneMdaHttpConnectorTest extends AbstractMdaConnectorTe
         assertEquals(0L, result.getAsLong());
         result = getAttributeViaHttp("long");
         assertEquals(502L, result.getAsLong());
-        testAttribute("attr7", TypeTokens.LONG, 502L, true);
+        testAttribute("attr7", TypeToken.of(Long.class), 502L, true);
         Thread.sleep(10010);
         try {
-            testAttribute("attr7", TypeTokens.LONG, 502L, true);
+            testAttribute("attr7", TypeToken.of(Long.class), 502L, true);
         }catch (final JMException e){
             assertTrue(e.getCause() instanceof IllegalStateException);
             return;

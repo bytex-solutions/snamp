@@ -102,9 +102,10 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ReentrantRea
      * @param readTimeout Timeout value used for acquiring read lock.
      * @param <V> Type of the resource reading value operation.
      * @return The value obtained from the resource.
-     * @throws java.util.concurrent.TimeoutException Read lock cannot be acquired in the specified time.
+     * @throws TimeoutException Read lock cannot be acquired in the specified time.
+     * @throws InterruptedException Synchronization interrupted.
      */
-    public final <V> V read(final ConsistentAction<R, V> reader, final TimeSpan readTimeout) throws TimeoutException{
+    public final <V> V read(final ConsistentAction<R, V> reader, final TimeSpan readTimeout) throws TimeoutException, InterruptedException {
         return read((Action<R, V, ExceptionPlaceholder>)reader, readTimeout);
     }
 
@@ -141,19 +142,15 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ReentrantRea
      * @param <E> Type of the exception that can be raised by reader.
      * @return The reading operation result.
      * @throws E Type of the exception that can be raised by reader.
-     * @throws java.util.concurrent.TimeoutException Read lock cannot be acquired in the specified time.
+     * @throws TimeoutException Read lock cannot be acquired in the specified time.
+     * @throws InterruptedException Synchronization interrupted.
      */
-    public final <V, E extends Throwable> V read(final Action<R, V, E> reader, final TimeSpan readTimeout) throws E, TimeoutException{
+    public final <V, E extends Throwable> V read(final Action<R, V, E> reader, final TimeSpan readTimeout) throws E, TimeoutException, InterruptedException {
         if(reader == null) return null;
         final Lock rl = readLock();
-        if(readTimeout == TimeSpan.INFINITE) rl.lock();
-        else try {
-            if(!rl.tryLock(readTimeout.duration, readTimeout.unit))
+        if(readTimeout == TimeSpan.INFINITE) rl.lockInterruptibly();
+        else if(!rl.tryLock(readTimeout.duration, readTimeout.unit))
                 throw new TimeoutException(String.format("Read operation cannot be completed in %s time.", readTimeout));
-        }
-        catch (final InterruptedException e) {
-            throw new TimeoutException(e.getMessage());
-        }
         try{
             return reader.invoke(getResource());
         }
@@ -183,9 +180,10 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ReentrantRea
      * @param writer The resource writer.
      * @param <O> Type of the resource writing operation.
      * @return The value obtained from the resource.
-     * @throws java.util.concurrent.TimeoutException Write lock cannot be acquired in the specified time.
+     * @throws TimeoutException Write lock cannot be acquired in the specified time.
+     * @throws InterruptedException Synchronization interrupted.
      */
-    public final <O> O write(final ConsistentAction<R, O> writer, final TimeSpan writeTimeout) throws TimeoutException{
+    public final <O> O write(final ConsistentAction<R, O> writer, final TimeSpan writeTimeout) throws TimeoutException, InterruptedException {
         return write((Action<R, O, ExceptionPlaceholder>)writer, writeTimeout);
     }
 
@@ -222,19 +220,15 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ReentrantRea
      * @param <E> An exception that can be raised by reader.
      * @return The value obtained from the resource.
      * @throws E An exception that can be raised by reader.
-     * @throws java.util.concurrent.TimeoutException Write lock cannot be acquired in the specified time.
+     * @throws TimeoutException Write lock cannot be acquired in the specified time.
+     * @throws InterruptedException Synchronization interrupted.
      */
-    public final <O, E extends Throwable> O write(final Action<R, O, E> writer, final TimeSpan writeTimeout) throws E, TimeoutException{
+    public final <O, E extends Throwable> O write(final Action<R, O, E> writer, final TimeSpan writeTimeout) throws E, TimeoutException, InterruptedException {
         if(writer == null) return null;
         final Lock wl = writeLock();
-        if(writeTimeout == TimeSpan.INFINITE) wl.lock();
-        else try {
-            if(!wl.tryLock(writeTimeout.duration, writeTimeout.unit))
+        if(writeTimeout == TimeSpan.INFINITE) wl.lockInterruptibly();
+        else if(!wl.tryLock(writeTimeout.duration, writeTimeout.unit))
                 throw new TimeoutException(String.format("Write operation cannot be completed in %s time.", writeTimeout));
-        }
-        catch (final InterruptedException e) {
-            throw new TimeoutException(e.getMessage());
-        }
         try{
             return writer.invoke(getResource());
         }

@@ -45,6 +45,8 @@ import com.bytex.snamp.Wrapper;
  * @version 1.0
  */
 public class ConcurrentResourceAccessor<R> extends AbstractConcurrentResourceAccessor<R> implements Wrapper<R> {
+    private static final long serialVersionUID = -5981763196807390411L;
+
     /**
      * Represents coordinated resource.
      */
@@ -94,7 +96,6 @@ public class ConcurrentResourceAccessor<R> extends AbstractConcurrentResourceAcc
      * </p>
      * @param newResource A new instance of the resource.
      */
-    @SuppressWarnings("UnusedDeclaration")
     public final void changeResource(final R newResource){
         changeResource(Suppliers.ofInstance(newResource));
     }
