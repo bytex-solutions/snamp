@@ -14,7 +14,6 @@ import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.Variable;
 
 import javax.management.MBeanAttributeInfo;
-import javax.management.ReflectionException;
 import javax.management.openmbean.ArrayType;
 import java.io.*;
 import java.lang.reflect.Array;
@@ -337,8 +336,9 @@ final class SnmpHelpers {
         return column != null ? column.getColumnID() : -1;
     }
 
-    static Object toArray(final List<?> lst, final ArrayType<?> arrayType) throws ReflectionException {
+    static Object toArray(final List<?> lst, final ArrayType<?> arrayType) {
         final Object result = ArrayUtils.newArray(arrayType, lst.size());
+        assert result != null;
         for(int i = 0; i < lst.size(); i++)
             Array.set(result, i, lst.get(i));
         return result;

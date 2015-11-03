@@ -6,9 +6,9 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import com.google.common.collect.ObjectArrays;
+import com.google.common.primitives.Primitives;
 
 import javax.management.ObjectName;
-import javax.management.ReflectionException;
 import javax.management.openmbean.*;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
@@ -34,6 +34,48 @@ public final class ArrayUtils {
                     return Array.newInstance(componentType, 0);
                 }
             });
+    private static final LoadingCache<OpenType<?>, Class<?>> OPEN_TYPE_MAPPING =
+            CacheBuilder.newBuilder()
+                    .maximumSize(20)
+                    .softValues()
+                    .build(new CacheLoader<OpenType<?>, Class<?>>() {
+                        @Override
+                        public Class<?> load(final OpenType<?> elementType) throws ClassNotFoundException {
+                            if(Objects.equals(SimpleType.BYTE, elementType))
+                                return Byte.class;
+                            else if(SimpleType.CHARACTER.equals(elementType))
+                                return Character.class;
+                            else if(SimpleType.SHORT.equals(elementType))
+                                return Short.class;
+                            else if(SimpleType.INTEGER.equals(elementType))
+                                return Integer.class;
+                            else if(SimpleType.LONG.equals(elementType))
+                                return Long.class;
+                            else if(SimpleType.BOOLEAN.equals(elementType))
+                                return Boolean.class;
+                            else if(SimpleType.FLOAT.equals(elementType))
+                                return Float.class;
+                            else if(SimpleType.DOUBLE.equals(elementType))
+                                return Double.class;
+                            else if(SimpleType.VOID.equals(elementType))
+                                return Void.class;
+                            else if(SimpleType.STRING.equals(elementType))
+                                return String.class;
+                            else if(SimpleType.BIGDECIMAL.equals(elementType))
+                                return BigDecimal.class;
+                            else if(SimpleType.BIGINTEGER.equals(elementType))
+                                return BigInteger.class;
+                            else if(SimpleType.DATE.equals(elementType))
+                                return Date.class;
+                            else if(SimpleType.OBJECTNAME.equals(elementType))
+                                return ObjectName.class;
+                            else if(elementType instanceof CompositeType)
+                                return CompositeData.class;
+                            else if(elementType instanceof TabularType)
+                                return TabularData.class;
+                            else return Class.forName(elementType.getClassName());
+                        }
+                    });
 
     private ArrayUtils(){
     }
@@ -287,49 +329,13 @@ public final class ArrayUtils {
         return toArray(result, elementType);
     }
 
-
-
     private static Object newArray(final OpenType<?> elementType,
                                    final int[] dimensions,
-                                   final boolean isPrimitive) throws ReflectionException {
-        if(Objects.equals(SimpleType.BYTE, elementType))
-            return Array.newInstance(isPrimitive ? byte.class : Byte.class, dimensions);
-        else if(SimpleType.CHARACTER.equals(elementType))
-            return Array.newInstance(isPrimitive ? char.class : Character.class, dimensions);
-        else if(SimpleType.SHORT.equals(elementType))
-            return Array.newInstance(isPrimitive ? short.class : Short.class, dimensions);
-        else if(SimpleType.INTEGER.equals(elementType))
-            return Array.newInstance(isPrimitive ? int.class : Integer.class, dimensions);
-        else if(SimpleType.LONG.equals(elementType))
-            return Array.newInstance(isPrimitive ? long.class : Long.class, dimensions);
-        else if(SimpleType.BOOLEAN.equals(elementType))
-            return Array.newInstance(isPrimitive ? boolean.class : Boolean.class, dimensions);
-        else if(SimpleType.FLOAT.equals(elementType))
-            return Array.newInstance(isPrimitive ? float.class : Float.class, dimensions);
-        else if(SimpleType.DOUBLE.equals(elementType))
-            return Array.newInstance(isPrimitive ? double.class : Double.class, dimensions);
-        else if(SimpleType.VOID.equals(elementType))
-            return Array.newInstance(isPrimitive ? void.class : Void.class, dimensions);
-        else if(SimpleType.STRING.equals(elementType))
-            return Array.newInstance(String.class, dimensions);
-        else if(SimpleType.BIGDECIMAL.equals(elementType))
-            return Array.newInstance(BigDecimal.class, dimensions);
-        else if(SimpleType.BIGINTEGER.equals(elementType))
-            return Array.newInstance(BigInteger.class, dimensions);
-        else if(SimpleType.DATE.equals(elementType))
-            return Array.newInstance(Date.class, dimensions);
-        else if(SimpleType.OBJECTNAME.equals(elementType))
-            return Array.newInstance(ObjectName.class, dimensions);
-        else if(elementType instanceof CompositeType)
-            return Array.newInstance(CompositeData.class, dimensions);
-        else if(elementType instanceof TabularType)
-            return Array.newInstance(TabularData.class, dimensions);
-        else try{
-            return Array.newInstance(Class.forName(elementType.getClassName()), dimensions);
-        }
-        catch (final ClassNotFoundException e){
-            throw new ReflectionException(e);
-        }
+                                   final boolean isPrimitive) {
+        Class<?> itemType = OPEN_TYPE_MAPPING.getUnchecked(elementType);
+        if (itemType == null) return null;
+        else if (isPrimitive) itemType = Primitives.unwrap(itemType);
+        return Array.newInstance(itemType, dimensions);
     }
 
     /**
@@ -337,11 +343,10 @@ public final class ArrayUtils {
      * @param arrayType An array type definition.
      * @param dimensions An array of length of each dimension.
      * @return A new empty array.
-     * @throws ReflectionException Unable to create a new array.
      * @throws java.lang.IllegalArgumentException The specified number of dimensions doesn't match to the number of dimensions
      * in the array definition.
      */
-    public static Object newArray(final ArrayType<?> arrayType, final int... dimensions) throws ReflectionException {
+    public static Object newArray(final ArrayType<?> arrayType, final int... dimensions) {
         if(arrayType == null)
             return null;
         else if(dimensions.length != arrayType.getDimension())
