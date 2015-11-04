@@ -1,5 +1,6 @@
 package com.bytex.snamp.connectors.modbus.transport;
 
+import com.bytex.snamp.SafeCloseable;
 import com.ghgande.j2mod.modbus.io.ModbusUDPTransaction;
 import com.ghgande.j2mod.modbus.net.UDPMasterConnection;
 
@@ -11,7 +12,7 @@ import java.net.UnknownHostException;
  * Represents UDP transport for Modbus.
  * This class cannot be inherited.
  */
-final class UdpModbusMaster extends AbstractModbusMaster {
+final class UdpModbusMaster extends AbstractModbusMaster implements SafeCloseable {
     private final UDPMasterConnection connection;
 
     UdpModbusMaster(final InetAddress addr, final int port){

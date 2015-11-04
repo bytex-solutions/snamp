@@ -793,7 +793,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     protected ManagedResourceActivator(final ManagedResourceConnectorLifecycleController<TConnector> controller,
                                        final RequiredService<?>[] connectorDependencies,
                                        final SupportConnectorServiceManager<?, ?>[] optionalServices){
-        super(ArrayUtils.addToEnd(optionalServices, new ManagedResourceConnectorRegistry<>(controller, connectorDependencies), ProvidedService.class));
+        super(ArrayUtils.add(optionalServices, new ManagedResourceConnectorRegistry<>(controller, connectorDependencies), ProvidedService.class));
         this.prerequisitesOK = false;
     }
 
@@ -1088,8 +1088,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
     static boolean isResourceConnector(final ServiceReference<?> ref){
         return Utils.isInstanceOf(ref, ManagedResourceConnector.class) &&
-                ArrayUtils.contains(ref.getPropertyKeys(), CONNECTOR_NAME_MANIFEST_HEADER) &&
-                ArrayUtils.contains(ref.getPropertyKeys(), MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY);
+                ArrayUtils.containsAll(ref.getPropertyKeys(), CONNECTOR_NAME_MANIFEST_HEADER, MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY);
     }
 
     private static BigInteger toBigInteger(final String value){

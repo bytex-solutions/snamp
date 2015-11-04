@@ -1,5 +1,6 @@
 package com.bytex.snamp.connectors.mda.http;
 
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.VolatileBox;
@@ -119,7 +120,7 @@ public final class HttpDataAcceptor extends AbstractManagedResourceConnector imp
         }
     }
 
-    private static final class HttpAttributeRepository extends MDAAttributeRepository<HttpAttributeAccessor> {
+    private static final class HttpAttributeRepository extends MDAAttributeRepository<HttpAttributeAccessor> implements SafeCloseable {
         private static final Class<HttpAttributeAccessor> FEATURE_TYPE = HttpAttributeAccessor.class;
         private final Cache<String, HttpValueParser> parsers;
 

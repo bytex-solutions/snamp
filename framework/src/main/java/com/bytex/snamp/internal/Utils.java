@@ -2,9 +2,11 @@ package com.bytex.snamp.internal;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.ExceptionalCallable;
-import com.bytex.snamp.Wrapper;
 import com.bytex.snamp.Internal;
-import com.google.common.base.*;
+import com.google.common.base.Joiner;
+import com.google.common.base.StandardSystemProperty;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
@@ -13,13 +15,8 @@ import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
-import java.lang.ref.Reference;
-import java.lang.ref.WeakReference;
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.util.*;
-import java.util.Objects;
 import java.util.concurrent.Callable;
 
 import static org.osgi.framework.Constants.OBJECTCLASS;
@@ -35,21 +32,6 @@ import static org.osgi.framework.Constants.OBJECTCLASS;
  */
 @Internal
 public final class Utils {
-    private static final class WeakInvocationHandler<T> extends WeakReference<T> implements InvocationHandler, Wrapper<T>{
-        private WeakInvocationHandler(final T obj){
-            super(obj);
-        }
-
-        @Override
-        public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-            return method.invoke(get(), args);
-        }
-
-        @Override
-        public <R> R handle(final Function<T, R> handler) {
-            return handler.apply(get());
-        }
-    }
 
     /**
      * Determines whether the underlying OS is Linux.
@@ -81,36 +63,10 @@ public final class Utils {
         return StandardSystemProperty.OS_NAME.value();
     }
 
-    /**
-     * Isolates the interface reference from the implementation class.
-     * @param obj An implementation of the interface.
-     * @param iface An interface to isolate.
-     * @param <I> Type of the interface to isolate.
-     * @param <T> The class that implements the interface to isolate.
-     * @return A reference to the implemented interface that cannot be casted to implementer.
-     * @throws java.lang.IllegalArgumentException iface is not an interface.
-     */
-    public static  <I, T extends I> I isolate(final T obj, final Class<I> iface) {
-        return iface.cast(Proxy.newProxyInstance(iface.getClassLoader(), new Class<?>[]{iface}, new InvocationHandler() {
-            @Override
-            public final Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-                return method.invoke(obj, args);
-            }
-        }));
-    }
-
-    private static <I, T extends I, R extends Reference<T> & InvocationHandler> I wrapReference(final R obj, final Class<I> iface){
-        return iface.cast(Proxy.newProxyInstance(iface.getClassLoader(), new Class<?>[]{iface}, obj));
-    }
-
-    public static <I, T extends I> I weakReference(final T obj, final Class<I> iface) {
-        return wrapReference(new WeakInvocationHandler<>(obj), iface);
-    }
-
-    public static String getFullyQualifiedResourceName(Class<?> locator, String name){
-        if (!name.startsWith("/")) {
-            while (locator.isArray())
-                locator = locator.getComponentType();
+    public static String getFullyQualifiedResourceName(final Class<?> locator, String name){
+        if(locator.isArray())
+            return getFullyQualifiedResourceName(locator.getComponentType(), name);
+        else if (!name.startsWith("/")) {
             final String baseName = locator.getName();
             final int index = baseName.lastIndexOf('.');
             if (index != -1)
@@ -128,8 +84,12 @@ public final class Utils {
      * @return Cast result; or {@literal null}, if the specified object is not instance
      * of the specified type.
      */
-    public static <T> T safeCast(final Object obj, final Class<T> resultType){
-        return obj != null && resultType.isInstance(obj) ? resultType.cast(obj) : null;
+    public static <T> T safeCast(final Object obj, final Class<T> resultType) {
+        try {
+            return resultType.cast(obj);
+        } catch (final ClassCastException e) {
+            return null;
+        }
     }
 
     /**
@@ -146,7 +106,7 @@ public final class Utils {
 
     private static boolean isInstanceOf(final ServiceReference<?> serviceRef, final String serviceType) {
         final Object names = serviceRef.getProperty(OBJECTCLASS);
-        return names instanceof Object[] && ArrayUtils.contains((Object[]) names, serviceType);
+        return names instanceof Object[] && ArrayUtils.containsAny((Object[]) names, serviceType);
     }
 
     /**
@@ -307,12 +267,6 @@ public final class Utils {
         finally {
             currentThread.setContextClassLoader(previous);
         }
-    }
-
-    public static <T> boolean collectionsAreEqual(final Collection<T> collection1, final Collection<T> collection2) {
-        if (collection1 == null) return collection2 == null;
-        else
-            return collection2 != null && collection1.size() == collection2.size() && collection1.containsAll(collection2);
     }
 
     public static <K, V> boolean mapsAreEqual(final Map<K, V> map1,

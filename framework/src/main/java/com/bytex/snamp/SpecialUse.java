@@ -6,8 +6,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks the method or field as an element with special use.
- * This means that the program element is used by Reflection.
+ * Marks the method, field, constructor or parameter as an element with special use.
+ * This means that the program element is used by Reflection or native code
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0

@@ -1,5 +1,6 @@
 package com.bytex.jcommands.channels;
 
+import com.bytex.snamp.SafeCloseable;
 import com.google.common.collect.ImmutableMap;
 import com.bytex.jcommands.ChannelProcessingMode;
 import com.bytex.jcommands.ChannelProcessor;
@@ -24,7 +25,7 @@ import java.util.Set;
  * @version 1.0
  * @since 1.0
  */
-public final class LocalProcessExecutionChannel extends HashMap<String, String> implements CommandExecutionChannel {
+public final class LocalProcessExecutionChannel extends HashMap<String, String> implements CommandExecutionChannel, SafeCloseable {
     public static final String CHANNEL_NAME = "process";
     private static final String NORMAL_EXIT_CODE_PARAM = "normalExitCode";
     private static final long serialVersionUID = 5308027932652020638L;

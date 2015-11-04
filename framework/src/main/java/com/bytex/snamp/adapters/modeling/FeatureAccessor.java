@@ -1,13 +1,13 @@
 package com.bytex.snamp.adapters.modeling;
 
-import com.google.common.base.Supplier;
-import com.bytex.snamp.connectors.FeatureModifiedEvent;
 import com.bytex.snamp.Internal;
+import com.bytex.snamp.SafeCloseable;
+import com.bytex.snamp.connectors.FeatureModifiedEvent;
+import com.google.common.base.Supplier;
 
 import javax.management.Descriptor;
 import javax.management.DescriptorRead;
 import javax.management.MBeanFeatureInfo;
-import java.io.Closeable;
 import java.util.Iterator;
 import java.util.Objects;
 
@@ -16,7 +16,7 @@ import java.util.Objects;
  * This class cannot be derived directly from your code.
  * @param <M> The type of the managed resource feature.
  */
-public abstract class FeatureAccessor<M extends MBeanFeatureInfo> implements Supplier<M>, DescriptorRead, Closeable {
+public abstract class FeatureAccessor<M extends MBeanFeatureInfo> implements Supplier<M>, DescriptorRead, SafeCloseable {
     private final M metadata;
 
     FeatureAccessor(final M metadata){

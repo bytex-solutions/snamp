@@ -22,7 +22,7 @@ public final class AggregationTest extends Assert {
 
 
     @Test
-    public final void serviceRetrievingTest(){
+    public void serviceRetrievingTest(){
         final TestAggregator provider = new TestAggregator();
         assertTrue(provider.queryObject(StringBuilder.class) != null);
         assertTrue(provider.queryObject(Short[].class) != null);

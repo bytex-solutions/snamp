@@ -1,6 +1,6 @@
 package com.bytex.snamp.jmx;
 
-import com.bytex.snamp.ArrayEnumerator;
+import com.bytex.snamp.ResettableIterator;
 import com.bytex.snamp.ThreadSafe;
 
 import javax.management.Descriptor;
@@ -59,8 +59,8 @@ final class DescriptorDictionary extends Dictionary<String, Object> {
      * @see Enumeration
      */
     @Override
-    public ArrayEnumerator<String> keys() {
-        return new ArrayEnumerator<>(fields);
+    public Enumeration<String> keys() {
+        return ResettableIterator.of(fields);
     }
 
     /**
@@ -74,8 +74,8 @@ final class DescriptorDictionary extends Dictionary<String, Object> {
      * @see Enumeration
      */
     @Override
-    public ArrayEnumerator<Object> elements() {
-        return new ArrayEnumerator<>(descr.getFieldValues(fields));
+    public Enumeration<Object> elements() {
+        return ResettableIterator.of(descr.getFieldValues(fields));
     }
 
     public Object get(final String fieldName){

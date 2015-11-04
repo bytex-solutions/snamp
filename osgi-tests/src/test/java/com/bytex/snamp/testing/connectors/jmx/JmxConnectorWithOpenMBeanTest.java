@@ -1,6 +1,5 @@
 package com.bytex.snamp.testing.connectors.jmx;
 
-import com.bytex.snamp.TypeTokens;
 import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
@@ -191,7 +190,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
     }
 
     @Test
-    public final void operationTest() throws Exception{
+    public void operationTest() throws Exception{
         final OperationSupport operationSupport = getManagementConnector(getTestBundleContext()).queryObject(OperationSupport.class);
         try{
             final byte[] array = new byte[]{1, 4, 9};
@@ -205,7 +204,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
     }
 
     @Test
-    public final void testForTableProperty() throws Exception {
+    public void testForTableProperty() throws Exception {
         final TabularData table = new TabularDataBuilder()
                 .setTypeName("Table", true)
                 .setTypeDescription("Dummy table", true)
@@ -220,14 +219,13 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         testAttribute("7.1", TypeToken.of(TabularData.class), table, new Equator<TabularData>() {
             @Override
             public boolean equate(final TabularData o1, final TabularData o2) {
-                return o1.size() == o2.size() &&
-                        Utils.collectionsAreEqual((Collection)o1.values(), (Collection)o2.values());
+                return o1.size() == o2.size() && o1.values().containsAll(o2.values());
             }
         });
     }
 
     @Test
-    public final void testForDictionaryProperty() throws Exception {
+    public void testForDictionaryProperty() throws Exception {
         final CompositeData dict = new CompositeDataBuilder()
                 .setTypeName("Dict")
                 .setTypeDescription("Descr")
@@ -239,18 +237,18 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
     }
 
     @Test
-    public final void testForArrayProperty() throws Exception {
+    public void testForArrayProperty() throws Exception {
         final short[] array = new short[]{10, 20, 30, 40, 50};
         testAttribute("5.1", TypeToken.of(short[].class), array, arrayEquator());
     }
 
     @Test
-    public final void testForDateProperty() throws Exception {
+    public void testForDateProperty() throws Exception {
         testAttribute("9.0", TypeToken.of(Date.class), new Date());
     }
 
     @Test
-    public final void testForFloatProperty() throws Exception {
+    public void testForFloatProperty() throws Exception {
         testAttribute("8.0", TypeToken.of(Float.class), 3.14F);
     }
 
@@ -298,7 +296,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
     }
 
     @Test
-    public final void testForAttributeConfigDescription(){
+    public void testForAttributeConfigDescription(){
         testConfigurationDescriptor(AgentConfiguration.ManagedResourceConfiguration.class, ImmutableSet.of(
             "login",
                 "password",
@@ -318,7 +316,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
     }
 
     @Test
-    public final void testForAttributesDiscovery(){
+    public void testForAttributesDiscovery(){
         final Collection<AttributeConfiguration> discoveredAttributes = ManagedResourceConnectorClient.discoverEntities(getTestBundleContext(),
                 CONNECTOR_NAME,
                 JMX_RMI_CONNECTION_STRING,
@@ -332,7 +330,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
     }
 
     @Test
-    public final void testForNotificationsDiscovery(){
+    public void testForNotificationsDiscovery(){
         final Collection<EventConfiguration> discoveredEvents = ManagedResourceConnectorClient.discoverEntities(getTestBundleContext(),
                 CONNECTOR_NAME,
                 JMX_RMI_CONNECTION_STRING,
@@ -346,7 +344,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
     }
 
     @Test
-    public final void maintenanceActionTest() throws InterruptedException, ExecutionException, TimeoutException {
+    public void maintenanceActionTest() throws InterruptedException, ExecutionException, TimeoutException {
         final Map<String, String> actions = ManagedResourceConnectorClient.getMaintenanceActions(getTestBundleContext(), CONNECTOR_NAME, null);
         assertFalse(actions.isEmpty());
         final String ACTION = "simulateConnectionAbort";

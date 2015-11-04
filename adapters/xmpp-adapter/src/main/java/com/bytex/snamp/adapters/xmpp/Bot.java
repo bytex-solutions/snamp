@@ -1,6 +1,7 @@
 package com.bytex.snamp.adapters.xmpp;
 
 import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.concurrent.VolatileBox;
@@ -30,7 +31,7 @@ import java.util.regex.Pattern;
  * @version 1.0
  * @since 1.0
  */
-final class Bot implements ChatManagerListener, Closeable {
+final class Bot implements ChatManagerListener, Closeable, SafeCloseable {
     private static final Pattern COMMAND_DELIMITER = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
     private static final class SayHelloLogicalOperation extends LogicalOperation {
         private static final CorrelationIdentifierGenerator CORREL_ID_GEN =
@@ -41,7 +42,7 @@ final class Bot implements ChatManagerListener, Closeable {
         }
     }
 
-    private static final class ChatSession<A extends AttributeReader & AttributeWriter> extends WeakReference<Chat> implements ChatMessageListener, Closeable, NotificationListener{
+    private static final class ChatSession<A extends AttributeReader & AttributeWriter> extends WeakReference<Chat> implements ChatMessageListener, Closeable, SafeCloseable, NotificationListener{
         private final Logger logger;
         private final A attributes;
         private volatile boolean closed;

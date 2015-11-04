@@ -13,6 +13,7 @@ import com.bytex.snamp.concurrent.VolatileBox;
  * @since 1.0
  */
 final class ScriptHolder extends VolatileBox<ResourceAdapterScript> implements AutoCloseable, NotificationListener {
+    private static final long serialVersionUID = 1639929721374659443L;
 
     @Override
     public void close() throws Exception {

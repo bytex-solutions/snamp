@@ -14,7 +14,7 @@ import java.util.ResourceBundle;
  * @version 1.0
  * @since 1.0
  */
-public class ResourceReader implements Closeable {
+public class ResourceReader implements Closeable, SafeCloseable {
     /**
      * The name of the resource.
      */

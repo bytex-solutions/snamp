@@ -19,7 +19,6 @@ package com.bytex.snamp;
  *           }
  *         }
  *     }</pre>
- * </p>
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0

@@ -1,6 +1,5 @@
 package com.bytex.snamp.testing.adapters.snmp;
 
-import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
@@ -328,7 +327,7 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
 
     private static void delete(final File f) throws IOException {
         if (f.isDirectory())
-            for (final File c : ArrayUtils.emptyIfNull(f.listFiles(), File.class))
+            for (final File c : f.listFiles())
                 delete(c);
         if (!f.delete())
             throw new FileNotFoundException("Failed to delete file: " + f);

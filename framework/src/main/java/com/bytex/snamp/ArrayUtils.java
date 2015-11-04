@@ -4,7 +4,6 @@ import com.google.common.base.Predicate;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.Lists;
 import com.google.common.collect.ObjectArrays;
 import com.google.common.primitives.Primitives;
 
@@ -13,7 +12,6 @@ import javax.management.openmbean.*;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Objects;
@@ -34,6 +32,7 @@ public final class ArrayUtils {
                     return Array.newInstance(componentType, 0);
                 }
             });
+
     private static final LoadingCache<OpenType<?>, Class<?>> OPEN_TYPE_MAPPING =
             CacheBuilder.newBuilder()
                     .maximumSize(20)
@@ -160,7 +159,7 @@ public final class ArrayUtils {
      * @param <T> Type of the array component.
      * @return A newly created array.
      */
-    public static <T> T[] addToEnd(final T[] array, final T element, final Class<T> componentType){
+    public static <T> T[] add(final T[] array, final T element, final Class<T> componentType){
         return add(array, array.length, element, componentType);
     }
 
@@ -193,123 +192,101 @@ public final class ArrayUtils {
         return result;
     }
 
-    public static boolean contains(final Object[] array, final Object element){
-        if(array == null) return false;
-        for(final Object item: array)
-            if(Objects.equals(element, item)) return true;
+    public static boolean containsAny(final Object[] array, final Object... elements) {
+        if (array == null) return false;
+        for (final Object actual : array)
+            for (final Object expected : elements)
+                if (Objects.equals(expected, actual)) return true;
         return false;
     }
 
-    public static Byte[] boxArray(final byte[] bytes) {
-        final Byte[] result = new Byte[bytes.length];
-        for (int i = 0; i < bytes.length; i++)
-            result[i] = bytes[i];
+    public static boolean containsAll(final Object[] array, final Object... elements) {
+        if (array == null) return false;
+        int counter = 0;
+        for (final Object expected : elements)
+            for (final Object actual : array)
+                if (Objects.equals(expected, actual))
+                    counter += 1;
+        return counter == elements.length;
+    }
+
+    private static Object[] boxArrayImpl(final Object primitiveArray) {
+        final Object[] result = ObjectArrays.newArray(Primitives.wrap(primitiveArray.getClass().getComponentType()),
+                Array.getLength(primitiveArray));
+        for (int i = 0; i < result.length; i++)
+            result[i] = Array.get(primitiveArray, i);
         return result;
+    }
+
+    public static Byte[] boxArray(final byte[] bytes) {
+        return (Byte[])boxArrayImpl(bytes);
     }
 
     public static Short[] boxArray(final short[] values) {
-        final Short[] result = new Short[values.length];
-        for (int i = 0; i < values.length; i++)
-            result[i] = values[i];
-        return result;
+        return (Short[])boxArrayImpl(values);
     }
 
     public static Float[] boxArray(final float[] values) {
-        final Float[] result = new Float[values.length];
-        for (int i = 0; i < values.length; i++)
-            result[i] = values[i];
-        return result;
+        return (Float[])boxArrayImpl(values);
     }
 
     public static Double[] boxArray(final double[] values) {
-        final Double[] result = new Double[values.length];
-        for (int i = 0; i < values.length; i++)
-            result[i] = values[i];
-        return result;
+        return (Double[])boxArrayImpl(values);
     }
 
     public static Character[] boxArray(final char[] values) {
-        final Character[] result = new Character[values.length];
-        for (int i = 0; i < values.length; i++)
-            result[i] = values[i];
-        return result;
+        return (Character[])boxArrayImpl(values);
     }
 
     public static Long[] boxArray(final long[] values) {
-        final Long[] result = new Long[values.length];
-        for (int i = 0; i < values.length; i++)
-            result[i] = values[i];
+        return (Long[])boxArrayImpl(values);
+    }
+
+    public static Integer[] boxArray(final int[] value){
+        return (Integer[])boxArrayImpl(value);
+    }
+
+    public static Boolean[] boxArray(final boolean[] value){
+        return (Boolean[])boxArrayImpl(value);
+    }
+
+    private static Object unboxArrayImpl(final Object[] array){
+        final Object result = Array.newInstance(Primitives.unwrap(array.getClass().getComponentType()), array.length);
+        for(int i = 0; i < array.length; i++)
+            Array.set(result, i, array[i]);
         return result;
     }
 
     public static byte[] unboxArray(final Byte[] value) {
-        final byte[] result = new byte[value.length];
-        for(int i = 0; i < value.length; i++)
-            result[i] = value[i];
-        return result;
+        return (byte[])unboxArrayImpl(value);
     }
 
     public static short[] unboxArray(final Short[] value) {
-        final short[] result = new short[value.length];
-        for(int i = 0; i < value.length; i++)
-            result[i] = value[i];
-        return result;
+        return (short[]) unboxArrayImpl(value);
     }
 
-    public static boolean[] unboxArray(final Boolean[] value){
-        final boolean[] result = new boolean[value.length];
-        for(int i = 0; i < value.length; i++)
-            result[i] = value[i];
-        return result;
+    public static boolean[] unboxArray(final Boolean[] value) {
+        return (boolean[]) unboxArrayImpl(value);
     }
 
-    public static int[] unboxArray(final Integer[] value){
-        final int[] result = new int[value.length];
-        for(int i = 0; i < value.length; i++)
-            result[i] = value[i];
-        return result;
+    public static int[] unboxArray(final Integer[] value) {
+        return (int[]) unboxArrayImpl(value);
     }
 
     public static long[] unboxArray(final Long[] value){
-        final long[] result = new long[value.length];
-        for(int i = 0; i < value.length; i++)
-            result[i] = value[i];
-        return result;
+        return (long[]) unboxArrayImpl(value);
     }
 
     public static float[] unboxArray(final Float[] value){
-        final float[] result = new float[value.length];
-        for(int i = 0; i < value.length; i++)
-            result[i] = value[i];
-        return result;
+        return (float[]) unboxArrayImpl(value);
     }
 
     public static double[] unboxArray(final Double[] value){
-        final double[] result = new double[value.length];
-        for(int i = 0; i < value.length; i++)
-            result[i] = value[i];
-        return result;
+        return (double[]) unboxArrayImpl(value);
     }
 
     public static char[] unboxArray(final Character[] value){
-        final char[] result = new char[value.length];
-        for(int i = 0; i < value.length; i++)
-            result[i] = value[i];
-        return result;
-    }
-
-    public static Integer[] boxArray(final int[] value){
-        final Integer[] result = new Integer[value.length];
-        for (int i = 0; i < value.length; i++)
-            result[i] = value[i];
-        return result;
-    }
-
-    public static Boolean[] boxArray(final boolean[] value){
-        final Boolean[] result = new Boolean[value.length];
-        for (int i = 0; i < value.length; i++)
-            result[i] = value[i];
-        return result;
+        return (char[]) unboxArrayImpl(value);
     }
 
     public static <T> T find(final T[] array, final Predicate<T> filter, final T defval) {
@@ -320,13 +297,6 @@ public final class ArrayUtils {
 
     public static <T> T find(final T[] array, final Predicate<T> filter) {
         return find(array, filter, null);
-    }
-
-    public static <T> T[] filter(final T[] array, final Predicate<T> filter, final Class<T> elementType){
-        final ArrayList<T> result = Lists.newArrayListWithExpectedSize(array.length);
-        for(final T item: array)
-            if (filter.apply(item)) result.add(item);
-        return toArray(result, elementType);
     }
 
     private static Object newArray(final OpenType<?> elementType,
@@ -361,18 +331,6 @@ public final class ArrayUtils {
             return true;
         }
         else return false;
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <T> T[] emptyIfNull(final T[] items, final Class<T> elementType) {
-        return items == null ? (T[])emptyArrayImpl(elementType) : items;
-    }
-
-    @SafeVarargs
-    public static <T> T[] concat(final Class<T> elementType, T[] firstArray, final T[]... arrays) {
-        for(final T[] ar: arrays)
-            firstArray = ObjectArrays.concat(firstArray, ar, elementType);
-        return firstArray;
     }
 
     @SafeVarargs

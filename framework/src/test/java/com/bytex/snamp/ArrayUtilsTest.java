@@ -61,4 +61,22 @@ public final class ArrayUtilsTest extends Assert {
         assertTrue(array instanceof CompositeData[]);
         assertEquals(7, Array.getLength(array));
     }
+
+    @Test
+    public void boxArrayTest(){
+        final Byte[] result = ArrayUtils.boxArray(new byte[]{2, 5, 7});
+        assertEquals(3, result.length);
+        assertEquals(new Byte((byte)2), result[0]);
+        assertEquals(new Byte((byte)5), result[1]);
+        assertEquals(new Byte((byte)7), result[2]);
+    }
+
+    @Test
+    public void unboxArrayTest(){
+        final int[] result = ArrayUtils.unboxArray(new Integer[]{2, 5, 7});
+        assertEquals(3, result.length);
+        assertEquals(2, result[0]);
+        assertEquals(5, result[1]);
+        assertEquals(7, result[2]);
+    }
 }

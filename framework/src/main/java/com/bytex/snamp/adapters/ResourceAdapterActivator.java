@@ -233,7 +233,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
 
     private ResourceAdapterActivator(final ResourceAdapterRegistry<?> registry,
                                      final SupportAdapterServiceManager<?, ?>[] optionalServices) {
-        super(ArrayUtils.addToEnd(optionalServices, registry, ProvidedService.class));
+        super(ArrayUtils.add(optionalServices, registry, ProvidedService.class));
     }
 
     /**

@@ -1,6 +1,7 @@
 package com.bytex.snamp.connectors.mda.thrift;
 
 import com.bytex.snamp.Box;
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
@@ -147,7 +148,7 @@ final class ThriftDataAcceptor extends AbstractManagedResourceConnector implemen
         }
     }
 
-    private static final class ThriftAttributeRepository extends MDAAttributeRepository<ThriftAttributeAccessor> {
+    private static final class ThriftAttributeRepository extends MDAAttributeRepository<ThriftAttributeAccessor> implements SafeCloseable {
         private static final Class<ThriftAttributeAccessor> FEATURE_TYPE = ThriftAttributeAccessor.class;
         private final Cache<String, ThriftValueParser> parsers;
 
@@ -165,7 +166,7 @@ final class ThriftDataAcceptor extends AbstractManagedResourceConnector implemen
             final OpenType<?> attributeType = parseType(descriptor);
             ThriftValueParser parser = parsers.getIfPresent(descriptor.getAttributeName());
             if(parser != null){
-
+                //nothing to do
             }
             else if(attributeType instanceof SimpleType<?> || attributeType instanceof ArrayType<?>)
                 ThriftAttributeAccessor.saveParser(parser = new SimpleValueParser(WellKnownType.getType(attributeType)),

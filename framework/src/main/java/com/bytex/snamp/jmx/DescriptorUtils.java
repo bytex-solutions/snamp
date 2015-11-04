@@ -144,7 +144,7 @@ public final class DescriptorUtils {
      * @return {@literal true}, if {@link Descriptor} instance has the field; otherwise, {@literal false}.
      */
     public static boolean hasField(final Descriptor descr, final String fieldName){
-        return ArrayUtils.contains(descr.getFieldNames(), fieldName);
+        return ArrayUtils.containsAny(descr.getFieldNames(), fieldName);
     }
 
     public static boolean hasDefaultValue(final Descriptor descr){

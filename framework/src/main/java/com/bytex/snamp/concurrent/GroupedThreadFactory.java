@@ -1,5 +1,7 @@
 package com.bytex.snamp.concurrent;
 
+import com.bytex.snamp.SafeCloseable;
+
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -9,7 +11,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @version 1.0
  * @since 1.0
  */
-public class GroupedThreadFactory extends ThreadGroup implements ThreadFactory, AutoCloseable {
+public class GroupedThreadFactory extends ThreadGroup implements ThreadFactory, SafeCloseable {
     /**
      * Represents a priority for all newly created threads.
      */

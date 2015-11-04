@@ -869,7 +869,7 @@ public class XmlParserDefinition {
             engine.eval(fragment);
     }
 
-    private Object parseArray(final ResettableIterator parsingTemplateIter,
+    private Object parseArray(final ResettableIterator<?> parsingTemplateIter,
                                      final ScriptEngine engine) throws ScriptException {
         final ArrayBuilder builder = new ArrayBuilder();
         final Scanner stream = getScanner(engine);
@@ -900,7 +900,7 @@ public class XmlParserDefinition {
         };
     }
 
-    private Map<String, ?> parseDictionary(final ResettableIterator parsingTemplateIter,
+    private Map<String, ?> parseDictionary(final ResettableIterator<?> parsingTemplateIter,
                                                 final ScriptEngine engine) throws ScriptException {
         final Map<String, Object> result = newHashMap(20);
         final Scanner stream = getScanner(engine);
@@ -925,7 +925,7 @@ public class XmlParserDefinition {
         };
     }
 
-    private List<? extends Map<String, ?>> parseTable(final ResettableIterator parsingTemplateIter,
+    private List<? extends Map<String, ?>> parseTable(final ResettableIterator<?> parsingTemplateIter,
                                                        final ScriptEngine engine) throws ScriptException{
         final List<HashMap<String, ?>> table = newLinkedList();
         HashMap<String, Object> row = new HashMap<>(20);
@@ -983,13 +983,13 @@ public class XmlParserDefinition {
             case BLOB:
                 return parseBLOB(parsingTemplate, blobFormatter, engine);
             case ARRAY:
-                return parseArray(new ResettableIterator(parsingTemplate),
+                return parseArray(ResettableIterator.of(parsingTemplate),
                         engine);
             case DICTIONARY:
-                return parseDictionary(new ResettableIterator(parsingTemplate),
+                return parseDictionary(ResettableIterator.of(parsingTemplate),
                         engine);
             case TABLE:
-                return parseTable(new ResettableIterator(parsingTemplate),
+                return parseTable(ResettableIterator.of(parsingTemplate),
                         engine);
             default:
                 throw new IllegalStateException(String.format("Invalid return type %s", getParsingResultType()));

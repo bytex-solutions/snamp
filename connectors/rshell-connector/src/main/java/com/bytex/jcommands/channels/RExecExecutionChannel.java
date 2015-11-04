@@ -3,6 +3,7 @@ package com.bytex.jcommands.channels;
 import com.bytex.jcommands.ChannelProcessingMode;
 import com.bytex.jcommands.ChannelProcessor;
 import com.bytex.jcommands.CommandExecutionChannel;
+import com.bytex.snamp.SafeCloseable;
 import net.schmizz.sshj.common.IOUtils;
 import org.apache.commons.net.bsd.RExecClient;
 
@@ -19,7 +20,7 @@ import java.util.Set;
  * @version 1.0
  * @since 1.0
  */
-public final class RExecExecutionChannel extends HashMap<String, String> implements CommandExecutionChannel {
+public final class RExecExecutionChannel extends HashMap<String, String> implements CommandExecutionChannel, SafeCloseable {
     public static final String CHANNEL_NAME = "rexec";
     private static final String LOCAL_USER_PROPERTY = "remoteUser";
     private static final String PASSWORD_PROPERTY = "password";

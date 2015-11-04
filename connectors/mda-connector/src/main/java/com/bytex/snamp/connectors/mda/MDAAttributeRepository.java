@@ -1,5 +1,6 @@
 package com.bytex.snamp.connectors.mda;
 
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.connectors.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.Utils;
@@ -19,7 +20,7 @@ import java.util.logging.Logger;
 /**
  * Represents abstract support of MDA attributes.
  */
-public abstract class MDAAttributeRepository<M extends MdaAttributeAccessor> extends AbstractAttributeRepository<M> implements Closeable {
+public abstract class MDAAttributeRepository<M extends MdaAttributeAccessor> extends AbstractAttributeRepository<M> implements Closeable, SafeCloseable {
     private final Logger logger;
     private final long expirationTime;
     /**

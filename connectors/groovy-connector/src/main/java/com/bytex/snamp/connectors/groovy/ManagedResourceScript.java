@@ -95,7 +95,7 @@ abstract class ManagedResourceScript extends Script implements ManagedResourceSc
             if (connector == null)
                 throw new MBeanException(new NullPointerException("Managed resource doesn't support notifications"));
             for (final MBeanNotificationInfo notification : connector.getNotificationInfo())
-                if (ArrayUtils.contains(notification.getNotifTypes(), notificationType)) {
+                if (ArrayUtils.containsAny(notification.getNotifTypes(), notificationType)) {
                     metadata = DescriptorUtils.asDictionary(notification.getDescriptor());
                     return;
                 }

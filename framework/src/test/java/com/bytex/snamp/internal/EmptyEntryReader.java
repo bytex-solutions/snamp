@@ -12,13 +12,17 @@ import com.bytex.snamp.ExceptionPlaceholder;
 public final class EmptyEntryReader<I, R> implements EntryReader<I, R, ExceptionPlaceholder> {
     private static final EntryReader INSTANCE = new EmptyEntryReader();
 
+    private EmptyEntryReader(){
+
+    }
+
     @SuppressWarnings("unchecked")
     public static <I, R> EntryReader<I, R, ExceptionPlaceholder> getInstance(){
         return INSTANCE;
     }
 
     @Override
-    public boolean read(final I index, final R value) throws ExceptionPlaceholder {
+    public boolean read(final I index, final R value) {
         return true;
     }
 }

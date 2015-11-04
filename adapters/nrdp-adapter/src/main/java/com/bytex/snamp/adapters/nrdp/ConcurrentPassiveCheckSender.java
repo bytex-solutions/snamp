@@ -4,6 +4,7 @@ import ch.shamu.jsendnrdp.NRDPException;
 import ch.shamu.jsendnrdp.NRDPServerConnectionSettings;
 import ch.shamu.jsendnrdp.domain.NagiosCheckResult;
 import ch.shamu.jsendnrdp.impl.NagiosCheckSenderImpl;
+import com.bytex.snamp.SafeCloseable;
 import com.google.common.base.Function;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
@@ -19,7 +20,7 @@ import java.util.concurrent.ExecutorService;
  * @version 1.0
  * @since 1.0
  */
-final class ConcurrentPassiveCheckSender extends NagiosCheckSenderImpl implements Closeable {
+final class ConcurrentPassiveCheckSender extends NagiosCheckSenderImpl implements Closeable, SafeCloseable {
     private final ExecutorService threadPool;
 
     ConcurrentPassiveCheckSender(final NRDPServerConnectionSettings settings,

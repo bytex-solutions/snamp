@@ -182,7 +182,7 @@ final class JmxConnectionManager implements AutoCloseable {
     }
 
     @ThreadSafe
-    final <T> T handleConnection(final MBeanServerConnectionHandler<T> handler) throws Exception {
+    <T> T handleConnection(final MBeanServerConnectionHandler<T> handler) throws Exception {
         readLock.lockInterruptibly();
         try {
             if (connectionHolder.isInitialized()) {
@@ -199,13 +199,13 @@ final class JmxConnectionManager implements AutoCloseable {
     }
 
     @ThreadSafe
-    final void addReconnectionHandler(final ConnectionEstablishedEventHandler handler) {
+    void addReconnectionHandler(final ConnectionEstablishedEventHandler handler) {
         watchDog.reconnectionHandlers.add(handler);
     }
 
     @SuppressWarnings("UnusedDeclaration")
     @ThreadSafe
-    final void removeReconnectionHandler(final ConnectionEstablishedEventHandler handler) {
+    void removeReconnectionHandler(final ConnectionEstablishedEventHandler handler) {
         watchDog.reconnectionHandlers.add(handler);
     }
 
@@ -218,7 +218,7 @@ final class JmxConnectionManager implements AutoCloseable {
      * @throws java.io.IOException Unable to simulate connectionHolder abort.
      */
     @Internal
-    final void simulateConnectionAbort() throws IOException, InterruptedException {
+    void simulateConnectionAbort() throws IOException, InterruptedException {
         JMXConnector con = connectionHolder.connection;
         if (con != null)
             try {
@@ -240,7 +240,7 @@ final class JmxConnectionManager implements AutoCloseable {
 
     @Override
     @ThreadSafe(false)
-    public final void close() throws Exception {
+    public void close() throws Exception {
         try {
             watchDog.reconnectionHandlers.clear();
             watchDog.close(watchPeriod);

@@ -1,5 +1,6 @@
 package com.bytex.snamp.connectors.modbus.transport;
 
+import com.bytex.snamp.SafeCloseable;
 import com.ghgande.j2mod.modbus.io.*;
 import com.ghgande.j2mod.modbus.net.TCPMasterConnection;
 
@@ -11,7 +12,7 @@ import java.net.UnknownHostException;
  * Represents TCP transport for Modbus.
  * This class cannot be inherited.
  */
-final class TcpModbusMaster extends AbstractModbusMaster {
+final class TcpModbusMaster extends AbstractModbusMaster implements SafeCloseable {
     private final TCPMasterConnection connection;
     private final boolean headless;
 
