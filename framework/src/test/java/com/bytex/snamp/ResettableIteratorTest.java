@@ -61,4 +61,11 @@ public final class ResettableIteratorTest extends Assert {
         assertFalse(list.next());
         assertFalse(list.hasNext());
     }
+
+    @Test
+    public void stringIteratorTest(){
+        final ResettableIterator<Character> iterator = ResettableIterator.of("Test");
+        assertEquals(new Character('T'), iterator.next());
+        assertEquals(new Character('e'), iterator.next());
+    }
 }

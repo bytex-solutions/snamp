@@ -5,6 +5,7 @@ package com.bytex.snamp;
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
+ * @see Attribute
  */
 public interface AttributeReader {
     /**

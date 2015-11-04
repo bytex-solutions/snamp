@@ -232,7 +232,7 @@ public final class TimeSpan implements Serializable, Comparable<TimeSpan> {
      */
     @Override
     @ThreadSafe
-    public final String toString() {
+    public String toString() {
         return Long.toString(duration) + " " + unit;
     }
 

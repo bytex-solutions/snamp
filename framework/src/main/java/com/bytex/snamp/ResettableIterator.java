@@ -360,4 +360,30 @@ public abstract class ResettableIterator<T> implements Iterator<T>, Serializable
             }
         };
     }
+
+    /**
+     * Obtains resettable iterator for the specified sequence of characters.
+     * @param value A sequence of characters. Cannot be {@literal null}.
+     * @return A new iterator for the specified sequence.
+     */
+    public static ResettableIterator<Character> of(final CharSequence value) {
+        return new ArrayIterator<Character>() {
+            private static final long serialVersionUID = 6565775008504686243L;
+
+            @Override
+            protected int getLength() {
+                return value.length();
+            }
+
+            @Override
+            protected Character get(final int index) {
+                return value.charAt(index);
+            }
+
+            @Override
+            public String toString() {
+                return value.toString();
+            }
+        };
+    }
 }
