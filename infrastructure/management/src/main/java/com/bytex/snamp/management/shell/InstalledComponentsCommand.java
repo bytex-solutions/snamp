@@ -9,6 +9,9 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 import java.io.IOException;
 
 import static com.bytex.snamp.io.IOUtils.appendln;
+import static com.bytex.snamp.management.shell.Utils.getStateString;
+import static com.bytex.snamp.management.shell.InstalledAdaptersCommand.writeAdapter;
+import static com.bytex.snamp.management.shell.InstalledConnectorsCommand.writeConnector;
 
 /**
  * Prints list of installed SNAMP components.
@@ -24,20 +27,20 @@ public final class InstalledComponentsCommand extends OsgiCommandSupport impleme
     private final SnampManager manager = new SnampManagerImpl();
 
     private static void writeComponent(final SnampComponentDescriptor component, final StringBuilder output) throws IOException {
-        appendln(output, "Name: %s. Description: %s. Version: %s. State: %s",
+        appendln(output, "%s. Description: %s. Version: %s. State: %s",
                 component.getName(null),
                 component.getDescription(null),
                 component.getVersion(),
-                component.getState());
+                getStateString(component));
     }
 
     @Override
     protected CharSequence doExecute() throws IOException{
         final StringBuilder result = new StringBuilder(42);
         for(final SnampComponentDescriptor component: manager.getInstalledResourceAdapters())
-            writeComponent(component, result);
+            writeAdapter(component, result);
         for(final SnampComponentDescriptor component: manager.getInstalledResourceConnectors())
-            writeComponent(component, result);
+            writeConnector(component, result);
         for(final SnampComponentDescriptor component: manager.getInstalledComponents())
             writeComponent(component, result);
         return result;
