@@ -46,6 +46,10 @@ public final class IOUtils {
         return result.toString();
     }
 
+    public static String toString(final InputStream stream) throws IOException {
+        return toString(stream, DEFAULT_CHARSET);
+    }
+
     public static void writeString(final String value, final OutputStream output, final Charset encoding) throws IOException {
         if (value == null || value.isEmpty()) return;
         else if (encoding == null) writeString(value, output, Charset.defaultCharset());

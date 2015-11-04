@@ -10,7 +10,6 @@ import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.core.SupportService;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Iterators;
 import org.osgi.framework.*;
 
 import java.util.*;

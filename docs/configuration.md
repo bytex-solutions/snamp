@@ -182,6 +182,7 @@ snamp:start-adapter | Start bundle with individual adapter
 snamp:start-connector | Start bundle with individual resource connector
 snamp:stop-adapter | Stop bundle with individual adapter
 snamp:stop-connector | Stop bundle with individual resource connector
+snamp:version | Show version of SNAMP platform
 
 Use `--help` flag to know more information about command and its parameters:
 ```bash
