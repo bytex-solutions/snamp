@@ -11,6 +11,6 @@ import org.junit.Test;
 public final class PlatformVersionTest extends Assert {
     @Test
     public void versionTest(){
-        assertNotNull(PlatformVersion.get());
+        assertTrue(PlatformVersion.get().getMajor() > 0);
     }
 }
