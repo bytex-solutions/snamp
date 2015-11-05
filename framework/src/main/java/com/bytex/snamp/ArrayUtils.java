@@ -151,47 +151,6 @@ public final class ArrayUtils {
         return result;
     }
 
-    /**
-     * Adds an element to the end of the array.
-     * @param array An array to add element.
-     * @param element An element to insert.
-     * @param componentType Type of the resulting array. Cannot be {@literal null}.
-     * @param <T> Type of the array component.
-     * @return A newly created array.
-     */
-    public static <T> T[] add(final T[] array, final T element, final Class<T> componentType){
-        return add(array, array.length, element, componentType);
-    }
-
-    /**
-     * Inserts a new element into the array.
-     * @param array An array to add the element.
-     * @param index An index of the element to add.
-     * @param element An element to insert.
-     * @param componentType Type of the resulting array. Cannot be {@literal null}.
-     * @param <T> Type of the array elements.
-     * @return A new array that contains inserted element.
-     */
-    public static <T> T[] add(final T[] array, final int index, final T element,
-                              final Class<T> componentType) {
-        if (array == null) {
-            if (index != 0)
-                throw createIndexOutOfBoundsException(index, 0);
-            final T[] joinedArray = ObjectArrays.newArray(componentType, 1);
-            joinedArray[0] = element;
-            return joinedArray;
-        }
-        final int length = array.length;
-        if (index > length || index < 0)
-            throw createIndexOutOfBoundsException(index, length);
-        final T[] result = ObjectArrays.newArray(componentType, length + 1);
-        System.arraycopy(array, 0, result, 0, index);
-        result[index] = element;
-        if (index < length)
-            System.arraycopy(array, index, result, index + 1, length - index);
-        return result;
-    }
-
     public static boolean containsAny(final Object[] array, final Object... elements) {
         if (array == null) return false;
         for (final Object actual : array)

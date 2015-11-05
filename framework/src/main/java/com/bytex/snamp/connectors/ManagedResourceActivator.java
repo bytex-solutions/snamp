@@ -12,6 +12,7 @@ import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.management.Maintainable;
 import com.google.common.collect.Maps;
+import com.google.common.collect.ObjectArrays;
 import com.google.common.collect.Sets;
 import org.osgi.framework.*;
 import org.osgi.service.cm.ConfigurationAdmin;
@@ -793,7 +794,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     protected ManagedResourceActivator(final ManagedResourceConnectorLifecycleController<TConnector> controller,
                                        final RequiredService<?>[] connectorDependencies,
                                        final SupportConnectorServiceManager<?, ?>[] optionalServices){
-        super(ArrayUtils.add(optionalServices, new ManagedResourceConnectorRegistry<>(controller, connectorDependencies), ProvidedService.class));
+        super(ObjectArrays.concat(optionalServices, new ManagedResourceConnectorRegistry<>(controller, connectorDependencies)));
         this.prerequisitesOK = false;
     }
 

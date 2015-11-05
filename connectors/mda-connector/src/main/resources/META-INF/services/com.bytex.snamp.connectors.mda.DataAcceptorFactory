@@ -1,2 +1,2 @@
-com.bytex.snamp.connectors.mda.http.HttpDataAcceptorFactory
-com.bytex.snamp.connectors.mda.thrift.ThriftDataAcceptorFactory
+com.bytex.snamp.connectors.mda.impl.http.HttpDataAcceptorFactory
+com.bytex.snamp.connectors.mda.impl.thrift.ThriftDataAcceptorFactory

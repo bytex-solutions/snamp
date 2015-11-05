@@ -1,0 +1,283 @@
+package com.bytex.snamp.connectors.mda.impl.thrift;
+
+import com.bytex.snamp.Box;
+import com.bytex.snamp.TimeSpan;
+import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
+import com.bytex.snamp.connectors.mda.AccessTimer;
+import com.bytex.snamp.connectors.mda.DataAcceptor;
+import com.bytex.snamp.connectors.mda.MDANotificationRepository;
+import com.bytex.snamp.connectors.mda.impl.MDAAttributeRepository;
+import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
+import com.bytex.snamp.jmx.WellKnownType;
+import com.google.common.base.Supplier;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import org.apache.thrift.TException;
+import org.apache.thrift.TProcessor;
+import org.apache.thrift.protocol.*;
+import org.apache.thrift.transport.TServerSocket;
+import org.apache.thrift.transport.TServerTransport;
+import org.apache.thrift.transport.TTransportException;
+
+import javax.management.JMException;
+import javax.management.openmbean.*;
+import java.lang.ref.WeakReference;
+import java.net.InetSocketAddress;
+import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+/**
+ * @author Roman Sakno
+ * @version 1.0
+ * @since 1.0
+ */
+final class ThriftDataAcceptor extends DataAcceptor implements TProcessor {
+    private static final class WeakProcessor extends WeakReference<TProcessor> implements TProcessor{
+        private WeakProcessor(final TProcessor value){
+            super(value);
+        }
+
+        @Override
+        public boolean process(final TProtocol in, final TProtocol out) throws TException {
+            final TProcessor processor = get();
+            return processor != null && processor.process(in, out);
+        }
+    }
+
+    private static final class ThriftNotificationRepository extends MDANotificationRepository<ThriftNotificationAccessor> {
+        private static final Class<ThriftNotificationAccessor> FEATURE_TYPE = ThriftNotificationAccessor.class;
+        private final Logger logger;
+
+        private ThriftNotificationRepository(final String resourceName,
+                                             final ExecutorService threadPool,
+                                             final AccessTimer lwa,
+                                             final Logger logger){
+            super(resourceName, FEATURE_TYPE, lwa, threadPool);
+            this.logger = Objects.requireNonNull(logger);
+        }
+
+        @Override
+        protected Logger getLogger() {
+            return logger;
+        }
+
+        @Override
+        protected ThriftNotificationAccessor enableNotifications(final String notifType,
+                                                                 final OpenType<?> attachmentType,
+                                                                 final NotificationDescriptor metadata) throws OpenDataException{
+            return new ThriftNotificationAccessor(notifType, attachmentType, metadata);
+        }
+
+        private boolean fire(final String category, final TProtocol input) throws TException {
+            fire(new NotificationCollector() {
+                private static final long serialVersionUID = -251554281456696460L;
+                private Object userData = null;
+                private long sequenceNumber = 0L;
+                private long timeStamp = 0L;
+                private String message = "";
+                private boolean dataAvailable = false;
+
+                private boolean readNotificationData(final ThriftNotificationAccessor metadata) throws TException{
+                    input.readStructBegin();
+                    int counter = 0;
+                    while (true){
+                        final TField field = input.readFieldBegin();
+                        final boolean next;
+                        if(next = field.type != TType.STOP)
+                            switch (field.id) {
+                                case 1:
+                                    message = input.readString();
+                                    counter += 1;
+                                    break;
+                                case 2:
+                                    sequenceNumber = input.readI64();
+                                    counter += 1;
+                                    break;
+                                case 3:
+                                    timeStamp = input.readI64();
+                                    counter += 1;
+                                    break;
+                                case 4:
+                                    userData = metadata.parseUserData(input);
+                                    counter += 1;
+                                    break;
+                                default:
+                                    TProtocolUtil.skip(input, field.type);
+                                    break;
+                            }
+                        input.readFieldEnd();
+                        if(!next) break;
+                    }
+                    input.readStructEnd();
+                    return counter == 4;
+                }
+
+                @Override
+                protected void process(final ThriftNotificationAccessor metadata) {
+                    if(category.equals(metadata.getDescriptor().getNotificationCategory())) {
+                        if (!dataAvailable)
+                            try {
+                                dataAvailable = readNotificationData(metadata);
+                            } catch (final TException e) {
+                                logger.log(Level.SEVERE, "Unable to parse user data from notification " + sequenceNumber, e);
+                            }
+                        if (dataAvailable)
+                            enqueue(metadata, message, sequenceNumber, timeStamp, userData);
+                    }
+                }
+            });
+            return true;
+        }
+    }
+
+    private static final class ThriftAttributeRepository extends MDAAttributeRepository<ThriftAttributeAccessor> {
+        private static final Class<ThriftAttributeAccessor> FEATURE_TYPE = ThriftAttributeAccessor.class;
+        private final Cache<String, ThriftValueParser> parsers;
+
+        private ThriftAttributeRepository(final String resourceName,
+                                          final TimeSpan expirationTime,
+                                          final AccessTimer lwa,
+                                          final Logger logger){
+            super(resourceName, FEATURE_TYPE, expirationTime, lwa, logger);
+            this.parsers = CacheBuilder.newBuilder().weakValues().build();
+        }
+
+        @Override
+        protected ThriftAttributeAccessor connectAttribute(final String attributeID,
+                                                           final OpenType<?> attributeType,
+                                                           final AttributeDescriptor descriptor) throws JMException{
+            ThriftValueParser parser = parsers.getIfPresent(descriptor.getAttributeName());
+            if(parser != null){
+                //nothing to do
+            }
+            else if(attributeType instanceof SimpleType<?> || attributeType instanceof ArrayType<?>)
+                ThriftAttributeAccessor.saveParser(parser = new SimpleValueParser(WellKnownType.getType(attributeType)),
+                        descriptor,
+                        parsers);
+            else if(attributeType instanceof CompositeType)
+                ThriftAttributeAccessor.saveParser(parser = new CompositeValueParser((CompositeType)attributeType),
+                        descriptor,
+                        parsers);
+            else
+                ThriftAttributeAccessor.saveParser(parser = FallbackValueParser.INSTANCE, descriptor, parsers);
+            final ThriftAttributeAccessor accessor = new ThriftAttributeAccessor(attributeID, attributeType, descriptor);
+            accessor.setValue(parser.getDefaultValue(), getStorage());
+            return accessor;
+        }
+
+        private boolean getAttribute(final String attributeName, final TProtocol output) throws TException {
+            final ThriftValueParser parser = parsers.getIfPresent(attributeName);
+            if(parser == null)
+                return false;
+            else {
+                ThriftAttributeAccessor.getValue(attributeName, getStorage(), output, parser);
+                return true;
+            }
+        }
+
+        private boolean setAttribute(final String attributeName, final TProtocol input, final TProtocol output) throws TException {
+            final ThriftValueParser parser = parsers.getIfPresent(attributeName);
+            if (parser == null)
+                return false;
+            else {
+                ThriftAttributeAccessor.setValue(attributeName, getStorage(), input, output, parser);
+                return true;
+            }
+        }
+
+        @Override
+        protected Object getDefaultValue(final String storageName) {
+            final ThriftValueParser parser = parsers.getIfPresent(storageName);
+            return parser != null ? parser.getDefaultValue() : null;
+        }
+
+        @Override
+        public void close() {
+            super.close();
+            parsers.invalidateAll();
+            parsers.cleanUp();
+        }
+    }
+    private final MdaThriftServer thriftServer;
+    private final TServerTransport transport;
+    private final ThriftAttributeRepository attributes;
+    private final ExecutorService threadPool;
+    private final ThriftNotificationRepository notifications;
+
+    ThriftDataAcceptor(final String resourceName,
+                       final TimeSpan expirationTime,
+                       final InetSocketAddress host,
+                       final int socketTimeout,
+                       final Supplier<? extends ExecutorService> threadPoolFactory) throws TTransportException {
+        this.transport = new TServerSocket(host, socketTimeout);
+        this.threadPool = threadPoolFactory.get();
+        this.thriftServer = new MdaThriftServer(this.transport, threadPool, new WeakProcessor(this));
+        this.attributes = new ThriftAttributeRepository(resourceName, expirationTime, accessTimer, getLogger());
+        this.notifications = new ThriftNotificationRepository(resourceName, threadPool, accessTimer, getLogger());
+    }
+
+    @Override
+    protected ThriftAttributeRepository getAttributes() {
+        return attributes;
+    }
+
+    @Override
+    protected ThriftNotificationRepository getNotifications() {
+        return notifications;
+    }
+
+    @Override
+    public void beginListening(final Object... dependencies) {
+        thriftServer.serve();
+    }
+
+    @Override
+    public boolean process(final TProtocol in, final TProtocol out) throws TException {
+        final Box<String> entityName = new Box<>();
+        final TMessage message = in.readMessageBegin();
+        final MessageType messageType = MessageType.get(message, entityName);
+        if (messageType != null) {
+            messageType.beginResponse(out, message.name, message.seqid);
+            try {
+                switch (messageType) {
+                    case RESET:
+                        in.readStructBegin();
+                        ThriftUtils.skipStopField(in);  //skip empty list of arguments
+                        in.readStructEnd();
+                        attributes.reset();
+                        return true;
+                    case GET_ATTRIBUTE:
+                        in.readStructBegin();
+                        ThriftUtils.skipStopField(in);  //skip empty list of arguments
+                        in.readStructEnd();
+                        return attributes.getAttribute(entityName.get(), out);
+                    case SET_ATTRIBUTE:
+                        return attributes.setAttribute(entityName.get(), in, out);
+                    case SEND_NOTIFICATION:
+                        return notifications.fire(entityName.get(), in);
+                    default:
+                        return false;
+                }
+            } finally {
+                in.readMessageEnd();
+                messageType.endResponse(out);
+            }
+        }
+        else return false;
+    }
+
+    /**
+     * Releases all resources associated with this connector.
+     *
+     * @throws Exception Unable to release resources associated with this connector.
+     */
+    @Override
+    public void close() throws Exception {
+        thriftServer.stop();
+        transport.close();
+        threadPool.shutdown();
+        super.close();
+    }
+}

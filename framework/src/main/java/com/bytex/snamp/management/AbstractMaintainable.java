@@ -1,15 +1,15 @@
 package com.bytex.snamp.management;
 
+import com.bytex.snamp.AbstractAggregator;
+import com.bytex.snamp.concurrent.FutureThread;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.ObjectArrays;
 import com.google.common.util.concurrent.Futures;
-import com.bytex.snamp.AbstractAggregator;
-import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.concurrent.FutureThread;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -95,7 +95,7 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
          */
         public String doAction(Object[] args, final Locale loc) throws Exception {
             if (localeSpecific)
-                args = ArrayUtils.add(args, loc, Object.class);
+                args = ObjectArrays.concat(args, loc);
             try {
                 return Objects.toString(handle.invokeWithArguments(args));
             } catch (final Exception | Error e) {

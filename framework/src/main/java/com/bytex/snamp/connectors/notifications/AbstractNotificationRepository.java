@@ -209,6 +209,15 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
         }
         //fire listeners
         fireListeners(notifs);
+        postFire();
+    }
+
+    /**
+     * Aspect invoked after invocation of {@link #fire(NotificationCollector)}, {@link #fire(String, String, long, long, Object)} or {@link #fire(String, String, Object)}.
+     */
+    @MethodStub
+    protected void postFire(){
+
     }
 
     private void fireListeners(final Iterable<? extends Notification> notifications){

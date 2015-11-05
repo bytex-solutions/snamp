@@ -1,12 +1,12 @@
 package com.bytex.snamp.adapters;
 
-import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.configuration.PersistentConfigurationManager;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.FrameworkService;
-import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.management.Maintainable;
+import com.google.common.collect.ObjectArrays;
 import org.osgi.framework.*;
 import org.osgi.service.cm.ConfigurationAdmin;
 
@@ -233,7 +233,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
 
     private ResourceAdapterActivator(final ResourceAdapterRegistry<?> registry,
                                      final SupportAdapterServiceManager<?, ?>[] optionalServices) {
-        super(ArrayUtils.add(optionalServices, registry, ProvidedService.class));
+        super(ObjectArrays.concat(optionalServices, registry));
     }
 
     /**
