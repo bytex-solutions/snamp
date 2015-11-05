@@ -442,7 +442,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
                                                  final Exception e);
 
     /**
-     * Set the value of a specific attribute of the managed resource.
+     * Sets the value of a specific attribute of the managed resource.
      *
      * @param attribute The attribute of to set.
      * @param value     The value of the attribute.

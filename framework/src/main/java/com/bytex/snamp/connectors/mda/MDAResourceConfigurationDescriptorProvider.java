@@ -30,10 +30,16 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
  */
 public abstract class MDAResourceConfigurationDescriptorProvider extends ConfigurationEntityDescriptionProviderImpl {
     private static final Splitter ITEMS_SPLITTER = Splitter.on(',').trimResults();
+    /**
+     * Represents configuration parameter which describes the type of the attribute.
+     */
     protected static final String TYPE_PARAM = "expectedType";
     protected static final String ITEM_NAMES_PARAM = "dictionaryItemNames";
     protected static final String ITEM_TYPES_PARAM = "dictionaryItemTypes";
     protected static final String TYPE_NAME_PARAM = "dictionaryName";
+    /**
+     * Represents configuration parameter which describes interval of trust for attribute values.
+     */
     protected static final String EXPIRE_TIME_PARAM = "expirationTime";
 
     protected static abstract class AttributeConfigurationDescriptor extends ResourceBasedConfigurationEntityDescription<AttributeConfiguration>{

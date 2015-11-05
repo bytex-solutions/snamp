@@ -18,7 +18,7 @@ import java.util.Set;
  */
 public abstract class DataAcceptor extends AbstractManagedResourceConnector {
     /**
-     * Represents timer that measures time of last write.
+     * Represents timer that measures time of the last attribute access.
      */
     protected final AccessTimer accessTimer;
 
@@ -26,6 +26,9 @@ public abstract class DataAcceptor extends AbstractManagedResourceConnector {
         this.accessTimer = Objects.requireNonNull(accessTimer);
     }
 
+    /**
+     * Initializes a new resource connector with default implementation of {@link  AccessTimer}.
+     */
     protected DataAcceptor(){
         this(new SimpleTimer());
     }
@@ -115,7 +118,7 @@ public abstract class DataAcceptor extends AbstractManagedResourceConnector {
     @Override
     public void close() throws Exception {
         getAttributes().close();
-        getNotifications().removeAll(true, true);
+        getNotifications().close();
         super.close();
     }
 }

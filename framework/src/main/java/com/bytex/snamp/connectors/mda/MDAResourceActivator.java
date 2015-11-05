@@ -5,6 +5,7 @@ import com.bytex.snamp.connectors.ManagedResourceActivator;
 import org.osgi.service.http.HttpService;
 
 import javax.management.openmbean.CompositeData;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -18,7 +19,9 @@ import static com.bytex.snamp.connectors.mda.MDAResourceConfigurationDescriptorP
  */
 public abstract class MDAResourceActivator extends ManagedResourceActivator<DataAcceptor> {
 
-
+    /**
+     * Represents factory of MDA connector.
+     */
     protected static abstract class MonitoringDataAcceptorFactory extends ManagedResourceConnectorModeler<DataAcceptor> implements Iterable<DataAcceptorFactory>{
         @Override
         protected final boolean addAttribute(final DataAcceptor connector, final String attributeID, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
@@ -65,6 +68,14 @@ public abstract class MDAResourceActivator extends ManagedResourceActivator<Data
                 }
             throw new InstantiationException("Unsupported connection string: ".concat(connectionString));
         }
+
+        /**
+         * Returns an iterator over a set of factories of MDA connector.
+         *
+         * @return an Iterator.
+         */
+        @Override
+        public abstract Iterator<DataAcceptorFactory> iterator();
     }
 
     protected MDAResourceActivator(final MonitoringDataAcceptorFactory factory,

@@ -3,6 +3,7 @@ package com.bytex.snamp.connectors.mda;
 import com.bytex.snamp.TimeSpan;
 
 /**
+ * Represents timer that measures time of the last access.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0

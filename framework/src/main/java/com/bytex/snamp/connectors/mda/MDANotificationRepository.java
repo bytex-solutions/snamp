@@ -1,5 +1,6 @@
 package com.bytex.snamp.connectors.mda;
 
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.connectors.notifications.AbstractNotificationRepository;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 import com.bytex.snamp.connectors.notifications.NotificationListenerInvoker;
@@ -20,7 +21,7 @@ import static com.bytex.snamp.connectors.mda.MDAResourceConfigurationDescriptorP
  * @version 1.0
  * @since 1.0
  */
-public abstract class MDANotificationRepository<M extends MBeanNotificationInfo> extends AbstractNotificationRepository<M> {
+public abstract class MDANotificationRepository<M extends MBeanNotificationInfo> extends AbstractNotificationRepository<M> implements SafeCloseable {
     private final NotificationListenerInvoker listenerInvoker;
     private final AccessTimer lastWriteAccess;
 
@@ -65,5 +66,13 @@ public abstract class MDANotificationRepository<M extends MBeanNotificationInfo>
     @Override
     protected final void failedToEnableNotifications(final String listID, final String category, final Exception e) {
         failedToEnableNotifications(getLogger(), Level.WARNING, listID, category, e);
+    }
+
+    /**
+     * Releases all notifications from this repository.
+     */
+    @Override
+    public void close() {
+        removeAll(true, true);
     }
 }

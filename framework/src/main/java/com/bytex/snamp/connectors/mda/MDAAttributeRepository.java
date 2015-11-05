@@ -7,7 +7,6 @@ import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 
 import javax.management.InvalidAttributeValueException;
 import javax.management.openmbean.OpenType;
-import java.io.Closeable;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
@@ -22,7 +21,7 @@ import static com.bytex.snamp.connectors.mda.MDAResourceConfigurationDescriptorP
  * @since 1.0
  * @version 1.0
  */
-public abstract class MDAAttributeRepository<M extends MDAAttributeAccessor> extends AbstractAttributeRepository<M> implements Closeable, SafeCloseable {
+public abstract class MDAAttributeRepository<M extends MDAAttributeAccessor> extends AbstractAttributeRepository<M> implements SafeCloseable {
     private final TimeSpan expirationTime;
 
     /**
@@ -30,6 +29,13 @@ public abstract class MDAAttributeRepository<M extends MDAAttributeAccessor> ext
      */
     protected final AccessTimer lastWriteAccess;
 
+    /**
+     * Initializes a new empty repository of attributes.
+     * @param resourceName Name of the managed resource. Cannot be {@literal null} or empty.
+     * @param attributeMetadataType Type of attributes in the repository. Cannot be {@literal null}.
+     * @param expirationTime TTL of attribute value (interval of trust). Cannot be {@literal null}.
+     * @param accessTimer Represents timer used to measure interval of trust. Cannot be {@literal null}.
+     */
     protected MDAAttributeRepository(final String resourceName,
                                      final Class<M> attributeMetadataType,
                                      final TimeSpan expirationTime,
@@ -39,6 +45,14 @@ public abstract class MDAAttributeRepository<M extends MDAAttributeAccessor> ext
         this.expirationTime = Objects.requireNonNull(expirationTime);
     }
 
+    /**
+     * Connects attribute with this repository.
+     * @param attributeID User-defined identifier of the attribute.
+     * @param attributeType User-defined type of the attribute.
+     * @param descriptor Metadata of the attribute.
+     * @return Constructed attribute object.
+     * @throws Exception Internal connector error.
+     */
     protected abstract M connectAttribute(final String attributeID,
                                           final OpenType<?> attributeType,
                                           final AttributeDescriptor descriptor) throws Exception;
@@ -70,7 +84,7 @@ public abstract class MDAAttributeRepository<M extends MDAAttributeAccessor> ext
     protected abstract Object getDefaultValue(final String storageName);
 
     /**
-     * Resets all values in the storage to default.
+     * Resets all attributes in the storage to default.
      */
     public final void reset(){
         for(final String storageName: getStorage().keySet())
@@ -78,6 +92,11 @@ public abstract class MDAAttributeRepository<M extends MDAAttributeAccessor> ext
         lastWriteAccess.reset();
     }
 
+    /**
+     * Gets attribute value from the storage.
+     * @param metadata The metadata of the attribute.
+     * @return Attribute value.
+     */
     @Override
     protected final Object getAttribute(final M metadata) {
         if(lastWriteAccess.compareTo(expirationTime) > 0)
@@ -86,6 +105,12 @@ public abstract class MDAAttributeRepository<M extends MDAAttributeAccessor> ext
             return metadata.getValue(getStorage());
     }
 
+    /**
+     * Saves attribute value into the underlying storage.
+     * @param attribute The attribute of to set.
+     * @param value     The value of the attribute.
+     * @throws InvalidAttributeValueException
+     */
     @Override
     protected final void setAttribute(final M attribute, final Object value) throws InvalidAttributeValueException {
         attribute.setValue(value, getStorage());
@@ -109,6 +134,9 @@ public abstract class MDAAttributeRepository<M extends MDAAttributeAccessor> ext
         failedToSetAttribute(getLogger(), Level.SEVERE, attributeID, value, e);
     }
 
+    /**
+     * Removes all attributes from this repository.
+     */
     @Override
     public void close() {
         removeAll(true);
