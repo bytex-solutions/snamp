@@ -15,6 +15,6 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 public final class VersionCommand extends OsgiCommandSupport implements SnampShellCommand {
     @Override
     protected CharSequence doExecute() {
-        return PlatformVersion.INSTANCE.toString();
+        return PlatformVersion.get().toString();
     }
 }
