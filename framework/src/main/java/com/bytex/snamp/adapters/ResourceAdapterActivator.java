@@ -233,7 +233,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
 
     private ResourceAdapterActivator(final ResourceAdapterRegistry<?> registry,
                                      final SupportAdapterServiceManager<?, ?>[] optionalServices) {
-        super(ObjectArrays.concat(optionalServices, registry));
+        super(ObjectArrays.concat(new ServiceSubRegistryManager<?, ?>[]{registry}, optionalServices, ProvidedService.class));
     }
 
     /**

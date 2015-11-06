@@ -57,7 +57,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
     }
 
     @Override
-    protected final void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory) {
+    protected void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory) {
         AttributeConfiguration attribute = attributeFactory.get();
         attribute.setAttributeName("string");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
@@ -126,7 +126,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
     }
 
     @Test
-    public final void notificationTest() throws Exception {
+    public void notificationTest() throws Exception {
         final NotificationSupport notificationSupport = getManagementConnector(getTestBundleContext()).queryObject(NotificationSupport.class);
         final AttributeSupport attributeSupport = getManagementConnector(getTestBundleContext()).queryObject(AttributeSupport.class);
         assertNotNull(notificationSupport);
@@ -158,7 +158,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
     }
 
     @Test
-    public final void simulateConnectionAbortTest() throws TimeoutException,
+    public void simulateConnectionAbortTest() throws TimeoutException,
             InterruptedException,
             ExecutionException,
             JMException {

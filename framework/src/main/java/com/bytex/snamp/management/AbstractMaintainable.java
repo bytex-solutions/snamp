@@ -95,7 +95,7 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
          */
         public String doAction(Object[] args, final Locale loc) throws Exception {
             if (localeSpecific)
-                args = ObjectArrays.concat(args, loc);
+                args = ObjectArrays.concat(args, new Locale[]{loc}, Object.class);
             try {
                 return Objects.toString(handle.invokeWithArguments(args));
             } catch (final Exception | Error e) {

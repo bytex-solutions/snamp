@@ -43,7 +43,7 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
         /**
          * Returns read-only map of maintenance actions.
          *
-         * @return Read-only map of maintenance action,
+         * @return Read-only map of maintenance actions.
          */
         @Override
         public Set<String> getActions() {

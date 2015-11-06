@@ -794,7 +794,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     protected ManagedResourceActivator(final ManagedResourceConnectorLifecycleController<TConnector> controller,
                                        final RequiredService<?>[] connectorDependencies,
                                        final SupportConnectorServiceManager<?, ?>[] optionalServices){
-        super(ObjectArrays.concat(optionalServices, new ManagedResourceConnectorRegistry<>(controller, connectorDependencies)));
+        super(ObjectArrays.concat(optionalServices, new ServiceSubRegistryManager<?, ?>[]{ new ManagedResourceConnectorRegistry<>(controller, connectorDependencies)}, ProvidedService.class));
         this.prerequisitesOK = false;
     }
 
