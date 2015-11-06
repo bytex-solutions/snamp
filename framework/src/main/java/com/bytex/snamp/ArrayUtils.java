@@ -23,6 +23,7 @@ import java.util.Objects;
  * @since 1.0
  */
 public final class ArrayUtils {
+
     private static final LoadingCache<Class<?>, Object> EMPTY_ARRAYS = CacheBuilder
             .newBuilder()
             .softValues()
@@ -152,10 +153,10 @@ public final class ArrayUtils {
     }
 
     public static boolean containsAny(final Object[] array, final Object... elements) {
-        if (array == null) return false;
-        for (final Object actual : array)
-            for (final Object expected : elements)
-                if (Objects.equals(expected, actual)) return true;
+        if (array != null)
+            for (final Object actual : array)
+                for (final Object expected : elements)
+                    if (Objects.equals(expected, actual)) return true;
         return false;
     }
 
