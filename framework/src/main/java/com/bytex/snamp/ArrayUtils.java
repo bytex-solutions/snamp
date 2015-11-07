@@ -153,7 +153,7 @@ public final class ArrayUtils {
     }
 
     public static boolean containsAny(final Object[] array, final Object... elements) {
-        if (array != null)
+        if (array != null && elements != null)
             for (final Object actual : array)
                 for (final Object expected : elements)
                     if (Objects.equals(expected, actual)) return true;
@@ -277,7 +277,7 @@ public final class ArrayUtils {
      * in the array definition.
      */
     public static Object newArray(final ArrayType<?> arrayType, final int... dimensions) {
-        if(arrayType == null)
+        if(arrayType == null || dimensions == null)
             return null;
         else if(dimensions.length != arrayType.getDimension())
             throw new IllegalArgumentException("Actual number of dimensions doesn't match to the array type");

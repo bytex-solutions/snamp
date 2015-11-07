@@ -363,7 +363,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
 
     private static List<Bundle> getResourceAdapterBundles(final BundleContext context){
         final Bundle[] bundles = context.getBundles();
-        final List<Bundle> result = new ArrayList<>(bundles.length);
+        final List<Bundle> result = new LinkedList<>();
         for(final Bundle bnd: bundles)
             if(isResourceAdapterBundle(bnd)) result.add(bnd);
         return result;
@@ -381,51 +381,71 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
     /**
      * Stops all managed resource adapters loaded into the current OSGi environment.
      * @param context The context of the calling bundle. Cannot be {@literal null}.
+     * @return Number of stopped bundles.
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
      * @throws BundleException Unable to stop adapters.
      */
-    public static void stopResourceAdapters(final BundleContext context) throws BundleException {
+    public static int stopResourceAdapters(final BundleContext context) throws BundleException {
         if(context == null) throw new IllegalStateException("context is null.");
-        for(final Bundle bnd: getResourceAdapterBundles(context))
+        int count = 0;
+        for(final Bundle bnd: getResourceAdapterBundles(context)) {
             bnd.stop();
+            count += 1;
+        }
+        return count;
     }
 
     /**
      * Stops the specified managed resource adapter.
      * @param context The context of the calling bundle. Cannot be {@literal null}.
      * @param adapterName The name of the adapter to stop.
+     * @return {@literal true}, if bundle with the specified adapter exists; otherwise, {@literal false}.
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
      * @throws BundleException Unable to stop adapters.
      */
-    public static void stopResourceAdapter(final BundleContext context, final String adapterName) throws BundleException {
+    public static boolean stopResourceAdapter(final BundleContext context, final String adapterName) throws BundleException {
         if(context == null) throw new IllegalArgumentException("context is null.");
-        for(final Bundle bnd: getResourceAdapterBundles(context, adapterName))
+        boolean success = false;
+        for(final Bundle bnd: getResourceAdapterBundles(context, adapterName)) {
             bnd.stop();
+            success = true;
+        }
+        return success;
     }
 
     /**
      * Starts all managed resource adapters loaded into the current OSGi environment.
      * @param context The context of the calling bundle. Cannot be {@literal null}.
+     * @return Number of started bundles with adapters.
      * @throws BundleException Unable to start adapters.
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
      */
-    public static void startResourceAdapters(final BundleContext context) throws BundleException{
+    public static int startResourceAdapters(final BundleContext context) throws BundleException{
         if(context == null) throw new IllegalArgumentException("context is null.");
-        for(final Bundle bnd: getResourceAdapterBundles(context))
+        int count = 0;
+        for(final Bundle bnd: getResourceAdapterBundles(context)) {
             bnd.start();
+            count += 1;
+        }
+        return count;
     }
 
     /**
      * Starts the specified managed resource adapter.
      * @param context The context of the calling bundle. Cannot be {@literal null}.
      * @param adapterName The name of the adapter to start.
+     * @return {@literal true}, if bundle with the specified adapter exists; otherwise, {@literal false}.
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
      * @throws BundleException Unable to start adapter.
      */
-    public static void startResourceAdapter(final BundleContext context, final String adapterName) throws BundleException{
+    public static boolean startResourceAdapter(final BundleContext context, final String adapterName) throws BundleException{
         if(context == null) throw new IllegalArgumentException("context is null.");
-        for(final Bundle bnd: getResourceAdapterBundles(context, adapterName))
+        boolean success = false;
+        for(final Bundle bnd: getResourceAdapterBundles(context, adapterName)) {
             bnd.start();
+            success = true;
+        }
+        return success;
     }
 
     private static String getAdapterName(final Bundle bnd){

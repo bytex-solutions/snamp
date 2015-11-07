@@ -922,10 +922,10 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
     /**
      * Determines whether the specified factory equals to this factory and produces
-     * the same type of the SNAMP management connector.
+     * the same type of the SNAMP resource connector.
      * @param factory The factory to compare.
      * @return {@literal true}, if the specified factory equals to this factory and produces
-     * the same type of the SNAMP management connector; otherwise, {@literal false}.
+     * the same type of the SNAMP resource connector; otherwise, {@literal false}.
      */
     public final boolean equals(final ManagedResourceActivator<?> factory){
         return factory != null && Objects.equals(getConnectorType(), factory.getConnectorType());
@@ -933,10 +933,10 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
     /**
      * Determines whether the specified factory equals to this factory and produces
-     * the same type of the SNAMP management connector.
+     * the same type of the SNAMP resource connector.
      * @param factory The factory to compare.
      * @return {@literal true}, if the specified factory equals to this factory and produces
-     * the same type of the SNAMP management connector; otherwise, {@literal false}.
+     * the same type of the SNAMP resource connector; otherwise, {@literal false}.
      */
     @Override
     public final boolean equals(final Object factory){
@@ -989,7 +989,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     /**
      * Determines whether the specified bundle provides implementation of the SNAMP Management Connector.
      * @param bnd The bundle to check.
-     * @return {@literal true}, if the specified bundle provides implementation of the management connector;
+     * @return {@literal true}, if the specified bundle provides implementation of the resource connector;
      *      otherwise, {@literal false}.
      */
     public static boolean isResourceConnectorBundle(final Bundle bnd) {
@@ -1006,7 +1006,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
     static List<Bundle> getResourceConnectorBundles(final BundleContext context, final String connectorName){
         final Bundle[] bundles = context.getBundles();
-        final List<Bundle> result = new ArrayList<>(bundles.length);
+        final List<Bundle> result = new LinkedList<>();
         for(final Bundle bnd: bundles)
             if(Objects.equals(getConnectorType(bnd), connectorName))
                 result.add(bnd);
@@ -1014,54 +1014,72 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     }
 
     /**
-     * Stops all bundles with management connectors.
+     * Stops all bundles with resource connectors.
      * @param context The context of the caller bundle. Cannot be {@literal null}.
+     * @return Number of stopped bundles.
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
-     * @throws org.osgi.framework.BundleException Unable to stop management connectors.
+     * @throws org.osgi.framework.BundleException Unable to stop resource connectors.
      */
-    @SuppressWarnings("UnusedDeclaration")
-    public static void stopResourceConnectors(final BundleContext context) throws BundleException {
+    public static int stopResourceConnectors(final BundleContext context) throws BundleException {
         if(context == null) throw new IllegalArgumentException("context is null.");
-        for(final Bundle bnd: getResourceConnectorBundles(context))
+        int count = 0;
+        for(final Bundle bnd: getResourceConnectorBundles(context)) {
             bnd.stop();
+            count += 1;
+        }
+        return count;
     }
 
     /**
-     * Stops the specified management connector.
+     * Stops the specified resource connector.
      * @param context The context of the caller bundle. Cannot be {@literal null}.
      * @param connectorName The name of the connector to stop.
-     * @throws BundleException Unable to stop management connector.
+     * @return {@literal true}, if bundle with the specified connector exist; otherwise, {@literal false}.
+     * @throws BundleException Unable to stop resource connector.
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
      */
-    public static void stopResourceConnector(final BundleContext context, final String connectorName) throws BundleException {
-        for(final Bundle bnd: getResourceConnectorBundles(context, connectorName))
+    public static boolean stopResourceConnector(final BundleContext context, final String connectorName) throws BundleException {
+        boolean success = false;
+        for(final Bundle bnd: getResourceConnectorBundles(context, connectorName)) {
             bnd.stop();
+            success = true;
+        }
+        return success;
     }
 
     /**
-     * Starts all bundles with management connectors.
+     * Starts all bundles with resource connectors.
      * @param context The context of the caller bundle. Cannot be {@literal null}.
+     * @return Number of started resource connectors.
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
-     * @throws org.osgi.framework.BundleException Unable to start management connectors.
+     * @throws org.osgi.framework.BundleException Unable to start resource connectors.
      */
-    @SuppressWarnings("UnusedDeclaration")
-    public static void startResourceConnectors(final BundleContext context) throws BundleException{
+    public static int startResourceConnectors(final BundleContext context) throws BundleException{
         if(context == null) throw new IllegalArgumentException("context is null.");
-        for(final Bundle bnd: getResourceConnectorBundles(context))
+        int count = 0;
+        for(final Bundle bnd: getResourceConnectorBundles(context)) {
             bnd.stop();
+            count += 1;
+        }
+        return count;
     }
 
     /**
-     * Starts management connector.
+     * Starts resource connector.
      * @param context The context of the caller bundle. Cannot be {@literal null}.
      * @param connectorName The name of the connector to start.
+     * @return {@literal true}, if bundle with the specified connector exists; otherwise, {@literal false}.
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
-     * @throws BundleException Unable to start management connector.
+     * @throws BundleException Unable to start resource connector.
      */
-    public static void startResourceConnector(final BundleContext context, final String connectorName) throws BundleException{
+    public static boolean startResourceConnector(final BundleContext context, final String connectorName) throws BundleException{
         if(context == null) throw new IllegalArgumentException("context is null.");
-        for(final Bundle bnd: getResourceConnectorBundles(context, connectorName))
+        boolean success = false;
+        for(final Bundle bnd: getResourceConnectorBundles(context, connectorName)) {
             bnd.start();
+            success = true;
+        }
+        return success;
     }
 
     /**
