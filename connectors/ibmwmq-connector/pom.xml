@@ -12,6 +12,7 @@
   <version>${snamp.connectors.ibmwmq.version}</version>
   <packaging>bundle</packaging>
   <name>IBM MQ Connector</name>
+  <description>SNAMP resource connector for IBM WebSphere MQ message queues</description>
   <properties>
     <ibm.wmq.version>7.5.0.2</ibm.wmq.version>
   </properties>

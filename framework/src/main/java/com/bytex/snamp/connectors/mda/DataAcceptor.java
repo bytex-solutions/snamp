@@ -6,7 +6,6 @@ import com.bytex.snamp.connectors.ResourceEventListener;
 import com.google.common.base.Function;
 
 import javax.management.openmbean.CompositeData;
-import java.io.IOException;
 import java.util.Objects;
 import java.util.Set;
 
@@ -65,12 +64,18 @@ public abstract class DataAcceptor extends AbstractManagedResourceConnector {
         getNotifications().removeAllExcept(notifications);
     }
 
+    final void beginListening(final TimeSpan expirationTime, final Object... dependencies) throws Exception {
+        getAttributes().init(expirationTime, accessTimer);
+        getNotifications().init(accessTimer);
+        beginListening(dependencies);
+    }
+
     /**
      * Starts listening of incoming monitoring data.
      * @param dependencies List of connector dependencies.
-     * @throws IOException Unable to start listening data.
+     * @throws Exception Unable to start listening data.
      */
-    public abstract void beginListening(final Object... dependencies) throws IOException;
+    public abstract void beginListening(final Object... dependencies) throws Exception;
 
     /**
      * Adds a new listener for the connector-related events.

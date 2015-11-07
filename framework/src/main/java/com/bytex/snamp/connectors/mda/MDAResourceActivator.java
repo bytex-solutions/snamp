@@ -60,10 +60,9 @@ public abstract class MDAResourceActivator extends ManagedResourceActivator<Data
                 if(factory.canCreateFrom(connectionString)){
                     final DataAcceptor acceptor = factory.create(resourceName,
                             connectionString,
-                            expirationTime,
                             connectionParameters);
                     final HttpService publisher = getDependency(RequiredServiceAccessor.class, HttpService.class, dependencies);
-                    acceptor.beginListening(publisher);
+                    acceptor.beginListening(expirationTime, publisher);
                     return acceptor;
                 }
             throw new InstantiationException("Unsupported connection string: ".concat(connectionString));

@@ -1,6 +1,5 @@
 package com.bytex.snamp.connectors.mda.impl.http;
 
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.mda.DataAcceptorFactory;
 import com.bytex.snamp.connectors.mda.impl.MDAResourceConfigurationDescriptorProviderImpl;
 import com.bytex.snamp.connectors.mda.impl.MDAThreadPoolConfig;
@@ -26,14 +25,12 @@ public final class HttpDataAcceptorFactory implements DataAcceptorFactory {
     @Override
     public HttpDataAcceptor create(final String resourceName,
                                    String servletContext,
-                                   final TimeSpan expirationTime,
                                    final Map<String, String> parameters) throws Exception {
         MDAResourceConfigurationDescriptorProviderImpl.waitForHazelcast(parameters, Utils.getBundleContextByObject(this));
         if (isNullOrEmpty(servletContext))
             servletContext = getServletContext(resourceName);
         return new HttpDataAcceptor(resourceName,
                 servletContext,
-                expirationTime,
                 new MDAThreadPoolConfig(resourceName, parameters));
     }
 

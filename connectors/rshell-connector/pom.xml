@@ -11,7 +11,7 @@
     <name>RShell Connector</name>
     <version>${snamp.connectors.rshell.version}</version>
     <packaging>bundle</packaging>
-    <description>RShell Connector that uses remote shells (ssh, rsh, rexec and etc) to obtain management information</description>
+    <description>RShell resource connector that uses remote shells (ssh, rsh, rexec, local process execution) to obtain management information</description>
     <build>
         <plugins>
             <plugin>

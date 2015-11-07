@@ -666,4 +666,11 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
             return MBeanOperationInfo.UNKNOWN;
         }
     }
+
+    @SuppressWarnings("unchecked")
+    public static <T> T cast(final OpenType<T> type, final Object value) throws OpenDataException{
+        if(type.isValue(value))
+            return (T)value;
+        else throw new OpenDataException(String.format("Unable cast %s to %s", value, type));
+    }
 }

@@ -1,8 +1,7 @@
 package com.bytex.snamp.connectors.mda.impl;
 
-import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.connectors.mda.AccessTimer;
-import com.bytex.snamp.connectors.mda.MDAAttributeAccessor;
+import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
+import com.bytex.snamp.connectors.mda.MDAAttributeInfo;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.Maps;
@@ -19,16 +18,13 @@ import java.util.logging.Logger;
  * @version 1.0
  * @since 1.0
  */
-public abstract class MDAAttributeRepository<M extends MDAAttributeAccessor> extends com.bytex.snamp.connectors.mda.MDAAttributeRepository<M> {
+public abstract class MDAAttributeRepository extends com.bytex.snamp.connectors.mda.MDAAttributeRepository<MDAAttributeInfo> {
     private final Logger logger;
     private final ConcurrentMap<String, Object> storage;
 
-    protected MDAAttributeRepository(final String resourceName,
-                                    final Class<M> featureType,
-                                    final TimeSpan expirationTime,
-                                    final AccessTimer lastWriteAccess,
+    public MDAAttributeRepository(final String resourceName,
                                     final Logger logger) {
-        super(resourceName, featureType, expirationTime, lastWriteAccess);
+        super(resourceName, MDAAttributeInfo.class);
         this.logger = Objects.requireNonNull(logger);
         this.storage = createStorage(Utils.getBundleContextByObject(this), resourceName, logger);
     }
@@ -49,6 +45,19 @@ public abstract class MDAAttributeRepository<M extends MDAAttributeAccessor> ext
                 holder.release(context);
             }
         }
+    }
+
+    /**
+     * Connects attribute with this repository.
+     *
+     * @param attributeID User-defined identifier of the attribute.
+     * @param descriptor  Metadata of the attribute.
+     * @return Constructed attribute object.
+     */
+    @SuppressWarnings("unchecked")
+    @Override
+    protected final MDAAttributeInfo createAttributeMetadata(final String attributeID, final AttributeDescriptor descriptor) {
+        return new MDAAttributeInfo(attributeID, descriptor.getOpenType(), descriptor);
     }
 
     @Override

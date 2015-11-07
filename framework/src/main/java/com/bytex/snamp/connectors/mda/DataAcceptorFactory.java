@@ -1,7 +1,5 @@
 package com.bytex.snamp.connectors.mda;
 
-import com.bytex.snamp.TimeSpan;
-
 import java.util.Map;
 
 /**
@@ -15,14 +13,12 @@ public interface DataAcceptorFactory {
      * Creates a new instance of the Monitoring Data Acceptor.
      * @param resourceName The name of managed resource.
      * @param connectionString Initialization string.
-     * @param expirationTime The period of time during which the monitoring data is available from the connector.
      * @param parameters Initialization parameters.
      * @return A new instance.
      * @throws Exception Unable to create acceptor.
      */
     DataAcceptor create(final String resourceName,
                         final String connectionString,
-                        final TimeSpan expirationTime,
                         final Map<String, String> parameters) throws Exception;
 
     /**

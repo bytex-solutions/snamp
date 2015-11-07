@@ -189,6 +189,10 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
         return getUserDataType(metadata.getDescriptor());
     }
 
+    public final OpenType<?> getUserDataType(){
+        return getUserDataType(this);
+    }
+
     /**
      * Determines whether the field with the specified name is defined in this descriptor.
      * @param fieldName The name of the field to check.

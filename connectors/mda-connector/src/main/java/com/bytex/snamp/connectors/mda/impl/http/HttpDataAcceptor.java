@@ -1,20 +1,10 @@
 package com.bytex.snamp.connectors.mda.impl.http;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.VolatileBox;
-import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
-import com.bytex.snamp.connectors.mda.AccessTimer;
 import com.bytex.snamp.connectors.mda.DataAcceptor;
-import com.bytex.snamp.connectors.mda.MDANotificationRepository;
-import com.bytex.snamp.connectors.mda.impl.MDAAttributeRepository;
-import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
-import com.bytex.snamp.jmx.JMExceptionUtils;
-import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.jmx.json.JsonUtils;
 import com.google.common.base.Supplier;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import com.google.gson.*;
 import com.sun.jersey.spi.resource.Singleton;
 import org.osgi.service.http.HttpService;
@@ -22,7 +12,6 @@ import org.osgi.service.http.NamespaceException;
 
 import javax.management.AttributeNotFoundException;
 import javax.management.InvalidAttributeValueException;
-import javax.management.JMException;
 import javax.management.openmbean.*;
 import javax.servlet.ServletException;
 import javax.ws.rs.*;
@@ -34,8 +23,6 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author Roman Sakno
@@ -45,125 +32,6 @@ import java.util.logging.Logger;
 @Path("/")
 @Singleton
 public final class HttpDataAcceptor extends DataAcceptor {
-    private static final class HttpNotificationRepository extends MDANotificationRepository<HttpNotificationAccessor> {
-        private static final Class<HttpNotificationAccessor> FEATURE_TYPE = HttpNotificationAccessor.class;
-        private final Logger logger;
-
-        private HttpNotificationRepository(final String resourceName,
-                                           final AccessTimer lastWriteAccess,
-                                           final ExecutorService threadPool,
-                                           final Logger logger){
-            super(resourceName, FEATURE_TYPE, lastWriteAccess, threadPool);
-            this.logger = Objects.requireNonNull(logger);
-        }
-
-        @Override
-        protected Logger getLogger() {
-            return logger;
-        }
-
-        @Override
-        protected HttpNotificationAccessor enableNotifications(final String notifType,
-                                                               final OpenType<?> attachmentType,
-                                                              final NotificationDescriptor metadata) throws OpenDataException{
-            return new HttpNotificationAccessor(notifType, attachmentType, metadata);
-        }
-
-        private void fire(final String category, final JsonObject notification, final Gson formatter) throws JsonParseException {
-
-            fire(new NotificationCollector() {
-                private static final long serialVersionUID = -8644675346771522318L;
-
-                @Override
-                protected void process(final HttpNotificationAccessor metadata) {
-                    if (category.equals(metadata.getDescriptor().getNotificationCategory()))
-                        try {
-                            enqueue(metadata,
-                                    metadata.getMessage(notification),
-                                    metadata.getSequenceNumber(notification),
-                                    metadata.getTimeStamp(notification),
-                                    metadata.getUserData(notification, formatter));
-                        } catch (final OpenDataException e) {
-                            getLogger().log(Level.SEVERE, "Unable to process notification " + notification, e);
-                        }
-                }
-            });
-        }
-
-        private void fire(final String category, final String notification, final Gson formatter) throws JsonParseException{
-            final JsonElement notif = formatter.fromJson(notification, JsonElement.class);
-            if(notif != null && notif.isJsonObject())
-                fire(category, notif.getAsJsonObject(), formatter);
-            else throw new JsonParseException("JSON Object expected");
-        }
-    }
-
-    private static final class HttpAttributeRepository extends MDAAttributeRepository<HttpAttributeAccessor> {
-        private static final Class<HttpAttributeAccessor> FEATURE_TYPE = HttpAttributeAccessor.class;
-        private final Cache<String, HttpValueParser> parsers;
-
-        private HttpAttributeRepository(final String resourceName,
-                                        final TimeSpan expirationTime,
-                                        final AccessTimer lastWriteAccess,
-                                        final Logger logger) {
-            super(resourceName, FEATURE_TYPE, expirationTime, lastWriteAccess, logger);
-            parsers = CacheBuilder.newBuilder().weakValues().build();
-        }
-
-        @Override
-        protected HttpAttributeAccessor connectAttribute(final String attributeID,
-                                                         final OpenType<?> attributeType,
-                                                            final AttributeDescriptor descriptor) throws JMException {
-            HttpValueParser result = parsers.getIfPresent(descriptor.getAttributeName());
-            if (result != null){
-                //do nothing
-            }
-            else if (attributeType instanceof SimpleType<?> || attributeType instanceof ArrayType<?>)
-                HttpAttributeAccessor.saveParser(result = new SimpleValueParser(WellKnownType.getType(attributeType)),
-                        descriptor,
-                        parsers);
-            else if (attributeType instanceof CompositeType)
-                HttpAttributeAccessor.saveParser(result = new CompositeValueParser((CompositeType) attributeType),
-                        descriptor,
-                        parsers);
-            else
-                HttpAttributeAccessor.saveParser(result = FallbackValueParser.INSTANCE, descriptor, parsers);
-            final HttpAttributeAccessor accessor = new HttpAttributeAccessor(attributeID, attributeType, descriptor, result);
-            accessor.setValue(accessor.getDefaultValue(), getStorage());
-            return accessor;
-        }
-
-        private JsonElement getAttribute(final String attributeName, final Gson formatter) throws AttributeNotFoundException{
-            final HttpValueParser parser = parsers.getIfPresent(attributeName);
-            if(parser == null)
-                throw JMExceptionUtils.attributeNotFound(attributeName);
-            else return HttpAttributeAccessor.getValue(attributeName, parser, formatter, getStorage());
-        }
-
-        private JsonElement setAttribute(final String attributeName, final Gson formatter, final JsonElement value) throws AttributeNotFoundException, InvalidAttributeValueException, OpenDataException {
-            final HttpValueParser parser = parsers.getIfPresent(attributeName);
-            if(parser == null)
-                throw JMExceptionUtils.attributeNotFound(attributeName);
-            else {
-                final JsonElement result = HttpAttributeAccessor.setValue(attributeName, parser, value, formatter, getStorage());
-                lastWriteAccess.reset();
-                return result;
-            }
-        }
-
-        @Override
-        protected Object getDefaultValue(final String storageName) {
-            final HttpValueParser parser = parsers.getIfPresent(storageName);
-            return parser != null ? parser.getDefaultValue() : null;
-        }
-
-        @Override
-        public void close() {
-            super.close();
-            parsers.invalidateAll();
-            parsers.cleanUp();
-        }
-    }
 
     private final Gson formatter;
     private final String servletContext;
@@ -174,11 +42,10 @@ public final class HttpDataAcceptor extends DataAcceptor {
 
     HttpDataAcceptor(final String resourceName,
                      final String context,
-                     final TimeSpan expirationTime,
                      final Supplier<? extends ExecutorService> threadPoolFactory) {
         this.threadPool = threadPoolFactory.get();
-        this.attributes = new HttpAttributeRepository(resourceName, expirationTime, accessTimer, getLogger());
-        this.notifications = new HttpNotificationRepository(resourceName, accessTimer, threadPool, getLogger());
+        this.attributes = new HttpAttributeRepository(resourceName, getLogger());
+        this.notifications = new HttpNotificationRepository(resourceName, threadPool, getLogger());
         this.servletContext = Objects.requireNonNull(context);
         this.publisherRef = new VolatileBox<>();
         this.formatter = JsonUtils.registerTypeAdapters(new GsonBuilder().serializeNulls()).create();
@@ -209,7 +76,7 @@ public final class HttpDataAcceptor extends DataAcceptor {
                         .entity(e.getMessage())
                         .type(MediaType.TEXT_PLAIN_TYPE)
                         .build();
-            } catch (final InvalidAttributeValueException | JsonParseException e) {
+            } catch (final OpenDataException | JsonParseException e) {
                 return Response
                         .status(Response.Status.BAD_REQUEST)
                         .entity(e.getMessage())
@@ -247,7 +114,7 @@ public final class HttpDataAcceptor extends DataAcceptor {
 
     @DELETE
     @Path("/attributes")
-    public void reset(){
+    public void reset() throws InvalidAttributeValueException, OpenDataException {
         getAttributes().reset();
     }
 
@@ -275,7 +142,7 @@ public final class HttpDataAcceptor extends DataAcceptor {
                     .entity(e.getMessage())
                     .type(MediaType.TEXT_PLAIN_TYPE)
                     .build();
-        } catch (final InvalidAttributeValueException | JsonParseException e) {
+        } catch (final OpenDataException | JsonParseException e) {
             return Response
                     .status(Response.Status.BAD_REQUEST)
                     .entity(e.getMessage())

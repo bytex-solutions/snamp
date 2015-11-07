@@ -68,6 +68,7 @@
     <snamp.connectors.mda.version>1.0.0</snamp.connectors.mda.version>
     <snamp.connectors.snmp.version>1.0.0</snamp.connectors.snmp.version>
     <snamp.connectors.modbus.version>1.0.0</snamp.connectors.modbus.version>
+    <snamp.connectors.mq.version>1.0.0</snamp.connectors.mq.version>
   </properties>
   <version>1.0.0</version>
   <organization>

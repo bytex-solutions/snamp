@@ -1,6 +1,5 @@
 package com.bytex.snamp.connectors.mda.impl.thrift;
 
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.mda.DataAcceptorFactory;
 import com.bytex.snamp.connectors.mda.impl.MDAResourceConfigurationDescriptorProviderImpl;
 import com.bytex.snamp.connectors.mda.impl.MDAThreadPoolConfig;
@@ -25,11 +24,9 @@ public final class ThriftDataAcceptorFactory implements DataAcceptorFactory {
 
     ThriftDataAcceptor create(final String resourceName,
                         final URI connectionString,
-                        final TimeSpan expirationTime,
                         final Map<String, String> parameters) throws Exception {
         MDAResourceConfigurationDescriptorProviderImpl.waitForHazelcast(parameters, Utils.getBundleContextByObject(this));
         return new ThriftDataAcceptor(resourceName,
-                expirationTime,
                 new InetSocketAddress(InetAddress.getByName(connectionString.getHost()), connectionString.getPort()),
                 parseSocketTimeout(parameters),
                 new MDAThreadPoolConfig(resourceName, parameters));
@@ -38,9 +35,8 @@ public final class ThriftDataAcceptorFactory implements DataAcceptorFactory {
     @Override
     public ThriftDataAcceptor create(final String resourceName,
                                      final String connectionString,
-                                     final TimeSpan expirationTime,
                                      final Map<String, String> parameters) throws Exception {
-        return create(resourceName, new URI(connectionString), expirationTime, parameters);
+        return create(resourceName, new URI(connectionString), parameters);
     }
 
     /**

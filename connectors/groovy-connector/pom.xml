@@ -12,7 +12,7 @@
     <version>${snamp.connectors.groovy.version}</version>
     <packaging>bundle</packaging>
     <name>Groovy Script Resource</name>
-    <description>SNAMP management connector used for Groovy scripts for management information aggregation</description>
+    <description>SNAMP resource connector used for Groovy scripts for management information aggregation</description>
     <build>
         <resources>
             <resource>

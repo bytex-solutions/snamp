@@ -2,33 +2,86 @@ package com.bytex.snamp.connectors.mda.impl.thrift;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.io.Buffers;
-import com.bytex.snamp.jmx.DefaultValues;
 import com.bytex.snamp.jmx.WellKnownType;
+import com.google.common.collect.Maps;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.*;
 
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
+import javax.management.openmbean.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.*;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.Map;
 
 /**
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-final class SimpleValueParser implements ThriftValueParser {
-    private final WellKnownType attributeType;
+final class ThriftDataConverter {
+    private ThriftDataConverter(){
 
-    protected SimpleValueParser(final WellKnownType type) {
-        this.attributeType = type;
     }
 
-    @Override
-    public Object getDefaultValue() {
-        return DefaultValues.get(attributeType.getOpenType());
+    private static byte getType(final WellKnownType type){
+        switch (type){
+            case DICTIONARY:
+                return TType.STRUCT;
+            case BYTE:
+                return TType.BYTE;
+            case BOOL:
+                return TType.BOOL;
+            case SHORT:
+                return TType.I16;
+            case INT:
+                return TType.I32;
+            case FLOAT:
+            case DOUBLE:
+                return TType.DOUBLE;
+            case DATE:
+            case LONG:
+                return TType.I64;
+            case SHORT_BUFFER:
+            case SHORT_ARRAY:
+            case WRAPPED_SHORT_ARRAY:
+            case INT_BUFFER:
+            case INT_ARRAY:
+            case WRAPPED_INT_ARRAY:
+            case LONG_BUFFER:
+            case LONG_ARRAY:
+            case WRAPPED_LONG_ARRAY:
+            case FLOAT_BUFFER:
+            case FLOAT_ARRAY:
+            case WRAPPED_FLOAT_ARRAY:
+            case DOUBLE_ARRAY:
+            case WRAPPED_DOUBLE_ARRAY:
+            case DOUBLE_BUFFER:
+            case WRAPPED_BOOL_ARRAY:
+            case BOOL_ARRAY:
+            case STRING_ARRAY:
+            case OBJECT_NAME_ARRAY:
+            case BIG_INT_ARRAY:
+            case BIG_DECIMAL_ARRAY:
+            case DATE_ARRAY:
+                return TType.LIST;
+            case STRING:
+            case BIG_INT:
+            case BIG_DECIMAL:
+            case CHAR:
+            case OBJECT_NAME:
+            case CHAR_ARRAY:
+            case CHAR_BUFFER:
+            case WRAPPED_CHAR_ARRAY:
+            case BYTE_ARRAY:
+            case BYTE_BUFFER:
+            case WRAPPED_BYTE_ARRAY:
+            default:
+                return TType.STRING;
+        }
     }
 
     private static void serialize(final short[] input,
@@ -161,65 +214,36 @@ final class SimpleValueParser implements ThriftValueParser {
         output.writeListEnd();
     }
 
-    @Override
-    public byte getType() {
-        switch (attributeType){
-            case BYTE:
-                return TType.BYTE;
-            case BOOL:
-                return TType.BOOL;
-            case SHORT:
-                return TType.I16;
-            case INT:
-                return TType.I32;
-            case FLOAT:
-            case DOUBLE:
-                return TType.DOUBLE;
-            case DATE:
-            case LONG:
-                return TType.I64;
-            case SHORT_BUFFER:
-            case SHORT_ARRAY:
-            case WRAPPED_SHORT_ARRAY:
-            case INT_BUFFER:
-            case INT_ARRAY:
-            case WRAPPED_INT_ARRAY:
-            case LONG_BUFFER:
-            case LONG_ARRAY:
-            case WRAPPED_LONG_ARRAY:
-            case FLOAT_BUFFER:
-            case FLOAT_ARRAY:
-            case WRAPPED_FLOAT_ARRAY:
-            case DOUBLE_ARRAY:
-            case WRAPPED_DOUBLE_ARRAY:
-            case DOUBLE_BUFFER:
-            case WRAPPED_BOOL_ARRAY:
-            case BOOL_ARRAY:
-            case STRING_ARRAY:
-            case OBJECT_NAME_ARRAY:
-            case BIG_INT_ARRAY:
-            case BIG_DECIMAL_ARRAY:
-            case DATE_ARRAY:
-                return TType.LIST;
-            case STRING:
-            case BIG_INT:
-            case BIG_DECIMAL:
-            case CHAR:
-            case OBJECT_NAME:
-            case CHAR_ARRAY:
-            case CHAR_BUFFER:
-            case WRAPPED_CHAR_ARRAY:
-            case BYTE_ARRAY:
-            case BYTE_BUFFER:
-            case WRAPPED_BYTE_ARRAY:
-            default:
-                return TType.STRING;
-        }
+    private static String[] getSortedItems(final CompositeType type){
+        final String[] sortedItems = ArrayUtils.toArray(type.keySet(), String.class);
+        Arrays.sort(sortedItems);
+        return sortedItems;
     }
 
-    @Override
-    public void serialize(final Object input, final TProtocol output) throws TException {
-        switch (attributeType){
+    private static void serialize(final CompositeData input, final TProtocol output) throws TException{
+        final TStruct struct = new TStruct(input.getCompositeType().getTypeName());
+        final String[] sortedItems = getSortedItems(input.getCompositeType());
+        Arrays.sort(sortedItems);
+        short index = 1;
+        output.writeStructBegin(struct);
+        for(final String itemName: sortedItems){
+            output.writeFieldBegin(new TField(itemName, getType(input.getCompositeType().getType(itemName)), index++));
+            serialize(input.get(itemName), output);
+            output.writeFieldEnd();
+        }
+        output.writeFieldStop();
+        output.writeStructEnd();
+    }
+
+    static byte getType(final OpenType<?> type){
+        return getType(WellKnownType.getType(type));
+    }
+
+    static void serialize(final Object input, final TProtocol output) throws TException {
+        switch (WellKnownType.fromValue(input)){
+            case DICTIONARY:
+                serialize((CompositeData)input, output);
+                return;
             case BOOL:
                 output.writeBool((boolean) input);
                 return;
@@ -473,10 +497,30 @@ final class SimpleValueParser implements ThriftValueParser {
         return result;
     }
 
+    private static CompositeData deserialize(final CompositeType type, final TProtocol input) throws TException {
+        final String[] sortedNames = getSortedItems(type);
+        final Map<String, Object> items = Maps.newHashMapWithExpectedSize(sortedNames.length);
+        input.readStructBegin();
+        while (true){
+            final TField field = input.readFieldBegin();
+            if(field.type == TType.STOP) break;
+            final String itemName = sortedNames[field.id - 1];
+            items.put(itemName, deserialize(type.getType(itemName), input));
+            input.readFieldEnd();
+        }
+        input.readStructEnd();
 
-    @Override
-    public Object deserialize(final TProtocol input) throws TException {
-        switch (attributeType) {
+        try {
+            return new CompositeDataSupport(type, items);
+        } catch (final OpenDataException e) {
+            throw new TException(e);
+        }
+    }
+
+    static Object deserialize(final OpenType<?> type, final TProtocol input) throws TException {
+        switch (WellKnownType.getType(type)) {
+            case DICTIONARY:
+                return deserialize((CompositeType)type, input);
             case BOOL:
                 return input.readBool();
             case BYTE:

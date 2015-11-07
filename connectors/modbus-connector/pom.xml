@@ -12,7 +12,7 @@
     <version>${snamp.connectors.modbus.version}</version>
     <packaging>bundle</packaging>
     <name>Modbus Connector</name>
-    <description>SNAMP management connector for Modbus (over TCP and UDP) protocol</description>
+    <description>SNAMP resource connector for Modbus (over TCP and UDP) protocol</description>
     <build>
         <plugins>
             <plugin>

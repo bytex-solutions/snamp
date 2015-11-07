@@ -6,12 +6,11 @@ import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 import com.bytex.snamp.connectors.notifications.NotificationListenerInvoker;
 import com.bytex.snamp.connectors.notifications.NotificationListenerInvokerFactory;
 
-import javax.management.MBeanNotificationInfo;
 import javax.management.openmbean.OpenType;
-import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import static com.bytex.snamp.connectors.mda.MDAResourceConfigurationDescriptorProvider.parseType;
 
 /**
@@ -21,17 +20,19 @@ import static com.bytex.snamp.connectors.mda.MDAResourceConfigurationDescriptorP
  * @version 1.0
  * @since 1.0
  */
-public abstract class MDANotificationRepository<M extends MBeanNotificationInfo> extends AbstractNotificationRepository<M> implements SafeCloseable {
+public abstract class MDANotificationRepository<M extends MDANotificationInfo> extends AbstractNotificationRepository<M> implements SafeCloseable {
     private final NotificationListenerInvoker listenerInvoker;
-    private final AccessTimer lastWriteAccess;
+    private AccessTimer lastWriteAccess;
 
     protected MDANotificationRepository(final String resourceName,
                                        final Class<M> featureType,
-                                       final AccessTimer accessTimer,
                                        final ExecutorService threadPool){
         super(resourceName, featureType);
-        this.lastWriteAccess = Objects.requireNonNull(accessTimer);
         listenerInvoker = NotificationListenerInvokerFactory.createParallelInvoker(threadPool);
+    }
+
+    final void init(final AccessTimer accessTimer){
+        this.lastWriteAccess = accessTimer;
     }
 
     /**
@@ -52,13 +53,15 @@ public abstract class MDANotificationRepository<M extends MBeanNotificationInfo>
         return listenerInvoker;
     }
 
-    protected abstract M enableNotifications(final String notifType,
-                                             final OpenType<?> attachmentType,
-                                             final NotificationDescriptor metadata) throws Exception;
+    protected abstract M createNotificationMetadata(final String notifType,
+                                                    final NotificationDescriptor metadata) throws Exception;
 
     @Override
     protected final M enableNotifications(final String notifType, final NotificationDescriptor metadata) throws Exception {
-        return enableNotifications(notifType, parseType(metadata), metadata);
+        final OpenType<?> attachmentType = parseType(metadata);
+        final M result = createNotificationMetadata(notifType, metadata.setUserDataType(attachmentType));
+        result.init(attachmentType);
+        return result;
     }
 
     protected abstract Logger getLogger();

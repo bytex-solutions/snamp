@@ -189,6 +189,14 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
         return result;
     }
 
+    public final AttributeDescriptor setOpenType(final OpenType<?> value){
+        return value != null ? setFields(ImmutableMap.of(OPEN_TYPE, value)) : this;
+    }
+
+    public final OpenType<?> getOpenType(){
+        return getOpenType(this);
+    }
+
     /**
      * Determines whether the field with the specified name is defined in this descriptor.
      * @param fieldName The name of the field to check.

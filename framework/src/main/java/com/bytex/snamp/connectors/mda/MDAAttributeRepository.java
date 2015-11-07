@@ -2,12 +2,16 @@ package com.bytex.snamp.connectors.mda;
 
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.connectors.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
+import com.bytex.snamp.connectors.attributes.OpenAttributeRepository;
+import com.bytex.snamp.jmx.DefaultValues;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 
 import javax.management.InvalidAttributeValueException;
+import javax.management.openmbean.CompositeType;
+import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -15,47 +19,42 @@ import java.util.logging.Logger;
 import static com.bytex.snamp.connectors.mda.MDAResourceConfigurationDescriptorProvider.parseType;
 
 /**
- * Represents collection of {@link MDAAttributeAccessor}.
+ * Represents collection of {@link MDAAttributeInfo}.
  * @param <M> Type of attributes in the repository.
  * @author Roman Sakno
  * @since 1.0
  * @version 1.0
  */
-public abstract class MDAAttributeRepository<M extends MDAAttributeAccessor> extends AbstractAttributeRepository<M> implements SafeCloseable {
-    private final TimeSpan expirationTime;
-
-    /**
-     * Provides access to timer that measures time of last write.
-     */
-    protected final AccessTimer lastWriteAccess;
+public abstract class MDAAttributeRepository<M extends MDAAttributeInfo> extends OpenAttributeRepository<M> implements SafeCloseable {
+    private TimeSpan expirationTime;
+    private AccessTimer lastWriteAccess;
+    private final Cache<String, OpenType<?>> attributeTypes;
 
     /**
      * Initializes a new empty repository of attributes.
      * @param resourceName Name of the managed resource. Cannot be {@literal null} or empty.
      * @param attributeMetadataType Type of attributes in the repository. Cannot be {@literal null}.
-     * @param expirationTime TTL of attribute value (interval of trust). Cannot be {@literal null}.
-     * @param accessTimer Represents timer used to measure interval of trust. Cannot be {@literal null}.
      */
     protected MDAAttributeRepository(final String resourceName,
-                                     final Class<M> attributeMetadataType,
-                                     final TimeSpan expirationTime,
-                                     final AccessTimer accessTimer) {
+                                     final Class<M> attributeMetadataType) {
         super(resourceName, attributeMetadataType);
-        this.lastWriteAccess = Objects.requireNonNull(accessTimer);
-        this.expirationTime = Objects.requireNonNull(expirationTime);
+        attributeTypes = CacheBuilder.newBuilder().weakValues().build();
+    }
+
+    final void init(final TimeSpan expirationTime, final AccessTimer accessTimer){
+        this.expirationTime = expirationTime;
+        this.lastWriteAccess = accessTimer;
     }
 
     /**
      * Connects attribute with this repository.
      * @param attributeID User-defined identifier of the attribute.
-     * @param attributeType User-defined type of the attribute.
      * @param descriptor Metadata of the attribute.
      * @return Constructed attribute object.
      * @throws Exception Internal connector error.
      */
-    protected abstract M connectAttribute(final String attributeID,
-                                          final OpenType<?> attributeType,
-                                          final AttributeDescriptor descriptor) throws Exception;
+    protected abstract M createAttributeMetadata(final String attributeID,
+                                                 final AttributeDescriptor descriptor) throws Exception;
 
     /**
      * Connects to the specified attribute.
@@ -65,9 +64,15 @@ public abstract class MDAAttributeRepository<M extends MDAAttributeAccessor> ext
      * @return The description of the attribute; or {@literal null},
      * @throws Exception Internal connector error.
      */
+    @SuppressWarnings("unchecked")
     @Override
     protected final M connectAttribute(final String attributeID, final AttributeDescriptor descriptor) throws Exception {
-        return connectAttribute(attributeID, parseType(descriptor), descriptor);
+        final OpenType<?> attributeType = parseType(descriptor);
+        if(attributeType == null) throw new IllegalStateException("User-defined type of attribute is not supported");
+        final M attribute = createAttributeMetadata(attributeID, descriptor.setOpenType(attributeType));
+        attributeTypes.put(attribute.getStorageKey(), attributeType);
+        attribute.init(lastWriteAccess, expirationTime, getStorage(), getDefaultValue(attributeType));
+        return attribute;
     }
 
     /**
@@ -78,42 +83,32 @@ public abstract class MDAAttributeRepository<M extends MDAAttributeAccessor> ext
 
     /**
      * Gets default value of the named storage slot.
-     * @param storageName The name of the storage slot.
+     * @param attributeType The name of the storage slot.
      * @return Default value of the storage slot.
      */
-    protected abstract Object getDefaultValue(final String storageName);
+    @SuppressWarnings("unchecked")
+    protected <T> T getDefaultValue(final OpenType<T> attributeType) throws OpenDataException{
+        return attributeType instanceof CompositeType ?
+                (T)DefaultValues.get((CompositeType)attributeType) :
+                DefaultValues.get(attributeType);
+    }
+
+    /**
+     * Gets type of the attribute.
+     * @param storageKey The key in the storage.
+     * @return Type of the attribute.
+     */
+    protected final OpenType<?> getAttributeType(final String storageKey){
+        return attributeTypes.getIfPresent(storageKey);
+    }
 
     /**
      * Resets all attributes in the storage to default.
      */
-    public final void reset(){
-        for(final String storageName: getStorage().keySet())
-            getStorage().put(storageName, getDefaultValue(storageName));
-        lastWriteAccess.reset();
-    }
-
-    /**
-     * Gets attribute value from the storage.
-     * @param metadata The metadata of the attribute.
-     * @return Attribute value.
-     */
-    @Override
-    protected final Object getAttribute(final M metadata) {
-        if(lastWriteAccess.compareTo(expirationTime) > 0)
-            throw new IllegalStateException("Attribute value is too old. Backend component must supply a fresh value");
-        else
-            return metadata.getValue(getStorage());
-    }
-
-    /**
-     * Saves attribute value into the underlying storage.
-     * @param attribute The attribute of to set.
-     * @param value     The value of the attribute.
-     * @throws InvalidAttributeValueException
-     */
-    @Override
-    protected final void setAttribute(final M attribute, final Object value) throws InvalidAttributeValueException {
-        attribute.setValue(value, getStorage());
+    @SuppressWarnings("unchecked")
+    public final void reset() throws OpenDataException, InvalidAttributeValueException {
+        for(final M attribute: getAttributeInfo())
+            attribute.setValue(getDefaultValue(attribute.getOpenType()));
         lastWriteAccess.reset();
     }
 
@@ -140,5 +135,8 @@ public abstract class MDAAttributeRepository<M extends MDAAttributeAccessor> ext
     @Override
     public void close() {
         removeAll(true);
+        expirationTime = null;
+        lastWriteAccess = null;
+        attributeTypes.invalidateAll();
     }
 }
