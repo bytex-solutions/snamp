@@ -40,7 +40,7 @@ public abstract class OpenAttributeRepository<T extends OpenAttributeAccessor> e
      * @throws Exception Internal connector error.
      */
     @Override
-    protected final Object getAttribute(final OpenAttributeAccessor metadata) throws Exception {
+    protected Object getAttribute(final T metadata) throws Exception {
         return metadata.getValue();
     }
 
@@ -54,7 +54,7 @@ public abstract class OpenAttributeRepository<T extends OpenAttributeAccessor> e
      */
     @SuppressWarnings("unchecked")
     @Override
-    protected final void setAttribute(final OpenAttributeAccessor attribute, final Object value) throws Exception {
+    protected void setAttribute(final T attribute, final Object value) throws Exception {
         attribute.setValue(value);
     }
 

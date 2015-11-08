@@ -43,11 +43,11 @@ final class SnmpBlobObject extends SnmpScalarObject<OctetString> {
         if(value instanceof byte[])
             return OctetString.fromByteArray((byte[])value);
         else if(value instanceof Byte[])
-            return OctetString.fromByteArray(ArrayUtils.unboxArray((Byte[])value));
+            return OctetString.fromByteArray(ArrayUtils.unwrapArray((Byte[])value));
         else if(value instanceof boolean[])
             return toOctetString((boolean[])value);
         else if(value instanceof Boolean[])
-            return toOctetString(ArrayUtils.unboxArray((Boolean[])value));
+            return toOctetString(ArrayUtils.unwrapArray((Boolean[])value));
         else return DEFAULT_VALUE;
     }
 
@@ -57,9 +57,9 @@ final class SnmpBlobObject extends SnmpScalarObject<OctetString> {
                                   final Type attributeType) throws InvalidAttributeValueException{
         switch (WellKnownType.getType(attributeType)){
             case BYTE_ARRAY: return value.toByteArray();
-            case WRAPPED_BYTE_ARRAY: return ArrayUtils.boxArray(value.toByteArray());
+            case WRAPPED_BYTE_ARRAY: return ArrayUtils.wrapArray(value.toByteArray());
             case BOOL_ARRAY: return toBooleanArray(value.toByteArray());
-            case WRAPPED_BOOL_ARRAY: return ArrayUtils.boxArray(toBooleanArray(value.toByteArray()));
+            case WRAPPED_BOOL_ARRAY: return ArrayUtils.wrapArray(toBooleanArray(value.toByteArray()));
             default: throw unexpectedAttributeType(attributeType);
         }
     }

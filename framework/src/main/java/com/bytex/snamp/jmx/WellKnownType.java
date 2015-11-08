@@ -394,6 +394,9 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
         return openType instanceof ArrayType<?> || javaType.isArray();
     }
 
+    public final boolean isPrimitiveArray(){
+        return openType instanceof ArrayType<?> && ((ArrayType<?>)openType).isPrimitiveArray();
+    }
 
     public final boolean isSimpleArray(){
         return openType instanceof ArrayType<?> &&

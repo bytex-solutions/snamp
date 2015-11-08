@@ -272,7 +272,7 @@ final class ThriftDataConverter {
                 output.writeBinary(Buffers.wrap((byte[]) input));
                 return;
             case WRAPPED_BYTE_ARRAY:
-                output.writeBinary(Buffers.wrap(ArrayUtils.unboxArray((Byte[]) input)));
+                output.writeBinary(Buffers.wrap(ArrayUtils.unwrapArray((Byte[]) input)));
                 return;
             case BYTE_BUFFER:
                 output.writeBinary((ByteBuffer) input);
@@ -281,7 +281,7 @@ final class ThriftDataConverter {
                 serialize((short[]) input, output);
                 return;
             case WRAPPED_SHORT_ARRAY:
-                serialize(ArrayUtils.unboxArray((Short[]) input), output);
+                serialize(ArrayUtils.unwrapArray((Short[]) input), output);
                 return;
             case SHORT_BUFFER:
                 serialize((ShortBuffer) input, output);
@@ -290,7 +290,7 @@ final class ThriftDataConverter {
                 serialize((int[]) input, output);
                 return;
             case WRAPPED_INT_ARRAY:
-                serialize(ArrayUtils.unboxArray((Integer[]) input), output);
+                serialize(ArrayUtils.unwrapArray((Integer[]) input), output);
                 return;
             case INT_BUFFER:
                 serialize((IntBuffer) input, output);
@@ -299,7 +299,7 @@ final class ThriftDataConverter {
                 serialize((long[]) input, output);
                 return;
             case WRAPPED_LONG_ARRAY:
-                serialize(ArrayUtils.unboxArray((Long[]) input), output);
+                serialize(ArrayUtils.unwrapArray((Long[]) input), output);
                 return;
             case LONG_BUFFER:
                 serialize((LongBuffer) input, output);
@@ -308,7 +308,7 @@ final class ThriftDataConverter {
                 serialize((float[]) input, output);
                 return;
             case WRAPPED_FLOAT_ARRAY:
-                serialize(ArrayUtils.unboxArray((Float[]) input), output);
+                serialize(ArrayUtils.unwrapArray((Float[]) input), output);
                 return;
             case FLOAT_BUFFER:
                 serialize((FloatBuffer) input, output);
@@ -317,7 +317,7 @@ final class ThriftDataConverter {
                 serialize((double[]) input, output);
                 return;
             case WRAPPED_DOUBLE_ARRAY:
-                serialize(ArrayUtils.unboxArray((Double[]) input), output);
+                serialize(ArrayUtils.unwrapArray((Double[]) input), output);
                 return;
             case DOUBLE_BUFFER:
                 serialize((DoubleBuffer) input, output);
@@ -326,7 +326,7 @@ final class ThriftDataConverter {
                 serialize((char[]) input, output);
                 return;
             case WRAPPED_CHAR_ARRAY:
-                serialize(ArrayUtils.unboxArray((Character[]) input), output);
+                serialize(ArrayUtils.unwrapArray((Character[]) input), output);
                 return;
             case CHAR_BUFFER:
                 serialize((CharBuffer) input, output);
@@ -335,7 +335,7 @@ final class ThriftDataConverter {
                 serialize((boolean[]) input, output);
                 return;
             case WRAPPED_BOOL_ARRAY:
-                serialize(ArrayUtils.unboxArray((Boolean[]) input), output);
+                serialize(ArrayUtils.unwrapArray((Boolean[]) input), output);
                 return;
             case STRING_ARRAY:
                 serialize((String[]) input, output);
@@ -550,7 +550,7 @@ final class ThriftDataConverter {
             case BYTE_ARRAY:
                 return Buffers.readRemaining(input.readBinary());
             case WRAPPED_BYTE_ARRAY:
-                return ArrayUtils.boxArray(Buffers.readRemaining(input.readBinary()));
+                return ArrayUtils.wrapArray(Buffers.readRemaining(input.readBinary()));
             case OBJECT_NAME:
                 try {
                     return new ObjectName(input.readString());
@@ -560,13 +560,13 @@ final class ThriftDataConverter {
             case SHORT_ARRAY:
                 return deserializeShortArray(input);
             case WRAPPED_SHORT_ARRAY:
-                return ArrayUtils.boxArray(deserializeShortArray(input));
+                return ArrayUtils.wrapArray(deserializeShortArray(input));
             case SHORT_BUFFER:
                 return deserializeShortBuffer(input);
             case CHAR_ARRAY:
                 return deserializeCharArray(input);
             case WRAPPED_CHAR_ARRAY:
-                return ArrayUtils.boxArray(deserializeCharArray(input));
+                return ArrayUtils.wrapArray(deserializeCharArray(input));
             case CHAR_BUFFER:
                 return deserializeCharBuffer(input);
             case INT_ARRAY:
@@ -574,29 +574,29 @@ final class ThriftDataConverter {
             case INT_BUFFER:
                 return deserializeIntBuffer(input);
             case WRAPPED_INT_ARRAY:
-                return ArrayUtils.boxArray(deserializeIntArray(input));
+                return ArrayUtils.wrapArray(deserializeIntArray(input));
             case LONG_ARRAY:
                 return deserializeLongArray(input);
             case WRAPPED_LONG_ARRAY:
-                return ArrayUtils.boxArray(deserializeLongArray(input));
+                return ArrayUtils.wrapArray(deserializeLongArray(input));
             case LONG_BUFFER:
                 return deserializeLongBuffer(input);
             case FLOAT_ARRAY:
                 return deserializeFloatArray(input);
             case WRAPPED_FLOAT_ARRAY:
-                return ArrayUtils.boxArray(deserializeFloatArray(input));
+                return ArrayUtils.wrapArray(deserializeFloatArray(input));
             case FLOAT_BUFFER:
                 return deserializeFloatBuffer(input);
             case DOUBLE_ARRAY:
                 return deserializeDoubleArray(input);
             case WRAPPED_DOUBLE_ARRAY:
-                return ArrayUtils.boxArray(deserializeDoubleArray(input));
+                return ArrayUtils.wrapArray(deserializeDoubleArray(input));
             case DOUBLE_BUFFER:
                 return deserializeDoubleBuffer(input);
             case BOOL_ARRAY:
                 return deserializeBoolArray(input);
             case WRAPPED_BOOL_ARRAY:
-                return ArrayUtils.boxArray(deserializeBoolArray(input));
+                return ArrayUtils.wrapArray(deserializeBoolArray(input));
             case STRING_ARRAY:
                 return deserializeStringArray(input);
             case DATE_ARRAY:

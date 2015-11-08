@@ -58,9 +58,15 @@
         </dependency>
         <dependency>
             <groupId>org.apache.activemq</groupId>
-            <artifactId>activemq-client</artifactId>
-            <version>5.11.3</version>
-            <scope>compile</scope>
+            <artifactId>activemq-osgi</artifactId>
+            <version>${activemq.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast</artifactId>
+            <version>${hazelcast.version}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

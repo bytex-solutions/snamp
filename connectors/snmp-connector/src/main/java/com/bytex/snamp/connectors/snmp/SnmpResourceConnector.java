@@ -507,7 +507,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
             if(value instanceof byte[])
                 return new Opaque((byte[])value);
             else if(value instanceof Byte[])
-                return new Opaque(ArrayUtils.unboxArray((Byte[])value));
+                return new Opaque(ArrayUtils.unwrapArray((Byte[])value));
             else if(value instanceof ByteBuffer)
                 return new Opaque(Buffers.readRemaining((ByteBuffer)value));
             else throw invalidAttribute(value, Opaque.class);

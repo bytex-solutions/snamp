@@ -21,24 +21,15 @@ public final class JMSDataAcceptorFactory implements DataAcceptorFactory {
         return new ActiveMQConnectionFactory(connectionString);
     }
 
-    /**
-     * Creates a new instance of the Monitoring Data Acceptor.
-     *
-     * @param resourceName     The name of managed resource.
-     * @param connectionString Initialization string.
-     * @param parameters       Initialization parameters.
-     * @return A new instance.
-     * @throws Exception Unable to create acceptor.
-     */
     @Override
     public DataAcceptor create(final String resourceName,
                                String connectionString,
                                final Map<String, String> parameters) throws JMSException, AbsentConfigurationParameterException {
         final ConnectionFactory connectionFactory;
-        if(connectionString.startsWith(ACTIVEMQ_PREFIX))     //ActiveMQ detected
+        if (connectionString.startsWith(ACTIVEMQ_PREFIX))     //ActiveMQ detected
             connectionFactory = createActiveMQConnectionFactory(connectionString.replaceFirst(ACTIVEMQ_PREFIX, ""));
         else throw new IllegalArgumentException("Unknown message queue technology");
-        return new JMSDataAcceptor(resourceName, parameters, connectionFactory);
+        return new JMSDataAcceptor(resourceName, parameters, new MQThreadPoolConfig(parameters, resourceName), connectionFactory);
     }
 
     /**

@@ -39,7 +39,11 @@ public class MDAAttributeInfo<T> extends OpenAttributeAccessor<T> {
         this(name, type, AttributeSpecifier.READ_WRITE, descriptor);
     }
 
-    final String getStorageKey(){
+    /**
+     * Gets storage key used by this attribute to read/write its own value.
+     * @return The storage key.
+     */
+    public final String getStorageKey(){
         return getDescriptor().getAttributeName();
     }
 
