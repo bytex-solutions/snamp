@@ -19,6 +19,7 @@ import javax.management.openmbean.OpenType;
 import javax.management.openmbean.SimpleType;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -299,7 +300,7 @@ public abstract class JMSDataConverter extends Script {
     }
 
     /**
-     * Converts {@link Date}[] to message.
+     * Converts {@link Date} to message.
      * @param value The value to convert.
      * @param session Message factory.
      * @return A message with serialized payload.
@@ -309,6 +310,17 @@ public abstract class JMSDataConverter extends Script {
         final BytesMessage result = session.createBytesMessage();
         result.writeLong(value.getTime());
         return result;
+    }
+
+    /**
+     * Converts {@link BigInteger} to message.
+     * @param value The value to convert.
+     * @param session Message factory.
+     * @return A message with serialized payload.
+     * @throws JMSException Internal JMS error.
+     */
+    public Message fromBigInt(final BigInteger value, final Session session) throws JMSException{
+        return session.createTextMessage(value.toString());
     }
 
     final Message serialize(final Object value, final Session session) throws JMSException{
@@ -329,6 +341,8 @@ public abstract class JMSDataConverter extends Script {
                 return fromFloat((Float)value, session);
             case DOUBLE:
                 return fromDouble((Double)value, session);
+            case BIG_INT:
+                return fromBigInt((BigInteger)value, session);
             case OBJECT_NAME:
                 return fromObjectName((ObjectName)value, session);
             case DICTIONARY:

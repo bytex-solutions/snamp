@@ -28,7 +28,7 @@ public final class ActiveMQTest extends AbstractMQConnectorTest {
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
     private <E extends Throwable> void runTest(final Consumer<Session, E> testBody) throws JMSException, E {
@@ -42,19 +42,20 @@ public final class ActiveMQTest extends AbstractMQConnectorTest {
     }
 
     @Test
-    public void stringAttributeTest() throws Exception {
+    public void binaryStringAttributeTest() throws Exception {
         runTest(new Consumer<Session, Exception>() {
             @Override
             public void accept(final Session session) throws Exception {
                 final Destination output = session.createQueue(QUEUE_NAME);
                 final MessageProducer producer = session.createProducer(output);
                 producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
-                final TextMessage message = session.createTextMessage("Frank Underwood");
+                final BytesMessage message = session.createBytesMessage();
+                message.writeUTF("Barry Burton");
                 message.setStringProperty("snampStorageKey", "string");
                 message.setJMSType("write");
                 producer.send(message);
                 Thread.sleep(1000); //message delivery is asynchronous process
-                testAttribute("1.0", TypeToken.of(String.class), "Frank Underwood", true);
+                testAttribute("1.0", TypeToken.of(String.class), "Barry Burton", true);
             }
         });
     }
