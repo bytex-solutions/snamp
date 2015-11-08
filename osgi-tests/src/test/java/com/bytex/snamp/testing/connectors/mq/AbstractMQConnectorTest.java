@@ -3,12 +3,12 @@ package com.bytex.snamp.testing.connectors.mq;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connectors.AbstractResourceConnectorTest;
-import com.google.common.collect.ImmutableMap;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.osgi.framework.BundleContext;
 
 import javax.jms.Connection;
 import javax.jms.JMSException;
+import java.util.Map;
 
 /**
  * @author Roman Sakno
@@ -36,13 +36,8 @@ public abstract class AbstractMQConnectorTest extends AbstractResourceConnectorT
     private Connection jmsConnection;
     private final QueueType queue;
 
-    protected AbstractMQConnectorTest(final QueueType queue, final String inputQueueName) {
-        super("mq", queue.connectionString, ImmutableMap.of("inputQueueName", inputQueueName));
-        this.queue = queue;
-    }
-
-    protected AbstractMQConnectorTest(final QueueType queue, final String inputQueueName, final String outputQueueName) {
-        super("mq", queue.connectionString, ImmutableMap.of("inputQueueName", inputQueueName, "outputQueueName", outputQueueName));
+    protected AbstractMQConnectorTest(final QueueType queue, final Map<String, String> parameters) {
+        super("mq", queue.connectionString, parameters);
         this.queue = queue;
     }
 

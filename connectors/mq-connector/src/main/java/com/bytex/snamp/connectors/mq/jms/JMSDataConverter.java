@@ -2,7 +2,14 @@ package com.bytex.snamp.connectors.mq.jms;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.jmx.WellKnownType;
+import com.google.common.base.StandardSystemProperty;
 import com.google.common.base.Strings;
+import groovy.lang.Binding;
+import groovy.lang.Script;
+import groovy.util.GroovyScriptEngine;
+import groovy.util.ResourceException;
+import groovy.util.ScriptException;
+import org.codehaus.groovy.control.CompilerConfiguration;
 
 import javax.jms.*;
 import javax.management.ObjectName;
@@ -10,8 +17,15 @@ import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
 import javax.management.openmbean.SimpleType;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
+import java.util.StringTokenizer;
 
 /**
  * Represents JMS data converted used to serialize/deserialize JMS messages into SNAMP type system.
@@ -19,7 +33,47 @@ import java.util.Objects;
  * @version 1.0
  * @since 1.0
  */
-public class JMSDataConverter {
+public abstract class JMSDataConverter extends Script {
+
+    public static JMSDataConverter createDefault(){
+        return new JMSDataConverter() {
+            @Override
+            public Object run() {
+                return null;
+            }
+        };
+    }
+
+    public static JMSDataConverter loadFrom(final File scriptFile, final ClassLoader caller) throws IOException, ResourceException, ScriptException {
+        final Path path = Paths.get(scriptFile.toURI());
+        final GroovyScriptEngine engine = new GroovyScriptEngine(new URL[]{path.getParent().toUri().toURL()}, caller);
+        engine.getConfig().setScriptBaseClass(JMSDataConverter.class.getName());
+        engine.getConfig().getOptimizationOptions().put("indy", true);
+        setupClassPath(engine.getConfig());
+        //setup classloader
+        final Thread currentThread = Thread.currentThread();
+        final ClassLoader previousClassLoader = currentThread.getContextClassLoader();
+        currentThread.setContextClassLoader(engine.getGroovyClassLoader());
+        final JMSDataConverter converter;
+        try{
+            converter = (JMSDataConverter) engine.createScript(scriptFile.getName(), new Binding());
+        }
+        finally {
+            currentThread.setContextClassLoader(previousClassLoader);
+        }
+        converter.run();
+        return converter;
+    }
+
+    private static void setupClassPath(final CompilerConfiguration config) {
+        final List<String> classPath = config.getClasspath();
+        final String javaClassPath = StandardSystemProperty.JAVA_CLASS_PATH.value();
+        if (!Strings.isNullOrEmpty(javaClassPath)) {
+            StringTokenizer tokenizer = new StringTokenizer(javaClassPath, File.pathSeparator);
+            while (tokenizer.hasMoreTokens())
+                classPath.add(tokenizer.nextToken());
+        }
+    }
 
     private static OpenDataException cannotConvert(final Message msg, final OpenType<?> type){
         return new OpenDataException(String.format("Message %s cannot be converted to %s", msg, type));

@@ -31,7 +31,7 @@ public abstract class AbstractGroovyConnectorTest extends AbstractResourceConnec
     }
 
     protected static String getConnectionString(){
-        return getProjectRootDir() + File.separator + "sample-groovy-scripts/";
+        return getPathToFileInProjectRoot("sample-groovy-scripts") + File.separator;
     }
 
     protected static Map<String, String> getDefaultConnectionParams(){

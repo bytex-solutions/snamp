@@ -14,6 +14,11 @@
     <name>Message Queue Connector</name>
     <description>SNAMP resource connector for ApacheMQ, RabbitMQ, OpenMQ, HornetQ</description>
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.felix</groupId>
@@ -24,6 +29,9 @@
                         <Bundle-SymbolicName>com.bytex.snamp.connectors.mq</Bundle-SymbolicName>
                         <Bundle-Activator>com.bytex.snamp.connectors.mq.MQConnectorBundleActivator</Bundle-Activator>
                         <Export-Package/>
+                        <DynamicImport-Package>
+                            *
+                        </DynamicImport-Package>
                         <!--SNAMP specific header-->
                         <SNAMP-Resource-Connector>mq</SNAMP-Resource-Connector>
                     </instructions>
@@ -66,6 +74,20 @@
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast</artifactId>
             <version>${hazelcast.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy</artifactId>
+            <version>${groovy.version}</version>
+            <classifier>indy</classifier>
+            <scope>provided</scope>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.ivy</groupId>
+            <artifactId>ivy</artifactId>
+            <version>${apache.ivy.version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

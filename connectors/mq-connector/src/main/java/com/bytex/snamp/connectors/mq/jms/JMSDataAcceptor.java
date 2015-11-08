@@ -36,6 +36,7 @@ final class JMSDataAcceptor extends DataAcceptor implements ExceptionListener {
 
     JMSDataAcceptor(final String resourceName,
                     final Map<String, String> parameters,
+                    final JMSDataConverter converter,
                     final Supplier<? extends ExecutorService> threadPoolFactory,
                     final ConnectionFactory factory) throws JMSException, AbsentConfigurationParameterException {
         jmsConnection = MQConnectorConfigurationDescriptor.createConnection(factory, parameters);
@@ -44,7 +45,7 @@ final class JMSDataAcceptor extends DataAcceptor implements ExceptionListener {
         messageSelector = MQConnectorConfigurationDescriptor.getMessageSelector(parameters);
         outputQueueName = MQConnectorConfigurationDescriptor.getOutputQueueName(parameters);
         isTopicOutput = MQConnectorConfigurationDescriptor.isOutputTopic(parameters);
-        attributes = new JMSAttributeRepository(resourceName, new JMSDataConverter(), getLogger());
+        attributes = new JMSAttributeRepository(resourceName, converter, getLogger());
         notifications = new MDANotificationRepository(resourceName, MDANotificationInfo.class, threadPoolFactory.get()) {
             @Override
             protected MDANotificationInfo createNotificationMetadata(String notifType, NotificationDescriptor metadata) throws Exception {

@@ -3,10 +3,12 @@ package com.bytex.snamp.testing.connectors.mq;
 import com.bytex.snamp.Consumer;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
 import org.junit.Test;
 
 import javax.jms.*;
+import java.io.File;
 import java.util.Map;
 
 /**
@@ -18,7 +20,10 @@ public final class ActiveMQTest extends AbstractMQConnectorTest {
     private static final String QUEUE_NAME = "dummyQueue";
 
     public ActiveMQTest(){
-        super(QueueType.ACTIVEMQ, QUEUE_NAME);
+        super(QueueType.ACTIVEMQ,
+                ImmutableMap.of("inputQueueName", QUEUE_NAME,
+                        "converterScript", getPathToFileInProjectRoot("sample-groovy-scripts") + File.separator + "JMSConverter.groovy"
+                ));
     }
 
     @Override
