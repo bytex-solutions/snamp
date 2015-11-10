@@ -379,9 +379,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.apache.activemq</groupId>
-            <artifactId>activemq-osgi</artifactId>
-            <version>${activemq.version}</version>
+            <groupId>com.bytex.snamp</groupId>
+            <artifactId>mq-connector</artifactId>
+            <version>${snamp.connectors.mq.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

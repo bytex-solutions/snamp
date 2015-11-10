@@ -3,8 +3,9 @@ package com.bytex.snamp.connectors.mq.jms;
 import com.bytex.snamp.connectors.mda.DataAcceptor;
 import com.bytex.snamp.connectors.mda.DataAcceptorFactory;
 import com.bytex.snamp.connectors.mq.MQConnectorConfigurationDescriptor;
+import com.bytex.snamp.internal.Utils;
 import com.google.common.base.Strings;
-import org.apache.activemq.ActiveMQConnectionFactory;
+import org.osgi.framework.BundleContext;
 
 import javax.jms.ConnectionFactory;
 import java.io.File;
@@ -17,23 +18,45 @@ import java.util.Map;
  */
 public final class JMSDataAcceptorFactory implements DataAcceptorFactory {
     private static final String ACTIVEMQ_PREFIX = "activemq:";
-
-    private static ActiveMQConnectionFactory createActiveMQConnectionFactory(final String connectionString){
-        return new ActiveMQConnectionFactory(connectionString);
-    }
+    private static final String JNDI_PREFIX = "jndi://";
+    private static final String AMQP_PREFIX = "amqp:";
+    private static final String AMQP_SECURE_PREFIX = "amqps:";
 
     @Override
     public DataAcceptor create(final String resourceName,
                                String connectionString,
                                final Map<String, String> parameters) throws Exception {
+        //parse converter
         final String scriptFile = MQConnectorConfigurationDescriptor.getConverterScript(parameters);
         final JMSDataConverter converter = Strings.isNullOrEmpty(scriptFile) ?
                 JMSDataConverter.createDefault() :
                 JMSDataConverter.loadFrom(new File(scriptFile), getClass().getClassLoader());
+        //detect connection factory
+        final BundleContext context = Utils.getBundleContextByObject(this);
         final ConnectionFactory connectionFactory;
-        if (connectionString.startsWith(ACTIVEMQ_PREFIX))     //ActiveMQ detected
-            connectionFactory = createActiveMQConnectionFactory(connectionString.replaceFirst(ACTIVEMQ_PREFIX, ""));
+        //ActiveMQ detected
+        if (connectionString.startsWith(ACTIVEMQ_PREFIX))
+            connectionFactory = QueueClient.ACTIVEMQ.getConnectionFactory(connectionString.replaceFirst(ACTIVEMQ_PREFIX, ""), context);
+        //JNDI
+        else if(connectionString.startsWith(JNDI_PREFIX))
+            connectionFactory = QueueClient.JNDI.getConnectionFactory(connectionString.replaceFirst(JNDI_PREFIX, ""), context);
+        //AMQP
+        else if(connectionString.startsWith(AMQP_PREFIX) || connectionString.startsWith(AMQP_SECURE_PREFIX)){
+            final String protocolVersion = MQConnectorConfigurationDescriptor.getAmqpVersion(parameters);
+            final QueueClient client;
+            if(Strings.isNullOrEmpty(protocolVersion))
+                client = QueueClient.AMQP_0_9_1;
+            else switch (protocolVersion){
+                case "0-8": client = QueueClient.AMQP_0_8; break;
+                case "0-9": client = QueueClient.AMQP_0_9; break;
+                case "0-9-1": client = QueueClient.AMQP_0_9_1; break;
+                case "0-10": client = QueueClient.AMQP_0_10; break;
+                default: client = QueueClient.AMQP_0_9_1;
+            }
+            connectionFactory = client.getConnectionFactory(connectionString, context);
+        }
         else throw new IllegalArgumentException("Unknown message queue technology");
+        //setup thread pool
         return new JMSDataAcceptor(resourceName, parameters, converter, new MQThreadPoolConfig(parameters, resourceName), connectionFactory);
     }
 
@@ -46,6 +69,9 @@ public final class JMSDataAcceptorFactory implements DataAcceptorFactory {
      */
     @Override
     public boolean canCreateFrom(final String connectionString) {
-        return connectionString.startsWith(ACTIVEMQ_PREFIX);
+        return connectionString.startsWith(ACTIVEMQ_PREFIX) ||
+                connectionString.startsWith(AMQP_SECURE_PREFIX) ||
+                connectionString.startsWith(AMQP_PREFIX) ||
+                connectionString.startsWith(JNDI_PREFIX);
     }
 }

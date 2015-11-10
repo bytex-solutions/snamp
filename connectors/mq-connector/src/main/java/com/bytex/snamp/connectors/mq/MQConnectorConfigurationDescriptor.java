@@ -21,6 +21,7 @@ public final class MQConnectorConfigurationDescriptor extends MDAResourceConfigu
     private static final String OUT_QUEUE_NAME_PARAM = "outputQueueName";
     private static final String OUT_TOPIC_PARAM = "isOutputTopic";
     private static final String CONVERTER_SCRIPT_PARAM = "converterScript";
+    private static final String AMQP_VERSION_PARAM = "amqpVersion";
 
     public static Connection createConnection(final ConnectionFactory factory, final Map<String, String> parameters) throws JMSException {
         if(parameters.containsKey(USERNAME_PARAM) && parameters.containsKey(PASSWORD_PARAM)){
@@ -61,5 +62,11 @@ public final class MQConnectorConfigurationDescriptor extends MDAResourceConfigu
         if(parameters.containsKey(CONVERTER_SCRIPT_PARAM))
             return parameters.get(CONVERTER_SCRIPT_PARAM);
         else return null;
+    }
+
+    public static String getAmqpVersion(final Map<String, String> parameters){
+        return parameters.containsKey(AMQP_VERSION_PARAM) ?
+                parameters.get(AMQP_VERSION_PARAM) :
+                null;
     }
 }

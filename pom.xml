@@ -38,6 +38,8 @@
     <sshd.version>0.14.0</sshd.version>
     <slf4j.api.version>1.7.12</slf4j.api.version>
     <activemq.version>5.12.1</activemq.version>
+    <qpid.version>0.6.0</qpid.version>
+    <netty.version>4.0.33.Final</netty.version>
     <hawtio.version>1.4.55</hawtio.version>
     <!--Versioning of SNAMP Components-->
     <snmp4j.version>2.3.4</snmp4j.version>

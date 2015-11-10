@@ -5,6 +5,7 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connectors.mda.DataAcceptorFactory;
 import com.bytex.snamp.connectors.mda.MDAResourceActivator;
 import com.bytex.snamp.connectors.mq.jms.JMSDataAcceptorFactory;
+import org.osgi.service.jndi.JNDIContextManager;
 
 import java.util.Iterator;
 
@@ -38,6 +39,8 @@ public final class MQConnectorBundleActivator extends MDAResourceActivator {
 
     @SpecialUse
     public MQConnectorBundleActivator(){
-        super(new MQDataAcceptorFactory(), new MQConnectorConfigurationDescriptorManager());
+        super(new MQDataAcceptorFactory(),
+                new MQConnectorConfigurationDescriptorManager(),
+                new SimpleDependency<>(JNDIContextManager.class));
     }
 }

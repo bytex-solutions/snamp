@@ -28,10 +28,16 @@
                     <instructions>
                         <Bundle-SymbolicName>com.bytex.snamp.connectors.mq</Bundle-SymbolicName>
                         <Bundle-Activator>com.bytex.snamp.connectors.mq.MQConnectorBundleActivator</Bundle-Activator>
-                        <Export-Package/>
+                        <Export-Package>
+                            com.bytex.snamp.connectors.mq.jms
+                        </Export-Package>
                         <DynamicImport-Package>
                             *
                         </DynamicImport-Package>
+                        <Embed-Transitive>true</Embed-Transitive>
+                        <Embed-Dependency>
+                            *;scope=compile
+                        </Embed-Dependency>
                         <!--SNAMP specific header-->
                         <SNAMP-Resource-Connector>mq</SNAMP-Resource-Connector>
                     </instructions>
@@ -65,12 +71,6 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.apache.activemq</groupId>
-            <artifactId>activemq-osgi</artifactId>
-            <version>${activemq.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast</artifactId>
             <version>${hazelcast.version}</version>
@@ -89,6 +89,29 @@
             <artifactId>ivy</artifactId>
             <version>${apache.ivy.version}</version>
             <scope>provided</scope>
+        </dependency>
+        <!--MQ clients-->
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>activemq-osgi</artifactId>
+            <version>${activemq.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.qpid</groupId>
+            <artifactId>qpid-client</artifactId>
+            <version>0.32</version>
+            <scope>compile</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.geronimo.specs</groupId>
+                    <artifactId>geronimo-jms_1.1_spec</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 </project>

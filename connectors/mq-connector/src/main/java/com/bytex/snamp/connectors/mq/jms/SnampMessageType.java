@@ -8,7 +8,6 @@ package com.bytex.snamp.connectors.mq.jms;
  */
 public enum SnampMessageType {
     WRITE,
-    NOTIFICATION;
-
-    static final String STORAGE_KEY_HEADER = "snampStorageKey";
+    NOTIFICATION,
+    ATTRIBUTE_CHANGED;
 }

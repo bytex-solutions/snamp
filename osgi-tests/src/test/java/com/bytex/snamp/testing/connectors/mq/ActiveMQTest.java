@@ -1,14 +1,19 @@
 package com.bytex.snamp.testing.connectors.mq;
 
+import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.Consumer;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
 import org.junit.Test;
 
 import javax.jms.*;
+import javax.management.openmbean.CompositeData;
 import java.io.File;
+import java.math.BigInteger;
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -17,10 +22,10 @@ import java.util.Map;
  * @since 1.0
  */
 public final class ActiveMQTest extends AbstractMQConnectorTest {
-    private static final String QUEUE_NAME = "dummyQueue";
+    private static final String QUEUE_NAME = "snampQueue";
 
     public ActiveMQTest(){
-        super(QueueType.ACTIVEMQ,
+        super("activemq:vm://localhost:9389",
                 ImmutableMap.of("inputQueueName", QUEUE_NAME,
                         "converterScript", getPathToFileInProjectRoot("sample-groovy-scripts") + File.separator + "JMSConverter.groovy"
                 ));
@@ -28,21 +33,30 @@ public final class ActiveMQTest extends AbstractMQConnectorTest {
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return true;
-    }
-
-    private <E extends Throwable> void runTest(final Consumer<Session, E> testBody) throws JMSException, E {
-        final Session session = getJmsConnection().createSession(false, Session.AUTO_ACKNOWLEDGE);
-        try{
-            testBody.accept(session);
-        }
-        finally {
-            session.close();
-        }
+        return false;
     }
 
     @Test
-    public void binaryStringAttributeTest() throws Exception {
+    public void stringAttributeTest() throws Exception {
+        runTest(new Consumer<Session, Exception>() {
+            @Override
+            public void accept(final Session session) throws Exception {
+                final Destination output = session.createQueue(QUEUE_NAME);
+                final MessageProducer producer = session.createProducer(output);
+                producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
+                final String expectedValue = "Frank Underwood";
+                final TextMessage message = session.createTextMessage(expectedValue);
+                message.setStringProperty("snampStorageKey", "string");
+                message.setJMSType("write");
+                producer.send(message);
+                Thread.sleep(1000); //message delivery is asynchronous process
+                testAttribute("1.0", TypeToken.of(String.class), expectedValue, true);
+            }
+        });
+    }
+
+    @Test
+    public void booleanAttributeTest() throws Exception {
         runTest(new Consumer<Session, Exception>() {
             @Override
             public void accept(final Session session) throws Exception {
@@ -50,12 +64,136 @@ public final class ActiveMQTest extends AbstractMQConnectorTest {
                 final MessageProducer producer = session.createProducer(output);
                 producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
                 final BytesMessage message = session.createBytesMessage();
-                message.writeUTF("Barry Burton");
-                message.setStringProperty("snampStorageKey", "string");
+                final boolean expectedValue = true;
+                message.writeBoolean(expectedValue);
+                message.setStringProperty("snampStorageKey", "boolean");
                 message.setJMSType("write");
                 producer.send(message);
                 Thread.sleep(1000); //message delivery is asynchronous process
-                testAttribute("1.0", TypeToken.of(String.class), "Barry Burton", true);
+                testAttribute("2.0", TypeToken.of(Boolean.class), expectedValue, true);
+            }
+        });
+    }
+
+    @Test
+    public void integerAttributeTest() throws Exception {
+        runTest(new Consumer<Session, Exception>() {
+            @Override
+            public void accept(final Session session) throws Exception {
+                final Destination output = session.createQueue(QUEUE_NAME);
+                final MessageProducer producer = session.createProducer(output);
+                producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
+                final Integer expectedValue = 100500;
+                final ObjectMessage message = session.createObjectMessage(expectedValue);
+                message.setStringProperty("snampStorageKey", "int32");
+                message.setJMSType("write");
+                producer.send(message);
+                Thread.sleep(1000); //message delivery is asynchronous process
+                testAttribute("3.0", TypeToken.of(Integer.class), expectedValue, true);
+            }
+        });
+    }
+
+    @Test
+    public void bigIntegerAttributeTest() throws Exception {
+        runTest(new Consumer<Session, Exception>() {
+            @Override
+            public void accept(final Session session) throws Exception {
+                final Destination output = session.createQueue(QUEUE_NAME);
+                final MessageProducer producer = session.createProducer(output);
+                producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
+                final BigInteger expectedValue = new BigInteger("100500");
+                final BytesMessage message = session.createBytesMessage();
+                message.writeBytes(expectedValue.toByteArray());
+                message.setStringProperty("snampStorageKey", "bigint");
+                message.setJMSType("write");
+                producer.send(message);
+                Thread.sleep(1000); //message delivery is asynchronous process
+                testAttribute("4.0", TypeToken.of(BigInteger.class), expectedValue, true);
+            }
+        });
+    }
+
+    @Test
+    public void intArrayAttributeTest() throws Exception {
+        runTest(new Consumer<Session, Exception>() {
+            @Override
+            public void accept(final Session session) throws Exception {
+                final Destination output = session.createQueue(QUEUE_NAME);
+                final MessageProducer producer = session.createProducer(output);
+                producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
+                final int[] expectedValue = {42, 50, 67};
+                final BytesMessage message = session.createBytesMessage();
+                message.writeBytes(ArrayUtils.toByteArray(expectedValue));
+                message.setStringProperty("snampStorageKey", "array");
+                message.setJMSType("write");
+                producer.send(message);
+                Thread.sleep(1000); //message delivery is asynchronous process
+                testAttribute("5.1", TypeToken.of(int[].class), expectedValue, arrayEquator(), true);
+            }
+        });
+    }
+
+    @Test
+    public void dictionaryAttributeTest() throws Exception {
+        runTest(new Consumer<Session, Exception>() {
+            @Override
+            public void accept(final Session session) throws Exception {
+                final Destination output = session.createQueue(QUEUE_NAME);
+                final MessageProducer producer = session.createProducer(output);
+                producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
+                final CompositeData expectedValue = new CompositeDataBuilder("MemoryStatus", "dummy")
+                        .put("free", "free mem", 65)
+                        .put("total", "total mem", 100500)
+                        .build();
+                final MapMessage message = session.createMapMessage();
+                message.setInt("free", 65);
+                message.setInt("total", 100500);
+                message.setStringProperty("snampStorageKey", "dictionary");
+                message.setJMSType("write");
+                producer.send(message);
+                Thread.sleep(1000); //message delivery is asynchronous process
+                testAttribute("6.1", TypeToken.of(CompositeData.class), expectedValue, true);
+            }
+        });
+    }
+
+    @Test
+    public void floatAttributeTest() throws Exception {
+        runTest(new Consumer<Session, Exception>() {
+            @Override
+            public void accept(final Session session) throws Exception {
+                final Destination output = session.createQueue(QUEUE_NAME);
+                final MessageProducer producer = session.createProducer(output);
+                producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
+                final Float expectedValue = 100.5F;
+                final BytesMessage message = session.createBytesMessage();
+                message.writeFloat(expectedValue);
+                message.setStringProperty("snampStorageKey", "float");
+                message.setJMSType("write");
+                producer.send(message);
+                Thread.sleep(1000); //message delivery is asynchronous process
+                testAttribute("8.0", TypeToken.of(Float.class), expectedValue, true);
+            }
+        });
+    }
+
+    @Test
+    public void dateAttributeTest() throws Exception {
+        runTest(new Consumer<Session, Exception>() {
+            @Override
+            public void accept(final Session session) throws Exception {
+                final Destination output = session.createQueue(QUEUE_NAME);
+                final MessageProducer producer = session.createProducer(output);
+                producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
+                final Date expectedValue = new Date();
+                final BytesMessage message = session.createBytesMessage();
+                message.writeLong(expectedValue.getTime());
+                message.setStringProperty("snampStorageKey", "date");
+                message.setJMSType("write");
+                producer.send(message);
+                Thread.sleep(1000); //message delivery is asynchronous process
+                testAttribute("9.0", TypeToken.of(Date.class), expectedValue, true);
             }
         });
     }

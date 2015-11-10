@@ -41,6 +41,7 @@
                         <feature>region</feature>
                         <feature>eventadmin</feature>
                         <feature>jndi</feature>
+                        <feature>jms</feature>
                     </bootFeatures>
                     <installedFeatures>
                         <feature>platform-feature</feature>

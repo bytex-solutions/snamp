@@ -7,7 +7,7 @@ Feature list of **Resource Connector** consists of the following items:
 * Supported Protocols - list of management protocols used for connecting **managed resource** to SNAMP
 * Attributes - how **Resource Connector** exposes **managed resource** attributes to **Resource Adapter**?
 * Notifications - how **Resource Connector** exposes **managed resource** notifications to the **Resource Adapter**
-* Operations - is it possible to invoke maintenace action of **managed resource**
+* Operations - is it possible to invoke maintenance action of **managed resource**
 * Smart mode - resource connector can expose attributes, events or operations without manual configuration
 
 At this page you can find detailed description for each resource connector supported by SNAMP:
@@ -22,3 +22,4 @@ Display name | System name | Supported Protocols | Attributes | Notifications | 
 [Groovy Resource Connector](groovy-connector.md) | groovy | _Any_ | Yes | Yes | No | No
 [Modbus Resource Connector](modbus-connector.md) | modbus | Modbus/TCP, Modbus/UDP, Modbus RTU-IP | Yes | No | No | No
 [Monitoring Data Acceptor](mda-connector.md) | mda | HTTP, Thrift | Yes | Yes | No | No
+[MQ Connector](mq-connector.md) | mq | AMQP, JMS | Yes | Yes | No | No

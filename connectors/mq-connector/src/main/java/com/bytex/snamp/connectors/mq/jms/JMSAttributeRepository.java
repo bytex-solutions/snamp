@@ -75,7 +75,7 @@ final class JMSAttributeRepository extends MDAAttributeRepository<MDAAttributeIn
     @Override
     public void onMessage(final Message message) {
         try {
-            String storageKey = message.getStringProperty(SnampMessageType.STORAGE_KEY_HEADER);
+            final String storageKey = converter.getStorageKey(message);
             if(Strings.isNullOrEmpty(storageKey))
                 getLogger().log(Level.WARNING, "storageKey is not defined for message " + message.getJMSMessageID());
             else switch (converter.getMessageType(message)) {
@@ -107,8 +107,8 @@ final class JMSAttributeRepository extends MDAAttributeRepository<MDAAttributeIn
         super.setAttribute(attribute, value);
         if(publisher != null){
             final Message message = converter.serialize(value, session);
-            message.setJMSType("attributeChanged");
-            message.setStringProperty(SnampMessageType.STORAGE_KEY_HEADER, attribute.getStorageKey());
+            converter.setMessageType(message, SnampMessageType.ATTRIBUTE_CHANGED);
+            converter.setStorageKey(message, attribute.getStorageKey());
             publisher.send(message);
         }
     }

@@ -137,31 +137,31 @@ final class SecurityConfiguration {
          * @see org.snmp4j.security.AuthMD5#ID
          * @see org.snmp4j.security.AuthSHA#ID
          */
-        public final void setAuthenticationProtocol(final OID protocolID){
+        public void setAuthenticationProtocol(final OID protocolID){
             authenticationProtocol = protocolID;
         }
 
-        public final OID getAuthenticationProtocol(){
+        public OID getAuthenticationProtocol(){
             return authenticationProtocol;
         }
 
-        public final void setPrivacyProtocol(final OID protocolID){
+        public void setPrivacyProtocol(final OID protocolID){
             privacyProtocol = protocolID;
         }
 
-        public final OID getPrivacyProtocol(){
+        public OID getPrivacyProtocol(){
             return privacyProtocol;
         }
 
-        public final void setPassword(final String password){
+        public void setPassword(final String password){
             this.password = password != null ? password : "";
         }
 
-        public final void setPassword(final byte[] password){
+        public void setPassword(final byte[] password){
             setPassword(new String(password, SnmpHelpers.SNMP_ENCODING));
         }
 
-        public final boolean setPassword(final Object password){
+        public boolean setPassword(final Object password){
             if(password instanceof String){
                 setPassword((String)password);
                 return true;
@@ -173,7 +173,7 @@ final class SecurityConfiguration {
             else return false;
         }
 
-        public final void setPrivacyProtocol(final String protocol) {
+        public void setPrivacyProtocol(final String protocol) {
             if(protocol == null || protocol.isEmpty()) privacyProtocol = null;
             else switch (protocol.toLowerCase()){
                 case "aes-128":
@@ -189,7 +189,7 @@ final class SecurityConfiguration {
             }
         }
 
-        public final void setAuthenticationProtocol(final String protocol) {
+        public void setAuthenticationProtocol(final String protocol) {
             if(protocol == null || protocol.isEmpty()) authenticationProtocol = null;
             else switch (protocol.replace(" ", "").toLowerCase()){
                 case "md5":
@@ -205,15 +205,15 @@ final class SecurityConfiguration {
          * Sets passphrase that is used to encrypt SNMPv3 traffic.
          * @param passphrase The passphrase that is used to encrypt SNMPv3 traffic.
          */
-        public final void setPrivacyKey(final String passphrase){
+        public void setPrivacyKey(final String passphrase){
             encryptionKey = passphrase;
         }
 
-        public final void setPrivacyKey(final byte[] passphrase){
+        public void setPrivacyKey(final byte[] passphrase){
             setPrivacyKey(new String(passphrase, SnmpHelpers.SNMP_ENCODING));
         }
 
-        public final boolean setPrivacyKey(final Object passphrase){
+        public boolean setPrivacyKey(final Object passphrase){
             if(passphrase instanceof String){
                 setPrivacyKey((String)passphrase);
                 return true;
@@ -225,19 +225,19 @@ final class SecurityConfiguration {
             else return false;
         }
 
-        public final OctetString getPasswordAsOctetString() {
+        public OctetString getPasswordAsOctetString() {
             return password == null || password.isEmpty() ?
                     null :
                     SnmpHelpers.toOctetString(password);
         }
 
-        public final OctetString getPrivacyKeyAsOctetString(){
+        public OctetString getPrivacyKeyAsOctetString(){
             return encryptionKey == null || encryptionKey.isEmpty() ?
                     null :
                     SnmpHelpers.toOctetString(encryptionKey);
         }
 
-        public final void defineUser(final USM userHive, final OctetString userName, final OctetString engineID) {
+        public void defineUser(final USM userHive, final OctetString userName, final OctetString engineID) {
             userHive.addUser(userName, engineID,
                     new UsmUser(userName,
                             getAuthenticationProtocol(),
@@ -293,7 +293,7 @@ final class SecurityConfiguration {
          * Gets security level applied to all users in this group.
          * @return Security level applied to all users in this group.
          */
-        public final SecurityLevel getSecurityLevel(){
+        public SecurityLevel getSecurityLevel(){
             return level;
         }
 
@@ -301,29 +301,29 @@ final class SecurityConfiguration {
          * Sets security level for all users in this group.
          * @param value Security level for all users in this group.
          */
-        public final void setSecurityLevel(final SecurityLevel value){
+        public void setSecurityLevel(final SecurityLevel value){
             level = value;
         }
 
-        public final void setSecurityLevel(final String value){
+        public void setSecurityLevel(final String value){
             setSecurityLevel((value == null || value.isEmpty()) ? SecurityLevel.noAuthNoPriv : SecurityLevel.valueOf(value));
         }
 
-        public final boolean hasAccessRights(final Collection<AccessRights> rights){
+        public boolean hasAccessRights(final Collection<AccessRights> rights){
             return this.rights.containsAll(rights);
         }
 
-        public final boolean hasAccessRights(final AccessRights... rights){
+        public boolean hasAccessRights(final AccessRights... rights){
             return hasAccessRights(Arrays.asList(rights));
         }
 
-        public final void setAccessRights(final Iterable<String> rights){
+        public void setAccessRights(final Iterable<String> rights){
             this.rights.clear();
             for(final String r: rights)
                 this.rights.add(AccessRights.valueOf(r.toUpperCase()));
         }
 
-        public final void setAccessRights(final String rights) {
+        public void setAccessRights(final String rights) {
             setAccessRights(SEMICOLON_SPLITTER.splitToList(rights));
         }
     }
@@ -372,7 +372,7 @@ final class SecurityConfiguration {
         }
     }
 
-    public final boolean read(final Map<String, String> adapterSettings){
+    public boolean read(final Map<String, String> adapterSettings){
         if(adapterSettings.containsKey(LDAP_URI_PARAM)) //import groups and users from LDAP
             return fillGroupsFromLdap(contextFactory, adapterSettings, adapterSettings.get(LDAP_URI_PARAM), groups);
         else if(adapterSettings.containsKey(SNMPv3_GROUPS_PARAM)){ //import groups and users from local configuration file
@@ -536,7 +536,7 @@ final class SecurityConfiguration {
         };
     }
 
-    public final String findFirstUser(final UserSelector selector){
+    public String findFirstUser(final UserSelector selector){
         for(final UserGroup group: groups.values())
             for(final Map.Entry<String, User> user: group.entrySet())
                 if(selector.match(user.getKey(), user.getValue(), group))
@@ -544,14 +544,14 @@ final class SecurityConfiguration {
         return null;
     }
 
-    public final SecurityLevel getUserSecurityLevel(final String userName){
+    public SecurityLevel getUserSecurityLevel(final String userName){
         for(final UserGroup group: groups.values())
             for(final String lookup: group.keySet())
                 if(Objects.equals(userName, lookup)) return group.getSecurityLevel();
         return SecurityLevel.noAuthNoPriv;
     }
 
-    public final void setupUserBasedSecurity(final USM security){
+    public void setupUserBasedSecurity(final USM security){
         for(final UserGroup group: groups.values())
             for(final Map.Entry<String, User> user: group.entrySet()){
                 final OctetString userName = SnmpHelpers.toOctetString(user.getKey());
@@ -560,7 +560,7 @@ final class SecurityConfiguration {
             }
     }
 
-    public final void setupViewBasedAcm(final VacmMIB vacm){
+    public void setupViewBasedAcm(final VacmMIB vacm){
         for(final Map.Entry<String, UserGroup> group: groups.entrySet()){
             final UserGroup groupDef = group.getValue();
             for(final Map.Entry<String, User> user: groupDef.entrySet()){

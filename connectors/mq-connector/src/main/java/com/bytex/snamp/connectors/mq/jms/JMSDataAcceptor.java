@@ -37,7 +37,7 @@ final class JMSDataAcceptor extends DataAcceptor implements ExceptionListener {
     JMSDataAcceptor(final String resourceName,
                     final Map<String, String> parameters,
                     final JMSDataConverter converter,
-                    final Supplier<? extends ExecutorService> threadPoolFactory,
+                    final Supplier<ExecutorService> threadPoolFactory,
                     final ConnectionFactory factory) throws JMSException, AbsentConfigurationParameterException {
         jmsConnection = MQConnectorConfigurationDescriptor.createConnection(factory, parameters);
         queueName = MQConnectorConfigurationDescriptor.getInputQueueName(parameters);
@@ -86,7 +86,7 @@ final class JMSDataAcceptor extends DataAcceptor implements ExceptionListener {
      * @throws IOException Unable to start listening data.
      */
     @Override
-    public void beginListening(Object... dependencies) throws IOException {
+    public void beginListening(final Object... dependencies) throws IOException {
         try {
             jmsConnection.setExceptionListener(this);
             jmsConnection.start();

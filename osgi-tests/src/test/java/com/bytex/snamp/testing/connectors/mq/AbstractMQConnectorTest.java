@@ -1,13 +1,15 @@
 package com.bytex.snamp.testing.connectors.mq;
 
+import com.bytex.snamp.Consumer;
+import com.bytex.snamp.connectors.mq.jms.QueueClient;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connectors.AbstractResourceConnectorTest;
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.osgi.framework.BundleContext;
 
 import javax.jms.Connection;
 import javax.jms.JMSException;
+import javax.jms.Session;
 import java.util.Map;
 
 /**
@@ -17,28 +19,27 @@ import java.util.Map;
  */
 @SnampDependencies(SnampFeature.MQ_CONNECTOR)
 public abstract class AbstractMQConnectorTest extends AbstractResourceConnectorTest {
-    protected enum QueueType{
-        ACTIVEMQ("activemq:vm://localhost") {
-            @Override
-            Connection createConnection() throws JMSException {
-                return new ActiveMQConnectionFactory(super.connectionString.replaceFirst("activemq:", "")).createConnection();
-            }
-        };
-        private String connectionString;
 
-        QueueType(final String connectionString){
-            this.connectionString = connectionString;
-        }
-
-        abstract Connection createConnection() throws JMSException;
-    }
 
     private Connection jmsConnection;
-    private final QueueType queue;
+    private final QueueClient queue;
+    private final String connectionString;
 
-    protected AbstractMQConnectorTest(final QueueType queue, final Map<String, String> parameters) {
-        super("mq", queue.connectionString, parameters);
-        this.queue = queue;
+    protected AbstractMQConnectorTest(String connectionString,
+                                      final Map<String, String> parameters) {
+        super("mq", connectionString, parameters);
+        if(connectionString.startsWith("activemq:")) {
+            connectionString = connectionString.replaceFirst("activemq:", "");
+            this.queue = QueueClient.ACTIVEMQ;
+        }
+        else if(connectionString.startsWith("jndi://")){
+            connectionString = connectionString.replaceFirst("jndi://", "");
+            this.queue = QueueClient.JNDI;
+        }
+        else if(connectionString.startsWith("amqp://") || connectionString.startsWith("amqps://"))
+            this.queue = QueueClient.AMQP_0_9_1;
+        else throw new IllegalArgumentException("Unsupported MQ technology");
+        this.connectionString = connectionString;
     }
 
     protected final Connection getJmsConnection(){
@@ -46,8 +47,8 @@ public abstract class AbstractMQConnectorTest extends AbstractResourceConnectorT
     }
 
     @Override
-    protected void beforeStartTest(BundleContext context) throws JMSException {
-        jmsConnection = queue.createConnection();
+    protected void beforeStartTest(final BundleContext context) throws JMSException {
+        jmsConnection = queue.createConnection(connectionString, context);
         jmsConnection.start();
     }
 
@@ -55,5 +56,15 @@ public abstract class AbstractMQConnectorTest extends AbstractResourceConnectorT
     protected void afterCleanupTest(BundleContext context) throws JMSException {
         jmsConnection.close();
         jmsConnection = null;
+    }
+
+    protected final <E extends Throwable> void runTest(final Consumer<Session, E> testBody) throws JMSException, E {
+        final Session session = getJmsConnection().createSession(false, Session.AUTO_ACKNOWLEDGE);
+        try{
+            testBody.accept(session);
+        }
+        finally {
+            session.close();
+        }
     }
 }
