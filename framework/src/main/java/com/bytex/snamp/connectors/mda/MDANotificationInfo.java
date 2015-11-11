@@ -19,14 +19,17 @@ public class MDANotificationInfo extends CustomNotificationInfo {
      * Constructs an <CODE>MBeanNotificationInfo</CODE> object.
      *
      * @param notifType   The name of the notification that can be produced by managed resource.
-     * @param description A human readable description of the data.
      * @param descriptor  The descriptor for the notifications.  This may be null
      */
-    public MDANotificationInfo(final String notifType, final String description, final NotificationDescriptor descriptor) {
-        super(notifType, description, descriptor);
+    public MDANotificationInfo(final String notifType, final NotificationDescriptor descriptor) {
+        super(notifType, descriptor.getDescription(descriptor.getNotificationCategory()), descriptor);
     }
 
-    protected final OpenType<?> getAttachmentType(){
+    /**
+     * Gets type of the notification attachment.
+     * @return Attachment type. May be {@literal null}.
+     */
+    public final OpenType<?> getAttachmentType(){
         return attachmentType;
     }
 

@@ -33,8 +33,11 @@ import java.util.*;
  * @version 1.0
  * @since 1.0
  */
-public abstract class JMSDataConverter extends Script {
+public abstract class JMSDataConverter extends Script implements JMSMessageConverter, JMSAttributeConverter, JMSNotificationConverter {
     private static final String STORAGE_KEY_HEADER = "snampStorageKey";
+    private static final String NOTIF_MESSAGE_HEADER = "snampMessage";
+    private static final String CATEGORY_HEADER = "snampCategory";
+    private static final String SEQNUM_HEADER = "snampSequenceNumber";
 
     private static byte[] readByteArray(final BytesMessage message) throws JMSException {
         final byte[] buffer = new byte[512];
@@ -497,7 +500,8 @@ public abstract class JMSDataConverter extends Script {
         } else throw cannotConvert(msg, type);
     }
 
-    final Object deserialize(final Message message, final OpenType<?> type) throws JMSException, OpenDataException{
+    @Override
+    public Object deserialize(final Message message, final OpenType<?> type) throws JMSException, OpenDataException{
         if(message instanceof ObjectMessage)
             return ((ObjectMessage)message).getObject();
         else switch (WellKnownType.getType(type)){
@@ -954,7 +958,8 @@ public abstract class JMSDataConverter extends Script {
         return result;
     }
 
-    final Message serialize(final Object value, final Session session) throws JMSException{
+    @Override
+    public Message serialize(final Object value, final Session session) throws JMSException{
         switch (WellKnownType.fromValue(value)){
             case STRING:
                 return fromString((String)value, session);
@@ -1031,6 +1036,7 @@ public abstract class JMSDataConverter extends Script {
      * @return SNAMP-specific message type.
      * @throws JMSException
      */
+    @Override
     public SnampMessageType getMessageType(final Message message) throws JMSException{
         final String messageType = message.getJMSType();
         if(Strings.isNullOrEmpty(messageType)) return SnampMessageType.WRITE;
@@ -1045,6 +1051,7 @@ public abstract class JMSDataConverter extends Script {
         }
     }
 
+    @Override
     public void setMessageType(final Message message, final SnampMessageType messageType) throws JMSException{
         switch (messageType){
             case ATTRIBUTE_CHANGED:
@@ -1055,15 +1062,38 @@ public abstract class JMSDataConverter extends Script {
                 return;
             case NOTIFICATION:
                 message.setJMSType("notify");
-                return;
         }
     }
 
+    @Override
     public String getStorageKey(final Message message) throws JMSException{
         return message.getStringProperty(STORAGE_KEY_HEADER);
     }
 
+    @Override
     public void setStorageKey(final Message message, final String storageKey) throws JMSException{
         message.setStringProperty(STORAGE_KEY_HEADER, storageKey);
+    }
+
+    /**
+     * Parses message payload.
+     *
+     * @param message JMS message to convert.
+     * @return Human-readable message associated with notification.
+     * @throws JMSException Internal JMS error.
+     */
+    @Override
+    public String getMessage(final Message message) throws JMSException {
+        return message.getStringProperty(NOTIF_MESSAGE_HEADER);
+    }
+
+    @Override
+    public String getCategory(final Message message) throws JMSException {
+        return message.getStringProperty(CATEGORY_HEADER);
+    }
+
+    @Override
+    public long getSequenceNumber(final Message message) throws JMSException {
+        return message.getLongProperty(SEQNUM_HEADER);
     }
 }

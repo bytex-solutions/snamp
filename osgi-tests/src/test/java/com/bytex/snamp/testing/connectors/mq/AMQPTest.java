@@ -26,7 +26,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
  * @since 1.0
  */
 public final class AMQPTest extends AbstractMQConnectorTest {
-    private static final String QUEUE_NAME = "snampQueue";
+    private static final String QUEUE_NAME = "BURL:direct://amq.direct//snampQueue?durable='true'";
 
     public AMQPTest(){
         super("amqp://guest:guest@snamp/test?brokerlist='localhost:5672'",

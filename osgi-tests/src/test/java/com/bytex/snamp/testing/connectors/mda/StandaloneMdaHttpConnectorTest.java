@@ -1,9 +1,9 @@
 package com.bytex.snamp.testing.connectors.mda;
 
 import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.Consumer;
+import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
-import com.bytex.snamp.connectors.notifications.NotificationSupport;
-import com.bytex.snamp.connectors.notifications.SynchronizationListener;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.bytex.snamp.jmx.json.JsonUtils;
 import com.google.common.base.Supplier;
@@ -22,8 +22,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.Map;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -171,19 +169,12 @@ public final class StandaloneMdaHttpConnectorTest extends AbstractMdaConnectorTe
 
     @Test
     public void notificationTest1() throws Exception {
-        final Future<Notification> notifAwaitor;
-        final NotificationSupport connector = getManagementConnector().queryObject(NotificationSupport.class);
-        assertNotNull(connector);
-        try {
-            final SynchronizationListener listener = new SynchronizationListener("e1");
-            connector.addNotificationListener(listener, null, null);
-            notifAwaitor = listener.getAwaitor();
-        }
-        finally {
-            releaseManagementConnector();
-        }
-        sendNotification("testEvent1", "Frank Underwood", 10L, 50L, new JsonPrimitive(100500L));
-        final Notification received = notifAwaitor.get(3, TimeUnit.SECONDS);
+        final Notification received = waitForNotification("e1", new Consumer<ManagedResourceConnector, IOException>() {
+            @Override
+            public void accept(final ManagedResourceConnector connector) throws IOException {
+                sendNotification("testEvent1", "Frank Underwood", 10L, 50L, new JsonPrimitive(100500L));
+            }
+        }, TimeSpan.ofSeconds(3L));
         assertNotNull(received);
         assertEquals("Frank Underwood", received.getMessage());
         assertEquals(10L, received.getSequenceNumber());

@@ -4,6 +4,7 @@ import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.attributes.AttributeSpecifier;
 import com.bytex.snamp.connectors.mda.MDAAttributeInfo;
 import com.bytex.snamp.connectors.mda.MDAAttributeRepository;
+import com.bytex.snamp.connectors.mq.JMSExceptionUtils;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.base.Strings;
@@ -18,7 +19,6 @@ import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentMap;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -26,15 +26,15 @@ import java.util.logging.Logger;
  * @version 1.0
  * @since 1.0
  */
-final class JMSAttributeRepository extends MDAAttributeRepository<MDAAttributeInfo> implements MessageListener {
+final class JMSAttributeRepository extends MDAAttributeRepository<MDAAttributeInfo> {
     private final Logger logger;
     private final ConcurrentMap<String, Object> storage;
-    private final JMSDataConverter converter;
+    private final JMSAttributeConverter converter;
     private MessageProducer publisher;
     private Session session;
 
     JMSAttributeRepository(final String resourceName,
-                           final JMSDataConverter converter,
+                           final JMSAttributeConverter converter,
                            final Logger logger) {
         super(resourceName, MDAAttributeInfo.class);
         this.logger = Objects.requireNonNull(logger);
@@ -72,26 +72,19 @@ final class JMSAttributeRepository extends MDAAttributeRepository<MDAAttributeIn
         }
     }
 
-    @Override
-    public void onMessage(final Message message) {
+    void setAttribute(final Message message) throws JMSException{
+        final String storageKey = converter.getStorageKey(message);
+        if(Strings.isNullOrEmpty(storageKey))
+            throw new JMSException("storageKey is not defined");
+        OpenType<?> attributeType = getAttributeType(storageKey);
+        if (Strings.isNullOrEmpty(storageKey) || attributeType == null) return;
+        final Object value;
         try {
-            final String storageKey = converter.getStorageKey(message);
-            if(Strings.isNullOrEmpty(storageKey))
-                getLogger().log(Level.WARNING, "storageKey is not defined for message " + message.getJMSMessageID());
-            else switch (converter.getMessageType(message)) {
-                case WRITE:
-
-                    OpenType<?> attributeType = getAttributeType(storageKey);
-                    if (Strings.isNullOrEmpty(storageKey) || attributeType == null) return;
-                    final Object value = converter.deserialize(message, attributeType);
-                    getStorage().put(storageKey, value);
-                    return;
-            }
-        } catch (final JMSException e) {
-            getLogger().log(Level.SEVERE, String.format("Unable to process message %s", message), e);
+            value = converter.deserialize(message, attributeType);
         } catch (final OpenDataException e) {
-            getLogger().log(Level.SEVERE, String.format("Incorrect JMX data mapping %s", message), e);
+            throw JMSExceptionUtils.wrap("Incorrect JMX data mapping", e);
         }
+        getStorage().put(storageKey, value);
     }
 
     /**

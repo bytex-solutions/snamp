@@ -17,7 +17,7 @@ final class ThriftNotificationAccessor extends MDANotificationInfo {
 
     ThriftNotificationAccessor(final String notifType,
                              final NotificationDescriptor descriptor) {
-        super(notifType, descriptor.getDescription(descriptor.getNotificationCategory()), descriptor);
+        super(notifType, descriptor);
     }
 
     Object parseUserData(final TProtocol input) throws TException {

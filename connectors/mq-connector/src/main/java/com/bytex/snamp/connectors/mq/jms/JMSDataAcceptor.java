@@ -3,10 +3,8 @@ package com.bytex.snamp.connectors.mq.jms;
 import com.bytex.snamp.configuration.AbsentConfigurationParameterException;
 import com.bytex.snamp.connectors.mda.DataAcceptor;
 import com.bytex.snamp.connectors.mda.MDAAttributeRepository;
-import com.bytex.snamp.connectors.mda.MDANotificationInfo;
 import com.bytex.snamp.connectors.mda.MDANotificationRepository;
 import com.bytex.snamp.connectors.mq.MQConnectorConfigurationDescriptor;
-import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
@@ -16,7 +14,6 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author Roman Sakno
@@ -30,15 +27,17 @@ final class JMSDataAcceptor extends DataAcceptor implements ExceptionListener {
     private final boolean isTopic;
     private final String messageSelector;
     private final JMSAttributeRepository attributes;
-    private final MDANotificationRepository notifications;
+    private final JMSNotificationRepository notifications;
     private final String outputQueueName;
     private final boolean isTopicOutput;
+    private final JMSDataConverter dataConverter;
 
     JMSDataAcceptor(final String resourceName,
                     final Map<String, String> parameters,
                     final JMSDataConverter converter,
                     final Supplier<ExecutorService> threadPoolFactory,
                     final ConnectionFactory factory) throws JMSException, AbsentConfigurationParameterException {
+        dataConverter = converter;
         jmsConnection = MQConnectorConfigurationDescriptor.createConnection(factory, parameters);
         queueName = MQConnectorConfigurationDescriptor.getInputQueueName(parameters);
         isTopic = MQConnectorConfigurationDescriptor.isInputTopic(parameters);
@@ -46,17 +45,7 @@ final class JMSDataAcceptor extends DataAcceptor implements ExceptionListener {
         outputQueueName = MQConnectorConfigurationDescriptor.getOutputQueueName(parameters);
         isTopicOutput = MQConnectorConfigurationDescriptor.isOutputTopic(parameters);
         attributes = new JMSAttributeRepository(resourceName, converter, getLogger());
-        notifications = new MDANotificationRepository(resourceName, MDANotificationInfo.class, threadPoolFactory.get()) {
-            @Override
-            protected MDANotificationInfo createNotificationMetadata(String notifType, NotificationDescriptor metadata) throws Exception {
-                return new MDANotificationInfo(notifType, metadata.getDescription(), metadata);
-            }
-
-            @Override
-            protected Logger getLogger() {
-                return JMSDataAcceptor.this.getLogger();
-            }
-        };
+        notifications = new JMSNotificationRepository(resourceName, threadPoolFactory.get(), converter, getLogger());
     }
 
     /**
@@ -98,7 +87,7 @@ final class JMSDataAcceptor extends DataAcceptor implements ExceptionListener {
             final MessageConsumer consumer = Strings.isNullOrEmpty(messageSelector) ?
                     jmsSession.createConsumer(dest) :
                     jmsSession.createConsumer(dest, messageSelector);
-            consumer.setMessageListener(attributes);
+            consumer.setMessageListener(new JMSMessageListener(attributes, notifications, dataConverter, getLogger()));
         } catch (final JMSException e) {
             if (e.getCause() instanceof IOException)
                 throw (IOException) e.getCause();

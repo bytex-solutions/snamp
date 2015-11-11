@@ -1,6 +1,7 @@
 package com.bytex.snamp.testing.connectors;
 
 import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.Consumer;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.TypeTokens;
 import com.bytex.snamp.concurrent.SpinWait;
@@ -12,7 +13,8 @@ import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
-import com.bytex.snamp.connectors.attributes.AttributeSupport;
+import com.bytex.snamp.connectors.notifications.NotificationSupport;
+import com.bytex.snamp.connectors.notifications.SynchronizationListener;
 import com.bytex.snamp.core.LogicalOperation;
 import com.bytex.snamp.core.RichLogicalOperation;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
@@ -26,8 +28,9 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceReference;
 
 import javax.management.Attribute;
+import javax.management.DynamicMBean;
 import javax.management.JMException;
-import javax.management.MBeanAttributeInfo;
+import javax.management.Notification;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
@@ -263,11 +266,8 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
                                            final T attributeValue,
                                            final Equator<T> comparator,
                                            final boolean readOnlyTest) throws JMException {
+        final DynamicMBean connector = getManagementConnector();
         try{
-            final AttributeSupport connector = getManagementConnector().queryObject(AttributeSupport.class);
-            assertNotNull(connector);
-            final MBeanAttributeInfo metadata = connector.getAttributeInfo(attributeName);
-            assertEquals(attributeName, metadata.getName());
             if(!readOnlyTest)
                 connector.setAttribute(new Attribute(attributeName, attributeValue));
             final T newValue = TypeTokens.cast(connector.getAttribute(attributeName), attributeType);
@@ -336,5 +336,24 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
     protected final <E extends AgentConfiguration.EntityConfiguration> void testConfigurationDescriptor(final Class<E> entityType,
                                                                                                         final Set<String> parameters){
         testConfigurationDescriptor(getTestBundleContext(), connectorType, entityType, parameters);
+    }
+
+    protected final <E extends Throwable> Notification waitForNotification(final String listID,
+                                                     final Consumer<ManagedResourceConnector, E> sender,
+                                                                           final TimeSpan timeout) throws E, InterruptedException, ExecutionException, TimeoutException {
+        final SynchronizationListener listener = new SynchronizationListener(listID);
+        final Future<Notification> notifAwaitor;
+        final ManagedResourceConnector connector = getManagementConnector();
+        try {
+            connector
+                    .queryObject(NotificationSupport.class)
+                    .addNotificationListener(listener, null, null);
+            notifAwaitor = listener.getAwaitor();
+            sender.accept(connector);
+        }
+        finally {
+            releaseManagementConnector();
+        }
+        return notifAwaitor.get(timeout.duration, timeout.unit);
     }
 }

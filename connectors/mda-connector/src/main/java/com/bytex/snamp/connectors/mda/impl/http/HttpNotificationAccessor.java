@@ -24,7 +24,7 @@ final class HttpNotificationAccessor extends MDANotificationInfo {
 
     HttpNotificationAccessor(final String notifType,
                              final NotificationDescriptor descriptor) {
-        super(notifType, descriptor.getDescription(descriptor.getNotificationCategory()), descriptor);
+        super(notifType, descriptor);
         sequenceNumberCounter = new AtomicLong(0L);
     }
 
