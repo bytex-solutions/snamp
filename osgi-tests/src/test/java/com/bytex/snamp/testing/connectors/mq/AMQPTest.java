@@ -1,15 +1,20 @@
 package com.bytex.snamp.testing.connectors.mq;
 
 import com.bytex.snamp.Consumer;
+import com.bytex.snamp.TimeSpan;
+import com.bytex.snamp.connectors.ManagedResourceConnector;
+import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
 import org.junit.Test;
 
 import javax.jms.*;
+import javax.management.Notification;
+import javax.management.openmbean.CompositeData;
 import java.util.Map;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
 
 /**
  * Before running this test you need to install RabbitMQ locally. On Debian use the following steps:
@@ -53,6 +58,58 @@ public final class AMQPTest extends AbstractMQConnectorTest {
                 producer.send(message);
                 Thread.sleep(1000); //message delivery is asynchronous process
                 testAttribute("1.0", TypeToken.of(String.class), expectedValue, true);
+            }
+        });
+    }
+
+    @Test
+    public void dictionaryAttributeTest() throws Exception {
+        runTest(new Consumer<Session, Exception>() {
+            @Override
+            public void accept(final Session session) throws Exception {
+                final Destination output = session.createQueue(QUEUE_NAME);
+                final MessageProducer producer = session.createProducer(output);
+                producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
+                final CompositeData expectedValue = new CompositeDataBuilder("MemoryStatus", "dummy")
+                        .put("free", "free mem", 65)
+                        .put("total", "total mem", 100500)
+                        .build();
+                final MapMessage message = session.createMapMessage();
+                message.setInt("free", 65);
+                message.setInt("total", 100500);
+                message.setStringProperty("snampStorageKey", "dictionary");
+                message.setJMSType("write");
+                producer.send(message);
+                Thread.sleep(1000); //message delivery is asynchronous process
+                testAttribute("6.1", TypeToken.of(CompositeData.class), expectedValue, true);
+            }
+        });
+    }
+
+    @Test
+    public void notificationTest() throws Exception {
+        runTest(new Consumer<Session, Exception>() {
+            @Override
+            public void accept(final Session session) throws Exception {
+                final Destination output = session.createQueue(QUEUE_NAME);
+                final MessageProducer producer = session.createProducer(output);
+                producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
+                final Notification notif = waitForNotification("mqn", new Consumer<ManagedResourceConnector, JMSException>() {
+                    @Override
+                    public void accept(final ManagedResourceConnector connector) throws JMSException {
+                        final TextMessage notif = session.createTextMessage();
+                        notif.setStringProperty("snampCategory", "mq-notification");
+                        notif.setStringProperty("snampMessage", "Frank Underwood");
+                        notif.setLongProperty("snampSequenceNumber", 90L);
+                        notif.setJMSType("notify");
+                        notif.setText("Payload");
+                        producer.send(notif);
+                    }
+                }, TimeSpan.ofSeconds(3));
+                assertNotNull(notif);
+                assertEquals("Frank Underwood", notif.getMessage());
+                assertEquals(90L, notif.getSequenceNumber());
+                assertEquals("Payload", notif.getUserData());
             }
         });
     }
@@ -101,5 +158,14 @@ public final class AMQPTest extends AbstractMQConnectorTest {
         attribute.setAttributeName("date");
         attribute.getParameters().put("expectedType", "datetime");
         attributes.put("9.0", attribute);
+    }
+
+    @Override
+    protected void fillEvents(final Map<String, EventConfiguration> events, final Supplier<EventConfiguration> eventFactory) {
+        EventConfiguration event = eventFactory.get();
+        event.setCategory("mq-notification");
+        event.getParameters().put("severity", "notice");
+        event.getParameters().put("expectedType", "string");
+        events.put("mqn", event);
     }
 }
