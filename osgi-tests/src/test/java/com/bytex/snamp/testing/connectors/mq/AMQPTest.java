@@ -7,6 +7,7 @@ import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.jms.*;
@@ -30,6 +31,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
  * @version 1.0
  * @since 1.0
  */
+@Ignore
 public final class AMQPTest extends AbstractMQConnectorTest {
     private static final String QUEUE_NAME = "BURL:direct://amq.direct//snampQueue?durable='true'";
 

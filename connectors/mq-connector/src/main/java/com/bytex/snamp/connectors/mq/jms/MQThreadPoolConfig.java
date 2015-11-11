@@ -5,6 +5,7 @@ import com.bytex.snamp.configuration.ThreadPoolConfig;
 import java.util.Map;
 
 /**
+ * Represents configuration of thread pool used by MQ Connector.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0

@@ -3,12 +3,14 @@ package com.bytex.snamp.testing.connectors.mq;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.Consumer;
 import com.bytex.snamp.TimeSpan;
+import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 import org.junit.Test;
 
@@ -229,6 +231,35 @@ public final class ActiveMQTest extends AbstractMQConnectorTest {
                 assertEquals("Payload", notif.getUserData());
             }
         });
+    }
+
+    @Test
+    public void configurationTest(){
+        testConfigurationDescriptor(AttributeConfiguration.class, ImmutableSet.of(
+                "expectedType",
+                "dictionaryItemNames",
+                "dictionaryItemTypes",
+                "dictionaryName"
+        ));
+        testConfigurationDescriptor(EventConfiguration.class, ImmutableSet.of(
+                "expectedType",
+                "dictionaryItemNames",
+                "dictionaryItemTypes",
+                "dictionaryName"
+        ));
+        testConfigurationDescriptor(AgentConfiguration.ManagedResourceConfiguration.class, ImmutableSet.of(
+                "waitForHazelcast",
+                "expirationTime",
+                "userName",
+                "password",
+                "inputQueueName",
+                "isInputTopic",
+                "messageSelector",
+                "outputQueueName",
+                "isOutputTopic",
+                "converterScript",
+                "amqpVersion"
+        ));
     }
 
     @Override

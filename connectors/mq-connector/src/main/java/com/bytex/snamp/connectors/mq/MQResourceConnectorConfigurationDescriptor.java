@@ -1,18 +1,24 @@
 package com.bytex.snamp.connectors.mq;
 
 import com.bytex.snamp.connectors.mda.MDAResourceConfigurationDescriptorProvider;
+import com.bytex.snamp.core.ServiceSpinWait;
+import com.hazelcast.core.HazelcastInstance;
+import org.osgi.framework.BundleContext;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-public final class MQConnectorConfigurationDescriptor extends MDAResourceConfigurationDescriptorProvider {
+public final class MQResourceConnectorConfigurationDescriptor extends MDAResourceConfigurationDescriptorProvider {
     private static final String USERNAME_PARAM = "userName";
     private static final String PASSWORD_PARAM = "password";
     private static final String INP_QUEUE_NAME_PARAM = "inputQueueName";
@@ -22,6 +28,47 @@ public final class MQConnectorConfigurationDescriptor extends MDAResourceConfigu
     private static final String OUT_TOPIC_PARAM = "isOutputTopic";
     private static final String CONVERTER_SCRIPT_PARAM = "converterScript";
     private static final String AMQP_VERSION_PARAM = "amqpVersion";
+    private static final String WAIT_FOR_HZ_PARAM = "waitForHazelcast";
+
+    private static final class MQConnectorConfigurationDescriptor extends ConnectorConfigurationDescriptor{
+        private static final String RESOURCE_NAME = "MQConnectorConfig";
+
+        private MQConnectorConfigurationDescriptor(){
+            super(RESOURCE_NAME,
+                    USERNAME_PARAM,
+                    PASSWORD_PARAM,
+                    INP_QUEUE_NAME_PARAM,
+                    INP_TOPIC_PARAM,
+                    MESSAGE_SELECTOR_PARAM,
+                    OUT_QUEUE_NAME_PARAM,
+                    OUT_TOPIC_PARAM,
+                    CONVERTER_SCRIPT_PARAM,
+                    AMQP_VERSION_PARAM,
+                    WAIT_FOR_HZ_PARAM);
+        }
+    }
+
+    private static final class MQAttributeConfigurationDescriptor extends AttributeConfigurationDescriptor{
+        private static final String RESOURCE_NAME = "MQAttributeConfig";
+
+        private MQAttributeConfigurationDescriptor(){
+            super(RESOURCE_NAME);
+        }
+    }
+
+    private static final class MQEventConfigurationDescriptor extends EventConfigurationDescriptor{
+        private static final String RESOURCE_NAME = "MQEventConfig";
+
+        private MQEventConfigurationDescriptor(){
+            super(RESOURCE_NAME);
+        }
+    }
+
+    MQResourceConnectorConfigurationDescriptor() {
+        super(new MQConnectorConfigurationDescriptor(),
+                new MQAttributeConfigurationDescriptor(),
+                new MQEventConfigurationDescriptor());
+    }
 
     public static Connection createConnection(final ConnectionFactory factory, final Map<String, String> parameters) throws JMSException {
         if(parameters.containsKey(USERNAME_PARAM) && parameters.containsKey(PASSWORD_PARAM)){
@@ -68,5 +115,18 @@ public final class MQConnectorConfigurationDescriptor extends MDAResourceConfigu
         return parameters.containsKey(AMQP_VERSION_PARAM) ?
                 parameters.get(AMQP_VERSION_PARAM) :
                 null;
+    }
+
+    public static boolean waitForHazelcast(final Map<String, String> parameters, final BundleContext context) throws TimeoutException, InterruptedException {
+        if(parameters.containsKey(WAIT_FOR_HZ_PARAM)){
+            final long timeout = Long.parseLong(parameters.get(WAIT_FOR_HZ_PARAM));
+            final ServiceSpinWait<HazelcastInstance> hazelcastWait = new ServiceSpinWait<>(context, HazelcastInstance.class);
+            try {
+                return hazelcastWait.get(timeout, TimeUnit.MILLISECONDS) != null;
+            } catch (final ExecutionException ignored) {
+                return false;
+            }
+        }
+        else return false;
     }
 }

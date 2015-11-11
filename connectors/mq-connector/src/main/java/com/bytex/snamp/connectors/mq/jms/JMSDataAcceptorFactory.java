@@ -2,7 +2,7 @@ package com.bytex.snamp.connectors.mq.jms;
 
 import com.bytex.snamp.connectors.mda.DataAcceptor;
 import com.bytex.snamp.connectors.mda.DataAcceptorFactory;
-import com.bytex.snamp.connectors.mq.MQConnectorConfigurationDescriptor;
+import com.bytex.snamp.connectors.mq.MQResourceConnectorConfigurationDescriptor;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.base.Strings;
 import org.osgi.framework.BundleContext;
@@ -26,13 +26,16 @@ public final class JMSDataAcceptorFactory implements DataAcceptorFactory {
     public DataAcceptor create(final String resourceName,
                                String connectionString,
                                final Map<String, String> parameters) throws Exception {
+        final BundleContext context = Utils.getBundleContextByObject(this);
+        //synchronize with Hazelcast
+        MQResourceConnectorConfigurationDescriptor.waitForHazelcast(parameters, context);
         //parse converter
-        final String scriptFile = MQConnectorConfigurationDescriptor.getConverterScript(parameters);
+        final String scriptFile = MQResourceConnectorConfigurationDescriptor.getConverterScript(parameters);
         final JMSDataConverter converter = Strings.isNullOrEmpty(scriptFile) ?
                 JMSDataConverter.createDefault() :
                 JMSDataConverter.loadFrom(new File(scriptFile), getClass().getClassLoader());
         //detect connection factory
-        final BundleContext context = Utils.getBundleContextByObject(this);
+
         final ConnectionFactory connectionFactory;
         //ActiveMQ detected
         if (connectionString.startsWith(ACTIVEMQ_PREFIX))
@@ -42,7 +45,7 @@ public final class JMSDataAcceptorFactory implements DataAcceptorFactory {
             connectionFactory = QueueClient.JNDI.getConnectionFactory(connectionString.replaceFirst(JNDI_PREFIX, ""), context);
         //AMQP
         else if(connectionString.startsWith(AMQP_PREFIX) || connectionString.startsWith(AMQP_SECURE_PREFIX)){
-            final String protocolVersion = MQConnectorConfigurationDescriptor.getAmqpVersion(parameters);
+            final String protocolVersion = MQResourceConnectorConfigurationDescriptor.getAmqpVersion(parameters);
             final QueueClient client;
             if(Strings.isNullOrEmpty(protocolVersion))
                 client = QueueClient.AMQP_0_9_1;

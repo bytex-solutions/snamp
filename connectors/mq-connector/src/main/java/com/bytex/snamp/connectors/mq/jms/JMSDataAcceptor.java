@@ -4,7 +4,7 @@ import com.bytex.snamp.configuration.AbsentConfigurationParameterException;
 import com.bytex.snamp.connectors.mda.DataAcceptor;
 import com.bytex.snamp.connectors.mda.MDAAttributeRepository;
 import com.bytex.snamp.connectors.mda.MDANotificationRepository;
-import com.bytex.snamp.connectors.mq.MQConnectorConfigurationDescriptor;
+import com.bytex.snamp.connectors.mq.MQResourceConnectorConfigurationDescriptor;
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
@@ -38,12 +38,12 @@ final class JMSDataAcceptor extends DataAcceptor implements ExceptionListener {
                     final Supplier<ExecutorService> threadPoolFactory,
                     final ConnectionFactory factory) throws JMSException, AbsentConfigurationParameterException {
         dataConverter = converter;
-        jmsConnection = MQConnectorConfigurationDescriptor.createConnection(factory, parameters);
-        queueName = MQConnectorConfigurationDescriptor.getInputQueueName(parameters);
-        isTopic = MQConnectorConfigurationDescriptor.isInputTopic(parameters);
-        messageSelector = MQConnectorConfigurationDescriptor.getMessageSelector(parameters);
-        outputQueueName = MQConnectorConfigurationDescriptor.getOutputQueueName(parameters);
-        isTopicOutput = MQConnectorConfigurationDescriptor.isOutputTopic(parameters);
+        jmsConnection = MQResourceConnectorConfigurationDescriptor.createConnection(factory, parameters);
+        queueName = MQResourceConnectorConfigurationDescriptor.getInputQueueName(parameters);
+        isTopic = MQResourceConnectorConfigurationDescriptor.isInputTopic(parameters);
+        messageSelector = MQResourceConnectorConfigurationDescriptor.getMessageSelector(parameters);
+        outputQueueName = MQResourceConnectorConfigurationDescriptor.getOutputQueueName(parameters);
+        isTopicOutput = MQResourceConnectorConfigurationDescriptor.isOutputTopic(parameters);
         attributes = new JMSAttributeRepository(resourceName, converter, getLogger());
         notifications = new JMSNotificationRepository(resourceName, threadPoolFactory.get(), converter, getLogger());
     }

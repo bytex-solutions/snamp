@@ -39,6 +39,10 @@ public abstract class JMSDataConverter extends Script implements JMSMessageConve
     private static final String CATEGORY_HEADER = "snampCategory";
     private static final String SEQNUM_HEADER = "snampSequenceNumber";
 
+    protected JMSDataConverter(){
+
+    }
+
     private static byte[] readByteArray(final BytesMessage message) throws JMSException {
         final byte[] buffer = new byte[512];
         try(final ByteArrayOutputStream output = new ByteArrayOutputStream(1024)){
