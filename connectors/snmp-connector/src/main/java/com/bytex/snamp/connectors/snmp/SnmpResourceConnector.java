@@ -8,7 +8,7 @@ import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
 import com.bytex.snamp.connectors.attributes.*;
 import com.bytex.snamp.connectors.notifications.*;
-import com.bytex.snamp.core.ClusterServices;
+import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.Buffers;
 import com.bytex.snamp.jmx.CompositeDataUtils;
@@ -78,7 +78,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
                                            final AbstractConcurrentResourceAccessor<SnmpClient> client,
                                            final BundleContext context,
                                            final Logger logger){
-            super(resourceName, SnmpNotificationInfo.class, ClusterServices.getClusteredIDGenerator(context));
+            super(resourceName, SnmpNotificationInfo.class, DistributedServices.getDistributedIDGenerator(context));
             this.logger = Objects.requireNonNull(logger);
             this.client = client;
             final Executor executor = client.read(new ConsistentAction<SnmpClient, Executor>() {

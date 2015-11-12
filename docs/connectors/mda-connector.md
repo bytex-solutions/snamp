@@ -53,11 +53,8 @@ MDA Resource Connector recognizes the following parameters:
 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
-waitForHazelcast | Integer | No | Timeout (in millis) used to synchronize with Hazelcast OSGi bundle. If this parameter is specified then MDA Connector tries to use Hazelcast in-memory data grid as storage of attribute values. If this parameter is not specified then MDA Connector attempts to discover Hazelcast OSGi bundle but without waiting. If Hazelcast OSGi bundle doesn't exist (or not loaded yet) then connector decide to use local in-memory storage | `10000`
 socketTimeout | Integer | No |  Incoming connection timeout (in millis) used only if Thrift transport is configured. Default is `4000`
 expirationTime | Integer | No | Expiration time (in millis) of attribute values in the storage. If attribute was not updated by external component then Resource Adapter can't obtain its value. This is very helpful for detecting availability of the component. Default is infinite (never expires) | `2000`
-
-`waitForHazelcast` is useful for Clustered installation of SNAMP only. So you want to use SNAMP Cluster then it is recommended to set `waitForHazelcast` parameter to `20000` (20 seconds).
 
 `expirationTime` configuration parameter is useful in conjunction with `healthCheck` event of [Aggregation Connector](aggregator-connector.md).
 

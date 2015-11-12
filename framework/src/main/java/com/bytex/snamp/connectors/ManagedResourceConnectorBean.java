@@ -1,7 +1,6 @@
 package com.bytex.snamp.connectors;
 
-import com.bytex.snamp.core.ClusterServices;
-import com.bytex.snamp.core.IDGenerator;
+import com.bytex.snamp.core.DistributedServices;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
@@ -779,7 +778,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                                                final Set<? extends ManagementNotificationType<?>> notifTypes,
                                                final BundleContext context,
                                                final Logger logger) {
-            super(resourceName, FEATURE_TYPE, ClusterServices.getClusteredIDGenerator(context));
+            super(resourceName, FEATURE_TYPE, DistributedServices.getDistributedIDGenerator(context));
             this.logger = Objects.requireNonNull(logger);
             this.notifTypes = Objects.requireNonNull(notifTypes);
             this.listenerInvoker = NotificationListenerInvokerFactory.createSequentialInvoker();

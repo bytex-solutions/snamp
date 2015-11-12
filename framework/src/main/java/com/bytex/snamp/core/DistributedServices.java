@@ -4,17 +4,17 @@ import com.bytex.snamp.Switch;
 import org.osgi.framework.BundleContext;
 
 /**
- * Represents a set of cluster services.
+ * Represents a set of distributed services.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-public final class ClusterServices {
+public final class DistributedServices {
     private static final Switch<Class<?>, Object> inMemoryServices = new Switch<Class<?>, Object>()
             .equals(IDGenerator.class, new InMemoryIDGenerator())
             .equals(ObjectStorage.class, new InMemoryObjectStorage());
 
-    private ClusterServices(){
+    private DistributedServices(){
     }
 
     /**
@@ -47,11 +47,21 @@ public final class ClusterServices {
         }
     }
 
-    public static ObjectStorage getClusteredObjectStorage(final BundleContext context){
+    /**
+     * Gets distributed {@link ObjectStorage}.
+     * @param context Context of the caller OSGi bundle.
+     * @return Distributed or process-local storage.
+     */
+    public static ObjectStorage getDistributedObjectStorage(final BundleContext context){
         return getService(context, ObjectStorage.class);
     }
 
-    public static IDGenerator getClusteredIDGenerator(final BundleContext context){
+    /**
+     * Gets distributed {@link IDGenerator}.
+     * @param context Context of the caller OSGi bundle.
+     * @return Distributed or process-local generator.
+     */
+    public static IDGenerator getDistributedIDGenerator(final BundleContext context){
         return getService(context, IDGenerator.class);
     }
 }

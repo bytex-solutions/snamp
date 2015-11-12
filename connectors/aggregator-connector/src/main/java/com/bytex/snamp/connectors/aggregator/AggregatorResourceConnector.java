@@ -11,7 +11,7 @@ import com.bytex.snamp.connectors.notifications.AbstractNotificationRepository;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 import com.bytex.snamp.connectors.notifications.NotificationListenerInvoker;
 import com.bytex.snamp.connectors.notifications.NotificationListenerInvokerFactory;
-import com.bytex.snamp.core.ClusterServices;
+import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.base.Function;
 import org.osgi.framework.BundleContext;
@@ -81,7 +81,7 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
 
         private NotificationAggregationRepository(final String resourceName,
                                                   final BundleContext context) {
-            super(resourceName, AbstractAggregatorNotification.class, ClusterServices.getClusteredIDGenerator(context));
+            super(resourceName, AbstractAggregatorNotification.class, DistributedServices.getDistributedIDGenerator(context));
             invoker = NotificationListenerInvokerFactory.createSequentialInvoker();
         }
 

@@ -21,13 +21,13 @@ public final class NonClusteredNode extends AbstractAggregator implements Cluste
     @Aggregation
     @SpecialUse
     public ObjectStorage getStorage(){
-        return ClusterServices.getProcessLocalObjectStorage();
+        return DistributedServices.getProcessLocalObjectStorage();
     }
 
     @Aggregation
     @SpecialUse
     public IDGenerator getIDGeneratorService(){
-        return ClusterServices.getProcessLocalIDGenerator();
+        return DistributedServices.getProcessLocalIDGenerator();
     }
 
     /**

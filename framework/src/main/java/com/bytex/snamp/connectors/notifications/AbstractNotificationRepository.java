@@ -4,7 +4,7 @@ import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.connectors.AbstractFeatureRepository;
-import com.bytex.snamp.core.ClusterServices;
+import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.core.IDGenerator;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
@@ -124,7 +124,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     protected AbstractNotificationRepository(final String resourceName,
                                              final Class<M> notifMetadataType) {
-        this(resourceName, notifMetadataType, ClusterServices.getProcessLocalIDGenerator());
+        this(resourceName, notifMetadataType, DistributedServices.getProcessLocalIDGenerator());
     }
 
     /**
@@ -150,11 +150,11 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      * @return A new unique sequence number.
      */
     protected final long generateSequenceNumber(){
-        return idGenerator.generateID(makeSequenceCounterName(getResourceName()));
+        return idGenerator.generateID(getSequenceCounterName());
     }
 
-    private static String makeSequenceCounterName(final String resourceName){
-        return String.format("snamp-%s-sequenceCounter", resourceName);
+    private String getSequenceCounterName(){
+        return String.format("snamp-%s-sequenceCounter", getResourceName());
     }
 
     private static <M extends MBeanNotificationInfo> AbstractKeyedObjects<String, NotificationHolder<M>> createNotifications(){
@@ -501,7 +501,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     @Override
     public void close() {
-        idGenerator.reset(makeSequenceCounterName(getResourceName()));
+        idGenerator.reset(getSequenceCounterName());
         removeAll(true, true);
     }
 }

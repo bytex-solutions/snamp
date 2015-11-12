@@ -11,7 +11,7 @@ import com.bytex.snamp.connectors.attributes.OpenTypeAttributeInfo;
 import com.bytex.snamp.connectors.groovy.*;
 import com.bytex.snamp.connectors.notifications.*;
 import com.bytex.snamp.MethodStub;
-import com.bytex.snamp.core.ClusterServices;
+import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.base.Function;
 import com.google.common.base.Splitter;
@@ -100,7 +100,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         private GroovyNotificationRepository(final String resourceName,
                                              final EventConnector connector,
                                              final BundleContext context){
-            super(resourceName, GroovyNotificationInfo.class, ClusterServices.getClusteredIDGenerator(context));
+            super(resourceName, GroovyNotificationInfo.class, DistributedServices.getDistributedIDGenerator(context));
             this.connector = Objects.requireNonNull(connector);
             final ExecutorService executor = Executors.newSingleThreadExecutor(new GroupedThreadFactory("notifs-".concat(resourceName)));
             this.listenerInvoker = createListenerInvoker(executor);

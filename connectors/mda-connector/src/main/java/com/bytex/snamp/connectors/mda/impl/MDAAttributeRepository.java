@@ -2,7 +2,7 @@ package com.bytex.snamp.connectors.mda.impl;
 
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.mda.MDAAttributeInfo;
-import com.bytex.snamp.core.ClusterServices;
+import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.core.ObjectStorage;
 import com.bytex.snamp.internal.Utils;
 
@@ -17,14 +17,17 @@ import java.util.logging.Logger;
  */
 public abstract class MDAAttributeRepository extends com.bytex.snamp.connectors.mda.MDAAttributeRepository<MDAAttributeInfo> {
     private final Logger logger;
-    private final ConcurrentMap<String, Object> storage;
+    private final ObjectStorage storageService;
 
     public MDAAttributeRepository(final String resourceName,
                                     final Logger logger) {
         super(resourceName, MDAAttributeInfo.class);
         this.logger = Objects.requireNonNull(logger);
-        final ObjectStorage storageService = ClusterServices.getClusteredObjectStorage(Utils.getBundleContextByObject(this));
-        this.storage = storageService.getCollection("attributes-".concat(resourceName));
+        this.storageService = DistributedServices.getDistributedObjectStorage(Utils.getBundleContextByObject(this));
+    }
+
+    private String getCollectionName(){
+        return "attributes-".concat(getResourceName());
     }
 
     /**
@@ -42,11 +45,17 @@ public abstract class MDAAttributeRepository extends com.bytex.snamp.connectors.
 
     @Override
     protected final ConcurrentMap<String, Object> getStorage() {
-        return storage;
+        return storageService.getCollection(getCollectionName());
     }
 
     @Override
     protected final Logger getLogger() {
         return logger;
+    }
+
+    @Override
+    public void close() {
+        super.close();
+        storageService.deleteCollection(getCollectionName());
     }
 }

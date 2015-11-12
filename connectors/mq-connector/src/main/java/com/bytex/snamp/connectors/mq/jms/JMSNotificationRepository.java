@@ -3,7 +3,7 @@ package com.bytex.snamp.connectors.mq.jms;
 import com.bytex.snamp.connectors.mda.MDANotificationInfo;
 import com.bytex.snamp.connectors.mda.MDANotificationRepository;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
-import com.bytex.snamp.core.ClusterServices;
+import com.bytex.snamp.core.DistributedServices;
 import org.osgi.framework.BundleContext;
 
 import javax.jms.JMSException;
@@ -28,7 +28,7 @@ final class JMSNotificationRepository extends MDANotificationRepository<MDANotif
                               final JMSNotificationConverter dataConverter,
                               final BundleContext context,
                               final Logger logger){
-        super(resourceName, MDANotificationInfo.class, threadPool, ClusterServices.getClusteredIDGenerator(context));
+        super(resourceName, MDANotificationInfo.class, threadPool, DistributedServices.getDistributedIDGenerator(context));
         this.logger = Objects.requireNonNull(logger);
         this.converter = Objects.requireNonNull(dataConverter);
     }

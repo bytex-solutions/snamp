@@ -5,7 +5,7 @@ import com.bytex.snamp.connectors.attributes.AttributeSpecifier;
 import com.bytex.snamp.connectors.mda.MDAAttributeInfo;
 import com.bytex.snamp.connectors.mda.MDAAttributeRepository;
 import com.bytex.snamp.connectors.mq.JMSExceptionUtils;
-import com.bytex.snamp.core.ClusterServices;
+import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.core.ObjectStorage;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.base.Strings;
@@ -25,19 +25,22 @@ import java.util.logging.Logger;
  */
 final class JMSAttributeRepository extends MDAAttributeRepository<MDAAttributeInfo> {
     private final Logger logger;
-    private final ConcurrentMap<String, Object> storage;
     private final JMSAttributeConverter converter;
     private MessageProducer publisher;
     private Session session;
+    private final ObjectStorage storageService;
 
     JMSAttributeRepository(final String resourceName,
                            final JMSAttributeConverter converter,
                            final Logger logger) {
         super(resourceName, MDAAttributeInfo.class);
         this.logger = Objects.requireNonNull(logger);
-        final ObjectStorage storageService = ClusterServices.getClusteredObjectStorage(Utils.getBundleContextByObject(this));
-        this.storage = storageService.getCollection("attributes-".concat(resourceName));
+        this.storageService = DistributedServices.getDistributedObjectStorage(Utils.getBundleContextByObject(this));
         this.converter = Objects.requireNonNull(converter);
+    }
+
+    private String getCollectionName(){
+        return "attributes-".concat(getResourceName());
     }
 
     void init(final Session session,
@@ -107,9 +110,8 @@ final class JMSAttributeRepository extends MDAAttributeRepository<MDAAttributeIn
      */
     @Override
     protected ConcurrentMap<String, Object> getStorage() {
-        return storage;
+        return storageService.getCollection(getCollectionName());
     }
-
 
     @Override
     protected Logger getLogger() {
@@ -123,6 +125,7 @@ final class JMSAttributeRepository extends MDAAttributeRepository<MDAAttributeIn
     public void close() {
         publisher = null;
         session = null;
+        storageService.deleteCollection(getCollectionName());
         super.close();
     }
 }

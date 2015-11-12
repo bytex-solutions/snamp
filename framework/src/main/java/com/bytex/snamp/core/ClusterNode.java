@@ -2,6 +2,7 @@ package com.bytex.snamp.core;
 
 /**
  * Represents SNAMP service that represents single SNAMP node in the cluster.
+ * You can discover this service via OSGi service registry.
  * <p>
  *     You can query the following cluster-wide services:
  *     <ul>

@@ -1,10 +1,14 @@
 package com.bytex.snamp.core.cluster;
 
 import com.bytex.snamp.AbstractAggregator;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.core.ClusterNode;
+import com.bytex.snamp.core.IDGenerator;
+import com.bytex.snamp.core.ObjectStorage;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.Member;
 
-import java.util.Objects;
+import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Logger;
 
 /**
@@ -14,12 +18,72 @@ import java.util.logging.Logger;
  */
 public final class ClusteredNodeImpl extends AbstractAggregator implements ClusterNode {
     private static final String NODE_STATUS_PROPERTY = "snampNodeStatus";
-    private final HazelcastInstance hazelcast;
     private final Logger logger = Logger.getLogger("com.bytex.snamp.core.cluster");
 
+    private static final class HazelcastIDGenerator implements IDGenerator{
+        private final HazelcastInstance hazelcast;
+
+        private HazelcastIDGenerator(final HazelcastInstance hazelcast){
+            this.hazelcast = hazelcast;
+        }
+
+        @Override
+        public long generateID(String generatorName) {
+            return hazelcast.getIdGenerator(generatorName).newId();
+        }
+
+        @Override
+        public void reset(String generatorName) {
+            hazelcast.getIdGenerator(generatorName).destroy();
+        }
+    }
+
+    private static final class HazelcastObjectStorage implements ObjectStorage{
+        private final HazelcastInstance hazelcast;
+
+        private HazelcastObjectStorage(final HazelcastInstance hazelcast){
+            this.hazelcast = hazelcast;
+        }
+
+        @Override
+        public ConcurrentMap<String, Object> getCollection(final String collectionName) {
+            return hazelcast.getMap(collectionName);
+        }
+
+        /**
+         * Deletes the specified collection.
+         *
+         * @param collectionName Name of the collection to remove.
+         */
+        @Override
+        public void deleteCollection(final String collectionName) {
+            hazelcast.getMap(collectionName).destroy();
+        }
+    }
+
+    private final Member localMember;
+    private final String instanceName;
+    private final IDGenerator idGenerator;
+    private final ObjectStorage storageService;
+
     public ClusteredNodeImpl(final HazelcastInstance hazelcastInstance){
-        hazelcast = Objects.requireNonNull(hazelcastInstance);
-        hazelcast.getCluster().getLocalMember().setBooleanAttribute(NODE_STATUS_PROPERTY, true);
+        instanceName = hazelcastInstance.getName();
+        localMember = hazelcastInstance.getCluster().getLocalMember();
+        localMember.setBooleanAttribute(NODE_STATUS_PROPERTY, true);
+        storageService = new HazelcastObjectStorage(hazelcastInstance);
+        idGenerator = new HazelcastIDGenerator(hazelcastInstance);
+    }
+
+    @Aggregation
+    @SpecialUse
+    public ObjectStorage getObjectStorage(){
+        return storageService;
+    }
+
+    @Aggregation
+    @SpecialUse
+    public IDGenerator getIDGenerator(){
+        return idGenerator;
     }
 
     /**
@@ -33,7 +97,7 @@ public final class ClusteredNodeImpl extends AbstractAggregator implements Clust
      */
     @Override
     public boolean isActive() {
-        return hazelcast.getCluster().getLocalMember().getBooleanAttribute(NODE_STATUS_PROPERTY);
+        return localMember.getBooleanAttribute(NODE_STATUS_PROPERTY);
     }
 
     /**
@@ -43,7 +107,7 @@ public final class ClusteredNodeImpl extends AbstractAggregator implements Clust
      */
     @Override
     public void setActive(final boolean value) {
-        hazelcast.getCluster().getLocalMember().setBooleanAttribute(NODE_STATUS_PROPERTY, value);
+        localMember.setBooleanAttribute(NODE_STATUS_PROPERTY, value);
     }
 
     /**
@@ -53,7 +117,7 @@ public final class ClusteredNodeImpl extends AbstractAggregator implements Clust
      */
     @Override
     public String getName() {
-        return hazelcast.getName();
+        return instanceName;
     }
 
     /**

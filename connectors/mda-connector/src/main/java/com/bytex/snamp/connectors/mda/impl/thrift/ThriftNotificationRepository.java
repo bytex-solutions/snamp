@@ -2,7 +2,7 @@ package com.bytex.snamp.connectors.mda.impl.thrift;
 
 import com.bytex.snamp.connectors.mda.MDANotificationRepository;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
-import com.bytex.snamp.core.ClusterServices;
+import com.bytex.snamp.core.DistributedServices;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TField;
 import org.apache.thrift.protocol.TProtocol;
@@ -29,7 +29,7 @@ final class ThriftNotificationRepository extends MDANotificationRepository<Thrif
                                  final ExecutorService threadPool,
                                  final BundleContext context,
                                  final Logger logger) {
-        super(resourceName, FEATURE_TYPE, threadPool, ClusterServices.getClusteredIDGenerator(context));
+        super(resourceName, FEATURE_TYPE, threadPool, DistributedServices.getDistributedIDGenerator(context));
         this.logger = Objects.requireNonNull(logger);
     }
 
