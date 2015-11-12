@@ -5,13 +5,10 @@ import com.bytex.snamp.connectors.attributes.AttributeSpecifier;
 import com.bytex.snamp.connectors.mda.MDAAttributeInfo;
 import com.bytex.snamp.connectors.mda.MDAAttributeRepository;
 import com.bytex.snamp.connectors.mq.JMSExceptionUtils;
-import com.bytex.snamp.core.ServiceHolder;
+import com.bytex.snamp.core.ClusterServices;
+import com.bytex.snamp.core.ObjectStorage;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.base.Strings;
-import com.google.common.collect.Maps;
-import com.hazelcast.core.HazelcastInstance;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
 
 import javax.jms.*;
 import javax.management.InvalidAttributeValueException;
@@ -38,7 +35,8 @@ final class JMSAttributeRepository extends MDAAttributeRepository<MDAAttributeIn
                            final Logger logger) {
         super(resourceName, MDAAttributeInfo.class);
         this.logger = Objects.requireNonNull(logger);
-        this.storage = createStorage(Utils.getBundleContextByObject(this), resourceName, logger);
+        final ObjectStorage storageService = ClusterServices.getClusteredObjectStorage(Utils.getBundleContextByObject(this));
+        this.storage = storageService.getCollection("attributes-".concat(resourceName));
         this.converter = Objects.requireNonNull(converter);
     }
 
@@ -52,24 +50,6 @@ final class JMSAttributeRepository extends MDAAttributeRepository<MDAAttributeIn
                 session.createTopic(outputQueue) :
                 session.createQueue(outputQueue);
         this.publisher = session.createProducer(outputDestination);
-    }
-
-    private static ConcurrentMap<String, Object> createStorage(final BundleContext context,
-                                                               final String resourceName,
-                                                               final Logger logger) {
-        final ServiceReference<HazelcastInstance> hazelcast = context.getServiceReference(HazelcastInstance.class);
-        if (hazelcast == null) { //local storage
-            logger.info(String.format("%s MQ Connector uses local in-memory local storage for monitoring data", resourceName));
-            return Maps.newConcurrentMap();
-        } else {
-            final ServiceHolder<HazelcastInstance> holder = new ServiceHolder<>(context, hazelcast);
-            try {
-                logger.info(String.format("%s MQ Connector uses in-memory data grid (%s) for monitoring data", resourceName, holder.get().getName()));
-                return holder.get().getMap(resourceName);
-            } finally {
-                holder.release(context);
-            }
-        }
     }
 
     void setAttribute(final Message message) throws JMSException{

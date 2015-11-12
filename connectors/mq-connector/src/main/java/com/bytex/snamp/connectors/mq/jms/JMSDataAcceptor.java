@@ -5,6 +5,7 @@ import com.bytex.snamp.connectors.mda.DataAcceptor;
 import com.bytex.snamp.connectors.mda.MDAAttributeRepository;
 import com.bytex.snamp.connectors.mda.MDANotificationRepository;
 import com.bytex.snamp.connectors.mq.MQResourceConnectorConfigurationDescriptor;
+import com.bytex.snamp.internal.Utils;
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
@@ -45,7 +46,11 @@ final class JMSDataAcceptor extends DataAcceptor implements ExceptionListener {
         outputQueueName = MQResourceConnectorConfigurationDescriptor.getOutputQueueName(parameters);
         isTopicOutput = MQResourceConnectorConfigurationDescriptor.isOutputTopic(parameters);
         attributes = new JMSAttributeRepository(resourceName, converter, getLogger());
-        notifications = new JMSNotificationRepository(resourceName, threadPoolFactory.get(), converter, getLogger());
+        notifications = new JMSNotificationRepository(resourceName,
+                threadPoolFactory.get(),
+                converter,
+                Utils.getBundleContextByObject(this),
+                getLogger());
     }
 
     /**
@@ -127,6 +132,8 @@ final class JMSDataAcceptor extends DataAcceptor implements ExceptionListener {
             jmsSession.close();
         jmsSession = null;
         jmsConnection.close();
+        attributes.close();
+        notifications.close();
         super.close();
     }
 }

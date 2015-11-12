@@ -15,9 +15,11 @@ import com.bytex.snamp.connectors.operations.OperationDescriptor;
 import com.bytex.snamp.connectors.operations.OperationDescriptorRead;
 import com.bytex.snamp.connectors.operations.OperationSupport;
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.internal.Utils;
 import com.google.common.base.Function;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Sets;
+import org.osgi.framework.BundleContext;
 
 import javax.management.*;
 import javax.management.openmbean.*;
@@ -456,6 +458,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
 
         private JmxNotificationRepository(final String resourceName,
                                           final ObjectName globalName,
+                                          final BundleContext context,
                                           final JmxConnectionManager connectionManager) {
             super(resourceName, FEATURE_TYPE);
             this.connectionManager = connectionManager;
@@ -621,7 +624,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
         }
 
         @Override
-        public final Void handle(final MBeanServerConnection connection) throws IOException, JMException {
+        public Void handle(final MBeanServerConnection connection) throws IOException, JMException {
             //for each MBean object assigns notification listener
             for (final ObjectName target : getNotificationTargets())
                 connection.addNotificationListener(target, this, null, null);
@@ -781,7 +784,10 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
                         JmxConnectorConfigurationDescriptor.OBJECT_NAME_PROPERTY));
         }
         else smartMode = false;
-        this.notifications = new JmxNotificationRepository(resourceName, connectionOptions.getGlobalObjectName(), connectionManager);
+        this.notifications = new JmxNotificationRepository(resourceName,
+                connectionOptions.getGlobalObjectName(),
+                Utils.getBundleContextByObject(this),
+                connectionManager);
         this.attributes = new JmxAttributeRepository(resourceName, connectionOptions.getGlobalObjectName(), connectionManager);
         this.operations = new JmxOperationRepository(resourceName, connectionOptions.getGlobalObjectName(), connectionManager);
     }
@@ -958,11 +964,11 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
      * @throws java.lang.Exception Some I/O error occurs.
      */
     @Override
-    public final void close() throws Exception{
-        attributes.removeAll(true);
+    public void close() throws Exception{
+        attributes.close();
         notifications.unsubscribeAll();
-        notifications.removeAll(true, true);
-        operations.removeAll(true);
+        notifications.close();
+        operations.close();
         super.close();
         connectionManager.close();
     }

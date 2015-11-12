@@ -214,7 +214,6 @@ public final class StandaloneMdaHttpConnectorTest extends AbstractMdaConnectorTe
                 "dictionaryName"
         ));
         testConfigurationDescriptor(ManagedResourceConfiguration.class, ImmutableSet.of(
-                "waitForHazelcast",
                 "socketTimeout",
                 "expirationTime"
         ));

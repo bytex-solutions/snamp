@@ -8,6 +8,8 @@ import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
 import com.bytex.snamp.connectors.attributes.*;
 import com.bytex.snamp.connectors.notifications.*;
+import com.bytex.snamp.core.ClusterServices;
+import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.Buffers;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.bytex.snamp.jmx.JMExceptionUtils;
@@ -16,6 +18,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import org.osgi.framework.BundleContext;
 import org.snmp4j.CommandResponder;
 import org.snmp4j.CommandResponderEvent;
 import org.snmp4j.PDU;
@@ -73,8 +76,9 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
 
         private SnmpNotificationRepository(final String resourceName,
                                            final AbstractConcurrentResourceAccessor<SnmpClient> client,
+                                           final BundleContext context,
                                            final Logger logger){
-            super(resourceName, SnmpNotificationInfo.class);
+            super(resourceName, SnmpNotificationInfo.class, ClusterServices.getClusteredIDGenerator(context));
             this.logger = Objects.requireNonNull(logger);
             this.client = client;
             final Executor executor = client.read(new ConsistentAction<SnmpClient, Executor>() {
@@ -775,7 +779,10 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
                           final SnmpConnectionOptions snmpConnectionOptions) throws IOException {
         client = new ConcurrentResourceAccessor<>(snmpConnectionOptions.createSnmpClient());
         attributes = new SnmpAttributeRepository(resourceName, client, getLogger());
-        notifications = new SnmpNotificationRepository(resourceName, client, getLogger());
+        notifications = new SnmpNotificationRepository(resourceName,
+                client,
+                Utils.getBundleContextByObject(this),
+                getLogger());
         smartMode = snmpConnectionOptions.isSmartModeEnabled();
     }
 
@@ -892,8 +899,8 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
     @Override
     public void close() throws Exception {
         super.close();
-        attributes.removeAll(true);
-        notifications.removeAll(true, true);
+        attributes.close();
+        notifications.close();
         client.write(new Action<SnmpClient, Void, IOException>() {
             @Override
             public Void invoke(final SnmpClient client) throws IOException {

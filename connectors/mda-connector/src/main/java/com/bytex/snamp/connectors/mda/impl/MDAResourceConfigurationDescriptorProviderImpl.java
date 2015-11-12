@@ -1,14 +1,8 @@
 package com.bytex.snamp.connectors.mda.impl;
 
 import com.bytex.snamp.connectors.mda.MDAResourceConfigurationDescriptorProvider;
-import com.bytex.snamp.core.ServiceSpinWait;
-import com.hazelcast.core.HazelcastInstance;
-import org.osgi.framework.BundleContext;
 
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * @author Roman Sakno
@@ -17,7 +11,6 @@ import java.util.concurrent.TimeoutException;
  */
 public final class MDAResourceConfigurationDescriptorProviderImpl extends MDAResourceConfigurationDescriptorProvider {
     private static final String SOCKET_TIMEOUT_PARAM = "socketTimeout";
-    private static final String WAIT_FOR_HZ_PARAM = "waitForHazelcast";
 
     private static final class AttributeConfigurationDescriptorImpl extends AttributeConfigurationDescriptor{
         private static final String RESOURCE_NAME = "MdaAttributeConfig";
@@ -39,7 +32,7 @@ public final class MDAResourceConfigurationDescriptorProviderImpl extends MDARes
         private static final String RESOURCE_NAME = "MdaConnectorConfig";
 
         private ConnectorConfigurationDescriptorImpl(){
-            super(RESOURCE_NAME,  WAIT_FOR_HZ_PARAM, SOCKET_TIMEOUT_PARAM);
+            super(RESOURCE_NAME, SOCKET_TIMEOUT_PARAM);
         }
     }
 
@@ -53,18 +46,5 @@ public final class MDAResourceConfigurationDescriptorProviderImpl extends MDARes
         if(parameters.containsKey(SOCKET_TIMEOUT_PARAM))
             return Integer.parseInt(parameters.get(SOCKET_TIMEOUT_PARAM));
         else return 4000;
-    }
-
-    public static boolean waitForHazelcast(final Map<String, String> parameters, final BundleContext context) throws TimeoutException, InterruptedException {
-        if(parameters.containsKey(WAIT_FOR_HZ_PARAM)){
-            final long timeout = Long.parseLong(parameters.get(WAIT_FOR_HZ_PARAM));
-            final ServiceSpinWait<HazelcastInstance> hazelcastWait = new ServiceSpinWait<>(context, HazelcastInstance.class);
-            try {
-                return hazelcastWait.get(timeout, TimeUnit.MILLISECONDS) != null;
-            } catch (final ExecutionException ignored) {
-                return false;
-            }
-        }
-        else return false;
     }
 }

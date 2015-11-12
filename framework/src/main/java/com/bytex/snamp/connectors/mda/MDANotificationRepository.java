@@ -5,6 +5,8 @@ import com.bytex.snamp.connectors.notifications.AbstractNotificationRepository;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 import com.bytex.snamp.connectors.notifications.NotificationListenerInvoker;
 import com.bytex.snamp.connectors.notifications.NotificationListenerInvokerFactory;
+import com.bytex.snamp.core.ClusterServices;
+import com.bytex.snamp.core.IDGenerator;
 
 import javax.management.openmbean.OpenType;
 import java.util.concurrent.ExecutorService;
@@ -27,7 +29,14 @@ public abstract class MDANotificationRepository<M extends MDANotificationInfo> e
     protected MDANotificationRepository(final String resourceName,
                                        final Class<M> featureType,
                                        final ExecutorService threadPool){
-        super(resourceName, featureType);
+        this(resourceName, featureType, threadPool, ClusterServices.getProcessLocalIDGenerator());
+    }
+
+    protected MDANotificationRepository(final String resourceName,
+                                        final Class<M> featureType,
+                                        final ExecutorService threadPool,
+                                        final IDGenerator idGenerator){
+        super(resourceName, featureType, idGenerator);
         listenerInvoker = NotificationListenerInvokerFactory.createParallelInvoker(threadPool);
     }
 

@@ -11,6 +11,7 @@ import com.bytex.snamp.connectors.notifications.AbstractNotificationRepository;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 import com.bytex.snamp.connectors.notifications.NotificationListenerInvoker;
 import com.bytex.snamp.connectors.notifications.NotificationListenerInvokerFactory;
+import com.bytex.snamp.core.ClusterServices;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.base.Function;
 import org.osgi.framework.BundleContext;
@@ -78,8 +79,9 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
     private static final class NotificationAggregationRepository extends AbstractNotificationRepository<AbstractAggregatorNotification> {
         private final NotificationListenerInvoker invoker;
 
-        private NotificationAggregationRepository(final String resourceName) {
-            super(resourceName, AbstractAggregatorNotification.class);
+        private NotificationAggregationRepository(final String resourceName,
+                                                  final BundleContext context) {
+            super(resourceName, AbstractAggregatorNotification.class, ClusterServices.getClusteredIDGenerator(context));
             invoker = NotificationListenerInvokerFactory.createSequentialInvoker();
         }
 
@@ -150,7 +152,7 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
     AggregatorResourceConnector(final String resourceName,
                                 final TimeSpan notificationFrequency) throws IntrospectionException {
         attributes = new AttributeAggregationRepository(resourceName);
-        notifications = new NotificationAggregationRepository(resourceName);
+        notifications = new NotificationAggregationRepository(resourceName, Utils.getBundleContextByObject(this));
         sender = new NotificationSender(notificationFrequency, notifications);
         sender.run();
     }
@@ -218,7 +220,7 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
     public void close() throws Exception {
         super.close();
         sender.close();
-        attributes.removeAll(true);
-        notifications.removeAll(true, true);
+        attributes.close();
+        notifications.close();
     }
 }

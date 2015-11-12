@@ -27,8 +27,6 @@ public final class JMSDataAcceptorFactory implements DataAcceptorFactory {
                                String connectionString,
                                final Map<String, String> parameters) throws Exception {
         final BundleContext context = Utils.getBundleContextByObject(this);
-        //synchronize with Hazelcast
-        MQResourceConnectorConfigurationDescriptor.waitForHazelcast(parameters, context);
         //parse converter
         final String scriptFile = MQResourceConnectorConfigurationDescriptor.getConverterScript(parameters);
         final JMSDataConverter converter = Strings.isNullOrEmpty(scriptFile) ?

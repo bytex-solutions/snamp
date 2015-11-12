@@ -2,6 +2,7 @@ package com.bytex.snamp.connectors.mda.impl.thrift;
 
 import com.bytex.snamp.Box;
 import com.bytex.snamp.connectors.mda.DataAcceptor;
+import com.bytex.snamp.internal.Utils;
 import com.google.common.base.Supplier;
 import org.apache.thrift.TException;
 import org.apache.thrift.TProcessor;
@@ -49,7 +50,10 @@ final class ThriftDataAcceptor extends DataAcceptor implements TProcessor {
         this.threadPool = threadPoolFactory.get();
         this.thriftServer = new MdaThriftServer(this.transport, threadPool, new WeakProcessor(this));
         this.attributes = new ThriftAttributeRepository(resourceName, getLogger());
-        this.notifications = new ThriftNotificationRepository(resourceName, threadPool, getLogger());
+        this.notifications = new ThriftNotificationRepository(resourceName,
+                threadPool,
+                Utils.getBundleContextByObject(this),
+                getLogger());
     }
 
     @Override
@@ -117,6 +121,8 @@ final class ThriftDataAcceptor extends DataAcceptor implements TProcessor {
         thriftServer.stop();
         transport.close();
         threadPool.shutdown();
+        attributes.close();
+        notifications.close();
         super.close();
     }
 }

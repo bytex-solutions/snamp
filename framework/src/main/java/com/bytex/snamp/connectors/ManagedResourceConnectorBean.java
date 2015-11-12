@@ -1,5 +1,7 @@
 package com.bytex.snamp.connectors;
 
+import com.bytex.snamp.core.ClusterServices;
+import com.bytex.snamp.core.IDGenerator;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
@@ -20,6 +22,7 @@ import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 import com.bytex.snamp.jmx.WellKnownType;
+import org.osgi.framework.BundleContext;
 
 import javax.management.*;
 import javax.management.openmbean.*;
@@ -774,8 +777,9 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
 
         private JavaBeanNotificationRepository(final String resourceName,
                                                final Set<? extends ManagementNotificationType<?>> notifTypes,
+                                               final BundleContext context,
                                                final Logger logger) {
-            super(resourceName, FEATURE_TYPE);
+            super(resourceName, FEATURE_TYPE, ClusterServices.getClusteredIDGenerator(context));
             this.logger = Objects.requireNonNull(logger);
             this.notifTypes = Objects.requireNonNull(notifTypes);
             this.listenerInvoker = NotificationListenerInvokerFactory.createSequentialInvoker();
@@ -904,7 +908,10 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                                          final Set<? extends ManagementNotificationType<?>> notifTypes) throws IntrospectionException {
         if(descriptor == null) descriptor = new SelfDescriptor(this);
         attributes = new JavaBeanAttributeRepository(resourceName, descriptor, getLogger());
-        notifications = new JavaBeanNotificationRepository(resourceName, notifTypes, getLogger());
+        notifications = new JavaBeanNotificationRepository(resourceName,
+                notifTypes,
+                Utils.getBundleContextByObject(this),
+                getLogger());
         operations = new JavaBeanOperationRepository(resourceName, descriptor, getLogger());
     }
 
@@ -1221,9 +1228,9 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      */
     @Override
     public void close() throws Exception {
-        operations.removeAll(true);
-        notifications.removeAll(true, true);
-        attributes.removeAll(true);
+        operations.close();
+        notifications.close();
+        attributes.close();
     }
 
     @Override

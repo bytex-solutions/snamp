@@ -1,18 +1,23 @@
 package com.bytex.snamp.connectors.notifications;
 
 import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.MethodStub;
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.connectors.AbstractFeatureRepository;
+import com.bytex.snamp.core.ClusterServices;
+import com.bytex.snamp.core.IDGenerator;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
-import com.bytex.snamp.MethodStub;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
 import javax.management.*;
 import javax.management.openmbean.CompositeData;
 import java.math.BigInteger;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -23,7 +28,7 @@ import java.util.logging.Logger;
  * @since 1.0
  * @version 1.0
  */
-public abstract class AbstractNotificationRepository<M extends MBeanNotificationInfo> extends AbstractFeatureRepository<M> implements NotificationSupport {
+public abstract class AbstractNotificationRepository<M extends MBeanNotificationInfo> extends AbstractFeatureRepository<M> implements NotificationSupport, SafeCloseable {
     private enum ANSResource{
         NOTIFICATIONS,
         RESOURCE_EVENT_LISTENERS
@@ -78,7 +83,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
                                      final Object userData){
             enqueue(metadata,
                     message,
-                    sequenceCounter.getAndIncrement(),
+                    generateSequenceNumber(),
                     System.currentTimeMillis(),
                     userData);
         }
@@ -110,7 +115,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
 
     private final KeyedObjects<String, NotificationHolder<M>> notifications;
     private final NotificationListenerList listeners;
-    private final AtomicLong sequenceCounter;
+    private final IDGenerator idGenerator;
 
     /**
      * Initializes a new notification manager.
@@ -119,13 +124,37 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     protected AbstractNotificationRepository(final String resourceName,
                                              final Class<M> notifMetadataType) {
+        this(resourceName, notifMetadataType, ClusterServices.getProcessLocalIDGenerator());
+    }
+
+    /**
+     * Initializes a new notification manager.
+     * @param resourceName The name of the managed resource.
+     * @param notifMetadataType Type of the notification metadata.
+     * @param idGenerator Generator for sequence numbers. Cannot be {@literal null}.
+     */
+    protected AbstractNotificationRepository(final String resourceName,
+                                             final Class<M> notifMetadataType,
+                                             final IDGenerator idGenerator) {
         super(resourceName,
                 notifMetadataType,
                 ANSResource.class,
                 ANSResource.RESOURCE_EVENT_LISTENERS);
         notifications = createNotifications();
         listeners = new NotificationListenerList();
-        sequenceCounter = new AtomicLong(0L);
+        this.idGenerator = Objects.requireNonNull(idGenerator);
+    }
+
+    /**
+     * Generates a new unique sequence number for the notification.
+     * @return A new unique sequence number.
+     */
+    protected final long generateSequenceNumber(){
+        return idGenerator.generateID(makeSequenceCounterName(getResourceName()));
+    }
+
+    private static String makeSequenceCounterName(final String resourceName){
+        return String.format("snamp-%s-sequenceCounter", resourceName);
     }
 
     private static <M extends MBeanNotificationInfo> AbstractKeyedObjects<String, NotificationHolder<M>> createNotifications(){
@@ -182,7 +211,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     protected final void fire(final String category,
                               final String message,
                               final Object userData) {
-        fire(category, message, sequenceCounter.getAndIncrement(), System.currentTimeMillis(), userData);
+        fire(category, message, generateSequenceNumber(), System.currentTimeMillis(), userData);
     }
 
     protected final void fire(final String category,
@@ -465,5 +494,14 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
 
     protected final void failedToExpand(final Logger logger, final Level level, final Exception e){
         logger.log(level, String.format("Unable to expand events for resource %s", getResourceName()), e);
+    }
+
+    /**
+     * Removes all notifications from this repository.
+     */
+    @Override
+    public void close() {
+        idGenerator.reset(makeSequenceCounterName(getResourceName()));
+        removeAll(true, true);
     }
 }

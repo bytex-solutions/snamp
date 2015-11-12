@@ -2,10 +2,12 @@ package com.bytex.snamp.connectors.mda.impl.http;
 
 import com.bytex.snamp.connectors.mda.MDANotificationRepository;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
+import com.bytex.snamp.core.ClusterServices;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import org.osgi.framework.BundleContext;
 
 import javax.management.openmbean.OpenDataException;
 import java.util.Objects;
@@ -24,8 +26,9 @@ final class HttpNotificationRepository extends MDANotificationRepository<HttpNot
 
     HttpNotificationRepository(final String resourceName,
                                final ExecutorService threadPool,
+                               final BundleContext context,
                                final Logger logger) {
-        super(resourceName, FEATURE_TYPE, threadPool);
+        super(resourceName, FEATURE_TYPE, threadPool, ClusterServices.getClusteredIDGenerator(context));
         this.logger = Objects.requireNonNull(logger);
     }
 

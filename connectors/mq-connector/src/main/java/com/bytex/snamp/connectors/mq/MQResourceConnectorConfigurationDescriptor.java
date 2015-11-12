@@ -1,17 +1,11 @@
 package com.bytex.snamp.connectors.mq;
 
 import com.bytex.snamp.connectors.mda.MDAResourceConfigurationDescriptorProvider;
-import com.bytex.snamp.core.ServiceSpinWait;
-import com.hazelcast.core.HazelcastInstance;
-import org.osgi.framework.BundleContext;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * @author Roman Sakno
@@ -28,7 +22,6 @@ public final class MQResourceConnectorConfigurationDescriptor extends MDAResourc
     private static final String OUT_TOPIC_PARAM = "isOutputTopic";
     private static final String CONVERTER_SCRIPT_PARAM = "converterScript";
     private static final String AMQP_VERSION_PARAM = "amqpVersion";
-    private static final String WAIT_FOR_HZ_PARAM = "waitForHazelcast";
 
     private static final class MQConnectorConfigurationDescriptor extends ConnectorConfigurationDescriptor{
         private static final String RESOURCE_NAME = "MQConnectorConfig";
@@ -43,8 +36,7 @@ public final class MQResourceConnectorConfigurationDescriptor extends MDAResourc
                     OUT_QUEUE_NAME_PARAM,
                     OUT_TOPIC_PARAM,
                     CONVERTER_SCRIPT_PARAM,
-                    AMQP_VERSION_PARAM,
-                    WAIT_FOR_HZ_PARAM);
+                    AMQP_VERSION_PARAM);
         }
     }
 
@@ -115,18 +107,5 @@ public final class MQResourceConnectorConfigurationDescriptor extends MDAResourc
         return parameters.containsKey(AMQP_VERSION_PARAM) ?
                 parameters.get(AMQP_VERSION_PARAM) :
                 null;
-    }
-
-    public static boolean waitForHazelcast(final Map<String, String> parameters, final BundleContext context) throws TimeoutException, InterruptedException {
-        if(parameters.containsKey(WAIT_FOR_HZ_PARAM)){
-            final long timeout = Long.parseLong(parameters.get(WAIT_FOR_HZ_PARAM));
-            final ServiceSpinWait<HazelcastInstance> hazelcastWait = new ServiceSpinWait<>(context, HazelcastInstance.class);
-            try {
-                return hazelcastWait.get(timeout, TimeUnit.MILLISECONDS) != null;
-            } catch (final ExecutionException ignored) {
-                return false;
-            }
-        }
-        else return false;
     }
 }

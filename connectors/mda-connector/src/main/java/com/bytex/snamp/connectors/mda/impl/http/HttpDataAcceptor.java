@@ -3,6 +3,7 @@ package com.bytex.snamp.connectors.mda.impl.http;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.VolatileBox;
 import com.bytex.snamp.connectors.mda.DataAcceptor;
+import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.json.JsonUtils;
 import com.google.common.base.Supplier;
 import com.google.gson.*;
@@ -45,7 +46,10 @@ public final class HttpDataAcceptor extends DataAcceptor {
                      final Supplier<? extends ExecutorService> threadPoolFactory) {
         this.threadPool = threadPoolFactory.get();
         this.attributes = new HttpAttributeRepository(resourceName, getLogger());
-        this.notifications = new HttpNotificationRepository(resourceName, threadPool, getLogger());
+        this.notifications = new HttpNotificationRepository(resourceName,
+                threadPool,
+                Utils.getBundleContextByObject(this),
+                getLogger());
         this.servletContext = Objects.requireNonNull(context);
         this.publisherRef = new VolatileBox<>();
         this.formatter = JsonUtils.registerTypeAdapters(new GsonBuilder().serializeNulls()).create();
@@ -221,6 +225,8 @@ public final class HttpDataAcceptor extends DataAcceptor {
         if (publisher != null)
             publisher.unregister(servletContext);
         threadPool.shutdown();
+        attributes.close();
+        notifications.close();
         super.close();
     }
 }

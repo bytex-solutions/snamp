@@ -32,8 +32,8 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Bundle-Activator>com.bytex.snamp.management.jmx.MonitoringServiceLibrary</Bundle-Activator>
-                        <Bundle-SymbolicName>com.bytex.snamp.management.jmx</Bundle-SymbolicName>
+                        <Bundle-Activator>com.bytex.snamp.management.ManagementServiceLibrary</Bundle-Activator>
+                        <Bundle-SymbolicName>com.bytex.snamp.management</Bundle-SymbolicName>
                         <Export-Package/>
                     </instructions>
                 </configuration>
@@ -83,6 +83,12 @@
             <artifactId>org.apache.karaf.shell.console</artifactId>
             <scope>provided</scope>
             <version>${karaf.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast</artifactId>
+            <version>${hazelcast.version}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

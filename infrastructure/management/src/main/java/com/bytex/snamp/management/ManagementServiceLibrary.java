@@ -1,11 +1,13 @@
-package com.bytex.snamp.management.jmx;
+package com.bytex.snamp.management;
 
+import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.ExposedServiceHandler;
-import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.management.FrameworkMBean;
 import com.bytex.snamp.management.OpenMBeanProvider;
 import com.bytex.snamp.management.SnampManager;
+import com.bytex.snamp.management.jmx.SnampCoreMBean;
+import com.bytex.snamp.management.jmx.SnampManagerImpl;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogEntry;
@@ -27,7 +29,7 @@ import java.util.Objects;
  * @version 1.0
  * @since 1.0
  */
-public final class MonitoringServiceLibrary extends AbstractServiceLibrary {
+public final class ManagementServiceLibrary extends AbstractServiceLibrary {
     private static final String USE_PLATFORM_MBEAN_FRAMEWORK_PROPERTY = "com.bytex.snamp.management.usePlatformMBean";
     private static final ActivationProperty<Boolean> usePlatformMBeanProperty = defineActivationProperty(Boolean.class, false);
 
@@ -153,7 +155,7 @@ public final class MonitoringServiceLibrary extends AbstractServiceLibrary {
 
     private final LogListener listener;
 
-    public MonitoringServiceLibrary() throws InvalidSyntaxException {
+    public ManagementServiceLibrary() throws InvalidSyntaxException {
         super(new SnampManagerProvider(), new SnampCoreMBeanProvider());
         this.listener = new LogEntryRouter();
     }

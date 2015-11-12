@@ -248,7 +248,6 @@ public final class ActiveMQTest extends AbstractMQConnectorTest {
                 "dictionaryName"
         ));
         testConfigurationDescriptor(AgentConfiguration.ManagedResourceConfiguration.class, ImmutableSet.of(
-                "waitForHazelcast",
                 "expirationTime",
                 "userName",
                 "password",

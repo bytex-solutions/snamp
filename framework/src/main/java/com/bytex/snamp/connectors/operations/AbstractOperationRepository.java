@@ -1,5 +1,6 @@
 package com.bytex.snamp.connectors.operations;
 
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.AbstractFeatureRepository;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
@@ -28,7 +29,7 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
  * @version 1.0
  * @since 1.0
  */
-public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> extends AbstractFeatureRepository<M> implements OperationSupport {
+public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> extends AbstractFeatureRepository<M> implements OperationSupport, SafeCloseable {
     private enum AOSResource{
         OPERATIONS,
         RESOURCE_EVENT_LISTENERS
@@ -474,5 +475,13 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
 
     protected final void failedToExpand(final Logger logger, final Level level, final Exception e){
         logger.log(level, String.format("Unable to expand operations for resource %s", getResourceName()), e);
+    }
+
+    /**
+     * Removes all operations from this repository.
+     */
+    @Override
+    public void close() {
+        removeAll(true);
     }
 }

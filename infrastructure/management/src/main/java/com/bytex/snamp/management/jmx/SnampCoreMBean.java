@@ -17,7 +17,7 @@ import java.util.logging.Logger;
  * @version 1.0
  * @since 1.0
  */
-final class SnampCoreMBean extends OpenMBean implements LogListener, FrameworkMBean {
+public final class SnampCoreMBean extends OpenMBean implements LogListener, FrameworkMBean {
     public static final String OBJECT_NAME = "com.bytex.snamp.management:type=SnampCore";
     public static final TimeSpan DEFAULT_RENEWAL_TIME = TimeSpan.ofSeconds(5);
     private final StatisticCounters counter;

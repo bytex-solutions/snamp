@@ -2,11 +2,13 @@ package com.bytex.snamp.connectors.mda.impl.thrift;
 
 import com.bytex.snamp.connectors.mda.MDANotificationRepository;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
+import com.bytex.snamp.core.ClusterServices;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TField;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.protocol.TProtocolUtil;
 import org.apache.thrift.protocol.TType;
+import org.osgi.framework.BundleContext;
 
 import javax.management.openmbean.OpenDataException;
 import java.util.Objects;
@@ -25,8 +27,9 @@ final class ThriftNotificationRepository extends MDANotificationRepository<Thrif
 
     ThriftNotificationRepository(final String resourceName,
                                  final ExecutorService threadPool,
+                                 final BundleContext context,
                                  final Logger logger) {
-        super(resourceName, FEATURE_TYPE, threadPool);
+        super(resourceName, FEATURE_TYPE, threadPool, ClusterServices.getClusteredIDGenerator(context));
         this.logger = Objects.requireNonNull(logger);
     }
 

@@ -1,9 +1,7 @@
 package com.bytex.snamp.connectors.mda.impl.http;
 
 import com.bytex.snamp.connectors.mda.DataAcceptorFactory;
-import com.bytex.snamp.connectors.mda.impl.MDAResourceConfigurationDescriptorProviderImpl;
 import com.bytex.snamp.connectors.mda.impl.MDAThreadPoolConfig;
-import com.bytex.snamp.internal.Utils;
 
 import java.util.Map;
 
@@ -26,7 +24,6 @@ public final class HttpDataAcceptorFactory implements DataAcceptorFactory {
     public HttpDataAcceptor create(final String resourceName,
                                    String servletContext,
                                    final Map<String, String> parameters) throws Exception {
-        MDAResourceConfigurationDescriptorProviderImpl.waitForHazelcast(parameters, Utils.getBundleContextByObject(this));
         if (isNullOrEmpty(servletContext))
             servletContext = getServletContext(resourceName);
         return new HttpDataAcceptor(resourceName,
