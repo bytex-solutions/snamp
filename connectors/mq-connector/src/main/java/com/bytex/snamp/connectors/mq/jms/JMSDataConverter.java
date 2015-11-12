@@ -343,7 +343,13 @@ public abstract class JMSDataConverter extends Script implements JMSMessageConve
      * @throws OpenDataException Unable to convert message.
      */
     public char[] toCharArray(final Message msg) throws JMSException, OpenDataException{
-        return ArrayUtils.toCharArray(toByteArray(msg));
+        if(msg instanceof TextMessage)
+            return ((TextMessage)msg).getText().toCharArray();
+        else if(msg instanceof BytesMessage)
+            return ((BytesMessage)msg).readUTF().toCharArray();
+        else if(msg instanceof StreamMessage)
+            return ((StreamMessage)msg).readString().toCharArray();
+        else throw cannotConvert(msg, ArrayType.getPrimitiveArrayType(char[].class));
     }
 
     /**
@@ -354,7 +360,7 @@ public abstract class JMSDataConverter extends Script implements JMSMessageConve
      * @throws OpenDataException Unable to convert message.
      */
     public Character[] toWrappedCharArray(final Message msg) throws JMSException, OpenDataException{
-        return ArrayUtils.toWrappedCharArray(toByteArray(msg));
+        return ArrayUtils.wrapArray(toCharArray(msg));
     }
 
     /**
@@ -505,7 +511,7 @@ public abstract class JMSDataConverter extends Script implements JMSMessageConve
     }
 
     @Override
-    public Object deserialize(final Message message, final OpenType<?> type) throws JMSException, OpenDataException{
+    public final Object deserialize(final Message message, final OpenType<?> type) throws JMSException, OpenDataException{
         if(message instanceof ObjectMessage)
             return ((ObjectMessage)message).getObject();
         else switch (WellKnownType.getType(type)){
@@ -876,9 +882,7 @@ public abstract class JMSDataConverter extends Script implements JMSMessageConve
      * @throws JMSException Internal JMS error.
      */
     public Message fromCharArray(final char[] value, final Session session) throws JMSException{
-        final BytesMessage result = session.createBytesMessage();
-        result.writeBytes(ArrayUtils.toByteArray(value));
-        return result;
+        return session.createTextMessage(new String(value));
     }
 
     /**
@@ -963,7 +967,7 @@ public abstract class JMSDataConverter extends Script implements JMSMessageConve
     }
 
     @Override
-    public Message serialize(final Object value, final Session session) throws JMSException{
+    public final Message serialize(final Object value, final Session session) throws JMSException{
         switch (WellKnownType.fromValue(value)){
             case STRING:
                 return fromString((String)value, session);

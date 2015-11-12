@@ -207,7 +207,7 @@ Apache Karaf Cellar supports two kind of topologies:
 * Cross topology
 * Star topology
 
-**Cross topology** is the default SNAMP topology. Using **Star topology** for your SNANP cluster is highly not recommended.
+**Cross topology** is the default SNAMP topology.
 
 _cellar_ feature should be installed on each node (virtual or physical machine) within your cluster. Do not deploy two nodes on the same machine.
 
@@ -260,11 +260,11 @@ Load balancer distributes requests between SNAMP nodes. The recommended ordering
 Note that Load Balancer might require a special configuration because interaction between your Monitoring & Management Tool and SNAMP might be based on connectionless protocol, such as SNMP.
 
 ## SNAMP Management Console
-Snamp Console is available only in the paid version. Console is provided as an optional module for SNAMP - kar archive. You can get it according to our SLA conditions.
+SNAMP Web Console is available after purchasing support plan. Console is provided as an optional module for SNAMP - kar archive.
 
 1. Get `web-console-feature-X.Y.Z.kar` archive.
 2. Copy downloaded artifact into `<snamp>/deploy` folder
 
 Verify your installation using `feature:list -i`, `bundle:list` and `log:exception-display` shell commands.
-If web-console has been installed open the [link](http://YOUR_HOST:8181/hawtio/login).
-8181 is a default port for web-console. In case of local installation you can check [this](http://localhost:8181/hawtio/login) link.
+If web-console has been installed open the [link](http://YOUR_HOST:3535/hawtio/login).
+3535 is a default port for web-console. In case of local installation you can check [this](http://localhost:3535/hawtio/login) link.

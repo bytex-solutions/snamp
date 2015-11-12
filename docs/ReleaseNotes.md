@@ -8,14 +8,17 @@ The following components are released as parts of SNAMP:
 ### SNAMP Platform 1.0.0
 First production release of SNAMP core components.
 
+## JMS Resource Connector 1.0.0
+First production release of JMS Resource Connector with JMS/JNDI/AMQP support.
+
 ### SNMP Resource Connector 1.0.0
-First production release of SNMP Resource Connector.
+First production release of SNMP Resource Connector with SNMPv2/SNMPv3 support.
 
 ### JMX Resource Connector 1.0.0
 First production release of JMX Resource Connector.
 
 ### RShell Resource Connector 1.0.0
-First production release of RShell Resource Connector.
+First production release of RShell Resource Connector with ssh/rsh/rexec support.
 
 ### Groovy Resource Connector 1.0.0
 First production release of Groovy Resource Connector.
@@ -27,7 +30,7 @@ First production release of Resource Aggregator.
 First production release of WebSphere MQ Resource Connector.
 
 ### Monitoring Data Acceptor 1.0.0
-First production release of MDA Resource Connector.
+First production release of MDA Resource Connector with HTTP and Thrift support.
 
 ### JMX Resource Adapter 1.0.0
 First production release of JMX Resource Adapter.
@@ -55,7 +58,5 @@ First production release of NRDP Resource Adapter.
 
 ## Dependencies
 Java SE 7
-
 Apache Karaf 3.0.5
-
-Hazelcast
+Hazelcast 3.4.2

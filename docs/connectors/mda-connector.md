@@ -57,9 +57,9 @@ waitForHazelcast | Integer | No | Timeout (in millis) used to synchronize with H
 socketTimeout | Integer | No |  Incoming connection timeout (in millis) used only if Thrift transport is configured. Default is `4000`
 expirationTime | Integer | No | Expiration time (in millis) of attribute values in the storage. If attribute was not updated by external component then Resource Adapter can't obtain its value. This is very helpful for detecting availability of the component. Default is infinite (never expires) | `2000`
 
-`waitForHazelcast` is useful in Clustered installation of SNAMP only. So you want to use SNAMP Cluster then it is recommended to set `waitForHazelcast` parameter to `20000` (20 seconds).
+`waitForHazelcast` is useful for Clustered installation of SNAMP only. So you want to use SNAMP Cluster then it is recommended to set `waitForHazelcast` parameter to `20000` (20 seconds).
 
-`expirationTime` configuration parameter is useful in conjuction with `healthCheck` event of [Aggregation Connector](aggregator-connector.md).
+`expirationTime` configuration parameter is useful in conjunction with `healthCheck` event of [Aggregation Connector](aggregator-connector.md).
 
 ## Configuring attributes
 Each attribute configured in MDA Resource Connector has the following configuration schema:
@@ -102,8 +102,8 @@ bigdecimal | Real number with arbitrary precision
 char | Single character
 array(int8) | Array of 8-bit integers
 array(int16) | Array of 16-bit integers
-array(i32) | Array of 32-bit integers
-array(i64) | Array of 64-bit integers
+array(int32) | Array of 32-bit integers
+array(int64) | Array of 64-bit integers
 array(bool) | Array of flags
 array(string) | Array of strings
 array(char) | Array of characters (it is highly recommended to use `string` instead)
