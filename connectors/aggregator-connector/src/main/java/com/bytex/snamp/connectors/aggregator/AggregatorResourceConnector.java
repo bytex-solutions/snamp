@@ -39,7 +39,7 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
         }
 
         private BundleContext getBundleContext(){
-            return Utils.getBundleContextByObject(this);
+            return Utils.getBundleContextOfObject(this);
         }
 
         @Override
@@ -81,8 +81,20 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
 
         private NotificationAggregationRepository(final String resourceName,
                                                   final BundleContext context) {
-            super(resourceName, AbstractAggregatorNotification.class, DistributedServices.getDistributedIDGenerator(context));
+            super(resourceName,
+                    AbstractAggregatorNotification.class,
+                    DistributedServices.getDistributedSequenceNumberGenerator(context, "notifications-".concat(resourceName)));
             invoker = NotificationListenerInvokerFactory.createSequentialInvoker();
+        }
+
+        /**
+         * Determines whether raising of registered events is suspended.
+         *
+         * @return {@literal true}, if events are suspended; otherwise {@literal false}.
+         */
+        @Override
+        public boolean isSuspended() {
+            return super.isSuspended() && DistributedServices.isActiveNode(Utils.getBundleContextOfObject(this));
         }
 
         @Override
@@ -152,7 +164,7 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
     AggregatorResourceConnector(final String resourceName,
                                 final TimeSpan notificationFrequency) throws IntrospectionException {
         attributes = new AttributeAggregationRepository(resourceName);
-        notifications = new NotificationAggregationRepository(resourceName, Utils.getBundleContextByObject(this));
+        notifications = new NotificationAggregationRepository(resourceName, Utils.getBundleContextOfObject(this));
         sender = new NotificationSender(notificationFrequency, notifications);
         sender.run();
     }

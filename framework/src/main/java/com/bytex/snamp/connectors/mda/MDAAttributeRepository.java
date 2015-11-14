@@ -4,6 +4,7 @@ import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.attributes.OpenAttributeRepository;
+import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.jmx.DefaultValues;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -41,7 +42,8 @@ public abstract class MDAAttributeRepository<M extends MDAAttributeInfo> extends
         attributeTypes = CacheBuilder.newBuilder().weakValues().build();
     }
 
-    final void init(final TimeSpan expirationTime, final AccessTimer accessTimer){
+    final void init(final TimeSpan expirationTime,
+                    final AccessTimer accessTimer){
         this.expirationTime = expirationTime;
         this.lastWriteAccess = accessTimer;
     }
@@ -79,7 +81,9 @@ public abstract class MDAAttributeRepository<M extends MDAAttributeInfo> extends
      * Gets storage used to read/write attribute values received from external Agents.
      * @return The storage used to read/write attributes.
      */
-    protected abstract ConcurrentMap<String, Object> getStorage();
+    protected ConcurrentMap<String, Object> getStorage(){
+        return DistributedServices.getProcessLocalStorage(getResourceName());
+    }
 
     /**
      * Gets default value of the named storage slot.
@@ -103,13 +107,20 @@ public abstract class MDAAttributeRepository<M extends MDAAttributeInfo> extends
     }
 
     /**
+     * Resets last access time of all attributes.
+     */
+    protected final void resetAccessTime(){
+        lastWriteAccess.reset();
+    }
+
+    /**
      * Resets all attributes in the storage to default.
      */
     @SuppressWarnings("unchecked")
     public final void reset() throws OpenDataException, InvalidAttributeValueException {
         for(final M attribute: getAttributeInfo())
             attribute.setValue(getDefaultValue(attribute.getOpenType()));
-        lastWriteAccess.reset();
+        resetAccessTime();
     }
 
     protected abstract Logger getLogger();

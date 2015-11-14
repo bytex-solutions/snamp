@@ -93,7 +93,7 @@ abstract class AbstractBindingInfoOperation<F extends MBeanFeatureInfo> extends 
 
     @Override
     public final TabularData invoke(final Map<String, ?> arguments) throws JMException {
-        return invoke(Utils.getBundleContextByObject(this),
+        return invoke(Utils.getBundleContextOfObject(this),
                 getArgument(INSTANCE_NAME_PARAM.getName(), String.class, arguments));
     }
 }

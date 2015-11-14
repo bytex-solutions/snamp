@@ -38,26 +38,21 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
         super(fields);
     }
 
-    public NotificationDescriptor(final EventConfiguration eventConfig,
-                                  final NotificationSubscriptionModel subscriptionModel){
+    public NotificationDescriptor(final EventConfiguration eventConfig){
         this(eventConfig.getCategory(),
-                subscriptionModel,
                 new ConfigParameters(eventConfig));
     }
 
     public NotificationDescriptor(final String category,
-                                  final NotificationSubscriptionModel subscriptionModel,
                                   final CompositeData options){
-        this(getFields(category, subscriptionModel, options));
+        this(getFields(category, options));
     }
 
     private static Map<String, ?> getFields(final String category,
-                                            final NotificationSubscriptionModel subscriptionModel,
                                             final CompositeData options){
         final Map<String, Object> fields = Maps.newHashMapWithExpectedSize(options.values().size() + 3);
         fields.put(NOTIFICATION_CATEGORY_FIELD, category);
         fields.put(SEVERITY_FIELD, getSeverity(options));
-        fields.put(SUBSCRIPTION_MODEL_FIELD, subscriptionModel);
         fillMap(options, fields);
         return fields;
     }
@@ -167,18 +162,6 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
 
     public static Severity getSeverity(final MBeanNotificationInfo metadata){
         return getSeverity(metadata.getDescriptor());
-    }
-
-    public static NotificationSubscriptionModel getSubscriptionModel(final Descriptor metadata){
-        return DescriptorUtils.getField(metadata, SUBSCRIPTION_MODEL_FIELD, NotificationSubscriptionModel.class, NotificationSubscriptionModel.MULTICAST);
-    }
-
-    public static NotificationSubscriptionModel getSubscriptionModel(final MBeanNotificationInfo metadata){
-        return getSubscriptionModel(metadata.getDescriptor());
-    }
-
-    public final NotificationSubscriptionModel getSubscriptionModel(){
-        return getSubscriptionModel(this);
     }
 
     public static OpenType<?> getUserDataType(final Descriptor metadata){

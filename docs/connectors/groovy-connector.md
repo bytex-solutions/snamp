@@ -12,7 +12,7 @@ Groovy connector allows to monitor and manage your IT resources using Groovy scr
   * Aggregate two or more attributes (sum, average, peak, percent) and expose result as an attribute
   * Aggregate notifications
 
-> Groovy connector is based on Groovy 2.4.3
+> Groovy connector is based on Groovy 2.4
 
 The connector has following architecture:
 
@@ -85,7 +85,7 @@ Groovy connector provides following DSL extensions accessible from any type of s
 
 * Global variables:
   * `resourceName` - contains the name of the managed resource as it specified in the SNAMP configuration. This variable is not available in the discovery mode
-* Logging subrouties (these routines written on top of OSGi logging infrastructure)
+* Logging subroutines (these routines written on top of OSGi logging infrastructure)
   * `void error(String message)` - report about error
   * `void warning(String message)` - report warning
   * `void info(String message)` - report information
@@ -108,6 +108,7 @@ Groovy connector provides following DSL extensions accessible from any type of s
   * `Job schedule(Closure task, long period)` - execute the specified task periodically in the background.
 
 Following example demonstrates reading attribute of the connected managed resource:
+
 ```groovy
 println resourceName
 def value = getResourceAttribute 'app-server', 'freeMemory'
@@ -115,6 +116,7 @@ if(value < 100) error 'Not enough memory'
 ```
 
 Following example demonstrates subscribing on the event within the connected managed resource:
+
 ```groovy
 import javax.management.NotificationListener
 
@@ -124,6 +126,7 @@ addNotificationListener 'app-server', listener
 ```
 
 Working with timers:
+
 ```groovy
 def timer = createTimer({ println 'Tick' }, 300)  //will print 'Tick' every 300 milliseconds
 timer.run() //start printing
@@ -134,6 +137,7 @@ timer.close()
 ```
 
 Get configuration of the connected resource:
+
 ```groovy
 def config = getResourceConfiguration 'app-server'
 
@@ -143,6 +147,7 @@ println config.parameters.socketTimeout //socketTimeout is the name of configura
 ```
 
 Simple messaging using communicator:
+
 ```groovy
 def communicator = getCommunicator 'test-communicator'
 communicator.register(asListener { msg -> println msg})
@@ -152,6 +157,7 @@ communicator.post 'Hello, world!'
 ```
 
 Synchronous messaging using communicator:
+
 ```groovy
 //script1.groovy
 communicator = getCommunicator 'test-communicator'
@@ -172,6 +178,7 @@ println response  //pong
 Initialization script used to initialize instance of the connector. Name of the initialization script must be specified in the managed resource configuration explicitly. If it is not specified then Groovy Connector doesn't perform any extra initialization activities.
 
 As the best practice, initialization script can be used for declaring references to third-party modules and libraries:
+
 ```groovy
 @Grab(group = 'org.codehaus.groovy', module = 'groovy-json', version = '2.4.3')
 @GrabConfig(initContextClassLoader = true)
@@ -193,6 +200,7 @@ Special functions that can be declared in the script:
 * `void close()` - called by SNAMP automatically when the resources acquired by the instance of the connector should be released
 
 Following example demonstrates simple initialization script:
+
 ```groovy
 @Grab(group = 'org.codehaus.groovy', module = 'groovy-json', version = '2.4.3')
 @GrabConfig(initContextClassLoader = true)
@@ -203,6 +211,7 @@ attribute 'MemoryAttrubute', [precision: 'MB']
 ```
 
 Example of initialization script with special functions:
+
 ```groovy
 connection = createConnection() //createConnection is not a part of DSL. It is just example
 
@@ -320,7 +329,7 @@ Event script supports additional DSL extensions:
 
 * Functions:
   * `void emitNotification(String message)` - emit outgoing notification with the specified human-readable message
-  * `void emitNotification(String messagem, Object userData)` - emit outgoing notification with the specified human-readable message and additional payload
+  * `void emitNotification(String message, Object userData)` - emit outgoing notification with the specified human-readable message and additional payload
 
 Special functions that can be declared in the script:
   * `void close()` - called by SNAMP automatically when the resources acquired by instance of the event should be released
@@ -362,3 +371,6 @@ Date | datetime | `new Date()`
 javax.management.ObjectName | objectname | `new ObjectName('type=Foo')`
 javax.management.openmbean.CompositeData | Dictionary | `asDictionary(key1: 67L, key2: true)`
 javax.management.openmbean.TabularData | Table | `asTable([[column1: 6, column2: false], [column1: 7, column2: true]])`
+
+## Clustering
+`emitNotification` calls on passive nodes in SNAMP cluster will be ignored. This is necessary to prevent duplicate notifications.

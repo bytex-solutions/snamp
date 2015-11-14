@@ -49,7 +49,7 @@ final class JMSDataAcceptor extends DataAcceptor implements ExceptionListener {
         notifications = new JMSNotificationRepository(resourceName,
                 threadPoolFactory.get(),
                 converter,
-                Utils.getBundleContextByObject(this),
+                Utils.getBundleContextOfObject(this),
                 getLogger());
     }
 

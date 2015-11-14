@@ -73,7 +73,7 @@ abstract class AbstractAttributeAggregation<T> extends OpenAttributeAccessor<T> 
     }
 
     protected final BundleContext getBundleContext(){
-        return Utils.getBundleContextByObject(this);
+        return Utils.getBundleContextOfObject(this);
     }
 
     /**

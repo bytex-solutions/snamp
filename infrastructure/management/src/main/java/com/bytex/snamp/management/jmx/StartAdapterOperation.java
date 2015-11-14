@@ -8,7 +8,7 @@ import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.SimpleType;
 import java.util.Map;
 
-import static com.bytex.snamp.internal.Utils.getBundleContextByObject;
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 
 /**
@@ -31,7 +31,7 @@ final class StartAdapterOperation extends OpenMBean.OpenOperation<Void, SimpleTy
     @Override
     public Void invoke(Map<String, ?> arguments) throws Exception {
         final String adapterName = getArgument(ADAPTER_NAME_PARAM.getName(), String.class, arguments);
-        ResourceAdapterActivator.startResourceAdapter(getBundleContextByObject(this), adapterName);
+        ResourceAdapterActivator.startResourceAdapter(getBundleContextOfObject(this), adapterName);
         return null;
     }
 }

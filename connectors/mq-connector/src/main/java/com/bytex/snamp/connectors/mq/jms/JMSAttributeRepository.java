@@ -6,7 +6,6 @@ import com.bytex.snamp.connectors.mda.MDAAttributeInfo;
 import com.bytex.snamp.connectors.mda.MDAAttributeRepository;
 import com.bytex.snamp.connectors.mq.JMSExceptionUtils;
 import com.bytex.snamp.core.DistributedServices;
-import com.bytex.snamp.core.ObjectStorage;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.base.Strings;
 
@@ -28,19 +27,15 @@ final class JMSAttributeRepository extends MDAAttributeRepository<MDAAttributeIn
     private final JMSAttributeConverter converter;
     private MessageProducer publisher;
     private Session session;
-    private final ObjectStorage storageService;
+    private final ConcurrentMap<String, Object> storageService;
 
     JMSAttributeRepository(final String resourceName,
                            final JMSAttributeConverter converter,
                            final Logger logger) {
         super(resourceName, MDAAttributeInfo.class);
         this.logger = Objects.requireNonNull(logger);
-        this.storageService = DistributedServices.getDistributedObjectStorage(Utils.getBundleContextByObject(this));
+        this.storageService = DistributedServices.getDistributedStorage(Utils.getBundleContextOfObject(this), "attributes-".concat(resourceName));
         this.converter = Objects.requireNonNull(converter);
-    }
-
-    private String getCollectionName(){
-        return "attributes-".concat(getResourceName());
     }
 
     void init(final Session session,
@@ -68,6 +63,7 @@ final class JMSAttributeRepository extends MDAAttributeRepository<MDAAttributeIn
             throw JMSExceptionUtils.wrap("Incorrect JMX data mapping", e);
         }
         getStorage().put(storageKey, value);
+        resetAccessTime();
     }
 
     /**
@@ -110,7 +106,7 @@ final class JMSAttributeRepository extends MDAAttributeRepository<MDAAttributeIn
      */
     @Override
     protected ConcurrentMap<String, Object> getStorage() {
-        return storageService.getCollection(getCollectionName());
+        return storageService;
     }
 
     @Override
@@ -125,7 +121,6 @@ final class JMSAttributeRepository extends MDAAttributeRepository<MDAAttributeIn
     public void close() {
         publisher = null;
         session = null;
-        storageService.deleteCollection(getCollectionName());
         super.close();
     }
 }

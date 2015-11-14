@@ -11,7 +11,7 @@ import org.osgi.framework.*;
 import java.util.*;
 import java.util.logging.Logger;
 
-import static com.bytex.snamp.internal.Utils.getBundleContextByObject;
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 import static com.bytex.snamp.internal.Utils.isInstanceOf;
 
 /**
@@ -744,7 +744,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      */
     @Override
     public final void serviceChanged(final ServiceEvent event) {
-        final BundleContext context = getBundleContextByObject(this);
+        final BundleContext context = getBundleContextOfObject(this);
         try(final LogicalOperation ignored = BundleLogicalOperation.processServiceChanged(getLogger(), context)) {
             serviceChanged(context, event);
         }
@@ -890,7 +890,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      *         property is undefined.
      **/
     protected final String getFrameworkProperty(final String propertyName){
-        return getBundleContextByObject(this).getProperty(propertyName);
+        return getBundleContextOfObject(this).getProperty(propertyName);
     }
 
     /**

@@ -305,7 +305,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
             throw new InstantiationException(String.format("Unknown channel: %s", connectionOptions));
         attributes = new RShellAttributes(resourceName,
                 executionChannel,
-                new OSGiScriptEngineManager(Utils.getBundleContextByObject(this)), getLogger());
+                new OSGiScriptEngineManager(Utils.getBundleContextOfObject(this)), getLogger());
     }
 
     RShellResourceConnector(final String resourceName,

@@ -36,7 +36,7 @@ final class GroovyResourceAdapter extends AbstractResourceAdapter {
      */
     GroovyResourceAdapter(final String instanceName) {
         super(instanceName);
-        repository = new ManagementInformationRepository(Utils.getBundleContextByObject(this));
+        repository = new ManagementInformationRepository(Utils.getBundleContextOfObject(this));
         holder = new ScriptHolder();
     }
 

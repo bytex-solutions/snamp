@@ -6,7 +6,7 @@ import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 import com.bytex.snamp.connectors.notifications.NotificationListenerInvoker;
 import com.bytex.snamp.connectors.notifications.NotificationListenerInvokerFactory;
 import com.bytex.snamp.core.DistributedServices;
-import com.bytex.snamp.core.IDGenerator;
+import com.bytex.snamp.core.SequenceNumberGenerator;
 
 import javax.management.openmbean.OpenType;
 import java.util.concurrent.ExecutorService;
@@ -29,14 +29,14 @@ public abstract class MDANotificationRepository<M extends MDANotificationInfo> e
     protected MDANotificationRepository(final String resourceName,
                                        final Class<M> featureType,
                                        final ExecutorService threadPool){
-        this(resourceName, featureType, threadPool, DistributedServices.getProcessLocalIDGenerator());
+        this(resourceName, featureType, threadPool, DistributedServices.getProcessLocalSequenceNumberGenerator("notifications-".concat(resourceName)));
     }
 
     protected MDANotificationRepository(final String resourceName,
                                         final Class<M> featureType,
                                         final ExecutorService threadPool,
-                                        final IDGenerator idGenerator){
-        super(resourceName, featureType, idGenerator);
+                                        final SequenceNumberGenerator sequenceNumberGenerator){
+        super(resourceName, featureType, sequenceNumberGenerator);
         listenerInvoker = NotificationListenerInvokerFactory.createParallelInvoker(threadPool);
     }
 
@@ -48,7 +48,7 @@ public abstract class MDANotificationRepository<M extends MDANotificationInfo> e
      * Resets last access time.
      */
     @Override
-    protected final void postFire() {
+    protected final void afterFire() {
         lastWriteAccess.reset();
     }
 

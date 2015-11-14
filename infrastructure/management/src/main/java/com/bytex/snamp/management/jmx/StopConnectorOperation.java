@@ -8,7 +8,7 @@ import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.SimpleType;
 import java.util.Map;
 
-import static com.bytex.snamp.internal.Utils.getBundleContextByObject;
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 
 /**
@@ -31,7 +31,7 @@ final class StopConnectorOperation extends OpenMBean.OpenOperation<Void, SimpleT
     @Override
     public Void invoke(Map<String, ?> arguments) throws Exception {
         final String connectorName = getArgument(CONNECTOR_NAME_PARAM.getName(), String.class, arguments);
-        ManagedResourceActivator.stopResourceConnector(getBundleContextByObject(this), connectorName);
+        ManagedResourceActivator.stopResourceConnector(getBundleContextOfObject(this), connectorName);
         return null;
     }
 }

@@ -94,6 +94,9 @@
         <command>
             <action class="com.bytex.snamp.management.shell.VersionCommand"/>
         </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.ClusterNodeStatusCommand"/>
+        </command>
     </command-bundle>
 
 </blueprint>

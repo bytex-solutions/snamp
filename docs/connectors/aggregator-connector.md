@@ -196,3 +196,7 @@ Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
 source | string | Yes | Name of the managed resource used as a source of foreign attributes | `app-server`
 foreignAttribute | string | Yes | Name of the foreign attribute to read | `memory`
+
+
+## Clustering
+Only SNAMP active node with Aggregator routes notifications (`healthCheck` and `periodicAttributeQuery`) to the adapters.

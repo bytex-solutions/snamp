@@ -43,6 +43,7 @@ import java.util.logging.Logger;
  */
 final class GroovyResourceConnector extends AbstractManagedResourceConnector {
     private static final class GroovyNotificationInfo extends CustomNotificationInfo implements AutoCloseable{
+        private static final long serialVersionUID = -6413432323063142285L;
         private NotificationEmitter emitter;
 
         private GroovyNotificationInfo(final String notifType,
@@ -100,19 +101,31 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         private GroovyNotificationRepository(final String resourceName,
                                              final EventConnector connector,
                                              final BundleContext context){
-            super(resourceName, GroovyNotificationInfo.class, DistributedServices.getDistributedIDGenerator(context));
+            super(resourceName,
+                    GroovyNotificationInfo.class,
+                    DistributedServices.getDistributedSequenceNumberGenerator(context, "notifications-".concat(resourceName)));
             this.connector = Objects.requireNonNull(connector);
-            final ExecutorService executor = Executors.newSingleThreadExecutor(new GroupedThreadFactory("notifs-".concat(resourceName)));
+            final ExecutorService executor = Executors.newSingleThreadExecutor(new GroupedThreadFactory("notifications-".concat(resourceName)));
             this.listenerInvoker = createListenerInvoker(executor);
         }
 
         private static NotificationListenerInvoker createListenerInvoker(final Executor executor) {
             return NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker(executor, new NotificationListenerInvokerFactory.ExceptionHandler() {
                 @Override
-                public final void handle(final Throwable e, final NotificationListener source) {
+                public void handle(final Throwable e, final NotificationListener source) {
                     getLoggerImpl().log(Level.SEVERE, "Unable to process JMX notification.", e);
                 }
             });
+        }
+
+        /**
+         * Determines whether raising of registered events is suspended.
+         *
+         * @return {@literal true}, if events are suspended; otherwise {@literal false}.
+         */
+        @Override
+        public boolean isSuspended() {
+            return super.isSuspended() && DistributedServices.isActiveNode(Utils.getBundleContextOfObject(this));
         }
 
         /**
@@ -156,6 +169,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
     }
 
     private static final class GroovyAttributeInfo extends OpenTypeAttributeInfo implements AutoCloseable{
+        private static final long serialVersionUID = 2519548731335827051L;
         private final AttributeAccessor accessor;
 
         private GroovyAttributeInfo(final String attributeID,
@@ -297,7 +311,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
                 null :
                 engine.init(initScript, params);
         attributes = new GroovyAttributeRepository(resourceName, engine);
-        events = new GroovyNotificationRepository(resourceName, engine, Utils.getBundleContextByObject(this));
+        events = new GroovyNotificationRepository(resourceName, engine, Utils.getBundleContextOfObject(this));
     }
 
     static Logger getLoggerImpl(){

@@ -5,7 +5,7 @@ import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.connectors.AbstractFeatureRepository;
 import com.bytex.snamp.core.DistributedServices;
-import com.bytex.snamp.core.IDGenerator;
+import com.bytex.snamp.core.SequenceNumberGenerator;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
 import com.google.common.collect.ImmutableSet;
@@ -115,7 +115,8 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
 
     private final KeyedObjects<String, NotificationHolder<M>> notifications;
     private final NotificationListenerList listeners;
-    private final IDGenerator idGenerator;
+    private final SequenceNumberGenerator sequenceNumberGenerator;
+    private volatile boolean suspended = false;
 
     /**
      * Initializes a new notification manager.
@@ -124,25 +125,25 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     protected AbstractNotificationRepository(final String resourceName,
                                              final Class<M> notifMetadataType) {
-        this(resourceName, notifMetadataType, DistributedServices.getProcessLocalIDGenerator());
+        this(resourceName, notifMetadataType, DistributedServices.getProcessLocalSequenceNumberGenerator("notifications-".concat(resourceName)));
     }
 
     /**
      * Initializes a new notification manager.
      * @param resourceName The name of the managed resource.
      * @param notifMetadataType Type of the notification metadata.
-     * @param idGenerator Generator for sequence numbers. Cannot be {@literal null}.
+     * @param sequenceNumberGenerator Generator for sequence numbers. Cannot be {@literal null}.
      */
     protected AbstractNotificationRepository(final String resourceName,
                                              final Class<M> notifMetadataType,
-                                             final IDGenerator idGenerator) {
+                                             final SequenceNumberGenerator sequenceNumberGenerator) {
         super(resourceName,
                 notifMetadataType,
                 ANSResource.class,
                 ANSResource.RESOURCE_EVENT_LISTENERS);
         notifications = createNotifications();
         listeners = new NotificationListenerList();
-        this.idGenerator = Objects.requireNonNull(idGenerator);
+        this.sequenceNumberGenerator = Objects.requireNonNull(sequenceNumberGenerator);
     }
 
     /**
@@ -150,11 +151,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      * @return A new unique sequence number.
      */
     protected final long generateSequenceNumber(){
-        return idGenerator.generateID(getSequenceCounterName());
-    }
-
-    private String getSequenceCounterName(){
-        return String.format("snamp-%s-sequenceCounter", getResourceName());
+        return sequenceNumberGenerator.next();
     }
 
     private static <M extends MBeanNotificationInfo> AbstractKeyedObjects<String, NotificationHolder<M>> createNotifications(){
@@ -166,20 +163,6 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
                 return holder.getNotifType();
             }
         };
-    }
-
-    /**
-     * Gets subscription model.
-     * @return The subscription model.
-     */
-    @Override
-    public final NotificationSubscriptionModel getSubscriptionModel(){
-        final NotificationListenerInvoker invoker = getListenerInvoker();
-        if(invoker instanceof NotificationListenerSequentialInvoker)
-            return NotificationSubscriptionModel.MULTICAST_SEQUENTIAL;
-        else if(invoker instanceof NotificationListenerParallelInvoker)
-            return NotificationSubscriptionModel.MULTICAST_PARALLEL;
-        else return NotificationSubscriptionModel.MULTICAST;
     }
 
     /**
@@ -219,6 +202,8 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
                               final long sequenceNumber,
                               final long timeStamp,
                               final Object userData){
+        if(isSuspended()) return; //check if events are suspended
+
         final Collection<Notification> notifs;
         try (final LockScope ignored = beginRead(ANSResource.NOTIFICATIONS)) {
             notifs = Lists.newArrayListWithExpectedSize(notifications.size());
@@ -238,14 +223,16 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
         }
         //fire listeners
         fireListeners(notifs);
-        postFire();
+        afterFire();
     }
 
     /**
-     * Aspect invoked after invocation of {@link #fire(NotificationCollector)}, {@link #fire(String, String, long, long, Object)} or {@link #fire(String, String, Object)}.
+     * Aspect called after invocation of {@link #fire(NotificationCollector)},
+     * {@link #fire(String, String, long, long, Object)} or
+     * {@link #fire(String, String, Object)}.
      */
     @MethodStub
-    protected void postFire(){
+    protected void afterFire(){
 
     }
 
@@ -292,7 +279,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
                     holder = notifications.remove(listId);
                     //and register again
                     disableNotifications(holder.getMetadata());
-                    final M metadata = enableNotifications(listId, new NotificationDescriptor(category, getSubscriptionModel(), options));
+                    final M metadata = enableNotifications(listId, new NotificationDescriptor(category, options));
                     if (metadata != null) {
                         notifications.put(holder = new NotificationHolder<>(metadata, category, options));
                         notificationAdded(holder.getMetadata());
@@ -300,7 +287,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
                 }
             }
             else {
-                final M metadata = enableNotifications(listId, new NotificationDescriptor(category, getSubscriptionModel(), options));
+                final M metadata = enableNotifications(listId, new NotificationDescriptor(category, options));
                 if(metadata != null) {
                     notifications.put(holder = new NotificationHolder<>(metadata, category, options));
                     notificationAdded(holder.getMetadata());
@@ -497,11 +484,31 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     }
 
     /**
+     * Determines whether raising of registered events is suspended.
+     *
+     * @return {@literal true}, if events are suspended; otherwise {@literal false}.
+     */
+    @Override
+    public boolean isSuspended() {
+        return suspended;
+    }
+
+    /**
+     * Suspends or activate raising of events.
+     *
+     * @param value {@literal true} to suspend events; {@literal false}, to activate events.
+     */
+    @Override
+    public void setSuspended(final boolean value) {
+        suspended = value;
+    }
+
+    /**
      * Removes all notifications from this repository.
      */
     @Override
     public void close() {
-        idGenerator.reset(getSequenceCounterName());
         removeAll(true, true);
     }
+
 }

@@ -8,7 +8,6 @@
         <bundle start="true">mvn:org.codehaus.groovy/groovy/${groovy.version}/jar/indy</bundle>
         <bundle start="true">mvn:org.apache.ivy/ivy/${apache.ivy.version}</bundle>
         <feature>jndi</feature>
-        <bundle start="true">mvn:com.hazelcast/hazelcast/${hazelcast.version}</bundle>
         <bundle start="true">mvn:com.bytex.snamp/mq-connector/${project.version}</bundle>
     </feature>
 </features>

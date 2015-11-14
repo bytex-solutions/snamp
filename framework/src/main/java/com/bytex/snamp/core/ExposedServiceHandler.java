@@ -29,7 +29,7 @@ public abstract class ExposedServiceHandler<S, I> {
      * @return The bundle context.
      */
     protected BundleContext getBundleContext(){
-        return Utils.getBundleContextByObject(this);
+        return Utils.getBundleContextOfObject(this);
     }
 
     /**

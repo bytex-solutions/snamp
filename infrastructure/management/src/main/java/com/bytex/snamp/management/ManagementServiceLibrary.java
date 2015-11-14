@@ -2,12 +2,13 @@ package com.bytex.snamp.management;
 
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.core.AbstractServiceLibrary;
+import com.bytex.snamp.core.ClusterNode;
 import com.bytex.snamp.core.ExposedServiceHandler;
-import com.bytex.snamp.management.FrameworkMBean;
-import com.bytex.snamp.management.OpenMBeanProvider;
-import com.bytex.snamp.management.SnampManager;
+import com.bytex.snamp.core.cluster.GridNode;
+import com.bytex.snamp.management.jmx.SnampClusterNodeMBean;
 import com.bytex.snamp.management.jmx.SnampCoreMBean;
 import com.bytex.snamp.management.jmx.SnampManagerImpl;
+import com.hazelcast.core.HazelcastInstance;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogEntry;
@@ -15,8 +16,6 @@ import org.osgi.service.log.LogListener;
 import org.osgi.service.log.LogReaderService;
 
 import javax.management.JMException;
-import javax.management.ObjectName;
-import java.lang.management.ManagementFactory;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.Map;
@@ -32,6 +31,25 @@ import java.util.Objects;
 public final class ManagementServiceLibrary extends AbstractServiceLibrary {
     private static final String USE_PLATFORM_MBEAN_FRAMEWORK_PROPERTY = "com.bytex.snamp.management.usePlatformMBean";
     private static final ActivationProperty<Boolean> usePlatformMBeanProperty = defineActivationProperty(Boolean.class, false);
+
+    private static final class ClusterNodeProvider extends ProvidedService<ClusterNode, GridNode>{
+        private ClusterNodeProvider(){
+            super(ClusterNode.class, new SimpleDependency<>(HazelcastInstance.class));
+        }
+
+        @Override
+        protected GridNode activateService(final Map<String, Object> identity,
+                                              final RequiredService<?>... dependencies) {
+            final HazelcastInstance hazelcast =
+                    getDependency(RequiredServiceAccessor.class, HazelcastInstance.class, dependencies);
+            return new GridNode(hazelcast);
+        }
+
+        @Override
+        protected void cleanupService(final GridNode node, final boolean stopBundle) throws InterruptedException {
+            node.close();
+        }
+    }
 
     private static final class SnampManagerProvider extends ProvidedService<SnampManager, SnampManagerImpl>{
 
@@ -78,17 +96,39 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
         }
     }
 
+    private static final class SnampClusterNodeMBeanProvider extends OpenMBeanProvider<SnampClusterNodeMBean>{
+        private SnampClusterNodeMBeanProvider(){
+            super(SnampClusterNodeMBean.OBJECT_NAME);
+        }
+
+        @Override
+        protected boolean usePlatformMBeanServer(){
+            return getActivationPropertyValue(usePlatformMBeanProperty);
+        }
+
+        /**
+         * Creates a new instance of MBean.
+         *
+         * @return A new instance of MBean.
+         */
+        @Override
+        protected SnampClusterNodeMBean createMBean() {
+            return new SnampClusterNodeMBean();
+        }
+    }
+
     private static final class SnampCoreMBeanProvider extends OpenMBeanProvider<SnampCoreMBean>{
 
         /**
          * Initializes a new holder for the MBean.
          * @throws IllegalArgumentException contract is {@literal null}.
          */
-        public SnampCoreMBeanProvider() {
+        private SnampCoreMBeanProvider() {
             super(SnampCoreMBean.OBJECT_NAME);
         }
 
-        private boolean usePlatformMBean(){
+        @Override
+        protected boolean usePlatformMBeanServer(){
             return getActivationPropertyValue(usePlatformMBeanProperty);
         }
 
@@ -99,28 +139,7 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
          */
         @Override
         protected SnampCoreMBean createMBean() throws JMException{
-            final SnampCoreMBean mbean = new SnampCoreMBean();
-            if(usePlatformMBean())
-                ManagementFactory.getPlatformMBeanServer().registerMBean(mbean, new ObjectName(SnampCoreMBean.OBJECT_NAME));
-            return mbean;
-        }
-
-        /**
-         * Provides service cleanup operations.
-         * <p>
-         * In the default implementation this method does nothing.
-         * </p>
-         *
-         * @param serviceInstance An instance of the hosted service to cleanup.
-         * @param stopBundle      {@literal true}, if this method calls when the owner bundle is stopping;
-         *                        {@literal false}, if this method calls when loosing dependency.
-         */
-        @Override
-        protected void cleanupService(final SnampCoreMBean serviceInstance, final boolean stopBundle) throws JMException {
-            //if bundle started in Apache Karaf environment then MBean server automatically registers SNAMP MBeans
-            //if not, then register MBean manually
-            if(usePlatformMBean())
-                ManagementFactory.getPlatformMBeanServer().unregisterMBean(new ObjectName(SnampCoreMBean.OBJECT_NAME));
+            return new SnampCoreMBean();
         }
     }
 
@@ -156,7 +175,10 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
     private final LogListener listener;
 
     public ManagementServiceLibrary() throws InvalidSyntaxException {
-        super(new SnampManagerProvider(), new SnampCoreMBeanProvider());
+        super(new SnampManagerProvider(),
+                new SnampClusterNodeMBeanProvider(),
+                new SnampCoreMBeanProvider(),
+                new ClusterNodeProvider());
         this.listener = new LogEntryRouter();
     }
 

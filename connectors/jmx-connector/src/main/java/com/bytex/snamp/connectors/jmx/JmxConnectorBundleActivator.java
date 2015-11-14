@@ -24,7 +24,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
-import static com.bytex.snamp.internal.Utils.getBundleContextByObject;
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 
 /**
@@ -77,7 +77,7 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
         @SpecialUse
         public Future<String> doAction(final String actionName, final String arguments, final Locale loc) {
             if(Objects.equals(actionName, JmxMaintenanceActions.SIMULATE_CONNECTION_ABORT.getName())){
-                final BundleContext context = getBundleContextByObject(this);
+                final BundleContext context = getBundleContextOfObject(this);
                 final Map<String, ServiceReference<ManagedResourceConnector>> connectors = ManagedResourceConnectorClient.getConnectors(context);
                 final FutureThread<String> result = new FutureThread<>(new Callable<String>() {
                     @Override

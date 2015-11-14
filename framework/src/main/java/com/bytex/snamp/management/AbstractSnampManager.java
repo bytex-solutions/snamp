@@ -15,7 +15,7 @@ import org.osgi.framework.*;
 import java.util.*;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
-import static com.bytex.snamp.internal.Utils.getBundleContextByObject;
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 import static com.bytex.snamp.internal.Utils.isInstanceOf;
 
 /**
@@ -38,7 +38,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
         }
 
         private BundleContext getItselfContext() {
-            return getBundleContextByObject(AbstractSnampManager.this);
+            return getBundleContextOfObject(AbstractSnampManager.this);
         }
 
         /**
@@ -151,7 +151,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
         }
 
         private BundleContext getItselfContext(){
-            return getBundleContextByObject(this);
+            return getBundleContextOfObject(this);
         }
 
         /**
@@ -254,7 +254,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
         }
 
         private BundleContext getItselfContext(){
-            return getBundleContextByObject(this);
+            return getBundleContextOfObject(this);
         }
 
         /**
@@ -352,7 +352,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      */
     @Override
     public final Collection<? extends ResourceConnectorDescriptor> getInstalledResourceConnectors() {
-        final Collection<String> systemNames = ManagedResourceActivator.getInstalledResourceConnectors(getBundleContextByObject(this));
+        final Collection<String> systemNames = ManagedResourceActivator.getInstalledResourceConnectors(getBundleContextOfObject(this));
         final Collection<ResourceConnectorDescriptor> result = new ArrayList<>(systemNames.size());
         for(final String systemName: systemNames)
             result.add(createResourceConnectorDescriptor(systemName));
@@ -373,7 +373,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      */
     @Override
     public final Collection<? extends ResourceAdapterDescriptor> getInstalledResourceAdapters() {
-        final Collection<String> systemNames = ResourceAdapterActivator.getInstalledResourceAdapters(getBundleContextByObject(this));
+        final Collection<String> systemNames = ResourceAdapterActivator.getInstalledResourceAdapters(getBundleContextOfObject(this));
         final Collection<ResourceAdapterDescriptor> result = new ArrayList<>(systemNames.size());
         for(final String systemName: systemNames)
             result.add(createResourceAdapterDescriptor(systemName));
@@ -401,7 +401,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      */
     @Override
     public final Collection<InternalSnampComponentDescriptor> getInstalledComponents() {
-        final BundleContext context = getBundleContextByObject(this);
+        final BundleContext context = getBundleContextOfObject(this);
         final Collection<InternalSnampComponentDescriptor> result = new ArrayList<>(10);
         for(final Bundle bnd: context.getBundles())
             if(isSnampComponent(bnd))

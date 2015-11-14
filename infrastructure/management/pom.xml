@@ -9,7 +9,7 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <name>SNAMP Manager</name>
-    <description>SNAMP self-management service provider</description>
+    <description>SNAMP Management Utilities</description>
     <modelVersion>4.0.0</modelVersion>
     <packaging>bundle</packaging>
     <version>${snamp.management.version}</version>

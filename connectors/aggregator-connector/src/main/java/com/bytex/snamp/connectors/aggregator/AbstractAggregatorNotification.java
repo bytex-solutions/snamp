@@ -42,7 +42,7 @@ abstract class AbstractAggregatorNotification extends CustomNotificationInfo {
     }
 
     private BundleContext getBundleContext(){
-        return Utils.getBundleContextByObject(this);
+        return Utils.getBundleContextOfObject(this);
     }
 
 

@@ -3,6 +3,7 @@ package com.bytex.snamp.core;
 import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.ThreadSafe;
+import com.bytex.snamp.internal.Utils;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -10,12 +11,11 @@ import org.osgi.framework.*;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedServiceFactory;
 
-import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.bytex.snamp.internal.Utils.getBundleContextByObject;
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**
  * Represents an activator for SNAMP-specific bundle which exposes a set of services.
@@ -151,8 +151,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * @return The bundle that declares this service.
          */
         protected final Bundle getBundle(){
-            final BundleReference bundleRef = properties.getValue(BUNDLE_REF);
-            return bundleRef != null ? bundleRef.getBundle() : null;
+            return Utils.getBundleContextOfObject(this).getBundle();
         }
 
         /**
@@ -218,7 +217,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          */
         @Override
         public final void serviceChanged(final ServiceEvent event) {
-            serviceChanged(getBundleContextByObject(this), event);
+            serviceChanged(getBundleContextOfObject(this), event);
         }
 
         /**
@@ -240,6 +239,12 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                     context);
         }
 
+        /**
+         * Determines whether the service activation and registration is allowed.
+         * <p>
+         *     In the default implementation this method always returns {@literal true}.
+         * @return {@literal true}, if registration is allowed; otherwise, {@literal false}.
+         */
         @MethodStub
         protected boolean isActivationAllowed(){
             return true;
@@ -648,7 +653,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             else if (oldService != newService) {
                 //save the identity of the service and removes registration of the previous version of service
                 final Dictionary<String, ?> identity = dispose(registration);
-                registration = new ServiceRegistrationHolder<>(serviceContract, newService, identity, getBundleContextByObject(this));
+                registration = new ServiceRegistrationHolder<>(serviceContract, newService, identity, getBundleContextOfObject(this));
             }
             return registration;
         }
@@ -685,7 +690,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             final Hashtable<String, Object> identity = new Hashtable<>(4);
             identity.put(Constants.SERVICE_PID, servicePID);
             final T service = createService(identity, configuration, dependencies);
-            return service != null ? new ServiceRegistrationHolder<>(serviceContract, service, identity, getBundleContextByObject(this)) : null;
+            return service != null ? new ServiceRegistrationHolder<>(serviceContract, service, identity, getBundleContextOfObject(this)) : null;
         }
 
         /**
@@ -754,20 +759,6 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         }
     }
 
-    private static final class WeakBundleReference extends WeakReference<Bundle> implements BundleReference{
-        private static final String ACTIVATION_PROPERTY_NAME = "BUNDLE_REF";
-
-        private WeakBundleReference(final AbstractBundleActivator activator){
-            super(getBundleContextByObject(activator).getBundle());
-        }
-
-        @Override
-        public Bundle getBundle() {
-            return get();
-        }
-    }
-
-    private static final NamedActivationProperty<WeakBundleReference> BUNDLE_REF = defineActivationProperty(WeakBundleReference.ACTIVATION_PROPERTY_NAME, WeakBundleReference.class);
     private final ProvidedServices serviceRegistry;
     private final List<ProvidedService<?, ?>> providedServices;
 
@@ -828,7 +819,6 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
     protected final synchronized void activate(final BundleContext context,
                                   final ActivationPropertyPublisher activationProperties,
                                   final RequiredService<?>... dependencies) throws Exception {
-        activationProperties.publish(BUNDLE_REF, new WeakBundleReference(AbstractServiceLibrary.this));
         activate(activationProperties, dependencies);
         serviceRegistry.provide(providedServices, getActivationProperties(), dependencies);
         for (final ProvidedService<?, ?> service : providedServices)

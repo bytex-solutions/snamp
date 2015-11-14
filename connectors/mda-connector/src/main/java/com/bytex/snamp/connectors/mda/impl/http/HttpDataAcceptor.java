@@ -48,7 +48,7 @@ public final class HttpDataAcceptor extends DataAcceptor {
         this.attributes = new HttpAttributeRepository(resourceName, getLogger());
         this.notifications = new HttpNotificationRepository(resourceName,
                 threadPool,
-                Utils.getBundleContextByObject(this),
+                Utils.getBundleContextOfObject(this),
                 getLogger());
         this.servletContext = Objects.requireNonNull(context);
         this.publisherRef = new VolatileBox<>();

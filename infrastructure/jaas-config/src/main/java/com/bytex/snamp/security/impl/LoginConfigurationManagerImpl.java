@@ -35,7 +35,7 @@ final class LoginConfigurationManagerImpl extends AbstractAggregator implements 
     }
 
     private BundleContext getContext(){
-        return Utils.getBundleContextByObject(this);
+        return Utils.getBundleContextOfObject(this);
     }
 
     /**
@@ -48,7 +48,7 @@ final class LoginConfigurationManagerImpl extends AbstractAggregator implements 
     public void dumpConfiguration(final Writer out) throws IOException {
         final JsonConfiguration config = new JsonConfiguration();
         try {
-            dumpConfiguration(Utils.getBundleContextByObject(this), formatter, config);
+            dumpConfiguration(Utils.getBundleContextOfObject(this), formatter, config);
         } catch (final InvalidSyntaxException e) {
             throw new IOException(e);
         }

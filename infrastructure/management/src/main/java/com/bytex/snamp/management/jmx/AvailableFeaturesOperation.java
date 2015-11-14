@@ -57,7 +57,7 @@ abstract class AvailableFeaturesOperation<F extends MBeanFeatureInfo> extends Op
     protected abstract TabularData invoke(final MBeanInfo metadata) throws OpenDataException;
 
     private TabularData invoke(final String resourceName) throws InstanceNotFoundException, OpenDataException {
-        final BundleContext context = Utils.getBundleContextByObject(this);
+        final BundleContext context = Utils.getBundleContextOfObject(this);
         final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(context, resourceName);
         final TabularData result;
         try {

@@ -17,7 +17,10 @@ import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Dictionary;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
 import java.util.concurrent.Callable;
 
 import static org.osgi.framework.Constants.OBJECTCLASS;
@@ -99,10 +102,10 @@ public final class Utils {
      * @return A bundle context associated with bundle which owns the specified object; or {@literal null}
      * if bundle context cannot be resolved.
      */
-    public static BundleContext getBundleContextByObject(final Object obj) {
-        return obj != null ?
-                FrameworkUtil.getBundle(obj.getClass()).getBundleContext():
-                null;
+    public static BundleContext getBundleContextOfObject(final Object obj) {
+        if (obj == null) return null;
+        final Bundle bundle = FrameworkUtil.getBundle(obj.getClass());
+        return bundle != null ? bundle.getBundleContext() : null;
     }
 
     private static boolean isInstanceOf(final ServiceReference<?> serviceRef, final String serviceType) {

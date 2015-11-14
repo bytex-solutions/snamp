@@ -47,6 +47,8 @@ final class ThriftAttributeRepository extends MDAAttributeRepository {
         ThriftDataConverter.serialize(previous, output);
         output.writeFieldStop();
         output.writeStructEnd();
+
+        resetAccessTime();
         return true;
     }
 }

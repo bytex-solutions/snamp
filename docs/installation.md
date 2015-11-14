@@ -174,13 +174,17 @@ Because of SNAMP is developed on top of Apache Karaf you can use exising [Apache
 
 ## Clustering
 SNAMP clustering solution is based on [Apache Karaf Cellar](https://karaf.apache.org/index/subprojects/cellar.html) implementation. By default, clustering is disabled. Execute
+
 ```
 feature:install cellar
 ```
+
 in the shell console to enable clustering. If everything went well - Cellar cluster commands are now available:
+
 ```
 cluster:<TAB>
 ```
+
 If you want to manage SNAMP cluster located in the cloud then install _cellar-cloud_ feature using `feature:install cellar-cloud` shell command.
 
 > You may use official Cellar documentation about deployment and maintenace of the cluster. See [Apache Karaf Deployment](http://karaf.apache.org/manual/cellar/latest/user-guide/index.html) for more information.
@@ -212,15 +216,18 @@ Apache Karaf Cellar supports two kind of topologies:
 _cellar_ feature should be installed on each node (virtual or physical machine) within your cluster. Do not deploy two nodes on the same machine.
 
 Print `cluster:node-list` to verify cluster installation. The expected output should look like the following output:
+
 ```
 | Id             | Host Name | Port
 -------------------------------------
 x | node2:5702     | node2 | 5702
   | node1:5701     | node1 | 5701
 ```
+
 `x` indicates that it's the Karaf instance on which you are logged on (the local node). If you don't see the other nodes there (whereas they should be there), it's probably due to a network issue. By default, Cellar uses multicast to discover the nodes. If your network or network interface doesn't support multicast(UDP), you have to switch to TCP/IP instead of multicast.
 
 You can ping any node to test it:
+
 ```
 snamp.root@karaf> cluster:node-ping node1:5701
 PING node1:5701
@@ -232,6 +239,7 @@ from 5: req=node1:5701 time=12 ms
 ```
 
 Now synchronize all nodes in the cluster:
+
 ```
 snamp.root@karaf> cluster:sync
 Synchronizing cluster group default
@@ -248,7 +256,6 @@ When you install the _cellar_ feature, a _hazelcast_ feature is being automatica
 * [Configuring Hazelcast](http://docs.hazelcast.org/docs/3.3/manual/html/configuringhazelcast.html)
 * [Cellar and Hazelcast](http://karaf.apache.org/manual/cellar/latest/user-guide/hazelcast.html)
 
-
 Advanced learning materials:
 
 * "Learning Karaf Cellar" by Jean-Baptiste Onofré, ISBN-10: 1783984600, ISBN-13: 978-1783984602
@@ -259,11 +266,18 @@ Load balancer distributes requests between SNAMP nodes. The recommended ordering
 
 Note that Load Balancer might require a special configuration because interaction between your Monitoring & Management Tool and SNAMP might be based on connectionless protocol, such as SNMP.
 
+### Handling notifications in bi-directional protocols
+Some protocols supported by SNAMP have bi-directional nature of communication. For example, JMX is not a request-response protocol. Asynchronous event can be raised at both sides: JMX Agent (such as JConsole or VisualVM) may send attribute request, on the other side MBean may emit notification. In the clustered environment each SNAMP node with configured JMX Connector has individual connection to the single MBean. In this case emitted notification will be caught by multiple SNAMP nodes and routed to the Management & Monitoring tool. This tool will receive multiple duplicates of the same notification.
+
+> Don't care about sequence number of notifications. Sequence number is synchronized across cluster.
+
+This issue can be produced by JMX Connector, NSCA Adapter, NRDP Adapter, MDA Connector and several other components (read documentation of each [Connector](connectors/introduction.md) or [Adapter](adapters/introduction.md) carefully). Solution is to choose a **leader node** responsible for delivery of notifications and other reverse-way information. Leader node will be selected dynamically using the leader election mechanism. Non-leader nodes will stay fully-functional except notifications delivery. When the leader node crashes, it starts an election and selecting the new leader.
+
 ## SNAMP Management Console
 SNAMP Web Console is available after purchasing support plan. Console is provided as an optional module for SNAMP - kar archive.
 
 1. Get `web-console-feature-X.Y.Z.kar` archive.
-2. Copy downloaded artifact into `<snamp>/deploy` folder
+1. Copy downloaded artifact into `<snamp>/deploy` folder
 
 Verify your installation using `feature:list -i`, `bundle:list` and `log:exception-display` shell commands.
 If web-console has been installed open the [link](http://YOUR_HOST:3535/hawtio/login).

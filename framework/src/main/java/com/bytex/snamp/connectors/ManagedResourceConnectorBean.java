@@ -778,7 +778,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                                                final Set<? extends ManagementNotificationType<?>> notifTypes,
                                                final BundleContext context,
                                                final Logger logger) {
-            super(resourceName, FEATURE_TYPE, DistributedServices.getDistributedIDGenerator(context));
+            super(resourceName, FEATURE_TYPE, DistributedServices.getDistributedSequenceNumberGenerator(context, "notifications-".concat(resourceName)));
             this.logger = Objects.requireNonNull(logger);
             this.notifTypes = Objects.requireNonNull(notifTypes);
             this.listenerInvoker = NotificationListenerInvokerFactory.createSequentialInvoker();
@@ -909,7 +909,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         attributes = new JavaBeanAttributeRepository(resourceName, descriptor, getLogger());
         notifications = new JavaBeanNotificationRepository(resourceName,
                 notifTypes,
-                Utils.getBundleContextByObject(this),
+                Utils.getBundleContextOfObject(this),
                 getLogger());
         operations = new JavaBeanOperationRepository(resourceName, descriptor, getLogger());
     }
@@ -993,16 +993,6 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
     @Override
     public final void removeResourceEventListener(final ResourceEventListener listener) {
         removeResourceEventListener(listener, attributes, notifications, operations);
-    }
-
-    /**
-     * Gets subscription model.
-     *
-     * @return The subscription model.
-     */
-    @Override
-    public final NotificationSubscriptionModel getSubscriptionModel() {
-        return notifications.getSubscriptionModel();
     }
 
     /**
@@ -1236,6 +1226,26 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
     public boolean canExpandWith(final Class<? extends MBeanFeatureInfo> featureType) {
         return JavaBeanAttributeRepository.canExpandWith(featureType) ||
                 JavaBeanOperationRepository.canExpandWith(featureType);
+    }
+
+    /**
+     * Determines whether raising of registered events is suspended.
+     *
+     * @return {@literal true}, if events are suspended; otherwise {@literal false}.
+     */
+    @Override
+    public final boolean isSuspended() {
+        return notifications.isSuspended();
+    }
+
+    /**
+     * Suspends or activate raising of events.
+     *
+     * @param value {@literal true} to suspend events; {@literal false}, to activate events.
+     */
+    @Override
+    public final void setSuspended(final boolean value) {
+        notifications.setSuspended(value);
     }
 
     @SuppressWarnings("unchecked")

@@ -25,15 +25,6 @@ final class SimpleTimer extends AtomicLong implements AccessTimer {
     }
 
     /**
-     * Gets elapsed time span in the specified units of measurement.
-     * @param unit Units of measurement.
-     * @return Elapsed time.
-     */
-    public long elapsed(final TimeUnit unit){
-        return unit.convert(System.nanoTime() - get(), TimeUnit.NANOSECONDS);
-    }
-
-    /**
      * Resets this timer atomically.
      */
     public void reset(){

@@ -24,6 +24,7 @@ public final class SnampCoreMBean extends OpenMBean implements LogListener, Fram
 
     private SnampCoreMBean(final StatisticCounters counter, final AbstractSnampManager manager) throws OpenDataException{
         super(  new GetConnectorConfigurationSchemaOperation(manager),
+                new PlatformVersionAttribute(),
                 new RestartOperation(),
                 new GetAdapterConfigurationSchemaOperation(manager),
                 new StatisticRenewalTimeAttribute(counter),

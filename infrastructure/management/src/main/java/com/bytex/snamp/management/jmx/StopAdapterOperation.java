@@ -8,7 +8,7 @@ import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.SimpleType;
 import java.util.Map;
 
-import static com.bytex.snamp.internal.Utils.getBundleContextByObject;
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**
  * The type Stop adapter operation.
@@ -30,7 +30,7 @@ final class StopAdapterOperation extends OpenMBean.OpenOperation<Void, SimpleTyp
     @Override
     public Void invoke(Map<String, ?> arguments) throws Exception {
         final String adapterName = getArgument(ADAPTER_NAME_PARAM.getName(), String.class, arguments);
-        ResourceAdapterActivator.stopResourceAdapter(getBundleContextByObject(this), adapterName);
+        ResourceAdapterActivator.stopResourceAdapter(getBundleContextOfObject(this), adapterName);
         return null;
     }
 }

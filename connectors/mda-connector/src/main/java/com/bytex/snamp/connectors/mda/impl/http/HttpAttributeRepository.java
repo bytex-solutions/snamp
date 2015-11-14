@@ -26,6 +26,7 @@ final class HttpAttributeRepository extends MDAAttributeRepository {
             throw JMExceptionUtils.attributeNotFound(storageKey);
         final Object result =
                 getStorage().put(storageKey, JsonDataConverter.deserialize(formatter, attributeType, value));
+        resetAccessTime();
         return JsonDataConverter.serialize(formatter, result);
     }
 

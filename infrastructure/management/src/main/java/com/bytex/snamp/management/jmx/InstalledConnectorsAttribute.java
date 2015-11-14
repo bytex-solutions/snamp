@@ -29,7 +29,7 @@ final class InstalledConnectorsAttribute extends OpenMBean.OpenAttribute<String 
 
     @Override
     public String[] getValue() throws OpenDataException{
-        final Collection<String> result = ManagedResourceActivator.getInstalledResourceConnectors(Utils.getBundleContextByObject(this));
+        final Collection<String> result = ManagedResourceActivator.getInstalledResourceConnectors(Utils.getBundleContextOfObject(this));
         return result.toArray(new String[result.size()]);
     }
 }

@@ -3,6 +3,8 @@ package com.bytex.snamp.adapters.nrdp;
 import ch.shamu.jsendnrdp.NRDPServerConnectionSettings;
 import ch.shamu.jsendnrdp.domain.NagiosCheckResult;
 import ch.shamu.jsendnrdp.domain.State;
+import com.bytex.snamp.core.DistributedServices;
+import com.bytex.snamp.internal.Utils;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -128,8 +130,11 @@ final class NRDPAdapter extends AbstractResourceAdapter {
         }
 
         @Override
-        protected void processAttribute(final String resourceName, final NRDPAttributeAccessor accessor) {
-            checkSender.send(accessor, resourceName);
+        protected boolean processAttribute(final String resourceName, final NRDPAttributeAccessor accessor) {
+            if (DistributedServices.isActiveNode(Utils.getBundleContextOfObject(this))) {
+                checkSender.send(accessor, resourceName);
+                return true;
+            } else return false;
         }
     }
 

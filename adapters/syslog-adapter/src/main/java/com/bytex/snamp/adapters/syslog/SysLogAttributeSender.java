@@ -3,6 +3,8 @@ package com.bytex.snamp.adapters.syslog;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.modeling.ModelOfAttributes;
 import com.bytex.snamp.adapters.modeling.PeriodicPassiveChecker;
+import com.bytex.snamp.core.DistributedServices;
+import com.bytex.snamp.internal.Utils;
 
 import java.util.Objects;
 
@@ -22,7 +24,10 @@ final class SysLogAttributeSender extends PeriodicPassiveChecker<SysLogAttribute
     }
 
     @Override
-    protected void processAttribute(final String resourceName, final SysLogAttributeAccessor accessor) {
-        messageSender.sendMessage(accessor.toMessage(resourceName));
+    protected boolean processAttribute(final String resourceName, final SysLogAttributeAccessor accessor) {
+        if(DistributedServices.isActiveNode(Utils.getBundleContextOfObject(this))) {
+            messageSender.sendMessage(accessor.toMessage(resourceName));
+            return true;
+        } else return false;
     }
 }

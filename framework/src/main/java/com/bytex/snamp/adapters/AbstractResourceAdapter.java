@@ -34,7 +34,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.bytex.snamp.internal.Utils.getBundleContextByObject;
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**
  * Represents a base class for constructing custom resource adapters.
@@ -620,7 +620,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
     }
 
     private BundleContext getBundleContext(){
-        return getBundleContextByObject(this);
+        return getBundleContextOfObject(this);
     }
 
     /**

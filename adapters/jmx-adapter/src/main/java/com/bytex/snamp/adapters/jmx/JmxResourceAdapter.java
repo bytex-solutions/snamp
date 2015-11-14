@@ -128,7 +128,7 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
     }
 
     private BundleContext getBundleContext(){
-        return Utils.getBundleContextByObject(this);
+        return Utils.getBundleContextOfObject(this);
     }
 
     @Override

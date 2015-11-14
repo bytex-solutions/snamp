@@ -27,7 +27,7 @@ public final class PlatformVersion extends Version {
      * Gets version of SNAMP platform.
      * @return Version of SNAMP platform.
      */
-    public static PlatformVersion get() {
+    public static Version get() {
         try {
             final String version =
                     IOUtils.toString(PlatformVersion.class.getClassLoader().getResourceAsStream("PlatformVersion"));

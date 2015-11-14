@@ -29,7 +29,10 @@ final class ThriftNotificationRepository extends MDANotificationRepository<Thrif
                                  final ExecutorService threadPool,
                                  final BundleContext context,
                                  final Logger logger) {
-        super(resourceName, FEATURE_TYPE, threadPool, DistributedServices.getDistributedIDGenerator(context));
+        super(resourceName,
+                FEATURE_TYPE,
+                threadPool,
+                DistributedServices.getDistributedSequenceNumberGenerator(context, "notifications-".concat(resourceName)));
         this.logger = Objects.requireNonNull(logger);
     }
 

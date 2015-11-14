@@ -7,7 +7,7 @@ import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.SimpleType;
 import java.io.*;
 
-import static com.bytex.snamp.internal.Utils.getBundleContextByObject;
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**
  * Description here
@@ -29,7 +29,7 @@ final class JaasConfigAttribute extends OpenMBean.OpenAttribute<String, SimpleTy
     @Override
     public String getValue() throws IOException {
         try(final Writer out = new CharArrayWriter(1024)){
-            SnampManagerImpl.dumpJaasConfiguration(getBundleContextByObject(this), out);
+            SnampManagerImpl.dumpJaasConfiguration(getBundleContextOfObject(this), out);
             return out.toString();
         }
     }
@@ -37,9 +37,9 @@ final class JaasConfigAttribute extends OpenMBean.OpenAttribute<String, SimpleTy
     @Override
     public void setValue(final String content) throws IOException {
         if (Strings.isNullOrEmpty(content))
-            SnampManagerImpl.saveJaasConfiguration(getBundleContextByObject(this), null);
+            SnampManagerImpl.saveJaasConfiguration(getBundleContextOfObject(this), null);
         else try (final Reader reader = new StringReader(content)) {
-            SnampManagerImpl.saveJaasConfiguration(getBundleContextByObject(this), reader);
+            SnampManagerImpl.saveJaasConfiguration(getBundleContextOfObject(this), reader);
         }
     }
 

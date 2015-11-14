@@ -22,7 +22,7 @@ import java.util.Map;
 import static com.bytex.snamp.jmx.CompositeDataUtils.getString;
 import static com.bytex.snamp.jmx.CompositeDataUtils.getLong;
 
-import static com.bytex.snamp.internal.Utils.getBundleContextByObject;
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**
  * Description here
@@ -319,7 +319,7 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
 
     @Override
     public CompositeData getValue() throws IOException, ConfigurationException, OpenDataException {
-        final BundleContext bundleContext = getBundleContextByObject(this);
+        final BundleContext bundleContext = getBundleContextOfObject(this);
         final ServiceHolder<ConfigurationAdmin> adminRef =
                 new ServiceHolder<>(bundleContext,ConfigurationAdmin.class);
         try{
@@ -339,7 +339,7 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
     public void setValue(final CompositeData data) throws IOException {
         if(data == null || data.values().size() == 0) throw new IllegalArgumentException("No valid input data received");
 
-        final BundleContext bundleContext = getBundleContextByObject(this);
+        final BundleContext bundleContext = getBundleContextOfObject(this);
         final ServiceHolder<ConfigurationAdmin> adminRef = new ServiceHolder<>(bundleContext, ConfigurationAdmin.class);
         try{
             final PersistentConfigurationManager manager = new PersistentConfigurationManager(adminRef);

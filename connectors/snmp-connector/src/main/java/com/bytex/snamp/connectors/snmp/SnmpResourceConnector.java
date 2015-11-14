@@ -78,7 +78,9 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
                                            final AbstractConcurrentResourceAccessor<SnmpClient> client,
                                            final BundleContext context,
                                            final Logger logger){
-            super(resourceName, SnmpNotificationInfo.class, DistributedServices.getDistributedIDGenerator(context));
+            super(resourceName,
+                    SnmpNotificationInfo.class,
+                    DistributedServices.getDistributedSequenceNumberGenerator(context, "notifications-".concat(resourceName)));
             this.logger = Objects.requireNonNull(logger);
             this.client = client;
             final Executor executor = client.read(new ConsistentAction<SnmpClient, Executor>() {
@@ -97,6 +99,16 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
                     logger.log(Level.SEVERE, "Unable to process SNMP notification", e);
                 }
             });
+        }
+
+        /**
+         * Determines whether raising of registered events is suspended.
+         *
+         * @return {@literal true}, if events are suspended; otherwise {@literal false}.
+         */
+        @Override
+        public boolean isSuspended() {
+            return super.isSuspended() && DistributedServices.isActiveNode(Utils.getBundleContextOfObject(this));
         }
 
         /**
@@ -781,7 +793,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         attributes = new SnmpAttributeRepository(resourceName, client, getLogger());
         notifications = new SnmpNotificationRepository(resourceName,
                 client,
-                Utils.getBundleContextByObject(this),
+                Utils.getBundleContextOfObject(this),
                 getLogger());
         smartMode = snmpConnectionOptions.isSmartModeEnabled();
     }
@@ -835,13 +847,23 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
     }
 
     /**
-     * Gets subscription model.
+     * Determines whether raising of registered events is suspended.
      *
-     * @return The subscription model.
+     * @return {@literal true}, if events are suspended; otherwise {@literal false}.
      */
     @Override
-    public NotificationSubscriptionModel getSubscriptionModel() {
-        return notifications.getSubscriptionModel();
+    public boolean isSuspended() {
+        return notifications.isSuspended();
+    }
+
+    /**
+     * Suspends or activate raising of events.
+     *
+     * @param value {@literal true} to suspend events; {@literal false}, to activate events.
+     */
+    @Override
+    public void setSuspended(final boolean value) {
+        notifications.setSuspended(value);
     }
 
     /**

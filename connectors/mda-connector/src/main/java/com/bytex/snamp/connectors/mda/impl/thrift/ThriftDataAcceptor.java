@@ -52,7 +52,7 @@ final class ThriftDataAcceptor extends DataAcceptor implements TProcessor {
         this.attributes = new ThriftAttributeRepository(resourceName, getLogger());
         this.notifications = new ThriftNotificationRepository(resourceName,
                 threadPool,
-                Utils.getBundleContextByObject(this),
+                Utils.getBundleContextOfObject(this),
                 getLogger());
     }
 

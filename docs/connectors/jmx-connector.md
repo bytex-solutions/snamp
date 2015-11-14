@@ -130,3 +130,6 @@ JMX Resource Connector set `Source` of the SNAMP Notification Object to the conf
 
 ## Smart mode
 JMX Resource Connector provides support of Smart mode. That means connector can automatically expose attributes and notifications without manual configuration. It discovers all available attributes and notifications of the remote Managed Bean using JMX protocol. It is recommended to specify `objectName` configuration parameter in the resource configuration to avoid hundreds of attributes and notifications.
+
+## Clustering
+Only SNAMP active node with JMX Resource Connector routes JMX notifications to the adapters.
