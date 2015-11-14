@@ -6,7 +6,7 @@ This page provides installation instructions and system requirements
 Environment:
 
 * Java SE Runtime Environment 7/8. Recommended JVMs:
-    * OpenJDK
+    * OpenJDK JRE
     * Oracle JRE
 * The `JAVA_HOME` environment variable must be set to the directory where the Java runtime is installed
 
@@ -23,6 +23,7 @@ Supported operating systems:
     * Red Hat Enterprise Linux 5.5+, 6.x (32-bit), 6.x (64-bit)
     * Ubuntu Linux 10.04 and above (only LTS versions)
     * Suse Linux Enterprise Server 10 SP2, 11.x
+    * Debian Linux 8.x
 
 Hardware:
 
@@ -31,7 +32,7 @@ Hardware:
     * x64
     * ARMv6/ARMv7 (in paid subscription only)
 * 2 Cores (minimum)
-* 150 MB of free disk space
+* 200 MB of free disk space
 > Disk space requirement ignores growing of log files
 
 * 1 GB RAM (minimum), 2 GB RAM (recommended)
@@ -155,8 +156,8 @@ After that, print `log:exception-display` in the shell console and verify that t
 com.bytex.snamp.connectors.wmq.MQConnectorActivator$WMQJavaClassesNotInstalled: WebSphere MQ classes for Java are not installed into OSGi environment
 ```
 
-That is not a fatal error but warning related to **IBM WMQ Connector** or **IBM WMB Connector**. This message informs you that IBM WebSphere libraries were not installed into Apache Karaf correctly. You may choose the following ways to fix this problem:
-* Uninstall these resource connectors if you don't want to monitor IBM WebSphere Message Queue or Message Broker. See [Upgrading SNAMP components](updating.md) for uninstallation instructions
+That is not a fatal error but warning related to **IBM WMQ Connector**. This message informs you that IBM WebSphere libraries were not installed into Apache Karaf correctly. You may choose the following ways to fix this problem:
+* Uninstall these resource connectors if you don't want to monitor IBM WebSphere Message Queue. See [Upgrading SNAMP components](updating.md) for uninstallation instructions
 * Install IBM WebSphere libraries for Java correctly. See [IBM WMQ Connector](connectors/wmq-connector.md) for more details.
 
 Or, you can ignore this warning if you have no plans to monitor IBM WebSphere Message Queue or Message Broker.
