@@ -18,6 +18,6 @@ final class NodeNameAttribute extends OpenMBean.OpenAttribute<String, SimpleType
 
     @Override
     public String getValue() {
-        return DistributedServices.getClusterNodeName(Utils.getBundleContextOfObject(this));
+        return DistributedServices.getLocalNodeName(Utils.getBundleContextOfObject(this));
     }
 }

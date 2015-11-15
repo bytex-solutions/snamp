@@ -472,7 +472,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
          */
         @Override
         public boolean isSuspended() {
-            return super.isSuspended() && DistributedServices.isActiveNode(Utils.getBundleContextOfObject(this));
+            return super.isSuspended() && !DistributedServices.isActiveNode(Utils.getBundleContextOfObject(this));
         }
 
         /**

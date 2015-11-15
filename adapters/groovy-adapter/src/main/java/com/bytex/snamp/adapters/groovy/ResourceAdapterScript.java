@@ -1,25 +1,22 @@
 package com.bytex.snamp.adapters.groovy;
 
-import com.google.common.eventbus.Subscribe;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.adapters.modeling.AttributeAccessor;
-import com.bytex.snamp.adapters.modeling.NotificationAccessor;
 import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.adapters.groovy.dsl.GroovyManagementModel;
+import com.bytex.snamp.adapters.modeling.AttributeAccessor;
+import com.bytex.snamp.adapters.modeling.NotificationAccessor;
 import com.bytex.snamp.concurrent.Repeater;
 import com.bytex.snamp.internal.EntryReader;
-import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.io.Communicator;
+import com.google.common.eventbus.Subscribe;
 import groovy.lang.Closure;
 import groovy.lang.Script;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
 
-import javax.management.*;
+import javax.management.JMException;
 import java.util.EventListener;
 import java.util.concurrent.ExecutionException;
-import java.util.logging.Logger;
 
 /**
  * Represents an abstract class for adapter automation script.
@@ -29,10 +26,6 @@ import java.util.logging.Logger;
  */
 public abstract class ResourceAdapterScript extends Script implements AutoCloseable, NotificationListener {
     public static final String MODEL_GLOBAL_VAR = "resources";
-
-    private static Logger getLogger() {
-        return ResourceAdapterInfo.getLogger();
-    }
 
     private GroovyManagementModel getModel() {
         return (GroovyManagementModel) super.getProperty(MODEL_GLOBAL_VAR);
@@ -113,10 +106,6 @@ public abstract class ResourceAdapterScript extends Script implements AutoClosea
     @SpecialUse
     protected static void fine(final String message) {
         ResourceAdapterInfo.getLogger().fine(message);
-    }
-
-    private static BundleContext getBundleContext() {
-        return FrameworkUtil.getBundle(ResourceAdapterScript.class).getBundleContext();
     }
 
     private static void processAttributes(final AttributesRootAPI model, final Closure<?> closure) throws JMException {

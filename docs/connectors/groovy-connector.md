@@ -85,6 +85,7 @@ Groovy connector provides following DSL extensions accessible from any type of s
 
 * Global variables:
   * `resourceName` - contains the name of the managed resource as it specified in the SNAMP configuration. This variable is not available in the discovery mode
+  * `activeClusterNode` - boolean read-only variable indicating that the code is executed in active node of cluster
 * Logging subroutines (these routines written on top of OSGi logging infrastructure)
   * `void error(String message)` - report about error
   * `void warning(String message)` - report warning
@@ -373,4 +374,4 @@ javax.management.openmbean.CompositeData | Dictionary | `asDictionary(key1: 67L,
 javax.management.openmbean.TabularData | Table | `asTable([[column1: 6, column2: false], [column1: 7, column2: true]])`
 
 ## Clustering
-`emitNotification` calls on passive nodes in SNAMP cluster will be ignored. This is necessary to prevent duplicate notifications.
+`emitNotification` can cause duplication of notifications and receiving side in clustered environment. SNAMP doesn't provide automatic resolution of this issue for Groovy Connector. Guard `emitNotification` call with `if(activeClusterNode)` condition.

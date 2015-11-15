@@ -94,7 +94,7 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
          */
         @Override
         public boolean isSuspended() {
-            return super.isSuspended() && DistributedServices.isActiveNode(Utils.getBundleContextOfObject(this));
+            return super.isSuspended() && !DistributedServices.isActiveNode(Utils.getBundleContextOfObject(this));
         }
 
         @Override

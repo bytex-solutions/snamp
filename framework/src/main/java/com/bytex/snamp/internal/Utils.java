@@ -96,6 +96,11 @@ public final class Utils {
         }
     }
 
+    public static BundleContext getBundleContext(final Class<?> classFromBundle){
+        final Bundle bnd = FrameworkUtil.getBundle(classFromBundle);
+        return bnd != null ? bnd.getBundleContext() : null;
+    }
+
     /**
      * Returns a bundle context associated with bundle which owns the specified object.
      * @param obj An object to be used for context resolving.
@@ -103,9 +108,7 @@ public final class Utils {
      * if bundle context cannot be resolved.
      */
     public static BundleContext getBundleContextOfObject(final Object obj) {
-        if (obj == null) return null;
-        final Bundle bundle = FrameworkUtil.getBundle(obj.getClass());
-        return bundle != null ? bundle.getBundleContext() : null;
+        return obj != null ? getBundleContext(obj.getClass()) : null;
     }
 
     private static boolean isInstanceOf(final ServiceReference<?> serviceRef, final String serviceType) {

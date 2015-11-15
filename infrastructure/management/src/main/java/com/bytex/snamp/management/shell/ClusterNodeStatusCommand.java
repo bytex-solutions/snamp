@@ -32,7 +32,7 @@ public class ClusterNodeStatusCommand extends OsgiCommandSupport implements Snam
         }
         IOUtils.appendln(result, "Is cluster member: %s", DistributedServices.isInCluster(bundleContext));
         IOUtils.appendln(result, "Active Member: %s", DistributedServices.isActiveNode(bundleContext));
-        IOUtils.append(result, "Member Name: %s", DistributedServices.getClusterNodeName(bundleContext));
+        IOUtils.append(result, "Member Name: %s", DistributedServices.getLocalNodeName(bundleContext));
         return result;
     }
 }

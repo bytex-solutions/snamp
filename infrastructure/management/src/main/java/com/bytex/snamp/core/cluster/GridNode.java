@@ -7,6 +7,7 @@ import com.google.common.reflect.TypeToken;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ILock;
 
+import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -136,6 +137,16 @@ public final class GridNode extends AbstractAggregator implements ClusterNode, A
     @Override
     public Logger getLogger() {
         return logger;
+    }
+
+    /**
+     * Gets address of this node.
+     *
+     * @return Address of this node.
+     */
+    @Override
+    public InetSocketAddress getAddress() {
+        return hazelcast.getCluster().getLocalMember().getSocketAddress();
     }
 
     @Override

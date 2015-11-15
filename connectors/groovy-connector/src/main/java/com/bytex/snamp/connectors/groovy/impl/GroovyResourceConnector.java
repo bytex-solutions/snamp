@@ -119,16 +119,6 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         }
 
         /**
-         * Determines whether raising of registered events is suspended.
-         *
-         * @return {@literal true}, if events are suspended; otherwise {@literal false}.
-         */
-        @Override
-        public boolean isSuspended() {
-            return super.isSuspended() && DistributedServices.isActiveNode(Utils.getBundleContextOfObject(this));
-        }
-
-        /**
          * Gets the invoker used to executed notification listeners.
          *
          * @return The notification listener invoker.

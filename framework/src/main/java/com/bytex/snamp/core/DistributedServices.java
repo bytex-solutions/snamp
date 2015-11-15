@@ -141,7 +141,7 @@ public final class DistributedServices {
      * Gets distributed {@link java.util.concurrent.ConcurrentMap}.
      * @param context Context of the caller OSGi bundle.
      * @param collectionName Name of the distributed collection.
-     * @return Distributed or process-local storage.
+     * @return Distributed or process-lAbstractocal storage.
      */
     public static ConcurrentMap<String, Object> getDistributedStorage(final BundleContext context,
                                                                             final String collectionName){
@@ -187,7 +187,7 @@ public final class DistributedServices {
      * @param context Context of the caller bundle.
      * @return Name of the cluster node.
      */
-    public static String getClusterNodeName(final BundleContext context){
+    public static String getLocalNodeName(final BundleContext context){
         return processClusterNode(context, new Function<ClusterNode, String>() {
             @Override
             public String apply(final ClusterNode node) {

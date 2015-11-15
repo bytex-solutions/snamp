@@ -108,7 +108,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
          */
         @Override
         public boolean isSuspended() {
-            return super.isSuspended() && DistributedServices.isActiveNode(Utils.getBundleContextOfObject(this));
+            return super.isSuspended() && !DistributedServices.isActiveNode(Utils.getBundleContextOfObject(this));
         }
 
         /**

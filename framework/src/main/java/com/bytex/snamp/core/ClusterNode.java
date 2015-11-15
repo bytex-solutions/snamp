@@ -2,6 +2,7 @@ package com.bytex.snamp.core;
 
 import com.google.common.reflect.TypeToken;
 
+import java.net.InetSocketAddress;
 import java.util.concurrent.ConcurrentMap;
 
 /**
@@ -49,6 +50,12 @@ public interface ClusterNode extends FrameworkService {
      * @return Name of the cluster node.
      */
     String getName();
+
+    /**
+     * Gets address of this node.
+     * @return Address of this node.
+     */
+    InetSocketAddress getAddress();
 
     /**
      * Gets distributed service.
