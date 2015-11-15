@@ -1,12 +1,5 @@
 package com.bytex.snamp.connectors;
 
-import com.bytex.snamp.core.DistributedServices;
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.Descriptive;
 import com.bytex.snamp.TimeSpan;
@@ -17,20 +10,31 @@ import com.bytex.snamp.connectors.notifications.*;
 import com.bytex.snamp.connectors.operations.AbstractOperationRepository;
 import com.bytex.snamp.connectors.operations.OperationDescriptor;
 import com.bytex.snamp.connectors.operations.OperationSupport;
+import com.bytex.snamp.core.DistributedServices;
+import com.bytex.snamp.core.SequenceNumberGenerator;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 import com.bytex.snamp.jmx.WellKnownType;
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.osgi.framework.BundleContext;
 
 import javax.management.*;
 import javax.management.openmbean.*;
 import java.beans.*;
 import java.beans.IntrospectionException;
-import java.lang.annotation.*;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
-import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.lang.reflect.UndeclaredThrowableException;
@@ -54,13 +58,16 @@ import static com.bytex.snamp.connectors.ConfigurationEntityRuntimeMetadata.AUTO
  *       private String prop1;
  *
  *       public CustomConnector(){
+ *           super("resourceName");
  *           prop1 = "Hello, world!";
  *       }
  *
+ *       @ManagementAttribute
  *       public String getProperty1(){
  *         return prop1;
  *       }
  *
+ *       @ManagementAttribute
  *       public String setProperty1(final String value){
  *         prop1 = value;
  *       }
@@ -82,91 +89,6 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             return CompositeDataUtils.create(ImmutableMap.of(AUTOMATICALLY_ADDED_FIELD, Boolean.TRUE.toString()), SimpleType.STRING);
         }
     });
-
-    /**
-     * Represents description of the bean to be managed by this connector.
-     * <p>You should not implement this interface directly.</p>
-     * @author Roman Sakno
-     * @since 1.0
-     * @version 1.0
-     */
-    private interface ManagedBeanDescriptor<T>{
-        /**
-         * Gets metadata of the manageable bean.
-         * @return The metadata of the manageable bean.
-         */
-        BeanInfo getBeanInfo();
-
-        /**
-         * Gets a manageable instance.
-         * @return A manageable instance.
-         */
-        T getInstance();
-    }
-
-    private static final class BeanDescriptor<T> implements ManagedBeanDescriptor<T> {
-        private final T instance;
-        private final BeanInfo metadata;
-
-        private BeanDescriptor(final T beanInstance, final BeanIntrospector introspector) throws IntrospectionException {
-            if(beanInstance == null) throw new IllegalArgumentException("beanInstance is null.");
-            else if(introspector == null) throw new IllegalArgumentException("introspector is null.");
-            else {
-                this.instance = beanInstance;
-                this.metadata = introspector.getBeanInfo(beanInstance.getClass());
-            }
-        }
-
-        /**
-         * Gets metadata of the manageable bean.
-         *
-         * @return The metadata of the manageable bean.
-         */
-        @Override
-        public BeanInfo getBeanInfo() {
-            return metadata;
-        }
-
-        /**
-         * Gets a manageable instance.
-         *
-         * @return A manageable instance.
-         */
-        @Override
-        public T getInstance() {
-            return instance;
-        }
-    }
-
-    private static final class SelfDescriptor implements ManagedBeanDescriptor<ManagedResourceConnectorBean> {
-        private final Reference<ManagedResourceConnectorBean> connectorRef;
-        private final BeanInfo metadata;
-
-        private SelfDescriptor(final ManagedResourceConnectorBean instance) throws IntrospectionException {
-            connectorRef = new WeakReference<>(instance);
-            metadata = reflect(instance.getClass());
-        }
-
-        /**
-         * Gets metadata of the manageable bean.
-         *
-         * @return The metadata of the manageable bean.
-         */
-        @Override
-        public BeanInfo getBeanInfo() {
-            return metadata;
-        }
-
-        /**
-         * Gets a manageable instance.
-         *
-         * @return A manageable instance.
-         */
-        @Override
-        public ManagedResourceConnectorBean getInstance() {
-            return connectorRef.get();
-        }
-    }
 
     /**
      * Describes management notification type supported by this connector.
@@ -341,47 +263,8 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         int impact() default MBeanOperationInfo.UNKNOWN;
     }
 
-    /**
-     * Provides introspection for the specified bean type.
-     * @author Roman Sakno
-     * @since 1.0
-     * @version 1.0
-     */
-    protected interface BeanIntrospector{
-        /**
-         * Reflects the specified JavaBean.
-         * @param beanType A type of JavaBean to reflect.
-         * @return Metadata of the specified JavaBean.
-         * @throws IntrospectionException Cannot reflect the specified JavaBean.
-         */
-        BeanInfo getBeanInfo(final Class<?> beanType) throws IntrospectionException;
-    }
-
-    /**
-     * Provides the standard implementation of JavaBean reflection that simply
-     * calls {@link Introspector#getBeanInfo(Class)} method. This class cannot be inherited.
-     * @author Roman Sakno
-     * @since 1.0
-     * @version 1.0
-     */
-    protected static final class StandardBeanIntrospector implements BeanIntrospector{
-
-        /**
-         * Reflects the specified JavaBean.
-         * <p>
-         *     This method simply calls {@link Introspector#getBeanInfo(Class)} method.
-         * @param beanType A type of JavaBean to reflect.
-         * @return Metadata of the specified JavaBean.
-         * @throws java.beans.IntrospectionException
-         *          Cannot reflect the specified JavaBean.
-         */
-        @Override
-        public final BeanInfo getBeanInfo(final Class<?> beanType) throws IntrospectionException {
-            return Introspector.getBeanInfo(beanType);
-        }
-    }
-
     private static final class JavaBeanOperationInfo extends OpenMBeanOperationInfoSupport{
+        private static final long serialVersionUID = 5144309275413329193L;
         private final MethodHandle handle;
 
         private JavaBeanOperationInfo(final String operationName,
@@ -447,24 +330,27 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
 
     private static final class JavaBeanOperationRepository extends AbstractOperationRepository<JavaBeanOperationInfo> {
         private final Logger logger;
-        private final ManagedBeanDescriptor<?> descriptor;
+        private final WeakReference<? extends ManagedResourceConnector> connectorRef;
+        private final ImmutableList<MethodDescriptor> operations;
         private static final Class<JavaBeanOperationInfo> FEATURE_TYPE = JavaBeanOperationInfo.class;
 
-        private JavaBeanOperationRepository(final String resourceName,
-                                            final ManagedBeanDescriptor<?> descriptor,
+        private <C extends ManagedResourceConnector> JavaBeanOperationRepository(final String resourceName,
+                                            final C connectorRef,
+                                            final MethodDescriptor[] operations,
                                             final Logger logger){
             super(resourceName, FEATURE_TYPE);
             this.logger = logger;
-            this.descriptor = descriptor;
+            this.connectorRef = new WeakReference<>(connectorRef);
+            this.operations = ImmutableList.copyOf(operations);
         }
 
         @Override
         protected JavaBeanOperationInfo enableOperation(final String userDefinedName,
                                                         final OperationDescriptor descriptor) throws ReflectionException, MBeanException {
-            for(final MethodDescriptor method: this.descriptor.getBeanInfo().getMethodDescriptors())
+            for(final MethodDescriptor method: operations)
                 if(Objects.equals(method.getName(), descriptor.getOperationName()) &&
                         method.getMethod().isAnnotationPresent(ManagementOperation.class)){
-                    return new JavaBeanOperationInfo(userDefinedName, method, descriptor, this.descriptor.getInstance());
+                    return new JavaBeanOperationInfo(userDefinedName, method, descriptor, connectorRef.get());
                 }
             throw new MBeanException(new IllegalArgumentException(String.format("Operation '%s' doesn't exist", descriptor.getOperationName())));
         }
@@ -472,7 +358,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         @Override
         public Collection<JavaBeanOperationInfo> expand() {
             final List<JavaBeanOperationInfo> result = new LinkedList<>();
-            for(final MethodDescriptor method: this.descriptor.getBeanInfo().getMethodDescriptors())
+            for(final MethodDescriptor method: operations)
                 if(method.getMethod().isAnnotationPresent(ManagementOperation.class)){
                     final JavaBeanOperationInfo operation = enableOperation(method.getDisplayName(),
                             method.getName(),
@@ -689,15 +575,18 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
 
     private static final class JavaBeanAttributeRepository extends AbstractAttributeRepository<JavaBeanAttributeInfo> {
         private final Logger logger;
-        private final ManagedBeanDescriptor<?> bean;
+        private final ImmutableList<PropertyDescriptor> properties;
+        private final WeakReference<? extends ManagedResourceConnector> connectorRef;
         private static final Class<JavaBeanAttributeInfo> FEATURE_TYPE = JavaBeanAttributeInfo.class;
 
-        private JavaBeanAttributeRepository(final String resourceName,
-                                            final ManagedBeanDescriptor<?> beanDesc,
+        private <C extends ManagedResourceConnector> JavaBeanAttributeRepository(final String resourceName,
+                                            final C connector,
+                                            final PropertyDescriptor[] properties,
                                             final Logger logger){
             super(resourceName, FEATURE_TYPE);
             this.logger = Objects.requireNonNull(logger);
-            this.bean = Objects.requireNonNull(beanDesc);
+            this.properties = ImmutableList.copyOf(properties);
+            this.connectorRef = new WeakReference<>(connector);
         }
 
         private static boolean canExpandWith(final Class<? extends MBeanFeatureInfo> featureType){
@@ -721,19 +610,17 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         @Override
         protected JavaBeanAttributeInfo connectAttribute(final String attributeID,
                                                          final AttributeDescriptor descriptor) throws AttributeNotFoundException, ReflectionException {
-            final BeanInfo info = bean.getBeanInfo();
-            for(final PropertyDescriptor property: info.getPropertyDescriptors())
+            for(final PropertyDescriptor property: properties)
                 if(isReservedProperty(property)) continue;
                 else if(Objects.equals(property.getName(), descriptor.getAttributeName()))
-                    return createAttribute(attributeID, property, descriptor, bean.getInstance());
+                    return createAttribute(attributeID, property, descriptor, connectorRef.get());
             throw JMExceptionUtils.attributeNotFound(descriptor.getAttributeName());
         }
 
         @Override
         public Collection<JavaBeanAttributeInfo> expand() {
             final List<JavaBeanAttributeInfo> result = new LinkedList<>();
-            final BeanInfo info = bean.getBeanInfo();
-            for (final PropertyDescriptor property : info.getPropertyDescriptors())
+            for (final PropertyDescriptor property : properties)
                 if (!isReservedProperty(property)) {
                     final JavaBeanAttributeInfo attr =
                             addAttribute(property.getDisplayName(), property.getName(), TIMEOUT_FOR_SMART_MODE, AUTO_PROPS);
@@ -778,7 +665,19 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                                                final Set<? extends ManagementNotificationType<?>> notifTypes,
                                                final BundleContext context,
                                                final Logger logger) {
-            super(resourceName, FEATURE_TYPE, DistributedServices.getDistributedSequenceNumberGenerator(context, "notifications-".concat(resourceName)));
+            this(resourceName,
+                    notifTypes,
+                    context == null ?  //may be null when executing through unit tests
+                            DistributedServices.getProcessLocalSequenceNumberGenerator("notifications-".concat(resourceName)) :
+                            DistributedServices.getDistributedSequenceNumberGenerator(context, "notifications-".concat(resourceName)),
+                    logger);
+        }
+
+        private JavaBeanNotificationRepository(final String resourceName,
+                                               final Set<? extends ManagementNotificationType<?>> notifTypes,
+                                               final SequenceNumberGenerator numberGenerator,
+                                               final Logger logger){
+            super(resourceName, FEATURE_TYPE, numberGenerator);
             this.logger = Objects.requireNonNull(logger);
             this.notifTypes = Objects.requireNonNull(notifTypes);
             this.listenerInvoker = NotificationListenerInvokerFactory.createSequentialInvoker();
@@ -844,19 +743,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
 
         protected <N extends Enum<N> & ManagementNotificationType<?>> BeanDiscoveryService(final Class<? extends ManagedResourceConnectorBean> connectorType,
                                                                                            final EnumSet<N> notifications) throws IntrospectionException {
-            this(reflect(connectorType), notifications);
-        }
-
-        protected BeanDiscoveryService(final Class<?> beanType,
-                                       final BeanIntrospector introspector) throws IntrospectionException {
-            this(introspector.getBeanInfo(beanType),
-                    EnumSet.noneOf(EmptyManagementNotificationType.class));
-        }
-
-        protected <N extends Enum<N> & ManagementNotificationType<?>> BeanDiscoveryService(final Class<?> beanType,
-                                                                                           final BeanIntrospector introspector,
-                                                                                           final EnumSet<N> notifications) throws IntrospectionException {
-            this(introspector.getBeanInfo(beanType), notifications);
+            this(getBeanInfo(connectorType), notifications);
         }
 
         private static Collection<AttributeConfiguration> discoverAttributes(final PropertyDescriptor[] properties) {
@@ -902,35 +789,6 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
     private final JavaBeanNotificationRepository notifications;
     private final JavaBeanOperationRepository operations;
 
-    private ManagedResourceConnectorBean(final String resourceName,
-                                         ManagedBeanDescriptor<?> descriptor,
-                                         final Set<? extends ManagementNotificationType<?>> notifTypes) throws IntrospectionException {
-        if(descriptor == null) descriptor = new SelfDescriptor(this);
-        attributes = new JavaBeanAttributeRepository(resourceName, descriptor, getLogger());
-        notifications = new JavaBeanNotificationRepository(resourceName,
-                notifTypes,
-                Utils.getBundleContextOfObject(this),
-                getLogger());
-        operations = new JavaBeanOperationRepository(resourceName, descriptor, getLogger());
-    }
-
-    /**
-     * Initializes a new managed resource connector that reflects properties of the specified instance
-     * as connector managementAttributes.
-     * @param resourceName The name of the managed resource served by this connector.
-     * @param beanInstance An instance of JavaBean to reflect. Cannot be {@literal null}.
-     * @param introspector An introspector that reflects the specified JavaBean. Cannot be {@literal null}.
-     * @throws IntrospectionException Cannot reflect the specified instance.
-     * @throws IllegalArgumentException At least one of the specified arguments is {@literal null}.
-     */
-    protected ManagedResourceConnectorBean( final String resourceName,
-                                            final Object beanInstance,
-                                            final BeanIntrospector introspector) throws IntrospectionException {
-        this(resourceName,
-                new BeanDescriptor<>(beanInstance, introspector),
-                EnumSet.noneOf(EmptyManagementNotificationType.class));
-    }
-
     /**
      * Initializes a new managed resource connector that reflects itself.
      * @param resourceName The name of the managed resource served by this connector.
@@ -949,28 +807,23 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      */
     protected <N extends Enum<N> & ManagementNotificationType<?>> ManagedResourceConnectorBean(final String resourceName,
                                                                                                final EnumSet<N> notifTypes) throws IntrospectionException {
-        this(resourceName, null, notifTypes);
+        final BeanInfo beanInfo = getBeanInfo(getClass());
+        attributes = new<ManagedResourceConnectorBean> JavaBeanAttributeRepository(resourceName,
+                this,
+                beanInfo.getPropertyDescriptors(),
+                getLogger());
+        notifications = new JavaBeanNotificationRepository(resourceName,
+                notifTypes,
+                Utils.getBundleContextOfObject(this),
+                getLogger());
+        operations = new<ManagedResourceConnectorBean> JavaBeanOperationRepository(resourceName,
+                this,
+                beanInfo.getMethodDescriptors(),
+                getLogger());
     }
 
-    /**
-     * Creates SNAMP management connector from the specified Java Bean.
-     * @param resourceName The name of the managed resource served by this connector.
-     * @param connectorName The name of the managed resource connector.
-     * @param beanInstance An instance of the Java Bean to wrap.
-     * @param <T> Type of the Java Bean to wrap.
-     * @return A new instance of the management connector that wraps the Java Bean.
-     * @throws IntrospectionException Cannot reflect the specified instance.
-     */
-    public static <T> ManagedResourceConnectorBean wrap(final String resourceName,
-                                                        final String connectorName,
-                                                        final T beanInstance) throws IntrospectionException {
-        return new ManagedResourceConnectorBean(resourceName, beanInstance, new StandardBeanIntrospector()){
-
-            @Override
-            public Logger getLogger() {
-                return getLogger(connectorName);
-            }
-        };
+    private static BeanInfo getBeanInfo(final Class<? extends ManagedResourceConnectorBean> beanType) throws IntrospectionException {
+        return Introspector.getBeanInfo(beanType, ManagedResourceConnectorBean.class);
     }
 
     /**
@@ -1148,21 +1001,38 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         return this.notifications.removeAllExcept(events);
     }
 
-    private void emitNotificationImpl(final ManagementNotificationType<?> category,
+    private boolean emitNotificationImpl(final ManagementNotificationType<?> category,
                                       final String message,
                                       final Object userData){
-        notifications.fire(category, message, userData);
+        if(isSuspended()) return false;
+        else {
+            notifications.fire(category, message, userData);
+            return true;
+        }
     }
 
-    protected final void emitNotification(final ManagementNotificationType<?> category,
+    /**
+     * Emits notification from this Bean.
+     * @param category Category of the notification to emit.
+     * @param message Human-readable message associated with emitted notification.
+     * @return {@literal true}, if notifications are not suspended for this bean; otherwise, {@literal false}.
+     */
+    protected final boolean emitNotification(final ManagementNotificationType<?> category,
                                           final String message){
-        emitNotificationImpl(category, message, null);
+        return emitNotificationImpl(category, message, null);
     }
 
-    protected final <T> void emitNotification(final ManagementNotificationType<T> category,
+    /**
+     * Emits notification from this Bean.
+     * @param category Category of the notification to emit.
+     * @param message Human-readable message associated with emitted notification.
+     * @param userData An object to be attached.
+     * @return {@literal true}, if notifications are not suspended for this bean; otherwise, {@literal false}.
+     */
+    protected final <T> boolean emitNotification(final ManagementNotificationType<T> category,
                                               final String message,
                                               final T userData){
-        emitNotificationImpl(category, message, userData);
+        return emitNotificationImpl(category, message, userData);
     }
 
     private static BeanDiscoveryService createDiscoveryService(final BeanInfo beanMetadata,
@@ -1179,9 +1049,10 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
     /**
      * Creates a new instance of the resource metadata discovery service.
      * @return A new instance of the discovery service.
+     * @throws IntrospectionException Unable to reflect this bean.
      */
-    public DiscoveryService createDiscoveryService(){
-        final BeanInfo beanMetadata = attributes.bean.getBeanInfo();
+    public DiscoveryService createDiscoveryService() throws IntrospectionException{
+        final BeanInfo beanMetadata = getBeanInfo(getClass());
         final Set<? extends ManagementNotificationType<?>> notifTypes = notifications.notifTypes;
         return createDiscoveryService(beanMetadata, notifTypes, getLogger());
     }
@@ -1200,10 +1071,6 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                 return ManagedResourceConnectorBean.super.queryObject(objectType);
             }
         }, attributes, notifications, operations);
-    }
-
-    protected static BeanInfo reflect(final Class<? extends ManagedResourceConnectorBean> connectorType) throws IntrospectionException {
-        return Introspector.getBeanInfo(connectorType, ManagedResourceConnectorBean.class);
     }
 
     private static boolean isReservedProperty(final PropertyDescriptor property){
@@ -1234,7 +1101,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * @return {@literal true}, if events are suspended; otherwise {@literal false}.
      */
     @Override
-    public final boolean isSuspended() {
+    public boolean isSuspended() {
         return notifications.isSuspended();
     }
 

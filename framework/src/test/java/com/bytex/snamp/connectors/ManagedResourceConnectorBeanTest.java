@@ -91,39 +91,39 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
 
         @SpecialUse
         @ManagementAttribute(marshaller = Property1Marshaller.class)
-        public final String getProperty1() {
+        public String getProperty1() {
             return field1;
         }
 
         @SpecialUse
-        public final void setProperty1(final String value) {
+        public void setProperty1(final String value) {
             field1 = value;
             emitPropertyChanged("property1");
         }
 
         @SpecialUse
-        public final int getProperty2() {
+        public int getProperty2() {
             return field2;
         }
 
         @SpecialUse
-        public final void setProperty2(final int value) {
+        public void setProperty2(final int value) {
             field2 = value;
             emitPropertyChanged("property2");
         }
 
         @SpecialUse
-        public final boolean getProperty3() {
+        public boolean getProperty3() {
             return field3;
         }
 
         @SpecialUse
-        public final void setProperty3(final boolean value) {
+        public void setProperty3(final boolean value) {
             field3 = value;
             emitPropertyChanged("property3");
         }
 
-        protected final void emitPropertyChanged(final String propertyName) {
+        protected void emitPropertyChanged(final String propertyName) {
             emitNotification(TestNotificationType.PROPERTY_CHANGED, String.format("Property %s is changed", propertyName), "Attachment string");
         }
 
@@ -147,7 +147,7 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
     }
 
     @Test
-    public final void testConnectorBean() throws Exception {
+    public void testConnectorBean() throws Exception {
         final TestManagementConnectorBean connector = new TestManagementConnectorBean();
         connector.field1 = "123";
         final MBeanAttributeInfo md;
