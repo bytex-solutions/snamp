@@ -11,7 +11,7 @@
     <name>Groovy Resource Adapter</name>
     <description>Groovy-based scripting engine for writing Resource Adapters</description>
     <artifactId>groovy-adapter</artifactId>
-    <version>${snamp.adapters.groovy.version}</version>
+    <version>1.0.0</version>
     <packaging>bundle</packaging>
     <build>
         <plugins>
@@ -38,49 +38,36 @@
     </build>
     <dependencies>
         <dependency>
-            <scope>provided</scope>
             <groupId>com.bytex.snamp</groupId>
             <artifactId>framework</artifactId>
             <version>${snamp.framework.version}</version>
         </dependency>
         <dependency>
-            <scope>provided</scope>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.core</artifactId>
-            <version>${osgi.version}</version>
         </dependency>
         <dependency>
-            <scope>provided</scope>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.compendium</artifactId>
-            <version>${osgi.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>${guava.version}</version>
-            <scope>provided</scope>
         </dependency>
         <!-- Groovy Dependencies -->
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy</artifactId>
-            <version>${groovy.version}</version>
             <classifier>indy</classifier>
-            <scope>provided</scope>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.apache.ivy</groupId>
             <artifactId>ivy</artifactId>
-            <version>${apache.ivy.version}</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

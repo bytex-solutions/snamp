@@ -33,28 +33,22 @@
     </build>
     <dependencies>
         <dependency>
-            <scope>provided</scope>
             <groupId>com.bytex.snamp</groupId>
             <artifactId>framework</artifactId>
             <version>${snamp.framework.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
-            <scope>provided</scope>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.core</artifactId>
-            <version>${osgi.version}</version>
         </dependency>
         <dependency>
-            <scope>provided</scope>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.compendium</artifactId>
-            <version>${osgi.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>${guava.version}</version>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

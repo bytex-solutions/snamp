@@ -53,7 +53,8 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
                                                   final CompositeData options) {
             BigInteger result = toBigInteger(category);
             for (final String propertyName : options.getCompositeType().keySet())
-                result = result.xor(toBigInteger(propertyName))
+                result = result
+                        .xor(toBigInteger(propertyName))
                         .xor(BigInteger.valueOf(options.get(propertyName).hashCode()));
             return result;
         }
