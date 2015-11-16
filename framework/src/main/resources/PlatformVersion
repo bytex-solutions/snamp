@@ -1,1 +1,1 @@
-${project.parent.version}
+${snamp.platform.version}

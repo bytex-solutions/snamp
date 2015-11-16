@@ -15,6 +15,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
+    <snamp.platform.version>${project.parent.version}</snamp.platform.version>
   </properties>
   <build>
       <resources>

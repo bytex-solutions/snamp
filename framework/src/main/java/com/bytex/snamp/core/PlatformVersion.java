@@ -4,6 +4,7 @@ import com.bytex.snamp.io.IOUtils;
 import org.osgi.framework.Version;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Represents version of SNAMP platform.
@@ -28,9 +29,13 @@ public final class PlatformVersion extends Version {
      * @return Version of SNAMP platform.
      */
     public static PlatformVersion get() {
-        try {
-            final String version =
-                    IOUtils.toString(PlatformVersion.class.getClassLoader().getResourceAsStream("PlatformVersion"));
+        try(final InputStream versionStream = PlatformVersion.class.getClassLoader().getResourceAsStream("PlatformVersion")) {
+            String version = IOUtils.toString(versionStream);
+            /*
+                Strange workaround, yeah. Without this line of code the version will not be parsed
+                from Karaf console
+             */
+            version = version.replace("\n", "");
             return new PlatformVersion(version);
         } catch (final IOException ignored) {
             return EMPTY;
