@@ -203,7 +203,6 @@ final class JmxConnectionManager implements AutoCloseable {
         watchDog.reconnectionHandlers.add(handler);
     }
 
-    @SuppressWarnings("UnusedDeclaration")
     @ThreadSafe
     void removeReconnectionHandler(final ConnectionEstablishedEventHandler handler) {
         watchDog.reconnectionHandlers.add(handler);

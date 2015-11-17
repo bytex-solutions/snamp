@@ -192,7 +192,7 @@ public abstract class Repeater implements AutoCloseable, Runnable {
         }
 
         @Override
-        public final void run() {
+        public void run() {
             while (!isInterrupted()){
                 //sleep for a specified time
                 try{
@@ -220,12 +220,12 @@ public abstract class Repeater implements AutoCloseable, Runnable {
                 //create thread worker
                 final RepeaterWorker worker = new RepeaterWorker() {
                     @Override
-                    public final void run() {
+                    public void run() {
                         doAction();
                     }
 
                     @Override
-                    public final void uncaughtException(final Thread t, final Throwable e) {
+                    public void uncaughtException(final Thread t, final Throwable e) {
                         fault(e);
                     }
                 };

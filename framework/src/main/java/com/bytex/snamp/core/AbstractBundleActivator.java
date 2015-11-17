@@ -76,7 +76,6 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @since 1.0
      * @version 1.0
      */
-    @SuppressWarnings("UnusedDeclaration")
     protected interface NamedActivationProperty<T> extends ActivationProperty<T>{
         /**
          * Gets name of this property.

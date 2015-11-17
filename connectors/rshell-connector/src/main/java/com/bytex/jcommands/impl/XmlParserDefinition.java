@@ -323,7 +323,6 @@ public class XmlParserDefinition {
      * @author Roman Sakno
      * @since 1.0
      */
-    @SuppressWarnings("UnusedDeclaration")
     @Internal
     public static final class DataParser{
         private final Cache<String, NumberParser> cachedNumberParsers;

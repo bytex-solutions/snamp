@@ -10,10 +10,10 @@ import java.util.concurrent.atomic.AtomicLongFieldUpdater;
  * @version 1.0
  * @since 1.0
  */
-public abstract class AbstractLongAccumulator extends AbstractAccumulator {
+public abstract class LongAccumulator extends AbstractAccumulator {
     private static final long serialVersionUID = -8909745382790738723L;
-    private static final AtomicLongFieldUpdater<AbstractLongAccumulator> CURRENT_VALUE_ACCESSOR =
-            AtomicLongFieldUpdater.newUpdater(AbstractLongAccumulator.class, "current");
+    private static final AtomicLongFieldUpdater<LongAccumulator> CURRENT_VALUE_ACCESSOR =
+            AtomicLongFieldUpdater.newUpdater(LongAccumulator.class, "current");
     @SpecialUse
     private volatile long current;
     private final long initialValue;
@@ -23,8 +23,8 @@ public abstract class AbstractLongAccumulator extends AbstractAccumulator {
      * @param initialValue The initial value of this accumulator.
      * @param ttl Time-to-live of the value in this accumulator, in millis.
      */
-    protected AbstractLongAccumulator(final long initialValue,
-                                      final long ttl){
+    protected LongAccumulator(final long initialValue,
+                              final long ttl){
         super(ttl);
         this.current = this.initialValue = initialValue;
     }
@@ -104,5 +104,27 @@ public abstract class AbstractLongAccumulator extends AbstractAccumulator {
     @Override
     public final double doubleValue() {
         return longValue();
+    }
+
+    public static LongAccumulator peak(final long initialValue, final long ttl){
+        return new LongAccumulator(initialValue, ttl) {
+            private static final long serialVersionUID = 761001354160302714L;
+
+            @Override
+            protected long combine(final long current, final long newValue) {
+                return Math.max(current, newValue);
+            }
+        };
+    }
+
+    public static LongAccumulator adder(final long initialValue, final long ttl){
+        return new LongAccumulator(initialValue, ttl) {
+            private static final long serialVersionUID = 2696239067782396417L;
+
+            @Override
+            protected long combine(final long current, final long newValue) {
+                return current + newValue;
+            }
+        };
     }
 }

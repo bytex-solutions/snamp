@@ -25,7 +25,7 @@ public class SynchronizationEvent<T> {
         }
 
         @Override
-        protected boolean setException(final Throwable throwable) {
+        public boolean setException(final Throwable throwable) {
             return super.setException(throwable);
         }
     }

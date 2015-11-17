@@ -9,9 +9,9 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
  * @version 1.0
  * @since 1.0
  */
-public abstract class AbstractIntAccumulator extends AbstractAccumulator {
-    private static final AtomicIntegerFieldUpdater<AbstractIntAccumulator> CURRENT_VALUE_ACCESSOR =
-            AtomicIntegerFieldUpdater.newUpdater(AbstractIntAccumulator.class, "current");
+public abstract class IntAccumulator extends AbstractAccumulator {
+    private static final AtomicIntegerFieldUpdater<IntAccumulator> CURRENT_VALUE_ACCESSOR =
+            AtomicIntegerFieldUpdater.newUpdater(IntAccumulator.class, "current");
     private static final long serialVersionUID = 5460812167708036224L;
     @SpecialUse
     private volatile int current;
@@ -22,8 +22,8 @@ public abstract class AbstractIntAccumulator extends AbstractAccumulator {
      * @param initialValue The initial value of this accumulator.
      * @param ttl Time-to-live of the value in this accumulator, in millis.
      */
-    protected AbstractIntAccumulator(final int initialValue,
-                                      final long ttl){
+    protected IntAccumulator(final int initialValue,
+                             final long ttl){
         super(ttl);
         this.current = this.initialValue = initialValue;
     }
@@ -103,5 +103,27 @@ public abstract class AbstractIntAccumulator extends AbstractAccumulator {
     @Override
     public final double doubleValue() {
         return intValue();
+    }
+
+    public static IntAccumulator peak(final int initialValue, final long ttl){
+        return new IntAccumulator(initialValue, ttl) {
+            private static final long serialVersionUID = 7620900607067251500L;
+
+            @Override
+            protected int combine(final int current, final int newValue) {
+                return Math.max(current, newValue);
+            }
+        };
+    }
+
+    public static IntAccumulator adder(final int initialValue, final long ttl){
+        return new IntAccumulator(initialValue, ttl) {
+            private static final long serialVersionUID = -8158828259518423267L;
+
+            @Override
+            protected int combine(final int current, final int newValue) {
+                return current + newValue;
+            }
+        };
     }
 }

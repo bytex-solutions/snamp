@@ -603,14 +603,12 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
         return result;
     }
 
-    @SuppressWarnings("UnusedDeclaration")
     protected final <N> void sendNotification(final Class<? extends OpenNotification<N>> notifType, final N eventObject){
         for(final OpenNotification<?> n: notifications)
             if(notifType.isInstance(n))
                 sendNotification(notifType.cast(n).createNotification(this, eventObject));
     }
 
-    @SuppressWarnings("UnusedDeclaration")
     public final void sendNotification(final String name, final Object eventObject){
         for(final OpenNotification<?> n: notifications)
             if(Objects.equals(name, n.name))
