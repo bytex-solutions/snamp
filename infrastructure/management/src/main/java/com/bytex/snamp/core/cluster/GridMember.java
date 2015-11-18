@@ -2,7 +2,8 @@ package com.bytex.snamp.core.cluster;
 
 import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.TypeTokens;
-import com.bytex.snamp.core.ClusterNode;
+import com.bytex.snamp.core.AbstractFrameworkService;
+import com.bytex.snamp.core.ClusterMember;
 import com.google.common.reflect.TypeToken;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ILock;
@@ -17,7 +18,7 @@ import java.util.logging.Logger;
  * @version 1.0
  * @since 1.0
  */
-public final class GridNode extends AbstractAggregator implements ClusterNode, AutoCloseable {
+public final class GridMember extends AbstractFrameworkService implements ClusterMember, AutoCloseable {
     private static final class LeaderElectionThread extends Thread{
         private final ILock masterLock;
         private volatile boolean lockAcquired;
@@ -50,7 +51,7 @@ public final class GridNode extends AbstractAggregator implements ClusterNode, A
     private final HazelcastInstance hazelcast;
     private LeaderElectionThread electionThread;
 
-    public GridNode(final HazelcastInstance hazelcastInstance){
+    public GridMember(final HazelcastInstance hazelcastInstance){
         this.electionThread = new LeaderElectionThread(hazelcastInstance);
         this.hazelcast = hazelcastInstance;
         electionThread.start();
@@ -135,6 +136,7 @@ public final class GridNode extends AbstractAggregator implements ClusterNode, A
      * @return The logger associated with this service.
      */
     @Override
+    @Aggregation
     public Logger getLogger() {
         return logger;
     }

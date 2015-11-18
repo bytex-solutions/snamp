@@ -95,7 +95,7 @@
             <action class="com.bytex.snamp.management.shell.VersionCommand"/>
         </command>
         <command>
-            <action class="com.bytex.snamp.management.shell.ClusterNodeStatusCommand"/>
+            <action class="com.bytex.snamp.management.shell.ClusterMemberStatusCommand"/>
         </command>
     </command-bundle>
 

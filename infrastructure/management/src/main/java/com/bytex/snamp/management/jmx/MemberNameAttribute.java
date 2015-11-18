@@ -11,13 +11,13 @@ import javax.management.openmbean.SimpleType;
  * @version 1.0
  * @since 1.0
  */
-final class NodeNameAttribute extends OpenMBean.OpenAttribute<String, SimpleType<String>> {
-    NodeNameAttribute(){
-        super("nodeName", SimpleType.STRING);
+final class MemberNameAttribute extends OpenMBean.OpenAttribute<String, SimpleType<String>> {
+    MemberNameAttribute(){
+        super("memberName", SimpleType.STRING);
     }
 
     @Override
     public String getValue() {
-        return DistributedServices.getLocalNodeName(Utils.getBundleContextOfObject(this));
+        return DistributedServices.getLocalMemberName(Utils.getBundleContextOfObject(this));
     }
 }

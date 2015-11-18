@@ -2,9 +2,9 @@ package com.bytex.snamp.management;
 
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.core.AbstractServiceLibrary;
-import com.bytex.snamp.core.ClusterNode;
+import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.ExposedServiceHandler;
-import com.bytex.snamp.core.cluster.GridNode;
+import com.bytex.snamp.core.cluster.GridMember;
 import com.bytex.snamp.management.jmx.SnampClusterNodeMBean;
 import com.bytex.snamp.management.jmx.SnampCoreMBean;
 import com.bytex.snamp.management.jmx.SnampManagerImpl;
@@ -32,21 +32,21 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
     private static final String USE_PLATFORM_MBEAN_FRAMEWORK_PROPERTY = "com.bytex.snamp.management.usePlatformMBean";
     private static final ActivationProperty<Boolean> usePlatformMBeanProperty = defineActivationProperty(Boolean.class, false);
 
-    private static final class ClusterNodeProvider extends ProvidedService<ClusterNode, GridNode>{
+    private static final class ClusterNodeProvider extends ProvidedService<ClusterMember, GridMember>{
         private ClusterNodeProvider(){
-            super(ClusterNode.class, new SimpleDependency<>(HazelcastInstance.class));
+            super(ClusterMember.class, new SimpleDependency<>(HazelcastInstance.class));
         }
 
         @Override
-        protected GridNode activateService(final Map<String, Object> identity,
+        protected GridMember activateService(final Map<String, Object> identity,
                                               final RequiredService<?>... dependencies) {
             final HazelcastInstance hazelcast =
                     getDependency(RequiredServiceAccessor.class, HazelcastInstance.class, dependencies);
-            return new GridNode(hazelcast);
+            return new GridMember(hazelcast);
         }
 
         @Override
-        protected void cleanupService(final GridNode node, final boolean stopBundle) throws InterruptedException {
+        protected void cleanupService(final GridMember node, final boolean stopBundle) throws InterruptedException {
             node.close();
         }
     }

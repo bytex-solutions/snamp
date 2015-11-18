@@ -1,6 +1,6 @@
 package com.bytex.snamp.management.jmx;
 
-import com.bytex.snamp.core.ClusterNode;
+import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.OpenMBean;
@@ -26,9 +26,9 @@ public final class ResignOperation extends OpenMBean.OpenOperation<Boolean, Simp
     }
 
     public static boolean resign(final BundleContext context){
-        ServiceHolder<ClusterNode> nodeService = null;
+        ServiceHolder<ClusterMember> nodeService = null;
         try{
-            nodeService = new ServiceHolder<>(context, ClusterNode.class);
+            nodeService = new ServiceHolder<>(context, ClusterMember.class);
             nodeService.getService().resign();
             return true;
         }catch (final IllegalArgumentException e){

@@ -73,9 +73,9 @@ public final class DistributedServices {
             .build(new CacheLoader<InMemoryServiceCacheKey, Object>() {
                 @Override
                 public Object load(final InMemoryServiceCacheKey key) throws InvalidKeyException {
-                    if(ClusterNode.IDGEN_SERVICE.equals(key.serviceType))
+                    if(ClusterMember.IDGEN_SERVICE.equals(key.serviceType))
                         return new InMemorySequenceNumberGenerator();
-                    else if(ClusterNode.STORAGE_SERVICE.equals(key.serviceType))
+                    else if(ClusterMember.STORAGE_SERVICE.equals(key.serviceType))
                         return new InMemoryStorage();
                     else throw new InvalidKeyException(String.format("Service type %s is not supported", key.serviceType));
                 }
@@ -99,19 +99,19 @@ public final class DistributedServices {
      * @return ID generator instance.
      */
     public static SequenceNumberGenerator getProcessLocalSequenceNumberGenerator(final String generatorName){
-        return getProcessLocalService(generatorName, ClusterNode.IDGEN_SERVICE);
+        return getProcessLocalService(generatorName, ClusterMember.IDGEN_SERVICE);
     }
 
     public static ConcurrentMap<String, Object> getProcessLocalStorage(final String collectionName){
-        return getProcessLocalService(collectionName, ClusterNode.STORAGE_SERVICE);
+        return getProcessLocalService(collectionName, ClusterMember.STORAGE_SERVICE);
     }
 
     private static <S> S processClusterNode(final BundleContext context,
-                                            final Function<? super ClusterNode, S> processor,
+                                            final Function<? super ClusterMember, S> processor,
                                             final Supplier<S> def){
-        ServiceHolder<ClusterNode> holder = null;
+        ServiceHolder<ClusterMember> holder = null;
         try{
-            holder = new ServiceHolder<>(context, ClusterNode.class);
+            holder = new ServiceHolder<>(context, ClusterMember.class);
             return processor.apply(holder.getService());
         } catch (final IllegalArgumentException ignored){ //service not found
             return def.get();
@@ -124,9 +124,9 @@ public final class DistributedServices {
     private static <S> S getService(final BundleContext context,
                                     final String serviceName,
                                     final TypeToken<S> serviceType) {
-        return processClusterNode(context, new Function<ClusterNode, S>() {
+        return processClusterNode(context, new Function<ClusterMember, S>() {
             @Override
-            public S apply(final ClusterNode node) {
+            public S apply(final ClusterMember node) {
                 return node.getService(serviceName, serviceType);
             }
         }, new Supplier<S>() {
@@ -145,7 +145,7 @@ public final class DistributedServices {
      */
     public static ConcurrentMap<String, Object> getDistributedStorage(final BundleContext context,
                                                                             final String collectionName){
-        return getService(context, collectionName, ClusterNode.STORAGE_SERVICE);
+        return getService(context, collectionName, ClusterMember.STORAGE_SERVICE);
     }
 
     /**
@@ -156,7 +156,7 @@ public final class DistributedServices {
      */
     public static SequenceNumberGenerator getDistributedSequenceNumberGenerator(final BundleContext context,
                                                                                 final String generatorName){
-        return getService(context, generatorName, ClusterNode.IDGEN_SERVICE);
+        return getService(context, generatorName, ClusterMember.IDGEN_SERVICE);
     }
 
     /**
@@ -165,9 +165,9 @@ public final class DistributedServices {
      * @return {@literal true}, the caller code hosted in active cluster node; otherwise, {@literal false}.
      */
     public static boolean isActiveNode(final BundleContext context) {
-        return processClusterNode(context, new Function<ClusterNode, Boolean>() {
+        return processClusterNode(context, new Function<ClusterMember, Boolean>() {
             @Override
-            public Boolean apply(final ClusterNode node) {
+            public Boolean apply(final ClusterMember node) {
                 return node.isActive();
             }
         }, Suppliers.ofInstance(Boolean.TRUE));
@@ -187,10 +187,10 @@ public final class DistributedServices {
      * @param context Context of the caller bundle.
      * @return Name of the cluster node.
      */
-    public static String getLocalNodeName(final BundleContext context){
-        return processClusterNode(context, new Function<ClusterNode, String>() {
+    public static String getLocalMemberName(final BundleContext context){
+        return processClusterNode(context, new Function<ClusterMember, String>() {
             @Override
-            public String apply(final ClusterNode node) {
+            public String apply(final ClusterMember node) {
                 return node.getName();
             }
         }, new Supplier<String>() {

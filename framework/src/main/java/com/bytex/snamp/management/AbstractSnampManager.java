@@ -7,6 +7,7 @@ import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.adapters.ResourceAdapterClient;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
+import com.bytex.snamp.core.AbstractFrameworkService;
 import com.bytex.snamp.core.SupportService;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
@@ -24,7 +25,7 @@ import static com.bytex.snamp.internal.Utils.isInstanceOf;
  * @version 1.0
  * @since 1.0
  */
-public abstract class AbstractSnampManager extends AbstractAggregator implements SnampManager {
+public abstract class AbstractSnampManager extends AbstractFrameworkService implements SnampManager {
     private final class InternalSnampComponentDescriptor extends HashMap<String, String> implements SnampComponentDescriptor{
         private static final long serialVersionUID = 5684854305916946882L;
 

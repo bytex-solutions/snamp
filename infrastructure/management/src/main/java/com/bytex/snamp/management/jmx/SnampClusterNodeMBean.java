@@ -17,7 +17,7 @@ public final class SnampClusterNodeMBean extends OpenMBean implements FrameworkM
         super(
                 new IsInClusterAttribute(),
                 new IsActiveNodeAttribute(),
-                new NodeNameAttribute(),
+                new MemberNameAttribute(),
                 new ResignOperation()
         );
     }

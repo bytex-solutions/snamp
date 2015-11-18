@@ -14,9 +14,9 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
-        name = "cluster-node",
-    description = "Show SNAMP node status in the cluster")
-public class ClusterNodeStatusCommand extends OsgiCommandSupport implements SnampShellCommand {
+        name = "cluster-member",
+    description = "Show status of the local cluster member")
+public class ClusterMemberStatusCommand extends OsgiCommandSupport implements SnampShellCommand {
     @Option(name = "-r", aliases = {"--resign"}, required = false, description = "Starts leader election")
     @SpecialUse
     private boolean startElection = false;
@@ -32,7 +32,7 @@ public class ClusterNodeStatusCommand extends OsgiCommandSupport implements Snam
         }
         IOUtils.appendln(result, "Is cluster member: %s", DistributedServices.isInCluster(bundleContext));
         IOUtils.appendln(result, "Active Member: %s", DistributedServices.isActiveNode(bundleContext));
-        IOUtils.append(result, "Member Name: %s", DistributedServices.getLocalNodeName(bundleContext));
+        IOUtils.append(result, "Member Name: %s", DistributedServices.getLocalMemberName(bundleContext));
         return result;
     }
 }

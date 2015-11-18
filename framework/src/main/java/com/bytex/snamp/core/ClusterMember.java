@@ -6,7 +6,7 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * Represents SNAMP service that represents single SNAMP node in the cluster.
+ * Represents SNAMP service that represents single SNAMP member in the cluster.
  * You can discover this service via OSGi service registry.
  * <p>
  *     You can query the following cluster-wide services:
@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentMap;
  * @since 1.0
  * @see SequenceNumberGenerator
  */
-public interface ClusterNode extends FrameworkService {
+public interface ClusterMember extends SupportService {
     /**
      * Represents cluster-wide generator of unique identifiers.
      */
@@ -46,7 +46,7 @@ public interface ClusterNode extends FrameworkService {
     void resign();
 
     /**
-     * Gets unique name of this node.
+     * Gets unique name of this member.
      * @return Name of the cluster node.
      */
     String getName();
