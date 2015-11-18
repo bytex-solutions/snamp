@@ -20,12 +20,18 @@ abstract class AbstractAccumulator extends Number {
         this.timeToLive = ttl;
     }
 
+    private synchronized boolean updateTimer(){
+        final long startTime = timer;
+        final long currentTime = System.currentTimeMillis();
+        if(currentTime - startTime > timeToLive) {
+            timer = currentTime;
+            return true;
+        } else return false;
+    }
+
     final boolean isExpired(final boolean updateTimer) {
         final long startTime = timer;
         final long currentTime = System.currentTimeMillis();
-        if (currentTime - startTime > timeToLive) {
-            if (updateTimer) timer = startTime;
-            return true;
-        } else return false;
+        return currentTime - startTime > timeToLive && (!updateTimer || updateTimer());
     }
 }
