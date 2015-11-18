@@ -43,6 +43,11 @@ public interface AgentConfiguration extends Cloneable {
         String DESCRIPTION_KEY = "description";
 
         /**
+         * The name of the parameter which used for grouping entities.
+         */
+        String GROUP_KEY = "group";
+
+        /**
          * Gets configuration parameters of this entity.
          * @return A map of configuration parameters.
          */
