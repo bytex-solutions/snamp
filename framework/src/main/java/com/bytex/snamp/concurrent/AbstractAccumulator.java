@@ -21,17 +21,14 @@ abstract class AbstractAccumulator extends Number {
     }
 
     private synchronized boolean updateTimer(){
-        final long startTime = timer;
         final long currentTime = System.currentTimeMillis();
-        if(currentTime - startTime > timeToLive) {
+        if(currentTime - timer > timeToLive) {
             timer = currentTime;
             return true;
         } else return false;
     }
 
     final boolean isExpired(final boolean updateTimer) {
-        final long startTime = timer;
-        final long currentTime = System.currentTimeMillis();
-        return currentTime - startTime > timeToLive && (!updateTimer || updateTimer());
+        return System.currentTimeMillis() - timer > timeToLive && (!updateTimer || updateTimer());
     }
 }
