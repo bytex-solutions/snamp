@@ -230,7 +230,7 @@ public abstract class Repeater implements AutoCloseable, Runnable {
                     }
                 };
                 repeatThread = new RepeaterThreadImpl(worker, generateThreadName(), period);
-                //executes periodic thread
+                //execute periodic thread
                 repeatThread.start();
                 stateChanged(state = RepeaterState.STARTED);
                 return;

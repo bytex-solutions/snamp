@@ -195,9 +195,8 @@ public final class TimeSpan implements Serializable, Comparable<TimeSpan> {
      * @return A new time interval with the specified measurement unit.
      */
     @ThreadSafe
-    public TimeSpan convert(TimeUnit unit){
-        if(unit == null) unit = TimeUnit.MILLISECONDS;
-        return ofMillis(unit.convert(this.duration, this.unit));
+    public TimeSpan convert(final TimeUnit unit) {
+        return unit == null ? convert(TimeUnit.MILLISECONDS) : new TimeSpan(unit.convert(this.duration, this.unit), unit);
     }
 
     /**
@@ -214,7 +213,7 @@ public final class TimeSpan implements Serializable, Comparable<TimeSpan> {
      * @return A newly created time span with increased scale,
      */
     @ThreadSafe
-    public final TimeSpan up(){
+    public TimeSpan up(){
         switch (this.unit){
             case NANOSECONDS: return convert(TimeUnit.MICROSECONDS);
             case MICROSECONDS: return convert(TimeUnit.MILLISECONDS);
@@ -233,7 +232,7 @@ public final class TimeSpan implements Serializable, Comparable<TimeSpan> {
     @Override
     @ThreadSafe
     public String toString() {
-        return Long.toString(duration) + " " + unit;
+        return duration + " " + unit;
     }
 
     private boolean equals(final TimeSpan obj) {

@@ -41,7 +41,7 @@ public class Switch<I, O> implements Function<I, O> {
         }
 
         /**
-         * Releases linked cases.
+         * Releases linked nodes.
          */
         private void clear(){
             if(nextNode != null)
