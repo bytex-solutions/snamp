@@ -192,14 +192,14 @@ public class Switch<I, O> implements Function<I, O> {
      * @return This object.
      */
     @ThreadSafe(false)
-    public final Switch<I, O> defaultCase(final Function<? super I, ? extends O> action){
+    public final Switch<I, O> otherwise(final Function<? super I, ? extends O> action){
         this.defaultCase = action;
         return this;
     }
 
     @ThreadSafe(false)
-    public final Switch<I, O> defaultCase(final O output) {
-        return defaultCase(Functions.constant(output));
+    public final Switch<I, O> otherwise(final O output) {
+        return otherwise(Functions.constant(output));
     }
 
     public final O apply(final I value, final Function<? super I, ? extends O> defaultCase){

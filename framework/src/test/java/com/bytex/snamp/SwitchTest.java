@@ -68,7 +68,7 @@ public final class SwitchTest extends Assert {
                 .equals(51L, Boolean.FALSE)
                 .equals(52L, Boolean.FALSE)
                 .equals(53L, Boolean.TRUE)
-                .defaultCase(Boolean.FALSE)
+                .otherwise(Boolean.FALSE)
                 .apply(53L, exec);
         assertTrue(result);
     }

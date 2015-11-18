@@ -43,12 +43,13 @@ public abstract class IntAccumulator extends AbstractAccumulator {
     }
 
     private int updateImpl(final int value) {
-        while (true) {
+        int newValue;
+        do {
             final int current = CURRENT_VALUE_ACCESSOR.get(this);
-            final int newValue = combine(current, value);
-            if (CURRENT_VALUE_ACCESSOR.compareAndSet(this, current, newValue))
-                return newValue;
+            newValue = combine(current, value);
         }
+        while (!CURRENT_VALUE_ACCESSOR.compareAndSet(this, current, newValue));
+        return newValue;
     }
 
     /**

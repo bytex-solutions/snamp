@@ -20,7 +20,7 @@ public class WriteOnceRef<T> implements Wrapper<T>, Supplier<T> {
             AtomicIntegerFieldUpdater.newUpdater(WriteOnceRef.class, "locked");
     private T value;
     @SpecialUse
-    private volatile int/*boolean*/ locked;
+    private volatile int/*boolean*/ locked = 0;
 
     /**
      * Initializes a new write-once container.
@@ -28,7 +28,6 @@ public class WriteOnceRef<T> implements Wrapper<T>, Supplier<T> {
      */
     public WriteOnceRef(final T initValue){
         value = initValue;
-        locked = 0;
     }
 
     /**

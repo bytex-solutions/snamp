@@ -44,12 +44,12 @@ public abstract class LongAccumulator extends AbstractAccumulator {
     }
 
     private long updateImpl(final long value) {
-        while (true) {
+        long newValue;
+        do {
             final long current = CURRENT_VALUE_ACCESSOR.get(this);
-            final long newValue = combine(current, value);
-            if (CURRENT_VALUE_ACCESSOR.compareAndSet(this, current, newValue))
-                return newValue;
-        }
+            newValue = combine(current, value);
+        } while (!CURRENT_VALUE_ACCESSOR.compareAndSet(this, current, newValue));
+        return newValue;
     }
 
     /**

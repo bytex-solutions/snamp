@@ -70,14 +70,14 @@ public abstract class ThreadSafeObject {
         LockScope writeLock();
     }
 
-    private static final class ReentrantReadWriteLockSlim extends ReentrantReadWriteLock implements ReadWriteLockSlim{
-        private static final long serialVersionUID = -4854391672080527468L;
+    private static final class ReentrantReadWriteLockSlim implements ReadWriteLockSlim{
         private final ReadLockScope readLock;
         private final WriteLockScope writeLock;
 
         private ReentrantReadWriteLockSlim(){
-            readLock = new ReadLockScope(this);
-            writeLock = new WriteLockScope(this);
+            final ReentrantReadWriteLock reentrantLock = new ReentrantReadWriteLock();
+            readLock = new ReadLockScope(reentrantLock);
+            writeLock = new WriteLockScope(reentrantLock);
         }
 
         @SuppressWarnings("NullableProblems")
