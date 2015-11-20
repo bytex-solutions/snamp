@@ -7,7 +7,7 @@ import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
 import com.bytex.snamp.connectors.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
-import com.bytex.snamp.connectors.attributes.OpenTypeAttributeInfo;
+import com.bytex.snamp.connectors.attributes.OpenMBeanAttributeInfoImpl;
 import com.bytex.snamp.connectors.groovy.*;
 import com.bytex.snamp.connectors.notifications.*;
 import com.bytex.snamp.MethodStub;
@@ -158,7 +158,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         }
     }
 
-    private static final class GroovyAttributeInfo extends OpenTypeAttributeInfo implements AutoCloseable{
+    private static final class GroovyAttributeInfo extends OpenMBeanAttributeInfoImpl implements AutoCloseable{
         private static final long serialVersionUID = 2519548731335827051L;
         private final AttributeAccessor accessor;
 

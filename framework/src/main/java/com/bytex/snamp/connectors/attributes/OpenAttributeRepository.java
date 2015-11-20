@@ -8,7 +8,7 @@ import javax.management.InvalidAttributeValueException;
  * @version 1.0
  * @since 1.0
  */
-public abstract class OpenAttributeRepository<T extends OpenAttributeAccessor> extends AbstractAttributeRepository<T> {
+public abstract class OpenAttributeRepository<T extends OpenMBeanAttributeAccessor> extends AbstractAttributeRepository<T> {
     /**
      * Initializes a new support of management attributes.
      *
