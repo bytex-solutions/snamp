@@ -317,7 +317,7 @@ public abstract class Repeater implements AutoCloseable, Runnable {
     private void close(final long millis) throws InterruptedException, TimeoutException {
         long duration = System.currentTimeMillis();
         if (monitor.tryLock(millis, TimeUnit.MILLISECONDS)) {
-            duration -= System.currentTimeMillis();
+            duration = System.currentTimeMillis() - duration;
             try {
                 tryStop(millis - duration);
                 closeImpl();    //must be closed before lock will be released
