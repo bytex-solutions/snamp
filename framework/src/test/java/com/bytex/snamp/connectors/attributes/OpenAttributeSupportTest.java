@@ -15,7 +15,7 @@ import javax.management.openmbean.SimpleType;
  * @since 1.0
  */
 public final class OpenAttributeSupportTest extends Assert {
-    private static final class StringAttribute extends OpenAttributeAccessor<String>{
+    private static final class StringAttribute extends OpenMBeanAttributeAccessor<String> {
         private static final String NAME = "str";
         private static final long serialVersionUID = -8503919173459779384L;
         private String value = "";
@@ -43,11 +43,11 @@ public final class OpenAttributeSupportTest extends Assert {
     private static final class Attributes extends OpenAttributeRepository {
         @SuppressWarnings("unchecked")
         private Attributes() {
-            super("TEST RESOURCE", OpenAttributeAccessor.class);
+            super("TEST RESOURCE", OpenMBeanAttributeAccessor.class);
         }
 
         @Override
-        protected OpenAttributeAccessor<?> connectAttribute(final String attributeID, final AttributeDescriptor descriptor) throws Exception {
+        protected OpenMBeanAttributeAccessor<?> connectAttribute(final String attributeID, final AttributeDescriptor descriptor) throws Exception {
             switch (descriptor.getAttributeName()){
                 case StringAttribute.NAME: return new StringAttribute(attributeID, descriptor);
                 default: throw new Exception("Unable to connect attribute");

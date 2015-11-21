@@ -1,66 +1,35 @@
 package com.bytex.snamp.connectors.attributes;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableSet;
-
-import javax.management.MBeanAttributeInfo;
 import javax.management.openmbean.OpenMBeanAttributeInfo;
 import javax.management.openmbean.OpenType;
-import java.util.Objects;
 import java.util.Set;
 
 /**
- * Represents attribute of JMX open type that provides read/write methods.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-public abstract class OpenAttributeAccessor<T> extends MBeanAttributeInfo implements OpenMBeanAttributeInfo, AttributeDescriptorRead {
-    private static final long serialVersionUID = 9200767724267121006L;
-    private final OpenType<T> attributeType;
-    private final AttributeDescriptor descriptor;
-
-    protected OpenAttributeAccessor(final String attributeID,
-                                    final String description,
-                                    final OpenType<T> attributeType,
-                                    final AttributeSpecifier specifier,
-                                    final AttributeDescriptor descriptor){
-        super(attributeID,
-                attributeType.getClassName(),
-                description,
-                specifier.canRead(),
-                specifier.canWrite(),
-                specifier.isFlag(),
-                descriptor);
-        this.attributeType = attributeType;
-        this.descriptor = Objects.requireNonNull(descriptor);
-    }
+public class OpenMBeanAttributeInfoImpl extends CustomAttributeInfo implements OpenMBeanAttributeInfo {
+    private static final long serialVersionUID = -7592242456297020895L;
+    private final OpenType<?> openType;
 
     /**
-     * Returns the descriptor for the feature.  Changing the returned value
-     * will have no affect on the original descriptor.
+     * Constructs an <CODE>MBeanAttributeInfo</CODE> object.
      *
-     * @return a descriptor that is either immutable or a copy of the original.
-     * @since 1.6
+     * @param name        The name of the attribute.
+     * @param type        The type or class name of the attribute.
+     * @param description A human readable description of the attribute.
+     * @param specifier   Attribute access specifier. Cannot be {@literal null}.
+     * @param descriptor  The descriptor for the attribute.  This may be null
      */
-    @Override
-    public final AttributeDescriptor getDescriptor() {
-        return MoreObjects.firstNonNull(descriptor, AttributeDescriptor.EMPTY_DESCRIPTOR);
+    public OpenMBeanAttributeInfoImpl(final String name,
+                                      final OpenType<?> type,
+                                      final String description,
+                                      final AttributeSpecifier specifier,
+                                      final AttributeDescriptor descriptor) {
+        super(name, type.getClassName(), descriptor.getDescription(description), specifier, descriptor);
+        this.openType = type;
     }
-
-    /**
-     * Gets value of this attribute.
-     * @return The value of this attribute.
-     * @throws Exception Unable to read attribute value.
-     */
-    protected abstract T getValue() throws Exception;
-
-    /**
-     * Sets value of this attribute.
-     * @param value The value of this attribute.
-     * @throws Exception Unable to write attribute value.
-     */
-    protected abstract void setValue(final T value) throws Exception;
 
     /**
      * Returns the <i>open type</i> of the values of the parameter
@@ -69,8 +38,8 @@ public abstract class OpenAttributeAccessor<T> extends MBeanAttributeInfo implem
      * @return the open type.
      */
     @Override
-    public final OpenType<T> getOpenType(){
-        return attributeType;
+    public final OpenType<?> getOpenType() {
+        return openType;
     }
 
     /**
@@ -80,7 +49,7 @@ public abstract class OpenAttributeAccessor<T> extends MBeanAttributeInfo implem
      * @return the default value.
      */
     @Override
-    public T getDefaultValue() {
+    public Object getDefaultValue() {
         return null;
     }
 
@@ -91,8 +60,8 @@ public abstract class OpenAttributeAccessor<T> extends MBeanAttributeInfo implem
      * @return the set of legal values.
      */
     @Override
-    public Set<T> getLegalValues() {
-        return ImmutableSet.of();
+    public Set<?> getLegalValues() {
+        return null;
     }
 
     /**
@@ -102,7 +71,7 @@ public abstract class OpenAttributeAccessor<T> extends MBeanAttributeInfo implem
      * @return the minimum value.
      */
     @Override
-    public Comparable<T> getMinValue() {
+    public Comparable<?> getMinValue() {
         return null;
     }
 
@@ -113,7 +82,7 @@ public abstract class OpenAttributeAccessor<T> extends MBeanAttributeInfo implem
      * @return the maximum value.
      */
     @Override
-    public Comparable<T> getMaxValue() {
+    public Comparable<?> getMaxValue() {
         return null;
     }
 
@@ -173,6 +142,6 @@ public abstract class OpenAttributeAccessor<T> extends MBeanAttributeInfo implem
      */
     @Override
     public final boolean isValue(final Object obj) {
-        return attributeType.isValue(obj);
+        return openType.isValue(obj);
     }
 }

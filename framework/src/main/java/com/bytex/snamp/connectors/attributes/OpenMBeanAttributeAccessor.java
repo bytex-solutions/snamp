@@ -1,46 +1,48 @@
 package com.bytex.snamp.connectors.attributes;
 
+import com.google.common.collect.ImmutableSet;
+
 import javax.management.openmbean.OpenMBeanAttributeInfo;
 import javax.management.openmbean.OpenType;
+import java.util.Objects;
 import java.util.Set;
 
 /**
+ * Represents attribute of JMX open type that provides read/write methods.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-public class OpenTypeAttributeInfo extends CustomAttributeInfo implements OpenMBeanAttributeInfo {
-    private static final long serialVersionUID = -7592242456297020895L;
-    private final OpenType<?> openType;
+public abstract class OpenMBeanAttributeAccessor<T> extends OpenMBeanAttributeInfoImpl implements OpenMBeanAttributeInfo, AttributeDescriptorRead {
+    private static final long serialVersionUID = 9200767724267121006L;
+    private final AttributeDescriptor descriptor;
 
-    /**
-     * Constructs an <CODE>MBeanAttributeInfo</CODE> object.
-     *
-     * @param name        The name of the attribute.
-     * @param type        The type or class name of the attribute.
-     * @param description A human readable description of the attribute.
-     * @param specifier   Attribute access specifier. Cannot be {@literal null}.
-     * @param descriptor  The descriptor for the attribute.  This may be null
-     */
-    public OpenTypeAttributeInfo(final String name,
-                                 final OpenType<?> type,
-                                 final String description,
-                                 final AttributeSpecifier specifier,
-                                 final AttributeDescriptor descriptor) {
-        super(name, type.getClassName(), description, specifier, descriptor);
-        this.openType = type;
+    protected OpenMBeanAttributeAccessor(final String attributeID,
+                                         final String description,
+                                         final OpenType<T> attributeType,
+                                         final AttributeSpecifier specifier,
+                                         final AttributeDescriptor descriptor){
+        super(attributeID,
+                attributeType,
+                description,
+                specifier,
+                descriptor);
+        this.descriptor = Objects.requireNonNull(descriptor);
     }
 
     /**
-     * Returns the <i>open type</i> of the values of the parameter
-     * described by this <tt>OpenMBeanParameterInfo</tt> instance.
-     *
-     * @return the open type.
+     * Gets value of this attribute.
+     * @return The value of this attribute.
+     * @throws Exception Unable to read attribute value.
      */
-    @Override
-    public final OpenType<?> getOpenType() {
-        return openType;
-    }
+    protected abstract T getValue() throws Exception;
+
+    /**
+     * Sets value of this attribute.
+     * @param value The value of this attribute.
+     * @throws Exception Unable to write attribute value.
+     */
+    protected abstract void setValue(final T value) throws Exception;
 
     /**
      * Returns the default value for this parameter, if it has one, or
@@ -49,7 +51,7 @@ public class OpenTypeAttributeInfo extends CustomAttributeInfo implements OpenMB
      * @return the default value.
      */
     @Override
-    public Object getDefaultValue() {
+    public T getDefaultValue() {
         return null;
     }
 
@@ -60,8 +62,8 @@ public class OpenTypeAttributeInfo extends CustomAttributeInfo implements OpenMB
      * @return the set of legal values.
      */
     @Override
-    public Set<?> getLegalValues() {
-        return null;
+    public Set<T> getLegalValues() {
+        return ImmutableSet.of();
     }
 
     /**
@@ -71,7 +73,7 @@ public class OpenTypeAttributeInfo extends CustomAttributeInfo implements OpenMB
      * @return the minimum value.
      */
     @Override
-    public Comparable<?> getMinValue() {
+    public Comparable<T> getMinValue() {
         return null;
     }
 
@@ -82,7 +84,7 @@ public class OpenTypeAttributeInfo extends CustomAttributeInfo implements OpenMB
      * @return the maximum value.
      */
     @Override
-    public Comparable<?> getMaxValue() {
+    public Comparable<T> getMaxValue() {
         return null;
     }
 
@@ -128,20 +130,5 @@ public class OpenTypeAttributeInfo extends CustomAttributeInfo implements OpenMB
     @Override
     public boolean hasMaxValue() {
         return false;
-    }
-
-    /**
-     * Tests whether <var>obj</var> is a valid value for the parameter
-     * described by this <code>OpenMBeanParameterInfo</code> instance.
-     *
-     * @param obj the object to be tested.
-     * @return <code>true</code> if <var>obj</var> is a valid value
-     * for the parameter described by this
-     * <code>OpenMBeanParameterInfo</code> instance,
-     * <code>false</code> otherwise.
-     */
-    @Override
-    public final boolean isValue(final Object obj) {
-        return openType.isValue(obj);
     }
 }

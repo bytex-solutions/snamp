@@ -3,7 +3,7 @@ package com.bytex.snamp.connectors.mda;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.attributes.AttributeSpecifier;
-import com.bytex.snamp.connectors.attributes.OpenAttributeAccessor;
+import com.bytex.snamp.connectors.attributes.OpenMBeanAttributeAccessor;
 import com.bytex.snamp.internal.MapKeyRef;
 import com.bytex.snamp.jmx.OpenMBean;
 
@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentMap;
  * @version 1.0
  * @since 1.0
  */
-public class MDAAttributeInfo<T> extends OpenAttributeAccessor<T> {
+public class MDAAttributeInfo<T> extends OpenMBeanAttributeAccessor<T> {
     private static final long serialVersionUID = -1853294450682902061L;
 
     private Map.Entry<String, Object> entryRef;

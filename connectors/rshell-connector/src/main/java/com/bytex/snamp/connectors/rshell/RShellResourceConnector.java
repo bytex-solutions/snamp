@@ -39,7 +39,7 @@ import static com.bytex.snamp.TypeTokens.safeCast;
  * @since 1.0
  */
 final class RShellResourceConnector extends AbstractManagedResourceConnector implements AttributeSupport {
-    private static abstract class RShellAttributeInfo extends OpenTypeAttributeInfo{
+    private static abstract class RShellAttributeInfo extends OpenMBeanAttributeInfoImpl {
         private static final long serialVersionUID = -403897890533078455L;
         protected final XmlCommandLineToolProfile commandProfile;
         private final Map<String, ?> parameters;

@@ -3,7 +3,7 @@ package com.bytex.snamp.connectors.aggregator;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.attributes.AttributeSpecifier;
-import com.bytex.snamp.connectors.attributes.OpenAttributeAccessor;
+import com.bytex.snamp.connectors.attributes.OpenMBeanAttributeAccessor;
 import com.bytex.snamp.internal.Utils;
 import org.osgi.framework.BundleContext;
 
@@ -16,7 +16,7 @@ import javax.management.openmbean.OpenType;
  * @version 1.0
  * @since 1.0
  */
-abstract class AbstractAttributeAggregation<T> extends OpenAttributeAccessor<T> {
+abstract class AbstractAttributeAggregation<T> extends OpenMBeanAttributeAccessor<T> {
     private static final long serialVersionUID = -3564884715121017964L;
     private final String source;
 
