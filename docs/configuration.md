@@ -183,6 +183,7 @@ snamp:start-connector | Start bundle with individual resource connector
 snamp:stop-adapter | Stop bundle with individual adapter
 snamp:stop-connector | Stop bundle with individual resource connector
 snamp:version | Show version of SNAMP platform
+snamp:cluster-member | Status of the SNAMP cluster member
 
 Use `--help` flag to know more information about command and its parameters:
 ```bash
@@ -251,7 +252,7 @@ Following example shows setup of JMX-to-SNMP bridge:
     }
   },
   "ManagedResources": {
-    "test-target": { 
+    "test-target": {
       "Connector": {
         "Parameters": {
           "login": {
@@ -264,8 +265,8 @@ Following example shows setup of JMX-to-SNMP bridge:
           }
         },
         "ConnectionString": "service:jmx:rmi:///jndi/rmi://localhost:1099/karaf-root",
-        "Attributes": { 
-          "attribute1": { 
+        "Attributes": {
+          "attribute1": {
             "Attribute": {
               "Name": "int32",  
               "AdditionalProperties": {
@@ -320,7 +321,7 @@ Following example shows setup of JMX-to-SNMP bridge:
         "Events": {
           "19.1": {
             "Event": {
-              "Category": "jmx.attribute.change", 
+              "Category": "jmx.attribute.change",
               "AdditionalProperties": {
                 "objectName": {
                   "Value": "com.bytex.snamp:type=TestManagementBean",
@@ -344,12 +345,12 @@ Following example shows setup of JMX-to-SNMP bridge:
                 }
               }
             },
-            "UserDefinedName": "19.1" 
+            "UserDefinedName": "19.1"
           },
         },
         "ConnectionType": "jmx"   
       },
-      "UserDefinedName": "test-target" 
+      "UserDefinedName": "test-target"
     }
   }
 }
