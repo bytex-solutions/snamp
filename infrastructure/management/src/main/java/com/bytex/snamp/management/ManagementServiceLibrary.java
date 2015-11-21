@@ -32,8 +32,8 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
     private static final String USE_PLATFORM_MBEAN_FRAMEWORK_PROPERTY = "com.bytex.snamp.management.usePlatformMBean";
     private static final ActivationProperty<Boolean> usePlatformMBeanProperty = defineActivationProperty(Boolean.class, false);
 
-    private static final class ClusterNodeProvider extends ProvidedService<ClusterMember, GridMember>{
-        private ClusterNodeProvider(){
+    private static final class ClusterMemberProvider extends ProvidedService<ClusterMember, GridMember>{
+        private ClusterMemberProvider(){
             super(ClusterMember.class, new SimpleDependency<>(HazelcastInstance.class));
         }
 
@@ -178,7 +178,7 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
         super(new SnampManagerProvider(),
                 new SnampClusterNodeMBeanProvider(),
                 new SnampCoreMBeanProvider(),
-                new ClusterNodeProvider());
+                new ClusterMemberProvider());
         this.listener = new LogEntryRouter();
     }
 
