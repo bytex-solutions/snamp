@@ -262,7 +262,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         }
     }
 
-    private static abstract class SnmpAttributeInfo<V extends Variable> extends OpenTypeAttributeInfo implements SnmpObjectConverter<V> {
+    private static abstract class SnmpAttributeInfo<V extends Variable> extends OpenMBeanAttributeInfoImpl implements SnmpObjectConverter<V> {
         private static final long serialVersionUID = 4948510436343027716L;
 
         private SnmpAttributeInfo(final String attributeID,

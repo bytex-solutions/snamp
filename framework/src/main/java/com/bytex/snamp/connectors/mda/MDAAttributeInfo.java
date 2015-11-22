@@ -25,12 +25,14 @@ public class MDAAttributeInfo<T> extends OpenMBeanAttributeAccessor<T> {
     private Map.Entry<String, Object> entryRef;
     private AccessTimer accessTimer;
     private TimeSpan expirationTime;
+    private final OpenType<T> attributeType;
 
     public MDAAttributeInfo(final String name,
                                final OpenType<T> type,
                                final AttributeSpecifier specifier,
                                final AttributeDescriptor descriptor) {
         super(name, descriptor.getDescription(name), type, specifier, descriptor);
+        this.attributeType = type;
     }
 
     public MDAAttributeInfo(final String name,
@@ -59,7 +61,7 @@ public class MDAAttributeInfo<T> extends OpenMBeanAttributeAccessor<T> {
     protected final T getValue() throws OpenDataException {
         if(accessTimer.compareTo(expirationTime) > 0)
             throw new IllegalStateException(String.format("Attribute %s is not available because its value was expired", getName()));
-        return OpenMBean.cast(getOpenType(), entryRef.getValue());
+        return OpenMBean.cast(attributeType, entryRef.getValue());
     }
 
     @Override
