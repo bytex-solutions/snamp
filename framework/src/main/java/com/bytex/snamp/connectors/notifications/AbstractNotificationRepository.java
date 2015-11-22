@@ -5,7 +5,7 @@ import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.connectors.AbstractFeatureRepository;
 import com.bytex.snamp.core.DistributedServices;
-import com.bytex.snamp.core.SequenceNumberGenerator;
+import com.bytex.snamp.core.LongCounter;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
 import com.google.common.collect.ImmutableSet;
@@ -116,7 +116,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
 
     private final KeyedObjects<String, NotificationHolder<M>> notifications;
     private final NotificationListenerList listeners;
-    private final SequenceNumberGenerator sequenceNumberGenerator;
+    private final LongCounter sequenceNumberGenerator;
     private volatile boolean suspended = false;
 
     /**
@@ -126,7 +126,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     protected AbstractNotificationRepository(final String resourceName,
                                              final Class<M> notifMetadataType) {
-        this(resourceName, notifMetadataType, DistributedServices.getProcessLocalSequenceNumberGenerator("notifications-".concat(resourceName)));
+        this(resourceName, notifMetadataType, DistributedServices.getProcessLocalCounterGenerator("notifications-".concat(resourceName)));
     }
 
     /**
@@ -137,7 +137,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     protected AbstractNotificationRepository(final String resourceName,
                                              final Class<M> notifMetadataType,
-                                             final SequenceNumberGenerator sequenceNumberGenerator) {
+                                             final LongCounter sequenceNumberGenerator) {
         super(resourceName,
                 notifMetadataType,
                 ANSResource.class,
@@ -152,7 +152,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      * @return A new unique sequence number.
      */
     protected final long generateSequenceNumber(){
-        return sequenceNumberGenerator.next();
+        return sequenceNumberGenerator.increment();
     }
 
     private static <M extends MBeanNotificationInfo> AbstractKeyedObjects<String, NotificationHolder<M>> createNotifications(){

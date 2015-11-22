@@ -103,7 +103,7 @@ public class Box<T> implements Wrapper<T>, Supplier<T>, SafeConsumer<T>, Cloneab
      * @return The wrapped object handling result.
      */
     @Override
-    public final <R> R handle(final Function<T, R> handler) {
+    public final <R> R apply(final Function<T, R> handler) {
         return handler.apply(value);
     }
 

@@ -80,7 +80,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
                                            final Logger logger){
             super(resourceName,
                     SnmpNotificationInfo.class,
-                    DistributedServices.getDistributedSequenceNumberGenerator(context, "notifications-".concat(resourceName)));
+                    DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName)));
             this.logger = Objects.requireNonNull(logger);
             this.client = client;
             final Executor executor = client.read(new ConsistentAction<SnmpClient, Executor>() {

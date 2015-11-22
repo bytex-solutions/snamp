@@ -103,7 +103,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
                                              final BundleContext context){
             super(resourceName,
                     GroovyNotificationInfo.class,
-                    DistributedServices.getDistributedSequenceNumberGenerator(context, "notifications-".concat(resourceName)));
+                    DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName)));
             this.connector = Objects.requireNonNull(connector);
             final ExecutorService executor = Executors.newSingleThreadExecutor(new GroupedThreadFactory("notifications-".concat(resourceName)));
             this.listenerInvoker = createListenerInvoker(executor);

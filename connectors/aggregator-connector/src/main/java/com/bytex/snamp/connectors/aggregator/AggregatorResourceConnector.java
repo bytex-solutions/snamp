@@ -83,7 +83,7 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
                                                   final BundleContext context) {
             super(resourceName,
                     AbstractAggregatorNotification.class,
-                    DistributedServices.getDistributedSequenceNumberGenerator(context, "notifications-".concat(resourceName)));
+                    DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName)));
             invoker = NotificationListenerInvokerFactory.createSequentialInvoker();
         }
 

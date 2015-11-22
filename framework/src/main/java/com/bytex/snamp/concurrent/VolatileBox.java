@@ -48,7 +48,7 @@ public class VolatileBox<T> extends AtomicReference<T> implements Wrapper<T>, Su
      * @return The wrapped object handling result.
      */
     @Override
-    public final <R> R handle(final Function<T, R> handler) {
+    public final <R> R apply(final Function<T, R> handler) {
         return handler.apply(get());
     }
 }

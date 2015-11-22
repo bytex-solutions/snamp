@@ -11,19 +11,19 @@ import java.util.concurrent.ConcurrentMap;
  * <p>
  *     You can query the following cluster-wide services:
  *     <ul>
- *         <li>{@link SequenceNumberGenerator} for generating unique identifiers</li>
+ *         <li>{@link LongCounter} for generating unique identifiers</li>
  *         <li>{@link ConcurrentMap}&lt;{@link String}, {@link Object}&gt; for accessing data collections</li>
  *     </ul>
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
- * @see SequenceNumberGenerator
+ * @see LongCounter
  */
 public interface ClusterMember extends SupportService {
     /**
      * Represents cluster-wide generator of unique identifiers.
      */
-    TypeToken<SequenceNumberGenerator> IDGEN_SERVICE = TypeToken.of(SequenceNumberGenerator.class);
+    TypeToken<LongCounter> IDGEN_SERVICE = TypeToken.of(LongCounter.class);
 
     /**
      * Represents distributed map.

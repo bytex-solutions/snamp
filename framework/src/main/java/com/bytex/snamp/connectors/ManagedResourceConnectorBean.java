@@ -11,7 +11,7 @@ import com.bytex.snamp.connectors.operations.AbstractOperationRepository;
 import com.bytex.snamp.connectors.operations.OperationDescriptor;
 import com.bytex.snamp.connectors.operations.OperationSupport;
 import com.bytex.snamp.core.DistributedServices;
-import com.bytex.snamp.core.SequenceNumberGenerator;
+import com.bytex.snamp.core.LongCounter;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.bytex.snamp.jmx.JMExceptionUtils;
@@ -668,14 +668,14 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             this(resourceName,
                     notifTypes,
                     context == null ?  //may be null when executing through unit tests
-                            DistributedServices.getProcessLocalSequenceNumberGenerator("notifications-".concat(resourceName)) :
-                            DistributedServices.getDistributedSequenceNumberGenerator(context, "notifications-".concat(resourceName)),
+                            DistributedServices.getProcessLocalCounterGenerator("notifications-".concat(resourceName)) :
+                            DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName)),
                     logger);
         }
 
         private JavaBeanNotificationRepository(final String resourceName,
                                                final Set<? extends ManagementNotificationType<?>> notifTypes,
-                                               final SequenceNumberGenerator numberGenerator,
+                                               final LongCounter numberGenerator,
                                                final Logger logger){
             super(resourceName, FEATURE_TYPE, numberGenerator);
             this.logger = Objects.requireNonNull(logger);

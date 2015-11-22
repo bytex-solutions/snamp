@@ -1,6 +1,6 @@
 package com.bytex.snamp.core.cluster;
 
-import com.bytex.snamp.core.SequenceNumberGenerator;
+import com.bytex.snamp.core.LongCounter;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IAtomicLong;
 
@@ -9,10 +9,10 @@ import com.hazelcast.core.IAtomicLong;
  * @version 1.0
  * @since 1.0
  */
-final class HazelcastSequenceNumberGenerator implements SequenceNumberGenerator {
+final class HazelcastLongCounter implements LongCounter {
     private IAtomicLong underlyingGenerator;
 
-    HazelcastSequenceNumberGenerator(final HazelcastInstance hazelcast, final String generatorName){
+    HazelcastLongCounter(final HazelcastInstance hazelcast, final String generatorName){
         underlyingGenerator = hazelcast.getAtomicLong(generatorName);
     }
 
@@ -22,7 +22,7 @@ final class HazelcastSequenceNumberGenerator implements SequenceNumberGenerator 
      * @return A new cluster-wide unique identifier.
      */
     @Override
-    public long next() {
+    public long increment() {
         return underlyingGenerator.getAndIncrement();
     }
 

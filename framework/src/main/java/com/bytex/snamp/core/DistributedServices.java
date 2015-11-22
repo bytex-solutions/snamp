@@ -30,15 +30,15 @@ public final class DistributedServices {
         private static final long serialVersionUID = 2412615001344706359L;
     }
 
-    private static final class InMemorySequenceNumberGenerator extends AtomicLong implements SequenceNumberGenerator {
+    private static final class InMemoryLongCounter extends AtomicLong implements LongCounter {
         private static final long serialVersionUID = 498408165929062468L;
 
-        InMemorySequenceNumberGenerator(){
+        InMemoryLongCounter(){
             super(0L);
         }
 
         @Override
-        public long next() {
+        public long increment() {
             return getAndIncrement();
         }
     }
@@ -74,7 +74,7 @@ public final class DistributedServices {
                 @Override
                 public Object load(final InMemoryServiceCacheKey key) throws InvalidKeyException {
                     if(ClusterMember.IDGEN_SERVICE.equals(key.serviceType))
-                        return new InMemorySequenceNumberGenerator();
+                        return new InMemoryLongCounter();
                     else if(ClusterMember.STORAGE_SERVICE.equals(key.serviceType))
                         return new InMemoryStorage();
                     else throw new InvalidKeyException(String.format("Service type %s is not supported", key.serviceType));
@@ -98,7 +98,7 @@ public final class DistributedServices {
      * @param generatorName The name of generator.
      * @return ID generator instance.
      */
-    public static SequenceNumberGenerator getProcessLocalSequenceNumberGenerator(final String generatorName){
+    public static LongCounter getProcessLocalCounterGenerator(final String generatorName){
         return getProcessLocalService(generatorName, ClusterMember.IDGEN_SERVICE);
     }
 
@@ -149,13 +149,13 @@ public final class DistributedServices {
     }
 
     /**
-     * Gets distributed {@link SequenceNumberGenerator}.
+     * Gets distributed {@link LongCounter}.
      * @param context Context of the caller OSGi bundle.
      * @param generatorName Name of the generator to obtain.
      * @return Distributed or process-local generator.
      */
-    public static SequenceNumberGenerator getDistributedSequenceNumberGenerator(final BundleContext context,
-                                                                                final String generatorName){
+    public static LongCounter getDistributedCounter(final BundleContext context,
+                                                    final String generatorName){
         return getService(context, generatorName, ClusterMember.IDGEN_SERVICE);
     }
 

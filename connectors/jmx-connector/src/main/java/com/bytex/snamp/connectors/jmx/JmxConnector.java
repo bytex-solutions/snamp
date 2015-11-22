@@ -449,7 +449,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
                                           final ObjectName globalName,
                                           final BundleContext context,
                                           final JmxConnectionManager connectionManager) {
-            super(resourceName, FEATURE_TYPE, DistributedServices.getDistributedSequenceNumberGenerator(context, "notifications-".concat(resourceName)));
+            super(resourceName, FEATURE_TYPE, DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName)));
             this.connectionManager = connectionManager;
             this.globalObjectName = globalName;
             this.connectionManager.addReconnectionHandler(this);

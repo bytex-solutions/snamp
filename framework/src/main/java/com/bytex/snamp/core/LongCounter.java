@@ -6,10 +6,10 @@ package com.bytex.snamp.core;
  * @since 1.0
  * @version 1.0
  */
-public interface SequenceNumberGenerator {
+public interface LongCounter {
     /**
      * Generates a new cluster-wide unique identifier.
      * @return A new cluster-wide unique identifier.
      */
-    long next();
+    long increment();
 }

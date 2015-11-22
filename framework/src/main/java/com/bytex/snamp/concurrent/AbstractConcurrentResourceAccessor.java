@@ -70,7 +70,7 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ReentrantRea
      * @return The resource processing result.
      */
     @Override
-    public <RESULT> RESULT handle(final Function<R, RESULT> handler){
+    public <RESULT> RESULT apply(final Function<R, RESULT> handler){
         return handler != null ? handler.apply(getResource()) : null;
     }
 

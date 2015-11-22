@@ -1,6 +1,5 @@
 package com.bytex.snamp.core.cluster;
 
-import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.TypeTokens;
 import com.bytex.snamp.core.AbstractFrameworkService;
 import com.bytex.snamp.core.ClusterMember;
@@ -112,7 +111,7 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
         if(STORAGE_SERVICE.equals(serviceType))
             return TypeTokens.cast(new HazelcastStorage(hazelcast, serviceName), serviceType);
         else if(IDGEN_SERVICE.equals(serviceType))
-            return TypeTokens.cast(new HazelcastSequenceNumberGenerator(hazelcast, serviceName), serviceType);
+            return TypeTokens.cast(new HazelcastLongCounter(hazelcast, serviceName), serviceType);
         else return null;
     }
 
@@ -127,7 +126,7 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
         if(STORAGE_SERVICE.equals(serviceType))
             HazelcastStorage.release(hazelcast, serviceName);
         else if(IDGEN_SERVICE.equals(serviceType))
-            HazelcastSequenceNumberGenerator.release(hazelcast, serviceName);
+            HazelcastLongCounter.release(hazelcast, serviceName);
     }
 
     /**
