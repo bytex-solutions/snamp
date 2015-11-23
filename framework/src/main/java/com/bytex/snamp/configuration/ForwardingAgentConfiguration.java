@@ -240,26 +240,14 @@ public abstract class ForwardingAgentConfiguration extends ForwardingObject impl
         /**
          * Gets a collection of configured manageable elements for this target.
          *
-         * @param elementType The type of the manageable element.
+         * @param featureType The type of the manageable element.
          * @return A map of manageable elements; or {@literal null}, if element type is not supported.
          * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration
          * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration
          */
         @Override
-        public <T extends FeatureConfiguration> Map<String, T> getElements(final Class<T> elementType) {
-            return delegate().getElements(elementType);
-        }
-
-        /**
-         * Creates a new instances of the specified manageable element.
-         *
-         * @param elementType Type of the required manageable element.
-         * @return A new empty manageable element; or {@literal null},
-         * if the specified element type is not supported.
-         */
-        @Override
-        public <T extends FeatureConfiguration> T newElement(final Class<T> elementType) {
-            return delegate().newElement(elementType);
+        public <T extends FeatureConfiguration> EntityMap<? extends T> getFeatures(final Class<T> featureType) {
+            return delegate().getFeatures(featureType);
         }
 
         /**
@@ -301,7 +289,7 @@ public abstract class ForwardingAgentConfiguration extends ForwardingObject impl
      * @return A collection of resource adapters.
      */
     @Override
-    public Map<String, ResourceAdapterConfiguration> getResourceAdapters() {
+    public EntityMap<? extends ResourceAdapterConfiguration> getResourceAdapters() {
         return delegate().getResourceAdapters();
     }
 
@@ -314,22 +302,8 @@ public abstract class ForwardingAgentConfiguration extends ForwardingObject impl
      * @return The dictionary of managed resources.
      */
     @Override
-    public Map<String, ManagedResourceConfiguration> getManagedResources() {
+    public EntityMap<? extends ManagedResourceConfiguration> getManagedResources() {
         return delegate().getManagedResources();
-    }
-
-    /**
-     * Creates a new instance of the configuration entity.
-     *
-     * @param entityType Type of the entity to instantiate.
-     * @return A new instance of the configuration entity; or {@literal null}, if entity
-     * is not supported.
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration
-     */
-    @Override
-    public <T extends EntityConfiguration> T newConfigurationEntity(final Class<T> entityType) {
-        return delegate().newConfigurationEntity(entityType);
     }
 
     /**

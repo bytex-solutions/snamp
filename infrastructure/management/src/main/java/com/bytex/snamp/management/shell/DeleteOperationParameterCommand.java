@@ -31,10 +31,10 @@ public class DeleteOperationParameterCommand extends ConfigurationCommand {
     @Override
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
         if(configuration.getManagedResources().containsKey(resourceName))
-            if(configuration.getManagedResources().get(resourceName).getElements(OperationConfiguration.class).containsKey(userDefinedName)){
+            if(configuration.getManagedResources().get(resourceName).getFeatures(OperationConfiguration.class).containsKey(userDefinedName)){
                 configuration.getManagedResources()
                         .get(resourceName)
-                        .getElements(OperationConfiguration.class)
+                        .getFeatures(OperationConfiguration.class)
                         .get(userDefinedName)
                         .getParameters().remove(paramName);
                 output.append("Operation modified successfully");

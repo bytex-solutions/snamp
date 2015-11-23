@@ -31,10 +31,10 @@ public final class DeleteAttributeParameterCommand extends ConfigurationCommand 
     @Override
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
         if(configuration.getManagedResources().containsKey(resourceName))
-            if(configuration.getManagedResources().get(resourceName).getElements(AttributeConfiguration.class).containsKey(userDefinedName)){
+            if(configuration.getManagedResources().get(resourceName).getFeatures(AttributeConfiguration.class).containsKey(userDefinedName)){
                 configuration.getManagedResources()
                         .get(resourceName)
-                        .getElements(AttributeConfiguration.class)
+                        .getFeatures(AttributeConfiguration.class)
                         .get(userDefinedName)
                         .getParameters().remove(paramName);
                 output.append("Attribute modified successfully");

@@ -34,9 +34,9 @@ import static com.bytex.snamp.configuration.SerializableAgentConfiguration.Seria
  */
 @ThreadSafe
 public final class PersistentConfigurationManager extends AbstractAggregator implements ConfigurationManager {
-    private static final TypeToken<SerializableMap<String, AttributeConfiguration>> ATTRS_MAP_TYPE = new TypeToken<SerializableMap<String, AttributeConfiguration>>() {};
-    private static final TypeToken<SerializableMap<String, EventConfiguration>> EVENTS_MAP_TYPE = new TypeToken<SerializableMap<String, EventConfiguration>>() {};
-    private static final TypeToken<SerializableMap<String, OperationConfiguration>> OPS_MAP_TYPE = new TypeToken<SerializableMap<String, OperationConfiguration>>() {};
+    private static final TypeToken<SerializableMap<String, SerializableManagedResourceConfiguration.SerializableAttributeConfiguration>> ATTRS_MAP_TYPE = new TypeToken<SerializableMap<String, SerializableManagedResourceConfiguration.SerializableAttributeConfiguration>>() {};
+    private static final TypeToken<SerializableMap<String, SerializableManagedResourceConfiguration.SerializableEventConfiguration>> EVENTS_MAP_TYPE = new TypeToken<SerializableMap<String, SerializableManagedResourceConfiguration.SerializableEventConfiguration>>() {};
+    private static final TypeToken<SerializableMap<String, SerializableManagedResourceConfiguration.SerializableOperationConfiguration>> OPS_MAP_TYPE = new TypeToken<SerializableMap<String, SerializableManagedResourceConfiguration.SerializableOperationConfiguration>>() {};
 
     private static final String ADAPTER_PID_TEMPLATE = "com.bytex.snamp.adapters.%s";
     private static final String ADAPTER_INSTANCE_NAME_PROPERTY = "$adapterInstanceName$";
@@ -202,7 +202,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         return result;
     }
 
-    private static ConfigurationEntry<ResourceAdapterConfiguration> readAdapterConfiguration(
+    private static ConfigurationEntry<SerializableResourceAdapterConfiguration> readAdapterConfiguration(
             final String factoryPID,
             final Dictionary<String, ?> config) {
         final SerializableResourceAdapterConfiguration result = new SerializableResourceAdapterConfiguration();
@@ -210,10 +210,10 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         //deserialize parameters
         fillAdapterParameters(config, result.getParameters());
         result.reset();
-        return new ConfigurationEntry<ResourceAdapterConfiguration>(getAdapterInstanceName(config), result);
+        return new ConfigurationEntry<>(getAdapterInstanceName(config), result);
     }
 
-    private static ConfigurationEntry<ResourceAdapterConfiguration> readAdapterConfiguration(final Configuration config) {
+    private static ConfigurationEntry<SerializableResourceAdapterConfiguration> readAdapterConfiguration(final Configuration config) {
         return readAdapterConfiguration(config.getFactoryPid(), config.getProperties());
     }
 
@@ -238,7 +238,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         forEachAdapter(admin, new Consumer<Configuration, Exception>() {
             @Override
             public void accept(final Configuration config) throws Exception {
-                final ConfigurationEntry<ResourceAdapterConfiguration> entry = readAdapterConfiguration(config);
+                final ConfigurationEntry<SerializableResourceAdapterConfiguration> entry = readAdapterConfiguration(config);
                 reader.read(entry.getKey(), entry.getValue());
             }
         });
@@ -250,11 +250,11 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     }
 
     private static void readAdapters(final ConfigurationAdmin admin,
-                                     final Map<String, ResourceAdapterConfiguration> output) throws IOException, InvalidSyntaxException {
+                                     final Map<String, SerializableResourceAdapterConfiguration> output) throws IOException, InvalidSyntaxException {
         forEachAdapter(admin, new Consumer<Configuration, IOException>() {
             @Override
             public void accept(final Configuration config) throws IOException {
-                final ConfigurationEntry<ResourceAdapterConfiguration> entry = readAdapterConfiguration(config);
+                final ConfigurationEntry<SerializableResourceAdapterConfiguration> entry = readAdapterConfiguration(config);
                 output.put(entry.getKey(), entry.getValue());
             }
         });
@@ -318,19 +318,19 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
                 ImmutableMap.<String, F>of();
     }
 
-    public static Map<String, AttributeConfiguration> getAttributes(final Dictionary<String, ?> resourceConfig) throws IOException{
+    public static Map<String, SerializableManagedResourceConfiguration.SerializableAttributeConfiguration> getAttributes(final Dictionary<String, ?> resourceConfig) throws IOException{
         return getFeatures(resourceConfig, ATTRIBUTES_PROPERTY, ATTRS_MAP_TYPE);
     }
 
-    public static Map<String, OperationConfiguration> getOperations(final Dictionary<String, ?> resourceConfig) throws IOException{
+    public static Map<String, SerializableManagedResourceConfiguration.SerializableOperationConfiguration> getOperations(final Dictionary<String, ?> resourceConfig) throws IOException{
         return getFeatures(resourceConfig, OPERATIONS_PROPERTY, OPS_MAP_TYPE);
     }
 
-    public static Map<String, EventConfiguration> getEvents(final Dictionary<String, ?> resourceConfig) throws IOException {
+    public static Map<String, SerializableManagedResourceConfiguration.SerializableEventConfiguration> getEvents(final Dictionary<String, ?> resourceConfig) throws IOException {
         return getFeatures(resourceConfig, EVENTS_PROPERTY, EVENTS_MAP_TYPE);
     }
 
-    private static ConfigurationEntry<ManagedResourceConfiguration> readResourceConfiguration(
+    private static ConfigurationEntry<SerializableManagedResourceConfiguration> readResourceConfiguration(
             final String factoryPID,
             final Dictionary<String, ?> config) throws IOException {
         final SerializableManagedResourceConfiguration result = new SerializableManagedResourceConfiguration();
@@ -345,11 +345,11 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         //deserialize parameters
         fillConnectionOptions(config, result.getParameters());
         result.reset();
-        return new ConfigurationEntry<ManagedResourceConfiguration>(getResourceName(config),
+        return new ConfigurationEntry<>(getResourceName(config),
                 result);
     }
 
-    private static ConfigurationEntry<ManagedResourceConfiguration> readResourceConfiguration(final Configuration config) throws PersistentConfigurationException {
+    private static ConfigurationEntry<SerializableManagedResourceConfiguration> readResourceConfiguration(final Configuration config) throws PersistentConfigurationException {
         try {
             return readResourceConfiguration(config.getFactoryPid(), config.getProperties());
         } catch (final IOException e) {
@@ -373,7 +373,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
             forEachResource(admin, String.format("(%s=%s)", RESOURCE_NAME_PROPERTY, resourceName), new Consumer<Configuration, PersistentConfigurationException>() {
                 @Override
                 public void accept(final Configuration config) throws PersistentConfigurationException {
-                    final ConfigurationEntry<ManagedResourceConfiguration> entry = readResourceConfiguration(config);
+                    final ConfigurationEntry<SerializableManagedResourceConfiguration> entry = readResourceConfiguration(config);
                     result.set(entry.getValue());
                 }
             });
@@ -389,21 +389,21 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     }
 
     public static void forEachResource(final ConfigurationAdmin admin,
-                                     final EntryReader<String, ManagedResourceConfiguration, ? extends Exception> reader) throws Exception{
+                                     final EntryReader<String, SerializableManagedResourceConfiguration, ? extends Exception> reader) throws Exception{
         forEachResource(admin, new Consumer<Configuration, Exception>() {
             @Override
             public void accept(final Configuration config) throws Exception {
-                final ConfigurationEntry<ManagedResourceConfiguration> entry = readResourceConfiguration(config);
+                final ConfigurationEntry<SerializableManagedResourceConfiguration> entry = readResourceConfiguration(config);
                 reader.read(entry.getKey(), entry.getValue());
             }
         });
     }
 
     private static void readResources(final ConfigurationAdmin admin,
-                                      final Map<String, ManagedResourceConfiguration> output) throws Exception {
-        forEachResource(admin, new EntryReader<String, ManagedResourceConfiguration, ExceptionPlaceholder>() {
+                                      final Map<String, SerializableManagedResourceConfiguration> output) throws Exception {
+        forEachResource(admin, new EntryReader<String, SerializableManagedResourceConfiguration, ExceptionPlaceholder>() {
             @Override
-            public boolean read(final String resourceName, final ManagedResourceConfiguration config) {
+            public boolean read(final String resourceName, final SerializableManagedResourceConfiguration config) {
                 output.put(resourceName, config);
                 return true;
             }
@@ -477,16 +477,16 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         final Dictionary<String, Object> result = new Hashtable<>(4);
         Utils.setProperty(result, CONNECTION_STRING_PROPERTY, resource.getConnectionString());
         Utils.setProperty(result, RESOURCE_NAME_PROPERTY, resourceName);
-        final Map<String, AttributeConfiguration> attributes = resource.getElements(AttributeConfiguration.class);
+        final Map<String, ? extends AttributeConfiguration> attributes = resource.getFeatures(AttributeConfiguration.class);
         //serialize attributes
         if (attributes != null)
             Utils.setProperty(result, ATTRIBUTES_PROPERTY, IOUtils.serialize((Serializable)attributes));
-        final Map<String, EventConfiguration> events = resource.getElements(EventConfiguration.class);
+        final Map<String, ? extends EventConfiguration> events = resource.getFeatures(EventConfiguration.class);
         //serialize events
         if (events != null)
             Utils.setProperty(result, EVENTS_PROPERTY, IOUtils.serialize((Serializable)events));
         //serialize operations
-        final Map<String, OperationConfiguration> operations = resource.getElements(OperationConfiguration.class);
+        final Map<String, ? extends OperationConfiguration> operations = resource.getFeatures(OperationConfiguration.class);
         if(operations != null)
             Utils.setProperty(result, OPERATIONS_PROPERTY, IOUtils.serialize((Serializable)operations));
         //serialize properties
@@ -533,7 +533,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
             try {
                 //remove all unnecessary adapters
                 forEachAdapter(output, new Consumer<Configuration, IOException>() {
-                    private final Map<String, ResourceAdapterConfiguration> adapters = config.getResourceAdapters();
+                    private final Map<String, SerializableResourceAdapterConfiguration> adapters = config.getResourceAdapters();
 
                     @Override
                     public void accept(final Configuration config) throws IOException {
@@ -544,7 +544,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
                 });
                 //remove all unnecessary resources
                 forEachResource(output, new Consumer<Configuration, IOException>() {
-                    private final Map<String, ManagedResourceConfiguration> resources = config.getManagedResources();
+                    private final Map<String, SerializableManagedResourceConfiguration> resources = config.getManagedResources();
 
                     @Override
                     public void accept(final Configuration config) throws IOException {

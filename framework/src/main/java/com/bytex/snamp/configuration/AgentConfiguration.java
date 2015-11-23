@@ -1,6 +1,7 @@
 package com.bytex.snamp.configuration;
 
 import com.bytex.snamp.TimeSpan;
+import com.google.common.base.Function;
 
 import java.util.Map;
 
@@ -52,6 +53,19 @@ public interface AgentConfiguration extends Cloneable {
          * @return A map of configuration parameters.
          */
         Map<String, String> getParameters();
+    }
+
+    /**
+     * Represents catalog of configuration entities.
+     * @param <E> Type of the configuration entities in the catalog.
+     */
+    interface EntityMap<E extends EntityConfiguration> extends Map<String, E>{
+        /**
+         * Gets existing configuration entity or creates a new entity.
+         * @param entityID Identifier of the configuration entity.
+         * @return Configuration entity from the catalog.
+         */
+        E getOrAdd(final String entityID);
     }
 
     /**
@@ -210,22 +224,13 @@ public interface AgentConfiguration extends Cloneable {
 
         /**
          * Gets a collection of configured manageable elements for this target.
-         * @param elementType The type of the manageable element.
+         * @param featureType The type of the manageable element.
          * @param <T> The type of the manageable element.
          * @return A map of manageable elements; or {@literal null}, if element type is not supported.
          * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration
          * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration
          */
-        <T extends FeatureConfiguration> Map<String, T> getElements(final Class<T> elementType);
-
-        /**
-         * Creates a new instances of the specified manageable element.
-         * @param elementType Type of the required manageable element.
-         * @param <T> Type of the required manageable element.
-         * @return A new empty manageable element; or {@literal null},
-         *      if the specified element type is not supported.
-         */
-        <T extends FeatureConfiguration> T newElement(final Class<T> elementType);
+        <T extends FeatureConfiguration> EntityMap<? extends T> getFeatures(final Class<T> featureType);
 
         /**
          * Returns the dictionary of additional configuration parameters.
@@ -241,7 +246,7 @@ public interface AgentConfiguration extends Cloneable {
      * </p>
      * @return A collection of resource adapters.
      */
-    Map<String, ResourceAdapterConfiguration> getResourceAdapters();
+    EntityMap<? extends ResourceAdapterConfiguration> getResourceAdapters();
 
     /**
      * Gets a collection of managed resources.
@@ -250,18 +255,7 @@ public interface AgentConfiguration extends Cloneable {
      * </p>
      * @return The dictionary of managed resources.
      */
-    Map<String, ManagedResourceConfiguration> getManagedResources();
-
-    /**
-     * Creates a new instance of the configuration entity.
-     * @param entityType Type of the entity to instantiate.
-     * @param <T> Type of the entity to instantiate.
-     * @return A new instance of the configuration entity; or {@literal null}, if entity
-     * is not supported.
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration
-     */
-    <T extends EntityConfiguration> T newConfigurationEntity(final Class<T> entityType);
+    EntityMap<? extends ManagedResourceConfiguration> getManagedResources();
 
     /**
      * Imports the state of specified object into this object.

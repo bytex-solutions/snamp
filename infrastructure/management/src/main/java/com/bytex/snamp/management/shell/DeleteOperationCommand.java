@@ -27,7 +27,7 @@ public final class DeleteOperationCommand extends ConfigurationCommand {
     @Override
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
         if(configuration.getManagedResources().containsKey(resourceName))
-            if(configuration.getManagedResources().get(resourceName).getElements(OperationConfiguration.class).remove(userDefinedName) == null){
+            if(configuration.getManagedResources().get(resourceName).getFeatures(OperationConfiguration.class).remove(userDefinedName) == null){
                 output.append("Operation doesn't exist");
                 return false;
             }

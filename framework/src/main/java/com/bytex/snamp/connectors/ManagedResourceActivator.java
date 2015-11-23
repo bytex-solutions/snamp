@@ -115,7 +115,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          */
         <F extends FeatureConfiguration> void updateConnector(final TConnector connector,
                                                               final Class<F> featureType,
-                                                              final Map<String, F> features) throws Exception;
+                                                              final Map<String, ? extends F> features) throws Exception;
 
         /**
          * Releases all resources associated with the resource connector.
@@ -330,7 +330,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          */
         @SuppressWarnings("unchecked")
         @Override
-        public final <F extends FeatureConfiguration> void updateConnector(final TConnector connector, final Class<F> featureType, final Map<String, F> features) throws Exception {
+        public final <F extends FeatureConfiguration> void updateConnector(final TConnector connector, final Class<F> featureType, final Map<String, ? extends F> features) throws Exception {
             if(Objects.equals(featureType, AttributeConfiguration.class))
                 updateAttributes(connector, (Map<String, AttributeConfiguration>)features);
             else if(Objects.equals(featureType, EventConfiguration.class))

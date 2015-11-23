@@ -48,21 +48,15 @@ public final class ConfigOperationCommand extends ConfigurationCommand {
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
         if(configuration.getManagedResources().containsKey(resourceName)){
             final ManagedResourceConfiguration resource = configuration.getManagedResources().get(resourceName);
-            final OperationConfiguration attribute;
-            if(resource.getElements(OperationConfiguration.class).containsKey(userDefinedName))
-                attribute = resource.getElements(OperationConfiguration.class).get(userDefinedName);
-            else {
-                attribute = resource.newElement(OperationConfiguration.class);
-                resource.getElements(OperationConfiguration.class).put(userDefinedName, attribute);
-            }
+            final OperationConfiguration operation = resource.getFeatures(OperationConfiguration.class).getOrAdd(userDefinedName);
             if(!Strings.isNullOrEmpty(systemName))
-                attribute.setOperationName(systemName);
+                operation.setOperationName(systemName);
             if(readWriteTimeout > INFINITE_TIMEOUT)
-                attribute.setInvocationTimeout(TimeSpan.ofMillis(readWriteTimeout));
+                operation.setInvocationTimeout(TimeSpan.ofMillis(readWriteTimeout));
             if(!ArrayUtils.isNullOrEmpty(parameters))
                 for(final String param: parameters) {
                     final StringKeyValue pair = StringKeyValue.parse(param);
-                    attribute.getParameters().put(pair.getKey(), pair.getValue());
+                    operation.getParameters().put(pair.getKey(), pair.getValue());
                 }
             output.append("Operation configured successfully");
             return true;

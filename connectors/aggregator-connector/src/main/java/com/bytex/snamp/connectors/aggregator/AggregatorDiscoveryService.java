@@ -46,10 +46,10 @@ final class AggregatorDiscoveryService extends AbstractAggregator implements Dis
      * Attempts to discover collection of managed entities (such as attributes or notifications)
      * using managed resource connection string.
      * <p/>
-     * Do not add elements from the returned collection directly in {@link AgentConfiguration.ManagedResourceConfiguration#getElements(Class)}
+     * Do not add elements from the returned collection directly in {@link AgentConfiguration.ManagedResourceConfiguration#getFeatures(Class)}
      * result set, use the following algorithm:
      * <ul>
-     * <li>Create a new managed entity with {@link AgentConfiguration.ManagedResourceConfiguration#newElement(Class)} method.</li>
+     * <li>Create a new managed entity with {@link AgentConfiguration.ManagedResourceConfiguration#registerFeature(Class)} method.</li>
      * <li>Use {@link AbstractAgentConfiguration#copy(AttributeConfiguration, AttributeConfiguration)}
      * or {@link AbstractAgentConfiguration#copy(EventConfiguration, EventConfiguration)} method
      * to copy managed entity returned by this method into the newly created entity.</li>

@@ -46,8 +46,7 @@ public final class ConfigResourceCommand extends ConfigurationCommand {
             IOUtils.appendln(output, "Updated");
         }
         else {  //create new adapter instance
-            resource = configuration.newConfigurationEntity(ManagedResourceConfiguration.class);
-            configuration.getManagedResources().put(resourceName, resource);
+            resource = configuration.getManagedResources().getOrAdd(resourceName);
             IOUtils.appendln(output, "Created");
         }
         //setup connection type

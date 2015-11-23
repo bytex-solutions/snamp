@@ -31,10 +31,10 @@ public final class DeleteEventParameterCommand extends ConfigurationCommand {
     @Override
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
         if(configuration.getManagedResources().containsKey(resourceName))
-            if(configuration.getManagedResources().get(resourceName).getElements(EventConfiguration.class).containsKey(userDefinedName)){
+            if(configuration.getManagedResources().get(resourceName).getFeatures(EventConfiguration.class).containsKey(userDefinedName)){
                 configuration.getManagedResources()
                         .get(resourceName)
-                        .getElements(EventConfiguration.class)
+                        .getFeatures(EventConfiguration.class)
                         .get(userDefinedName)
                         .getParameters().remove(paramName);
                 output.append("Event modified successfully");

@@ -40,13 +40,7 @@ public final class ConfigEventCommand extends ConfigurationCommand {
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
         if(configuration.getManagedResources().containsKey(resourceName)){
             final AgentConfiguration.ManagedResourceConfiguration resource = configuration.getManagedResources().get(resourceName);
-            final EventConfiguration event;
-            if(resource.getElements(EventConfiguration.class).containsKey(userDefinedName))
-                event = resource.getElements(EventConfiguration.class).get(userDefinedName);
-            else {
-                event = resource.newElement(EventConfiguration.class);
-                resource.getElements(EventConfiguration.class).put(userDefinedName, event);
-            }
+            final EventConfiguration event = resource.getFeatures(EventConfiguration.class).getOrAdd(userDefinedName);
             if(!Strings.isNullOrEmpty(category))
                 event.setCategory(category);
             if(!ArrayUtils.isNullOrEmpty(parameters))

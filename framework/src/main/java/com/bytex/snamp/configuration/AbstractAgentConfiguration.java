@@ -1,5 +1,6 @@
 package com.bytex.snamp.configuration;
 
+import com.google.common.base.Function;
 import com.google.common.base.Supplier;
 
 import java.util.Map;
@@ -75,26 +76,27 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         additionalElements.putAll(source.getParameters());
     }
 
-    private static void copyAttributes(final Map<String, ManagedResourceConfiguration.AttributeConfiguration> input, final Map<String, ManagedResourceConfiguration.AttributeConfiguration> output, final Supplier<ManagedResourceConfiguration.AttributeConfiguration> attributeFactory){
+    private static void copyAttributes(final Map<String, ? extends ManagedResourceConfiguration.AttributeConfiguration> input,
+                                       final EntityMap<? extends ManagedResourceConfiguration.AttributeConfiguration> output){
         if(input != null && output != null) {
             output.clear();
-            for (final Map.Entry<String, ManagedResourceConfiguration.AttributeConfiguration> entry : input.entrySet()) {
+            for (final Map.Entry<String, ? extends ManagedResourceConfiguration.AttributeConfiguration> entry : input.entrySet()) {
                 final ManagedResourceConfiguration.AttributeConfiguration inputAttr = entry.getValue();
-                final ManagedResourceConfiguration.AttributeConfiguration outputAttr = attributeFactory.get();
+                //factory registers a new attribute in the output collection
+                final ManagedResourceConfiguration.AttributeConfiguration outputAttr = output.getOrAdd(entry.getKey());
                 copy(inputAttr, outputAttr);
-                output.put(entry.getKey(), outputAttr);
             }
         }
     }
 
-    private static void copyEvents(final Map<String, ManagedResourceConfiguration.EventConfiguration> input, final Map<String, ManagedResourceConfiguration.EventConfiguration> output, final Supplier<ManagedResourceConfiguration.EventConfiguration> eventFactory){
-        if(input != null && output != null) {
+    private static void copyEvents(final Map<String, ? extends ManagedResourceConfiguration.EventConfiguration> input,
+                                   final EntityMap<? extends ManagedResourceConfiguration.EventConfiguration> output) {
+        if (input != null && output != null) {
             output.clear();
-            for (final Map.Entry<String, ManagedResourceConfiguration.EventConfiguration> entry : input.entrySet()) {
+            for (final Map.Entry<String, ? extends ManagedResourceConfiguration.EventConfiguration> entry : input.entrySet()) {
                 final ManagedResourceConfiguration.EventConfiguration inputEv = entry.getValue();
-                final ManagedResourceConfiguration.EventConfiguration outputEv = eventFactory.get();
+                final ManagedResourceConfiguration.EventConfiguration outputEv = output.getOrAdd(entry.getKey());
                 copy(inputEv, outputEv);
-                output.put(entry.getKey(), outputEv);
             }
         }
     }
@@ -107,23 +109,12 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         additionalElements.clear();
         additionalElements.putAll(input.getParameters());
         //import managementAttributes
-        copyAttributes(input.getElements(ManagedResourceConfiguration.AttributeConfiguration.class),
-                output.getElements(ManagedResourceConfiguration.AttributeConfiguration.class),
-                new Supplier<ManagedResourceConfiguration.AttributeConfiguration>() {
-                    @Override
-                    public ManagedResourceConfiguration.AttributeConfiguration get() {
-                        return output.newElement(ManagedResourceConfiguration.AttributeConfiguration.class);
-                    }
-                }
+        copyAttributes(input.getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class),
+                output.getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class)
         );
-        copyEvents(input.getElements(ManagedResourceConfiguration.EventConfiguration.class),
-                output.getElements(ManagedResourceConfiguration.EventConfiguration.class),
-                new Supplier<ManagedResourceConfiguration.EventConfiguration>() {
-                    @Override
-                    public ManagedResourceConfiguration.EventConfiguration get() {
-                        return output.newElement(ManagedResourceConfiguration.EventConfiguration.class);
-                    }
-                });
+        copyEvents(input.getFeatures(ManagedResourceConfiguration.EventConfiguration.class),
+                output.getFeatures(ManagedResourceConfiguration.EventConfiguration.class)
+        );
     }
 
     public static void copy(final ResourceAdapterConfiguration input, final ResourceAdapterConfiguration output){
@@ -133,16 +124,14 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         additionalElements.putAll(input.getParameters());
     }
 
-    private static <T extends EntityConfiguration> void copy(final Map<String, T> input,
-                             final Map<String, T> output,
-                             final Supplier<T> entityFactory,
-                             final ConfigurationEntityCopier<T> copier){
+    private static <T extends EntityConfiguration> void copy(final Map<String, ? extends T> input,
+                             final EntityMap<? extends T> output,
+                             final ConfigurationEntityCopier<T> copier) {
         output.clear();
-        for(final Map.Entry<String, T> entry: input.entrySet()){
+        for (final Map.Entry<String, ? extends T> entry : input.entrySet()) {
             final T source = entry.getValue();
-            final T dest = entityFactory.get();
+            final T dest = output.getOrAdd(entry.getKey());
             copier.copy(source, dest);
-            output.put(entry.getKey(), dest);
         }
     }
 
@@ -164,13 +153,8 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
     public static void copy(final AgentConfiguration input, final AgentConfiguration output){
         if(input == null || output == null) return;
         //import hosting configuration
-        copy(input.getResourceAdapters(), output.getResourceAdapters(),
-                new Supplier<ResourceAdapterConfiguration>() {
-            @Override
-            public ResourceAdapterConfiguration get() {
-                return output.newConfigurationEntity(ResourceAdapterConfiguration.class);
-            }
-        },
+        copy(input.getResourceAdapters(),
+                output.getResourceAdapters(),
         new ConfigurationEntityCopier<ResourceAdapterConfiguration>() {
             @Override
             public void copy(final ResourceAdapterConfiguration input, final ResourceAdapterConfiguration output) {
@@ -178,13 +162,8 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
             }
         });
         //import management targets
-        copy(input.getManagedResources(), output.getManagedResources(),
-                new Supplier<ManagedResourceConfiguration>() {
-                    @Override
-                    public ManagedResourceConfiguration get() {
-                        return output.newConfigurationEntity(ManagedResourceConfiguration.class);
-                    }
-                },
+        copy(input.getManagedResources(),
+                output.getManagedResources(),
         new ConfigurationEntityCopier<ManagedResourceConfiguration>() {
             @Override
             public void copy(final ManagedResourceConfiguration input, final ManagedResourceConfiguration output) {
@@ -260,9 +239,9 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         else return resource2 != null &&
                 Objects.equals(resource1.getConnectionString(),  resource2.getConnectionString()) &&
                 Objects.equals(resource1.getConnectionType(), resource2.getConnectionType()) &&
-                Objects.equals(resource1.getElements(ManagedResourceConfiguration.AttributeConfiguration.class), resource2.getElements(ManagedResourceConfiguration.AttributeConfiguration.class)) &&
-                Objects.equals(resource1.getElements(ManagedResourceConfiguration.EventConfiguration.class), resource2.getElements(ManagedResourceConfiguration.EventConfiguration.class)) &&
-                Objects.equals(resource1.getElements(ManagedResourceConfiguration.OperationConfiguration.class), resource2.getElements(ManagedResourceConfiguration.OperationConfiguration.class)) &&
+                Objects.equals(resource1.getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class), resource2.getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class)) &&
+                Objects.equals(resource1.getFeatures(ManagedResourceConfiguration.EventConfiguration.class), resource2.getFeatures(ManagedResourceConfiguration.EventConfiguration.class)) &&
+                Objects.equals(resource1.getFeatures(ManagedResourceConfiguration.OperationConfiguration.class), resource2.getFeatures(ManagedResourceConfiguration.OperationConfiguration.class)) &&
                 equals(resource1.getParameters(), resource2.getParameters());
     }
 }

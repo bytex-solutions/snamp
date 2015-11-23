@@ -20,7 +20,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
 public final class ConfiguredResourcesCommand extends ConfigurationCommand {
     @Override
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
-        for(final Map.Entry<String, ManagedResourceConfiguration> resource: configuration.getManagedResources().entrySet())
+        for(final Map.Entry<String, ? extends ManagedResourceConfiguration> resource: configuration.getManagedResources().entrySet())
             IOUtils.appendln(output, "Resource: %s. Type: %s. Connection string: %s", resource.getKey(),
                     resource.getValue().getConnectionType(),
                     resource.getValue().getConnectionString());

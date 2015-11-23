@@ -75,19 +75,19 @@ public final class ResourceInfoCommand extends ConfigurationCommand {
                 IOUtils.appendln(output, "%s = %s", pair.getKey(), pair.getValue());
             if(showAttributes) {
                 IOUtils.appendln(output, "==ATTRIBUTES==");
-                for (final Map.Entry<String, AttributeConfiguration> attr : getFeatures(resource, AttributeConfiguration.class))
+                for (final Map.Entry<String, ? extends AttributeConfiguration> attr : getFeatures(resource, AttributeConfiguration.class))
                     printAttribute(attr.getKey(), attr.getValue(), output);
                 IOUtils.newLine(output);
             }
             if(showEvents){
                 IOUtils.appendln(output, "==EVENTS==");
-                for (final Map.Entry<String, EventConfiguration> attr : getFeatures(resource, EventConfiguration.class))
+                for (final Map.Entry<String, ? extends EventConfiguration> attr : getFeatures(resource, EventConfiguration.class))
                     printEvent(attr.getKey(), attr.getValue(), output);
                 IOUtils.newLine(output);
             }
             if(showOperations){
                 IOUtils.appendln(output, "==OPERATIONS==");
-                for (final Map.Entry<String, OperationConfiguration> attr : getFeatures(resource, OperationConfiguration.class))
+                for (final Map.Entry<String, ? extends OperationConfiguration> attr : getFeatures(resource, OperationConfiguration.class))
                     printOperation(attr.getKey(), attr.getValue(), output);
                 IOUtils.newLine(output);
             }

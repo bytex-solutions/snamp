@@ -34,23 +34,21 @@ public final class ConfigAdapterInstanceCommand extends ConfigurationCommand {
 
     @Override
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
-        if(Strings.isNullOrEmpty(instanceName)) return false;
+        if (Strings.isNullOrEmpty(instanceName)) return false;
         final ResourceAdapterConfiguration adapter;
-        if(configuration.getResourceAdapters().containsKey(instanceName)){//modify existing adapter
+        if (configuration.getResourceAdapters().containsKey(instanceName)) {//modify existing adapter
             adapter = configuration.getResourceAdapters().get(instanceName);
             output.append("Updated");
-        }
-        else {  //create new adapter instance
-            adapter = configuration.newConfigurationEntity(ResourceAdapterConfiguration.class);
-            configuration.getResourceAdapters().put(instanceName, adapter);
+        } else {  //create new adapter instance
+            adapter = configuration.getResourceAdapters().getOrAdd(instanceName);
             output.append("Created");
         }
         //setup system name
-        if(!Strings.isNullOrEmpty(systemName))
+        if (!Strings.isNullOrEmpty(systemName))
             adapter.setAdapterName(systemName);
         //setup parameters
-        if(!ArrayUtils.isNullOrEmpty(parameters))
-            for(final String pair: parameters){
+        if (!ArrayUtils.isNullOrEmpty(parameters))
+            for (final String pair : parameters) {
                 final StringKeyValue keyValue = StringKeyValue.parse(pair);
                 adapter.getParameters().put(keyValue.getKey(), keyValue.getValue());
             }

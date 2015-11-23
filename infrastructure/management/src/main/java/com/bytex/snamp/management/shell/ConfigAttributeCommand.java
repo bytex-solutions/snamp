@@ -45,28 +45,21 @@ public final class ConfigAttributeCommand extends ConfigurationCommand {
 
     @Override
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
-        if(configuration.getManagedResources().containsKey(resourceName)){
+        if (configuration.getManagedResources().containsKey(resourceName)) {
             final ManagedResourceConfiguration resource = configuration.getManagedResources().get(resourceName);
-            final AttributeConfiguration attribute;
-            if(resource.getElements(AttributeConfiguration.class).containsKey(userDefinedName))
-                attribute = resource.getElements(AttributeConfiguration.class).get(userDefinedName);
-            else {
-                attribute = resource.newElement(AttributeConfiguration.class);
-                resource.getElements(AttributeConfiguration.class).put(userDefinedName, attribute);
-            }
-            if(!Strings.isNullOrEmpty(systemName))
+            final AttributeConfiguration attribute = resource.getFeatures(AttributeConfiguration.class).getOrAdd(userDefinedName);
+            if (!Strings.isNullOrEmpty(systemName))
                 attribute.setAttributeName(systemName);
-            if(readWriteTimeout > INFINITE_TIMEOUT)
+            if (readWriteTimeout > INFINITE_TIMEOUT)
                 attribute.setReadWriteTimeout(TimeSpan.ofMillis(readWriteTimeout));
-            if(!ArrayUtils.isNullOrEmpty(parameters))
-                for(final String param: parameters) {
+            if (!ArrayUtils.isNullOrEmpty(parameters))
+                for (final String param : parameters) {
                     final StringKeyValue pair = StringKeyValue.parse(param);
                     attribute.getParameters().put(pair.getKey(), pair.getValue());
                 }
             output.append("Attribute configured successfully");
             return true;
-        }
-        else {
+        } else {
             output.append("Resource doesn't exist");
             return false;
         }
