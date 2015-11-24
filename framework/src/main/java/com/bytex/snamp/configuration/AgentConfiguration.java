@@ -103,6 +103,11 @@ public interface AgentConfiguration extends Cloneable {
     interface ManagedResourceConfiguration extends EntityConfiguration {
 
         /**
+         * Represents name of the configuration parameter that can be used to enable Smart mode of the connector.
+         */
+        String SMART_MODE_PARAM = "smartMode";
+
+        /**
          * Represents a feature of the managed resource.
          * @author Roman Sakno
          * @since 1.0
@@ -139,6 +144,11 @@ public interface AgentConfiguration extends Cloneable {
          */
         interface AttributeConfiguration extends FeatureConfiguration {
             /**
+             * Recommended timeout for read/write of attribute in smart mode.
+             */
+            TimeSpan TIMEOUT_FOR_SMART_MODE = TimeSpan.ofSeconds(10);
+
+            /**
              * Gets attribute value invoke/write operation timeout.
              * @return Gets attribute value invoke/write operation timeout.
              */
@@ -170,6 +180,11 @@ public interface AgentConfiguration extends Cloneable {
          * @version 1.0
          */
         interface OperationConfiguration extends FeatureConfiguration{
+            /**
+             * Recommended timeout for invocation of operation in smart mode.
+             */
+            TimeSpan TIMEOUT_FOR_SMART_MODE = TimeSpan.ofSeconds(10);
+
             /**
              * Gets name of the managed resource operation.
              * @return The name of the managed resource operation.

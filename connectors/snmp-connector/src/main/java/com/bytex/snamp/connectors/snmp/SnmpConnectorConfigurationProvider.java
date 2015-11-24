@@ -13,7 +13,7 @@ import java.util.Map;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
-import static com.bytex.snamp.connectors.ManagedResourceConnector.SMART_MODE_PARAM;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.SMART_MODE_PARAM;
 
 /**
  * Represents SNMP connector configuration descriptor.

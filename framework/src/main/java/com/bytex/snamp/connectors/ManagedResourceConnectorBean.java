@@ -362,7 +362,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                 if(method.getMethod().isAnnotationPresent(ManagementOperation.class)){
                     final JavaBeanOperationInfo operation = enableOperation(method.getDisplayName(),
                             method.getName(),
-                            TIMEOUT_FOR_SMART_MODE,
+                            OperationConfiguration.TIMEOUT_FOR_SMART_MODE,
                             AUTO_PROPS);
                     if(operation != null) result.add(operation);
                 }
@@ -623,7 +623,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             for (final PropertyDescriptor property : properties)
                 if (!isReservedProperty(property)) {
                     final JavaBeanAttributeInfo attr =
-                            addAttribute(property.getDisplayName(), property.getName(), TIMEOUT_FOR_SMART_MODE, AUTO_PROPS);
+                            addAttribute(property.getDisplayName(), property.getName(), AttributeConfiguration.TIMEOUT_FOR_SMART_MODE, AUTO_PROPS);
                     if (attr != null) result.add(attr);
                 }
             return result;

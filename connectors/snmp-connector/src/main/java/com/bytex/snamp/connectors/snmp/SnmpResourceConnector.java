@@ -4,6 +4,7 @@ import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor;
 import com.bytex.snamp.concurrent.ConcurrentResourceAccessor;
+import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
 import com.bytex.snamp.connectors.attributes.*;
@@ -768,7 +769,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
                                 parameters.put(SNMP_CONVERSION_FORMAT_PARAM, OctetStringConversionFormat.adviceFormat((OctetString) binding.getVariable()));
                             final SnmpAttributeInfo attr = addAttribute(binding.getOid().toDottedString(),
                                     binding.getOid().toDottedString(),
-                                    TIMEOUT_FOR_SMART_MODE,
+                                    AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.TIMEOUT_FOR_SMART_MODE,
                                     CompositeDataUtils.create(parameters, SimpleType.STRING));
                             if(attr != null) result.add(attr);
                         }

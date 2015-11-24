@@ -1,6 +1,7 @@
 package com.bytex.snamp.connectors;
 
 import com.bytex.snamp.Descriptive;
+import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.connectors.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connectors.attributes.AttributeSupport;
 import com.bytex.snamp.connectors.notifications.AbstractNotificationRepository;
@@ -363,8 +364,8 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
     }
 
     public static boolean isSmartModeEnabled(final Map<String, ?> parameters) {
-        if(parameters.containsKey(SMART_MODE_PARAM)){
-            final Object smartMode = parameters.get(SMART_MODE_PARAM);
+        if(parameters.containsKey(AgentConfiguration.ManagedResourceConfiguration.SMART_MODE_PARAM)){
+            final Object smartMode = parameters.get(AgentConfiguration.ManagedResourceConfiguration.SMART_MODE_PARAM);
             return Objects.equals(smartMode, Boolean.TRUE) || Objects.equals(smartMode, Boolean.TRUE.toString());
         }
         else return false;

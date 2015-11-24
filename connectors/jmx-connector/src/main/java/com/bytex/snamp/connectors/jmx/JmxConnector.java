@@ -3,6 +3,7 @@ package com.bytex.snamp.connectors.jmx;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.GroupedThreadFactory;
+import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
 import com.bytex.snamp.connectors.attributes.AbstractAttributeRepository;
@@ -223,7 +224,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
                                     operationInfo.getName();
                             final JmxOperationInfo op = enableOperation(operationID,
                                     operationInfo.getName(),
-                                    TIMEOUT_FOR_SMART_MODE,
+                                    AgentConfiguration.ManagedResourceConfiguration.OperationConfiguration.TIMEOUT_FOR_SMART_MODE,
                                     toConfigurationParameters(globalObjectName));
                             if (op != null) output.add(op);
                         }
@@ -390,7 +391,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
                             final String attributeID = attributeInfo.getName();
                             final JmxAttributeInfo attr = addAttribute(attributeID,
                                     attributeInfo.getName(),
-                                    TIMEOUT_FOR_SMART_MODE,
+                                    AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.TIMEOUT_FOR_SMART_MODE,
                                     toConfigurationParameters(globalObjectName));
                             if(attr != null) output.add(attr);
                         }
