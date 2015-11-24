@@ -1,7 +1,6 @@
 package com.bytex.snamp.configuration;
 
 import com.bytex.snamp.TimeSpan;
-import com.google.common.base.Function;
 
 import java.util.Map;
 
@@ -61,7 +60,7 @@ public interface AgentConfiguration extends Cloneable {
      */
     interface EntityMap<E extends EntityConfiguration> extends Map<String, E>{
         /**
-         * Gets existing configuration entity or creates a new entity.
+         * Gets existing configuration entity; or creates and registers a new entity.
          * @param entityID Identifier of the configuration entity.
          * @return Configuration entity from the catalog.
          */

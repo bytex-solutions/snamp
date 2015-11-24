@@ -8,7 +8,6 @@ import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfigura
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.jmx.CompositeDataBuilder;
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
@@ -20,7 +19,8 @@ import javax.management.openmbean.CompositeData;
 import java.io.File;
 import java.math.BigInteger;
 import java.util.Date;
-import java.util.Map;
+
+import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
 
 
 /**
@@ -262,57 +262,48 @@ public final class ActiveMQTest extends AbstractMQConnectorTest {
     }
 
     @Override
-    protected void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory) {
-        AttributeConfiguration attribute = attributeFactory.get();
+    protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
+        AttributeConfiguration attribute = attributes.getOrAdd("1.0");
         attribute.setAttributeName("string");
         attribute.getParameters().put("expectedType", "string");
-        attributes.put("1.0", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("2.0");
         attribute.setAttributeName("boolean");
         attribute.getParameters().put("expectedType", "bool");
-        attributes.put("2.0", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("3.0");
         attribute.setAttributeName("int32");
         attribute.getParameters().put("expectedType", "int32");
-        attributes.put("3.0", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("4.0");
         attribute.setAttributeName("bigint");
         attribute.getParameters().put("expectedType", "bigint");
-        attributes.put("4.0", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("5.1");
         attribute.setAttributeName("array");
         attribute.getParameters().put("expectedType", "array(int32)");
-        attributes.put("5.1", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("6.1");
         attribute.setAttributeName("dictionary");
         attribute.getParameters().put("expectedType", "dictionary");
         attribute.getParameters().put("dictionaryName", "MemoryStatus");
         attribute.getParameters().put("dictionaryItemNames", "free, total");
         attribute.getParameters().put("dictionaryItemTypes", "int32, int32");
-        attributes.put("6.1", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("8.0");
         attribute.setAttributeName("float");
         attribute.getParameters().put("expectedType", "float32");
-        attributes.put("8.0", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("9.0");
         attribute.setAttributeName("date");
         attribute.getParameters().put("expectedType", "datetime");
-        attributes.put("9.0", attribute);
     }
 
     @Override
-    protected void fillEvents(final Map<String, EventConfiguration> events, final Supplier<EventConfiguration> eventFactory) {
-        EventConfiguration event = eventFactory.get();
+    protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
+        EventConfiguration event = events.getOrAdd("mqn");
         event.setCategory("mq-notification");
         event.getParameters().put("severity", "notice");
         event.getParameters().put("expectedType", "string");
-        events.put("mqn", event);
     }
 }

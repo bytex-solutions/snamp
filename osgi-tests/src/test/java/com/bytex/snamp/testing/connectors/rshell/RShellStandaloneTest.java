@@ -1,6 +1,5 @@
 package com.bytex.snamp.testing.connectors.rshell;
 
-import com.google.common.base.Supplier;
 import com.bytex.snamp.concurrent.FutureThread;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
@@ -13,9 +12,10 @@ import org.osgi.framework.BundleContext;
 
 import javax.management.JMException;
 import javax.management.openmbean.CompositeData;
-import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+
+import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
 
 /**
  * @author Roman Sakno
@@ -38,11 +38,10 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
     }
 
     @Override
-    protected void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory) {
-        AttributeConfiguration attribute = attributeFactory.get();
+    protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
+        AttributeConfiguration attribute = attributes.getOrAdd("ms");
         attribute.setAttributeName(getPathToFileInProjectRoot("freemem-tool-profile.xml"));
         attribute.getParameters().put("format", "-m");
-        attributes.put("ms", attribute);
     }
 
     @Test()

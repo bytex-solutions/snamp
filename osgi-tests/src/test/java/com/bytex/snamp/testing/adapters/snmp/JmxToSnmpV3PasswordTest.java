@@ -3,6 +3,7 @@ package com.bytex.snamp.testing.adapters.snmp;
 import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
+import com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
 import com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import com.bytex.snamp.connectors.notifications.Severity;
 import com.bytex.snamp.testing.SnampDependencies;
@@ -10,7 +11,6 @@ import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.SnmpTable;
 import com.bytex.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connectors.jmx.TestOpenMBean;
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -102,7 +101,7 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
     }
 
     @Test
-    public final void testForStringProperty() throws IOException, BundleException {
+    public void testForStringProperty() throws IOException, BundleException {
             final String valueToCheck = "SETTED VALUE";
             final OID attributeId = new OID("1.1.1.0");
             client.writeAttribute(attributeId, valueToCheck, String.class);
@@ -111,7 +110,7 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
     }
 
     @Test
-    public final void testForFloatProperty() throws IOException, BundleException {
+    public void testForFloatProperty() throws IOException, BundleException {
             final float valueToCheck = 31.337F;
             final OID oid = new OID("1.1.8.0");
             client.writeAttribute(oid, valueToCheck, Float.class);
@@ -120,7 +119,7 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
     }
 
     @Test
-    public final void testForDatePropertyCustomDisplayFormat() throws IOException, BundleException {
+    public void testForDatePropertyCustomDisplayFormat() throws IOException, BundleException {
             final Calendar cal = Calendar.getInstance();
             cal.set(1994, Calendar.APRIL, 5); // Kurt Donald Cobain, good night, sweet prince
             cal.set(Calendar.MILLISECOND, 0);
@@ -132,7 +131,7 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
     }
 
     @Test
-    public final void testForDatePropertyRFC1903HumanReadable() throws IOException, BundleException {
+    public void testForDatePropertyRFC1903HumanReadable() throws IOException, BundleException {
             final Calendar cal = Calendar.getInstance();
             cal.set(1994, Calendar.APRIL, 5); // Kurt Donald Cobain, good night, sweet prince
             cal.set(Calendar.MILLISECOND, 0);
@@ -145,7 +144,7 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
     }
 
     @Test
-    public final void testForDatePropertyRFC1903() throws IOException, BundleException {
+    public void testForDatePropertyRFC1903() throws IOException, BundleException {
             final Calendar cal = Calendar.getInstance();
             cal.set(1994, Calendar.APRIL, 5); // Kurt Donald Cobain, good night, sweet prince
             cal.set(Calendar.MILLISECOND, 0);
@@ -158,7 +157,7 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
     }
 
     @Test
-    public final void testForBooleanProperty() throws IOException, BundleException {
+    public void testForBooleanProperty() throws IOException, BundleException {
             final boolean valueToCheck = true;
             final OID oid = new OID("1.1.2.0");
             client.writeAttribute(oid, valueToCheck, Boolean.class);
@@ -167,7 +166,7 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
     }
 
     @Test
-    public final void testForInt32Property() throws IOException, BundleException {
+    public void testForInt32Property() throws IOException, BundleException {
             final int valueToCheck = 42;
             final OID oid = new OID("1.1.3.0");
             client.writeAttribute(oid, valueToCheck, Integer.class);
@@ -176,7 +175,7 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
     }
 
     @Test
-    public final void testForBigIntProperty() throws IOException, BundleException {
+    public void testForBigIntProperty() throws IOException, BundleException {
             final BigInteger valueToCheck = new BigInteger("100500");
             final OID oid = new OID("1.1.4.0");
             client.writeAttribute(oid, valueToCheck, BigInteger.class);
@@ -190,7 +189,7 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
     }
 
     @Test
-    public final void testForTableProperty() throws Exception {
+    public void testForTableProperty() throws Exception {
         final SnmpTable table = new AbstractSnmpTable(Boolean.class, Integer.class, String.class) {
             private final ImmutableList<Variable[]> rows = ImmutableList.of(
                     new Variable[]{new Integer32(0), new Integer32(4230), new OctetString("Row #1")},
@@ -231,7 +230,7 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
     }
 
     @Test
-    public final void testForArrayProperty() throws Exception {
+    public void testForArrayProperty() throws Exception {
         SnmpTable array = new AbstractSnmpTable() {
             private final ImmutableList<Variable[]> rows = ImmutableList.of(
                     new Variable[]{new Integer32(20)},
@@ -261,7 +260,7 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
     }
 
     @Test
-    public final void testForDictionaryProperty() throws Exception {
+    public void testForDictionaryProperty() throws Exception {
         SnmpTable dict = new AbstractSnmpTable() {
             private final Variable[] row = {
                     new Integer32(0),
@@ -297,7 +296,7 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
     }
 
     @Test
-    public final void notificationTest() throws IOException, TimeoutException, InterruptedException, BundleException, ExecutionException {
+    public void notificationTest() throws IOException, TimeoutException, InterruptedException, BundleException, ExecutionException {
         final Future<SnmpNotification> awaitor1 = client.addNotificationListener(new OID("1.1.19.1"));
         final Future<SnmpNotification> awaitor2 = client.addNotificationListener(new OID("1.1.20.1"));
         client.writeAttribute(new OID("1.1.1.0"), "NOTIFICATION TEST", String.class);
@@ -313,15 +312,14 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
     }
 
     @Override
-    protected void fillAdapters(final Map<String, ResourceAdapterConfiguration> adapters, final Supplier<ResourceAdapterConfiguration> adapterFactory) {
-        final ResourceAdapterConfiguration snmpAdapter = adapterFactory.get();
+    protected void fillAdapters(final EntityMap<? extends ResourceAdapterConfiguration> adapters) {
+        final ResourceAdapterConfiguration snmpAdapter = adapters.getOrAdd("test-snmp");
         snmpAdapter.setAdapterName(ADAPTER_NAME);
         snmpAdapter.getParameters().put("port", SNMP_PORT);
         snmpAdapter.getParameters().put("host", SNMP_HOST);
         snmpAdapter.getParameters().put("socketTimeout", "5000");
         snmpAdapter.getParameters().put("engineID", ENGINE_ID);
         snmpAdapter.getParameters().put("context", "1.1");
-        adapters.put("test-snmp", snmpAdapter);
         snmpAdapter.getParameters().put("snmpv3-groups", "group1; group2");
         //group1 setup
         snmpAdapter.getParameters().put("group1-security-level", "authPriv");
@@ -340,95 +338,82 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
     }
 
     @Override
-    protected void fillEvents(final Map<String, EventConfiguration> events, final Supplier<EventConfiguration> eventFactory) {
-        EventConfiguration event = eventFactory.get();
+    protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
+        EventConfiguration event = events.getOrAdd("19.1");
         event.setCategory(AttributeChangeNotification.ATTRIBUTE_CHANGE);
         event.getParameters().put("severity", "notice");
         event.getParameters().put("objectName", BEAN_NAME);
         event.getParameters().put("receiverAddress", SNMP_HOST + "/" + client.getClientPort());
         event.getParameters().put("receiverName", "test-receiver-1");
         event.getParameters().put("oid", "1.1.19.1");
-        events.put("19.1", event);
 
-        event = eventFactory.get();
+        event = events.getOrAdd("20.1");
         event.setCategory("com.bytex.snamp.connectors.tests.impl.testnotif");
         event.getParameters().put("severity", "panic");
         event.getParameters().put("objectName", BEAN_NAME);
         event.getParameters().put("receiverAddress", SNMP_HOST + "/" + client.getClientPort());
         event.getParameters().put("receiverName", "test-receiver-2");
         event.getParameters().put("oid", "1.1.20.1");
-        events.put("20.1", event);
     }
 
     @Override
-    protected void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory) {
-        AttributeConfiguration attribute = attributeFactory.get();
+    protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
+        AttributeConfiguration attribute = attributes.getOrAdd("1.0");
         attribute.setAttributeName("string");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.1.0");
-        attributes.put("1.0", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("2.0");
         attribute.setAttributeName("boolean");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.2.0");
-        attributes.put("2.0", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("3.0");
         attribute.setAttributeName("int32");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.3.0");
-        attributes.put("3.0", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("4.0");
         attribute.setAttributeName("bigint");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.4.0");
-        attributes.put("4.0", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("5.1");
         attribute.setAttributeName("array");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.5.1");
-        attributes.put("5.1", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("6.1");
         attribute.setAttributeName("dictionary");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.6.1");
-        attributes.put("6.1", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("7.1");
         attribute.setAttributeName("table");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.7.1");
-        attributes.put("7.1", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("8.0");
         attribute.setAttributeName("float");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.8.0");
-        attributes.put("8.0", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("9.0");
         attribute.setAttributeName("date");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("displayFormat", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
         attribute.getParameters().put("oid", "1.1.9.0");
-        attributes.put("9.0", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("10.0");
         attribute.setAttributeName("date");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("displayFormat", "rfc1903-human-readable");
         attribute.getParameters().put("oid", "1.1.10.0");
-        attributes.put("10.0", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("11.0");
         attribute.setAttributeName("date");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("displayFormat", "rfc1903");
         attribute.getParameters().put("oid", "1.1.11.0");
-        attributes.put("11.0", attribute);
     }
 }

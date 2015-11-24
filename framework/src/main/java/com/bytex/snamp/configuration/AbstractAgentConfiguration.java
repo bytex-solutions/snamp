@@ -1,8 +1,5 @@
 package com.bytex.snamp.configuration;
 
-import com.google.common.base.Function;
-import com.google.common.base.Supplier;
-
 import java.util.Map;
 import java.util.Objects;
 
@@ -76,6 +73,14 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         additionalElements.putAll(source.getParameters());
     }
 
+    public static void copy(final ManagedResourceConfiguration.OperationConfiguration source, final ManagedResourceConfiguration.OperationConfiguration dest){
+        dest.setOperationName(source.getOperationName());
+        dest.setInvocationTimeout(source.getInvocationTimeout());
+        final Map<String, String> additionalElements = dest.getParameters();
+        additionalElements.clear();
+        additionalElements.putAll(source.getParameters());
+    }
+
     private static void copyAttributes(final Map<String, ? extends ManagedResourceConfiguration.AttributeConfiguration> input,
                                        final EntityMap<? extends ManagedResourceConfiguration.AttributeConfiguration> output){
         if(input != null && output != null) {
@@ -101,6 +106,18 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         }
     }
 
+    private static void copyOperations(final Map<String, ? extends ManagedResourceConfiguration.OperationConfiguration> input,
+                                   final EntityMap<? extends ManagedResourceConfiguration.OperationConfiguration> output) {
+        if (input != null && output != null) {
+            output.clear();
+            for (final Map.Entry<String, ? extends ManagedResourceConfiguration.OperationConfiguration> entry : input.entrySet()) {
+                final ManagedResourceConfiguration.OperationConfiguration inputOp = entry.getValue();
+                final ManagedResourceConfiguration.OperationConfiguration outputOp = output.getOrAdd(entry.getKey());
+                copy(inputOp, outputOp);
+            }
+        }
+    }
+
     public static void copy(final ManagedResourceConfiguration input, final ManagedResourceConfiguration output){
         output.setConnectionString(input.getConnectionString());
         output.setConnectionType(input.getConnectionType());
@@ -114,6 +131,9 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         );
         copyEvents(input.getFeatures(ManagedResourceConfiguration.EventConfiguration.class),
                 output.getFeatures(ManagedResourceConfiguration.EventConfiguration.class)
+        );
+        copyOperations(input.getFeatures(ManagedResourceConfiguration.OperationConfiguration.class),
+                output.getFeatures(ManagedResourceConfiguration.OperationConfiguration.class)
         );
     }
 

@@ -14,7 +14,6 @@ import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connectors.AbstractResourceConnectorTest;
 import com.bytex.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connectors.jmx.TestOpenMBean;
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import org.apache.vysper.mina.TCPEndpoint;
 import org.apache.vysper.storage.StorageProviderRegistry;
@@ -44,6 +43,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
@@ -68,12 +68,10 @@ public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean>
     }
 
     @Override
-    protected void fillAdapters(final Map<String, ResourceAdapterConfiguration> adapters,
-                                final Supplier<ResourceAdapterConfiguration> adapterFactory) {
-        final ResourceAdapterConfiguration xmppAdapter = adapterFactory.get();
+    protected void fillAdapters(final EntityMap<? extends ResourceAdapterConfiguration> adapters) {
+        final ResourceAdapterConfiguration xmppAdapter = adapters.getOrAdd(INSTANCE_NAME);
         xmppAdapter.setAdapterName(ADAPTER_NAME);
         fillParameters(xmppAdapter.getParameters());
-        adapters.put(INSTANCE_NAME, xmppAdapter);
     }
 
     private static void fillParameters(final Map<String, String> serverParameters){
@@ -238,46 +236,39 @@ public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean>
     }
 
     @Override
-    protected void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory) {
-        AttributeConfiguration attribute = attributeFactory.get();
+    protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
+        AttributeConfiguration attribute = attributes.getOrAdd("1.0");
         attribute.setAttributeName("string");
         attribute.getParameters().put("objectName", BEAN_NAME);
-        attributes.put("1.0", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("2.0");
         attribute.setAttributeName("boolean");
         attribute.getParameters().put("objectName", BEAN_NAME);
-        attributes.put("2.0", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("3.0");
         attribute.setAttributeName("int32");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("enableM2M", "true");
-        attributes.put("3.0", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("4.0");
         attribute.setAttributeName("bigint");
         attribute.getParameters().put("objectName", BEAN_NAME);
-        attributes.put("4.0", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("5.1");
         attribute.setAttributeName("array");
         attribute.getParameters().put("objectName", BEAN_NAME);
-        attributes.put("5.1", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("8.0");
         attribute.setAttributeName("float");
         attribute.getParameters().put("objectName", BEAN_NAME);
-        attributes.put("8.0", attribute);
     }
 
     @Override
-    protected void fillEvents(final Map<String, EventConfiguration> events, final Supplier<EventConfiguration> eventFactory) {
-        EventConfiguration event = eventFactory.get();
+    protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
+        EventConfiguration event = events.getOrAdd("19.1");
         event.setCategory(AttributeChangeNotification.ATTRIBUTE_CHANGE);
         event.getParameters().put("severity", "notice");
         event.getParameters().put("objectName", BEAN_NAME);
         event.getParameters().put("enableM2M", "true");
-        events.put("19.1", event);
     }
 }

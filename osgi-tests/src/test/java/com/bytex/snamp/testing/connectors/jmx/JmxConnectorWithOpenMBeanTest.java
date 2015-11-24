@@ -12,7 +12,6 @@ import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.bytex.snamp.jmx.TabularDataBuilder;
 import com.bytex.snamp.testing.connectors.AbstractResourceConnectorTest;
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
@@ -34,6 +33,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
 
 /**
@@ -48,75 +48,62 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
     }
 
     @Override
-    protected void fillOperations(final Map<String, OperationConfiguration> operations,
-                                  final Supplier<OperationConfiguration> operationFactory) {
-        OperationConfiguration operation = operationFactory.get();
+    protected void fillOperations(final EntityMap<? extends OperationConfiguration> operations) {
+        OperationConfiguration operation = operations.getOrAdd("res");
         operation.setOperationName("reverse");
         operation.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        operations.put("res", operation);
     }
 
     @Override
-    protected void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory) {
-        AttributeConfiguration attribute = attributeFactory.get();
+    protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
+        AttributeConfiguration attribute = attributes.getOrAdd("1.0");
         attribute.setAttributeName("string");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        attributes.put("1.0", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("2.0");
         attribute.setAttributeName("boolean");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        attributes.put("2.0", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("3.0");
         attribute.setAttributeName("int32");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        attributes.put("3.0", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("4.0");
         attribute.setAttributeName("bigint");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        attributes.put("4.0", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("5.0");
         attribute.setAttributeName("array");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        attributes.put("5.1", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("6.1");
         attribute.setAttributeName("dictionary");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        attributes.put("6.1", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("7.1");
         attribute.setAttributeName("table");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        attributes.put("7.1", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("8.0");
         attribute.setAttributeName("float");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        attributes.put("8.0", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("9.0");
         attribute.setAttributeName("date");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        attributes.put("9.0", attribute);
     }
 
     @Override
-    protected void fillEvents(final Map<String, EventConfiguration> events, final Supplier<EventConfiguration> eventFactory) {
-        EventConfiguration event = eventFactory.get();
+    protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
+        EventConfiguration event = events.getOrAdd("19.1");
         event.setCategory(AttributeChangeNotification.ATTRIBUTE_CHANGE);
         event.getParameters().put("severity", "notice");
         event.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        events.put("19.1", event);
 
-        event = eventFactory.get();
+        event = events.getOrAdd("20.1");
         event.setCategory("com.bytex.snamp.connectors.tests.impl.testnotif");
         event.getParameters().put("severity", "panic");
         event.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        events.put("20.1", event);
     }
 
     @Override

@@ -1,8 +1,5 @@
 package com.bytex.snamp.testing.management;
 
-import com.bytex.snamp.io.IOUtils;
-import com.google.common.base.Supplier;
-import com.google.common.collect.ImmutableMap;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.SafeConsumer;
@@ -10,11 +7,13 @@ import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.jmx.TabularDataUtils;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connectors.jmx.TestOpenMBean;
+import com.google.common.collect.ImmutableMap;
 import org.junit.ComparisonFailure;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -36,11 +35,14 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import static com.bytex.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
+
 
 /**
  * The type Snamp manager test.
@@ -716,85 +718,73 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
     }
 
     @Override
-    protected void fillAdapters(final Map<String, AgentConfiguration.ResourceAdapterConfiguration> adapters, final Supplier<AgentConfiguration.ResourceAdapterConfiguration> adapterFactory) {
-        final AgentConfiguration.ResourceAdapterConfiguration snmpAdapter = adapterFactory.get();
+    protected void fillAdapters(final EntityMap<? extends ResourceAdapterConfiguration> adapters) {
+        final AgentConfiguration.ResourceAdapterConfiguration snmpAdapter = adapters.getOrAdd(ADAPTER_INSTANCE_NAME);
         snmpAdapter.setAdapterName(ADAPTER_NAME);
         snmpAdapter.getParameters().put("port", SNMP_PORT);
         snmpAdapter.getParameters().put("host", SNMP_HOST);
         snmpAdapter.getParameters().put("socketTimeout", "5000");
         snmpAdapter.getParameters().put("context", "1.1");
-        adapters.put(ADAPTER_INSTANCE_NAME, snmpAdapter);
     }
 
     @Override
-    protected void fillAttributes(final Map<String, AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> attributes, final Supplier<AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> attributeFactory) {
-        AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration attribute = attributeFactory.get();
+    protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
+        AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration attribute = attributes.getOrAdd("1.0");
         attribute.setAttributeName("string");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.1.0");
-        attributes.put("1.0", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("2.0");
         attribute.setAttributeName("boolean");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.2.0");
-        attributes.put("2.0", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("3.0");
         attribute.setAttributeName("int32");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.3.0");
-        attributes.put("3.0", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("4.0");
         attribute.setAttributeName("bigint");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.4.0");
-        attributes.put("4.0", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("5.1");
         attribute.setAttributeName("array");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.5.1");
-        attributes.put("5.1", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("6.1");
         attribute.setAttributeName("dictionary");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.6.1");
-        attributes.put("6.1", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("7.1");
         attribute.setAttributeName("table");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.7.1");
-        attributes.put("7.1", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("8.0");
         attribute.setAttributeName("float");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.8.0");
-        attributes.put("8.0", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("9.0");
         attribute.setAttributeName("date");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("displayFormat", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
         attribute.getParameters().put("oid", "1.1.9.0");
-        attributes.put("9.0", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("10.0");
         attribute.setAttributeName("date");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("displayFormat", "rfc1903-human-readable");
         attribute.getParameters().put("oid", "1.1.10.0");
-        attributes.put("10.0", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("11.0");
         attribute.setAttributeName("date");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("displayFormat", "rfc1903");
         attribute.getParameters().put("oid", "1.1.11.0");
-        attributes.put("11.0", attribute);
     }
 }

@@ -18,7 +18,6 @@ import com.bytex.snamp.connectors.notifications.SynchronizationListener;
 import com.bytex.snamp.core.LogicalOperation;
 import com.bytex.snamp.core.RichLogicalOperation;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
@@ -39,6 +38,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
+
+import static com.bytex.snamp.configuration.AgentConfiguration.*;
 
 /**
  * Represents an abstract class for all integration tests that checks management connectors.
@@ -168,15 +169,15 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
 
 
 
-    protected void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory){
+    protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes){
 
     }
 
-    protected void fillEvents(final Map<String, EventConfiguration> events, final Supplier<EventConfiguration> eventFactory){
+    protected void fillEvents(final EntityMap<? extends EventConfiguration> events){
 
     }
 
-    protected void fillOperations(final Map<String, OperationConfiguration> operations, final Supplier<OperationConfiguration> operationFactory){
+    protected void fillOperations(final EntityMap<? extends OperationConfiguration> operations){
 
     }
 
@@ -218,7 +219,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         startResourceConnector(context);
     }
 
-    protected void fillAdapters(final Map<String, AgentConfiguration.ResourceAdapterConfiguration> adapters, final Supplier<AgentConfiguration.ResourceAdapterConfiguration> adapterFactory){
+    protected void fillAdapters(final EntityMap<? extends ResourceAdapterConfiguration> adapters){
 
     }
 
@@ -229,36 +230,15 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
      */
     @Override
     protected final void setupTestConfiguration(final AgentConfiguration config) {
-        final AgentConfiguration.ManagedResourceConfiguration targetConfig =
-                config.newConfigurationEntity(AgentConfiguration.ManagedResourceConfiguration.class);
+        final ManagedResourceConfiguration targetConfig =
+                config.getManagedResources().getOrAdd(TEST_RESOURCE_NAME);
         targetConfig.getParameters().putAll(connectorParameters);
-        fillAdapters(config.getResourceAdapters(), new Supplier<AgentConfiguration.ResourceAdapterConfiguration>() {
-            @Override
-            public AgentConfiguration.ResourceAdapterConfiguration get() {
-                return config.newConfigurationEntity(AgentConfiguration.ResourceAdapterConfiguration.class);
-            }
-        });
+        fillAdapters(config.getResourceAdapters());
         targetConfig.setConnectionString(connectionString);
         targetConfig.setConnectionType(connectorType);
-        fillAttributes(targetConfig.getElements(AttributeConfiguration.class), new Supplier<AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration>() {
-            @Override
-            public AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration get() {
-                return targetConfig.newElement(AttributeConfiguration.class);
-            }
-        });
-        fillEvents(targetConfig.getElements(EventConfiguration.class), new Supplier<AgentConfiguration.ManagedResourceConfiguration.EventConfiguration>() {
-            @Override
-            public AgentConfiguration.ManagedResourceConfiguration.EventConfiguration get() {
-                return targetConfig.newElement(EventConfiguration.class);
-            }
-        });
-        fillOperations(targetConfig.getElements(OperationConfiguration.class), new Supplier<OperationConfiguration>() {
-            @Override
-            public OperationConfiguration get() {
-                return targetConfig.newElement(OperationConfiguration.class);
-            }
-        });
-        config.getManagedResources().put(TEST_RESOURCE_NAME, targetConfig);
+        fillAttributes(targetConfig.getFeatures(AttributeConfiguration.class));
+        fillEvents(targetConfig.getFeatures(EventConfiguration.class));
+        fillOperations(targetConfig.getFeatures(OperationConfiguration.class));
     }
 
     protected final <T> void testAttribute(final String attributeName,

@@ -6,7 +6,6 @@ import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.notifications.NotificationSupport;
 import com.bytex.snamp.testing.connectors.AbstractResourceConnectorTest;
-import com.google.common.base.Supplier;
 import com.google.common.reflect.TypeToken;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
@@ -33,6 +32,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 
@@ -258,80 +258,64 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
     }
 
     @Override
-    protected void fillEvents(final Map<String, EventConfiguration> events, final Supplier<EventConfiguration> eventFactory) {
-        EventConfiguration event = eventFactory.get();
+    protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
+        EventConfiguration event = events.getOrAdd("snmp-notif");
         event.setCategory("1.7.1");
         event.getParameters().put("messageTemplate", "{1.0} - {2.0}");
-        events.put("snmp-notif", event);
     }
 
     @Override
-    protected void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory) {
-        AttributeConfiguration attribute = attributeFactory.get();
+    protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
+        AttributeConfiguration attribute = attributes.getOrAdd("opaqueAttr");
         attribute.setAttributeName("1.6.10.0");
-        attributes.put("opaqueAttr", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("ipAddressAsByte");
         attribute.setAttributeName("1.6.9.0");
-        attributes.put("ipAddressAsByte", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("ipAddressAsString");
         attribute.setAttributeName("1.6.9.0");
         attribute.getParameters().put("snmpConversionFormat", "text");
-        attributes.put("ipAddressAsString", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("oidAsIntArray");
         attribute.setAttributeName("1.6.8.0");
-        attributes.put("oidAsIntArray", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("oidAsString");
         attribute.setAttributeName("1.6.8.0");
         attribute.getParameters().put("snmpConversionFormat", "text");
-        attributes.put("oidAsString", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("gauge");
         attribute.setAttributeName("1.6.7.0");
-        attributes.put("gauge", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("counter64");
         attribute.setAttributeName("1.6.6.0");
-        attributes.put("counter64", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("counter32");
         attribute.setAttributeName("1.6.5.0");
-        attributes.put("counter32", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("timeTicksAsLong");
         attribute.setAttributeName("1.6.4.0");
-        attributes.put("timeTicksAsLong", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("timeTicksAsString");
         attribute.setAttributeName("1.6.4.0");
         attribute.getParameters().put("snmpConversionFormat", "text");
-        attributes.put("timeTicksAsString", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("uint32");
         attribute.setAttributeName("1.6.3.0");
-        attributes.put("uint32", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("int32");
         attribute.setAttributeName("1.6.2.0");
-        attributes.put("int32", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("octetstring");
         attribute.setAttributeName("1.6.1.0");
         attribute.getParameters().put("snmpConversionFormat", "text");
-        attributes.put("octetstring", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("hexstring");
         attribute.setAttributeName("1.6.1.0");
         attribute.getParameters().put("snmpConversionFormat", "hex");
-        attributes.put("hexstring", attribute);
 
-        attribute = attributeFactory.get();
+        attribute = attributes.getOrAdd("octetstringAsByteArray");
         attribute.setAttributeName("1.6.1.0");
         attribute.getParameters().put("snmpConversionFormat", "raw");
-        attributes.put("octetstringAsByteArray", attribute);
     }
 
     @Test

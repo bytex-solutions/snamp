@@ -186,7 +186,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
                 assertTrue(config.getManagedResources().containsKey("resource2"));
                 final AttributeConfiguration attribute = config.getManagedResources()
                         .get("resource2")
-                        .getElements(AttributeConfiguration.class)
+                        .getFeatures(AttributeConfiguration.class)
                         .get("attr");
                 assertNotNull(attribute);
                 assertEquals("memory", attribute.getAttributeName());
@@ -202,7 +202,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
                 assertTrue(config.getManagedResources().containsKey("resource2"));
                 final AttributeConfiguration attribute = config.getManagedResources()
                         .get("resource2")
-                        .getElements(AttributeConfiguration.class)
+                        .getFeatures(AttributeConfiguration.class)
                         .get("attr");
                 assertNotNull(attribute);
                 assertFalse(attribute.getParameters().containsKey("par"));
@@ -242,7 +242,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
                 assertTrue(config.getManagedResources().containsKey("resource2"));
                 final EventConfiguration attribute = config.getManagedResources()
                         .get("resource2")
-                        .getElements(EventConfiguration.class)
+                        .getFeatures(EventConfiguration.class)
                         .get("ev1");
                 assertNotNull(attribute);
                 assertEquals("onError", attribute.getCategory());
@@ -257,7 +257,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
                 assertTrue(config.getManagedResources().containsKey("resource2"));
                 final EventConfiguration attribute = config.getManagedResources()
                         .get("resource2")
-                        .getElements(EventConfiguration.class)
+                        .getFeatures(EventConfiguration.class)
                         .get("ev1");
                 assertNotNull(attribute);
                 assertFalse(attribute.getParameters().containsKey("par"));
@@ -291,7 +291,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
                 assertTrue(config.getManagedResources().containsKey("resource1"));
                 final EventConfiguration attribute = config.getManagedResources()
                         .get("resource1")
-                        .getElements(EventConfiguration.class)
+                        .getFeatures(EventConfiguration.class)
                         .get("ev1");
                 assertNotNull(attribute);
                 assertEquals("onError", attribute.getCategory());
@@ -308,7 +308,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
                 assertTrue(config.getManagedResources().containsKey("resource1"));
                 final AttributeConfiguration attribute = config.getManagedResources()
                         .get("resource1")
-                        .getElements(AttributeConfiguration.class)
+                        .getFeatures(AttributeConfiguration.class)
                         .get("attr");
                 assertNotNull(attribute);
                 assertEquals("memory", attribute.getAttributeName());
@@ -335,12 +335,11 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
     @Override
     protected void setupTestConfiguration(final AgentConfiguration config) {
         final ResourceAdapterConfiguration adapter =
-                config.newConfigurationEntity(ResourceAdapterConfiguration.class);
+                config.getResourceAdapters().getOrAdd("adapterInst");
         adapter.setAdapterName("dummyAdapter");
-        config.getResourceAdapters().put("adapterInst", adapter);
-        final ManagedResourceConfiguration resource = config.newConfigurationEntity(ManagedResourceConfiguration.class);
+        final ManagedResourceConfiguration resource =
+                config.getManagedResources().getOrAdd("resource1");
         resource.setConnectionType("dummyConnector");
         resource.setConnectionString("http://acme.com");
-        config.getManagedResources().put("resource1", resource);
     }
 }
