@@ -3,7 +3,7 @@ package com.bytex.snamp.connectors.wmq;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.SMART_MODE_PARAM;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.SMART_MODE_KEY;
 
 import java.net.URI;
 import java.util.Map;
@@ -23,7 +23,7 @@ final class MQConnectorConfigurationDescriptor extends ConfigurationEntityDescri
         private static final String RESOURCE_NAME = "ConnectorParameters";
 
         private ConnectorConfigurationDescriptor(){
-            super(RESOURCE_NAME, ManagedResourceConfiguration.class, QUEUE_MANAGER_PARAM, SMART_MODE_PARAM);
+            super(RESOURCE_NAME, ManagedResourceConfiguration.class, QUEUE_MANAGER_PARAM, SMART_MODE_KEY);
         }
     }
 

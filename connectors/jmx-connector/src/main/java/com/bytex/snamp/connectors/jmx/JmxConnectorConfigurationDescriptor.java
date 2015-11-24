@@ -26,7 +26,7 @@ import java.util.Objects;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.SMART_MODE_PARAM;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.SMART_MODE_KEY;
 import static com.bytex.snamp.connectors.ConfigurationEntityRuntimeMetadata.AUTOMATICALLY_ADDED_FIELD;
 
 /**
@@ -70,7 +70,7 @@ final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescr
                     JMX_LOGIN,
                     JMX_PASSWORD,
                     CONNECTION_CHECK_PERIOD,
-                    SMART_MODE_PARAM,
+                    SMART_MODE_KEY,
                     OBJECT_NAME_PROPERTY);
         }
     }

@@ -13,7 +13,7 @@ import java.util.Map;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.SMART_MODE_PARAM;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.SMART_MODE_KEY;
 
 /**
  * Represents SNMP connector configuration descriptor.
@@ -83,7 +83,7 @@ final class SnmpConnectorConfigurationProvider extends ConfigurationEntityDescri
                     KEEP_ALIVE_TIME_PROPERTY,
                     MIN_POOL_SIZE_PROPERTY,
                     MAX_POOL_SIZE_PROPERTY,
-                    SMART_MODE_PARAM);
+                    SMART_MODE_KEY);
         }
     }
 

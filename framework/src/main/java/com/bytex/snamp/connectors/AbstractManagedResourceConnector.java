@@ -364,8 +364,8 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
     }
 
     public static boolean isSmartModeEnabled(final Map<String, ?> parameters) {
-        if(parameters.containsKey(AgentConfiguration.ManagedResourceConfiguration.SMART_MODE_PARAM)){
-            final Object smartMode = parameters.get(AgentConfiguration.ManagedResourceConfiguration.SMART_MODE_PARAM);
+        if(parameters.containsKey(AgentConfiguration.ManagedResourceConfiguration.SMART_MODE_KEY)){
+            final Object smartMode = parameters.get(AgentConfiguration.ManagedResourceConfiguration.SMART_MODE_KEY);
             return Objects.equals(smartMode, Boolean.TRUE) || Objects.equals(smartMode, Boolean.TRUE.toString());
         }
         else return false;

@@ -105,7 +105,7 @@ public interface AgentConfiguration extends Cloneable {
         /**
          * Represents name of the configuration parameter that can be used to enable Smart mode of the connector.
          */
-        String SMART_MODE_PARAM = "smartMode";
+        String SMART_MODE_KEY = "smartMode";
 
         /**
          * Represents a feature of the managed resource.
@@ -114,6 +114,10 @@ public interface AgentConfiguration extends Cloneable {
          * @version 1.0
          */
         interface FeatureConfiguration extends EntityConfiguration {
+            /**
+             * Represents configuration parameter containing alternative name of the feature.
+             */
+            String NAME_KEY = "name";
         }
 
         /**
