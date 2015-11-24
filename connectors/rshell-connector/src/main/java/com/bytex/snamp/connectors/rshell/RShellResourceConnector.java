@@ -245,13 +245,13 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
         /**
          * Connects to the specified attribute.
          *
-         * @param attributeID The id of the attribute.
+         * @param attributeName The id of the attribute.
          * @param descriptor  Attribute descriptor.
          * @return The description of the attribute.
          * @throws Exception Internal connector error.
          */
         @Override
-        protected RShellAttributeInfo connectAttribute(final String attributeID,
+        protected RShellAttributeInfo connectAttribute(final String attributeName,
                                                        final AttributeDescriptor descriptor) throws Exception {
             final String commandProfileFilePath = descriptor.getAttributeName();
             final XmlCommandLineToolProfile profile = XmlCommandLineToolProfile.loadFrom(new File(commandProfileFilePath));
@@ -259,11 +259,11 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
                 profile.setScriptManager(scriptEngineManager);
                 switch (profile.getReaderTemplate().getCommandOutputParser().getParsingResultType()) {
                     case DICTIONARY:
-                        return new DictionaryAttributeInfo(attributeID, profile, descriptor);
+                        return new DictionaryAttributeInfo(attributeName, profile, descriptor);
                     case TABLE:
-                        return new TableAttributeInfo(attributeID, profile, descriptor);
+                        return new TableAttributeInfo(attributeName, profile, descriptor);
                     default:
-                        return new SimpleAttributeInfo(attributeID, profile, descriptor);
+                        return new SimpleAttributeInfo(attributeName, profile, descriptor);
                 }
             } else
                 throw new FileNotFoundException(commandProfileFilePath + " RShell command profile doesn't exist");

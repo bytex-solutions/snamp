@@ -31,7 +31,7 @@ public class MDAAttributeInfo<T> extends OpenMBeanAttributeAccessor<T> {
                                final OpenType<T> type,
                                final AttributeSpecifier specifier,
                                final AttributeDescriptor descriptor) {
-        super(name, descriptor.getDescription(name), type, specifier, descriptor);
+        super(name, name, type, specifier, descriptor);
         this.attributeType = type;
     }
 
@@ -45,8 +45,8 @@ public class MDAAttributeInfo<T> extends OpenMBeanAttributeAccessor<T> {
      * Gets storage key used by this attribute to read/write its own value.
      * @return The storage key.
      */
-    public final String getStorageKey(){
-        return getDescriptor().getAttributeName();
+    public final String getStorageKey() {
+        return getDescriptor().getName(getName());
     }
 
     final void init(final AccessTimer accessTimer, final TimeSpan expirationTime, final ConcurrentMap<String, Object> storage, final T initialValue){

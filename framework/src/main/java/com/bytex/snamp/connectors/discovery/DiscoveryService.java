@@ -75,7 +75,7 @@ public interface DiscoveryService extends SupportService {
      *     Do not add elements from the returned collection directly in {@link com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration#getFeatures(Class)}
      *     result set, use the following algorithm:
      *     <ul>
-     *         <li>Create a new managed entity with {@link com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration#registerFeature(Class)} method.</li>
+     *         <li>Create a new managed entity with {@link com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration#getFeatures(Class)} method.</li>
      *         <li>Use {@link com.bytex.snamp.configuration.AbstractAgentConfiguration#copy(com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration, com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration)}
      *         or {@link com.bytex.snamp.configuration.AbstractAgentConfiguration#copy(com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration, com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration)} method
      *         to copy managed entity returned by this method into the newly created entity.</li>

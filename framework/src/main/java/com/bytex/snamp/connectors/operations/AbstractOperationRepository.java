@@ -288,35 +288,33 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
 
     /**
      * Enables management operation.
-     * @param userDefinedName Custom-defined name of the management operation
      * @param operationName The name of the operation as it is declared in the resource.
      * @param invocationTimeout Max duration operation invocation.
      * @param options Operation execution options.
      * @return The metadata of enabled operation; or {@literal null}, if operation is not available.
      */
-    public final M enableOperation(final String userDefinedName,
-                                   final String operationName,
+    public final M enableOperation(final String operationName,
                                    final TimeSpan invocationTimeout,
                                    final CompositeData options){
         OperationHolder<M> holder;
         try(final LockScope ignored = beginWrite(AOSResource.OPERATIONS)){
-            holder = operations.get(userDefinedName);
+            holder = operations.get(operationName);
             if(holder != null)
                 if(holder.equals(operationName, options))
                     return holder.getMetadata();
                 else { //remove operation
                     operationRemoved(holder.getMetadata());
-                    holder = operations.remove(userDefinedName);
+                    holder = operations.remove(operationName);
                     //and register again
                     disableOperation(holder.getMetadata());
-                    final M metadata = enableOperation(userDefinedName, new OperationDescriptor(operationName, invocationTimeout, options));
+                    final M metadata = enableOperation(operationName, new OperationDescriptor(invocationTimeout, options));
                     if (metadata != null) {
                         operations.put(holder = new OperationHolder<>(metadata, operationName, options));
                         operationAdded(holder.getMetadata());
                     }
                 }
             else {
-                final M metadata = enableOperation(userDefinedName, new OperationDescriptor(operationName, invocationTimeout, options));
+                final M metadata = enableOperation(operationName, new OperationDescriptor(invocationTimeout, options));
                 if(metadata != null) {
                     operations.put(holder = new OperationHolder<>(metadata, operationName, options));
                     operationAdded(holder.getMetadata());
@@ -325,7 +323,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
             }
         }
         catch (final Exception e) {
-            failedToEnableOperation(userDefinedName, operationName, e);
+            failedToEnableOperation(operationName, e);
             holder = null;
         }
         return holder != null ? holder.getMetadata() : null;
@@ -335,28 +333,23 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      * Reports an error when enabling operation.
      * @param logger The logger instance. Cannot be {@literal null}.
      * @param logLevel Logging level.
-     * @param userDefinedName User-defined name of the operation.
      * @param operationName The name of the operation as it is declared in the resource.
      * @param e Internal connector error.
      */
     protected static void failedToEnableOperation(final Logger logger,
                                                       final Level logLevel,
-                                                      final String userDefinedName,
                                                       final String operationName,
                                                       final Exception e){
-        logger.log(logLevel, String.format("Failed to enable operation '%s' with name '%s'",
-                operationName, userDefinedName), e);
+        logger.log(logLevel, String.format("Failed to enable operation '%s'", operationName), e);
     }
 
     /**
      * Reports an error when enabling operation.
-     * @param userDefinedName User-defined name of the operation.
      * @param operationName The name of the operation as it is declared in the resource.
      * @param e Internal connector error.
-     * @see #failedToEnableOperation(Logger, Level, String, String, Exception)
+     * @see #failedToEnableOperation(Logger, Level, String, Exception)
      */
-    protected abstract void failedToEnableOperation(final String userDefinedName,
-                                                    final String operationName,
+    protected abstract void failedToEnableOperation(final String operationName,
                                                     final Exception e);
 
     /**

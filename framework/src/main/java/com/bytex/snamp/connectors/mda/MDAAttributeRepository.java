@@ -61,17 +61,17 @@ public abstract class MDAAttributeRepository<M extends MDAAttributeInfo> extends
     /**
      * Connects to the specified attribute.
      *
-     * @param attributeID The id of the attribute.
+     * @param attributeName The id of the attribute.
      * @param descriptor  Attribute descriptor.
      * @return The description of the attribute; or {@literal null},
      * @throws Exception Internal connector error.
      */
     @SuppressWarnings("unchecked")
     @Override
-    protected final M connectAttribute(final String attributeID, final AttributeDescriptor descriptor) throws Exception {
+    protected final M connectAttribute(final String attributeName, final AttributeDescriptor descriptor) throws Exception {
         final OpenType<?> attributeType = parseType(descriptor);
         if(attributeType == null) throw new IllegalStateException("User-defined type of attribute is not supported");
-        final M attribute = createAttributeMetadata(attributeID, descriptor.setOpenType(attributeType));
+        final M attribute = createAttributeMetadata(attributeName, descriptor.setOpenType(attributeType));
         attributeTypes.put(attribute.getStorageKey(), attributeType);
         attribute.init(lastWriteAccess, expirationTime, getStorage(), getDefaultValue(attributeType));
         return attribute;
@@ -126,8 +126,8 @@ public abstract class MDAAttributeRepository<M extends MDAAttributeInfo> extends
     protected abstract Logger getLogger();
 
     @Override
-    protected final void failedToConnectAttribute(final String attributeID, final String attributeName, final Exception e) {
-        failedToConnectAttribute(getLogger(), Level.WARNING, attributeID, attributeName, e);
+    protected final void failedToConnectAttribute(final String attributeName, final Exception e) {
+        failedToConnectAttribute(getLogger(), Level.WARNING, attributeName, e);
     }
 
     @Override

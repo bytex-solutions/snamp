@@ -118,6 +118,11 @@ public interface AgentConfiguration extends Cloneable {
              * Represents configuration parameter containing alternative name of the feature.
              */
             String NAME_KEY = "name";
+
+            /**
+             * Represents configuration parameter indicating that this feature was created by machine, not by human.
+             */
+            String AUTOMATICALLY_ADDED_KEY = "automaticallyAdded";
         }
 
         /**
@@ -127,17 +132,6 @@ public interface AgentConfiguration extends Cloneable {
          * @version 1.0
          */
         interface EventConfiguration extends FeatureConfiguration {
-            /**
-             * Gets the event category.
-             * @return The event category.
-             */
-            String getCategory();
-
-            /**
-             * Sets the category of the event to listen.
-             * @param eventCategory The category of the event to listen.
-             */
-            void setCategory(final String eventCategory);
         }
 
         /**
@@ -163,18 +157,6 @@ public interface AgentConfiguration extends Cloneable {
              * @param value A new value of the timeout.
              */
             void setReadWriteTimeout(final TimeSpan value);
-
-            /**
-             * Returns the attribute name.
-             * @return The attribute name.
-             */
-            String getAttributeName();
-
-            /**
-             * Sets the attribute name.
-             * @param attributeName The attribute name.
-             */
-            void setAttributeName(final String attributeName);
         }
 
         /**
@@ -190,12 +172,6 @@ public interface AgentConfiguration extends Cloneable {
             TimeSpan TIMEOUT_FOR_SMART_MODE = TimeSpan.ofSeconds(10);
 
             /**
-             * Gets name of the managed resource operation.
-             * @return The name of the managed resource operation.
-             */
-            String getOperationName();
-
-            /**
              * Gets timeout of operation invocation.
              * @return Timeout value.
              */
@@ -206,12 +182,6 @@ public interface AgentConfiguration extends Cloneable {
              * @param value A new timeout value.
              */
             void setInvocationTimeout(final TimeSpan value);
-
-            /**
-             * Sets name of the managed resource operation.
-             * @param operationName Name of the managed resource operation.
-             */
-            void setOperationName(final String operationName);
         }
 
         /**

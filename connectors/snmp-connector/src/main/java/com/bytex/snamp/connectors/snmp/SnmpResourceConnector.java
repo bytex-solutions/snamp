@@ -40,7 +40,7 @@ import java.util.logging.Logger;
 
 import static com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor.Action;
 import static com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor.ConsistentAction;
-import static com.bytex.snamp.connectors.ConfigurationEntityRuntimeMetadata.AUTOMATICALLY_ADDED_FIELD;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration.AUTOMATICALLY_ADDED_KEY;
 import static com.bytex.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.*;
 
 /**
@@ -626,13 +626,13 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         /**
          * Connects to the specified attribute.
          *
-         * @param attributeID The id of the attribute.
+         * @param attributeName The id of the attribute.
          * @param descriptor  Attribute descriptor.
          * @return The description of the attribute.
          * @throws Exception Internal connector error.
          */
         @Override
-        protected SnmpAttributeInfo connectAttribute(final String attributeID, final AttributeDescriptor descriptor) throws Exception {
+        protected SnmpAttributeInfo connectAttribute(final String attributeName, final AttributeDescriptor descriptor) throws Exception {
             final Variable value = client.read(new Action<SnmpClient, Variable, Exception>() {
                 private final TimeSpan responseTimeout = SnmpConnectorConfigurationProvider.getResponseTimeout(descriptor);
 
@@ -643,28 +643,28 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
             });
             if(value == null) throw JMExceptionUtils.attributeNotFound(descriptor.getAttributeName());
             else if(value instanceof Integer32)
-                return new Integer32AttributeInfo(attributeID, descriptor);
+                return new Integer32AttributeInfo(attributeName, descriptor);
             else if(value instanceof Null)
-                return new NullAttributeInfo(attributeID, descriptor);
+                return new NullAttributeInfo(attributeName, descriptor);
             else if(value instanceof Opaque)
-                return new OpaqueAttributeInfo(attributeID, descriptor);
+                return new OpaqueAttributeInfo(attributeName, descriptor);
             else if(value instanceof OctetString)
-                return new OctetStringAttributeInfo(attributeID, (OctetString)value, descriptor);
+                return new OctetStringAttributeInfo(attributeName, (OctetString)value, descriptor);
             else if(value instanceof OID)
-                return new OidAttributeInfo(attributeID, descriptor);
+                return new OidAttributeInfo(attributeName, descriptor);
             else if(value instanceof TimeTicks)
-                return new TimeTicksAttributeInfo(attributeID, descriptor);
+                return new TimeTicksAttributeInfo(attributeName, descriptor);
             else if(value instanceof Counter32)
-                return new Counter32AttributeInfo(attributeID, descriptor);
+                return new Counter32AttributeInfo(attributeName, descriptor);
             else if(value instanceof Counter64)
-                return new Counter64AttributeInfo(attributeID, descriptor);
+                return new Counter64AttributeInfo(attributeName, descriptor);
             else if(value instanceof Gauge32)
-                return new Gauge32AttributeInfo(attributeID, descriptor);
+                return new Gauge32AttributeInfo(attributeName, descriptor);
             else if(value instanceof UnsignedInteger32)
-                return new UnsignedInteger32AttributeInfo(attributeID, descriptor);
+                return new UnsignedInteger32AttributeInfo(attributeName, descriptor);
             else if(value instanceof IpAddress)
-                return new IpAddressAttributeInfo(attributeID, descriptor);
-            else return new ReadOnlyAttributeInfo(attributeID, descriptor);
+                return new IpAddressAttributeInfo(attributeName, descriptor);
+            else return new ReadOnlyAttributeInfo(attributeName, descriptor);
         }
 
         /**
@@ -764,7 +764,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
                         final LinkedList<SnmpAttributeInfo> result = new LinkedList<>();
                         for(final VariableBinding binding: client.walk(SnmpConnectorHelpers.getDiscoveryTimeout())){
                             final Map<String, String> parameters = new HashMap<>(5);
-                            parameters.put(AUTOMATICALLY_ADDED_FIELD, Boolean.TRUE.toString());
+                            parameters.put(AUTOMATICALLY_ADDED_KEY, Boolean.TRUE.toString());
                             if(binding.getVariable() instanceof OctetString)
                                 parameters.put(SNMP_CONVERSION_FORMAT_PARAM, OctetStringConversionFormat.adviceFormat((OctetString) binding.getVariable()));
                             final SnmpAttributeInfo attr = addAttribute(binding.getOid().toDottedString(),

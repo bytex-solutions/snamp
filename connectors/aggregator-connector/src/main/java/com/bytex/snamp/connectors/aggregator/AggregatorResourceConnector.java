@@ -43,19 +43,19 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
         }
 
         @Override
-        protected AbstractAttributeAggregation connectAttribute(final String attributeID, final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException, JMException {
+        protected AbstractAttributeAggregation connectAttribute(final String attributeName, final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException, JMException {
             switch (descriptor.getAttributeName()){
-                case PatternMatcher.NAME: return new PatternMatcher(attributeID, descriptor);
-                case UnaryComparison.NAME: return new UnaryComparison(attributeID, descriptor);
-                case BinaryComparison.NAME: return new BinaryComparison(attributeID, descriptor);
-                case BinaryPercent.NAME: return new BinaryPercent(attributeID, descriptor);
-                case UnaryPercent.NAME: return new UnaryPercent(attributeID, descriptor);
-                case Counter.NAME: return new Counter(attributeID, descriptor);
-                case Average.NAME: return new Average(attributeID, descriptor);
-                case Peak.NAME: return new Peak(attributeID, descriptor);
-                case Decomposer.NAME: return new Decomposer(attributeID, descriptor);
-                case Stringifier.NAME: return new Stringifier(attributeID, descriptor);
-                case Composer.NAME: return new Composer(attributeID, descriptor, getBundleContext());
+                case PatternMatcher.NAME: return new PatternMatcher(attributeName, descriptor);
+                case UnaryComparison.NAME: return new UnaryComparison(attributeName, descriptor);
+                case BinaryComparison.NAME: return new BinaryComparison(attributeName, descriptor);
+                case BinaryPercent.NAME: return new BinaryPercent(attributeName, descriptor);
+                case UnaryPercent.NAME: return new UnaryPercent(attributeName, descriptor);
+                case Counter.NAME: return new Counter(attributeName, descriptor);
+                case Average.NAME: return new Average(attributeName, descriptor);
+                case Peak.NAME: return new Peak(attributeName, descriptor);
+                case Decomposer.NAME: return new Decomposer(attributeName, descriptor);
+                case Stringifier.NAME: return new Stringifier(attributeName, descriptor);
+                case Composer.NAME: return new Composer(attributeName, descriptor, getBundleContext());
                 default: return null;
             }
         }

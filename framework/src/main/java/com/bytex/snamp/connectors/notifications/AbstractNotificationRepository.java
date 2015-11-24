@@ -102,11 +102,11 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
                                      final long sequenceNumber,
                                      final long timeStamp,
                                      final Object userData){
-            for(final String listID: metadata.getNotifTypes())
+            for(final String category: metadata.getNotifTypes())
                 add(new NotificationBuilder()
                         .setTimeStamp(timeStamp)
                         .setSequenceNumber(sequenceNumber)
-                        .setType(listID)
+                        .setType(category)
                         .setSource(AbstractNotificationRepository.this)
                         .setMessage(message)
                         .setUserData(userData)
@@ -202,25 +202,24 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
                               final String message,
                               final long sequenceNumber,
                               final long timeStamp,
-                              final Object userData){
-        if(isSuspended()) return; //check if events are suspended
+                              final Object userData) {
+        if (isSuspended()) return; //check if events are suspended
 
         final Collection<Notification> notifs;
         try (final LockScope ignored = beginRead(ANSResource.NOTIFICATIONS)) {
             notifs = Lists.newArrayListWithExpectedSize(notifications.size());
             for (final NotificationHolder<M> holder : notifications.values())
-                if (Objects.equals(NotificationDescriptor.getNotificationCategory(holder.getMetadata()), category))
-                    for (final String listID : holder.getMetadata().getNotifTypes()) {
-                        final Notification n = new NotificationBuilder()
-                                .setTimeStamp(timeStamp)
-                                .setSequenceNumber(sequenceNumber)
-                                .setType(listID)
-                                .setSource(this)
-                                .setMessage(message)
-                                .setUserData(userData)
-                                .get();
-                        notifs.add(n);
-                    }
+                if (Objects.equals(NotificationDescriptor.getName(holder.getMetadata().getDescriptor(), holder.getNotifType()), category)) {
+                    final Notification n = new NotificationBuilder()
+                            .setTimeStamp(timeStamp)
+                            .setSequenceNumber(sequenceNumber)
+                            .setType(holder.getNotifType())
+                            .setSource(this)
+                            .setMessage(message)
+                            .setUserData(userData)
+                            .get();
+                    notifs.add(n);
+                }
         }
         //fire listeners
         fireListeners(notifs);
@@ -255,32 +254,25 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
 
     /**
      * Enables event listening for the specified category of events.
-     * <p/>
-     * category can be used for enabling notifications for the same category
-     * but with different options.
-     * <p/>
-     * listId parameter
-     * is used as a value of {@link Notification#getType()}.
      *
-     * @param listId   An identifier of the subscription list.
      * @param category The name of the event category to listen.
      * @param options  Event discovery options.
      * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
      */
-    public final M enableNotifications(final String listId, final String category, final CompositeData options) {
+    public final M enableNotifications(final String category, final CompositeData options) {
         NotificationHolder<M> holder;
         try(final LockScope ignored = beginWrite(ANSResource.NOTIFICATIONS)) {
-            holder = notifications.get(listId);
+            holder = notifications.get(category);
             if(holder != null) {
                 if (holder.equals(category, options))
                     return holder.getMetadata();
                 else {
                     //remove notification
                     notificationRemoved(holder.getMetadata());
-                    holder = notifications.remove(listId);
+                    holder = notifications.remove(category);
                     //and register again
                     disableNotifications(holder.getMetadata());
-                    final M metadata = enableNotifications(listId, new NotificationDescriptor(category, options));
+                    final M metadata = enableNotifications(category, new NotificationDescriptor(options));
                     if (metadata != null) {
                         notifications.put(holder = new NotificationHolder<>(metadata, category, options));
                         notificationAdded(holder.getMetadata());
@@ -288,7 +280,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
                 }
             }
             else {
-                final M metadata = enableNotifications(listId, new NotificationDescriptor(category, options));
+                final M metadata = enableNotifications(category, new NotificationDescriptor(options));
                 if(metadata != null) {
                     notifications.put(holder = new NotificationHolder<>(metadata, category, options));
                     notificationAdded(holder.getMetadata());
@@ -297,7 +289,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
             }
         }
         catch (final Exception e) {
-            failedToEnableNotifications(listId, category, e);
+            failedToEnableNotifications(category, e);
             holder = null;
         }
         return holder != null ? holder.getMetadata() : null;
@@ -306,17 +298,17 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     /**
      * Disables event listening for the specified subscription list.
      *
-     * @param listId The identifier of the subscription list.
+     * @param category The identifier of the subscription list.
      * @return Metadata of deleted notification.
      */
     @Override
-    public final M remove(final String listId) {
+    public final M remove(final String category) {
         final NotificationHolder<M> holder;
         try (final LockScope ignored = beginWrite(ANSResource.NOTIFICATIONS)) {
-            holder = notifications.get(listId);
+            holder = notifications.get(category);
             if (holder != null) {
                 notificationRemoved(holder.getMetadata());
-                notifications.remove(listId);
+                notifications.remove(category);
             }
         }
         if (holder != null) {
@@ -408,9 +400,9 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     }
 
     @Override
-    public final M getNotificationInfo(final String listID) {
+    public final M getNotificationInfo(final String category) {
         try (final LockScope ignored = beginRead(ANSResource.NOTIFICATIONS)) {
-            final NotificationHolder<M> holder = notifications.get(listID);
+            final NotificationHolder<M> holder = notifications.get(category);
             return holder != null ? holder.getMetadata() : null;
         }
     }
@@ -419,28 +411,23 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      * Reports an error when enabling notifications.
      * @param logger The logger instance. Cannot be {@literal null}.
      * @param logLevel Logging level.
-     * @param listID Subscription list identifier.
      * @param category An event category.
      * @param e Internal connector error.
      */
     protected static void failedToEnableNotifications(final Logger logger,
                                                       final Level logLevel,
-                                                      final String listID,
                                                       final String category,
                                                       final Exception e){
-        logger.log(logLevel, String.format("Failed to enable notifications '%s' for %s subscription list",
-                category, listID), e);
+        logger.log(logLevel, String.format("Failed to enable notifications '%s'", category), e);
     }
 
     /**
      * Reports an error when enabling notifications.
-     * @param listID Subscription list identifier.
      * @param category An event category.
      * @param e Internal connector error.
-     * @see #failedToEnableNotifications(Logger, Level, String, String, Exception)
+     * @see #failedToEnableNotifications(Logger, Level, String, Exception)
      */
-    protected abstract void failedToEnableNotifications(final String listID,
-                                                        final String category,
+    protected abstract void failedToEnableNotifications(final String category,
                                                         final Exception e);
 
     /**

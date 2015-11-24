@@ -194,11 +194,11 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
             this.connector = Objects.requireNonNull(connector);
         }
         @Override
-        protected GroovyAttributeInfo connectAttribute(final String attributeID,
+        protected GroovyAttributeInfo connectAttribute(final String attributeName,
                                                        final AttributeDescriptor descriptor) throws ResourceException, ScriptException {
             final AttributeAccessor accessor = connector.loadAttribute(descriptor);
             //create wrapper
-            return new GroovyAttributeInfo(attributeID, descriptor, accessor);
+            return new GroovyAttributeInfo(attributeName, descriptor, accessor);
         }
         @Override
         protected void failedToConnectAttribute(final String attributeID, final String attributeName, final Exception e) {

@@ -27,7 +27,7 @@ import java.util.Objects;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.SMART_MODE_KEY;
-import static com.bytex.snamp.connectors.ConfigurationEntityRuntimeMetadata.AUTOMATICALLY_ADDED_FIELD;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration.AUTOMATICALLY_ADDED_KEY;
 
 /**
  * Represents JMX connector configuration descriptor.
@@ -166,7 +166,7 @@ final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescr
         return CompositeDataUtils.create(
                 ImmutableMap.of(
                         OBJECT_NAME_PROPERTY, name.getCanonicalName(),
-                        AUTOMATICALLY_ADDED_FIELD, Boolean.TRUE.toString()
+                        AUTOMATICALLY_ADDED_KEY, Boolean.TRUE.toString()
                 ), SimpleType.STRING);
     }
 }

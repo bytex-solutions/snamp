@@ -154,11 +154,11 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     protected final AttributeList getAttributesSequential(final String[] attributes) {
         final List<Attribute> result = Lists.newArrayListWithExpectedSize(attributes.length);
-        for (final String attributeID : attributes)
+        for (final String attributeName : attributes)
             try {
-                result.add(new Attribute(attributeID, getAttribute(attributeID)));
+                result.add(new Attribute(attributeName, getAttribute(attributeName)));
             } catch (final JMException e) {
-                failedToGetAttribute(attributeID, e);
+                failedToGetAttribute(attributeName, e);
             }
         return new AttributeList(result);
     }
@@ -179,14 +179,14 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
         final List<Attribute> result = Collections.
                 synchronizedList(Lists.<Attribute>newArrayListWithExpectedSize(attributes.length));
         final CountDownLatch synchronizer = new CountDownLatch(attributes.length);
-        for (final String attributeID : attributes)
+        for (final String attributeName : attributes)
             executor.submit(new Callable<Object>() {
                 @Override
                 public Object call() throws JMException {
                     try {
-                        return result.add(new Attribute(attributeID, getAttribute(attributeID)));
+                        return result.add(new Attribute(attributeName, getAttribute(attributeName)));
                     } catch (final JMException e) {
-                        failedToGetAttribute(attributeID, e);
+                        failedToGetAttribute(attributeName, e);
                         return null;
                     } finally {
                         synchronizer.countDown();
@@ -290,30 +290,28 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     /**
      * Connects to the specified attribute.
      *
-     * @param attributeID The id of the attribute.
+     * @param attributeName The name of the attribute.
      * @param descriptor  Attribute descriptor.
      * @return The description of the attribute; or {@literal null},
      * @throws Exception Internal connector error.
      */
-    protected abstract M connectAttribute(final String attributeID,
+    protected abstract M connectAttribute(final String attributeName,
                                           final AttributeDescriptor descriptor) throws Exception;
 
     /**
      * Registers a new attribute in this manager.
      *
-     * @param attributeID      A key string that is used to invoke attribute from this connector.
      * @param attributeName    The name of the attribute.
      * @param readWriteTimeout A read/write timeout using for attribute read/write operation.
      * @param options          The attribute discovery options.
      * @return The description of the attribute.
      */
-    public final M addAttribute(final String attributeID,
-                                final String attributeName,
+    public final M addAttribute(final String attributeName,
                                 final TimeSpan readWriteTimeout,
                                 final CompositeData options) {
         AttributeHolder<M> holder;
         try (final LockScope ignored = beginWrite(AASResource.ATTRIBUTES)) {
-            holder = attributes.get(attributeID);
+            holder = attributes.get(attributeName);
             //if attribute exists then we should check whether the input arguments
             //are equal to the existing attribute options
             if (holder != null) {
@@ -322,10 +320,10 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
                 else {
                     //remove attribute
                     attributeRemoved(holder.getMetadata());
-                    holder = attributes.remove(attributeID);
+                    holder = attributes.remove(attributeName);
                     //...and register again
                     disconnectAttribute(holder.getMetadata());
-                    final M metadata = connectAttribute(attributeID, new AttributeDescriptor(attributeName, readWriteTimeout, options));
+                    final M metadata = connectAttribute(attributeName, new AttributeDescriptor(readWriteTimeout, options));
                     if (metadata != null) {
                         attributes.put(holder = new AttributeHolder<>(metadata, attributeName, readWriteTimeout, options));
                         attributeAdded(holder.getMetadata());
@@ -334,14 +332,14 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
             }
             //this is a new attribute, just connect it
             else {
-                final M metadata = connectAttribute(attributeID, new AttributeDescriptor(attributeName, readWriteTimeout, options));
+                final M metadata = connectAttribute(attributeName, new AttributeDescriptor(readWriteTimeout, options));
                 if (metadata != null) {
                     attributes.put(holder = new AttributeHolder<>(metadata, attributeName, readWriteTimeout, options));
                     attributeAdded(holder.getMetadata());
                 } else throw JMExceptionUtils.attributeNotFound(attributeName);
             }
         } catch (final Exception e) {
-            failedToConnectAttribute(attributeID, attributeName, e);
+            failedToConnectAttribute(attributeName, e);
             holder = null;
         }
         return holder != null ? holder.getMetadata() : null;
@@ -352,29 +350,24 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      *
      * @param logger        The logger instance. Cannot be {@literal null}.
      * @param logLevel      Logging level.
-     * @param attributeID   The attribute identifier.
      * @param attributeName The name of the attribute.
      * @param e             Internal connector error.
      */
     protected static void failedToConnectAttribute(final Logger logger,
                                                    final Level logLevel,
-                                                   final String attributeID,
                                                    final String attributeName,
                                                    final Exception e) {
-        logger.log(logLevel, String.format("Failed to connect attribute %s with ID %s",
-                attributeName, attributeID), e);
+        logger.log(logLevel, String.format("Failed to connect attribute '%s'", attributeName), e);
     }
 
     /**
      * Reports an error when connecting attribute.
      *
-     * @param attributeID   The attribute identifier.
      * @param attributeName The name of the attribute.
      * @param e             Internal connector error.
-     * @see #failedToConnectAttribute(Logger, Level, String, String, Exception)
+     * @see #failedToConnectAttribute(Logger, Level, String, Exception)
      */
-    protected abstract void failedToConnectAttribute(final String attributeID,
-                                                     final String attributeName,
+    protected abstract void failedToConnectAttribute(final String attributeName,
                                                      final Exception e);
 
     /**
@@ -393,7 +386,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     /**
      * Obtains the value of a specific attribute of the managed resource.
      *
-     * @param attributeID The name of the attribute to be retrieved
+     * @param attributeName The name of the attribute to be retrieved
      * @return The value of the attribute retrieved.
      * @throws javax.management.AttributeNotFoundException
      * @throws javax.management.MBeanException             Wraps a {@link Exception} thrown by the MBean's getter.
@@ -401,18 +394,18 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      * @see #setAttribute
      */
     @Override
-    public final Object getAttribute(final String attributeID) throws AttributeNotFoundException, MBeanException, ReflectionException {
+    public final Object getAttribute(final String attributeName) throws AttributeNotFoundException, MBeanException, ReflectionException {
         try (final LockScope ignored = beginRead(AASResource.ATTRIBUTES)) {
-            if (attributes.containsKey(attributeID))
-                return getAttribute(attributes.get(attributeID));
-            else throw JMExceptionUtils.attributeNotFound(attributeID);
+            if (attributes.containsKey(attributeName))
+                return getAttribute(attributes.get(attributeName));
+            else throw JMExceptionUtils.attributeNotFound(attributeName);
         } catch (final AttributeNotFoundException e) {
             throw e;
         } catch (final MBeanException | ReflectionException e) {
-            failedToGetAttribute(attributeID, e);
+            failedToGetAttribute(attributeName, e);
             throw e;
         } catch (final Exception e) {
-            failedToGetAttribute(attributeID, e);
+            failedToGetAttribute(attributeName, e);
             throw new MBeanException(e);
         }
     }
@@ -422,14 +415,14 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      *
      * @param logger      The logger instance. Cannot be {@literal null}.
      * @param logLevel    Logging level.
-     * @param attributeID The attribute identifier.
+     * @param attributeName The attribute identifier.
      * @param e           Internal connector error.
      */
     protected static void failedToGetAttribute(final Logger logger,
                                                final Level logLevel,
-                                               final String attributeID,
+                                               final String attributeName,
                                                final Exception e) {
-        logger.log(logLevel, String.format("Failed to get attribute %s", attributeID), e);
+        logger.log(logLevel, String.format("Failed to get attribute '%s'", attributeName), e);
     }
 
     /**

@@ -367,15 +367,15 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
         /**
          * Connects to the specified attribute.
          *
-         * @param attributeID The id of the attribute.
+         * @param attributeName The id of the attribute.
          * @param descriptor  Attribute descriptor.
          * @return The description of the attribute.
          * @throws Exception Internal connector error.
          */
         @Override
-        protected JmxAttributeInfo connectAttribute(final String attributeID,
+        protected JmxAttributeInfo connectAttribute(final String attributeName,
                                                     final AttributeDescriptor descriptor) throws Exception {
-            return connectAttribute(attributeID, descriptor, globalObjectName == null ? getObjectName(descriptor) : globalObjectName);
+            return connectAttribute(attributeName, descriptor, globalObjectName == null ? getObjectName(descriptor) : globalObjectName);
         }
 
         @Override

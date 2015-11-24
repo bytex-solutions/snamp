@@ -54,7 +54,6 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
      * @param dest The attribute to fill.
      */
     public static void copy(final ManagedResourceConfiguration.AttributeConfiguration source, final ManagedResourceConfiguration.AttributeConfiguration dest){
-        dest.setAttributeName(source.getAttributeName());
         dest.setReadWriteTimeout(source.getReadWriteTimeout());
         final Map<String, String> additionalElements = dest.getParameters();
         additionalElements.clear();
@@ -67,14 +66,12 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
      * @param dest The event to fill.
      */
     public static void copy(final ManagedResourceConfiguration.EventConfiguration source, final ManagedResourceConfiguration.EventConfiguration dest){
-        dest.setCategory(source.getCategory());
         final Map<String, String> additionalElements = dest.getParameters();
         additionalElements.clear();
         additionalElements.putAll(source.getParameters());
     }
 
     public static void copy(final ManagedResourceConfiguration.OperationConfiguration source, final ManagedResourceConfiguration.OperationConfiguration dest){
-        dest.setOperationName(source.getOperationName());
         dest.setInvocationTimeout(source.getInvocationTimeout());
         final Map<String, String> additionalElements = dest.getParameters();
         additionalElements.clear();
@@ -202,7 +199,6 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
     public static boolean equals(final ManagedResourceConfiguration.AttributeConfiguration attr1, final ManagedResourceConfiguration.AttributeConfiguration attr2){
         return attr1 == attr2 ||
                 !(attr1 == null || attr2 == null) &&
-                        Objects.equals(attr1.getAttributeName(), attr2.getAttributeName()) &&
                         Objects.equals(attr1.getReadWriteTimeout(), attr2.getReadWriteTimeout()) &&
                         equals(attr1.getParameters(), attr2.getParameters());
     }
@@ -210,14 +206,12 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
     public static boolean equals(final ManagedResourceConfiguration.EventConfiguration event1, final ManagedResourceConfiguration.EventConfiguration event2){
         return event1 == event2 ||
                 !(event1 == null || event2 == null) &&
-                        Objects.equals(event1.getCategory(), event2.getCategory()) &&
                         equals(event1.getParameters(), event2.getParameters());
     }
 
     public static boolean equals(final ManagedResourceConfiguration.OperationConfiguration op1, final ManagedResourceConfiguration.OperationConfiguration op2){
         return op1 == op2 ||
                 !(op1 == null || op2 == null) &&
-                        Objects.equals(op1.getOperationName(), op2.getOperationName()) &&
                         Objects.equals(op1.getInvocationTimeout(), op2.getInvocationTimeout()) &&
                         equals(op1.getParameters(), op2.getParameters());
     }

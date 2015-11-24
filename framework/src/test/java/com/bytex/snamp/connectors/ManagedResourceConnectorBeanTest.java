@@ -25,6 +25,7 @@ import java.util.Locale;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+import static com.bytex.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.*;
 
 /**
  * Represents tests for {@link ManagedResourceConnectorBean} class.
@@ -60,13 +61,13 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
 
             @Override
             public String toJmxValue(final Object attributeValue, final CustomAttributeInfo metadata) {
-                assertEquals("property1", metadata.getDescriptor().getAttributeName());
+                assertEquals("property1", metadata.getDescriptor().getAlternativeName());
                 return attributeValue.toString();
             }
 
             @Override
             public Object fromJmxValue(final String jmxValue, final CustomAttributeInfo metadata) {
-                assertEquals("property1", metadata.getDescriptor().getAttributeName());
+                assertEquals("property1", metadata.getDescriptor().getAlternativeName());
                 return jmxValue;
             }
         }
@@ -146,31 +147,49 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         assertEquals(1, events.size());
     }
 
+    private static ConfigParameters makeAttributeConfig(final String name){
+        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration();
+        result.setAlternativeName(name);
+        return new ConfigParameters(result);
+    }
+
+    private static ConfigParameters makeEventConfig(final String name){
+        final SerializableEventConfiguration result = new SerializableEventConfiguration();
+        result.setAlternativeName(name);
+        return new ConfigParameters(result);
+    }
+
+    private static ConfigParameters makeOperationConfig(final String name){
+        final SerializableOperationConfiguration result = new SerializableOperationConfiguration();
+        result.setAlternativeName(name);
+        return new ConfigParameters(result);
+    }
+
     @Test
     public void testConnectorBean() throws Exception {
         final TestManagementConnectorBean connector = new TestManagementConnectorBean();
         connector.field1 = "123";
         final MBeanAttributeInfo md;
-        assertNotNull(md = connector.addAttribute("0", "property1", TimeSpan.ofSeconds(1), ConfigParameters.empty()));
+        assertNotNull(md = connector.addAttribute("p1", TimeSpan.ofSeconds(1), makeAttributeConfig("property1")));
         //enables notifications
-        assertNotNull(connector.enableNotifications("list1", "propertyChanged", ConfigParameters.empty()));
+        assertNotNull(connector.enableNotifications("propertyChanged", makeEventConfig("propertyChanged")));
         final SynchronizationListener listener = new SynchronizationListener();
         final Future<Notification> notifAwaitor = listener.getAwaitor();
         connector.addNotificationListener(listener, null, null);
-        assertEquals(connector.getProperty1(), connector.getAttribute("0"));
-        connector.setAttribute(new AttributeValue("0", "1234567890", SimpleType.STRING));
+        assertEquals(connector.getProperty1(), connector.getAttribute("p1"));
+        connector.setAttribute(new AttributeValue("p1", "1234567890", SimpleType.STRING));
         final Notification n = notifAwaitor.get(10, TimeUnit.SECONDS);
         assertNotNull(n);
         assertEquals("Property property1 is changed", n.getMessage());
         assertEquals("Attachment string", n.getUserData());
-        assertEquals(connector.getProperty1(), connector.getAttribute("0"));
+        assertEquals(connector.getProperty1(), connector.getAttribute("p1"));
         assertTrue(md.isReadable());
         assertTrue(md.isWritable());
-        assertEquals("property1", AttributeDescriptor.getAttributeName(md));
+        assertEquals("p1", md.getName());
         assertEquals(SimpleType.STRING, AttributeDescriptor.getOpenType(md));
         //enables operations
-        assertNotNull(connector.enableOperation("sum", "computeSum", TimeSpan.INFINITE, ConfigParameters.empty()));
-        final Object result = connector.invoke("sum", new Object[]{4, 5}, ArrayUtils.emptyArray(String[].class));
+        assertNotNull(connector.enableOperation("cs", TimeSpan.INFINITE, makeOperationConfig("computeSum")));
+        final Object result = connector.invoke("cs", new Object[]{4, 5}, ArrayUtils.emptyArray(String[].class));
         assertTrue(result instanceof Integer);
         assertEquals(9, result);
     }

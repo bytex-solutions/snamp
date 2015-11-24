@@ -218,14 +218,12 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          *     If attribute exists in the managed resource connector then
          *     it should re-register an attribute.
          * @param connector The connector to modify.
-         * @param attributeID The attribute identifier.
          * @param attributeName The name of the attribute in the managed resource.
          * @param readWriteTimeout The attribute read/write timeout.
          * @param options The attribute configuration options.
          * @return {@literal true}, if attribute registered successfully; otherwise, {@literal false}.
          */
         protected abstract boolean addAttribute(final TConnector connector,
-                                             final String attributeID,
                                              final String attributeName,
                                              final TimeSpan readWriteTimeout,
                                              final CompositeData options);
@@ -238,17 +236,28 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         protected abstract void removeAttributesExcept(final TConnector connector,
                                                        final Set<String> attributes);
 
+        private static boolean setFeatureNameIfNecessary(final FeatureConfiguration feature,
+                                                         final String name){
+            if(feature.getParameters().containsKey(FeatureConfiguration.NAME_KEY))
+                return false;
+            else {
+                feature.getParameters().put(FeatureConfiguration.NAME_KEY, name);
+                return true;
+            }
+        }
+
         private void updateAttributes(final TConnector connector,
                                       final Map<String, AttributeConfiguration> attributes){
             final Set<String> addedAttributes = Sets.newHashSetWithExpectedSize(attributes.size());
             for(final Map.Entry<String, AttributeConfiguration> attr: attributes.entrySet()) {
-                final String attributeID = attr.getKey();
+                final String attributeName = attr.getKey();
                 final AttributeConfiguration config = attr.getValue();
-                if (addAttribute(connector, attributeID,
-                        config.getAttributeName(),
+                setFeatureNameIfNecessary(config, attributeName);
+                if (addAttribute(connector,
+                        attributeName,
                         config.getReadWriteTimeout(),
                         new ConfigParameters(config)))
-                    addedAttributes.add(attributeID);
+                    addedAttributes.add(attributeName);
             }
             removeAttributesExcept(connector, addedAttributes);
         }
@@ -261,13 +270,11 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          *     If notification is enabled in the managed resource connector then
          *     it should re-enable the notification (disable and then enable again).
          * @param connector The managed resource connector.
-         * @param listId The notification subscription identifier.
          * @param category The notification category.
          * @param options The notification configuration options.
          * @return {@literal true}, if the specified notification is enabled; otherwise, {@literal false}.
          */
         protected abstract boolean enableNotifications(final TConnector connector,
-                                                    final String listId,
                                                     final String category,
                                                     final CompositeData options);
 
@@ -283,19 +290,18 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                   final Map<String, EventConfiguration> events){
             final Set<String> enabledEvents = Sets.newHashSetWithExpectedSize(events.size());
             for(final Map.Entry<String, EventConfiguration> event: events.entrySet()){
-                final String listID = event.getKey();
+                final String category = event.getKey();
                 final EventConfiguration config = event.getValue();
+                setFeatureNameIfNecessary(config, category);
                 if(enableNotifications(connector,
-                        listID,
-                        config.getCategory(),
+                        category,
                         new ConfigParameters(config)))
-                    enabledEvents.add(listID);
+                    enabledEvents.add(category);
             }
             disableNotificationsExcept(connector, enabledEvents);
         }
 
         protected abstract boolean enableOperation(final TConnector connector,
-                                                final String operationID,
                                                 final String operationName,
                                                 final TimeSpan invocationTimeout,
                                                 final CompositeData options);
@@ -312,10 +318,14 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                       final Map<String, OperationConfiguration> operations){
             final Set<String> enabledOperations = Sets.newHashSetWithExpectedSize(operations.size());
             for(final Map.Entry<String, OperationConfiguration> op: operations.entrySet()){
-                final String operationID = op.getKey();
+                final String operationName = op.getKey();
                 final OperationConfiguration config = op.getValue();
-                if(enableOperation(connector, operationID, config.getOperationName(), config.getInvocationTimeout(), new ConfigParameters(config)))
-                    enabledOperations.add(operationID);
+                setFeatureNameIfNecessary(config, operationName);
+                if(enableOperation(connector,
+                        operationName,
+                        config.getInvocationTimeout(),
+                        new ConfigParameters(config)))
+                    enabledOperations.add(operationName);
             }
             disableOperationsExcept(connector, enabledOperations);
         }

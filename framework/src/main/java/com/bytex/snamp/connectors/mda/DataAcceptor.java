@@ -45,19 +45,18 @@ public abstract class DataAcceptor extends AbstractManagedResourceConnector {
     protected abstract MDANotificationRepository getNotifications();
 
 
-    final boolean addAttribute(final String attributeID,
-                         final String attributeName,
+    final boolean addAttribute(final String attributeName,
                          final TimeSpan readWriteTimeout,
                          final CompositeData options){
-        return getAttributes().addAttribute(attributeID, attributeName, readWriteTimeout, options) != null;
+        return getAttributes().addAttribute(attributeName, readWriteTimeout, options) != null;
     }
 
     final void removeAttributesExcept(final Set<String> attributes){
         getAttributes().removeAllExcept(attributes);
     }
 
-    final boolean enableNotifications(final String listId, final String category, final CompositeData options){
-        return getNotifications().enableNotifications(listId, category, options) != null;
+    final boolean enableNotifications(final String category, final CompositeData options){
+        return getNotifications().enableNotifications(category, options) != null;
     }
 
     final void disableNotificationsExcept(final Set<String> notifications){

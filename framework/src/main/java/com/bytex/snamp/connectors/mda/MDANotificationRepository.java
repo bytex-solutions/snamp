@@ -76,8 +76,8 @@ public abstract class MDANotificationRepository<M extends MDANotificationInfo> e
     protected abstract Logger getLogger();
 
     @Override
-    protected final void failedToEnableNotifications(final String listID, final String category, final Exception e) {
-        failedToEnableNotifications(getLogger(), Level.WARNING, listID, category, e);
+    protected final void failedToEnableNotifications(final String category, final Exception e) {
+        failedToEnableNotifications(getLogger(), Level.WARNING, category, e);
     }
 
     /**

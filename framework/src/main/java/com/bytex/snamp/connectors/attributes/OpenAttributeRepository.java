@@ -23,13 +23,13 @@ public abstract class OpenAttributeRepository<T extends OpenMBeanAttributeAccess
     /**
      * Connects to the specified attribute.
      *
-     * @param attributeID The id of the attribute.
+     * @param attributeName The id of the attribute.
      * @param descriptor  Attribute descriptor.
      * @return The description of the attribute; or {@literal null},
      * @throws Exception Internal connector error.
      */
     @Override
-    protected abstract T connectAttribute(final String attributeID,
+    protected abstract T connectAttribute(final String attributeName,
                                                                  final AttributeDescriptor descriptor) throws Exception;
 
     /**

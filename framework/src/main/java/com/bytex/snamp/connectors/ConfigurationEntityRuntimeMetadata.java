@@ -14,7 +14,6 @@ import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfigurati
  * @since 1.0
  */
 public interface ConfigurationEntityRuntimeMetadata<E extends EntityConfiguration> extends CopyOnWriteDescriptor {
-    String AUTOMATICALLY_ADDED_FIELD = "automaticallyAdded";
 
     /**
      * The type of the configuration entity.
@@ -45,4 +44,18 @@ public interface ConfigurationEntityRuntimeMetadata<E extends EntityConfiguratio
      */
     @Override
     ConfigurationEntityRuntimeMetadata<E> setFields(final Descriptor values);
+
+    /**
+     * Gets alternative name of the feature.
+     * @return Alternative name of the feature.
+     * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration#NAME_KEY
+     */
+    String getAlternativeName();
+
+    /**
+     * Determines whether this descriptor is automatically generated.
+     * @return {@literal true}, if this descriptor is automatically generated; otherwise, {@literal false}.
+     * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration#AUTOMATICALLY_ADDED_KEY
+     */
+    boolean isAutomaticallyAdded();
 }

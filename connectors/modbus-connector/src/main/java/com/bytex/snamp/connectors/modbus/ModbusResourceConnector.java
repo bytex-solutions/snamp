@@ -36,30 +36,30 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
         }
 
         @Override
-        protected ModbusAttributeInfo<?, ?> connectAttribute(final String attributeID, final AttributeDescriptor descriptor) throws AttributeNotFoundException, OpenDataException {
+        protected ModbusAttributeInfo<?, ?> connectAttribute(final String attributeName, final AttributeDescriptor descriptor) throws AttributeNotFoundException, OpenDataException {
             switch (descriptor.getAttributeName()) {
                 case CoilAttribute.NAME:
                     if (ModbusResourceConnectorConfigurationDescriptor.hasCount(descriptor))
-                        return new CoilSetAttribute(attributeID, descriptor, client);
+                        return new CoilSetAttribute(attributeName, descriptor, client);
                     else
-                        return new CoilAttribute(attributeID, descriptor, client);
+                        return new CoilAttribute(attributeName, descriptor, client);
                 case InputRegisterAttribute.NAME:
                     if (ModbusResourceConnectorConfigurationDescriptor.hasCount(descriptor))
-                        return new InputRegisterSetAttribute(attributeID, descriptor, client);
+                        return new InputRegisterSetAttribute(attributeName, descriptor, client);
                     else
-                        return new InputRegisterAttribute(attributeID, descriptor, client);
+                        return new InputRegisterAttribute(attributeName, descriptor, client);
                 case InputDiscreteAttribute.NAME:
                     if (ModbusResourceConnectorConfigurationDescriptor.hasCount(descriptor))
-                        return new InputDiscreteSetAttribute(attributeID, descriptor, client);
+                        return new InputDiscreteSetAttribute(attributeName, descriptor, client);
                     else
-                        return new InputDiscreteAttribute(attributeID, descriptor, client);
+                        return new InputDiscreteAttribute(attributeName, descriptor, client);
                 case HoldingRegisterAttribute.NAME:
                     if (ModbusResourceConnectorConfigurationDescriptor.hasCount(descriptor))
-                        return new HoldingRegisterSetAttribute(attributeID, descriptor, client);
+                        return new HoldingRegisterSetAttribute(attributeName, descriptor, client);
                     else
-                        return new HoldingRegisterAttribute(attributeID, descriptor, client);
+                        return new HoldingRegisterAttribute(attributeName, descriptor, client);
                 case FileAttribute.NAME:
-                    return new FileAttribute(attributeID, descriptor, client);
+                    return new FileAttribute(attributeName, descriptor, client);
                 default:
                     throw JMExceptionUtils.attributeNotFound(descriptor.getAttributeName());
             }

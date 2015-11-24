@@ -233,6 +233,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
      * @throws Exception Exception raised by reader.
      */
     //used by SNAMP Management Console. Do not remove!!
+    @SpecialUse
     public static void forEachAdapter(final ConfigurationAdmin admin,
                                       final EntryReader<String, ResourceAdapterConfiguration, ? extends Exception> reader) throws Exception {
         forEachAdapter(admin, new Consumer<Configuration, Exception>() {

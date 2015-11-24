@@ -3,6 +3,7 @@ package com.bytex.snamp.connectors;
 import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.Descriptive;
 import com.bytex.snamp.TimeSpan;
+import com.bytex.snamp.configuration.ConfigParameters;
 import com.bytex.snamp.connectors.attributes.*;
 import com.bytex.snamp.connectors.discovery.DiscoveryResultBuilder;
 import com.bytex.snamp.connectors.discovery.DiscoveryService;
@@ -13,14 +14,12 @@ import com.bytex.snamp.connectors.operations.OperationSupport;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.core.LongCounter;
 import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.osgi.framework.BundleContext;
@@ -39,12 +38,10 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.bytex.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.*;
-import static com.bytex.snamp.connectors.ConfigurationEntityRuntimeMetadata.AUTOMATICALLY_ADDED_FIELD;
 
 /**
  * Represents SNAMP in-process management connector that exposes
@@ -83,12 +80,6 @@ import static com.bytex.snamp.connectors.ConfigurationEntityRuntimeMetadata.AUTO
  */
 public abstract class ManagedResourceConnectorBean extends AbstractManagedResourceConnector
         implements NotificationSupport, AttributeSupport, OperationSupport {
-    private static final CompositeData AUTO_PROPS = Utils.interfaceStaticInitialize(new Callable<CompositeData>() {
-        @Override
-        public CompositeData call() throws OpenDataException {
-            return CompositeDataUtils.create(ImmutableMap.of(AUTOMATICALLY_ADDED_FIELD, Boolean.TRUE.toString()), SimpleType.STRING);
-        }
-    });
 
     /**
      * Describes management notification type supported by this connector.
@@ -345,14 +336,14 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         }
 
         @Override
-        protected JavaBeanOperationInfo enableOperation(final String userDefinedName,
+        protected JavaBeanOperationInfo enableOperation(final String operationName,
                                                         final OperationDescriptor descriptor) throws ReflectionException, MBeanException {
             for(final MethodDescriptor method: operations)
-                if(Objects.equals(method.getName(), descriptor.getOperationName()) &&
+                if(Objects.equals(method.getName(), descriptor.getName(operationName)) &&
                         method.getMethod().isAnnotationPresent(ManagementOperation.class)){
-                    return new JavaBeanOperationInfo(userDefinedName, method, descriptor, connectorRef.get());
+                    return new JavaBeanOperationInfo(operationName, method, descriptor, connectorRef.get());
                 }
-            throw new MBeanException(new IllegalArgumentException(String.format("Operation '%s' doesn't exist", descriptor.getOperationName())));
+            throw new MBeanException(new IllegalArgumentException(String.format("Operation '%s' doesn't exist", descriptor.getName(operationName))));
         }
 
         @Override
@@ -360,18 +351,20 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             final List<JavaBeanOperationInfo> result = new LinkedList<>();
             for(final MethodDescriptor method: operations)
                 if(method.getMethod().isAnnotationPresent(ManagementOperation.class)){
-                    final JavaBeanOperationInfo operation = enableOperation(method.getDisplayName(),
-                            method.getName(),
+                    final SerializableOperationConfiguration config = new SerializableOperationConfiguration();
+                    config.setAlternativeName(method.getName());
+                    config.setAutomaticallyAdded(true);
+                    final JavaBeanOperationInfo operation = enableOperation(method.getName(),
                             OperationConfiguration.TIMEOUT_FOR_SMART_MODE,
-                            AUTO_PROPS);
+                            new ConfigParameters(config));
                     if(operation != null) result.add(operation);
                 }
             return result;
         }
 
         @Override
-        protected void failedToEnableOperation(final String userDefinedName, final String operationName, final Exception e) {
-            failedToEnableOperation(logger, Level.SEVERE, userDefinedName, operationName, e);
+        protected void failedToEnableOperation(final String operationName, final Exception e) {
+            failedToEnableOperation(logger, Level.SEVERE, operationName, e);
         }
 
         @Override
@@ -593,28 +586,28 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             return featureType.isAssignableFrom(featureType);
         }
 
-        private static JavaBeanAttributeInfo createAttribute(final String attributeID,
+        private static JavaBeanAttributeInfo createAttribute(final String attributeName,
                                                              final PropertyDescriptor property,
                                                              final AttributeDescriptor descriptor,
                                                              final Object beanInstance) throws ReflectionException {
             try{
                 //try to connect as Open Type attribute
-                return new JavaBeanOpenAttributeInfo(attributeID, property, descriptor, beanInstance);
+                return new JavaBeanOpenAttributeInfo(attributeName, property, descriptor, beanInstance);
             }
             catch (final OpenDataException e){
                 //bean property type is not Open Type
-                return new JavaBeanAttributeInfo(attributeID, property, descriptor, beanInstance);
+                return new JavaBeanAttributeInfo(attributeName, property, descriptor, beanInstance);
             }
         }
 
         @Override
-        protected JavaBeanAttributeInfo connectAttribute(final String attributeID,
+        protected JavaBeanAttributeInfo connectAttribute(final String attributeName,
                                                          final AttributeDescriptor descriptor) throws AttributeNotFoundException, ReflectionException {
             for(final PropertyDescriptor property: properties)
                 if(isReservedProperty(property)) continue;
-                else if(Objects.equals(property.getName(), descriptor.getAttributeName()))
-                    return createAttribute(attributeID, property, descriptor, connectorRef.get());
-            throw JMExceptionUtils.attributeNotFound(descriptor.getAttributeName());
+                else if(Objects.equals(property.getName(), descriptor.getName(attributeName)))
+                    return createAttribute(attributeName, property, descriptor, connectorRef.get());
+            throw JMExceptionUtils.attributeNotFound(descriptor.getName(attributeName));
         }
 
         @Override
@@ -622,16 +615,19 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             final List<JavaBeanAttributeInfo> result = new LinkedList<>();
             for (final PropertyDescriptor property : properties)
                 if (!isReservedProperty(property)) {
+                    final SerializableAttributeConfiguration config = new SerializableAttributeConfiguration();
+                    config.setAlternativeName(property.getName());
+                    config.setAutomaticallyAdded(true);
                     final JavaBeanAttributeInfo attr =
-                            addAttribute(property.getDisplayName(), property.getName(), AttributeConfiguration.TIMEOUT_FOR_SMART_MODE, AUTO_PROPS);
+                            addAttribute(property.getName(), AttributeConfiguration.TIMEOUT_FOR_SMART_MODE, new ConfigParameters(config));
                     if (attr != null) result.add(attr);
                 }
             return result;
         }
 
         @Override
-        protected void failedToConnectAttribute(final String attributeID, final String attributeName, final Exception e) {
-            failedToConnectAttribute(logger, Level.SEVERE, attributeID, attributeName, e);
+        protected void failedToConnectAttribute(final String attributeName, final Exception e) {
+            failedToConnectAttribute(logger, Level.SEVERE, attributeName, e);
         }
 
         @Override
@@ -695,7 +691,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             final ManagementNotificationType<?> type = Iterables.find(notifTypes, new Predicate<ManagementNotificationType<?>>() {
                 @Override
                 public boolean apply(final ManagementNotificationType<?> type) {
-                    return Objects.equals(type.getCategory(), metadata.getNotificationCategory());
+                    return Objects.equals(type.getCategory(), metadata.getName(category));
                 }
             });
             if (type != null) {
@@ -707,12 +703,12 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                 }
                 return new CustomNotificationInfo(category, description, metadata.setUserDataType(type.getUserDataType()));
             } else
-                throw new IllegalArgumentException(String.format("Unsupported notification %s", metadata.getNotificationCategory()));
+                throw new IllegalArgumentException(String.format("Unsupported notification %s", metadata.getName(category)));
         }
 
         @Override
-        protected void failedToEnableNotifications(final String listID, final String category, final Exception e) {
-            failedToEnableNotifications(logger, Level.WARNING, listID, category, e);
+        protected void failedToEnableNotifications(final String category, final Exception e) {
+            failedToEnableNotifications(logger, Level.WARNING, category, e);
         }
 
         private void fire(final ManagementNotificationType<?> category, final String message, final Object userData) {
@@ -749,15 +745,21 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         private static Collection<AttributeConfiguration> discoverAttributes(final PropertyDescriptor[] properties) {
             final Collection<AttributeConfiguration> result = Lists.newArrayListWithExpectedSize(properties.length);
             for (final PropertyDescriptor descriptor : properties)
-                if (!isReservedProperty(descriptor))
-                    result.add(new SerializableAttributeConfiguration(descriptor.getName()));
+                if (!isReservedProperty(descriptor)) {
+                    final SerializableAttributeConfiguration attribute = new SerializableAttributeConfiguration();
+                    attribute.setAlternativeName(descriptor.getName());
+                    result.add(attribute);
+                }
             return result;
         }
 
         private static Collection<EventConfiguration> discoverNotifications(final Collection<? extends ManagementNotificationType<?>> notifications){
             final Collection<EventConfiguration> result = Lists.newArrayListWithExpectedSize(notifications.size());
-            for(final ManagementNotificationType<?> notifType: notifications)
-                result.add(new SerializableEventConfiguration(notifType.getCategory()));
+            for(final ManagementNotificationType<?> notifType: notifications) {
+                final SerializableEventConfiguration event = new SerializableEventConfiguration();
+                event.setAlternativeName(notifType.getCategory());
+                result.add(event);
+            }
             return result;
         }
 
@@ -893,73 +895,62 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * This method removes all listeners associated with the specified subscription list.
      * </p>
      *
-     * @param listId The identifier of the subscription list.
+     * @param category The identifier of the subscription list.
      * @return Metadata of deleted notification.
      */
-    public final MBeanNotificationInfo disableNotifications(final String listId) {
+    public final MBeanNotificationInfo disableNotifications(final String category) {
         verifyInitialization();
-        return notifications.remove(listId);
+        return notifications.remove(category);
     }
 
     /**
      * Enables event listening for the specified category of events.
-     * <p>
-     * category can be used for enabling notifications for the same category
-     * but with different options.
-     * <p>
-     * listId parameter
-     * is used as a value of {@link javax.management.Notification#getType()}.
      *
-     * @param listId   An identifier of the subscription list.
      * @param category The name of the event category to listen.
      * @param options  Event discovery options.
      * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
      */
-    public final MBeanNotificationInfo enableNotifications(final String listId,
-                                                           final String category,
+    public final MBeanNotificationInfo enableNotifications(final String category,
                                                            final CompositeData options) {
         verifyInitialization();
-        return notifications.enableNotifications(listId, category, options);
+        return notifications.enableNotifications(category, options);
     }
 
     /**
      * Removes the attribute from the connector.
      *
-     * @param attributeID The unique identifier of the attribute.
+     * @param attributeName The unique identifier of the attribute.
      * @return The metadata of deleted attribute.
      */
-    public final MBeanAttributeInfo removeAttribute(final String attributeID) {
-        return attributes.remove(attributeID);
+    public final MBeanAttributeInfo removeAttribute(final String attributeName) {
+        return attributes.remove(attributeName);
     }
 
     /**
      * Connects to the specified attribute.
      *
-     * @param id               A key string that is used to invoke attribute from this connector.
      * @param attributeName    The name of the attribute.
      * @param readWriteTimeout A read/write timeout using for attribute read/write operation.
      * @param options          The attribute discovery options.
      * @return The description of the attribute.
      */
-    public final MBeanAttributeInfo addAttribute(final String id,
-                                                 final String attributeName,
+    public final MBeanAttributeInfo addAttribute(final String attributeName,
                                                  final TimeSpan readWriteTimeout,
                                                  final CompositeData options) {
         verifyInitialization();
-        return attributes.addAttribute(id, attributeName, readWriteTimeout, options);
+        return attributes.addAttribute(attributeName, readWriteTimeout, options);
     }
 
-    public final MBeanOperationInfo enableOperation(final String userDefinedName,
-                                                    final String operationName,
+    public final MBeanOperationInfo enableOperation(final String operationName,
                                                     final TimeSpan invocationTimeout,
                                                     final CompositeData options){
         verifyInitialization();
-        return operations.enableOperation(userDefinedName, operationName, invocationTimeout, options);
+        return operations.enableOperation(operationName, invocationTimeout, options);
     }
 
-    public final MBeanOperationInfo disableOperation(final String userDefinedName){
+    public final MBeanOperationInfo disableOperation(final String operationName){
         verifyInitialization();
-        return operations.remove(userDefinedName);
+        return operations.remove(operationName);
     }
 
     /**

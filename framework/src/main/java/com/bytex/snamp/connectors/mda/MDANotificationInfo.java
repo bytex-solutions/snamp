@@ -22,7 +22,7 @@ public class MDANotificationInfo extends CustomNotificationInfo {
      * @param descriptor  The descriptor for the notifications.  This may be null
      */
     public MDANotificationInfo(final String notifType, final NotificationDescriptor descriptor) {
-        super(notifType, descriptor.getDescription(descriptor.getNotificationCategory()), descriptor);
+        super(notifType, descriptor.getName(notifType), descriptor);
     }
 
     /**
