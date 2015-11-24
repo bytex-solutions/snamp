@@ -138,25 +138,25 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
 
         @Override
         protected boolean addAttribute(final JmxConnector connector,
-                                    final String attributeID,
                                     final String attributeName,
                                     final TimeSpan readWriteTimeout,
                                     final CompositeData options) {
-            return connector.addAttribute(attributeID, attributeName, readWriteTimeout, options);
+            return connector.addAttribute(attributeName, readWriteTimeout, options);
         }
 
         @Override
-        protected boolean enableNotifications(final JmxConnector connector, final String listId, final String category, final CompositeData options) {
-            return connector.enableNotifications(listId, category, options);
+        protected boolean enableNotifications(final JmxConnector connector,
+                                              final String category,
+                                              final CompositeData options) {
+            return connector.enableNotifications(category, options);
         }
 
         @Override
         protected boolean enableOperation(final JmxConnector connector,
-                                       final String operationID,
                                        final String operationName,
                                        final TimeSpan invocationTimeout,
                                        final CompositeData options) {
-            return connector.enableOperation(operationID, operationName, invocationTimeout, options);
+            return connector.enableOperation(operationName, invocationTimeout, options);
         }
 
         @Override
