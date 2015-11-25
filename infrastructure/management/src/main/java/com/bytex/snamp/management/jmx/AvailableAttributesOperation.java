@@ -54,7 +54,7 @@ final class AvailableAttributesOperation extends AvailableFeaturesOperation<MBea
 
     private static void fillRow(final MBeanAttributeInfo attributeInfo, final TabularDataBuilderRowFill.RowBuilder row) throws OpenDataException {
         final String description = attributeInfo.getDescription();
-        final String attributeName = AttributeDescriptor.getAttributeName(attributeInfo);
+        final String attributeName = AttributeDescriptor.getName(attributeInfo);
         final WellKnownType attributeType = AttributeDescriptor.getType(attributeInfo);
         row
                 .cell(USER_DEFINED_NAME_COLUMN, attributeInfo.getName())

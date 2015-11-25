@@ -43,10 +43,8 @@ final class NagiosAdapterConfigurationDescriptor extends ConfigurationEntityDesc
         super(new AttributeConfigurationInfo());
     }
 
-    static String getServiceName(final Descriptor descriptor, final String defaultService){
-        return hasField(descriptor, SERVICE_NAME_PARAM) ?
-                getField(descriptor, SERVICE_NAME_PARAM, String.class):
-                defaultService;
+    static String getServiceName(final Descriptor descriptor, final String defaultService) {
+        return getField(descriptor, SERVICE_NAME_PARAM, String.class, defaultService);
     }
 
     static String getUnitOfMeasurement(final Descriptor descr){

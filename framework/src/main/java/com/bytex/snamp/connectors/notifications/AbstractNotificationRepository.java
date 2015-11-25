@@ -209,7 +209,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
         try (final LockScope ignored = beginRead(ANSResource.NOTIFICATIONS)) {
             notifs = Lists.newArrayListWithExpectedSize(notifications.size());
             for (final NotificationHolder<M> holder : notifications.values())
-                if (Objects.equals(NotificationDescriptor.getName(holder.getMetadata().getDescriptor(), holder.getNotifType()), category)) {
+                if (Objects.equals(NotificationDescriptor.getName(holder.getMetadata()), category)) {
                     final Notification n = new NotificationBuilder()
                             .setTimeStamp(timeStamp)
                             .setSequenceNumber(sequenceNumber)

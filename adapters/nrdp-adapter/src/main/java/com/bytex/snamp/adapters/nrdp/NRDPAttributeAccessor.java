@@ -33,7 +33,7 @@ final class NRDPAttributeAccessor extends AttributeAccessor implements FeatureBi
         State state;
         String message;
         final String service = getServiceName(getMetadata().getDescriptor(),
-                AttributeDescriptor.getAttributeName(getMetadata().getDescriptor()));
+                AttributeDescriptor.getName(getMetadata()));
         try {
             final Object attributeValue = getValue();
             if (attributeValue instanceof Number)

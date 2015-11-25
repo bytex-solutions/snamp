@@ -1,13 +1,13 @@
 package com.bytex.snamp.connectors.operations;
 
-import com.bytex.snamp.configuration.AgentConfiguration;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import com.bytex.snamp.TimeSpan;
+import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigParameters;
 import com.bytex.snamp.connectors.ConfigurationEntityRuntimeMetadata;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.WellKnownType;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 
 import javax.management.Descriptor;
 import javax.management.ImmutableDescriptor;
@@ -18,9 +18,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.OperationConfiguration;
-import static com.bytex.snamp.connectors.operations.OperationSupport.ASYNC_FIELD;
-import static com.bytex.snamp.connectors.operations.OperationSupport.INVOCATION_TIMEOUT_FIELD;
-import static com.bytex.snamp.connectors.operations.OperationSupport.OPERATION_NAME_FIELD;
+import static com.bytex.snamp.connectors.operations.OperationSupport.*;
 import static com.bytex.snamp.jmx.CompositeDataUtils.fillMap;
 
 /**
@@ -163,6 +161,13 @@ public class OperationDescriptor extends ImmutableDescriptor implements Configur
 
     public final String getName(final String defName){
         return hasField(OperationConfiguration.NAME_KEY) ? getAlternativeName() : defName;
+    }
+
+    public static String getName(final MBeanOperationInfo metadata){
+        return DescriptorUtils.getField(metadata.getDescriptor(),
+                OperationConfiguration.NAME_KEY,
+                String.class,
+                metadata.getName());
     }
 
     public static WellKnownType getReturnType(final MBeanOperationInfo operationInfo) {

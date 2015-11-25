@@ -32,7 +32,7 @@ final class NSCAAttributeAccessor extends AttributeAccessor implements FeatureBi
         final MessagePayload payload = new MessagePayload();
         payload.setHostname(host);
         payload.setServiceName(getServiceName(getMetadata().getDescriptor(),
-                AttributeDescriptor.getAttributeName(getMetadata().getDescriptor())));
+                AttributeDescriptor.getName(getMetadata())));
         try {
             final Object attributeValue = getValue();
             payload.setMessage(Objects.toString(attributeValue, "0") +

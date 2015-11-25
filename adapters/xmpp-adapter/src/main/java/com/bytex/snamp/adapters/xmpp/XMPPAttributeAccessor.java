@@ -58,7 +58,7 @@ abstract class XMPPAttributeAccessor extends AttributeAccessor {
     }
 
     final String getOriginalName() {
-        return AttributeDescriptor.getAttributeName(getMetadata());
+        return AttributeDescriptor.getName(getMetadata());
     }
 
     final void createExtensions(final Collection<ExtensionElement> output) {

@@ -50,7 +50,7 @@ final class GetBindingOfAttributesOperation extends AbstractBindingInfoOperation
         final String mappedType = Objects.toString(bindingInfo.getProperty(FeatureBindingInfo.MAPPED_TYPE), "");
         row
                 .cell(USER_DEFINED_NAME_COLUMN, bindingInfo.getMetadata().getName())
-                .cell(NAME_COLUMN, AttributeDescriptor.getAttributeName(bindingInfo.getMetadata()))
+                .cell(NAME_COLUMN, AttributeDescriptor.getName(bindingInfo.getMetadata()))
                 .cell(MAPPED_TYPE_COLUMN, mappedType);
     }
 }

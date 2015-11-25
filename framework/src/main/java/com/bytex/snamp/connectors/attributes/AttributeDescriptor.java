@@ -216,6 +216,7 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
         return hasField(AttributeConfiguration.NAME_KEY) ? getAlternativeName() : defName;
     }
 
+
     @Override
     public final String getAlternativeName(){
         return getField(AttributeConfiguration.NAME_KEY, String.class);
@@ -227,5 +228,12 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
      */
     public final String getUnit(){
         return getField(DescriptorUtils.UNIT_OF_MEASUREMENT_FIELD, String.class);
+    }
+
+    public static String getName(final MBeanAttributeInfo metadata) {
+        return DescriptorUtils.getField(metadata.getDescriptor(),
+                AttributeConfiguration.NAME_KEY,
+                String.class,
+                metadata.getName());
     }
 }

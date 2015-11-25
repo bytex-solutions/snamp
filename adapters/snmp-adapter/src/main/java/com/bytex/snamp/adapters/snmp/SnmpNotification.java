@@ -71,7 +71,7 @@ final class SnmpNotification extends HashMap<OID, Variable> {
         put(messageId, SnmpHelpers.toOctetString(n.getMessage()));
         put(severityId, new Integer32(NotificationDescriptor.getSeverity(options).getLevel()));
         put(sequenceNumberId, new Counter64(n.getSequenceNumber()));
-        put(categoryId, SnmpHelpers.toOctetString(NotificationDescriptor.getNotificationCategory(options)));
+        put(categoryId, SnmpHelpers.toOctetString(NotificationDescriptor.getName(options)));
         final DateTimeFormatter formatter = SnmpHelpers.createDateTimeFormatter(parseDateTimeDisplayFormat(options));
         put(timeStampId, new OctetString(formatter.convert(new Date(n.getTimeStamp()))));
         putAttachment(notificationID, n.getUserData(), options, this, mapper);

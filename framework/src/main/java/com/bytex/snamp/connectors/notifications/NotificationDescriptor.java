@@ -1,5 +1,6 @@
 package com.bytex.snamp.connectors.notifications;
 
+import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
@@ -178,8 +179,11 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
         return hasField(EventConfiguration.NAME_KEY) ? getAlternativeName() : defName;
     }
 
-    static String getName(final Descriptor descriptor, final String defName) {
-        return DescriptorUtils.getField(descriptor, EventConfiguration.NAME_KEY, String.class, defName);
+    public static String getName(final MBeanNotificationInfo metadata){
+        return DescriptorUtils.getField(metadata.getDescriptor(),
+                EventConfiguration.NAME_KEY,
+                String.class,
+                ArrayUtils.getFirst(metadata.getNotifTypes()));
     }
 
     /**
