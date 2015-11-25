@@ -37,7 +37,7 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
 
         @Override
         protected ModbusAttributeInfo<?, ?> connectAttribute(final String attributeName, final AttributeDescriptor descriptor) throws AttributeNotFoundException, OpenDataException {
-            switch (descriptor.getAttributeName()) {
+            switch (descriptor.getName(attributeName)) {
                 case CoilAttribute.NAME:
                     if (ModbusResourceConnectorConfigurationDescriptor.hasCount(descriptor))
                         return new CoilSetAttribute(attributeName, descriptor, client);
@@ -61,13 +61,13 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
                 case FileAttribute.NAME:
                     return new FileAttribute(attributeName, descriptor, client);
                 default:
-                    throw JMExceptionUtils.attributeNotFound(descriptor.getAttributeName());
+                    throw JMExceptionUtils.attributeNotFound(descriptor.getName(attributeName));
             }
         }
 
         @Override
-        protected void failedToConnectAttribute(final String attributeID, final String attributeName, final Exception e) {
-            failedToConnectAttribute(logger, Level.WARNING, attributeID, attributeName, e);
+        protected void failedToConnectAttribute(final String attributeName, final Exception e) {
+            failedToConnectAttribute(logger, Level.WARNING, attributeName, e);
         }
 
         @Override
@@ -106,8 +106,8 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
         this(resourceName, getTransportType(connectionString), connectionString.getHost(), connectionString.getPort());
     }
 
-    boolean addAttribute(final String attributeID, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options){
-        return attributes.addAttribute(attributeID, attributeName, readWriteTimeout, options) != null;
+    boolean addAttribute(final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options){
+        return attributes.addAttribute(attributeName, readWriteTimeout, options) != null;
     }
 
     void removeAttributesExcept(final Set<String> attributes) {

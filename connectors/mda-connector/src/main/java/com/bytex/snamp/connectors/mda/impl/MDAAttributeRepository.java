@@ -28,14 +28,14 @@ public abstract class MDAAttributeRepository extends com.bytex.snamp.connectors.
     /**
      * Connects attribute with this repository.
      *
-     * @param attributeID User-defined identifier of the attribute.
+     * @param attributeName User-defined identifier of the attribute.
      * @param descriptor  Metadata of the attribute.
      * @return Constructed attribute object.
      */
     @SuppressWarnings("unchecked")
     @Override
-    protected final MDAAttributeInfo createAttributeMetadata(final String attributeID, final AttributeDescriptor descriptor) {
-        return new MDAAttributeInfo(attributeID, descriptor.getOpenType(), descriptor);
+    protected final MDAAttributeInfo createAttributeMetadata(final String attributeName, final AttributeDescriptor descriptor) {
+        return new MDAAttributeInfo(attributeName, descriptor.getOpenType(), descriptor);
     }
 
     @Override

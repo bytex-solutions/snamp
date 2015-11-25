@@ -65,7 +65,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         }
 
         private OID getNotificationID(){
-            return new OID(getDescriptor().getNotificationCategory());
+            return new OID(getDescriptor().getName(ArrayUtils.getFirst(getNotifTypes())));
         }
 
     }
@@ -115,14 +115,13 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         /**
          * Reports an error when enabling notifications.
          *
-         * @param listID   Subscription list identifier.
          * @param category An event category.
          * @param e        Internal connector error.
-         * @see #failedToEnableNotifications(java.util.logging.Logger, java.util.logging.Level, String, String, Exception)
+         * @see #failedToEnableNotifications(java.util.logging.Logger, java.util.logging.Level, String, Exception)
          */
         @Override
-        protected void failedToEnableNotifications(final String listID, final String category, final Exception e) {
-            failedToEnableNotifications(logger, Level.WARNING, listID, category, e);
+        protected void failedToEnableNotifications(final String category, final Exception e) {
+            failedToEnableNotifications(logger, Level.WARNING, category, e);
         }
 
         @Override
@@ -211,7 +210,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
                 message = Joiner.on(System.lineSeparator()).join(bindings);
                 bindings.clear();
             }
-            fire(notificationInfo.getDescriptor().getNotificationCategory(),
+            fire(notificationInfo.getDescriptor().getName(ArrayUtils.getFirst(notificationInfo.getNotifTypes())),
                     message,
                     bindings);
         }
@@ -297,7 +296,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         }
 
         private OID getAttributeID(){
-            return new OID(getDescriptor().getAttributeName());
+            return new OID(getDescriptor().getName(getName()));
         }
     }
 
@@ -342,33 +341,6 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         @Override
         public Integer convert(final Integer32 value) {
             return value.toInt();
-        }
-    }
-
-    private static final class UnsignedInteger32AttributeInfo extends SnmpAttributeInfo<UnsignedInteger32>{
-        private static final long serialVersionUID = 7000662819460705693L;
-
-        private UnsignedInteger32AttributeInfo(final String attributeID,
-                                       final AttributeDescriptor descriptor) {
-            super(attributeID, SimpleType.LONG, descriptor);
-        }
-
-        @Override
-        public UnsignedInteger32 convert(final Object value) throws InvalidAttributeValueException {
-            if(value instanceof Byte)
-                return new UnsignedInteger32((Byte)value);
-            else if(value instanceof Short)
-                return new UnsignedInteger32((Short)value);
-            else if(value instanceof Integer)
-                return new UnsignedInteger32((Integer)value);
-            else if(value instanceof Long)
-                return new UnsignedInteger32((Long)value);
-            else throw invalidAttribute(value, UnsignedInteger32.class);
-        }
-
-        @Override
-        public Long convert(final UnsignedInteger32 value) {
-            return value.toLong();
         }
     }
 
@@ -579,14 +551,13 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         /**
          * Reports an error when connecting attribute.
          *
-         * @param attributeID   The attribute identifier.
          * @param attributeName The name of the attribute.
          * @param e             Internal connector error.
-         * @see #failedToConnectAttribute(java.util.logging.Logger, java.util.logging.Level, String, String, Exception)
+         * @see #failedToConnectAttribute(java.util.logging.Logger, java.util.logging.Level, String, Exception)
          */
         @Override
-        protected void failedToConnectAttribute(final String attributeID, final String attributeName, final Exception e) {
-            failedToConnectAttribute(logger, Level.WARNING, attributeID, attributeName, e);
+        protected void failedToConnectAttribute(final String attributeName, final Exception e) {
+            failedToConnectAttribute(logger, Level.WARNING, attributeName, e);
         }
 
         /**
@@ -638,33 +609,34 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
 
                 @Override
                 public Variable invoke(final SnmpClient client) throws IOException, TimeoutException, InterruptedException, ExecutionException {
-                    return client.get(new OID(descriptor.getAttributeName()), responseTimeout);
+                    return client.get(new OID(descriptor.getName(attributeName)), responseTimeout);
                 }
             });
-            if(value == null) throw JMExceptionUtils.attributeNotFound(descriptor.getAttributeName());
-            else if(value instanceof Integer32)
-                return new Integer32AttributeInfo(attributeName, descriptor);
-            else if(value instanceof Null)
-                return new NullAttributeInfo(attributeName, descriptor);
-            else if(value instanceof Opaque)
-                return new OpaqueAttributeInfo(attributeName, descriptor);
-            else if(value instanceof OctetString)
-                return new OctetStringAttributeInfo(attributeName, (OctetString)value, descriptor);
-            else if(value instanceof OID)
-                return new OidAttributeInfo(attributeName, descriptor);
-            else if(value instanceof TimeTicks)
-                return new TimeTicksAttributeInfo(attributeName, descriptor);
-            else if(value instanceof Counter32)
-                return new Counter32AttributeInfo(attributeName, descriptor);
-            else if(value instanceof Counter64)
-                return new Counter64AttributeInfo(attributeName, descriptor);
-            else if(value instanceof Gauge32)
-                return new Gauge32AttributeInfo(attributeName, descriptor);
-            else if(value instanceof UnsignedInteger32)
-                return new UnsignedInteger32AttributeInfo(attributeName, descriptor);
-            else if(value instanceof IpAddress)
-                return new IpAddressAttributeInfo(attributeName, descriptor);
-            else return new ReadOnlyAttributeInfo(attributeName, descriptor);
+            if(value == null) throw JMExceptionUtils.attributeNotFound(descriptor.getName(attributeName));
+            else switch (value.getSyntax()){
+                case SMIConstants.SYNTAX_INTEGER32:
+                    return new Integer32AttributeInfo(attributeName, descriptor);
+                case SMIConstants.SYNTAX_NULL:
+                    return new NullAttributeInfo(attributeName, descriptor);
+                case SMIConstants.SYNTAX_OPAQUE:
+                    return new OpaqueAttributeInfo(attributeName, descriptor);
+                case SMIConstants.SYNTAX_OCTET_STRING:
+                    return new OctetStringAttributeInfo(attributeName, (OctetString)value, descriptor);
+                case SMIConstants.SYNTAX_OBJECT_IDENTIFIER:
+                    return new OidAttributeInfo(attributeName, descriptor);
+                case SMIConstants.SYNTAX_TIMETICKS:
+                    return new TimeTicksAttributeInfo(attributeName, descriptor);
+                case SMIConstants.SYNTAX_COUNTER32:
+                    return new Counter32AttributeInfo(attributeName, descriptor);
+                case SMIConstants.SYNTAX_COUNTER64:
+                    return new Counter64AttributeInfo(attributeName, descriptor);
+                case SMIConstants.SYNTAX_GAUGE32:
+                    return new Gauge32AttributeInfo(attributeName, descriptor);
+                case SMIConstants.SYNTAX_IPADDRESS:
+                    return new IpAddressAttributeInfo(attributeName, descriptor);
+                default:
+                    return new ReadOnlyAttributeInfo(attributeName, descriptor);
+            }
         }
 
         /**
@@ -768,7 +740,6 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
                             if(binding.getVariable() instanceof OctetString)
                                 parameters.put(SNMP_CONVERSION_FORMAT_PARAM, OctetStringConversionFormat.adviceFormat((OctetString) binding.getVariable()));
                             final SnmpAttributeInfo attr = addAttribute(binding.getOid().toDottedString(),
-                                    binding.getOid().toDottedString(),
                                     AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.TIMEOUT_FOR_SMART_MODE,
                                     CompositeDataUtils.create(parameters, SimpleType.STRING));
                             if(attr != null) result.add(attr);
@@ -815,14 +786,14 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         });
     }
 
-    boolean addAttribute(final String id, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+    boolean addAttribute(final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
         verifyInitialization();
-        return attributes.addAttribute(id, attributeName, readWriteTimeout, options) != null;
+        return attributes.addAttribute(attributeName, readWriteTimeout, options) != null;
     }
 
-    boolean enableNotifications(final String listId, final String category, final CompositeData options) {
+    boolean enableNotifications(final String category, final CompositeData options) {
         verifyInitialization();
-        return notifications.enableNotifications(listId, category, options) != null;
+        return notifications.enableNotifications(category, options) != null;
     }
 
     /**

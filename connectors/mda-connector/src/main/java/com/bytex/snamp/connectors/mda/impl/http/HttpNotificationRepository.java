@@ -1,5 +1,6 @@
 package com.bytex.snamp.connectors.mda.impl.http;
 
+import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.connectors.mda.MDANotificationRepository;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 import com.bytex.snamp.core.DistributedServices;
@@ -50,7 +51,7 @@ final class HttpNotificationRepository extends MDANotificationRepository<HttpNot
 
             @Override
             protected void process(final HttpNotificationAccessor metadata) {
-                if (category.equals(metadata.getDescriptor().getNotificationCategory()))
+                if (category.equals(metadata.getDescriptor().getName(ArrayUtils.getFirst(metadata.getNotifTypes()))))
                     try {
                         enqueue(metadata,
                                 metadata.getMessage(notification),

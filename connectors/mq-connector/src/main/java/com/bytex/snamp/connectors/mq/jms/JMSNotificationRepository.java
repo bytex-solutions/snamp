@@ -1,5 +1,6 @@
 package com.bytex.snamp.connectors.mq.jms;
 
+import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.connectors.mda.MDANotificationInfo;
 import com.bytex.snamp.connectors.mda.MDANotificationRepository;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
@@ -52,7 +53,7 @@ final class JMSNotificationRepository extends MDANotificationRepository<MDANotif
 
             @Override
             protected void process(final MDANotificationInfo metadata) {
-                if(Objects.equals(category, metadata.getDescriptor().getNotificationCategory()))
+                if(Objects.equals(category, metadata.getDescriptor().getName(ArrayUtils.getFirst(metadata.getNotifTypes()))))
                     if(metadata.getAttachmentType() == null)
                         enqueue(metadata, notifMessage, sequenceNumber, timeStamp, null);
                     else try{

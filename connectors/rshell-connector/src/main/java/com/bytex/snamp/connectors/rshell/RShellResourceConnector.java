@@ -101,16 +101,17 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
         private static final String INDEX_COLUMN = "index";
         private static final long serialVersionUID = -3828510082280244717L;
 
-        private TableAttributeInfo(final String attributeID,
+        private TableAttributeInfo(final String attributeName,
                                    final XmlCommandLineToolProfile profile,
                                    final AttributeDescriptor descriptor) throws OpenDataException{
-            super(attributeID,
+            super(attributeName,
                     profile,
-                    getTabularType(descriptor, profile.getReaderTemplate().getCommandOutputParser()),
+                    getTabularType(attributeName, descriptor, profile.getReaderTemplate().getCommandOutputParser()),
                     descriptor);
         }
 
-        private static TabularType getTabularType(final AttributeDescriptor descriptor,
+        private static TabularType getTabularType(final String attributeName,
+                                                    final AttributeDescriptor descriptor,
                                                       final XmlParserDefinition definition) throws OpenDataException{
             final TabularTypeBuilder builder = new TabularTypeBuilder();
             builder.addColumn(INDEX_COLUMN, "The index of the row", SimpleType.INTEGER, true);
@@ -121,7 +122,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
                     return true;
                 }
             });
-            builder.setTypeName(String.format("%sTabularType", descriptor.getAttributeName()), true);
+            builder.setTypeName(String.format("%sTabularType", descriptor.getName(attributeName)), true);
             builder.setDescription(RShellAttributeInfo.getDescription(descriptor), true);
             return builder.build();
         }
@@ -154,16 +155,17 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
 
         private static final long serialVersionUID = 7974143091272614419L;
 
-        private DictionaryAttributeInfo(final String attributeID,
+        private DictionaryAttributeInfo(final String attributeName,
                                         final XmlCommandLineToolProfile profile,
                                         final AttributeDescriptor descriptor) throws OpenDataException {
-            super(attributeID,
+            super(attributeName,
                     profile,
-                    getCompositeType(descriptor, profile.getReaderTemplate().getCommandOutputParser()),
+                    getCompositeType(attributeName, descriptor, profile.getReaderTemplate().getCommandOutputParser()),
                     descriptor);
         }
 
-        private static CompositeType getCompositeType(final AttributeDescriptor descriptor,
+        private static CompositeType getCompositeType(final String attributeName,
+                                                      final AttributeDescriptor descriptor,
                                                     final XmlParserDefinition definition) throws OpenDataException{
             final CompositeTypeBuilder builder = new CompositeTypeBuilder();
             definition.exportTableOrDictionaryType(new EntryReader<String, XmlParsingResultType, ExceptionPlaceholder>() {
@@ -173,7 +175,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
                     return true;
                 }
             });
-            builder.setTypeName(String.format("%sCompositeType", descriptor.getAttributeName()));
+            builder.setTypeName(String.format("%sCompositeType", descriptor.getName(attributeName)));
             builder.setDescription(RShellAttributeInfo.getDescription(descriptor));
             return builder.build();
         }
@@ -207,14 +209,13 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
         /**
          * Reports an error when connecting attribute.
          *
-         * @param attributeID   The attribute identifier.
          * @param attributeName The name of the attribute.
          * @param e             Internal connector error.
-         * @see #failedToConnectAttribute(java.util.logging.Logger, java.util.logging.Level, String, String, Exception)
+         * @see #failedToConnectAttribute(java.util.logging.Logger, java.util.logging.Level, String, Exception)
          */
         @Override
-        protected void failedToConnectAttribute(final String attributeID, final String attributeName, final Exception e) {
-            failedToConnectAttribute(logger, Level.WARNING, attributeID, attributeName, e);
+        protected void failedToConnectAttribute(final String attributeName, final Exception e) {
+            failedToConnectAttribute(logger, Level.WARNING, attributeName, e);
         }
 
         /**
@@ -253,7 +254,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
         @Override
         protected RShellAttributeInfo connectAttribute(final String attributeName,
                                                        final AttributeDescriptor descriptor) throws Exception {
-            final String commandProfileFilePath = descriptor.getAttributeName();
+            final String commandProfileFilePath = descriptor.getName(attributeName);
             final XmlCommandLineToolProfile profile = XmlCommandLineToolProfile.loadFrom(new File(commandProfileFilePath));
             if (profile != null) {
                 profile.setScriptManager(scriptEngineManager);
@@ -314,8 +315,8 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
         this(resourceName, new RShellConnectionOptions(connectionString, connectionOptions));
     }
 
-    boolean addAttribute(final String id, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
-        return attributes.addAttribute(id, attributeName, readWriteTimeout, options) != null;
+    boolean addAttribute(final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+        return attributes.addAttribute(attributeName, readWriteTimeout, options) != null;
     }
 
     /**
