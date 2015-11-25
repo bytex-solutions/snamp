@@ -13,6 +13,7 @@ public interface EventConnector {
     NotificationEmitter loadEvent(final String scriptFile,
                                   final NotificationEmitter realEmitter) throws ResourceException, ScriptException;
 
-    NotificationEmitter loadEvent(final NotificationDescriptor descriptor,
+    NotificationEmitter loadEvent(final String notifType,
+                                  final NotificationDescriptor descriptor,
                                   final NotificationEmitter realEmitter) throws ResourceException, ScriptException;
 }

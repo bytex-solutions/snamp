@@ -24,11 +24,11 @@ public final class ManagedResourceScriptEngineTest extends Assert {
 
     @Test
     public void dummyAttributeTest() throws Exception {
-        final SerializableAttributeConfiguration config = new SerializableAttributeConfiguration("DummyAttribute");
+        final SerializableAttributeConfiguration config = new SerializableAttributeConfiguration();
         config.setParameter("configParam", "Hello, world!");
         config.setReadWriteTimeout(TimeSpan.ofSeconds(2));
 
-        final AttributeAccessor scr = engine.loadAttribute(new AttributeDescriptor(config));
+        final AttributeAccessor scr = engine.loadAttribute("DummyAttribute", new AttributeDescriptor(config));
         assertEquals(ManagedResourceAttributeScript.INT32, scr.type());
         assertTrue(scr.specifier().canRead());
         assertTrue(scr.specifier().canWrite());

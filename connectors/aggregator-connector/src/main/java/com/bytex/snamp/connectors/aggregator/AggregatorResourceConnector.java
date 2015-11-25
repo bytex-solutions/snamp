@@ -44,7 +44,7 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
 
         @Override
         protected AbstractAttributeAggregation connectAttribute(final String attributeName, final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException, JMException {
-            switch (descriptor.getAttributeName()){
+            switch (descriptor.getName(attributeName)){
                 case PatternMatcher.NAME: return new PatternMatcher(attributeName, descriptor);
                 case UnaryComparison.NAME: return new UnaryComparison(attributeName, descriptor);
                 case BinaryComparison.NAME: return new BinaryComparison(attributeName, descriptor);
@@ -61,13 +61,13 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
         }
 
         @Override
-        protected void failedToConnectAttribute(final String attributeID, final String attributeName, final Exception e) {
-            failedToConnectAttribute(getLoggerImpl(), Level.SEVERE, attributeID, attributeName, e);
+        protected void failedToConnectAttribute(final String attributeName, final Exception e) {
+            failedToConnectAttribute(getLoggerImpl(), Level.SEVERE, attributeName, e);
         }
 
         @Override
-        protected void failedToGetAttribute(final String attributeID, final Exception e) {
-            failedToGetAttribute(getLoggerImpl(), Level.SEVERE, attributeID, e);
+        protected void failedToGetAttribute(final String attributeName, final Exception e) {
+            failedToGetAttribute(getLoggerImpl(), Level.SEVERE, attributeName, e);
         }
 
         @Override
@@ -105,7 +105,7 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
         @Override
         protected AbstractAggregatorNotification enableNotifications(final String notifType,
                                                              final NotificationDescriptor metadata) throws AbsentAggregatorNotificationParameterException {
-            switch (metadata.getNotificationCategory()){
+            switch (metadata.getName(notifType)){
                 case PeriodicAttributeQuery.CATEGORY:
                     return new PeriodicAttributeQuery(notifType, metadata, getLoggerImpl());
                 case HealthCheckNotification.CATEGORY:
@@ -115,8 +115,8 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
         }
 
         @Override
-        protected void failedToEnableNotifications(final String listID, final String category, final Exception e) {
-            failedToEnableNotifications(getLoggerImpl(), Level.SEVERE, listID, category, e);
+        protected void failedToEnableNotifications(final String category, final Exception e) {
+            failedToEnableNotifications(getLoggerImpl(), Level.SEVERE, category, e);
         }
 
         private final class NotificationEnqueueImpl extends NotificationCollector implements NotificationEnqueue{
@@ -208,12 +208,12 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
                 }, attributes, notifications);
     }
 
-    boolean addAttribute(final String attributeID, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
-        return attributes.addAttribute(attributeID, attributeName, readWriteTimeout, options) != null;
+    boolean addAttribute(final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+        return attributes.addAttribute(attributeName, readWriteTimeout, options) != null;
     }
 
-    boolean enableNotifications(final String listID, final String category, final CompositeData options){
-        return notifications.enableNotifications(listID, category, options) != null;
+    boolean enableNotifications(final String category, final CompositeData options){
+        return notifications.enableNotifications(category, options) != null;
     }
 
     void removeAttributesExcept(final Set<String> attributes) {

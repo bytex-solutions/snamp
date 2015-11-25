@@ -32,7 +32,8 @@ final class Counter extends UnaryAttributeAggregation<Long> {
     }
 
     static SerializableAttributeConfiguration getConfiguration() {
-        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration(NAME);
+        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration();
+        result.setAlternativeName(NAME);
         fillParameters(result.getParameters());
         return result;
     }

@@ -22,7 +22,8 @@ final class Stringifier extends UnaryAttributeAggregation<String> {
     }
 
     static SerializableAttributeConfiguration getConfiguration() {
-        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration(NAME);
+        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration();
+        result.setAlternativeName(NAME);
         fillParameters(result.getParameters());
         return result;
     }

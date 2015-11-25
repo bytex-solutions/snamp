@@ -66,7 +66,8 @@ final class Composer extends AbstractAttributeAggregation<CompositeData> {
     }
 
     static SerializableAttributeConfiguration getConfiguration() {
-        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration(NAME);
+        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration();
+        result.setAlternativeName(NAME);
         result.getParameters().put(AggregatorConnectorConfiguration.SOURCE_PARAM, "");
         return result;
     }

@@ -35,7 +35,8 @@ final class PatternMatcher extends UnaryAttributeAggregation<Boolean> {
     }
 
     static SerializableAttributeConfiguration getConfiguration() {
-        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration(NAME);
+        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration();
+        result.setAlternativeName(NAME);
         fillParameters(result.getParameters());
         result.getParameters().put(AggregatorConnectorConfiguration.VALUE_PARAM, "");
         return result;

@@ -131,8 +131,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         @Override
         protected GroovyNotificationInfo enableNotifications(final String notifType,
                                                              final NotificationDescriptor metadata) throws ResourceException, ScriptException {
-            final NotificationEmitter emitter = connector.loadEvent(metadata,
-                    new NotificationEmitterSlim(metadata.getNotificationCategory()));
+            final NotificationEmitter emitter = connector.loadEvent(notifType, metadata, new NotificationEmitterSlim(metadata.getName(notifType)));
             return new GroovyNotificationInfo(notifType, metadata, emitter);
         }
 
@@ -147,14 +146,13 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         /**
          * Reports an error when enabling notifications.
          *
-         * @param listID   Subscription list identifier.
          * @param category An event category.
          * @param e        Internal connector error.
-         * @see #failedToEnableNotifications(Logger, Level, String, String, Exception)
+         * @see #failedToEnableNotifications(Logger, Level, String, Exception)
          */
         @Override
-        protected void failedToEnableNotifications(final String listID, final String category, final Exception e) {
-            failedToEnableNotifications(getLoggerImpl(), Level.SEVERE, listID, category, e);
+        protected void failedToEnableNotifications(final String category, final Exception e) {
+            failedToEnableNotifications(getLoggerImpl(), Level.SEVERE, category, e);
         }
     }
 
@@ -162,12 +160,12 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         private static final long serialVersionUID = 2519548731335827051L;
         private final AttributeAccessor accessor;
 
-        private GroovyAttributeInfo(final String attributeID,
+        private GroovyAttributeInfo(final String attributeName,
                                     final AttributeDescriptor descriptor,
                                     final AttributeAccessor accessor){
-            super(attributeID,
+            super(attributeName,
                     accessor.type(),
-                    getDescription(descriptor, attributeID),
+                    getDescription(descriptor, attributeName),
                     accessor.specifier(),
                     descriptor);
             this.accessor = accessor;
@@ -196,13 +194,13 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         @Override
         protected GroovyAttributeInfo connectAttribute(final String attributeName,
                                                        final AttributeDescriptor descriptor) throws ResourceException, ScriptException {
-            final AttributeAccessor accessor = connector.loadAttribute(descriptor);
+            final AttributeAccessor accessor = connector.loadAttribute(attributeName, descriptor);
             //create wrapper
             return new GroovyAttributeInfo(attributeName, descriptor, accessor);
         }
         @Override
-        protected void failedToConnectAttribute(final String attributeID, final String attributeName, final Exception e) {
-            failedToConnectAttribute(getLoggerImpl(), Level.SEVERE, attributeID, attributeName, e);
+        protected void failedToConnectAttribute(final String attributeName, final Exception e) {
+            failedToConnectAttribute(getLoggerImpl(), Level.SEVERE, attributeName, e);
         }
 
         private static Object getAttribute(final AttributeAccessor accessor) throws Exception {
@@ -224,8 +222,8 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         }
 
         @Override
-        protected void failedToGetAttribute(final String attributeID, final Exception e) {
-            failedToGetAttribute(getLoggerImpl(), Level.SEVERE, attributeID, e);
+        protected void failedToGetAttribute(final String attributeName, final Exception e) {
+            failedToGetAttribute(getLoggerImpl(), Level.SEVERE, attributeName, e);
         }
 
         private static void setAttribute(final AttributeAccessor accessor,
@@ -340,16 +338,15 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         removeResourceEventListener(listener, attributes);
     }
 
-    boolean addAttribute(final String attributeID, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+    boolean addAttribute(final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
         verifyInitialization();
-        return attributes.addAttribute(attributeID, attributeName, readWriteTimeout, options) != null;
+        return attributes.addAttribute(attributeName, readWriteTimeout, options) != null;
     }
 
-    boolean enableNotifications(final String listID,
-                             final String category,
+    boolean enableNotifications(final String category,
                              final CompositeData options){
         verifyInitialization();
-        return events.enableNotifications(listID, category, options) != null;
+        return events.enableNotifications(category, options) != null;
     }
 
     void removeAttributesExcept(final Set<String> attributes) {
