@@ -178,7 +178,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
             }
         }, true, false);
         //register attribute
-        runCommand("snamp:configure-attribute -p par=val resource2 attr memory 12000");
+        runCommand("snamp:configure-attribute -p par=val resource2 attr 12000");
         Thread.sleep(500);
         processConfiguration(new SafeConsumer<AgentConfiguration>() {
             @Override
@@ -189,7 +189,6 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
                         .getFeatures(AttributeConfiguration.class)
                         .get("attr");
                 assertNotNull(attribute);
-                assertEquals("memory", attribute.getAttributeName());
                 assertEquals(TimeSpan.ofSeconds(12), attribute.getReadWriteTimeout());
                 assertEquals("val", attribute.getParameters().get("par"));
             }
@@ -234,7 +233,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
             }
         }, true, false);
         //register event
-        runCommand("snamp:configure-event -p par=val resource2 ev1 onError");
+        runCommand("snamp:configure-event -p par=val resource2 ev1");
         Thread.sleep(500);
         processConfiguration(new SafeConsumer<AgentConfiguration>() {
             @Override
@@ -245,7 +244,6 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
                         .getFeatures(EventConfiguration.class)
                         .get("ev1");
                 assertNotNull(attribute);
-                assertEquals("onError", attribute.getCategory());
                 assertEquals("val", attribute.getParameters().get("par"));
             }
         }, true, false);
@@ -283,7 +281,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
     @Test
     public void resourceInfoTest() throws Exception{
         //register event
-        runCommand("snamp:configure-event -p par=val resource1 ev1 onError");
+        runCommand("snamp:configure-event -p par=val resource1 ev1");
         Thread.sleep(500);
         processConfiguration(new SafeConsumer<AgentConfiguration>() {
             @Override
@@ -294,13 +292,12 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
                         .getFeatures(EventConfiguration.class)
                         .get("ev1");
                 assertNotNull(attribute);
-                assertEquals("onError", attribute.getCategory());
                 assertEquals("val", attribute.getParameters().get("par"));
             }
         }, true, false);
         Thread.sleep(500);
         //register attribute
-        runCommand("snamp:configure-attribute -p par=val resource1 attr memory 12000");
+        runCommand("snamp:configure-attribute -p par=val resource1 attr 12000");
         Thread.sleep(500);
         processConfiguration(new SafeConsumer<AgentConfiguration>() {
             @Override
@@ -311,7 +308,6 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
                         .getFeatures(AttributeConfiguration.class)
                         .get("attr");
                 assertNotNull(attribute);
-                assertEquals("memory", attribute.getAttributeName());
                 assertEquals(TimeSpan.ofSeconds(12), attribute.getReadWriteTimeout());
                 assertEquals("val", attribute.getParameters().get("par"));
             }

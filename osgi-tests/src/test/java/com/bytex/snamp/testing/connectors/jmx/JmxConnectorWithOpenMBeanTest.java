@@ -50,58 +50,58 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
     @Override
     protected void fillOperations(final EntityMap<? extends OperationConfiguration> operations) {
         OperationConfiguration operation = operations.getOrAdd("res");
-        operation.setOperationName("reverse");
+        setFeatureName(operation, "reverse");
         operation.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
     }
 
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         AttributeConfiguration attribute = attributes.getOrAdd("1.0");
-        attribute.setAttributeName("string");
+        setFeatureName(attribute, "string");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
 
         attribute = attributes.getOrAdd("2.0");
-        attribute.setAttributeName("boolean");
+        setFeatureName(attribute, "boolean");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
 
         attribute = attributes.getOrAdd("3.0");
-        attribute.setAttributeName("int32");
+        setFeatureName(attribute, "int32");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
 
         attribute = attributes.getOrAdd("4.0");
-        attribute.setAttributeName("bigint");
+        setFeatureName(attribute, "bigint");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
 
         attribute = attributes.getOrAdd("5.0");
-        attribute.setAttributeName("array");
+        setFeatureName(attribute, "array");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
 
         attribute = attributes.getOrAdd("6.1");
-        attribute.setAttributeName("dictionary");
+        setFeatureName(attribute, "dictionary");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
 
         attribute = attributes.getOrAdd("7.1");
-        attribute.setAttributeName("table");
+        setFeatureName(attribute, "table");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
 
         attribute = attributes.getOrAdd("8.0");
-        attribute.setAttributeName("float");
+        setFeatureName(attribute, "float");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
 
         attribute = attributes.getOrAdd("9.0");
-        attribute.setAttributeName("date");
+        setFeatureName(attribute, "date");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
     }
 
     @Override
     protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
         EventConfiguration event = events.getOrAdd("19.1");
-        event.setCategory(AttributeChangeNotification.ATTRIBUTE_CHANGE);
+        setFeatureName(event, AttributeChangeNotification.ATTRIBUTE_CHANGE);
         event.getParameters().put("severity", "notice");
         event.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
 
         event = events.getOrAdd("20.1");
-        event.setCategory("com.bytex.snamp.connectors.tests.impl.testnotif");
+        setFeatureName(event, "com.bytex.snamp.connectors.tests.impl.testnotif");
         event.getParameters().put("severity", "panic");
         event.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
     }
@@ -312,7 +312,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         assertTrue(discoveredAttributes.size() > 30);
         for(final AttributeConfiguration config: discoveredAttributes) {
             assertTrue(config.getParameters().containsKey("objectName"));
-            assertTrue(config.getAttributeName().length() > 0);
+            assertTrue(config.getParameters().containsKey(AttributeConfiguration.NAME_KEY));
         }
     }
 
@@ -326,7 +326,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         assertTrue(discoveredEvents.size() > 2);
         for(final EventConfiguration config: discoveredEvents) {
             assertTrue(config.getParameters().containsKey("objectName"));
-            assertTrue(config.getCategory().length() > 0);
+            assertTrue(config.getParameters().containsKey(EventConfiguration.NAME_KEY));
         }
     }
 

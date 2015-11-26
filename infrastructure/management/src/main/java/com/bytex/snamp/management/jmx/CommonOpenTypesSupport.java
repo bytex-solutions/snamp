@@ -64,7 +64,6 @@ interface CommonOpenTypesSupport<T extends MBeanFeatureInfo> extends Supplier<T>
         @Override
         public CompositeTypeBuilder call() throws OpenDataException {
             return new CompositeTypeBuilder("com.bytex.management.EventMetadata", "SNAMP Connector Event Metadata")
-                    .addItem("Category", "Connector event category", SimpleType.STRING)
                     .addItem("AdditionalProperties", "User defined property for event", SIMPLE_MAP_TYPE);
         }
     });
@@ -77,7 +76,6 @@ interface CommonOpenTypesSupport<T extends MBeanFeatureInfo> extends Supplier<T>
                 @Override
                 public CompositeTypeBuilder call() throws OpenDataException {
                     return new CompositeTypeBuilder("com.bytex.management.AttributeMetadata", "SNAMP connector attribute metadata scheme")
-                            .addItem("Name", "Connector attribute name", SimpleType.STRING)
                             .addItem("ReadWriteTimeout", "Read write timeout for connector attribute", SimpleType.LONG)
                             .addItem("AdditionalProperties", "User defined property for attribute", SIMPLE_MAP_TYPE);
                 }

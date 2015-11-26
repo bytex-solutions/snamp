@@ -176,16 +176,16 @@ public final class NagiosAdapterTest extends AbstractJmxConnectorTest<TestOpenMB
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         AttributeConfiguration attribute = attributes.getOrAdd("1.0");
-        attribute.setAttributeName("string");
+        setFeatureName(attribute, "string");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("serviceName", "stringService");
 
         attribute = attributes.getOrAdd("2.0");
-        attribute.setAttributeName("boolean");
+        setFeatureName(attribute, "boolean");
         attribute.getParameters().put("objectName", BEAN_NAME);
 
         attribute = attributes.getOrAdd("3.0");
-        attribute.setAttributeName("int32");
+        setFeatureName(attribute, "int32");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("serviceName", "memory");
         attribute.getParameters().put(DescriptorUtils.MAX_VALUE_FIELD, "100");

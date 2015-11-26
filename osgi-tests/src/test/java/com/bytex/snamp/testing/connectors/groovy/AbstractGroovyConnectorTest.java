@@ -41,26 +41,19 @@ public abstract class AbstractGroovyConnectorTest extends AbstractResourceConnec
 
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
-        AttributeConfiguration attr = attributes.getOrAdd("dummy");
-        attr.setAttributeName("DummyAttribute");
-        attr.getParameters().put("configParam", "value");
+        attributes.getOrAdd("DummyAttribute").getParameters().put("configParam", "value");
 
-        attr = attributes.getOrAdd("json");
-        attr.setAttributeName("JsonAttribute");
+        attributes.getOrAdd("JsonAttribute");
 
-        attr = attributes.getOrAdd("finance");
-        attr.setAttributeName("Yahoo");
+        attributes.getOrAdd("Yahoo");
 
-        attr = attributes.getOrAdd("dict");
-        attr.setAttributeName("DictionaryAttribute");
+        attributes.getOrAdd("DictionaryAttribute");
 
-        attr = attributes.getOrAdd("table");
-        attr.setAttributeName("TableAttribute");
+        attributes.getOrAdd("TableAttribute");
     }
 
     @Override
     protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
-        EventConfiguration ev = events.getOrAdd("ev");
-        ev.setCategory("Event");
+        events.getOrAdd("Event");
     }
 }

@@ -72,8 +72,8 @@ final class DiscoverManagementMetadataOperation extends OpenMBean.OpenOperation<
         this.snampManager = snampManager;
     }
 
-    private static CompositeData getDiscoverMetadata(final SnampComponentDescriptor connector, final Locale loc,
-           final String connectionString, final Map<String, String> connectionOptions) throws Exception {
+    private static CompositeData getDiscoverMetadata(final SnampComponentDescriptor connector,
+                                                     final String connectionString, final Map<String, String> connectionOptions) throws Exception {
 
         final Map<String, Object> schema = Maps.newHashMapWithExpectedSize(CONNECTOR_METADATA.keySet().size());
         connector.invokeSupportService(DiscoveryService.class, new Consumer<DiscoveryService, Exception>() {
@@ -89,13 +89,11 @@ final class DiscoverManagementMetadataOperation extends OpenMBean.OpenOperation<
                 final List<CompositeData> attributesData = Lists.newArrayListWithExpectedSize(attributes.size());
                 for (AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration attribute: attributes) {
                     final Map<String, Object> attrMap = new HashMap<>();
-                    // append the name
-                    attrMap.put("Name", attribute.getAttributeName());
                     // append the r/w timeout
                     if (attribute.getReadWriteTimeout() != TimeSpan.INFINITE)
                         attrMap.put("ReadWriteTimeout", attribute.getReadWriteTimeout().convert(TimeUnit.MILLISECONDS).duration);
                     else {
-                        attrMap.put("ReadWriteTimeout", Long.MAX_VALUE);
+                        attrMap.put("ReadWriteTimeout", -1L);
                     }
                     //read other properties
                     final TabularDataBuilderRowFill builder = new TabularDataBuilderRowFill(SIMPLE_MAP_TYPE);
@@ -115,8 +113,6 @@ final class DiscoverManagementMetadataOperation extends OpenMBean.OpenOperation<
                 final List<CompositeData> eventsData = Lists.newArrayListWithExpectedSize(events.size());
                 for (AgentConfiguration.ManagedResourceConfiguration.EventConfiguration event: events) {
                     final Map<String, Object> eventMap = new HashMap<>();
-                    // append the category
-                    eventMap.put("Category", event.getCategory());
                     //read other properties
                     final TabularDataBuilderRowFill builder = new TabularDataBuilderRowFill(SIMPLE_MAP_TYPE);
                     for (final Map.Entry<String, String> parameter : event.getParameters().entrySet()) {
@@ -147,7 +143,6 @@ final class DiscoverManagementMetadataOperation extends OpenMBean.OpenOperation<
 
         if (connector == null) throw new IllegalArgumentException(String.format("Connector %s doesn't exist", connectorName));
         else return getDiscoverMetadata(connector,
-                locale == null || locale.isEmpty() ? Locale.getDefault() : Locale.forLanguageTag(locale),
                 connectionString, connectionStringParam);
     }
 }

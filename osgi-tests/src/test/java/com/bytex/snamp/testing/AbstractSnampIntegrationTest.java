@@ -2,13 +2,13 @@ package com.bytex.snamp.testing;
 
 import com.bytex.snamp.Consumer;
 import com.bytex.snamp.ExceptionalCallable;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.*;
 import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.PersistentConfigurationManager;
 import com.bytex.snamp.configuration.SerializableAgentConfiguration;
-import com.bytex.snamp.SpecialUse;
 import org.junit.After;
 import org.junit.Before;
 import org.ops4j.pax.exam.karaf.options.KarafFeaturesOption;
@@ -23,6 +23,8 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
 
 /**
  * Represents an abstract class for all SNAMP-based integration tests.
@@ -204,5 +206,9 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
         finally {
             ResourceAdapterClient.removeEventListener(adapterName, synchronizer);
         }
+    }
+
+    protected static void setFeatureName(final FeatureConfiguration feature, final String name){
+        feature.getParameters().put(FeatureConfiguration.NAME_KEY, name);
     }
 }

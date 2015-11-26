@@ -311,6 +311,20 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
         public final void setParameter(final String name, final String value){
             parameters.put(name, value);
         }
+
+        public final String getParameter(final String parameter, final String defaultValue){
+            return parameters.containsKey(parameter) ?
+                    parameters.get(parameter) :
+                    defaultValue;
+        }
+
+        public final void setGroupName(final String value){
+            setParameter(GROUP_KEY, value);
+        }
+
+        public final String getGroupName(){
+            return getParameter(GROUP_KEY, null);
+        }
     }
 
     /**
@@ -463,14 +477,22 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
             private static final long serialVersionUID = -1609210097027316240L;
 
             public final void setAlternativeName(final String value){
-                getParameters().put(NAME_KEY, value);
+                setParameter(NAME_KEY, value);
+            }
+
+            public final String getAlternativeName(){
+                return getParameter(NAME_KEY, null);
             }
 
             public final void setAutomaticallyAdded(final boolean value){
                 if(value)
-                    getParameters().put(AUTOMATICALLY_ADDED_KEY, Boolean.TRUE.toString());
+                    setParameter(AUTOMATICALLY_ADDED_KEY, Boolean.TRUE.toString());
                 else
                     getParameters().remove(AUTOMATICALLY_ADDED_KEY);
+            }
+
+            public final boolean isAutomaticallyAdded(){
+                return getParameters().containsKey(AUTOMATICALLY_ADDED_KEY);
             }
         }
 

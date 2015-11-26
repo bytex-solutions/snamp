@@ -116,49 +116,49 @@ public final class ModbusConnectorTest extends AbstractModbusConnectorTest {
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         AttributeConfiguration attr = attributes.getOrAdd("ID_0");
-        attr.setAttributeName("inputDiscrete");
+        setFeatureName(attr, "inputDiscrete");
         attr.getParameters().put("unitID", Integer.toString(UNIT_ID));
         attr.getParameters().put("offset", "0");
 
         attr = attributes.getOrAdd("ID_1");
-        attr.setAttributeName("inputDiscrete");
+        setFeatureName(attr, "inputDiscrete");
         attr.getParameters().put("unitID", Integer.toString(UNIT_ID));
         attr.getParameters().put("offset", "1");
 
         attr = attributes.getOrAdd("C_0");
-        attr.setAttributeName("coil");
+        setFeatureName(attr, "coil");
         attr.getParameters().put("unitID", Integer.toString(UNIT_ID));
         attr.getParameters().put("offset", "0");
 
         attr = attributes.getOrAdd("ID_01");
-        attr.setAttributeName("inputDiscrete");
+        setFeatureName(attr, "inputDiscrete");
         attr.getParameters().put("unitID", Integer.toString(UNIT_ID));
         attr.getParameters().put("offset", "0");
         attr.getParameters().put("count", "2");
 
         attr = attributes.getOrAdd("IR_0");
-        attr.setAttributeName("inputRegister");
+        setFeatureName(attr, "inputRegister");
         attr.getParameters().put("unitID", Integer.toString(UNIT_ID));
         attr.getParameters().put("offset", "0");
 
         attr = attributes.getOrAdd("IR_1");
-        attr.setAttributeName("inputRegister");
+        setFeatureName(attr, "inputRegister");
         attr.getParameters().put("unitID", Integer.toString(UNIT_ID));
         attr.getParameters().put("offset", "1");
 
         attr = attributes.getOrAdd("IR_01");
-        attr.setAttributeName("inputRegister");
+        setFeatureName(attr, "inputRegister");
         attr.getParameters().put("unitID", Integer.toString(UNIT_ID));
         attr.getParameters().put("offset", "0");
         attr.getParameters().put("count", "2");
 
         attr = attributes.getOrAdd("OR_0");
-        attr.setAttributeName("holdingRegister");
+        setFeatureName(attr, "holdingRegister");
         attr.getParameters().put("unitID", Integer.toString(UNIT_ID));
         attr.getParameters().put("offset", "0");
 
         attr = attributes.getOrAdd("FI_0");
-        attr.setAttributeName("file");
+        setFeatureName(attr, "file");
         attr.getParameters().put("unitID", Integer.toString(UNIT_ID));
         attr.getParameters().put("offset", "0");
         attr.getParameters().put("count", "3");

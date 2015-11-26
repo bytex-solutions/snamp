@@ -24,7 +24,6 @@ import java.util.concurrent.Callable;
 final class AvailableEventsOperation extends AvailableFeaturesOperation<MBeanNotificationInfo> {
     static final String NAME = "getAvailableEvents";
 
-    private static final String LIST_ID_COLUMN = "listID";
     private static final String DESCRIPTION_COLUMN = "description";
     private static final String PARAMETERS_COLUMN = "parameters";
     private static final String ATTACHMENT_TYPE_COLUMN = "attachmentType";
@@ -37,7 +36,6 @@ final class AvailableEventsOperation extends AvailableFeaturesOperation<MBeanNot
             return new TabularTypeBuilder()
                     .setTypeName("AvailableNotifications", true)
                     .setDescription("A set of available notifications", true)
-                    .addColumn(LIST_ID_COLUMN, "User-defined name of the event", SimpleType.STRING, true)
                     .addColumn(DESCRIPTION_COLUMN, "Description of the event", SimpleType.STRING, false)
                     .addColumn(PARAMETERS_COLUMN, "Configuration parameters", PARAMETERS_TYPE, false)
                     .addColumn(ATTACHMENT_TYPE_COLUMN, "Type of the notification attachment", SimpleType.STRING, false)
@@ -54,14 +52,12 @@ final class AvailableEventsOperation extends AvailableFeaturesOperation<MBeanNot
     private static void fillRow(final MBeanNotificationInfo notificationInfo,
                                 final TabularDataBuilderRowFill.RowBuilder row) throws OpenDataException {
         final String description = notificationInfo.getDescription();
-        final String category = NotificationDescriptor.getNotificationCategory(notificationInfo);
         final WellKnownType attachmentType = WellKnownType.getType(NotificationDescriptor.getUserDataType(notificationInfo));
         row
-                .cell(LIST_ID_COLUMN, ArrayUtils.getFirst(notificationInfo.getNotifTypes(), ""))
+                .cell(CATEGORY_COLUMN, ArrayUtils.getFirst(notificationInfo.getNotifTypes(), ""))
                 .cell(PARAMETERS_COLUMN, toTabularData(notificationInfo))
                 .cell(DESCRIPTION_COLUMN, MoreObjects.firstNonNull(description, ""))
                 .cell(ATTACHMENT_TYPE_COLUMN, attachmentType == null ? "" : attachmentType.getDisplayName())
-                .cell(CATEGORY_COLUMN, MoreObjects.firstNonNull(category, ""))
                 .cell(SEVERITY_COLUMN, NotificationDescriptor.getSeverity(notificationInfo).toString())
                 .flush();
     }

@@ -4,10 +4,10 @@ import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.configuration.AgentConfiguration;
-import com.google.common.base.Strings;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
+
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 
@@ -28,12 +28,8 @@ public final class ConfigAttributeCommand extends ConfigurationCommand {
     private String resourceName = "";
 
     @SpecialUse
-    @Argument(index = 1, name = "userDefinedName", required = true, description = "User-defined name of the attribute")
-    private String userDefinedName = "";
-
-    @SpecialUse
-    @Argument(index = 2, name = "attributeName", required = false, description = "Resource-specific name of the attribute")
-    private String systemName = "";
+    @Argument(index = 1, name = "name", required = true, description = "Attribute name")
+    private String name = "";
 
     @SpecialUse
     @Argument(index = 3, name = "readWriteTimeout", required = false, description = "Read/write timeout for attribute, in millis")
@@ -47,9 +43,7 @@ public final class ConfigAttributeCommand extends ConfigurationCommand {
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
         if (configuration.getManagedResources().containsKey(resourceName)) {
             final ManagedResourceConfiguration resource = configuration.getManagedResources().get(resourceName);
-            final AttributeConfiguration attribute = resource.getFeatures(AttributeConfiguration.class).getOrAdd(userDefinedName);
-            if (!Strings.isNullOrEmpty(systemName))
-                attribute.setAttributeName(systemName);
+            final AttributeConfiguration attribute = resource.getFeatures(AttributeConfiguration.class).getOrAdd(name);
             if (readWriteTimeout > INFINITE_TIMEOUT)
                 attribute.setReadWriteTimeout(TimeSpan.ofMillis(readWriteTimeout));
             if (!ArrayUtils.isNullOrEmpty(parameters))

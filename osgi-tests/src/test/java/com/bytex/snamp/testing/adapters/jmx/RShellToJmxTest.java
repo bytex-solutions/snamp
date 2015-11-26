@@ -106,7 +106,7 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         final AttributeConfiguration attr = attributes.getOrAdd("ms");
-        attr.setAttributeName(getPathToFileInProjectRoot("freemem-tool-profile.xml"));
+        setFeatureName(attr, getPathToFileInProjectRoot("freemem-tool-profile.xml"));
         attr.getParameters().put("format", "-m");
     }
 

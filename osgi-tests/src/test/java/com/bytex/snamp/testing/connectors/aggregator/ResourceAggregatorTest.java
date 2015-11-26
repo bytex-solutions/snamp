@@ -327,41 +327,41 @@ public final class ResourceAggregatorTest extends AbstractSnampIntegrationTest {
         connector.getParameters().put("password", AbstractJmxConnectorTest.JMX_PASSWORD);
 
         AttributeConfiguration attribute = connector.getFeatures(AttributeConfiguration.class).getOrAdd("1.0");
-        attribute.setAttributeName("string");
+        setFeatureName(attribute, "string");
         attribute.getParameters().put("objectName", BEAN_NAME);
 
         attribute = connector.getFeatures(AttributeConfiguration.class).getOrAdd("2.0");
-        attribute.setAttributeName("boolean");
+        setFeatureName(attribute, "boolean");
         attribute.getParameters().put("objectName", BEAN_NAME);
 
         attribute = connector.getFeatures(AttributeConfiguration.class).getOrAdd("3.0");
-        attribute.setAttributeName("int32");
+        setFeatureName(attribute, "int32");
         attribute.getParameters().put("objectName", BEAN_NAME);
 
         attribute = connector.getFeatures(AttributeConfiguration.class).getOrAdd("4.0");
-        attribute.setAttributeName("bigint");
+        setFeatureName(attribute, "bigint");
         attribute.getParameters().put("objectName", BEAN_NAME);
 
         attribute = connector.getFeatures(AttributeConfiguration.class).getOrAdd("5.1");
-        attribute.setAttributeName("array");
+        setFeatureName(attribute, "array");
         attribute.getParameters().put("objectName", BEAN_NAME);
 
         attribute = connector.getFeatures(AttributeConfiguration.class).getOrAdd("6.1");
-        attribute.setAttributeName("dictionary");
+        setFeatureName(attribute, "dictionary");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("typeName", "dict");
 
         attribute = connector.getFeatures(AttributeConfiguration.class).getOrAdd("7.1");
-        attribute.setAttributeName("table");
+        setFeatureName(attribute, "table");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("typeName", "table");
 
         attribute = connector.getFeatures(AttributeConfiguration.class).getOrAdd("8.0");
-        attribute.setAttributeName("float");
+        setFeatureName(attribute, "float");
         attribute.getParameters().put("objectName", BEAN_NAME);
 
         attribute = connector.getFeatures(AttributeConfiguration.class).getOrAdd("9.0");
-        attribute.setAttributeName("date");
+        setFeatureName(attribute, "date");
         attribute.getParameters().put("objectName", BEAN_NAME);
 
         //Aggregator config
@@ -370,63 +370,63 @@ public final class ResourceAggregatorTest extends AbstractSnampIntegrationTest {
         connector.setConnectionType(AGGREGATOR_CONNECTOR);
 
         attribute = connector.getFeatures(AttributeConfiguration.class).getOrAdd("42");
-        attribute.setAttributeName("matcher");
+        setFeatureName(attribute, "matcher");
         attribute.getParameters().put("value", "[0-9]");
         attribute.getParameters().put("source", JMX_RESOURCE_NAME);
         attribute.getParameters().put("foreignAttribute", "1.0");
 
         attribute = connector.getFeatures(AttributeConfiguration.class).getOrAdd("43");
-        attribute.setAttributeName("comparisonWith");
+        setFeatureName(attribute, "comparisonWith");
         attribute.getParameters().put("comparer", ">=");
         attribute.getParameters().put("source", JMX_RESOURCE_NAME);
         attribute.getParameters().put("foreignAttribute", "3.0");
         attribute.getParameters().put("value", "10");
 
         attribute = connector.getFeatures(AttributeConfiguration.class).getOrAdd("44");
-        attribute.setAttributeName("comparison");
+        setFeatureName(attribute, "comparison");
         attribute.getParameters().put("comparer", ">=");
         attribute.getParameters().put("source", JMX_RESOURCE_NAME);
         attribute.getParameters().put("firstForeignAttribute", "3.0");
         attribute.getParameters().put("secondForeignAttribute", "4.0");
 
         attribute = connector.getFeatures(AttributeConfiguration.class).getOrAdd("45");
-        attribute.setAttributeName("percentFrom");
+        setFeatureName(attribute, "percentFrom");
         attribute.getParameters().put("source", JMX_RESOURCE_NAME);
         attribute.getParameters().put("foreignAttribute", "3.0");
         attribute.getParameters().put("value", "50");
 
         attribute = connector.getFeatures(AttributeConfiguration.class).getOrAdd("46");
-        attribute.setAttributeName("percent");
+        setFeatureName(attribute, "percent");
         attribute.getParameters().put("source", JMX_RESOURCE_NAME);
         attribute.getParameters().put("firstForeignAttribute", "3.0");
         attribute.getParameters().put("secondForeignAttribute", "4.0");
 
         attribute = connector.getFeatures(AttributeConfiguration.class).getOrAdd("47");
-        attribute.setAttributeName("counter");
+        setFeatureName(attribute, "counter");
         attribute.getParameters().put("source", JMX_RESOURCE_NAME);
         attribute.getParameters().put("foreignAttribute", "3.0");
         attribute.getParameters().put("timeInterval", "5000");
 
         attribute = connector.getFeatures(AttributeConfiguration.class).getOrAdd("48");
-        attribute.setAttributeName("average");
+        setFeatureName(attribute, "average");
         attribute.getParameters().put("source", JMX_RESOURCE_NAME);
         attribute.getParameters().put("foreignAttribute", "3.0");
         attribute.getParameters().put("timeInterval", "5000");
 
         attribute = connector.getFeatures(AttributeConfiguration.class).getOrAdd("49");
-        attribute.setAttributeName("peak");
+        setFeatureName(attribute, "peak");
         attribute.getParameters().put("source", JMX_RESOURCE_NAME);
         attribute.getParameters().put("foreignAttribute", "3.0");
         attribute.getParameters().put("timeInterval", "5000");
 
         attribute = connector.getFeatures(AttributeConfiguration.class).getOrAdd("50");
-        attribute.setAttributeName("decomposer");
+        setFeatureName(attribute, "decomposer");
         attribute.getParameters().put("source", JMX_RESOURCE_NAME);
         attribute.getParameters().put("foreignAttribute", "6.1");
         attribute.getParameters().put("fieldPath", "col2");
 
         attribute = connector.getFeatures(AttributeConfiguration.class).getOrAdd("51");
-        attribute.setAttributeName("composer");
+        setFeatureName(attribute, "composer");
         attribute.getParameters().put("source", JMX_RESOURCE_NAME);
     }
 }

@@ -173,49 +173,49 @@ public final class StandaloneMdaThriftConnectorTest extends AbstractMdaConnector
     @Override
     protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
         EventConfiguration event = events.getOrAdd("e1");
-        event.setCategory("testEvent");
+        setFeatureName(event, "testEvent");
         event.getParameters().put("expectedType", "int64");
     }
 
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         AttributeConfiguration attr = attributes.getOrAdd("attr1");
-        attr.setAttributeName("short");
+        setFeatureName(attr, "short");
         attr.getParameters().put("expectedType", "int16");
 
         attr = attributes.getOrAdd("attr2");
-        attr.setAttributeName("date");
+        setFeatureName(attr, "date");
         attr.getParameters().put("expectedType", "datetime");
 
         attr = attributes.getOrAdd("attr3");
-        attr.setAttributeName("biginteger");
+        setFeatureName(attr, "biginteger");
         attr.getParameters().put("expectedType", "bigint");
 
         attr = attributes.getOrAdd("attr4");
-        attr.setAttributeName("str");
+        setFeatureName(attr, "str");
         attr.getParameters().put("expectedType", "string");
 
         attr = attributes.getOrAdd("attr5");
-        attr.setAttributeName("array");
+        setFeatureName(attr, "array");
         attr.getParameters().put("expectedType", "array(int8)");
 
         attr = attributes.getOrAdd("attr6");
-        attr.setAttributeName("boolean");
+        setFeatureName(attr, "boolean");
         attr.getParameters().put("expectedType", "bool");
 
         attr = attributes.getOrAdd("attr7");
-        attr.setAttributeName("long");
+        setFeatureName(attr, "long");
         attr.getParameters().put("expectedType", "int64");
 
         attr = attributes.getOrAdd("attr8");
-        attr.setAttributeName("dict");
+        setFeatureName(attr, "dict");
         attr.getParameters().put("expectedType", "dictionary");
         attr.getParameters().put("dictionaryName", "MemoryStatus");
         attr.getParameters().put("dictionaryItemNames", "free, total");
         attr.getParameters().put("dictionaryItemTypes", "int32, int64");
 
         attr = attributes.getOrAdd("attr9");
-        attr.setAttributeName("longArray");
+        setFeatureName(attr, "longArray");
         attr.getParameters().put("expectedType", "array(int64)");
     }
 }

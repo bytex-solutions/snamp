@@ -119,45 +119,45 @@ public final class AMQPTest extends AbstractMQConnectorTest {
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         AttributeConfiguration attribute = attributes.getOrAdd("1.0");
-        attribute.setAttributeName("string");
+        setFeatureName(attribute, "string");
         attribute.getParameters().put("expectedType", "string");
 
         attribute = attributes.getOrAdd("2.0");
-        attribute.setAttributeName("boolean");
+        setFeatureName(attribute, "boolean");
         attribute.getParameters().put("expectedType", "bool");
 
         attribute = attributes.getOrAdd("3.0");
-        attribute.setAttributeName("int32");
+        setFeatureName(attribute, "int32");
         attribute.getParameters().put("expectedType", "int32");
 
         attribute = attributes.getOrAdd("4.0");
-        attribute.setAttributeName("bigint");
+        setFeatureName(attribute, "bigint");
         attribute.getParameters().put("expectedType", "bigint");
 
         attribute = attributes.getOrAdd("5.1");
-        attribute.setAttributeName("array");
+        setFeatureName(attribute, "array");
         attribute.getParameters().put("expectedType", "array(int32)");
 
         attribute = attributes.getOrAdd("6.1");
-        attribute.setAttributeName("dictionary");
+        setFeatureName(attribute, "dictionary");
         attribute.getParameters().put("expectedType", "dictionary");
         attribute.getParameters().put("dictionaryName", "MemoryStatus");
         attribute.getParameters().put("dictionaryItemNames", "free, total");
         attribute.getParameters().put("dictionaryItemTypes", "int32, int32");
 
         attribute = attributes.getOrAdd("8.0");
-        attribute.setAttributeName("float");
+        setFeatureName(attribute, "float");
         attribute.getParameters().put("expectedType", "float32");
 
         attribute = attributes.getOrAdd("9.0");
-        attribute.setAttributeName("date");
+        setFeatureName(attribute, "date");
         attribute.getParameters().put("expectedType", "datetime");
     }
 
     @Override
     protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
         EventConfiguration event = events.getOrAdd("mqn");
-        event.setCategory("mq-notification");
+        setFeatureName(event, "mq-notification");
         event.getParameters().put("severity", "notice");
         event.getParameters().put("expectedType", "string");
     }

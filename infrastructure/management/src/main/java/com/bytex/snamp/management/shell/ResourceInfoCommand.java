@@ -45,20 +45,17 @@ public final class ResourceInfoCommand extends ConfigurationCommand {
 
     private static void printAttribute(final String userDefinedName, final AttributeConfiguration attr, final StringBuilder output){
         IOUtils.appendln(output, userDefinedName);
-        IOUtils.appendln(output, "System Name: %s", attr.getAttributeName());
         IOUtils.appendln(output, "Read/write Timeout: %s", attr.getReadWriteTimeout());
         printParameters(attr, output);
     }
 
     private static void printEvent(final String userDefinedName, final EventConfiguration ev, final StringBuilder output){
         IOUtils.appendln(output, userDefinedName);
-        IOUtils.appendln(output, "Category: %s", ev.getCategory());
         printParameters(ev, output);
     }
 
     private static void printOperation(final String userDefinedName, final OperationConfiguration op, final StringBuilder output){
         IOUtils.appendln(output, userDefinedName);
-        IOUtils.appendln(output, "Operation Name: %s", op.getOperationName());
         IOUtils.appendln(output, "Invocation Timeout: %s", op.getInvocationTimeout());
         printParameters(op, output);
     }

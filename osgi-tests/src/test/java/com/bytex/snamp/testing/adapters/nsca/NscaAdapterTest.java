@@ -151,7 +151,7 @@ public final class NscaAdapterTest extends AbstractJmxConnectorTest<TestOpenMBea
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         AttributeConfiguration attribute = attributes.getOrAdd("3.0");
-        attribute.setAttributeName("int32");
+        setFeatureName(attribute, "int32");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("serviceName", "memory");
         attribute.getParameters().put(DescriptorUtils.MAX_VALUE_FIELD, "100");

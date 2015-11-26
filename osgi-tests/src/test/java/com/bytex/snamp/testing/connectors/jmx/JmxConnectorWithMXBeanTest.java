@@ -32,18 +32,18 @@ public final class JmxConnectorWithMXBeanTest extends AbstractJmxConnectorTest<M
     @Override
     protected void fillOperations(final EntityMap<? extends OperationConfiguration> operations) {
         OperationConfiguration operation = operations.getOrAdd("forceGC");
-        operation.setOperationName("gc");
+        setFeatureName(operation, "gc");
         operation.getParameters().put("objectName", ManagementFactory.MEMORY_MXBEAN_NAME);
     }
 
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         AttributeConfiguration attribute = attributes.getOrAdd("1");
-        attribute.setAttributeName("ObjectPendingFinalizationCount");
+        setFeatureName(attribute, "ObjectPendingFinalizationCount");
         attribute.getParameters().put("objectName", ManagementFactory.MEMORY_MXBEAN_NAME);
 
         attribute = attributes.getOrAdd("2");
-        attribute.setAttributeName("HeapMemoryUsage");
+        setFeatureName(attribute, "HeapMemoryUsage");
         attribute.getParameters().put("objectName", ManagementFactory.MEMORY_MXBEAN_NAME);
     }
 

@@ -27,7 +27,6 @@ final class AvailableOperationsOperation extends AvailableFeaturesOperation<MBea
     private static final String DESCRIPTION_COLUMN = "description";
     private static final String PARAMETERS_COLUMN = "parameters";
     private static final String RETURN_TYPE_COLUMN = "returnType";
-    private static final String NAME_COLUMN = "name";
     private static final String IMPACT_COLUMN = "impact";
 
     private static final TabularType RETURN_TYPE = Utils.interfaceStaticInitialize(new Callable<TabularType>() {
@@ -40,7 +39,6 @@ final class AvailableOperationsOperation extends AvailableFeaturesOperation<MBea
                     .addColumn(DESCRIPTION_COLUMN, "Description of the event", SimpleType.STRING, false)
                     .addColumn(PARAMETERS_COLUMN, "Configuration parameters", SimpleType.STRING, false)
                     .addColumn(RETURN_TYPE_COLUMN, "Type of the notification attachment", SimpleType.STRING, false)
-                    .addColumn(NAME_COLUMN, "Category of the event", SimpleType.STRING, false)
                     .addColumn(IMPACT_COLUMN, "Severity of the notification", SimpleType.INTEGER, false)
                     .build();
         }
@@ -53,14 +51,12 @@ final class AvailableOperationsOperation extends AvailableFeaturesOperation<MBea
     private static void fillRow(final MBeanOperationInfo operationInfo,
                                 final TabularDataBuilderRowFill.RowBuilder row) throws OpenDataException {
         final String description = operationInfo.getDescription();
-        final String operationName = OperationDescriptor.getOperationName(operationInfo);
         final WellKnownType returnType = OperationDescriptor.getReturnType(operationInfo);
         row
                 .cell(USER_DEFINED_NAME_COLUMN, operationInfo.getName())
                 .cell(PARAMETERS_COLUMN, toTabularData(operationInfo))
                 .cell(DESCRIPTION_COLUMN, MoreObjects.firstNonNull(description, ""))
                 .cell(RETURN_TYPE_COLUMN, returnType == null ? operationInfo.getReturnType() : returnType.getDisplayName())
-                .cell(NAME_COLUMN, MoreObjects.firstNonNull(operationName, ""))
                 .cell(IMPACT_COLUMN, operationInfo.getImpact())
                 .flush();
     }

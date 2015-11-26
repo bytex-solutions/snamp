@@ -116,14 +116,14 @@ public final class SyslogAdapterTest extends AbstractJmxConnectorTest<TestOpenMB
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
         AttributeConfiguration attribute = attributes.getOrAdd("3.0");
-        attribute.setAttributeName("int32");
+        setFeatureName(attribute, "int32");
         attribute.getParameters().put("objectName", BEAN_NAME);
     }
 
     @Override
     protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
         EventConfiguration event = events.getOrAdd("19.1");
-        event.setCategory(AttributeChangeNotification.ATTRIBUTE_CHANGE);
+        setFeatureName(event, AttributeChangeNotification.ATTRIBUTE_CHANGE);
         event.getParameters().put("severity", "notice");
         event.getParameters().put("objectName", BEAN_NAME);
     }

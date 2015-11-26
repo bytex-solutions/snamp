@@ -22,7 +22,6 @@ public final class ConfigurationDiffEngineTest extends Assert {
         final ManagedResourceConfiguration.AttributeConfiguration attr = resource
                 .getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class)
                 .getOrAdd("attr");
-        attr.setAttributeName("attribute");
         attr.setReadWriteTimeout(TimeSpan.ofSeconds(1));
         resource.setConnectionString("connection-string");
         resource.setConnectionType("jmx");
@@ -48,7 +47,6 @@ public final class ConfigurationDiffEngineTest extends Assert {
         ManagedResourceConfiguration.AttributeConfiguration attr = resource
                 .getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class)
                 .getOrAdd("attr");
-        attr.setAttributeName("attribute");
         attr.setReadWriteTimeout(TimeSpan.ofSeconds(1));
         resource.setConnectionString("connection-string");
         resource.setConnectionType("jmx");
@@ -60,7 +58,6 @@ public final class ConfigurationDiffEngineTest extends Assert {
         attr = resource
                 .getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class)
                 .getOrAdd("attr2");
-        attr.setAttributeName("attribute2");
         attr.getParameters().put("param2", "value2");
 
         ConfigurationDiffEngine.merge(target, baseline);
@@ -94,7 +91,6 @@ public final class ConfigurationDiffEngineTest extends Assert {
         final ManagedResourceConfiguration.AttributeConfiguration attr = resource
                 .getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class)
                 .getOrAdd("attr");
-        attr.setAttributeName("attribute");
         attr.setReadWriteTimeout(TimeSpan.ofSeconds(1));
         resource.setConnectionString("connection-string");
         resource.setConnectionType("jmx");

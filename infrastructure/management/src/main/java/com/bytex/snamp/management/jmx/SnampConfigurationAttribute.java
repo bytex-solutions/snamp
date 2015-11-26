@@ -1,14 +1,16 @@
 package com.bytex.snamp.management.jmx;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
-import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.PersistentConfigurationManager;
 import com.bytex.snamp.configuration.SerializableAgentConfiguration;
 import com.bytex.snamp.configuration.diff.ConfigurationDiffEngine;
-import com.bytex.snamp.jmx.*;
+import com.bytex.snamp.core.ServiceHolder;
+import com.bytex.snamp.jmx.CompositeTypeBuilder;
+import com.bytex.snamp.jmx.OpenMBean;
+import com.bytex.snamp.jmx.TabularDataBuilderRowFill;
+import com.bytex.snamp.jmx.TabularTypeBuilder;
+import com.google.common.collect.ImmutableMap;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.cm.ConfigurationException;
@@ -19,10 +21,9 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 
-import static com.bytex.snamp.jmx.CompositeDataUtils.getString;
-import static com.bytex.snamp.jmx.CompositeDataUtils.getLong;
-
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
+import static com.bytex.snamp.jmx.CompositeDataUtils.getLong;
+import static com.bytex.snamp.jmx.CompositeDataUtils.getString;
 
 /**
  * Description here
@@ -126,7 +127,6 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
                     .cell("UserDefinedName", attribute.getKey())
                     .cell("Attribute", ATTRIBUTE_METADATA_BUILDER.build(
                             ImmutableMap.of(
-                                    "Name", attribute.getValue().getAttributeName(),
                                     "ReadWriteTimeout", convertTimeout(attribute.getValue().getReadWriteTimeout()),
                                     "AdditionalProperties", MonitoringUtils.transformAdditionalPropertiesToTabularData(
                                             attribute.getValue().getParameters())
@@ -150,7 +150,6 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
                     .cell("UserDefinedName", event.getKey())
                     .cell("Event", EVENT_METADATA_BUILDER.build(
                             ImmutableMap.of(
-                                    "Category", event.getValue().getCategory(),
                                     "AdditionalProperties",  MonitoringUtils.transformAdditionalPropertiesToTabularData(
                                             event.getValue().getParameters())
                             )))
@@ -262,9 +261,6 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
                             if (attributeInstance.containsKey("Attribute") && attributeInstance.get("Attribute") instanceof CompositeData) {
 
                                 final CompositeData attributeData = (CompositeData) attributeInstance.get("Attribute");
-                                if (attributeData.containsKey("Name")) {
-                                    config.setAttributeName(getString(attributeData, "Name", ""));
-                                }
                                 if (attributeData.containsKey("ReadWriteTimeout"))
                                     config.setReadWriteTimeout(convertTimeout(attributeData, "ReadWriteTimeout"));
 
@@ -281,15 +277,12 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
                     // events parsing
                     if (connectorInstance.containsKey("Events") && connectorInstance.get("Events") instanceof TabularData) {
                         final TabularData events = (TabularData) connectorInstance.get("Events");
-                        final Map<String, SerializableAgentConfiguration.SerializableManagedResourceConfiguration.EventConfiguration>
-                                eventsConfigMap = Maps.newHashMap();
                         for (final CompositeData eventInstance : (Collection<CompositeData>) events.values()) {
                             AgentConfiguration.ManagedResourceConfiguration.EventConfiguration config = connectorConfiguration
                                     .getFeatures(AgentConfiguration.ManagedResourceConfiguration.EventConfiguration.class)
                                     .getOrAdd(getString(eventInstance, "UserDefinedName", ""));
                             if (eventInstance.containsKey("Event") && eventInstance.get("Event") instanceof CompositeData) {
                                 final CompositeData attributeData = (CompositeData) eventInstance.get("Event");
-                                config.setCategory(getString(attributeData, "Category", ""));
 
                                 if (attributeData.containsKey("AdditionalProperties") && attributeData.get("AdditionalProperties") instanceof TabularData) {
                                     final TabularData params = (TabularData) attributeData.get("AdditionalProperties");

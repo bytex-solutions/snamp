@@ -3,7 +3,6 @@ package com.bytex.snamp.management.shell;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.AgentConfiguration;
-import com.google.common.base.Strings;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
@@ -25,11 +24,7 @@ public final class ConfigEventCommand extends ConfigurationCommand {
     private String resourceName = "";
 
     @SpecialUse
-    @Argument(index = 1, name = "userDefinedName", required = true, description = "User-defined name of the event")
-    private String userDefinedName = "";
-
-    @SpecialUse
-    @Argument(index = 2, name = "category", required = false, description = "Resource-specific category of the event")
+    @Argument(index = 1, name = "category", required = true, description = "Category of the event")
     private String category = "";
 
     @SpecialUse
@@ -40,9 +35,7 @@ public final class ConfigEventCommand extends ConfigurationCommand {
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
         if(configuration.getManagedResources().containsKey(resourceName)){
             final AgentConfiguration.ManagedResourceConfiguration resource = configuration.getManagedResources().get(resourceName);
-            final EventConfiguration event = resource.getFeatures(EventConfiguration.class).getOrAdd(userDefinedName);
-            if(!Strings.isNullOrEmpty(category))
-                event.setCategory(category);
+            final EventConfiguration event = resource.getFeatures(EventConfiguration.class).getOrAdd(category);
             if(!ArrayUtils.isNullOrEmpty(parameters))
                 for(final String param: parameters) {
                     final StringKeyValue pair = StringKeyValue.parse(param);
