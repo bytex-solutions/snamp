@@ -148,11 +148,6 @@ Hit '<ctrl-d>' or type 'system:shutdown' or 'logout' to shutdown SNAMP.
 snamp.root@karaf>
 ```
 
-Install Apache Karaf Cellar from SNAMP console:
-```
-snamp.root@karaf> feature:install cellar
-```
-
 ## Configuration
 Verify that initial SNAMP configuration is empty:
 ```bash
