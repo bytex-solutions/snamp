@@ -156,31 +156,34 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
     }
 
     @Test
-    public void testForStringProperty() throws IOException {
-            final String valueToCheck = "SETTED VALUE";
-            final OID attributeId = new OID("1.1.1.0");
-            client.writeAttribute(attributeId, valueToCheck, String.class);
-            assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET, attributeId, String.class));
-            assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET_BULK, attributeId, String.class));
+    public void testForStringProperty() throws IOException, InterruptedException {
+        final String valueToCheck = "SETTED VALUE";
+        final OID attributeId = new OID("1.1.1.0");
+        client.writeAttribute(attributeId, valueToCheck, String.class);
+        Thread.sleep(100);
+        assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET, attributeId, String.class));
+        assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET_BULK, attributeId, String.class));
     }
 
     @Test
-    public void testForFloatProperty() throws IOException {
+    public void testForFloatProperty() throws IOException, InterruptedException {
         final float valueToCheck = 31.337F;
         final OID oid = new OID("1.1.8.0");
         client.writeAttribute(oid, valueToCheck, Float.class);
+        Thread.sleep(100);
         assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET, oid, Float.class), 0.000001);
         assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET_BULK, oid, Float.class), 0.000001);
     }
 
     @Test
-    public void testForDatePropertyCustomDisplayFormat() throws IOException {
+    public void testForDatePropertyCustomDisplayFormat() throws IOException, InterruptedException {
         final Calendar cal = Calendar.getInstance();
         cal.set(1994, Calendar.APRIL, 5); // Kurt Donald Cobain, good night, sweet prince
         cal.set(Calendar.MILLISECOND, 0);
         final String valueToCheck = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX").format(cal.getTime());
         final OID oid = new OID("1.1.9.0");
         client.writeAttribute(oid, valueToCheck, String.class);
+        Thread.sleep(100);
         assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET, oid, String.class));
         assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET_BULK, oid, String.class));
     }
@@ -191,7 +194,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
     }
 
     @Test
-    public void testForDatePropertyRFC1903HumanReadable() throws IOException {
+    public void testForDatePropertyRFC1903HumanReadable() throws IOException, InterruptedException {
         final Calendar cal = Calendar.getInstance();
         cal.set(1994, Calendar.APRIL, 5); // Kurt Donald Cobain, good night, sweet prince
         cal.set(Calendar.MILLISECOND, 0);
@@ -199,12 +202,13 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
         final String valueToCheck = new String(formatter.convert(cal.getTime()));
         final OID oid = new OID("1.1.10.0");
         client.writeAttribute(oid, valueToCheck, String.class);
+        Thread.sleep(100);
         assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET, oid, String.class));
         assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET_BULK, oid, String.class));
     }
 
     @Test
-    public void testForDatePropertyRFC1903() throws IOException, ParseException {
+    public void testForDatePropertyRFC1903() throws IOException, ParseException, InterruptedException {
         final Calendar cal = Calendar.getInstance();
         cal.set(1994, Calendar.APRIL, 5); // Kurt Donald Cobain, good night, sweet prince
         cal.set(Calendar.MILLISECOND, 0);
@@ -213,6 +217,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
         assertEquals(formatter.convert(byteString), cal.getTime());
         final OID oid = new OID("1.1.11.0");
         client.writeAttribute(oid, byteString, byte[].class);
+        Thread.sleep(100);
         final byte[] actual = client.readAttribute(ReadMethod.GET, oid, byte[].class);
         assertArrayEquals(byteString, actual);
         assertArrayEquals(byteString, client.readAttribute(ReadMethod.GET_BULK, oid, byte[].class));
@@ -231,28 +236,31 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
     }
 
     @Test
-    public void testForBooleanProperty() throws IOException {
-            final boolean valueToCheck = true;
-            final OID oid = new OID("1.1.2.0");
-            client.writeAttribute(oid, valueToCheck, Boolean.class);
-            assertTrue(client.readAttribute(ReadMethod.GET, oid, Boolean.class));
-            assertTrue(client.readAttribute(ReadMethod.GET_BULK, oid, Boolean.class));
+    public void testForBooleanProperty() throws IOException, InterruptedException {
+        final boolean valueToCheck = true;
+        final OID oid = new OID("1.1.2.0");
+        client.writeAttribute(oid, valueToCheck, Boolean.class);
+        Thread.sleep(100);
+        assertTrue(client.readAttribute(ReadMethod.GET, oid, Boolean.class));
+        assertTrue(client.readAttribute(ReadMethod.GET_BULK, oid, Boolean.class));
     }
 
     @Test
-    public void testForInt32Property() throws IOException {
-            final int valueToCheck = 42;
-            final OID oid = new OID("1.1.3.0");
-            client.writeAttribute(oid, valueToCheck, Integer.class);
-            assertEquals(valueToCheck, (int) client.readAttribute(ReadMethod.GET, oid, Integer.class));
-            assertEquals(valueToCheck, (int) client.readAttribute(ReadMethod.GET_BULK, oid, Integer.class));
+    public void testForInt32Property() throws IOException, InterruptedException {
+        final int valueToCheck = 42;
+        final OID oid = new OID("1.1.3.0");
+        client.writeAttribute(oid, valueToCheck, Integer.class);
+        Thread.sleep(100);
+        assertEquals(valueToCheck, (int) client.readAttribute(ReadMethod.GET, oid, Integer.class));
+        assertEquals(valueToCheck, (int) client.readAttribute(ReadMethod.GET_BULK, oid, Integer.class));
     }
 
     @Test
-    public void testForBigIntProperty() throws IOException {
+    public void testForBigIntProperty() throws IOException, InterruptedException {
         final BigInteger valueToCheck = new BigInteger("100500");
         final OID oid = new OID("1.1.4.0");
         client.writeAttribute(oid, valueToCheck, BigInteger.class);
+        Thread.sleep(100);
         assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET, oid, BigInteger.class));
         assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET_BULK, oid, BigInteger.class));
     }
@@ -283,6 +291,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
             }
         };
         client.writeTable("1.1.7.1", table);
+        Thread.sleep(100);
         final SnmpTable result = client.readTable(ReadMethod.GET_BULK, new OID("1.1.7.1"),
                 Boolean.class,
             Integer.class,
@@ -322,6 +331,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
             }
         };
         client.writeTable("1.1.5.1", array);
+        Thread.sleep(100);
         array = client.readTable(ReadMethod.GET_BULK, new OID("1.1.5.1"), Integer.class);
         assertEquals(2, array.getRowCount());
         assertEquals(20, array.getCell(0, 0));
@@ -353,6 +363,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
             }
         };
         client.writeTable("1.1.6.1", dict);
+        Thread.sleep(100);
         dict = client.readTable(ReadMethod.GET_BULK, new OID("1.1.6.1"),
             Boolean.class,
             Integer.class,

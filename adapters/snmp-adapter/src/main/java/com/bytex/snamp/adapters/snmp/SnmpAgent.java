@@ -18,6 +18,7 @@ import org.snmp4j.transport.DefaultUdpTransportMapping;
 import org.snmp4j.transport.TransportMappings;
 import org.snmp4j.util.ConcurrentMessageDispatcher;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
@@ -30,7 +31,7 @@ import java.util.logging.Level;
  * @author Roman Sakno, Evgeniy Kirichenko
  * 
  */
-final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, ResourceAdapterUpdatedCallback {
+final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, ResourceAdapterUpdatedCallback, Closeable {
     private static final OctetString NOTIFICATION_SETTINGS_TAG = SnmpHelpers.toOctetString("NOTIF_TAG");
 
 	private final String hostName;
@@ -125,7 +126,7 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, Res
      * Unregisters additional managed objects from the agent's server.
      */
     @Override
-    protected final void unregisterManagedObjects() {
+    protected void unregisterManagedObjects() {
         vacmMIB.removeViewTreeFamily(new OctetString("fullWriteView"), new OID(prefix));
         vacmMIB.removeViewTreeFamily(new OctetString("fullReadView"), new OID(prefix));
         removeFullReadView(VacmMIB.vacmAccessEntryOID,
@@ -141,7 +142,7 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, Res
      * @see <a href='http://www.faqs.org/rfcs/rfc2575.html'>RFC-2575</a>
 	 */
 	@Override
-	protected final void addViews(final VacmMIB vacm) {
+	protected void addViews(final VacmMIB vacm) {
         if (security == null){
             vacm.addGroup(SecurityModel.SECURITY_MODEL_SNMPv2c, SnmpHelpers.toOctetString(
                             "cpublic"),
@@ -161,7 +162,7 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, Res
 	 * Initializes SNMPv3 users.
      * @param usm User-based security model.
 	 */
-	protected final void addUsmUser(final USM usm) {
+	protected void addUsmUser(final USM usm) {
         if (security != null)
             security.setupUserBasedSecurity(usm);
     }
@@ -188,7 +189,7 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, Res
      *                        configuration.
      */
     @Override
-    protected final void addNotificationTargets(final SnmpTargetMIB targetMIB, final SnmpNotificationMIB notificationMIB) {
+    protected void addNotificationTargets(final SnmpTargetMIB targetMIB, final SnmpNotificationMIB notificationMIB) {
         targetMIB.addDefaultTDomains();
         vacmMIB.addViewTreeFamily(SnmpHelpers.toOctetString("fullNotifyView"), new OID(prefix),
                 new OctetString(), VacmMIB.vacmViewIncluded,
@@ -238,12 +239,17 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, Res
         }
 	}
 
+    private boolean isDestroyed(){
+        return agent == null;
+    }
+
     /**
      * Updating of the resource adapter is completed.
      */
     @Override
-    public void updated() {
-        run();
+    public synchronized void updated() {
+        if (!isDestroyed())  //avoid updating of dead Agent
+            run();
     }
 
     private void finishInit(final Iterable<? extends SnmpAttributeAccessor> attributes,
@@ -256,7 +262,7 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, Res
         finishInit();
     }
 
-    boolean start(final Iterable<? extends SnmpAttributeAccessor> attributes,
+    synchronized boolean start(final Iterable<? extends SnmpAttributeAccessor> attributes,
                   final Iterable<? extends SnmpNotificationMapping> notifications,
                   final SnmpTypeMapper mapper) throws IOException, DuplicateRegistrationException {
 		switch (agentState){
@@ -303,7 +309,7 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, Res
         }
     }
 
-    void suspend(){
+    synchronized void suspend(){
         super.stop();
     }
 
@@ -314,12 +320,11 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, Res
      * @since 1.1
      */
     @Override
-    public void stop() {
+    public synchronized void stop() {
         switch (agentState) {
             case STATE_CREATED:
                 threadPool.shutdownNow();
             case STATE_RUNNING:
-
                 suspend();
             case STATE_STOPPED:
                 snmpTargetMIB.getSnmpTargetAddrEntry().removeAll();
@@ -328,5 +333,37 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, Res
             default:
 
         }
+    }
+
+    @Override
+    public synchronized void close() {
+        stop();
+        //destroy internal state
+        snmpTargetMIB = null;
+        agent = null;
+        snmpv2MIB = null;
+        snmpFrameworkMIB = null;
+        snmpNotificationMIB = null;
+        snmpProxyMIB = null;
+        snmpCommunityMIB = null;
+        snmp4jLogMIB = null;
+        snmp4jConfigMIB = null;
+        usmMIB = null;
+        vacmMIB = null;
+        server = null;
+        session = null;
+        transportMappings = null;
+        dispatcher = null;
+        mpv3 = null;
+        usm = null;
+        bootCounterFile = null;
+        notificationOriginator = null;
+        defaultProxyForwarder = null;
+        defaultContext = null;
+        defaultPersistenceProvider = null;
+        configFileURI = null;
+        sysDescr = null;
+        sysOID = null;
+        sysServices = null;
     }
 }

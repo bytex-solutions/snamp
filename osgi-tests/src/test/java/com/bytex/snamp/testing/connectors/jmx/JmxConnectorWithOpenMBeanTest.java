@@ -72,7 +72,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         setFeatureName(attribute, "bigint");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
 
-        attribute = attributes.getOrAdd("5.0");
+        attribute = attributes.getOrAdd("5.1");
         setFeatureName(attribute, "array");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
 

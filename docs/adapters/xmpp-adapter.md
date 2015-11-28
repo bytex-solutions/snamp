@@ -60,7 +60,13 @@ If your Jabber server supports transport-level security (via SSL) and verificati
 * `keystore`
 * `keystoreType`
 
-And, optionally, `allowUnsafeCertificate` parameter. `keystore` file can be generated with OpenSSL.
+And, optionally, `allowUnsafeCertificate` parameter. 
+
+`keystore` file can be generated with `keytool` tool from JDK. For example:
+ 
+```bash
+keytool -keystore xmpp_tls.cert -genkey
+```
 
 ### Machine-to-Machine communication
 XMPP Resource Adapter is primarily oriented to human-to-machine communication (admin-to-SNAMP using Jabber client). But XMPP protocol is pretty useful as a messaging framework between two applications. If `enableM2M` parameter is enabled - adapter will add extra information to XMPP stanza (packet). This information is located in `properties` XML element with `http://www.jivesoftware.com/xmlns/xmpp/properties` namespace. Following properties will be injected:

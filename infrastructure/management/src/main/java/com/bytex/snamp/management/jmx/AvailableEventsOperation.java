@@ -39,7 +39,7 @@ final class AvailableEventsOperation extends AvailableFeaturesOperation<MBeanNot
                     .addColumn(DESCRIPTION_COLUMN, "Description of the event", SimpleType.STRING, false)
                     .addColumn(PARAMETERS_COLUMN, "Configuration parameters", PARAMETERS_TYPE, false)
                     .addColumn(ATTACHMENT_TYPE_COLUMN, "Type of the notification attachment", SimpleType.STRING, false)
-                    .addColumn(CATEGORY_COLUMN, "Category of the event", SimpleType.STRING, false)
+                    .addColumn(CATEGORY_COLUMN, "Category of the event", SimpleType.STRING, true)
                     .addColumn(SEVERITY_COLUMN, "Severity of the notification", SimpleType.STRING, false)
                     .build();
         }

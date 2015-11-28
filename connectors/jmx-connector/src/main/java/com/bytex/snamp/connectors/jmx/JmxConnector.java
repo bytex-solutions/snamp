@@ -546,7 +546,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
                     for (final MBeanNotificationInfo notificationInfo : connection.getMBeanInfo(owner).getNotifications())
                         for (final String notifType : notificationInfo.getNotifTypes())
                             if (Objects.equals(notifType, metadata.getName(category)))
-                                return new JmxNotificationInfo(notifType,
+                                return new JmxNotificationInfo(category,
                                         notificationInfo,
                                         owner,
                                         metadata);
@@ -859,7 +859,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
      */
     @Override
     public void removeResourceEventListener(final ResourceEventListener listener) {
-        addResourceEventListener(listener, attributes, notifications, operations);
+        removeResourceEventListener(listener, attributes, notifications, operations);
     }
 
     /**

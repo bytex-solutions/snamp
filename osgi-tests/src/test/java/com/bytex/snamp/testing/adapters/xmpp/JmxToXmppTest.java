@@ -103,6 +103,7 @@ public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean>
             final String GET = String.format("get -n %s -r %s --json", attributeID, TEST_RESOURCE_NAME);
             client.beginChat("agent");
             client.peekMessage(SET);
+            Thread.sleep(100);
             final String response = client.sendMessage(GET, "Hi.*", TimeSpan.ofSeconds(10));
             assertTrue(String.format("Expected %s. Actual %s", value, response),
                     equator.equate(response, value));

@@ -241,6 +241,11 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     }
 
     @Override
+    protected boolean enableRemoteDebugging() {
+        return false;
+    }
+
+    @Override
     protected void beforeStartTest(final BundleContext context) throws Exception {
         agent.init();
     }

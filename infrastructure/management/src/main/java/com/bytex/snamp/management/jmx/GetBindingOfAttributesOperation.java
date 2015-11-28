@@ -31,7 +31,7 @@ final class GetBindingOfAttributesOperation extends AbstractBindingInfoOperation
                     .setTypeName("BindingOfAttributes", true)
                     .setDescription("A set of exposed attributes", true)
                     .addColumn(RESOURCE_NAME_COLUMN, "The name of the connected resource", SimpleType.STRING, true)
-                    .addColumn(NAME_COLUMN, "The name of the attribute declared by the connected resource", SimpleType.STRING, false)
+                    .addColumn(NAME_COLUMN, "The name of the attribute declared by the connected resource", SimpleType.STRING, true)
                     .addColumn(MAPPED_TYPE_COLUMN, "Adapter-specific type of the attribute", SimpleType.STRING, false)
                     .addColumn(DETAILS_COLUMN, "Binding details", DETAILS_TYPE, false)
                     .build();

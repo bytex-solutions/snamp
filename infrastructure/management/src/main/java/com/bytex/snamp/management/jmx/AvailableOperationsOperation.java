@@ -23,7 +23,7 @@ import java.util.concurrent.Callable;
 final class AvailableOperationsOperation extends AvailableFeaturesOperation<MBeanOperationInfo> {
     static final String NAME = "getAvailableOperations";
 
-    private static final String USER_DEFINED_NAME_COLUMN = "userDefinedName";
+    private static final String NAME_COLUMN = "name";
     private static final String DESCRIPTION_COLUMN = "description";
     private static final String PARAMETERS_COLUMN = "parameters";
     private static final String RETURN_TYPE_COLUMN = "returnType";
@@ -35,7 +35,7 @@ final class AvailableOperationsOperation extends AvailableFeaturesOperation<MBea
             return new TabularTypeBuilder()
                     .setTypeName("AvailableNotifications", true)
                     .setDescription("A set of available notifications", true)
-                    .addColumn(USER_DEFINED_NAME_COLUMN, "User-defined name of the event", SimpleType.STRING, true)
+                    .addColumn(NAME_COLUMN, "User-defined name of the event", SimpleType.STRING, true)
                     .addColumn(DESCRIPTION_COLUMN, "Description of the event", SimpleType.STRING, false)
                     .addColumn(PARAMETERS_COLUMN, "Configuration parameters", SimpleType.STRING, false)
                     .addColumn(RETURN_TYPE_COLUMN, "Type of the notification attachment", SimpleType.STRING, false)
@@ -53,7 +53,7 @@ final class AvailableOperationsOperation extends AvailableFeaturesOperation<MBea
         final String description = operationInfo.getDescription();
         final WellKnownType returnType = OperationDescriptor.getReturnType(operationInfo);
         row
-                .cell(USER_DEFINED_NAME_COLUMN, operationInfo.getName())
+                .cell(NAME_COLUMN, operationInfo.getName())
                 .cell(PARAMETERS_COLUMN, toTabularData(operationInfo))
                 .cell(DESCRIPTION_COLUMN, MoreObjects.firstNonNull(description, ""))
                 .cell(RETURN_TYPE_COLUMN, returnType == null ? operationInfo.getReturnType() : returnType.getDisplayName())

@@ -125,9 +125,9 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         }
 
         @Override
-        protected SnmpNotificationInfo enableNotifications(final String listID,
+        protected SnmpNotificationInfo enableNotifications(final String category,
                                                            final NotificationDescriptor metadata) throws ParseException {
-            final SnmpNotificationInfo result = new SnmpNotificationInfo(listID, metadata);
+            final SnmpNotificationInfo result = new SnmpNotificationInfo(category, metadata);
             //enable for a first time only
             if (hasNoNotifications())
                 client.write(new ConsistentAction<SnmpClient, Void>() {

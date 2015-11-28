@@ -32,7 +32,7 @@ final class GetBindingOfEventsOperation extends AbstractBindingInfoOperation<MBe
                     .setTypeName("BindingOfEvents", true)
                     .setDescription("A set of exposed events", true)
                     .addColumn(RESOURCE_NAME_COLUMN, "The name of the connected resource", SimpleType.STRING, true)
-                    .addColumn(CATEGORY_COLUMN, "The category of the event as it is provided by the connected resource", SimpleType.STRING, false)
+                    .addColumn(CATEGORY_COLUMN, "The category of the event as it is provided by the connected resource", SimpleType.STRING, true)
                     .addColumn(ATTACHMENT_TYPE_COLUMN, "The mapped type of the notification attachments", SimpleType.STRING, false)
                     .addColumn(DETAILS_COLUMN, "Binding details", DETAILS_TYPE, false)
                     .build();

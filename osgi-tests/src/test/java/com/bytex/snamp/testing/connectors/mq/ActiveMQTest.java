@@ -12,6 +12,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 import org.junit.Test;
+import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
+import org.ops4j.pax.exam.spi.reactors.PerMethod;
 
 import javax.jms.*;
 import javax.management.Notification;
@@ -28,6 +30,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
  * @version 1.0
  * @since 1.0
  */
+@ExamReactorStrategy(PerMethod.class)
 public final class ActiveMQTest extends AbstractMQConnectorTest {
     private static final String QUEUE_NAME = "snampQueue";
 

@@ -127,7 +127,6 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
                 @Override
                 public void accept(final CompositeData row) {
                     assertTrue(row.get("resourceName") instanceof String);
-                    assertTrue(row.get("userDefinedName") instanceof String);
                     assertTrue(row.get("name") instanceof String);
                     assertTrue(row.get("mappedType") instanceof String);
                     assertTrue(row.get("details") instanceof TabularData);
@@ -193,7 +192,6 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             final CompositeData jmxConnectorInfo = table.get(new String[]{"JMX Connector"});
             assertEquals("JMX Connector", jmxConnectorInfo.get("Name"));
             assertEquals(Bundle.ACTIVE, jmxConnectorInfo.get("State"));
-            assertEquals(true, jmxConnectorInfo.get("IsManageable"));
             assertEquals(true, jmxConnectorInfo.get("IsConfigurationDescriptionAvailable"));
             getTestBundleContext().ungetService(loggerRef);
         }
@@ -291,7 +289,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             assertTrue(connectorAttributes.get(new Object[]{"1.0"}).get("Attribute") instanceof CompositeData);
 
             final CompositeData attribute10 = (CompositeData) connectorAttributes.get(new Object[]{"1.0"}).get("Attribute");
-            assertEquals(attribute10.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertEquals(-1L, attribute10.get("ReadWriteTimeout"));
             assertTrue(attribute10.containsKey("AdditionalProperties"));
             assertTrue(attribute10.get("AdditionalProperties") instanceof TabularData);
             assertTrue(((TabularData) attribute10.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
@@ -299,7 +297,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             assertEquals(((TabularData) attribute10.get("AdditionalProperties")).get(new Object[]{"oid"}).get("Value"), "1.1.1.0");
 
             final CompositeData attribute20 = (CompositeData) connectorAttributes.get(new Object[]{"2.0"}).get("Attribute");
-            assertEquals(attribute20.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertEquals(-1L, attribute20.get("ReadWriteTimeout"));
             assertTrue(attribute20.containsKey("AdditionalProperties"));
             assertTrue(attribute20.get("AdditionalProperties") instanceof TabularData);
             assertTrue(((TabularData) attribute20.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
@@ -307,7 +305,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             assertEquals(((TabularData) attribute20.get("AdditionalProperties")).get(new Object[]{"oid"}).get("Value"), "1.1.2.0");
 
             final CompositeData attribute30 = (CompositeData) connectorAttributes.get(new Object[]{"3.0"}).get("Attribute");
-            assertEquals(attribute30.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertEquals(-1L, attribute30.get("ReadWriteTimeout"));
             assertTrue(attribute30.containsKey("AdditionalProperties"));
             assertTrue(attribute30.get("AdditionalProperties") instanceof TabularData);
             assertTrue(((TabularData) attribute30.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
@@ -315,7 +313,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             assertEquals(((TabularData) attribute30.get("AdditionalProperties")).get(new Object[]{"oid"}).get("Value"), "1.1.3.0");
 
             final CompositeData attribute40 = (CompositeData) connectorAttributes.get(new Object[]{"4.0"}).get("Attribute");
-            assertEquals(attribute40.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertEquals(-1L, attribute40.get("ReadWriteTimeout"));
             assertTrue(attribute40.containsKey("AdditionalProperties"));
             assertTrue(attribute40.get("AdditionalProperties") instanceof TabularData);
             assertTrue(((TabularData) attribute40.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
@@ -323,7 +321,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             assertEquals(((TabularData) attribute40.get("AdditionalProperties")).get(new Object[]{"oid"}).get("Value"), "1.1.4.0");
 
             final CompositeData attribute51 = (CompositeData) connectorAttributes.get(new Object[]{"5.1"}).get("Attribute");
-            assertEquals(attribute51.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertEquals(-1L, attribute51.get("ReadWriteTimeout"));
             assertTrue(attribute51.containsKey("AdditionalProperties"));
             assertTrue(attribute51.get("AdditionalProperties") instanceof TabularData);
             assertTrue(((TabularData) attribute51.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
@@ -331,7 +329,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             assertEquals(((TabularData) attribute51.get("AdditionalProperties")).get(new Object[]{"oid"}).get("Value"), "1.1.5.1");
 
             final CompositeData attribute61 = (CompositeData) connectorAttributes.get(new Object[]{"6.1"}).get("Attribute");
-            assertEquals(attribute61.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertEquals(-1L, attribute61.get("ReadWriteTimeout"));
             assertTrue(attribute61.containsKey("AdditionalProperties"));
             assertTrue(attribute61.get("AdditionalProperties") instanceof TabularData);
             assertTrue(((TabularData) attribute61.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
@@ -339,7 +337,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             assertEquals(((TabularData) attribute61.get("AdditionalProperties")).get(new Object[]{"oid"}).get("Value"), "1.1.6.1");
 
             final CompositeData attribute71 = (CompositeData) connectorAttributes.get(new Object[]{"7.1"}).get("Attribute");
-            assertEquals(attribute71.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertEquals(-1L, attribute71.get("ReadWriteTimeout"));
             assertTrue(attribute71.containsKey("AdditionalProperties"));
             assertTrue(attribute71.get("AdditionalProperties") instanceof TabularData);
             assertTrue(((TabularData) attribute71.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
@@ -347,7 +345,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             assertEquals(((TabularData) attribute71.get("AdditionalProperties")).get(new Object[]{"oid"}).get("Value"), "1.1.7.1");
 
             final CompositeData attribute80 = (CompositeData) connectorAttributes.get(new Object[]{"8.0"}).get("Attribute");
-            assertEquals(attribute80.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertEquals(-1L, attribute80.get("ReadWriteTimeout"));
             assertTrue(attribute80.containsKey("AdditionalProperties"));
             assertTrue(attribute80.get("AdditionalProperties") instanceof TabularData);
             assertTrue(((TabularData) attribute80.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
@@ -355,7 +353,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             assertEquals(((TabularData) attribute80.get("AdditionalProperties")).get(new Object[]{"oid"}).get("Value"), "1.1.8.0");
 
             final CompositeData attribute90 = (CompositeData) connectorAttributes.get(new Object[]{"9.0"}).get("Attribute");
-            assertEquals(attribute90.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertEquals(-1L, attribute90.get("ReadWriteTimeout"));
             assertTrue(attribute90.containsKey("AdditionalProperties"));
             assertTrue(attribute90.get("AdditionalProperties") instanceof TabularData);
             assertTrue(((TabularData) attribute90.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
@@ -364,7 +362,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             assertEquals(((TabularData) attribute90.get("AdditionalProperties")).get(new Object[]{"oid"}).get("Value"), "1.1.9.0");
 
             final CompositeData attribute100 = (CompositeData) connectorAttributes.get(new Object[]{"10.0"}).get("Attribute");
-            assertEquals(attribute100.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertEquals(-1L, attribute100.get("ReadWriteTimeout"));
             assertTrue(attribute100.containsKey("AdditionalProperties"));
             assertTrue(attribute100.get("AdditionalProperties") instanceof TabularData);
             assertTrue(((TabularData) attribute100.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
@@ -373,7 +371,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             assertEquals(((TabularData) attribute100.get("AdditionalProperties")).get(new Object[]{"oid"}).get("Value"), "1.1.10.0");
 
             final CompositeData attribute110 = (CompositeData) connectorAttributes.get(new Object[]{"11.0"}).get("Attribute");
-            assertEquals(attribute110.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertEquals(-1L, attribute110.get("ReadWriteTimeout"));
             assertTrue(attribute110.containsKey("AdditionalProperties"));
             assertTrue(attribute110.get("AdditionalProperties") instanceof TabularData);
             assertTrue(((TabularData) attribute110.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
@@ -385,7 +383,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
 

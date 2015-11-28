@@ -41,7 +41,7 @@ final class AvailableAttributesOperation extends AvailableFeaturesOperation<MBea
                     .addColumn(TYPE_COLUMN, "Type of the attribute", SimpleType.STRING, false)
                     .addColumn(READABLE_COLUMN, "Is attribute readable?", SimpleType.BOOLEAN, false)
                     .addColumn(WRITABLE_COLUMN, "Is attribute writable?", SimpleType.BOOLEAN, false)
-                    .addColumn(NAME_COLUMN, "The name of the attribute", SimpleType.STRING, false)
+                    .addColumn(NAME_COLUMN, "The name of the attribute", SimpleType.STRING, true)
                     .build();
         }
     });

@@ -247,9 +247,9 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         }
 
         private void updateAttributes(final TConnector connector,
-                                      final Map<String, AttributeConfiguration> attributes){
+                                      final Map<String, ? extends AttributeConfiguration> attributes){
             final Set<String> addedAttributes = Sets.newHashSetWithExpectedSize(attributes.size());
-            for(final Map.Entry<String, AttributeConfiguration> attr: attributes.entrySet()) {
+            for(final Map.Entry<String, ? extends AttributeConfiguration> attr: attributes.entrySet()) {
                 final String attributeName = attr.getKey();
                 final AttributeConfiguration config = attr.getValue();
                 setFeatureNameIfNecessary(config, attributeName);
@@ -287,9 +287,9 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                                            final Set<String> events);
 
         private void updateEvents(final TConnector connector,
-                                  final Map<String, EventConfiguration> events){
+                                  final Map<String, ? extends EventConfiguration> events){
             final Set<String> enabledEvents = Sets.newHashSetWithExpectedSize(events.size());
-            for(final Map.Entry<String, EventConfiguration> event: events.entrySet()){
+            for(final Map.Entry<String, ? extends EventConfiguration> event: events.entrySet()){
                 final String category = event.getKey();
                 final EventConfiguration config = event.getValue();
                 setFeatureNameIfNecessary(config, category);
@@ -315,9 +315,9 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                                         final Set<String> operations);
 
         private void updateOperations(final TConnector connector,
-                                      final Map<String, OperationConfiguration> operations){
+                                      final Map<String, ? extends OperationConfiguration> operations){
             final Set<String> enabledOperations = Sets.newHashSetWithExpectedSize(operations.size());
-            for(final Map.Entry<String, OperationConfiguration> op: operations.entrySet()){
+            for(final Map.Entry<String, ? extends OperationConfiguration> op: operations.entrySet()){
                 final String operationName = op.getKey();
                 final OperationConfiguration config = op.getValue();
                 setFeatureNameIfNecessary(config, operationName);
@@ -342,11 +342,11 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         @Override
         public final <F extends FeatureConfiguration> void updateConnector(final TConnector connector, final Class<F> featureType, final Map<String, ? extends F> features) throws Exception {
             if(Objects.equals(featureType, AttributeConfiguration.class))
-                updateAttributes(connector, (Map<String, AttributeConfiguration>)features);
+                updateAttributes(connector, (Map<String, ? extends AttributeConfiguration>)features);
             else if(Objects.equals(featureType, EventConfiguration.class))
-                updateEvents(connector, (Map<String, EventConfiguration>)features);
+                updateEvents(connector, (Map<String, ? extends EventConfiguration>)features);
             else if(Objects.equals(featureType, OperationConfiguration.class))
-                updateOperations(connector, (Map<String, OperationConfiguration>)features);
+                updateOperations(connector, (Map<String, ? extends OperationConfiguration>)features);
         }
     }
 

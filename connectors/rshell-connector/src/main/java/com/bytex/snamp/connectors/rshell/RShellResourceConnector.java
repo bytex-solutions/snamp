@@ -338,7 +338,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
      */
     @Override
     public void removeResourceEventListener(final ResourceEventListener listener) {
-        addResourceEventListener(listener, attributes);
+        removeResourceEventListener(listener, attributes);
     }
 
     /**
