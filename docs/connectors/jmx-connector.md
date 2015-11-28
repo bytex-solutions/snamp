@@ -70,7 +70,7 @@ JMX connection watchdog is a background process controlling consistency of JMX c
 
 ## Configuring attributes
 Each attribute configured in JMX Resource Connector has the following configuration schema:
-* `Name` - name of attribute in the remote MBean
+* `Name` - name of attribute in the remote MBean. Also, you can use `name` configuration parameter to specify MBean attribute.
 * Configuration parameters:
 
 Parameter | Type | Required | Meaning | Example

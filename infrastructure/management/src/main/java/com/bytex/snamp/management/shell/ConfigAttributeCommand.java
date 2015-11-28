@@ -32,7 +32,7 @@ public final class ConfigAttributeCommand extends ConfigurationCommand {
     private String name = "";
 
     @SpecialUse
-    @Argument(index = 3, name = "readWriteTimeout", required = false, description = "Read/write timeout for attribute, in millis")
+    @Argument(index = 2, name = "readWriteTimeout", required = false, description = "Read/write timeout for attribute, in millis")
     private long readWriteTimeout = INFINITE_TIMEOUT;
 
     @SpecialUse

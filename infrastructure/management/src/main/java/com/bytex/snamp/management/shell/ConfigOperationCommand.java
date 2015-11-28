@@ -32,7 +32,7 @@ public final class ConfigOperationCommand extends ConfigurationCommand {
     private String name = "";
 
     @SpecialUse
-    @Argument(index = 3, name = "readWriteTimeout", required = false, description = "Invocation timeout for operation, in millis")
+    @Argument(index = 2, name = "readWriteTimeout", required = false, description = "Invocation timeout for operation, in millis")
     private long readWriteTimeout = INFINITE_TIMEOUT;
 
     @SpecialUse

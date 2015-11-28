@@ -36,7 +36,7 @@ public final class InstalledConnectorsCommand extends OsgiCommandSupport impleme
     @Override
     protected CharSequence doExecute() throws IOException {
         final StringBuilder result = new StringBuilder(42);
-        for(final SnampComponentDescriptor component: manager.getInstalledResourceAdapters())
+        for(final SnampComponentDescriptor component: manager.getInstalledResourceConnectors())
             writeConnector(component, result);
         return result;
     }

@@ -383,7 +383,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return true;
+        return false;
     }
 
 

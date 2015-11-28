@@ -45,7 +45,7 @@
               },
               "ReadWriteTimeout": 10000
             },
-            "UserDefinedName": "cpuLoad"
+            "Name": "cpuLoad"
           },
           "context": {
             "Attribute": {
@@ -61,7 +61,7 @@
               },
               "ReadWriteTimeout": 10000
             },
-            "UserDefinedName": "context"
+            "Name": "context"
           },
           "memoryUsage": {
             "Attribute": {
@@ -77,7 +77,7 @@
               },
               "ReadWriteTimeout": 10000
             },
-            "UserDefinedName": "memoryUsage"
+            "Name": "memoryUsage"
           }
         },
         "Events": { },

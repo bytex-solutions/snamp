@@ -55,11 +55,11 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
             ATTRIBUTE_METADATA = ATTRIBUTE_METADATA_BUILDER.build();
 
             CONNECTOR_ATTRIBUTE_MAP_TYPE = new TabularTypeBuilder("com.bytex.management.ConnectorAttributeMapType", "Simple type for Map<String, EventMetadata>")
-                    .addColumn("UserDefinedName", "User defined name for connector's attribute", SimpleType.STRING, true)
+                    .addColumn("Name", "User defined name for connector's attribute", SimpleType.STRING, true)
                     .addColumn("Attribute", "Attribute metadata instance", ATTRIBUTE_METADATA, false)
                     .build();
             CONNECTOR_EVENT_MAP_TYPE = new TabularTypeBuilder("com.bytex.management.ConnectorEventMapType", "Simple type for Map<String, AttributeMetadata>")
-                    .addColumn("UserDefinedName", "User defined name for connector's event", SimpleType.STRING, true)
+                    .addColumn("Category", "User defined name for connector's event", SimpleType.STRING, true)
                     .addColumn("Event", "Event metadata instance", EVENT_METADATA, false)
                     .build();
 
@@ -124,7 +124,7 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
         final TabularDataBuilderRowFill builder = new TabularDataBuilderRowFill(CONNECTOR_ATTRIBUTE_MAP_TYPE);
         for (final Map.Entry<String, ? extends AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> attribute : map.entrySet()) {
             builder.newRow()
-                    .cell("UserDefinedName", attribute.getKey())
+                    .cell("Name", attribute.getKey())
                     .cell("Attribute", ATTRIBUTE_METADATA_BUILDER.build(
                             ImmutableMap.of(
                                     "ReadWriteTimeout", convertTimeout(attribute.getValue().getReadWriteTimeout()),
@@ -147,7 +147,7 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
         final TabularDataBuilderRowFill builder = new TabularDataBuilderRowFill(CONNECTOR_EVENT_MAP_TYPE);
         for (final Map.Entry<String, ? extends AgentConfiguration.ManagedResourceConfiguration.EventConfiguration> event : map.entrySet()) {
             builder.newRow()
-                    .cell("UserDefinedName", event.getKey())
+                    .cell("Category", event.getKey())
                     .cell("Event", EVENT_METADATA_BUILDER.build(
                             ImmutableMap.of(
                                     "AdditionalProperties",  MonitoringUtils.transformAdditionalPropertiesToTabularData(
@@ -257,7 +257,7 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
                         for (final CompositeData attributeInstance : (Collection<CompositeData>) attributes.values()) {
                             AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration config = connectorConfiguration
                                     .getFeatures(AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class)
-                                    .getOrAdd(getString(attributeInstance, "UserDefinedName", ""));
+                                    .getOrAdd(getString(attributeInstance, "Name", ""));
                             if (attributeInstance.containsKey("Attribute") && attributeInstance.get("Attribute") instanceof CompositeData) {
 
                                 final CompositeData attributeData = (CompositeData) attributeInstance.get("Attribute");
@@ -280,7 +280,7 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
                         for (final CompositeData eventInstance : (Collection<CompositeData>) events.values()) {
                             AgentConfiguration.ManagedResourceConfiguration.EventConfiguration config = connectorConfiguration
                                     .getFeatures(AgentConfiguration.ManagedResourceConfiguration.EventConfiguration.class)
-                                    .getOrAdd(getString(eventInstance, "UserDefinedName", ""));
+                                    .getOrAdd(getString(eventInstance, "Category", ""));
                             if (eventInstance.containsKey("Event") && eventInstance.get("Event") instanceof CompositeData) {
                                 final CompositeData attributeData = (CompositeData) eventInstance.get("Event");
 

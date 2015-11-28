@@ -47,12 +47,13 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
 
     @Test
     public void installedAdaptersTest() throws Exception {
-        assertTrue(runCommand("snamp:installed-adapters").toString().startsWith("groovy"));
+        assertTrue(runCommand("snamp:installed-adapters").toString().startsWith("Groovy Resource Adapter"));
     }
 
     @Test
     public void installedConnectorsTest() throws Exception {
-        assertTrue(runCommand("snamp:installed-connectors").toString().startsWith("jmx"));
+        final CharSequence result = runCommand("snamp:installed-connectors");
+        assertTrue(result.toString().startsWith("JMX Connector"));
     }
 
     @Test
@@ -316,8 +317,8 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
         //check resource
         final String resource = runCommand("snamp:resource -a -e resource1").toString();
         assertTrue(resource.contains("Connection String: http://acme.com"));
-        assertTrue(resource.contains("System Name: memory"));
-        assertTrue(resource.contains("Category: onError"));
+        assertTrue(resource.contains("attr"));
+        assertTrue(resource.contains("ev1"));
         //cleanup resource
         runCommand("snamp:delete-attribute resource1 attr");
         runCommand("snamp:delete-event resource1 ev1");

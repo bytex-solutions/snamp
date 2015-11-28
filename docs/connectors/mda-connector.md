@@ -61,7 +61,7 @@ expirationTime | Integer | No | Expiration time (in millis) of attribute values 
 ## Configuring attributes
 Each attribute configured in MDA Resource Connector has the following configuration schema:
 
-* `Name` - name of attribute in REST API or Thrift IDL
+* `Name` - name of attribute in REST API or Thrift IDL. Also, you can specify name using `name` configuration parameter.
 * Configuration parameters:
 
 Parameter | Type | Required | Meaning | Example

@@ -138,11 +138,11 @@ Value | Description
 = | Determines whether the left operand is equal to the right operand
 == | The same as `=`
 != | Determines whether the left operand is not equal to the right operand
-<> | The same as `!=`
+\<\> | The same as `!=`
 \> | Determines whether the left operand is greater than the right operand
 \>= | Determines whether the left operand is greater than or equal to the right operand
-< | Determines whether the left operand is less to the right operand
-<= | Determines whether the left operand is less than or equal to the right operand
+\< | Determines whether the left operand is less to the right operand
+\<= | Determines whether the left operand is less than or equal to the right operand
 
 ### Use Cases
 Following use cases simplifie understanding of different aggregations:

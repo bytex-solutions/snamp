@@ -56,7 +56,7 @@ Any other parameters will be ignored.
 ## Configuring attributes
 Each attribute configured in JMX Resource Connector has following configuration schema:
 
-* `Name` - one of the predefined names:
+* `Name` - one of the predefined names (it is possible to use `name` configuration parameter):
   * `coil` - read/write access to device coil (of type `bool` or `array(bool)`)
   * `inputRegister` - read-only access to the register of device (of type `int16` or `array(int16)`)
   * `inputDiscrete` - read-only access to the digital input of device (of type `bool` or `array(bool)`)

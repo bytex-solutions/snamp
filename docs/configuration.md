@@ -33,21 +33,18 @@ At high level, logical model of configuration can be represented as a configurab
 
 _Attributes_ section:
 
-* `Attribute Instance Name` - unique name of the attribute. Resource Connector uses this name when exposing attributes to Resource Adapters
-  * `Name` - name of the attribute declared by managed resource. Note that this name depends on the management information provided by managed resource. This parameter is required.
+* `Name` - name of the attribute declared by managed resource. Note that this name depends on the management information provided by managed resource. This parameter is required. Also, Resource Connector uses this name when exposing attributes to Resource Adapters. In some cases name of the attribute may differs from the name declared in SNAMP configuration. In this case use `name` configuration parameter in the set of additional configuration parameters.
   * `Read/write timeout` - timeout (in millis) used when accessing attribute value. This is the optional parameter.
   * Additional configuration parameters in the form of key/value pairs
 
 _Events_ section:
 
-* `Event Name` - unique name of the event. Resource Connector uses this name as notification type when exposing notifications to Resource Adapters
-  * `Category` - event category declared by managed resource. Note that the category depends on the management information provided by managed resource. This parameter is required.
+* `Category` - event category declared by managed resource. Note that the category depends on the management information provided by managed resource. This parameter is required. Also, Resource Connector uses this name as notification type when exposing notifications to Resource Adapters. In some cases category of the event may differs from the category declared in SNAMP configuration. In this case use `name` configuration parameter in the set of additional configuration parameters.
   * Additional configuration parameters in the form of the key/value pairs
 
 _Operations_ section may contain zero:
 
-* `Operation instance name` - unique name of the operation. Resource Connector uses this name when exposing operations to Resource Adapters
-  * `Operation Name` - name of the operation declared by managed resource. Note that operation name depends on the management information provided by managed resource. This parameter is required.
+* `Name` - name of the operation declared by managed resource. Note that operation name depends on the management information provided by managed resource. This parameter is required. Also, Resource Connector uses this name when exposing operations to Resource Adapters. In some cases name of the operation may differs from the name declared in SNAMP configuration. In this case use `name` configuration parameter in the set of additional configuration parameters.
   * Additional configuration parameters in the form of the key/value pairs
 
 A set of additional configuration parameters depends on the particular Resource Adapter or Resource Connector.
@@ -74,22 +71,20 @@ Let's consider the following example of the configuration logical model:
     * `login`: jmxLogin
     * `password`: jmxPassword
     * _Attributes_
-      * `Attribute Instance Name`: freeMemory
-        * `Name`: freeMemoryInMB
+      * `Name`: freeMemory
         * `Read/write timeout`: 2000
         * `objectName`: com.sun.glassfish.management:type=Memory
         * `xmppFormat`: human-readable
-      * `Attribute Instance Name`: freeMemoryRaw
-        * `Name`: freeMemoryInMB
+      * `Name`: freeMemoryRaw
+        * `name`: freeMemory
         * `objectName`: com.sun.glassfish.management:type=Memory
         * `xmppFormat`: binary
-      * `Attribute Instance Name`: available
-        * `Name`: isActive
+      * `Name`: available
+        * `name`: isActive
         * `objectName`: com.sun.glassfish.management:type=Common
         * `xmppFormat`: human-readable
     * _Events_
-      * `Event Name`: error
-        * `Category`: com.sun.glassfish.ejb.unhandledException
+      * `Category`: com.sun.glassfish.ejb.unhandledException
         * `objectName`: com.sun.glassfish.management:type=Common
         * `fullStackTrace`: true
 
@@ -268,8 +263,11 @@ Following example shows setup of JMX-to-SNMP bridge:
         "Attributes": {
           "attribute1": {
             "Attribute": {
-              "Name": "int32",  
               "AdditionalProperties": {
+                "name": {
+                    "Key": "name",
+                    "Value": "int32"
+                },
                 "objectName": {
                   "Value": "com.bytex.snamp:type=TestManagementBean",
                   "Key": "objectName"
@@ -281,11 +279,10 @@ Following example shows setup of JMX-to-SNMP bridge:
               },
               "ReadWriteTimeout": -1
             },
-            "UserDefinedName": "attribute1"
+            "Name": "attribute1"
           },
           "attribute2": {
             "Attribute": {
-              "Name": "dictionary",
               "AdditionalProperties": {
                 "objectName": {
                   "Value": "com.bytex.snamp:type=TestManagementBean",
@@ -298,11 +295,10 @@ Following example shows setup of JMX-to-SNMP bridge:
               },
               "ReadWriteTimeout": -1
             },
-            "UserDefinedName": "attribute2"
+            "Name": "dictionary"
           },
           "attribute3": {
             "Attribute": {
-              "Name": "bigint",
               "AdditionalProperties": {
                 "objectName": {
                   "Value": "com.bytex.snamp:type=TestManagementBean",
@@ -315,13 +311,12 @@ Following example shows setup of JMX-to-SNMP bridge:
               },
               "ReadWriteTimeout": -1
             },
-            "UserDefinedName": "attribute3"
+            "Name": "bigint"
           }
         },
         "Events": {
           "19.1": {
             "Event": {
-              "Category": "jmx.attribute.change",
               "AdditionalProperties": {
                 "objectName": {
                   "Value": "com.bytex.snamp:type=TestManagementBean",
@@ -345,7 +340,7 @@ Following example shows setup of JMX-to-SNMP bridge:
                 }
               }
             },
-            "UserDefinedName": "19.1"
+            "Category": "jmx.attribute.change"
           },
         },
         "ConnectionType": "jmx"   
@@ -377,6 +372,8 @@ SNAMP Configuration Model provides set of optional configuration parameters with
 
 Parameter | Applied to | Meaning
 ---- | ---- | ----
+name | Event configuration, Attribute configuration, Operation configuration | Resource-specific name of the attribute, event or operation
+group | Anything | Name of the group used for grouping resources, adapters, attributes and etc.
 severity | Event configuration | Overrides severity of notification supplied by managed resource
 minPoolSize | Managed Resource or Resource Adapter configuration | The number of threads to keep in the pool, even if they are idle
 maxPoolSize | Managed Resource or Resource Adapter configuration | The maximum number of threads to allow in the pool

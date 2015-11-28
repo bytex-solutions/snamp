@@ -49,7 +49,7 @@ All these parameters (including user-defined) will be visible as global variable
 ## Configuring attributes
 Each attribute configured in Groovy Resource Connector has following configuration schema:
 
-* `Name` - name of script file without `.groovy` file extension. The file must exists in the paths specified by connection string
+* `Name` - name of script file without `.groovy` file extension. The file must exists in the paths specified by connection string. Also, you can use `name` configuration parameter for this purpose.
 * There is no predefined configuration parameters. But all user-defined configuration parameters will be visible as global variables in the attribute script only.
 
 For more information see **Programming attributes** section.
