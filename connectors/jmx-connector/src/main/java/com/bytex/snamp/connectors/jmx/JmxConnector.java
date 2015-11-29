@@ -42,12 +42,10 @@ import static com.bytex.snamp.connectors.jmx.JmxConnectorConfigurationDescriptor
  */
 final class JmxConnector extends AbstractManagedResourceConnector implements AttributeSupport, NotificationSupport, OperationSupport {
     private interface JmxFeatureMetadata extends Serializable, DescriptorRead {
-        @SpecialUse
         ObjectName getOwner();
-        @SpecialUse
         String getName();
-        @SpecialUse
         String getDescription();
+        String getAlias();
     }
 
     /**
@@ -124,7 +122,8 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
             return result;
         }
 
-        String getAlias(){
+        @Override
+        public String getAlias(){
             return getDescriptor().getName(getName());
         }
 
@@ -263,6 +262,11 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
                     nativeNotif.getDescription(),
                     descriptor.setFields(nativeNotif.getDescriptor()));
             this.eventOwner = eventOwner;
+        }
+
+        @Override
+        public String getAlias() {
+            return getDescriptor().getName(getName());
         }
 
         @Override
@@ -714,7 +718,8 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
             return namespace;
         }
 
-        final String getAlias(){
+        @Override
+        public final String getAlias(){
             return getDescriptor().getName(getName());
         }
 

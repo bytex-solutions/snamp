@@ -34,14 +34,16 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
  * @version 1.0
  */
 public abstract class AbstractManagedResourceConnector extends AbstractFrameworkService implements ManagedResourceConnector, Descriptive {
+    private final IllegalStateFlag closed = createConnectorStateFlag();
 
-
-    private final IllegalStateFlag closed = new IllegalStateFlag() {
-        @Override
-        public final IllegalStateException create() {
-            return new IllegalStateException("Management connector is closed.");
-        }
-    };
+    private static IllegalStateFlag createConnectorStateFlag(){
+        return new IllegalStateFlag() {
+            @Override
+            public IllegalStateException create() {
+                return new IllegalStateException("Management connector is closed.");
+            }
+        };
+    }
 
     /**
      *  Throws an {@link IllegalStateException} if the connector is not initialized.
