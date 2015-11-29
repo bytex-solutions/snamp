@@ -105,13 +105,12 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
                                      final String operationName,
                                      final Object[] arguments,
                                      final String[] signature,
-                                     final ObjectName owner,
-                                     final OperationDescriptor descriptor) throws Exception{
+                                     final ObjectName owner) throws Exception{
             return connectionManager.handleConnection(new MBeanServerConnectionHandler<Object>() {
                 @Override
                 public Object handle(final MBeanServerConnection connection) throws IOException, JMException {
                     return connection.invoke(owner,
-                            descriptor.getName(operationName),
+                            operationName,
                             arguments,
                             signature);
                 }
@@ -125,14 +124,18 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
             return result;
         }
 
+        String getAlias(){
+            return getDescriptor().getName(getName());
+        }
+
         private Object invoke(final JmxConnectionManager connectionManager,
                               final Object[] arguments) throws Exception{
             return invoke(connectionManager,
-                    getName(),
+                    getAlias(),
                     arguments,
                     constructSignature(getSignature()),
-                    operationOwner,
-                    getDescriptor());
+                    operationOwner
+            );
         }
     }
 
@@ -711,40 +714,40 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
             return namespace;
         }
 
+        final String getAlias(){
+            return getDescriptor().getName(getName());
+        }
+
         private static Object getValue(final JmxConnectionManager connectionManager,
                                        final String attributeName,
-                                       final ObjectName owner,
-                                       final AttributeDescriptor descriptor) throws Exception{
+                                       final ObjectName owner) throws Exception{
             return connectionManager.handleConnection(new MBeanServerConnectionHandler<Object>() {
                 @Override
                 public Object handle(final MBeanServerConnection connection) throws IOException, JMException {
-                    return connection.getAttribute(owner,
-                            descriptor.getName(attributeName));
+                    return connection.getAttribute(owner, attributeName);
                 }
             });
         }
 
         private Object getValue(final JmxConnectionManager connectionManager) throws Exception {
-            return getValue(connectionManager, getName(), namespace, getDescriptor());
+            return getValue(connectionManager, getAlias(), namespace);
         }
 
         private static void setValue(final JmxConnectionManager connectionManager,
                                      final String attributeName,
                                      final ObjectName owner,
-                                     final AttributeDescriptor descriptor,
                                      final Object value) throws Exception{
             connectionManager.handleConnection(new MBeanServerConnectionHandler<Void>() {
                 @Override
                 public Void handle(final MBeanServerConnection connection) throws IOException, JMException {
-                    connection.setAttribute(owner,
-                            new Attribute(descriptor.getName(attributeName), value));
+                    connection.setAttribute(owner, new Attribute(attributeName, value));
                     return null;
                 }
             });
         }
 
         private void setValue(final JmxConnectionManager connectionManager, final Object value) throws Exception {
-            setValue(connectionManager, getName(), namespace, getDescriptor(), value);
+            setValue(connectionManager, getAlias(), namespace, value);
         }
     }
     private final JmxNotificationRepository notifications;
