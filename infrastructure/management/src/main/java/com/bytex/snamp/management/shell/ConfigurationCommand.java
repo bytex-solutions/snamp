@@ -26,8 +26,9 @@ abstract class ConfigurationCommand extends OsgiCommandSupport implements SnampS
      * @param configuration Configuration to process. Cannot be {@literal null}.
      * @param output Output writer.
      * @return {@literal true} to save changes; otherwise, {@literal false}.
+     * @throws Exception Unable to process configuration.
      */
-    abstract boolean doExecute(final AgentConfiguration configuration, final StringBuilder output);
+    abstract boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) throws Exception;
 
     @Override
     protected final CharSequence doExecute() throws Exception {

@@ -156,6 +156,10 @@ snamp:config-operation | Configure new or existing operation (notification) assi
 snamp:configure-resource | Configure new or existing managed resource using the specified connector and connection string
 snamp:adapter-instances | List of configured adapter instances
 snamp:resources | List of configured managed resources
+snamp:read-attributes | Read attributes
+snamp:listen-events | Wait for events and display each of them
+snamp:suspend-events | Suspend events raised by the specified managed resource. This command is not cluster-wide
+snamp:resume-events | Resume events raised by the specified managed resource. This command is not cluster-wide
 snamp:delete-adapter | Delete adapter instance from configuration
 snamp:delete-adapter-param | Delete configuration parameter from the specified adapter instance
 snamp:delete-attribute | Delete attribute from the specified managed resource

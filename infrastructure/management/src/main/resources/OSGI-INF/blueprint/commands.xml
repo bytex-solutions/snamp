@@ -97,6 +97,18 @@
         <command>
             <action class="com.bytex.snamp.management.shell.ClusterMemberStatusCommand"/>
         </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.ReadAttributeCommand"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.SuspendEventsCommand"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.ResumeEventsCommand"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.ListenEventCommand"/>
+        </command>
     </command-bundle>
 
 </blueprint>
