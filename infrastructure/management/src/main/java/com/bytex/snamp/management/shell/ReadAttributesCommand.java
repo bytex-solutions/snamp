@@ -2,17 +2,16 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
-import com.google.common.collect.ImmutableSet;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
-import javax.management.*;
+import javax.management.DynamicMBean;
+import javax.management.JMException;
+import javax.management.MBeanAttributeInfo;
 import java.io.PrintStream;
-import java.util.Set;
 
 /**
  * Read attribute value.
@@ -22,8 +21,8 @@ import java.util.Set;
  */
 @Command(scope = SnampShellCommand.SCOPE,
     name = "read-attributes")
-public final class ReadAttributeCommand extends OsgiCommandSupport implements SnampShellCommand {
-    @Argument(index = 0, name = "resource", required = true, multiValued = true, description = "Name of the resource to read")
+public final class ReadAttributesCommand extends OsgiCommandSupport implements SnampShellCommand {
+    @Argument(index = 0, name = "resource", required = true, description = "Name of the resource to read")
     @SpecialUse
     private String resourceName = "";
 
@@ -31,16 +30,13 @@ public final class ReadAttributeCommand extends OsgiCommandSupport implements Sn
     @SpecialUse
     private String[] attributes = ArrayUtils.emptyArray(String[].class);
 
-    @Option(name = "-t", aliases = "--period", multiValued = false, required = false, description = "Period for reading attributes")
+    @Option(name = "-t", aliases = "--period", multiValued = false, required = false, description = "Period for reading attributes, in millis")
     @SpecialUse
     private int readPeriodMillis = 0;
 
     private static void readAttributes(final DynamicMBean bean, final String[] attributes, final PrintStream output) throws JMException {
-        for(final String name: attributes){
-            output.println(name);
-            output.println(bean.getAttribute(name));
-            output.println();
-        }
+        for(final String name: attributes)
+            output.println(String.format("%s = %s", name, bean.getAttribute(name)));
     }
 
     private static String[] getNames(final MBeanAttributeInfo[] attributes){
@@ -61,9 +57,8 @@ public final class ReadAttributeCommand extends OsgiCommandSupport implements Sn
             if (readPeriodMillis > 0) {
                 session.getConsole().println("Press CTRL+C to stop reading attributes");
                 while (true) {
-                    checkInterrupted();
                     readAttributes(client, attributes, session.getConsole());
-                    Thread.sleep(readPeriodMillis);
+                    Thread.sleep(readPeriodMillis);//InterruptedException when CTRL+C was pressed
                 }
             }
             //read attributes and exit

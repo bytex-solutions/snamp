@@ -1,6 +1,8 @@
 package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.connectors.notifications.NotificationBox;
 import com.bytex.snamp.connectors.notifications.NotificationSupport;
@@ -14,7 +16,6 @@ import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Listens event from the specified resource.
@@ -22,8 +23,10 @@ import java.util.concurrent.TimeUnit;
 @Command(scope = SnampShellCommand.SCOPE,
     name = "listen-events",
     description = "Listen and display events from the managed resources")
-public final class ListenEventCommand extends OsgiCommandSupport implements SnampShellCommand {
+public final class ListenEventsCommand extends OsgiCommandSupport implements SnampShellCommand {
     private static final class AllowedCategories extends HashSet<String> implements NotificationFilter{
+        private static final long serialVersionUID = -4310589461921201562L;
+
         private AllowedCategories(final String... categories){
             super(Arrays.asList(categories));
         }
@@ -35,13 +38,20 @@ public final class ListenEventCommand extends OsgiCommandSupport implements Snam
     }
 
     @Argument(index = 0, required = true, name = "resource", description = "The name of the resource to listen")
+    @SpecialUse
     private String resourceName = "";
 
     @Option(name = "-c", aliases = "--category", required = false, multiValued = true, description = "A set of categories of the events to listen")
+    @SpecialUse
     private String[] categories = ArrayUtils.emptyArray(String[].class);
 
     @Option(name = "-s", aliases = {"--size"}, required = false, multiValued = false, description = "Maximum size of the input mailbox")
+    @SpecialUse
     private int capacity = 10;
+
+    @Option(name = "-t", aliases = "--period", multiValued = false, required = false, description = "Period of listening events, in millis")
+    @SpecialUse
+    private int listenPeriodMillis = 10;
 
     private static String[] getNames(final MBeanNotificationInfo[] attributes) {
         final String[] result = new String[attributes.length];
@@ -53,6 +63,7 @@ public final class ListenEventCommand extends OsgiCommandSupport implements Snam
     private static void listenEvents(final NotificationSupport notifSupport,
                                      final String[] categories,
                                      final int capacity,
+                                     final TimeSpan timeout,
                                      final PrintStream output) throws ListenerNotFoundException, InterruptedException {
         if(notifSupport == null){
             output.println("Notifications are not supported");
@@ -63,7 +74,7 @@ public final class ListenEventCommand extends OsgiCommandSupport implements Snam
         notifSupport.addNotificationListener(mailbox, new AllowedCategories(categories), null);
         try{
             while (true){
-                final Notification notif = mailbox.poll(10, TimeUnit.MILLISECONDS);
+                final Notification notif = mailbox.poll(timeout.duration, timeout.unit);//InterruptedException when CTRL+C was pressed
                 if(notif == null) continue;
                 output.println(notif.getType());
                 output.println(new Date(notif.getTimeStamp()));
@@ -85,7 +96,11 @@ public final class ListenEventCommand extends OsgiCommandSupport implements Snam
             String[] categories = this.categories;
             if(ArrayUtils.isNullOrEmpty(categories))
                 categories = getNames(client.getMBeanInfo().getNotifications());
-            listenEvents(client.queryObject(NotificationSupport.class), categories, capacity, session.getConsole());
+            listenEvents(client.queryObject(NotificationSupport.class),
+                    categories,
+                    capacity,
+                    TimeSpan.ofMillis(listenPeriodMillis),
+                    session.getConsole());
             return null;
         } finally {
             client.release(bundleContext);

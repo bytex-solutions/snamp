@@ -98,7 +98,7 @@
             <action class="com.bytex.snamp.management.shell.ClusterMemberStatusCommand"/>
         </command>
         <command>
-            <action class="com.bytex.snamp.management.shell.ReadAttributeCommand"/>
+            <action class="com.bytex.snamp.management.shell.ReadAttributesCommand"/>
         </command>
         <command>
             <action class="com.bytex.snamp.management.shell.SuspendEventsCommand"/>
@@ -107,7 +107,7 @@
             <action class="com.bytex.snamp.management.shell.ResumeEventsCommand"/>
         </command>
         <command>
-            <action class="com.bytex.snamp.management.shell.ListenEventCommand"/>
+            <action class="com.bytex.snamp.management.shell.ListenEventsCommand"/>
         </command>
     </command-bundle>
 
