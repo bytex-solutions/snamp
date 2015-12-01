@@ -274,7 +274,12 @@ Go to the home directory and create file with name `config.json`and following co
     },
 	"processes":{
 		"Connector": {
-                "Parameters": {},
+                "Parameters": {
+                    "format":{
+                        "Key": "format",
+                        "Value": "-m"
+                    }
+                },
                 "ConnectionString": "process",
                 "Attributes": {
                     "memoryUsage": {
