@@ -19,7 +19,7 @@ import com.bytex.snamp.connectors.operations.OperationAddedEvent;
 import com.bytex.snamp.connectors.operations.OperationRemovingEvent;
 import com.bytex.snamp.core.LogicalOperation;
 import com.bytex.snamp.core.RichLogicalOperation;
-import com.bytex.snamp.internal.EntryReader;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import org.osgi.framework.*;

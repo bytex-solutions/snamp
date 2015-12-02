@@ -7,7 +7,7 @@ import com.google.common.reflect.TypeToken;
 import com.bytex.snamp.*;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.ThreadSafe;
-import com.bytex.snamp.internal.EntryReader;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.io.IOUtils;
 import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;

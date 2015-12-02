@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.bytex.snamp.adapters.modeling.MulticastNotificationListener;
 import com.bytex.snamp.adapters.modeling.NotificationSet;
 import com.bytex.snamp.adapters.modeling.ResourceNotificationList;
-import com.bytex.snamp.internal.EntryReader;
+import com.bytex.snamp.EntryReader;
 
 import javax.management.MBeanNotificationInfo;
 import java.util.HashMap;

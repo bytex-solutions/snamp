@@ -14,7 +14,7 @@ import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfigura
 import com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.connectors.notifications.Severity;
-import com.bytex.snamp.internal.EntryReader;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.SnmpTable;

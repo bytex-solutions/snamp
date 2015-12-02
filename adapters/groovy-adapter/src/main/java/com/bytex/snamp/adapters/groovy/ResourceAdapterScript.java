@@ -8,7 +8,7 @@ import com.bytex.snamp.adapters.groovy.dsl.GroovyManagementModel;
 import com.bytex.snamp.adapters.modeling.AttributeAccessor;
 import com.bytex.snamp.adapters.modeling.NotificationAccessor;
 import com.bytex.snamp.concurrent.Repeater;
-import com.bytex.snamp.internal.EntryReader;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.io.Communicator;
 import com.google.common.eventbus.Subscribe;
 import groovy.lang.Closure;

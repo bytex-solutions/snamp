@@ -6,7 +6,7 @@ import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.adapters.modeling.*;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
-import com.bytex.snamp.internal.EntryReader;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.internal.KeyedObjects;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.json.JsonUtils;

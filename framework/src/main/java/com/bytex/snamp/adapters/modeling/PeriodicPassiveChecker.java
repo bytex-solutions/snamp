@@ -3,7 +3,7 @@ package com.bytex.snamp.adapters.modeling;
 import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.Repeater;
-import com.bytex.snamp.internal.EntryReader;
+import com.bytex.snamp.EntryReader;
 
 import java.util.Objects;
 

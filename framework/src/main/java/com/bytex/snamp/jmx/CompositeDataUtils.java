@@ -19,6 +19,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 
@@ -86,6 +87,19 @@ public final class CompositeDataUtils {
 
     private CompositeDataUtils() {
 
+    }
+
+    /**
+     * Converts {@link CompositeData} into map.
+     * @param data Composite object to convert. Cannot be {@literal null}.
+     * @return Map with items from input {@link CompositeData}.
+     */
+    public static Map<String, ?> toMap(final CompositeData data) {
+        final Collection<String> items = data.getCompositeType().keySet();
+        final Map<String, Object> result = Maps.newHashMapWithExpectedSize(items.size());
+        for(final String itemName: items)
+            result.put(itemName, data.get(itemName));
+        return result;
     }
 
     public static CompositeData create(final String typeName,

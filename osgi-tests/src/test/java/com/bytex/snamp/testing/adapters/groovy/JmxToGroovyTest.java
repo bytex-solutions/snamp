@@ -8,7 +8,7 @@ import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.adapters.ResourceAdapterClient;
 import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
-import com.bytex.snamp.internal.EntryReader;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.io.Communicator;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.testing.SnampDependencies;

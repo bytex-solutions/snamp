@@ -1,6 +1,6 @@
 package com.bytex.snamp.adapters.modeling;
 
-import com.bytex.snamp.internal.EntryReader;
+import com.bytex.snamp.EntryReader;
 
 /**
  * Represents reader for a set of attributes stored inside of the resource adapter.

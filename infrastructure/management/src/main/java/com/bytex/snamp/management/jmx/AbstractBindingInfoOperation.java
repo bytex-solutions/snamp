@@ -3,7 +3,7 @@ package com.bytex.snamp.management.jmx;
 
 import com.google.common.collect.Maps;
 import com.bytex.snamp.adapters.ResourceAdapterClient;
-import com.bytex.snamp.internal.EntryReader;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.KeyValueTypeBuilder;
 import com.bytex.snamp.jmx.TabularDataBuilderRowFill;

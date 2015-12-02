@@ -1,5 +1,6 @@
 package com.bytex.snamp.internal;
 
+import com.bytex.snamp.EntryReader;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 

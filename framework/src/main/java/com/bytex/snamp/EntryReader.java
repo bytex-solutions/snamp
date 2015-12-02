@@ -1,4 +1,4 @@
-package com.bytex.snamp.internal;
+package com.bytex.snamp;
 
 /**
  * Represents record reader.

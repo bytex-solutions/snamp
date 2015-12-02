@@ -10,7 +10,7 @@ import com.bytex.snamp.adapters.groovy.dsl.GroovyManagementModel;
 import com.bytex.snamp.adapters.modeling.*;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
-import com.bytex.snamp.internal.EntryReader;
+import com.bytex.snamp.EntryReader;
 import org.osgi.framework.BundleContext;
 
 import javax.management.*;

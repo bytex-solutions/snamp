@@ -9,7 +9,7 @@ import com.bytex.snamp.adapters.AbstractResourceAdapter;
 import com.bytex.snamp.adapters.modeling.AttributeSet;
 import com.bytex.snamp.adapters.modeling.FeatureAccessor;
 import com.bytex.snamp.adapters.modeling.NotificationSet;
-import com.bytex.snamp.internal.EntryReader;
+import com.bytex.snamp.EntryReader;
 import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;

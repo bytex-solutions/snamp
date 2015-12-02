@@ -7,7 +7,7 @@ import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationEventBox;
 import com.bytex.snamp.adapters.modeling.*;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
-import com.bytex.snamp.internal.EntryReader;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.jmx.ExpressionBasedDescriptorFilter;
 import com.bytex.snamp.jmx.TabularDataUtils;
 import com.bytex.snamp.jmx.WellKnownType;

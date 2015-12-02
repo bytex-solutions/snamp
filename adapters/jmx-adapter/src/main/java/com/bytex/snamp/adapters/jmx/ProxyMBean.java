@@ -5,7 +5,7 @@ import com.bytex.snamp.adapters.modeling.*;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.notifications.NotificationListenerList;
-import com.bytex.snamp.internal.EntryReader;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.io.Buffers;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.management.OpenMBeanProvider;

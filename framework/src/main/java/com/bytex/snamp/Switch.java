@@ -152,6 +152,10 @@ public class Switch<I, O> implements Function<I, O> {
         return addCase(new ForwardingStatement<>(condition, action));
     }
 
+    public final <T> Switch<I, O> instanceOf(final Class<T> type, final Function<? super T, ? extends O> action) {
+        return addCase(Predicates.instanceOf(type), Functions.compose(action, CastFunction.of(type)));
+    }
+
     @ThreadSafe(false)
     public final Switch<I, O> equals(final I value,
                                final Function<? super I, ? extends O> action) {

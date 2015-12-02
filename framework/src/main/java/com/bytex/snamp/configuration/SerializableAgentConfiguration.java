@@ -3,7 +3,7 @@ package com.bytex.snamp.configuration;
 import com.google.common.collect.ForwardingMap;
 import com.bytex.snamp.SerializableMap;
 import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.internal.EntryReader;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.SpecialUse;
 
 import java.io.*;
