@@ -28,7 +28,7 @@ final class Average extends UnaryAttributeAggregation<Double> {
     }
 
     @Override
-    protected synchronized Double compute(final Object value) throws Exception {
+    protected synchronized Double compute(final Object value) throws NumberFormatException {
         final long currentTime = System.currentTimeMillis();
         if(currentTime - timer > updateInterval){
             timer = currentTime;
