@@ -27,21 +27,17 @@ final class Average extends UnaryAttributeAggregation<Double> {
         timer = System.currentTimeMillis();
     }
 
-    private synchronized double avg(final Object value){
+    @Override
+    protected synchronized Double compute(final Object value) throws Exception {
         final long currentTime = System.currentTimeMillis();
         if(currentTime - timer > updateInterval){
             timer = currentTime;
             sum = 0;
             count = 0;
         }
-        sum += NumberUtils.toLong(value);
+        sum += NumberUtils.toDouble(value);
         count += 1;
         return sum / count;
-    }
-
-    @Override
-    protected Double compute(final Object value) throws Exception {
-        return avg(value);
     }
 
     static SerializableAttributeConfiguration getConfiguratoin() {
