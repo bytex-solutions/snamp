@@ -644,6 +644,12 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
         private static boolean canExpandWith(final Class<? extends MBeanFeatureInfo> featureType) {
             return featureType.isAssignableFrom(FEATURE_TYPE);
         }
+
+        @Override
+        public void close() {
+            super.close();
+            connectionManager.removeReconnectionHandler(this);
+        }
     }
 
 
