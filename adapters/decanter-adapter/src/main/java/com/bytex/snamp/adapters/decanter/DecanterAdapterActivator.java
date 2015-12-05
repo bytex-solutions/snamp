@@ -3,6 +3,7 @@ package com.bytex.snamp.adapters.decanter;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import org.osgi.service.event.EventAdmin;
+import static com.bytex.snamp.ArrayUtils.emptyArray;
 
 /**
  * Represents activator of Decanter Adapter.
@@ -24,7 +25,7 @@ public final class DecanterAdapterActivator extends ResourceAdapterActivator<Dec
     public DecanterAdapterActivator() {
         super(new DecanterAdapterFactory(),
                 new RequiredService<?>[]{new SimpleDependency<>(EventAdmin.class)},
-                new SupportAdapterServiceManager<?, ?>[0]
+                emptyArray(SupportAdapterServiceManager[].class)
         );
     }
 }

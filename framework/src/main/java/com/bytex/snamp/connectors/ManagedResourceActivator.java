@@ -25,6 +25,7 @@ import java.util.logging.Logger;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
 import static com.bytex.snamp.connectors.ManagedResourceConnector.CONNECTOR_NAME_MANIFEST_HEADER;
+import static com.bytex.snamp.ArrayUtils.emptyArray;
 
 /**
  * Represents a base class for management connector bundle.
@@ -791,7 +792,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     protected ManagedResourceActivator(final ManagedResourceConnectorLifecycleController<TConnector> controller,
                                        final SupportConnectorServiceManager<?, ?>... optionalServices) {
         this(controller,
-                EMPTY_REQUIRED_SERVICES,
+                emptyArray(RequiredService[].class),
                 optionalServices);
     }
 

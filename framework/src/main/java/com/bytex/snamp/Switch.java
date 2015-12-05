@@ -81,9 +81,10 @@ public class Switch<I, O> implements Function<I, O> {
         }
     }
 
+    private static Function NULL_FUNCTION = Functions.constant(null);
     private CaseStatement<I, O> first;
     private CaseStatement<I, O> last;
-    private Function<? super I, ? extends O> defaultCase;
+    private Function<? super I, ? extends O> defaultCase = NULL_FUNCTION;
 
     private static <I, O> CaseStatement<I, O> equalsToNullStatement(final Supplier<? extends O> action){
         return new CaseStatement<I, O>() {
@@ -154,6 +155,10 @@ public class Switch<I, O> implements Function<I, O> {
 
     public final <T> Switch<I, O> instanceOf(final Class<T> type, final Function<? super T, ? extends O> action) {
         return addCase(Predicates.instanceOf(type), Functions.compose(action, CastFunction.of(type)));
+    }
+
+    public final Switch<I, O> instanceOf(final Class<?> type, final O value) {
+        return instanceOf(type, Functions.constant(value));
     }
 
     @ThreadSafe(false)

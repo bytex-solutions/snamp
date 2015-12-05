@@ -672,11 +672,6 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
         return found != null ? found.getService() : null;
     }
 
-    /**
-     * Represents an empty array of required services.
-     */
-    protected static final RequiredService<?>[] EMPTY_REQUIRED_SERVICES = ArrayUtils.emptyArray(RequiredService[].class);
-
     private final List<RequiredService<?>> bundleLevelDependencies;
     private final ActivationProperties properties;
     private ActivationState state;

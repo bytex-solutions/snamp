@@ -400,7 +400,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
      * @return A read-only collection of installed additional SNAMP components.
      */
     @Override
-    public final Collection<InternalSnampComponentDescriptor> getInstalledComponents() {
+    public final Collection<? extends SnampComponentDescriptor> getInstalledComponents() {
         final BundleContext context = getBundleContextOfObject(this);
         final Collection<InternalSnampComponentDescriptor> result = new LinkedList<>();
         for(final Bundle bnd: context.getBundles())

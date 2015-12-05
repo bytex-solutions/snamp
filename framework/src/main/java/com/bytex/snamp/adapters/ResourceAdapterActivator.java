@@ -16,6 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.bytex.snamp.adapters.ResourceAdapter.ADAPTER_NAME_MANIFEST_HEADER;
+import static com.bytex.snamp.ArrayUtils.emptyArray;
 
 /**
  * Represents lifetime manager for managed resource adapter.
@@ -228,7 +229,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
      */
     protected ResourceAdapterActivator(final ResourceAdapterFactory<TAdapter> factory,
                                        final SupportAdapterServiceManager<?, ?>... optionalServices){
-        this(factory, EMPTY_REQUIRED_SERVICES, optionalServices);
+        this(factory, emptyArray(RequiredService[].class), optionalServices);
     }
 
     private ResourceAdapterActivator(final ResourceAdapterRegistry<?> registry,
