@@ -1,6 +1,5 @@
 package com.bytex.snamp.management;
 
-import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.Consumer;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
@@ -354,7 +353,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
     @Override
     public final Collection<? extends ResourceConnectorDescriptor> getInstalledResourceConnectors() {
         final Collection<String> systemNames = ManagedResourceActivator.getInstalledResourceConnectors(getBundleContextOfObject(this));
-        final Collection<ResourceConnectorDescriptor> result = new ArrayList<>(systemNames.size());
+        final Collection<ResourceConnectorDescriptor> result = new LinkedList<>();
         for(final String systemName: systemNames)
             result.add(createResourceConnectorDescriptor(systemName));
         return result;
@@ -375,7 +374,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
     @Override
     public final Collection<? extends ResourceAdapterDescriptor> getInstalledResourceAdapters() {
         final Collection<String> systemNames = ResourceAdapterActivator.getInstalledResourceAdapters(getBundleContextOfObject(this));
-        final Collection<ResourceAdapterDescriptor> result = new ArrayList<>(systemNames.size());
+        final Collection<ResourceAdapterDescriptor> result = new LinkedList<>();
         for(final String systemName: systemNames)
             result.add(createResourceAdapterDescriptor(systemName));
         return result;
@@ -403,7 +402,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
     @Override
     public final Collection<InternalSnampComponentDescriptor> getInstalledComponents() {
         final BundleContext context = getBundleContextOfObject(this);
-        final Collection<InternalSnampComponentDescriptor> result = new ArrayList<>(10);
+        final Collection<InternalSnampComponentDescriptor> result = new LinkedList<>();
         for(final Bundle bnd: context.getBundles())
             if(isSnampComponent(bnd))
                 result.add(new InternalSnampComponentDescriptor(bnd.getBundleId()));
