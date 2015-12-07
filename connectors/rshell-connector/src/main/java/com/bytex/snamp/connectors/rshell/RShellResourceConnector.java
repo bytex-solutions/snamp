@@ -5,19 +5,18 @@ import com.bytex.jcommands.impl.TypeTokens;
 import com.bytex.jcommands.impl.XmlCommandLineToolProfile;
 import com.bytex.jcommands.impl.XmlParserDefinition;
 import com.bytex.jcommands.impl.XmlParsingResultType;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
 import com.bytex.snamp.connectors.attributes.*;
-import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.CompositeTypeBuilder;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.TabularDataUtils;
 import com.bytex.snamp.jmx.TabularTypeBuilder;
 import com.bytex.snamp.scripting.OSGiScriptEngineManager;
-import com.google.common.base.Function;
 
 import javax.management.openmbean.*;
 import javax.script.ScriptEngineManager;
@@ -297,6 +296,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
     }
 
     private final CommandExecutionChannel executionChannel;
+    @Aggregation
     private final RShellAttributes attributes;
 
     RShellResourceConnector(final String resourceName,
@@ -339,23 +339,6 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
     @Override
     public void removeResourceEventListener(final ResourceEventListener listener) {
         removeResourceEventListener(listener, attributes);
-    }
-
-    /**
-     * Retrieves the aggregated object.
-     *
-     * @param objectType Type of the aggregated object.
-     * @return An instance of the requested object; or {@literal null} if object is not available.
-     */
-    @Override
-    public <T> T queryObject(final Class<T> objectType) {
-        return findObject(objectType,
-                new Function<Class<T>, T>() {
-                    @Override
-                    public T apply(final Class<T> objectType) {
-                        return RShellResourceConnector.super.queryObject(objectType);
-                    }
-                }, attributes);
     }
 
     void removeAttributesExcept(final Set<String> attributes) {

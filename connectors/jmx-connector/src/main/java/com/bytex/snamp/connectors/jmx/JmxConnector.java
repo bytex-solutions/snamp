@@ -761,9 +761,13 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
             setValue(connectionManager, getAlias(), namespace, value);
         }
     }
+    @Aggregation
     private final JmxNotificationRepository notifications;
+    @Aggregation
     private final JmxAttributeRepository attributes;
+    @Aggregation
     private final JmxConnectionManager connectionManager;
+    @Aggregation
     private final JmxOperationRepository operations;
     private final boolean smartMode;
 
@@ -874,23 +878,6 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
     @Override
     public void removeResourceEventListener(final ResourceEventListener listener) {
         removeResourceEventListener(listener, attributes, notifications, operations);
-    }
-
-    /**
-     * Retrieves the aggregated object.
-     *
-     * @param objectType Type of the aggregated object.
-     * @return An instance of the requested object; or {@literal null} if object is not available.
-     */
-    @Override
-    public <T> T queryObject(final Class<T> objectType) {
-        return findObject(objectType,
-                new Function<Class<T>, T>() {
-                    @Override
-                    public T apply(final Class<T> objectType) {
-                        return JmxConnector.super.queryObject(objectType);
-                    }
-                }, connectionManager, attributes, notifications, operations);
     }
 
     /**

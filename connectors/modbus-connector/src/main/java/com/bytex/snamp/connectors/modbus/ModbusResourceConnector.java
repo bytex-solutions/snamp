@@ -81,6 +81,7 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
         }
     }
     private final ModbusMaster client;
+    @Aggregation
     private final ModbusAttributeRepository attributes;
 
     ModbusResourceConnector(final String resourceName,
@@ -127,16 +128,6 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
     @Override
     public void removeResourceEventListener(final ResourceEventListener listener) {
         removeResourceEventListener(listener, attributes);
-    }
-
-    @Override
-    public <T> T queryObject(final Class<T> objectType) {
-        return findObject(objectType, new Function<Class<T>, T>() {
-            @Override
-            public T apply(final Class<T> objectType) {
-                return ModbusResourceConnector.super.queryObject(objectType);
-            }
-        }, attributes);
     }
 
     @Override

@@ -1,6 +1,6 @@
 package com.bytex.snamp;
 
-import com.google.common.base.Function;
+import com.google.common.base.Supplier;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -8,6 +8,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Objects;
 
 /**
  * Represents a basic support for aggregation.
@@ -32,11 +33,65 @@ import java.lang.reflect.Method;
  * @version 1.0
  */
 public abstract class AbstractAggregator implements Aggregator {
-    private static final class SimpleAggregator extends Switch<Class<?>, Object> implements Aggregator {
+    private static final class SimpleAggregator extends Switch<Class<?>, Object> implements Aggregator{
+        private static final class IsAssignableFromCase<T> extends CaseStatement<Class<?>, Object>{
+            private final Class<T> aggregatedObjectType;
+            private final T aggregatedObject;
+
+            private IsAssignableFromCase(final Class<T> et, final T obj){
+                this.aggregatedObjectType = Objects.requireNonNull(et);
+                this.aggregatedObject = Objects.requireNonNull(obj);
+            }
+
+            @Override
+            public boolean match(final Class<?> expectedType) {
+                return expectedType.isAssignableFrom(aggregatedObjectType);
+            }
+
+            @Override
+            public T apply(final Class<?> expectedType) {
+                return aggregatedObject;
+            }
+        }
+
+        private <T> void addCase(final Class<T> objectType, final T aggregatedObject){
+            addCase(new IsAssignableFromCase<>(objectType, aggregatedObject));
+        }
 
         @Override
         public <T> T queryObject(final Class<T> objectType) {
-            return objectType.cast(apply(objectType));
+            final Object obj = apply(objectType);
+            return objectType.isInstance(obj) ? objectType.cast(obj) : null;
+        }
+    }
+
+    /**
+     * Represents aggregation builder.
+     * This class cannot be inherited.
+     */
+    public static final class AggregationBuilder implements Supplier<Aggregator>{
+        private SimpleAggregator aggregator;
+
+        private AggregationBuilder(){
+
+        }
+
+        public <T> AggregationBuilder aggregate(final Class<T> objectType, final T obj){
+            if(aggregator == null)
+                aggregator = new SimpleAggregator();
+            aggregator.addCase(objectType, obj);
+            return this;
+        }
+
+        @Override
+        public Aggregator get() {
+            final Aggregator result = this.aggregator;
+            this.aggregator = null;
+            return result == null ? new SimpleAggregator() : result;
+        }
+
+        public Aggregator build(){
+            return get();
         }
     }
 
@@ -73,6 +128,21 @@ public abstract class AbstractAggregator implements Aggregator {
         return null;
     }
 
+    protected final <T> T queryObject(final Class<T> objectType, final Aggregator fallback) {
+        //iterates through all derived classes
+        Class<?> lookup = getClass();
+        while (lookup != null) {
+            final T serviceInstance = queryObject(lookup, objectType);
+            if (serviceInstance == null) lookup = lookup.getSuperclass();
+            else return serviceInstance;
+        }
+        //try fallback scenario
+        if(objectType.isInstance(this))
+            return objectType.cast(this);
+        else if(fallback != null) return fallback.queryObject(objectType);
+        else return null;
+    }
+
     /**
      * Retrieves the aggregated object.
      *
@@ -82,59 +152,27 @@ public abstract class AbstractAggregator implements Aggregator {
      */
     @Override
     public <T> T queryObject(final Class<T> objectType) {
-        if(objectType == null) return null;
-        else if(objectType.isInstance(this))
-            return objectType.cast(this);
-        //iterates through all derived classes
-        Class<?> lookup = getClass();
-        while (lookup != null){
-            final T serviceInstance = queryObject(lookup, objectType);
-            if(serviceInstance == null) lookup = lookup.getSuperclass();
-            else return serviceInstance;
-        }
-        return null;
+        return queryObject(objectType, (Aggregator) null);
     }
 
-    protected static <T> T findObject(final Class<T> objectType,
-                                      final Function<? super Class<T>, ? extends T> fallback,
-                                      final Object... candidates){
-        for(final Object obj: candidates)
-            if(objectType.isInstance(obj)) return objectType.cast(obj);
-        return fallback.apply(objectType);
+    /**
+     * Constructs a new aggregation builder.
+     * @return A new instance of the aggregation builder.
+     */
+    public static AggregationBuilder builder(){
+        return new AggregationBuilder();
     }
 
-    public static <T> SimpleAggregator create(final Class<T> objectClass,
-                                        final T obj){
-        return (SimpleAggregator)new SimpleAggregator().equals(objectClass, obj);
-    }
-
-    public static <T1, T2> SimpleAggregator create(final Class<T1> objectClass1,
-                                             final T1 obj1,
-                                             final Class<T2> objectClass2,
-                                             final T2 obj2){
-        return (SimpleAggregator)create(objectClass1, obj1)
-                .equals(objectClass2, obj2);
-    }
-
-    public static <T1, T2, T3> SimpleAggregator create(final Class<T1> objectClass1,
-                                                 final T1 obj1,
-                                                 final Class<T2> objectClass2,
-                                                 final T2 obj2,
-                                                 final Class<T3> objectClass3,
-                                                 final T3 obj3){
-        return (SimpleAggregator)create(objectClass1, obj1, objectClass2, obj2)
-                .equals(objectClass3, obj3);
-    }
-
-    public static <T1, T2, T3, T4> SimpleAggregator create(final Class<T1> objectClass1,
-                                                 final T1 obj1,
-                                                 final Class<T2> objectClass2,
-                                                 final T2 obj2,
-                                                 final Class<T3> objectClass3,
-                                                 final T3 obj3,
-                                                 final Class<T4> objectClass4,
-                                                 final T4 obj4){
-        return (SimpleAggregator)create(objectClass1, obj1, objectClass2, obj2, objectClass3, obj3)
-                .equals(objectClass4, obj4);
+    public static Aggregator compose(final Aggregator... values){
+        return new Aggregator() {
+            @Override
+            public <T> T queryObject(final Class<T> objectType) {
+                for(final Aggregator a: values){
+                    final T result = a.queryObject(objectType);
+                    if(result != null) return result;
+                }
+                return null;
+            }
+        };
     }
 }

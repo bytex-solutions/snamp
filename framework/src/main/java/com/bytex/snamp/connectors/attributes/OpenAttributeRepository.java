@@ -40,8 +40,13 @@ public abstract class OpenAttributeRepository<T extends OpenMBeanAttributeAccess
      * @throws Exception Internal connector error.
      */
     @Override
-    protected Object getAttribute(final T metadata) throws Exception {
+    protected final Object getAttribute(final T metadata) throws Exception {
+        interceptGetAttribute(metadata);
         return metadata.getValue();
+    }
+
+    protected void interceptGetAttribute(final T metadata) throws Exception{
+
     }
 
     /**
@@ -54,9 +59,12 @@ public abstract class OpenAttributeRepository<T extends OpenMBeanAttributeAccess
      */
     @SuppressWarnings("unchecked")
     @Override
-    protected void setAttribute(final T attribute, final Object value) throws Exception {
+    protected final void setAttribute(final T attribute, final Object value) throws Exception {
+        interceptSetAttribute(attribute, value);
         attribute.setValue(value);
     }
 
+    protected void interceptSetAttribute(final T attribute, final Object value) throws Exception{
 
+    }
 }

@@ -1,6 +1,7 @@
 package com.bytex.snamp.connectors.groovy.impl;
 
 import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.GroupedThreadFactory;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
@@ -10,10 +11,8 @@ import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.attributes.OpenMBeanAttributeInfoImpl;
 import com.bytex.snamp.connectors.groovy.*;
 import com.bytex.snamp.connectors.notifications.*;
-import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
-import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import com.google.common.base.StandardSystemProperty;
 import com.google.common.base.Strings;
@@ -265,9 +264,11 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
     }
 
     private static final String RESOURCE_NAME_VAR = ManagedResourceScriptBase.RESOURCE_NAME_VAR;
+    @Aggregation
     private final GroovyAttributeRepository attributes;
     private static final Splitter PATH_SPLITTER;
     private final ManagedResourceInfo groovyConnector;
+    @Aggregation
     private final GroovyNotificationRepository events;
 
     static {
@@ -355,23 +356,6 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
 
     void disableNotificationsExcept(final Set<String> events) {
         this.events.removeAllExcept(events);
-    }
-
-    /**
-     * Retrieves the aggregated object.
-     *
-     * @param objectType Type of the aggregated object.
-     * @return An instance of the requested object; or {@literal null} if object is not available.
-     */
-    @Override
-    public <T> T queryObject(final Class<T> objectType) {
-        return findObject(objectType,
-                new Function<Class<T>, T>() {
-                    @Override
-                    public T apply(final Class<T> objectType) {
-                        return GroovyResourceConnector.super.queryObject(objectType);
-                    }
-                }, attributes, events);
     }
 
     /**

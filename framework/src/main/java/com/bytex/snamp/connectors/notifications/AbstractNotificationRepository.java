@@ -223,7 +223,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
         }
         //fire listeners
         fireListeners(notifs);
-        afterFire();
+        interceptFire();
     }
 
     /**
@@ -232,7 +232,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      * {@link #fire(String, String, Object)}.
      */
     @MethodStub
-    protected void afterFire(){
+    protected void interceptFire(){
 
     }
 

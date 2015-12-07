@@ -57,11 +57,13 @@ final class ThriftDataAcceptor extends DataAcceptor implements TProcessor {
     }
 
     @Override
+    @Aggregation
     protected ThriftAttributeRepository getAttributes() {
         return attributes;
     }
 
     @Override
+    @Aggregation
     protected ThriftNotificationRepository getNotifications() {
         return notifications;
     }

@@ -52,6 +52,12 @@ public abstract class LongAccumulator extends AbstractAccumulator {
         return newValue;
     }
 
+    @Override
+    public final void reset(){
+        super.reset();
+        CURRENT_VALUE_ACCESSOR.set(this, initialValue);
+    }
+
     /**
      * Updates this accumulator.
      * @param value A new value to be combined with existing accumulator value.

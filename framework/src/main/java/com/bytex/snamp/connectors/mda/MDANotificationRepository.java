@@ -48,7 +48,7 @@ public abstract class MDANotificationRepository<M extends MDANotificationInfo> e
      * Resets last access time.
      */
     @Override
-    protected final void afterFire() {
+    protected final void interceptFire() {
         lastWriteAccess.reset();
     }
 

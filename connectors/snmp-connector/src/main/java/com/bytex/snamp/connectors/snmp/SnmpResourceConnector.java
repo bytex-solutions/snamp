@@ -1,5 +1,6 @@
 package com.bytex.snamp.connectors.snmp;
 
+import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor;
@@ -14,7 +15,6 @@ import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.Buffers;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.bytex.snamp.jmx.JMExceptionUtils;
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
@@ -527,7 +527,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         }
     }
 
-    private static final class SnmpAttributeRepository extends AbstractAttributeRepository<SnmpAttributeInfo> {
+    private static final class SnmpAttributeRepository extends AbstractAttributeRepository<SnmpAttributeInfo> implements Aggregator {
         private static final Class<SnmpAttributeInfo> FEATURE_TYPE = SnmpAttributeInfo.class;
         private static final TimeSpan BATCH_READ_WRITE_TIMEOUT = TimeSpan.ofSeconds(30);
         private final AbstractConcurrentResourceAccessor<SnmpClient> client;
@@ -752,9 +752,20 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
                 return Collections.emptyList();
             }
         }
+
+        @Override
+        public <T> T queryObject(final Class<T> objectType) {
+            if(objectType == null)
+                return null;
+            else if(objectType.isAssignableFrom(Address[].class))
+                return objectType.cast(getClientAddresses());
+            else return null;
+        }
     }
 
+    @Aggregation
     private final SnmpAttributeRepository attributes;
+    @Aggregation
     private final SnmpNotificationRepository notifications;
     private final AbstractConcurrentResourceAccessor<SnmpClient> client;
     private final boolean smartMode;
@@ -912,14 +923,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
      */
     @Override
     public <T> T queryObject(final Class<T> objectType) {
-        return findObject(objectType,
-                new Function<Class<T>, T>() {
-                    @Override
-                    public T apply(final Class<T> objectType) {
-                        return SnmpResourceConnector.super.queryObject(objectType);
-                    }
-                },
-                attributes, attributes.getClientAddresses(), notifications);
+        return queryObject(objectType, attributes);
     }
 
     @Override

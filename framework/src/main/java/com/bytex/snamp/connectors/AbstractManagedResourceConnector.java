@@ -1,15 +1,16 @@
 package com.bytex.snamp.connectors;
 
 import com.bytex.snamp.Descriptive;
+import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.connectors.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connectors.attributes.AttributeSupport;
+import com.bytex.snamp.connectors.metrics.MetricsCollector;
 import com.bytex.snamp.connectors.notifications.AbstractNotificationRepository;
 import com.bytex.snamp.connectors.notifications.NotificationSupport;
 import com.bytex.snamp.connectors.operations.OperationSupport;
 import com.bytex.snamp.core.AbstractFrameworkService;
 import com.bytex.snamp.internal.IllegalStateFlag;
-import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 import com.google.common.base.Strings;
 import org.osgi.framework.Bundle;
@@ -35,6 +36,11 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
  */
 public abstract class AbstractManagedResourceConnector extends AbstractFrameworkService implements ManagedResourceConnector, Descriptive {
     private final IllegalStateFlag closed = createConnectorStateFlag();
+    /**
+     * Provides metrics for this connector.
+     */
+    @Aggregation
+    protected final MetricsCollector metrics = new MetricsCollector();
 
     private static IllegalStateFlag createConnectorStateFlag(){
         return new IllegalStateFlag() {

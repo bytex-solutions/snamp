@@ -6,7 +6,6 @@ import com.bytex.snamp.connectors.mda.MDAAttributeRepository;
 import com.bytex.snamp.connectors.mda.MDANotificationRepository;
 import com.bytex.snamp.connectors.mq.MQResourceConnectorConfigurationDescriptor;
 import com.bytex.snamp.internal.Utils;
-import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
 
@@ -22,6 +21,7 @@ import java.util.logging.Level;
  * @since 1.0
  */
 final class JMSDataAcceptor extends DataAcceptor implements ExceptionListener {
+    @Aggregation
     private final Connection jmsConnection;
     private Session jmsSession;
     private final String queueName;
@@ -59,6 +59,7 @@ final class JMSDataAcceptor extends DataAcceptor implements ExceptionListener {
      * @return Repository of attributes.
      */
     @Override
+    @Aggregation
     protected MDAAttributeRepository<?> getAttributes() {
         return attributes;
     }
@@ -69,6 +70,7 @@ final class JMSDataAcceptor extends DataAcceptor implements ExceptionListener {
      * @return Repository of notifications metadata.
      */
     @Override
+    @Aggregation
     protected MDANotificationRepository getNotifications() {
         return notifications;
     }
@@ -103,22 +105,6 @@ final class JMSDataAcceptor extends DataAcceptor implements ExceptionListener {
     @Override
     public void onException(final JMSException e) {
         getLogger().log(Level.SEVERE, "JMS subsystem error", e);
-    }
-
-    /**
-     * Retrieves the aggregated object.
-     *
-     * @param objectType Type of the aggregated object.
-     * @return An instance of the requested object; or {@literal null} if object is not available.
-     */
-    @Override
-    public <T> T queryObject(final Class<T> objectType) {
-        return findObject(objectType, new Function<Class<T>, T>() {
-            @Override
-            public T apply(final Class<T> objectType) {
-                return JMSDataAcceptor.super.queryObject(objectType);
-            }
-        }, jmsConnection);
     }
 
     /**

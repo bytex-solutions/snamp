@@ -13,7 +13,6 @@ import com.bytex.snamp.connectors.notifications.NotificationListenerInvoker;
 import com.bytex.snamp.connectors.notifications.NotificationListenerInvokerFactory;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
-import com.google.common.base.Function;
 import org.osgi.framework.BundleContext;
 
 import javax.management.InstanceNotFoundException;
@@ -157,7 +156,9 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
         }
     }
 
+    @Aggregation
     private final AttributeAggregationRepository attributes;
+    @Aggregation
     private final NotificationAggregationRepository notifications;
     private final NotificationSender sender;
 
@@ -189,23 +190,6 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
     @Override
     public void removeResourceEventListener(final ResourceEventListener listener) {
         removeResourceEventListener(listener, attributes, notifications);
-    }
-
-    /**
-     * Retrieves the aggregated object.
-     *
-     * @param objectType Type of the aggregated object.
-     * @return An instance of the requested object; or {@literal null} if object is not available.
-     */
-    @Override
-    public <T> T queryObject(final Class<T> objectType) {
-        return findObject(objectType,
-                new Function<Class<T>, T>() {
-                    @Override
-                    public T apply(final Class<T> objectType) {
-                        return AggregatorResourceConnector.super.queryObject(objectType);
-                    }
-                }, attributes, notifications);
     }
 
     boolean addAttribute(final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {

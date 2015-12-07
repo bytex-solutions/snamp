@@ -787,8 +787,11 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         }
     }
 
+    @Aggregation
     private final JavaBeanAttributeRepository attributes;
+    @Aggregation
     private final JavaBeanNotificationRepository notifications;
+    @Aggregation
     private final JavaBeanOperationRepository operations;
 
     /**
@@ -1046,22 +1049,6 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         final BeanInfo beanMetadata = getBeanInfo(getClass());
         final Set<? extends ManagementNotificationType<?>> notifTypes = notifications.notifTypes;
         return createDiscoveryService(beanMetadata, notifTypes, getLogger());
-    }
-
-    /**
-     * Retrieves the aggregated object.
-     *
-     * @param objectType Type of the aggregated object.
-     * @return An instance of the requested object; or {@literal null} if object is not available.
-     */
-    @Override
-    public <T> T queryObject(final Class<T> objectType) {
-        return findObject(objectType, new Function<Class<T>, T>() {
-            @Override
-            public T apply(final Class<T> objectType) {
-                return ManagedResourceConnectorBean.super.queryObject(objectType);
-            }
-        }, attributes, notifications, operations);
     }
 
     private static boolean isReservedProperty(final PropertyDescriptor property){

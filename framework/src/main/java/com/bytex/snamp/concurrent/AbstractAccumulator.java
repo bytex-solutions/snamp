@@ -20,6 +20,10 @@ abstract class AbstractAccumulator extends Number {
         this.timeToLive = ttl;
     }
 
+    void reset(){
+        timer = System.currentTimeMillis();
+    }
+
     private synchronized boolean updateTimer(){
         final long currentTime = System.currentTimeMillis();
         if(currentTime - timer > timeToLive) {

@@ -42,6 +42,12 @@ public abstract class IntAccumulator extends AbstractAccumulator {
         return CURRENT_VALUE_ACCESSOR.get(this);
     }
 
+    @Override
+    public final void reset(){
+        super.reset();
+        CURRENT_VALUE_ACCESSOR.set(this, initialValue);
+    }
+
     private int updateImpl(final int value) {
         int newValue;
         do {
