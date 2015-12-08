@@ -9,10 +9,10 @@ import com.bytex.snamp.concurrent.LongAccumulator;
  * @since 1.0
  */
 public enum MetricsInterval {
-    PER_SECOND(1000L),
-    PER_MINUTE(60L * 1000L),
-    PER_HOUR(60L * 60L * 1000L),
-    PER_DAY(24L * 60L * 60L * 1000L);
+    SECOND(1000L),
+    MINUTE(60L * 1000L),
+    HOUR(60L * 60L * 1000L),
+    DAY(24L * 60L * 60L * 1000L);
 
     private final long timeToLive;
 

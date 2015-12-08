@@ -109,6 +109,9 @@
         <command>
             <action class="com.bytex.snamp.management.shell.ListenEventsCommand"/>
         </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.ResourceMetricsCommand"/>
+        </command>
     </command-bundle>
 
 </blueprint>

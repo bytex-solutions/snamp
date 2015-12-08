@@ -183,6 +183,7 @@ snamp:stop-adapter | Stop bundle with individual adapter
 snamp:stop-connector | Stop bundle with individual resource connector
 snamp:version | Show version of SNAMP platform
 snamp:cluster-member | Status of the SNAMP cluster member
+snamp:resource-metrics | Collect metrics provided by managed resources
 
 Use `--help` flag to know more information about command and its parameters:
 ```bash
@@ -345,7 +346,7 @@ Following example shows setup of JMX-to-SNMP bridge:
               }
             },
             "Category": "jmx.attribute.change"
-          },
+          }
         },
         "ConnectionType": "jmx"   
       },
