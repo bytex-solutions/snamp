@@ -11,7 +11,6 @@ import org.apache.karaf.shell.commands.Option;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 import javax.management.InstanceNotFoundException;
-import java.io.PrintStream;
 
 /**
  * Provides access to metrics.
@@ -61,7 +60,7 @@ public final class ResourceMetricsCommand extends OsgiCommandSupport implements 
     protected CharSequence doExecute() throws InstanceNotFoundException {
         final MetricsReader metrics;
         if (Strings.isNullOrEmpty(resourceName))
-            metrics = GlobalMetrics.INSTANCE;
+            metrics = new GlobalMetrics(bundleContext);
         else {
             final ManagedResourceConnectorClient connector = new ManagedResourceConnectorClient(bundleContext, resourceName);
             try {

@@ -39,7 +39,7 @@ According to RAM calculation methodology you may specify minimum and maximum Jav
 
 > We recommend you not to specify PermGen settings
 
-Additional JVM settings can be spe  qqqcified in `EXTRA_JAVA_OPTS` environment parameter. The following example demonstrates setup of _G1GC_ garbage collector:
+Additional JVM settings can be specified in `EXTRA_JAVA_OPTS` environment parameter. The following example demonstrates setup of _G1GC_ garbage collector:
 
 ```bash
 export EXTRA_JAVA_OPTS="-XX:+UseG1GC"

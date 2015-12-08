@@ -68,6 +68,16 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
     }
 
     @Test
+    public void metricsTest() throws JMException, IOException {
+        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
+            final MBeanServerConnection connection = connector.getMBeanServerConnection();
+            final ObjectName commonsObj = new ObjectName(SNAMP_MBEAN);
+            assertTrue(connection.getAttribute(commonsObj, "SummaryMetrics") instanceof CompositeData);
+            assertTrue(connection.getAttribute(commonsObj, "Metrics") instanceof TabularData);
+        }
+    }
+
+    @Test
     public void jaasConfigurationTest() throws JMException, IOException{
         try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
             final MBeanServerConnection connection = connector.getMBeanServerConnection();

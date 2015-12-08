@@ -97,12 +97,15 @@ final class SummaryMetricsAttribute extends OpenAttribute<CompositeData, Composi
         return new CompositeDataSupport(TYPE, entries);
     }
 
+    private final GlobalMetrics metrics;
+
     SummaryMetricsAttribute(){
         super("SummaryMetrics", TYPE);
+        metrics = new GlobalMetrics(Utils.getBundleContextOfObject(this));
     }
 
     @Override
     public CompositeData getValue() throws OpenDataException {
-        return collectMetrics(GlobalMetrics.INSTANCE);
+        return collectMetrics(metrics);
     }
 }
