@@ -7,6 +7,7 @@ import com.bytex.snamp.configuration.ConfigParameters;
 import com.bytex.snamp.connectors.attributes.*;
 import com.bytex.snamp.connectors.discovery.DiscoveryResultBuilder;
 import com.bytex.snamp.connectors.discovery.DiscoveryService;
+import com.bytex.snamp.connectors.metrics.MetricsReader;
 import com.bytex.snamp.connectors.notifications.*;
 import com.bytex.snamp.connectors.operations.AbstractOperationRepository;
 import com.bytex.snamp.connectors.operations.OperationDescriptor;
@@ -16,7 +17,6 @@ import com.bytex.snamp.core.LongCounter;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 import com.bytex.snamp.jmx.WellKnownType;
-import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -793,6 +793,8 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
     private final JavaBeanNotificationRepository notifications;
     @Aggregation
     private final JavaBeanOperationRepository operations;
+    @Aggregation
+    private final MetricsReader metrics;
 
     /**
      * Initializes a new managed resource connector that reflects itself.
@@ -825,6 +827,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                 this,
                 beanInfo.getMethodDescriptors(),
                 getLogger());
+        metrics = assembleMetricsReader(attributes, notifications, operations);
     }
 
     private static BeanInfo getBeanInfo(final Class<? extends ManagedResourceConnectorBean> beanType) throws IntrospectionException {
@@ -868,7 +871,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      */
     @Override
     public final void removeNotificationListener(final NotificationListener listener) throws ListenerNotFoundException {
-        verifyInitialization();
+        verifyClosedState();
         notifications.removeNotificationListener(listener);
     }
 
@@ -888,7 +891,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      */
     @Override
     public final void addNotificationListener(final NotificationListener listener, final NotificationFilter filter, final Object handback) throws IllegalArgumentException {
-        verifyInitialization();
+        verifyClosedState();
         notifications.addNotificationListener(listener, filter, handback);
     }
 
@@ -902,7 +905,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * @return Metadata of deleted notification.
      */
     public final MBeanNotificationInfo disableNotifications(final String category) {
-        verifyInitialization();
+        verifyClosedState();
         return notifications.remove(category);
     }
 
@@ -915,7 +918,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      */
     public final MBeanNotificationInfo enableNotifications(final String category,
                                                            final CompositeData options) {
-        verifyInitialization();
+        verifyClosedState();
         return notifications.enableNotifications(category, options);
     }
 
@@ -940,19 +943,19 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
     public final MBeanAttributeInfo addAttribute(final String attributeName,
                                                  final TimeSpan readWriteTimeout,
                                                  final CompositeData options) {
-        verifyInitialization();
+        verifyClosedState();
         return attributes.addAttribute(attributeName, readWriteTimeout, options);
     }
 
     public final MBeanOperationInfo enableOperation(final String operationName,
                                                     final TimeSpan invocationTimeout,
                                                     final CompositeData options){
-        verifyInitialization();
+        verifyClosedState();
         return operations.enableOperation(operationName, invocationTimeout, options);
     }
 
     public final MBeanOperationInfo disableOperation(final String operationName){
-        verifyInitialization();
+        verifyClosedState();
         return operations.remove(operationName);
     }
 
@@ -960,12 +963,12 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * Removes all operations from this connector.
      */
     public final void removeAllOperations(){
-        verifyInitialization();
+        verifyClosedState();
         operations.removeAll(false);
     }
 
     public final Collection<? extends MBeanOperationInfo> disableOperationsExcept(final Set<String> operations){
-        verifyInitialization();
+        verifyClosedState();
         return this.operations.removeAllExcept(operations);
     }
 
@@ -973,12 +976,12 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * Removes all attributes from this connector.
      */
     public final void removeAllAttributes(){
-        verifyInitialization();
+        verifyClosedState();
         attributes.removeAll(false);
     }
 
     public final Collection<? extends MBeanAttributeInfo> removeAttributesExcept(final Set<String> attributes){
-        verifyInitialization();
+        verifyClosedState();
         return this.attributes.removeAllExcept(attributes);
     }
 
@@ -986,12 +989,12 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * Removes all notifications and listeners from this connector.
      */
     public final void removeAllNotifications(){
-        verifyInitialization();
+        verifyClosedState();
         notifications.removeAll(true, false);
     }
 
     public final Collection<? extends MBeanNotificationInfo> disableNotificationsExcept(final Set<String> events){
-        verifyInitialization();
+        verifyClosedState();
         return this.notifications.removeAllExcept(events);
     }
 

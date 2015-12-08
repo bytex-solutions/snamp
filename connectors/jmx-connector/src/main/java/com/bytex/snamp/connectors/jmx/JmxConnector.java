@@ -10,6 +10,7 @@ import com.bytex.snamp.connectors.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptorRead;
 import com.bytex.snamp.connectors.attributes.AttributeSupport;
+import com.bytex.snamp.connectors.metrics.MetricsReader;
 import com.bytex.snamp.connectors.notifications.*;
 import com.bytex.snamp.connectors.operations.AbstractOperationRepository;
 import com.bytex.snamp.connectors.operations.OperationDescriptor;
@@ -769,6 +770,8 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
     private final JmxConnectionManager connectionManager;
     @Aggregation
     private final JmxOperationRepository operations;
+    @Aggregation
+    private final MetricsReader metrics;
     private final boolean smartMode;
 
     JmxConnector(final String resourceName,
@@ -791,6 +794,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
                 connectionManager);
         this.attributes = new JmxAttributeRepository(resourceName, connectionOptions.getGlobalObjectName(), connectionManager);
         this.operations = new JmxOperationRepository(resourceName, connectionOptions.getGlobalObjectName(), connectionManager);
+        this.metrics = assembleMetricsReader(attributes, notifications, operations);
     }
 
     JmxConnector(final String resourceName,
@@ -802,20 +806,20 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
     boolean addAttribute(final String attributeName,
                                     final TimeSpan readWriteTimeout,
                                     final CompositeData options) {
-        verifyInitialization();
+        verifyClosedState();
         return attributes.addAttribute(attributeName, readWriteTimeout, options) != null;
     }
 
     boolean enableNotifications(final String category,
                                               final CompositeData options) {
-        verifyInitialization();
+        verifyClosedState();
         return notifications.enableNotifications(category, options) != null;
     }
 
     boolean enableOperation(final String operationName,
                                        final TimeSpan invocationTimeout,
                                        final CompositeData options){
-        verifyInitialization();
+        verifyClosedState();
         return operations.enableOperation(operationName, invocationTimeout, options) != null;
     }
 
@@ -835,7 +839,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
      */
     @Override
     public void addNotificationListener(final NotificationListener listener, final NotificationFilter filter, final Object handback) throws IllegalArgumentException {
-        verifyInitialization();
+        verifyClosedState();
         notifications.addNotificationListener(listener, filter, handback);
     }
 
@@ -854,7 +858,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
      */
     @Override
     public void removeNotificationListener(final NotificationListener listener) throws ListenerNotFoundException {
-        verifyInitialization();
+        verifyClosedState();
         notifications.removeNotificationListener(listener);
     }
 

@@ -4,6 +4,8 @@ import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.connectors.AbstractFeatureRepository;
+import com.bytex.snamp.connectors.metrics.NotificationMetrics;
+import com.bytex.snamp.connectors.metrics.NotificationMetricsWriter;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.core.LongCounter;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
@@ -117,7 +119,8 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     private final KeyedObjects<String, NotificationHolder<M>> notifications;
     private final NotificationListenerList listeners;
     private final LongCounter sequenceNumberGenerator;
-    private volatile boolean suspended = false;
+    private final NotificationMetricsWriter metrics;
+    private volatile boolean suspended;
 
     /**
      * Initializes a new notification manager.
@@ -145,6 +148,18 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
         notifications = createNotifications();
         listeners = new NotificationListenerList();
         this.sequenceNumberGenerator = Objects.requireNonNull(sequenceNumberGenerator);
+        metrics = new NotificationMetricsWriter();
+        suspended = false;
+    }
+
+    /**
+     * Gets metrics associated with activity of the features in this repository.
+     *
+     * @return Metrics associated with activity in this repository.
+     */
+    @Override
+    public final NotificationMetrics getMetrics() {
+        return metrics;
     }
 
     /**
@@ -223,7 +238,6 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
         }
         //fire listeners
         fireListeners(notifs);
-        interceptFire();
     }
 
     /**
@@ -237,8 +251,11 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     }
 
     private void fireListeners(final Iterable<? extends Notification> notifications){
-        for (final Notification n : notifications)
+        for (final Notification n : notifications) {
             listeners.handleNotification(getListenerInvoker(), n, null);
+            metrics.update();
+        }
+        interceptFire();
     }
 
     private void notificationAdded(final M metadata){

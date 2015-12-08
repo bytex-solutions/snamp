@@ -5,7 +5,8 @@ import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.connectors.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connectors.attributes.AttributeSupport;
-import com.bytex.snamp.connectors.metrics.MetricsCollector;
+import com.bytex.snamp.connectors.metrics.Metrics;
+import com.bytex.snamp.connectors.metrics.MetricsReader;
 import com.bytex.snamp.connectors.notifications.AbstractNotificationRepository;
 import com.bytex.snamp.connectors.notifications.NotificationSupport;
 import com.bytex.snamp.connectors.operations.OperationSupport;
@@ -29,6 +30,7 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
  *     <ul>
  *         <li>{@link AbstractAttributeRepository} for resource management using attributes.</li>
  *         <li>{@link AbstractNotificationRepository} to receive management notifications from the managed resource.</li>
+ *         <li>{@link com.bytex.snamp.connectors.operations.AbstractOperationRepository} for resource management using operations.</li>
  *     </ul>
  * @author Roman Sakno
  * @since 1.0
@@ -36,11 +38,6 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
  */
 public abstract class AbstractManagedResourceConnector extends AbstractFrameworkService implements ManagedResourceConnector, Descriptive {
     private final IllegalStateFlag closed = createConnectorStateFlag();
-    /**
-     * Provides metrics for this connector.
-     */
-    @Aggregation
-    protected final MetricsCollector metrics = new MetricsCollector();
 
     private static IllegalStateFlag createConnectorStateFlag(){
         return new IllegalStateFlag() {
@@ -51,22 +48,50 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
         };
     }
 
+    protected static MetricsReader assembleMetricsReader(final AbstractFeatureRepository<? extends MBeanFeatureInfo>... repositories) {
+        return new MetricsReader() {
+            @Override
+            public Metrics getMetrics(final Class<? extends MBeanFeatureInfo> featureType) {
+                for (final AbstractFeatureRepository<?> repository : repositories)
+                    if (repository.metadataType.equals(featureType))
+                        return repository.getMetrics();
+                return null;
+            }
+
+            @Override
+            public void resetAll() {
+                for (final AbstractFeatureRepository<?> repository : repositories)
+                    repository.getMetrics().reset();
+            }
+
+            @Override
+            public <T> T queryObject(final Class<T> objectType) {
+                for (final AbstractFeatureRepository<?> repository : repositories) {
+                    final Metrics metrics = repository.getMetrics();
+                    if (objectType.isInstance(metrics))
+                        return objectType.cast(metrics);
+                }
+                return null;
+            }
+        };
+    }
+
     /**
-     *  Throws an {@link IllegalStateException} if the connector is not initialized.
+     *  Throws an {@link IllegalStateException} if the connector is closed.
      *  <p>
      *      You should call the base implementation from the overridden method.
      *  </p>
-     *  @throws IllegalStateException Connector is not initialized.
+     *  @throws IllegalStateException Connector is closed.
      */
-    protected void verifyInitialization() throws IllegalStateException{
+    protected void verifyClosedState() throws IllegalStateException{
         closed.verify();
     }
 
-    private void verifyInitializationChecked() throws MBeanException{
+    private void verifyClosedStateChecked() throws MBeanException{
         try{
-            verifyInitialization();
+            verifyClosedState();
         }
-        catch (final IllegalStateException e){
+        catch (final Exception e){
             throw new MBeanException(e);
         }
     }
@@ -93,7 +118,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      */
     @Override
     public Object getAttribute(final String attribute) throws AttributeNotFoundException, MBeanException, ReflectionException {
-        verifyInitializationChecked();
+        verifyClosedStateChecked();
         final AttributeSupport attributeSupport = queryObject(AttributeSupport.class);
         if(attributeSupport != null)
             return attributeSupport.getAttribute(attribute);
@@ -113,7 +138,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      */
     @Override
     public void setAttribute(final Attribute attribute) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
-        verifyInitializationChecked();
+        verifyClosedStateChecked();
         final AttributeSupport attributeSupport = queryObject(AttributeSupport.class);
         if(attributeSupport != null)
             attributeSupport.setAttribute(attribute);
@@ -129,7 +154,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      */
     @Override
     public AttributeList getAttributes(final String[] attributes) {
-        verifyInitialization();
+        verifyClosedState();
         final AttributeSupport attributeSupport = queryObject(AttributeSupport.class);
         return attributeSupport != null ? attributeSupport.getAttributes(attributes) : new AttributeList();
     }
@@ -144,7 +169,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      */
     @Override
     public AttributeList setAttributes(final AttributeList attributes) {
-        verifyInitialization();
+        verifyClosedState();
         final AttributeSupport attributeSupport = queryObject(AttributeSupport.class);
         return attributeSupport != null ? attributeSupport.setAttributes(attributes) : new AttributeList();
     }

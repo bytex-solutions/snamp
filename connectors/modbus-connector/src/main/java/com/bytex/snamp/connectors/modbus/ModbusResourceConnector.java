@@ -1,11 +1,11 @@
 package com.bytex.snamp.connectors.modbus;
 
-import com.google.common.base.Function;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.attributes.OpenAttributeRepository;
+import com.bytex.snamp.connectors.metrics.MetricsReader;
 import com.bytex.snamp.connectors.modbus.transport.ModbusMaster;
 import com.bytex.snamp.connectors.modbus.transport.ModbusTransportType;
 import com.bytex.snamp.jmx.JMExceptionUtils;
@@ -83,6 +83,8 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
     private final ModbusMaster client;
     @Aggregation
     private final ModbusAttributeRepository attributes;
+    @Aggregation
+    private final MetricsReader metrics;
 
     ModbusResourceConnector(final String resourceName,
                             final ModbusTransportType transportType,
@@ -90,7 +92,7 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
                             final int port) throws IOException {
         client = transportType.createMaster(address, port);
         attributes = new ModbusAttributeRepository(resourceName, client, getLogger());
-
+        metrics = assembleMetricsReader(attributes);
     }
 
     static ModbusTransportType getTransportType(final URI connectionString) throws MalformedURLException{

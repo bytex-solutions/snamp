@@ -17,7 +17,7 @@ public final class AttributeMetricsWriter implements AttributeMetrics {
     private final EnumMap<MetricsInterval, LongAccumulator> statForReads = new EnumMap<>(MetricsInterval.class);
     private final EnumMap<MetricsInterval, LongAccumulator> statForWrites = new EnumMap<>(MetricsInterval.class);
 
-    AttributeMetricsWriter(){
+    public AttributeMetricsWriter(){
         for(final MetricsInterval interval: MetricsInterval.values()) {
             statForReads.put(interval, interval.createAccumulator());
             statForWrites.put(interval, interval.createAccumulator());
@@ -27,7 +27,7 @@ public final class AttributeMetricsWriter implements AttributeMetrics {
     /**
      * Marks single read.
      */
-    public void markRead(){
+    public void updateReads(){
         totalReads.incrementAndGet();
         for(final LongAccumulator accumulator: statForReads.values())
             accumulator.update(1L);
@@ -36,7 +36,7 @@ public final class AttributeMetricsWriter implements AttributeMetrics {
     /**
      * Marks single write.
      */
-    public void markWrite(){
+    public void updateWrites(){
         totalWrites.incrementAndGet();
         for(final LongAccumulator accumulator: statForWrites.values())
             accumulator.update(1L);

@@ -340,13 +340,13 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
     }
 
     boolean addAttribute(final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
-        verifyInitialization();
+        verifyClosedState();
         return attributes.addAttribute(attributeName, readWriteTimeout, options) != null;
     }
 
     boolean enableNotifications(final String category,
                              final CompositeData options){
-        verifyInitialization();
+        verifyClosedState();
         return events.enableNotifications(category, options) != null;
     }
 

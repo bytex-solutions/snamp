@@ -1,11 +1,13 @@
 package com.bytex.snamp.connectors.operations;
 
+import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.AbstractFeatureRepository;
+import com.bytex.snamp.connectors.metrics.OperationMetrics;
+import com.bytex.snamp.connectors.metrics.OperationMetricsWriter;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
-import com.bytex.snamp.MethodStub;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
@@ -231,11 +233,13 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
     }
 
     private final KeyedObjects<String, OperationHolder<M>> operations;
+    private final OperationMetricsWriter metrics;
 
     protected AbstractOperationRepository(final String resourceName,
                                           final Class<M> metadataType) {
         super(resourceName, metadataType, AOSResource.class, AOSResource.RESOURCE_EVENT_LISTENERS);
         operations = createOperations();
+        metrics = new OperationMetricsWriter();
     }
 
     private static <M extends MBeanOperationInfo> KeyedObjects<String, OperationHolder<M>> createOperations(){
@@ -255,6 +259,11 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
 
     private void operationRemoved(final M metadata){
         fireResourceEvent(new OperationRemovingEvent(this, getResourceName(), metadata));
+    }
+
+    @Override
+    public final OperationMetrics getMetrics() {
+        return metrics;
     }
 
     @MethodStub
@@ -386,6 +395,10 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      */
     protected abstract Object invoke(final OperationCallInfo<M> callInfo) throws Exception;
 
+    private Object invoke(final OperationHolder<M> holder, final Object[] params) throws Exception {
+        return invoke(new OperationCallInfo<>(holder.getMetadata(), params));
+    }
+
     /**
      * Allows an operation to be invoked on the managed resource.
      *
@@ -405,19 +418,18 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
     public final Object invoke(final String operationName,
                          final Object[] params,
                          final String[] signature) throws MBeanException, ReflectionException {
-        try(final LockScope ignored = beginRead(AOSResource.OPERATIONS)){
+        try (final LockScope ignored = beginRead(AOSResource.OPERATIONS)) {
             final OperationHolder<M> holder = operations.get(operationName);
-            if(holder != null)
-                try{
-                    return invoke(new OperationCallInfo<>(holder.getMetadata(), params));
-                }
-                catch (final MBeanException | ReflectionException e){
-                    throw e;
-                }
-                catch (final Exception e){
-                    throw new ReflectionException(e);
-                }
-            else throw new MBeanException(new IllegalArgumentException(String.format("Operation '%s' doesn't exist", operationName)));
+            if (holder != null)
+                return invoke(holder, params);
+            else
+                throw new MBeanException(new IllegalArgumentException(String.format("Operation '%s' doesn't exist", operationName)));
+        } catch (final MBeanException | ReflectionException e) {
+            throw e;
+        } catch (final Exception e) {
+            throw new ReflectionException(e);
+        } finally {
+            metrics.update();
         }
     }
 

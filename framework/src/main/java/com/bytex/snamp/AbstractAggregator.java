@@ -136,11 +136,13 @@ public abstract class AbstractAggregator implements Aggregator {
             if (serviceInstance == null) lookup = lookup.getSuperclass();
             else return serviceInstance;
         }
-        //try fallback scenario
+        //try fallback scenarios
         if(objectType.isInstance(this))
             return objectType.cast(this);
-        else if(fallback != null) return fallback.queryObject(objectType);
-        else return null;
+        else if(fallback != null)
+            return fallback.queryObject(objectType);
+        else
+            return null;
     }
 
     /**

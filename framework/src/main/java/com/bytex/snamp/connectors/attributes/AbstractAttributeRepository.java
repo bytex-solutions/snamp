@@ -1,11 +1,13 @@
 package com.bytex.snamp.connectors.attributes;
 
 import com.bytex.snamp.SafeCloseable;
+import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.AbstractFeatureRepository;
+import com.bytex.snamp.connectors.metrics.AttributeMetrics;
+import com.bytex.snamp.connectors.metrics.AttributeMetricsWriter;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
-import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.jmx.CompositeTypeBuilder;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 import com.google.common.base.Predicate;
@@ -70,6 +72,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     }
 
     private final KeyedObjects<String, AttributeHolder<M>> attributes;
+    private final AttributeMetricsWriter metrics;
 
     /**
      * Initializes a new support of management attributes.
@@ -84,6 +87,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
                 AASResource.class,
                 AASResource.RESOURCE_EVENT_LISTENERS);
         attributes = createAttributes();
+        metrics = new AttributeMetricsWriter();
     }
 
     private static <M extends MBeanAttributeInfo> AbstractKeyedObjects<String, AttributeHolder<M>> createAttributes() {
@@ -407,6 +411,8 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
         } catch (final Exception e) {
             failedToGetAttribute(attributeName, e);
             throw new MBeanException(e);
+        }finally {
+            metrics.updateReads();
         }
     }
 
@@ -476,6 +482,8 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
         } catch (final Exception e) {
             failedToSetAttribute(attribute.getName(), attribute.getValue(), e);
             throw new MBeanException(e);
+        } finally {
+            metrics.updateWrites();
         }
     }
 
@@ -570,6 +578,16 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
         try(final LockScope ignored = beginRead(AASResource.ATTRIBUTES)){
             return ImmutableSet.copyOf(attributes.keySet());
         }
+    }
+
+    /**
+     * Gets metrics associated with activity of the features in this repository.
+     *
+     * @return Metrics associated with activity in this repository.
+     */
+    @Override
+    public final AttributeMetrics getMetrics() {
+        return metrics;
     }
 
     @Override

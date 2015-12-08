@@ -1,8 +1,10 @@
 package com.bytex.snamp.connectors.mda;
 
+import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
+import com.bytex.snamp.connectors.metrics.MetricsReader;
 
 import javax.management.openmbean.CompositeData;
 import java.util.Objects;
@@ -68,6 +70,24 @@ public abstract class DataAcceptor extends AbstractManagedResourceConnector {
         getAttributes().init(expirationTime, accessTimer);
         getNotifications().init(accessTimer);
         beginListening(dependencies);
+    }
+
+    /**
+     * Retrieves the aggregated object.
+     *
+     * @param objectType Type of the aggregated object.
+     * @return An instance of the requested object; or {@literal null} if object is not available.
+     */
+    @Override
+    public <T> T queryObject(final Class<T> objectType) {
+        return queryObject(objectType, new Aggregator() {
+            @Override
+            public <G> G queryObject(final Class<G> objectType) {
+                if (MetricsReader.class.equals(objectType))
+                    return objectType.cast(assembleMetricsReader(getAttributes(), getNotifications()));
+                else return null;
+            }
+        });
     }
 
     /**

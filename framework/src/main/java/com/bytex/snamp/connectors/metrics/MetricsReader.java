@@ -1,5 +1,7 @@
 package com.bytex.snamp.connectors.metrics;
 
+import com.bytex.snamp.Aggregator;
+
 import javax.management.MBeanFeatureInfo;
 
 /**
@@ -10,12 +12,14 @@ import javax.management.MBeanFeatureInfo;
  * @version 1.0
  * @since 1.0
  */
-public interface MetricsReader {
+public interface MetricsReader extends Aggregator {
     /**
      * Gets metrics for the specified resource feature.
      * @param featureType Type of the feature.
      * @return A set of metrics.
      * @see AttributeMetrics
+     * @see OperationMetrics
+     * @see NotificationMetrics
      */
     Metrics getMetrics(final Class<? extends MBeanFeatureInfo> featureType);
 

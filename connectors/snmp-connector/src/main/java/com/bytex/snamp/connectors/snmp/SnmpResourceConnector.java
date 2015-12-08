@@ -9,6 +9,7 @@ import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
 import com.bytex.snamp.connectors.attributes.*;
+import com.bytex.snamp.connectors.metrics.MetricsReader;
 import com.bytex.snamp.connectors.notifications.*;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
@@ -767,6 +768,8 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
     private final SnmpAttributeRepository attributes;
     @Aggregation
     private final SnmpNotificationRepository notifications;
+    @Aggregation
+    private final MetricsReader metrics;
     private final AbstractConcurrentResourceAccessor<SnmpClient> client;
     private final boolean smartMode;
 
@@ -779,6 +782,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
                 Utils.getBundleContextOfObject(this),
                 getLogger());
         smartMode = snmpConnectionOptions.isSmartModeEnabled();
+        metrics = assembleMetricsReader(attributes, notifications);
     }
 
     SnmpResourceConnector(final String resourceName,
@@ -798,12 +802,12 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
     }
 
     boolean addAttribute(final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
-        verifyInitialization();
+        verifyClosedState();
         return attributes.addAttribute(attributeName, readWriteTimeout, options) != null;
     }
 
     boolean enableNotifications(final String category, final CompositeData options) {
-        verifyInitialization();
+        verifyClosedState();
         return notifications.enableNotifications(category, options) != null;
     }
 
@@ -865,7 +869,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
      */
     @Override
     public void addNotificationListener(final NotificationListener listener, final NotificationFilter filter, final Object handback) throws IllegalArgumentException {
-        verifyInitialization();
+        verifyClosedState();
         notifications.addNotificationListener(listener, filter, handback);
     }
 
@@ -884,7 +888,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
      */
     @Override
     public void removeNotificationListener(final NotificationListener listener) throws ListenerNotFoundException {
-        verifyInitialization();
+        verifyClosedState();
         notifications.removeNotificationListener(listener);
     }
 

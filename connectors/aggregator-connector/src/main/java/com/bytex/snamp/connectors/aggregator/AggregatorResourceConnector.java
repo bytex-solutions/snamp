@@ -7,6 +7,7 @@ import com.bytex.snamp.connectors.ResourceEventListener;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.attributes.AttributeSupport;
 import com.bytex.snamp.connectors.attributes.OpenAttributeRepository;
+import com.bytex.snamp.connectors.metrics.MetricsReader;
 import com.bytex.snamp.connectors.notifications.AbstractNotificationRepository;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 import com.bytex.snamp.connectors.notifications.NotificationListenerInvoker;
@@ -160,12 +161,15 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
     private final AttributeAggregationRepository attributes;
     @Aggregation
     private final NotificationAggregationRepository notifications;
+    @Aggregation
+    private final MetricsReader metrics;
     private final NotificationSender sender;
 
     AggregatorResourceConnector(final String resourceName,
                                 final TimeSpan notificationFrequency) throws IntrospectionException {
         attributes = new AttributeAggregationRepository(resourceName);
         notifications = new NotificationAggregationRepository(resourceName, Utils.getBundleContextOfObject(this));
+        metrics = assembleMetricsReader(attributes, notifications);
         sender = new NotificationSender(notificationFrequency, notifications);
         sender.run();
     }
