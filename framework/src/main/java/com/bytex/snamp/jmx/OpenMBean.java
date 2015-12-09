@@ -1,19 +1,17 @@
 package com.bytex.snamp.jmx;
 
+import com.bytex.snamp.MethodStub;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.MethodStub;
 
 import javax.management.*;
 import javax.management.openmbean.*;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
+
 import static com.bytex.snamp.ArrayUtils.emptyArray;
 
 /**
@@ -164,6 +162,8 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
 
     public static abstract class OpenOperation<R, T extends OpenType<R>> extends OpenMBeanElement<MBeanOperationInfo>{
         private static final class OperationArgumentException extends IllegalArgumentException{
+            private static final long serialVersionUID = 1217237225436599211L;
+
             private OperationArgumentException(final OpenMBeanParameterInfo nullParameter) {
                 super(String.format("Parameter %s cannot be null", nullParameter.getName()));
             }
@@ -178,7 +178,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
          * @param <T> Type of the parameter
          */
         public static class TypedParameterInfo<T> extends OpenMBeanParameterInfoSupport {
-            private final OpenType<T> parameterType;
+            private static final long serialVersionUID = -3343022428532139904L;
             private final boolean nullable;
             private final T defaultValue;
 
@@ -188,7 +188,6 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
                                       final boolean nullable,
                                       final T defValue) {
                 super(name, description, openType);
-                this.parameterType = Objects.requireNonNull(openType);
                 this.nullable = nullable;
                 this.defaultValue = defValue;
             }
@@ -215,13 +214,15 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
                 return nullable;
             }
 
+            @Override
             public final T getDefaultValue() {
-                return getDefaultValue();
+                return defaultValue;
             }
 
+            @SuppressWarnings("unchecked")
             @Override
             public final OpenType<T> getOpenType() {
-                return parameterType;
+                return (OpenType<T>) super.getOpenType();
             }
 
             /**
