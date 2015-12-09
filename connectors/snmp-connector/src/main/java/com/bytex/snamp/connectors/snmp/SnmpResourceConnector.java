@@ -768,8 +768,6 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
     private final SnmpAttributeRepository attributes;
     @Aggregation
     private final SnmpNotificationRepository notifications;
-    @Aggregation
-    private final MetricsReader metrics;
     private final AbstractConcurrentResourceAccessor<SnmpClient> client;
     private final boolean smartMode;
 
@@ -782,13 +780,17 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
                 Utils.getBundleContextOfObject(this),
                 getLogger());
         smartMode = snmpConnectionOptions.isSmartModeEnabled();
-        metrics = assembleMetricsReader(attributes, notifications);
     }
 
     SnmpResourceConnector(final String resourceName,
                           final String connectionString,
                           final Map<String, String> parameters) throws IOException {
         this(resourceName, new SnmpConnectionOptions(connectionString, parameters));
+    }
+
+    @Override
+    protected MetricsReader createMetricsReader() {
+        return assembleMetricsReader(attributes, notifications);
     }
 
     void listen() throws IOException{

@@ -161,17 +161,19 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
     private final AttributeAggregationRepository attributes;
     @Aggregation
     private final NotificationAggregationRepository notifications;
-    @Aggregation
-    private final MetricsReader metrics;
     private final NotificationSender sender;
 
     AggregatorResourceConnector(final String resourceName,
                                 final TimeSpan notificationFrequency) throws IntrospectionException {
         attributes = new AttributeAggregationRepository(resourceName);
         notifications = new NotificationAggregationRepository(resourceName, Utils.getBundleContextOfObject(this));
-        metrics = assembleMetricsReader(attributes, notifications);
         sender = new NotificationSender(notificationFrequency, notifications);
         sender.run();
+    }
+
+    @Override
+    protected MetricsReader createMetricsReader(){
+        return assembleMetricsReader(attributes, notifications);
     }
 
     /**

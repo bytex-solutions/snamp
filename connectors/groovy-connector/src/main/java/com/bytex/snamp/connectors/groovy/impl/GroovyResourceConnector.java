@@ -2,6 +2,7 @@ package com.bytex.snamp.connectors.groovy.impl;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.MethodStub;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.GroupedThreadFactory;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
@@ -10,6 +11,7 @@ import com.bytex.snamp.connectors.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.attributes.OpenMBeanAttributeInfoImpl;
 import com.bytex.snamp.connectors.groovy.*;
+import com.bytex.snamp.connectors.metrics.MetricsReader;
 import com.bytex.snamp.connectors.notifications.*;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
@@ -301,6 +303,12 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
                 engine.init(initScript, params);
         attributes = new GroovyAttributeRepository(resourceName, engine);
         events = new GroovyNotificationRepository(resourceName, engine, Utils.getBundleContextOfObject(this));
+    }
+
+    @Aggregation
+    @SpecialUse
+    protected MetricsReader createMetricsReader(){
+        return assembleMetricsReader(attributes, events);
     }
 
     static Logger getLoggerImpl(){

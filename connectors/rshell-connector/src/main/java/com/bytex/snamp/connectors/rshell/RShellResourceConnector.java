@@ -299,8 +299,6 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
     private final CommandExecutionChannel executionChannel;
     @Aggregation
     private final RShellAttributes attributes;
-    @Aggregation
-    private final MetricsReader metrics;
 
     RShellResourceConnector(final String resourceName,
                             final RShellConnectionOptions connectionOptions) throws Exception {
@@ -310,13 +308,17 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
         attributes = new RShellAttributes(resourceName,
                 executionChannel,
                 new OSGiScriptEngineManager(Utils.getBundleContextOfObject(this)), getLogger());
-        metrics = assembleMetricsReader(attributes);
     }
 
     RShellResourceConnector(final String resourceName,
                             final String connectionString,
                             final Map<String, String> connectionOptions) throws Exception{
         this(resourceName, new RShellConnectionOptions(connectionString, connectionOptions));
+    }
+
+    @Override
+    protected MetricsReader createMetricsReader() {
+        return assembleMetricsReader(attributes);
     }
 
     boolean addAttribute(final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {

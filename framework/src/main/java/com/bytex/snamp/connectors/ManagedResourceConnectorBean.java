@@ -793,8 +793,6 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
     private final JavaBeanNotificationRepository notifications;
     @Aggregation
     private final JavaBeanOperationRepository operations;
-    @Aggregation
-    private final MetricsReader metrics;
 
     /**
      * Initializes a new managed resource connector that reflects itself.
@@ -827,7 +825,11 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                 this,
                 beanInfo.getMethodDescriptors(),
                 getLogger());
-        metrics = assembleMetricsReader(attributes, notifications, operations);
+    }
+
+    @Override
+    protected final MetricsReader createMetricsReader(){
+        return assembleMetricsReader(attributes, notifications, operations);
     }
 
     private static BeanInfo getBeanInfo(final Class<? extends ManagedResourceConnectorBean> beanType) throws IntrospectionException {

@@ -83,8 +83,6 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
     private final ModbusMaster client;
     @Aggregation
     private final ModbusAttributeRepository attributes;
-    @Aggregation
-    private final MetricsReader metrics;
 
     ModbusResourceConnector(final String resourceName,
                             final ModbusTransportType transportType,
@@ -92,7 +90,6 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
                             final int port) throws IOException {
         client = transportType.createMaster(address, port);
         attributes = new ModbusAttributeRepository(resourceName, client, getLogger());
-        metrics = assembleMetricsReader(attributes);
     }
 
     static ModbusTransportType getTransportType(final URI connectionString) throws MalformedURLException{
@@ -107,6 +104,11 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
     ModbusResourceConnector(final String resourceName,
                             final URI connectionString) throws IOException {
         this(resourceName, getTransportType(connectionString), connectionString.getHost(), connectionString.getPort());
+    }
+
+    @Override
+    protected MetricsReader createMetricsReader() {
+        return assembleMetricsReader(attributes);
     }
 
     boolean addAttribute(final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options){

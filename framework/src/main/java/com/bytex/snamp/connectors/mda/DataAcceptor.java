@@ -1,6 +1,5 @@
 package com.bytex.snamp.connectors.mda;
 
-import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
@@ -47,6 +46,10 @@ public abstract class DataAcceptor extends AbstractManagedResourceConnector {
     @Aggregation
     protected abstract MDANotificationRepository getNotifications();
 
+    @Override
+    protected final MetricsReader createMetricsReader(){
+        return assembleMetricsReader(getAttributes(), getNotifications());
+    }
 
     final boolean addAttribute(final String attributeName,
                          final TimeSpan readWriteTimeout,
@@ -70,24 +73,6 @@ public abstract class DataAcceptor extends AbstractManagedResourceConnector {
         getAttributes().init(expirationTime, accessTimer);
         getNotifications().init(accessTimer);
         beginListening(dependencies);
-    }
-
-    /**
-     * Retrieves the aggregated object.
-     *
-     * @param objectType Type of the aggregated object.
-     * @return An instance of the requested object; or {@literal null} if object is not available.
-     */
-    @Override
-    public <T> T queryObject(final Class<T> objectType) {
-        return queryObject(objectType, new Aggregator() {
-            @Override
-            public <G> G queryObject(final Class<G> objectType) {
-                if (MetricsReader.class.equals(objectType))
-                    return objectType.cast(assembleMetricsReader(getAttributes(), getNotifications()));
-                else return null;
-            }
-        });
     }
 
     /**

@@ -1,6 +1,7 @@
 package com.bytex.snamp.connectors;
 
 import com.bytex.snamp.Descriptive;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.connectors.attributes.AbstractAttributeRepository;
@@ -38,6 +39,7 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
  */
 public abstract class AbstractManagedResourceConnector extends AbstractFrameworkService implements ManagedResourceConnector, Descriptive {
     private final IllegalStateFlag closed = createConnectorStateFlag();
+    private volatile MetricsReader metrics;
 
     private static IllegalStateFlag createConnectorStateFlag(){
         return new IllegalStateFlag() {
@@ -48,6 +50,12 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
         };
     }
 
+    /**
+     * Assembles reader of metrics from the set of feature repositories.
+     * @param repositories A set of repositories.
+     * @return A new instance of metrics reader.
+     */
+    @SafeVarargs
     protected static MetricsReader assembleMetricsReader(final AbstractFeatureRepository<? extends MBeanFeatureInfo>... repositories) {
         return new MetricsReader() {
             @Override
@@ -104,6 +112,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
     public void close() throws Exception {
         //change state of the connector
         closed.set();
+        metrics = null;
     }
 
     /**
@@ -252,6 +261,35 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
     public MBeanOperationInfo getOperationInfo(final String operationName){
         final OperationSupport ops = queryObject(OperationSupport.class);
         return ops != null ? ops.getOperationInfo(operationName) : null;
+    }
+
+    /**
+     * Creates a new reader of metrics provided by this resource connector.
+     * <p>
+     *     You should not mark implementation method
+     *     with annotation {@link Aggregation}.
+     *     The easiest way to implement this
+     *     method is to call method {@link #assembleMetricsReader(AbstractFeatureRepository[])}.
+     * @return A new reader of metrics provided by this resource connector.
+     */
+    protected abstract MetricsReader createMetricsReader();
+
+    private synchronized MetricsReader getMetricsSync(){
+        if(metrics == null)
+            metrics = createMetricsReader();
+        return metrics;
+    }
+
+    /**
+     * Gets metrics associated with this instance of the resource connector.
+     * @return Connector metrics.
+     * @throws IllegalStateException This connector is closed.
+     */
+    @Aggregation
+    @SpecialUse
+    public final MetricsReader getMetrics(){
+        verifyClosedState();
+        return metrics == null ? getMetricsSync() : metrics;
     }
 
     /**

@@ -1,6 +1,7 @@
 package com.bytex.snamp.connectors.jmx;
 
 import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.GroupedThreadFactory;
 import com.bytex.snamp.configuration.AgentConfiguration;
@@ -16,7 +17,6 @@ import com.bytex.snamp.connectors.operations.AbstractOperationRepository;
 import com.bytex.snamp.connectors.operations.OperationDescriptor;
 import com.bytex.snamp.connectors.operations.OperationDescriptorRead;
 import com.bytex.snamp.connectors.operations.OperationSupport;
-import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.base.Function;
@@ -770,8 +770,6 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
     private final JmxConnectionManager connectionManager;
     @Aggregation
     private final JmxOperationRepository operations;
-    @Aggregation
-    private final MetricsReader metrics;
     private final boolean smartMode;
 
     JmxConnector(final String resourceName,
@@ -794,13 +792,17 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
                 connectionManager);
         this.attributes = new JmxAttributeRepository(resourceName, connectionOptions.getGlobalObjectName(), connectionManager);
         this.operations = new JmxOperationRepository(resourceName, connectionOptions.getGlobalObjectName(), connectionManager);
-        this.metrics = assembleMetricsReader(attributes, notifications, operations);
     }
 
     JmxConnector(final String resourceName,
                  final String connectionString,
                  final Map<String, String> connectionOptions) throws MalformedURLException, MalformedObjectNameException {
         this(resourceName, new JmxConnectionOptions(connectionString, connectionOptions));
+    }
+
+    @Override
+    protected MetricsReader createMetricsReader(){
+        return assembleMetricsReader(attributes, notifications, operations);
     }
 
     boolean addAttribute(final String attributeName,

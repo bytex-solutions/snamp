@@ -104,7 +104,7 @@ public final class ConfigurationDiffEngineTest extends Assert {
         final ManagedResourceConfiguration resource3 = target.getManagedResources().getOrAdd("resource3");
         AbstractAgentConfiguration.copy(resource, resource3);
         resource3.setConnectionString("connection-string-3");
-        assertEquals(2, ConfigurationDiffEngine.merge(target, baseline));
+        ConfigurationDiffEngine.merge(target, baseline);
         Assert.assertEquals(0, baseline.getResourceAdapters().size());
         Assert.assertEquals(2, baseline.getManagedResources().size());
     }
