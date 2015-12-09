@@ -1,17 +1,13 @@
 package com.bytex.snamp.management.shell;
 
-import com.bytex.snamp.Attribute;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.connectors.metrics.*;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.management.jmx.MetricsAttribute;
-import com.google.common.base.Strings;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
-import org.osgi.framework.BundleContext;
 
 import javax.management.InstanceNotFoundException;
 
@@ -39,9 +35,11 @@ public final class ResourceMetricsCommand extends OsgiCommandSupport implements 
     private boolean showOperations;
 
     @Option(name = "-r", aliases = "--reset", required = false, description = "Reset metrics")
+    @SpecialUse
     private boolean resetMetrics;
 
     private static void collectMetrics(final AttributeMetrics metrics, final StringBuilder output) {
+        if(metrics == null) return;
         IOUtils.appendln(output, "Total number of writes: %s", metrics.getNumberOfWrites());
         for (final MetricsInterval interval : MetricsInterval.values())
             IOUtils.appendln(output, "Number of writes(%s): %s", interval, metrics.getNumberOfWrites(interval));
@@ -52,12 +50,14 @@ public final class ResourceMetricsCommand extends OsgiCommandSupport implements 
     }
 
     private static void collectMetrics(final NotificationMetrics metrics, final StringBuilder output) {
+        if(metrics == null) return;
         IOUtils.appendln(output, "Total number of emitted notifications: %s", metrics.getNumberOfEmitted());
         for (final MetricsInterval interval : MetricsInterval.values())
             IOUtils.appendln(output, "Number of emitted notifications(%s %s): %s", "last", interval.name().toLowerCase(), metrics.getNumberOfEmitted(interval));
     }
 
     private static void collectMetrics(final OperationMetrics metrics, final StringBuilder output) {
+        if(metrics == null) return;
         IOUtils.appendln(output, "Total number of invocations: %s", metrics.getNumberOfInvocations());
         for (final MetricsInterval interval : MetricsInterval.values())
             IOUtils.appendln(output, "Number of invocations(%s %s): %s", "last", interval.name().toLowerCase(), metrics.getNumberOfInvocations(interval));
@@ -74,13 +74,18 @@ public final class ResourceMetricsCommand extends OsgiCommandSupport implements 
         return result;
     }
 
-    private CharSequence resetMetrics(final MetricsReader metrics){
-        if(showAttributes)
-            metrics.queryObject(AttributeMetrics.class).reset();
-        if(showOperations)
-            metrics.queryObject(OperationMetrics.class).reset();
-        if(showNotifications)
-            metrics.queryObject(NotificationMetrics.class).reset();
+    private static void resetMetrics(final Metrics m){
+        if(m != null)
+            m.reset();
+    }
+
+    private CharSequence resetMetrics(final MetricsReader metrics) {
+        if (showAttributes)
+            resetMetrics(metrics.queryObject(AttributeMetrics.class));
+        if (showOperations)
+            resetMetrics(metrics.queryObject(OperationMetrics.class));
+        if (showNotifications)
+            resetMetrics(metrics.queryObject(NotificationMetrics.class));
         return "Metrics reset";
     }
 

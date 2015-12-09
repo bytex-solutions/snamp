@@ -26,6 +26,7 @@ public final class SnampCoreMBean extends OpenMBean implements LogListener, Fram
         super(  new GetConnectorConfigurationSchemaOperation(manager),
                 new SummaryMetricsAttribute(),
                 new MetricsAttribute(),
+                new ResetMetricsOperation(),
                 new PlatformVersionAttribute(),
                 new RestartOperation(),
                 new GetAdapterConfigurationSchemaOperation(manager),

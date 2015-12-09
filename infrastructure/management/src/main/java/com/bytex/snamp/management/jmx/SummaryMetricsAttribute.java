@@ -63,30 +63,56 @@ final class SummaryMetricsAttribute extends OpenAttribute<CompositeData, Composi
         }
     });
 
-    private static void collectMetrics(final AttributeMetrics metrics, final Map<String, Long> output){
-        output.put(NUM_OF_WRITES, metrics.getNumberOfWrites());
-        output.put(NUM_OF_WRITES_MINUTE, metrics.getNumberOfWrites(MetricsInterval.MINUTE));
-        output.put(NUM_OF_WRITES_HOUR, metrics.getNumberOfWrites(MetricsInterval.HOUR));
-        output.put(NUM_OF_WRITES_DAY, metrics.getNumberOfWrites(MetricsInterval.DAY));
+    private static void collectMetrics(final AttributeMetrics metrics, final Map<String, Long> output) {
+        if (metrics == null) {
+            output.put(NUM_OF_WRITES, 0L);
+            output.put(NUM_OF_WRITES_MINUTE, 0L);
+            output.put(NUM_OF_WRITES_HOUR, 0L);
+            output.put(NUM_OF_WRITES_DAY, 0L);
 
-        output.put(NUM_OF_READS, metrics.getNumberOfReads());
-        output.put(NUM_OF_READS_MINUTE, metrics.getNumberOfWrites(MetricsInterval.MINUTE));
-        output.put(NUM_OF_READS_HOUR, metrics.getNumberOfWrites(MetricsInterval.HOUR));
-        output.put(NUM_OF_READS_DAY, metrics.getNumberOfWrites(MetricsInterval.DAY));
+            output.put(NUM_OF_READS, 0L);
+            output.put(NUM_OF_READS_MINUTE, 0L);
+            output.put(NUM_OF_READS_HOUR, 0L);
+            output.put(NUM_OF_READS_DAY, 0L);
+        } else {
+            output.put(NUM_OF_WRITES, metrics.getNumberOfWrites());
+            output.put(NUM_OF_WRITES_MINUTE, metrics.getNumberOfWrites(MetricsInterval.MINUTE));
+            output.put(NUM_OF_WRITES_HOUR, metrics.getNumberOfWrites(MetricsInterval.HOUR));
+            output.put(NUM_OF_WRITES_DAY, metrics.getNumberOfWrites(MetricsInterval.DAY));
+
+            output.put(NUM_OF_READS, metrics.getNumberOfReads());
+            output.put(NUM_OF_READS_MINUTE, metrics.getNumberOfWrites(MetricsInterval.MINUTE));
+            output.put(NUM_OF_READS_HOUR, metrics.getNumberOfWrites(MetricsInterval.HOUR));
+            output.put(NUM_OF_READS_DAY, metrics.getNumberOfWrites(MetricsInterval.DAY));
+        }
     }
 
     private static void collectMetrics(final NotificationMetrics metrics, final Map<String, Long> output) {
-        output.put(NUM_OF_EMITTED, metrics.getNumberOfEmitted());
-        output.put(NUM_OF_EMITTED_MINUTE, metrics.getNumberOfEmitted(MetricsInterval.MINUTE));
-        output.put(NUM_OF_EMITTED_HOUR, metrics.getNumberOfEmitted(MetricsInterval.HOUR));
-        output.put(NUM_OF_EMITTED_DAY, metrics.getNumberOfEmitted(MetricsInterval.DAY));
+        if (metrics == null) {
+            output.put(NUM_OF_EMITTED, 0L);
+            output.put(NUM_OF_EMITTED_MINUTE, 0L);
+            output.put(NUM_OF_EMITTED_HOUR, 0L);
+            output.put(NUM_OF_EMITTED_DAY, 0L);
+        } else {
+            output.put(NUM_OF_EMITTED, metrics.getNumberOfEmitted());
+            output.put(NUM_OF_EMITTED_MINUTE, metrics.getNumberOfEmitted(MetricsInterval.MINUTE));
+            output.put(NUM_OF_EMITTED_HOUR, metrics.getNumberOfEmitted(MetricsInterval.HOUR));
+            output.put(NUM_OF_EMITTED_DAY, metrics.getNumberOfEmitted(MetricsInterval.DAY));
+        }
     }
 
     private static void collectMetrics(final OperationMetrics metrics, final Map<String, Long> output) {
-        output.put(NUM_OF_INVOKED, metrics.getNumberOfInvocations());
-        output.put(NUM_OF_INVOKED_MINUTE, metrics.getNumberOfInvocations(MetricsInterval.MINUTE));
-        output.put(NUM_OF_INVOKED_HOUR, metrics.getNumberOfInvocations(MetricsInterval.HOUR));
-        output.put(NUM_OF_INVOKED_DAY, metrics.getNumberOfInvocations(MetricsInterval.DAY));
+        if (metrics == null) {
+            output.put(NUM_OF_INVOKED, 0L);
+            output.put(NUM_OF_INVOKED_MINUTE, 0L);
+            output.put(NUM_OF_INVOKED_HOUR, 0L);
+            output.put(NUM_OF_INVOKED_DAY, 0L);
+        } else {
+            output.put(NUM_OF_INVOKED, metrics.getNumberOfInvocations());
+            output.put(NUM_OF_INVOKED_MINUTE, metrics.getNumberOfInvocations(MetricsInterval.MINUTE));
+            output.put(NUM_OF_INVOKED_HOUR, metrics.getNumberOfInvocations(MetricsInterval.HOUR));
+            output.put(NUM_OF_INVOKED_DAY, metrics.getNumberOfInvocations(MetricsInterval.DAY));
+        }
     }
 
     static CompositeData collectMetrics(final MetricsReader metrics) throws OpenDataException {
@@ -97,11 +123,11 @@ final class SummaryMetricsAttribute extends OpenAttribute<CompositeData, Composi
         return new CompositeDataSupport(TYPE, entries);
     }
 
-    private final GlobalMetrics metrics;
+    private final SummaryMetrics metrics;
 
-    SummaryMetricsAttribute(){
+    SummaryMetricsAttribute() {
         super("SummaryMetrics", TYPE);
-        metrics = new GlobalMetrics(Utils.getBundleContextOfObject(this));
+        metrics = new SummaryMetrics(Utils.getBundleContextOfObject(this));
     }
 
     @Override

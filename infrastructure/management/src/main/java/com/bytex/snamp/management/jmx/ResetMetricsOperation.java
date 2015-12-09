@@ -1,18 +1,13 @@
 package com.bytex.snamp.management.jmx;
 
-import com.bytex.snamp.connectors.metrics.GlobalMetrics;
 import com.bytex.snamp.connectors.metrics.MetricsReader;
+import com.bytex.snamp.connectors.metrics.SummaryMetrics;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.base.Strings;
 import org.osgi.framework.BundleContext;
 
 import javax.management.InstanceNotFoundException;
-import javax.management.MBeanException;
-import javax.management.openmbean.OpenMBeanAttributeInfoSupport;
-import javax.management.openmbean.OpenMBeanParameterInfo;
-import javax.management.openmbean.OpenMBeanParameterInfoSupport;
 import javax.management.openmbean.SimpleType;
-
 import java.util.Map;
 
 import static com.bytex.snamp.jmx.OpenMBean.OpenOperation;
@@ -31,7 +26,7 @@ final class ResetMetricsOperation extends OpenOperation<Void, SimpleType<Void>> 
 
     private static void invoke(final String resourceName, final BundleContext context) throws InstanceNotFoundException {
         final MetricsReader metrics = Strings.isNullOrEmpty(resourceName) ?
-                new GlobalMetrics(context) :
+                new SummaryMetrics(context) :
                 MetricsAttribute.getMetrics(resourceName, context);
         metrics.resetAll();
     }

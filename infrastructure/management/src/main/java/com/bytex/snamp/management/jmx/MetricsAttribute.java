@@ -2,8 +2,8 @@ package com.bytex.snamp.management.jmx;
 
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
-import com.bytex.snamp.connectors.metrics.GlobalMetrics;
 import com.bytex.snamp.connectors.metrics.MetricsReader;
+import com.bytex.snamp.connectors.metrics.SummaryMetrics;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.TabularDataBuilderRowFill;
@@ -45,7 +45,7 @@ public final class MetricsAttribute extends OpenAttribute<TabularData, TabularTy
 
     public static MetricsReader getMetrics(final String resourceName, final BundleContext context) throws InstanceNotFoundException {
         if (Strings.isNullOrEmpty(resourceName))
-            return new GlobalMetrics(context);
+            return new SummaryMetrics(context);
         else {
             final ManagedResourceConnectorClient connector = new ManagedResourceConnectorClient(context, resourceName);
             try {

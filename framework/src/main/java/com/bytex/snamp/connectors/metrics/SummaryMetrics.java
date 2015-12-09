@@ -21,7 +21,7 @@ import java.util.Objects;
  * @since 1.0
  * @version 1.0
  */
-public final class GlobalMetrics extends AbstractAggregator implements MetricsReader {
+public final class SummaryMetrics extends AbstractAggregator implements MetricsReader {
     private interface MetricFunction<M extends Metrics>{
         long getMetric(final M metrics);
     }
@@ -35,13 +35,20 @@ public final class GlobalMetrics extends AbstractAggregator implements MetricsRe
             this.context = Objects.requireNonNull(context);
         }
 
+        private static <M extends Metrics> long getMetric(final MetricsReader reader,
+                                                          final Class<M> metricType,
+                                                          final MetricFunction<? super M> fn){
+            final M metrics = reader.queryObject(metricType);
+            return metrics != null ? fn.getMetric(metrics) : 0L;
+        }
+
         protected final long aggregateMetrics(final MetricFunction<? super M> reader) {
             long result = 0L;
             for (final ServiceReference<ManagedResourceConnector> connectorRef : ManagedResourceConnectorClient.getConnectors(context).values()) {
                 final ServiceHolder<ManagedResourceConnector> connector = new ServiceHolder<>(context, connectorRef);
                 try {
                     final MetricsReader metrics = connector.get().queryObject(MetricsReader.class);
-                    if (metrics != null) result += reader.getMetric(metrics.queryObject(metricsType));
+                    if (metrics != null) result += getMetric(metrics, metricsType, reader);
                 } finally {
                     connector.release(context);
                 }
@@ -167,7 +174,7 @@ public final class GlobalMetrics extends AbstractAggregator implements MetricsRe
     @Aggregation
     private final GlobalOperationMetrics operations;
 
-    public GlobalMetrics(final BundleContext context){
+    public SummaryMetrics(final BundleContext context){
         attributes = new GlobalAttributeMetrics(context);
         notifications = new GlobalNotificationMetrics(context);
         operations = new GlobalOperationMetrics(context);
