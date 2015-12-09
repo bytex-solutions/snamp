@@ -185,5 +185,7 @@ public final class GlobalMetrics extends AbstractAggregator implements MetricsRe
     @Override
     public void resetAll() {
         attributes.reset();
+        notifications.reset();
+        operations.reset();
     }
 }

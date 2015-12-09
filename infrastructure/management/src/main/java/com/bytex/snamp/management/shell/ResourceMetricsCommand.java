@@ -1,14 +1,17 @@
 package com.bytex.snamp.management.shell;
 
+import com.bytex.snamp.Attribute;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.connectors.metrics.*;
 import com.bytex.snamp.io.IOUtils;
+import com.bytex.snamp.management.jmx.MetricsAttribute;
 import com.google.common.base.Strings;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
+import org.osgi.framework.BundleContext;
 
 import javax.management.InstanceNotFoundException;
 
@@ -32,7 +35,11 @@ public final class ResourceMetricsCommand extends OsgiCommandSupport implements 
     private boolean showNotifications;
 
     @Option(name = "-o", aliases = "--operations", required = false, description = "Show metrics for operations")
+    @SpecialUse
     private boolean showOperations;
+
+    @Option(name = "-r", aliases = "--reset", required = false, description = "Reset metrics")
+    private boolean resetMetrics;
 
     private static void collectMetrics(final AttributeMetrics metrics, final StringBuilder output) {
         IOUtils.appendln(output, "Total number of writes: %s", metrics.getNumberOfWrites());
@@ -56,20 +63,7 @@ public final class ResourceMetricsCommand extends OsgiCommandSupport implements 
             IOUtils.appendln(output, "Number of invocations(%s %s): %s", "last", interval.name().toLowerCase(), metrics.getNumberOfInvocations(interval));
     }
 
-    @Override
-    protected CharSequence doExecute() throws InstanceNotFoundException {
-        final MetricsReader metrics;
-        if (Strings.isNullOrEmpty(resourceName))
-            metrics = new GlobalMetrics(bundleContext);
-        else {
-            final ManagedResourceConnectorClient connector = new ManagedResourceConnectorClient(bundleContext, resourceName);
-            try {
-                metrics = connector.queryObject(MetricsReader.class);
-            } finally {
-                connector.release(bundleContext);
-            }
-        }
-        if (metrics == null) return "Metrics are not supported";
+    private  CharSequence collectMetrics(final MetricsReader metrics) {
         final StringBuilder result = new StringBuilder();
         if (showAttributes)
             collectMetrics(metrics.queryObject(AttributeMetrics.class), result);
@@ -78,5 +72,22 @@ public final class ResourceMetricsCommand extends OsgiCommandSupport implements 
         if (showOperations)
             collectMetrics(metrics.queryObject(OperationMetrics.class), result);
         return result;
+    }
+
+    private CharSequence resetMetrics(final MetricsReader metrics){
+        if(showAttributes)
+            metrics.queryObject(AttributeMetrics.class).reset();
+        if(showOperations)
+            metrics.queryObject(OperationMetrics.class).reset();
+        if(showNotifications)
+            metrics.queryObject(NotificationMetrics.class).reset();
+        return "Metrics reset";
+    }
+
+    @Override
+    protected CharSequence doExecute() throws InstanceNotFoundException {
+        final MetricsReader metrics = MetricsAttribute.getMetrics(resourceName, bundleContext);
+        if (metrics == null) return "Metrics are not supported";
+        return resetMetrics ? resetMetrics(metrics) : collectMetrics(metrics);
     }
 }

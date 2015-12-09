@@ -24,19 +24,21 @@ abstract class AbstractSnampComponentParamValueOperation extends OpenMBean.OpenO
     /**
      * The constant PARAM_NAME_PARAM.
      */
-    protected static final OpenMBeanParameterInfo PARAM_NAME_PARAM = new OpenMBeanParameterInfoSupport(
+    protected static final TypedParameterInfo<String> PARAM_NAME_PARAM = new TypedParameterInfo<>(
             "parameterName",
             "The name of the parameter which values should be suggested",
-            SimpleType.STRING
+            SimpleType.STRING,
+            false
     );
 
     /**
      * The constant CONNECTION_STRING_PARAM.
      */
-    protected static final OpenMBeanParameterInfo CONNECTION_STRING_PARAM = new OpenMBeanParameterInfoSupport(
+    protected static final TypedParameterInfo<TabularData> CONNECTION_STRING_PARAM = new TypedParameterInfo<>(
             "connectionStringData",
             "Additional parameters for filtering suggested values",
-            SIMPLE_MAP_TYPE
+            SIMPLE_MAP_TYPE,
+            false
     );
 
     /**

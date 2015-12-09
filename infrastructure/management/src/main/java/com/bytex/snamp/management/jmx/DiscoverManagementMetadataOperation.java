@@ -24,15 +24,17 @@ import java.util.concurrent.TimeUnit;
  */
 final class DiscoverManagementMetadataOperation extends OpenMBean.OpenOperation<CompositeData, CompositeType> implements CommonOpenTypesSupport<MBeanOperationInfo> {
 
-    private static final OpenMBeanParameterInfo CONNECTION_STRING = new OpenMBeanParameterInfoSupport(
+    private static final TypedParameterInfo<String> CONNECTION_STRING = new TypedParameterInfo<>(
             "connectionString",
             "Connection string for SNAMP connector",
-            SimpleType.STRING);
+            SimpleType.STRING,
+            false);
 
-    private static final OpenMBeanParameterInfo CONNECTION_STRING_PARAM = new OpenMBeanParameterInfoSupport(
+    private static final TypedParameterInfo<TabularData> CONNECTION_STRING_PARAM = new TypedParameterInfo<>(
             "connectionStringData",
             "Additional parameters for filtering suggested values",
-            SIMPLE_MAP_TYPE
+            SIMPLE_MAP_TYPE,
+            false
     );
 
     private static final String NAME = "discoverManagementMetadata";
@@ -134,11 +136,11 @@ final class DiscoverManagementMetadataOperation extends OpenMBean.OpenOperation<
 
     @Override
     public CompositeData invoke(final Map<String, ?> arguments) throws Exception {
-        final String connectorName = getArgument(CONNECTOR_NAME_PARAM.getName(), String.class, arguments);
-        final String connectionString = getArgument(CONNECTION_STRING.getName(), String.class, arguments);
-        final String locale = getArgument(LOCALE_PARAM.getName(), String.class, arguments);
+        final String connectorName = CONNECTOR_NAME_PARAM.getArgument(arguments);
+        final String connectionString = CONNECTION_STRING.getArgument(arguments);
+        final String locale = LOCALE_PARAM.getArgument(arguments);
         final Map<String, String> connectionStringParam =
-                MonitoringUtils.transformTabularDataToMap(getArgument(CONNECTION_STRING_PARAM.getName(), TabularData.class, arguments));
+                MonitoringUtils.transformTabularDataToMap(CONNECTION_STRING_PARAM.getArgument(arguments));
         final SnampComponentDescriptor connector = snampManager.getResourceConnector(connectorName);
 
         if (connector == null) throw new IllegalArgumentException(String.format("Connector %s doesn't exist", connectorName));

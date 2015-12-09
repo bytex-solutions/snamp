@@ -2,11 +2,13 @@ package com.bytex.snamp.management.jmx;
 
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
+import com.bytex.snamp.connectors.metrics.GlobalMetrics;
 import com.bytex.snamp.connectors.metrics.MetricsReader;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.TabularDataBuilderRowFill;
 import com.bytex.snamp.jmx.TabularTypeBuilder;
+import com.google.common.base.Strings;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
@@ -23,7 +25,7 @@ import static com.bytex.snamp.jmx.OpenMBean.OpenAttribute;
 /**
  * Provides detailed information about metrics.
  */
-final class MetricsAttribute extends OpenAttribute<TabularData, TabularType> {
+public final class MetricsAttribute extends OpenAttribute<TabularData, TabularType> {
     private static final String RESOURCE_NAME_CELL = "resourceName";
     private static final String METRICS_CELL = "metrics";
 
@@ -39,6 +41,19 @@ final class MetricsAttribute extends OpenAttribute<TabularData, TabularType> {
 
     MetricsAttribute(){
         super("Metrics", TYPE);
+    }
+
+    public static MetricsReader getMetrics(final String resourceName, final BundleContext context) throws InstanceNotFoundException {
+        if (Strings.isNullOrEmpty(resourceName))
+            return new GlobalMetrics(context);
+        else {
+            final ManagedResourceConnectorClient connector = new ManagedResourceConnectorClient(context, resourceName);
+            try {
+                return connector.queryObject(MetricsReader.class);
+            } finally {
+                connector.release(context);
+            }
+        }
     }
 
     @Override

@@ -163,33 +163,116 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
     }
 
     public static abstract class OpenOperation<R, T extends OpenType<R>> extends OpenMBeanElement<MBeanOperationInfo>{
+        private static final class OperationArgumentException extends IllegalArgumentException{
+            private OperationArgumentException(final OpenMBeanParameterInfo nullParameter) {
+                super(String.format("Parameter %s cannot be null", nullParameter.getName()));
+            }
+
+            private OperationArgumentException(final OpenType<?> expectedType, final OpenDataException e){
+                super(String.format("Illegal type of the actual argument. Expected type: %s", expectedType), e);
+            }
+        }
+
+        /**
+         * Describes parameter of the operation.
+         * @param <T> Type of the parameter
+         */
+        public static class TypedParameterInfo<T> extends OpenMBeanParameterInfoSupport {
+            private final OpenType<T> parameterType;
+            private final boolean nullable;
+            private final T defaultValue;
+
+            public TypedParameterInfo(final String name,
+                                      final String description,
+                                      final OpenType<T> openType,
+                                      final boolean nullable,
+                                      final T defValue) {
+                super(name, description, openType);
+                this.parameterType = Objects.requireNonNull(openType);
+                this.nullable = nullable;
+                this.defaultValue = defValue;
+            }
+
+            public TypedParameterInfo(final String name,
+                                      final String description,
+                                      final OpenType<T> openType) {
+                this(name, description, openType, true);
+            }
+
+            public TypedParameterInfo(final String name,
+                                      final String description,
+                                      final OpenType<T> openType,
+                                      final boolean nullable) {
+                this(name, description, openType, nullable, null);
+            }
+
+            /**
+             * Determines whether value of this parameter can be {@literal null}.
+             *
+             * @return {@literal true}, if this value of this parameter can be {@literal null}; otherwise, {@literal false}.
+             */
+            public final boolean isNullable() {
+                return nullable;
+            }
+
+            public final T getDefaultValue() {
+                return getDefaultValue();
+            }
+
+            @Override
+            public final OpenType<T> getOpenType() {
+                return parameterType;
+            }
+
+            /**
+             * Extracts actual value of this parameter from the map of arguments.
+             * @param arguments A map of arguments.
+             * @return Actual value of this parameter.
+             * @throws IllegalArgumentException Incorrect actual value of this parameter.
+             */
+            public final T getArgument(final Map<String, ?> arguments) throws OperationArgumentException {
+                if (arguments.containsKey(getName())) {
+                    try {
+                        return cast(getOpenType(), arguments.get(getName()));
+                    } catch (final OpenDataException e) {
+                        throw new OperationArgumentException(getOpenType(), e);
+                    }
+                } else if (nullable || defaultValue != null)
+                    return defaultValue;
+                else
+                    throw new OperationArgumentException(this);
+            }
+        }
+
+        /**
+         * Represents return type of this operation.
+         */
         protected final T returnType;
-        private final List<OpenMBeanParameterInfo> parameters;
+        private final ImmutableList<OpenMBeanParameterInfo> parameters;
 
         protected OpenOperation(final String operationName, final T returnType, final OpenMBeanParameterInfo... parameters){
             super(operationName);
             this.returnType = returnType;
-            this.parameters = Arrays.asList(parameters);
-        }
-
-        protected static <T> T getArgument(final String paramName, final Class<T> paramType, final Map<String, ?> arguments){
-            return Utils.getProperty(arguments, paramName, paramType);
+            this.parameters = ImmutableList.copyOf(parameters);
         }
 
         public abstract R invoke(final Map<String, ?> arguments) throws Exception;
 
-        private R invoke(final Object[] arguments) throws ReflectionException{
-            if(arguments.length < parameters.size())
+        private R invoke(final Object[] arguments) throws ReflectionException, MBeanException {
+            if (arguments.length < parameters.size())
                 throw new ReflectionException(new IllegalArgumentException(String.format("Invalid arguments count. Expected %s but found %s.", parameters.size(), arguments.length)));
             final Map<String, Object> args = Maps.newHashMapWithExpectedSize(arguments.length);
-            for(int i = 0; i < arguments.length; i++){
+            for (int i = 0; i < arguments.length; i++) {
                 final OpenMBeanParameterInfo paramInfo = parameters.get(i);
                 args.put(paramInfo.getName(), arguments[i]);
             }
-            try{
+            try {
                 return invoke(args);
-            }
-            catch (final Exception e){
+            } catch (final OperationArgumentException e) {
+                throw new MBeanException(e);
+            } catch (final MBeanException | ReflectionException e) {
+                throw e;
+            } catch (final Exception e) {
                 throw new ReflectionException(e);
             }
         }

@@ -28,9 +28,9 @@ final class StopAdapterOperation extends OpenMBean.OpenOperation<Void, SimpleTyp
     }
 
     @Override
-    public Void invoke(Map<String, ?> arguments) throws Exception {
-        final String adapterName = getArgument(ADAPTER_NAME_PARAM.getName(), String.class, arguments);
-        ResourceAdapterActivator.stopResourceAdapter(getBundleContextOfObject(this), adapterName);
+    public Void invoke(final Map<String, ?> arguments) throws Exception {
+        ResourceAdapterActivator.stopResourceAdapter(getBundleContextOfObject(this),
+                ADAPTER_NAME_PARAM.getArgument(arguments));
         return null;
     }
 }

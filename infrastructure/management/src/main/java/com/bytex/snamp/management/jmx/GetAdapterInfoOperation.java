@@ -1,9 +1,11 @@
 package com.bytex.snamp.management.jmx;
 
+import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.management.AbstractSnampManager;
 import com.bytex.snamp.management.SnampComponentDescriptor;
 
 import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.OpenDataException;
 import java.util.Locale;
 import java.util.Map;
 
@@ -20,9 +22,9 @@ final class GetAdapterInfoOperation extends AbstractComponentInfo {
     }
 
     @Override
-    public CompositeData invoke(final Map<String, ?> arguments) throws Exception {
-        final String adapterName = getArgument(ADAPTER_NAME_PARAM.getName(), String.class, arguments);
-        final String locale = getArgument(LOCALE_PARAM.getName(), String.class, arguments);
+    public CompositeData invoke(final Map<String, ?> arguments) throws OpenDataException {
+        final String adapterName = ADAPTER_NAME_PARAM.getArgument(arguments);
+        final String locale = LOCALE_PARAM.getArgument(arguments);
         final SnampComponentDescriptor connector = snampManager.getResourceAdapter(adapterName);
         if (connector == null) throw new IllegalArgumentException(String.format("Adapter %s doesn't exist", adapterName));
         else return getSnampComponentInfo(connector, locale == null || locale.isEmpty() ? Locale.getDefault() : Locale.forLanguageTag(locale));

@@ -6,8 +6,10 @@ import com.bytex.snamp.jmx.TabularTypeBuilder;
 
 import javax.management.MBeanFeatureInfo;
 import javax.management.openmbean.*;
+import java.util.Locale;
 import java.util.concurrent.Callable;
 import static com.bytex.snamp.internal.Utils.interfaceStaticInitialize;
+import static com.bytex.snamp.jmx.OpenMBean.OpenOperation.TypedParameterInfo;
 
 /**
  * Description here
@@ -19,26 +21,30 @@ interface CommonOpenTypesSupport<T extends MBeanFeatureInfo> extends Supplier<T>
     /**
      * The LOCALE parameter.
      */
-    OpenMBeanParameterInfo LOCALE_PARAM = new OpenMBeanParameterInfoSupport(
+    TypedParameterInfo<String> LOCALE_PARAM = new TypedParameterInfo<>(
             "locale",
             "The expected localization of the configuration schema",
-            SimpleType.STRING);
+            SimpleType.STRING,
+            true,
+            Locale.getDefault().toLanguageTag());
 
     /**
      * The CONNECTOR name param.
      */
-    OpenMBeanParameterInfo CONNECTOR_NAME_PARAM = new OpenMBeanParameterInfoSupport(
+    TypedParameterInfo<String> CONNECTOR_NAME_PARAM = new TypedParameterInfo<>(
             "connectorName",
             "Snamp connector name",
-            SimpleType.STRING);
+            SimpleType.STRING,
+            false);
 
     /**
      * The ADAPTER name param.
      */
-    OpenMBeanParameterInfo ADAPTER_NAME_PARAM = new OpenMBeanParameterInfoSupport(
+    TypedParameterInfo<String> ADAPTER_NAME_PARAM = new TypedParameterInfo<>(
             "adapterName",
             "The name of the managed resource adapter",
-            SimpleType.STRING
+            SimpleType.STRING,
+            false
     );
 
     /**
