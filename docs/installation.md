@@ -32,10 +32,10 @@ Hardware:
     * x64
     * ARMv6/ARMv7 (in paid subscription only)
 * 2 Cores (minimum)
-* 200 MB of free disk space
+* 250 MB of free disk space
 > Disk space requirement ignores growing of log files
 
-* 1 GB RAM (minimum), 2 GB RAM (recommended)
+* 512 MB RAM (minimum), 2 GB RAM (recommended)
 
 Running SNAMP on ARM-based hardware (such as RaspberryPi) is possible as well - contact us for more information.
 

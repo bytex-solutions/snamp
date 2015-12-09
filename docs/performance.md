@@ -2,40 +2,30 @@ SNAMP Performance Tips
 ====
 This page contains information about SNAMP performance tuning.
 
-## RAM calculation
-The minimum RAM requirement is 2 GB. This amount of memory is enough for launching single resource adapter and single resource connector.
-
-Recommended amount of memory required by SNAMP depends on number of configured adapters and connectors:
-
-* Single Resource Adapter memory requirement is based on number of configured attributes, notifications and operations in each connected managed resource. Use the following formula: ![Resource Adapter Memory](http://latex.codecogs.com/gif.latex?M=40&plus;\sum_{i=1}^{r}A\times&space;10&plus;N\times&space;5&plus;O), where `M` - amount of memory required by single Resource Adapter (in MB), `r` - number of connected managed resources, `A` - number of configured attributes for `i`-resource, `N` - number of configured notifications of `i`-resource, `O` - number of configured operations of `i`-resource
-* Single Resource Connector memory requirement is based on number of configured attributes, notifications and operations as well. Use the following formula: ![Resource Connector Memory](http://latex.codecogs.com/gif.latex?S=30&plus;A\times&space;6&plus;N\times&space;3&plus;O), where `S` - amount of memory required by single Resource Connector instance (in MB), `A` - number of configured attributes, `N` - number of configured notifications, `O` - number of configured operations
-* Recommended amount of memory: ![SNAMP Memory](http://latex.codecogs.com/gif.latex?R=2048&space;&plus;&space;\sum_{i=1}^{r}S_{i}&plus;\sum_{i=1}^{r}M_{i})
-
-For example, we have 1 resource adapter, 2 resource connectors (8 attributes and 2 notifications in the first connector, 6 attributes and 3 notifications in the second connector):
-
-* Resource adapter memory: `M = 40 + (8 * 10) + (2 * 5) + (6 * 10) + (3 * 5) = 205 MB`
-* Resource connectors memory: `S = S1 + S2 = 30 + (8 * 6) + (2 * 3) + 30 + (6 * 8) + (3 * 3) = 171 MB`
-* Recommended amount of memory: `R = 2048 + 205 + 171 = 2424 MB = 2.3 GB`
+## Memory calculation
+The minimum amount of memory required for single SNAMP process is 512 MB. This amount of memory is enough for launching single resource adapter and one or two resource connectors.
 
 > RAM calculation methodology reflects SNAMP requirements only. So, the total RAM space installed in your hardware must be greater than space required by SNAMP because OS and other daemon processes utilize its own memory. Pay your attention: SNAMP should not swap its memory.
+
+If you have a plan to use up to 10 resource connectors then allocate 1 GB per SNAMP process. Tens of connected resources can be served with 2 GB heap size. In a clustered installation with tens of connected resources we highly recommend to use 4 GB heap size.
 
 ## JVM settings
 JVM tuning aims to minimize GC pauses. We offer two main strategies on GC tuning:
 
-1. Peak application performance is the first priority and there are no pause time requirements (or pauses of 1 second or longer are acceptable)
-1. Response time is more important than overall throughput
+1. Peak SNAMP performance is the first priority and there are no pause time requirements (or pauses of 1 second or longer are acceptable)
+1. SNAMP response time is more important than overall throughput
 
 You may select the most convenient strategy based on your enterprise IT policies.
 > In most scenarios, number of monitoring & management tools are fixed in time (i.e. number of clients are fixed). If that is your case - choose the second strategy.
 
-According to RAM calculation methodology you may specify minimum and maximum Java memory:
+According to memory calculation methodology you may specify minimum and maximum Java memory:
 
 * For Linux, go to `bin` directory (within the SNAMP folder) and open `bin/setnv` and specify
-	* `export JAVA_MIN_MEM=1G`
-	* `export JAVA_MAX_MEM=Xm`, where `X` is your calculated memory, for example `export JAVA_MAX_MEM=2424m`
+	* `export JAVA_MIN_MEM=512m`
+	* `export JAVA_MAX_MEM=X`, where `X` is your calculated memory, for example `export JAVA_MAX_MEM=2G`
 * For Windows, go to `bin` directory (within the SNAMP folder) and open `bin/setenv.bat`
-	* `SET JAVA_MIN_MEM=1G`
-	* `SET JAVA_MAX_MEM=Xm`,  where `X` is your calculated memory, for example `SET JAVA_MAX_MEM=2424m`
+	* `SET JAVA_MIN_MEM=512m`
+	* `SET JAVA_MAX_MEM=X`,  where `X` is your calculated memory, for example `SET JAVA_MAX_MEM=2424m`
 
 > We recommend you not to specify PermGen settings
 
@@ -72,22 +62,21 @@ If response time is more important than overall throughput and garbage collectio
 * Concurrent Mark & Sweep `-XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled`. Additionally, specify `-XX:+CMSIncrementalMode` if only two cores are available.
 * G1 collector with `-XX:+UseG1GC`. That requires large heaps - about 6GB or larger, and stable and predictable pause time below 0.5 seconds.
 
-
 ## Number of cores
 Each resource adapter or resource connector uses its own isolated thread pool.
 So, recommended number of cores (k) is based on the following metrics:
 
-* `λ` - expected workload from single monitoring tool, in TPS (requests per second)?
+* `λ` - expected workload from single monitoring tool, in RPS (requests per second)?
 * `t` - average response time from managed resources (in seconds)?
 * `P` - availability
 
 SNAMP represents multichannel Queuing System so [Queuing Theory](https://en.wikipedia.org/wiki/Queueing_theory) is applicable for necessary computations:
 
 1. Workload intensity: ![intensity formula](http://latex.codecogs.com/gif.latex?\rho=\lambda\times&space;t)
-1. Downtime propability: ![propability formula](http://latex.codecogs.com/gif.latex?p_{0}=\frac{1}{\sum_{i=0}^{k}\frac{\rho^{i}}{i!}})
+1. Downtime probability: ![probability formula](http://latex.codecogs.com/gif.latex?p_{0}=\frac{1}{\sum_{i=0}^{k}\frac{\rho^{i}}{i!}})
 1. Availability: ![availability formula](http://latex.codecogs.com/gif.latex?P=1-\frac{\rho^{k}}{k!}\rho_{0})
 
-Availability formula contains the required number of cores in indirect form. There is no way to reduce this formula. Therefore, you can use the following simple JS program (use NodeJS) for computing required number of cores:
+Availability formula contains the required number of cores in indirect form. There is no way to reduce this formula. Therefore, you can use the following simple JS program (use NodeJS or any other JavaScript interpreter) for computing required number of cores:
 ```js
 //source data
 var lambda = 50;
@@ -116,8 +105,8 @@ while(true){
 
 Examples:
 
-1. `λ = 50` tps, `t = 0.1` seconds and expected availability is `P=0,999` (99,9%) then required number of cores `k = 14`
-1. `λ = 2` tps, `t = 0.3` seconds and expected availability is `P=0,99` (99%) then required number of cores `k = 4`
+1. `λ = 50` rps, `t = 0.1` seconds and expected availability is `P=0,999` (99,9%) then required number of cores `k = 14`
+1. `λ = 2` rps, `t = 0.3` seconds and expected availability is `P=0,99` (99%) then required number of cores `k = 4`
 
 > Many modern CPUs support simultaneous multi-threading (SMT) when one physical CPU core may process two (or more) threads in parallel. In this case, `number of cores` means number of logical cores.
 
@@ -126,7 +115,7 @@ Examples:
 
 Optimal max thread pool size should be equal to ![](http://latex.codecogs.com/gif.latex?S=1.5\times&space;k). Each thread might be used as a separated channel for handling requests.
 
-For example, if workload `λ = 50` tps, `t = 0.1` seconds and expected availability is `P=0,999` (99,9%) then required number of threads  is `S=14`. Therefore, the required number of (logical) cores `k = 14/1.5= [9.3]=10`. The savings on the number of cores is 28%.
+For example, if workload `λ = 50` rps, `t = 0.1` seconds and expected availability is `P=0,999` (99,9%) then required number of threads  is `S=14`. Therefore, the required number of (logical) cores `k = 14/1.5= [9.3]=10`. The savings on the number of cores is 28%.
 
 ## Scalability
-SNAMP is a stateless component in your IT infrastructure. Therefore, it is very easy to peform horizontal scalability. Just append the additional nodes into the SNAMP cluster. For more information about SNAMP Cluster configuration, see **Clustering** section in [Installation Guide](installation.md).
+SNAMP is a stateless component in your IT infrastructure. Therefore, it is very easy to perform horizontal scalability. Just append the additional nodes into the SNAMP cluster. For more information about SNAMP Cluster configuration, see **Clustering** section in [Installation Guide](installation.md).
