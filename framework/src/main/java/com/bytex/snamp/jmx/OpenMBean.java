@@ -426,15 +426,14 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
         }
 
         @SuppressWarnings("unchecked")
+        private synchronized Class<V> getJavaTypeSync() throws ClassNotFoundException{
+            if(javaType == null)
+                javaType = (Class<V>)Class.forName(openType.getClassName());
+            return javaType;
+        }
+
         private Class<V> getJavaType() throws ClassNotFoundException {
-            Class<V> result = javaType;
-                if(result == null)
-                    synchronized (this){
-                        result = javaType;
-                        if(result == null)
-                            result = javaType = (Class<V>)Class.forName(openType.getClassName());
-                    }
-            return result;
+            return javaType == null ? getJavaTypeSync() : javaType;
         }
 
         /**
@@ -444,7 +443,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
         public final boolean isReadable(){
             try {
                 final Method getter = getClass().getMethod(GET_VALUE_METHOD);
-                return Objects.equals(getter.getDeclaringClass(), getClass());
+                return getClass().equals(getter.getDeclaringClass());
             }
             catch (final NoSuchMethodException e) {
                 return false;
@@ -458,7 +457,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
         public final boolean isWritable(){
             try {
                 final Method getter = getClass().getMethod(SET_VALUE_METHOD, getJavaType());
-                return Objects.equals(getter.getDeclaringClass(), getClass());
+                return getClass().equals(getter.getDeclaringClass());
             }
             catch (final ReflectiveOperationException e) {
                 return false;
