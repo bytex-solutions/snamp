@@ -56,7 +56,7 @@ final class XMPPNotificationAccessor extends NotificationRouter {
         return FORMATTER.toJson(notif);
     }
 
-    final String getListenCommand(){
+    String getListenCommand(){
         final Map<String, ?> filterParams = DescriptorUtils.toMap(getDescriptor());
         switch (filterParams.size()) {
             case 0:

@@ -177,47 +177,47 @@ final class SnmpHelpers {
         private int offsetInMinutes;
         private boolean directionFromUTCPlus;
 
-        public final void setYear(final int year) {
+        public void setYear(final int year) {
             this.year = year;
         }
 
-        public final void setMonth(final int month) {
+        public void setMonth(final int month) {
             this.month = month;
         }
 
-        public final void setDayOfMonth(final int dayOfMonth) {
+        public void setDayOfMonth(final int dayOfMonth) {
             this.dayOfMonth = dayOfMonth;
         }
 
-        public final void setHourOfDay(final int hourOfDay) {
+        public void setHourOfDay(final int hourOfDay) {
             this.hourOfDay = hourOfDay;
         }
 
-        public final void setDeciseconds(final int deciseconds) {
+        public void setDeciseconds(final int deciseconds) {
             this.deciseconds = deciseconds;
         }
 
-        public final void setMinute(final int minute) {
+        public void setMinute(final int minute) {
             this.minute = minute;
         }
 
-        public final void setSecond(final int second) {
+        public void setSecond(final int second) {
             this.second = second;
         }
 
-        public final void setOffsetInHours(final int offsetInHours) {
+        public void setOffsetInHours(final int offsetInHours) {
             this.offsetInHours = offsetInHours;
         }
 
-        public final void setOffsetInMinutes(final int offsetInMinutes) {
+        public void setOffsetInMinutes(final int offsetInMinutes) {
             this.offsetInMinutes = offsetInMinutes;
         }
 
-        public final void setDirectionFromUTCPlus(final boolean directionFromUTCPlus) {
+        public void setDirectionFromUTCPlus(final boolean directionFromUTCPlus) {
             this.directionFromUTCPlus = directionFromUTCPlus;
         }
 
-        public final Calendar build(){
+        public Calendar build(){
             final Calendar cal = createCalendar();
             int offsetMills = offsetInHours * 3600000 + offsetInMinutes * 60000;
             if(!directionFromUTCPlus) offsetMills = -offsetMills;

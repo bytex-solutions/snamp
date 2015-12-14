@@ -104,7 +104,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
         }
 
         @Override
-        public final OpenMBeanAttributeInfoSupport cloneMetadata() {
+        public OpenMBeanAttributeInfoSupport cloneMetadata() {
             return new OpenMBeanAttributeInfoSupport(getMetadata().getName(),
                     getMetadata().getDescription(),
                     arrayType,

@@ -1,6 +1,7 @@
 package com.bytex.snamp.concurrent;
 
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.TimeSpan;
 
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
@@ -26,6 +27,11 @@ public abstract class IntAccumulator extends AbstractAccumulator {
                              final long ttl){
         super(ttl);
         this.current = this.initialValue = initialValue;
+    }
+
+    protected IntAccumulator(final int initialValue,
+                             final TimeSpan ttl){
+        this(initialValue, ttl.toMillis());
     }
 
     /**

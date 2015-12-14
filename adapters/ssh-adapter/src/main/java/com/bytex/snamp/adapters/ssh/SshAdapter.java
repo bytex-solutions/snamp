@@ -283,7 +283,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
                                   final String separator) {
             return Joiner.on(separator).join(Collections2.transform(values, new Function<Object, String>() {
                 @Override
-                public final String apply(final Object input) {
+                public String apply(final Object input) {
                     return String.format(format, input);
                 }
             }));

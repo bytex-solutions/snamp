@@ -42,12 +42,12 @@ public final class GroovyManagedResource extends GroovyObjectSupport {
      * @return A collection of all attributes in this resource.
      */
     @SpecialUse
-    public final Set<String> getAttributes() {
+    public Set<String> getAttributes() {
         return attributes.getAttributes(resourceName);
     }
 
     @SpecialUse
-    public final Set<String> getEvents() {
+    public Set<String> getEvents() {
         return events.getEvents(resourceName);
     }
 

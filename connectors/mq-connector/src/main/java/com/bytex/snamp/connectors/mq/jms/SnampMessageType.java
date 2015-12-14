@@ -9,5 +9,5 @@ package com.bytex.snamp.connectors.mq.jms;
 public enum SnampMessageType {
     WRITE,
     NOTIFICATION,
-    ATTRIBUTE_CHANGED;
+    ATTRIBUTE_CHANGED
 }

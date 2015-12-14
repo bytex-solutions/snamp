@@ -81,10 +81,9 @@ public class Switch<I, O> implements Function<I, O> {
         }
     }
 
-    private static Function NULL_FUNCTION = Functions.constant(null);
     private CaseStatement<I, O> first;
     private CaseStatement<I, O> last;
-    private Function<? super I, ? extends O> defaultCase = NULL_FUNCTION;
+    private Function<? super I, ? extends O> defaultCase;
 
     private static <I, O> CaseStatement<I, O> equalsToNullStatement(final Supplier<? extends O> action){
         return new CaseStatement<I, O>() {

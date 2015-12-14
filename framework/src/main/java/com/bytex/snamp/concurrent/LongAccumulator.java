@@ -1,6 +1,7 @@
 package com.bytex.snamp.concurrent;
 
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.TimeSpan;
 
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
@@ -27,6 +28,11 @@ public abstract class LongAccumulator extends AbstractAccumulator {
                               final long ttl){
         super(ttl);
         this.current = this.initialValue = initialValue;
+    }
+
+    protected LongAccumulator(final long initialValue,
+                              final TimeSpan ttl){
+        this(initialValue, ttl.toMillis());
     }
 
     /**

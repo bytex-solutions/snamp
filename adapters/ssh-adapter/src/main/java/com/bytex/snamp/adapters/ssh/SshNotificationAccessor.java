@@ -29,7 +29,7 @@ final class SshNotificationAccessor extends NotificationRouter implements SshNot
         return notification;
     }
 
-    final String getListenCommand(){
+    String getListenCommand(){
         final Map<String, ?> filterParams = DescriptorUtils.toMap(getDescriptor());
         switch (filterParams.size()) {
             case 0:

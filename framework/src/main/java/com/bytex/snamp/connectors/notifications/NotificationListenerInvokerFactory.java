@@ -86,7 +86,7 @@ public final class NotificationListenerInvokerFactory {
                 for(final NotificationListener listener: listeners)
                     getScheduler().execute(new Runnable() {
                         @Override
-                        public final void run() {
+                        public void run() {
                             listener.handleNotification(n, handback);
                         }
                     });

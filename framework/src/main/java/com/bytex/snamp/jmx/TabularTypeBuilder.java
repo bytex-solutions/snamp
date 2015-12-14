@@ -54,11 +54,11 @@ public final class TabularTypeBuilder extends AbstractAggregator implements Open
         this("", "", "", "");
     }
 
-    final void setService(final Object obj){
+    void setService(final Object obj){
         this.service = obj;
     }
 
-    final String getTypeName(){
+    String getTypeName(){
         return typeName;
     }
 
@@ -67,24 +67,24 @@ public final class TabularTypeBuilder extends AbstractAggregator implements Open
      * @param value The name of the tabular type. Cannot be {@literal null} or empty.
      * @return This builder.
      */
-    public final TabularTypeBuilder setTypeName(final String value){
+    public TabularTypeBuilder setTypeName(final String value){
         this.typeName = Objects.requireNonNull(value, "value is null.");
         return this;
     }
 
-    public final TabularTypeBuilder setTypeName(final String value, final boolean setRowTypeName) {
+    public TabularTypeBuilder setTypeName(final String value, final boolean setRowTypeName) {
         return setRowTypeName ?
                 setTypeName(value).setRowTypeName(createRowTypeName(value)) :
                 setTypeName(value);
     }
 
-    public final TabularTypeBuilder setDescription(final String value, final boolean setRowDescription) {
+    public TabularTypeBuilder setDescription(final String value, final boolean setRowDescription) {
         return setRowDescription ?
                 setDescription(value).setRowDescription(value) :
                 setDescription(value);
     }
 
-    final String getDescription(){
+    String getDescription(){
         return typeDescription;
     }
 
@@ -93,12 +93,12 @@ public final class TabularTypeBuilder extends AbstractAggregator implements Open
      * @param value The description of the tabular type. Cannot be {@literal null}.
      * @return This builder.
      */
-    public final TabularTypeBuilder setDescription(final String value){
+    public TabularTypeBuilder setDescription(final String value){
         this.typeDescription = Objects.requireNonNull(value, "value is null.");
         return this;
     }
 
-    final String getRowTypeName(){
+    String getRowTypeName(){
         return rowBuilder.getTypeName();
     }
 
@@ -107,19 +107,19 @@ public final class TabularTypeBuilder extends AbstractAggregator implements Open
      * @param value The name of the row type. Cannot be {@literal null} or empty.
      * @return This builder
      */
-    public final TabularTypeBuilder setRowTypeName(final String value){
+    public TabularTypeBuilder setRowTypeName(final String value){
         rowBuilder.setTypeName(value);
         return this;
     }
 
-    final String getRowDescription(){
+    String getRowDescription(){
         return rowBuilder.getDescription();
     }
 
-    public final TabularTypeBuilder addColumn(final String columnName,
-                          final String columnDescription,
-                          final OpenType<?> columnType,
-                          final boolean indexed){
+    public TabularTypeBuilder addColumn(final String columnName,
+                                        final String columnDescription,
+                                        final OpenType<?> columnType,
+                                        final boolean indexed){
         rowBuilder.addItem(columnName, columnDescription, columnType);
         if(indexed)
             indexes.add(columnName);
@@ -131,16 +131,16 @@ public final class TabularTypeBuilder extends AbstractAggregator implements Open
      * @param value The description of the row type. Cannot be {@literal null}.
      * @return This builder.
      */
-    public final TabularTypeBuilder setRowDescription(final String value){
+    public TabularTypeBuilder setRowDescription(final String value){
         rowBuilder.setDescription(value);
         return this;
     }
 
-    final CompositeType buildRowType() throws OpenDataException {
+    CompositeType buildRowType() throws OpenDataException {
         return rowBuilder.build();
     }
 
-    final int size(){
+    int size(){
         return rowBuilder.size();
     }
 
@@ -150,7 +150,7 @@ public final class TabularTypeBuilder extends AbstractAggregator implements Open
      * @return A new row.
      * @throws OpenDataException Unable to construct the row.
      */
-    public final CompositeData buildRow(final Map<String, ?> cells) throws OpenDataException {
+    public CompositeData buildRow(final Map<String, ?> cells) throws OpenDataException {
         return rowBuilder.build(cells);
     }
 
@@ -159,7 +159,7 @@ public final class TabularTypeBuilder extends AbstractAggregator implements Open
      * @return A new instance of {@link javax.management.openmbean.TabularType}.
      * @throws OpenDataException Unable to construct type.
      */
-    public final TabularType build() throws OpenDataException{
+    public TabularType build() throws OpenDataException{
         return new TabularType(typeName,
                 typeDescription,
                 buildRowType(),
@@ -172,7 +172,7 @@ public final class TabularTypeBuilder extends AbstractAggregator implements Open
      * @throws java.lang.IllegalStateException Unable to construct type.
      */
     @Override
-    public final TabularType get() throws IllegalStateException{
+    public TabularType get() throws IllegalStateException{
         try {
             return build();
         } catch (final OpenDataException e) {
@@ -186,7 +186,7 @@ public final class TabularTypeBuilder extends AbstractAggregator implements Open
      * @return an Iterator.
      */
     @Override
-    public final Iterator<String> iterator() {
+    public Iterator<String> iterator() {
         return rowBuilder.iterator();
     }
 
