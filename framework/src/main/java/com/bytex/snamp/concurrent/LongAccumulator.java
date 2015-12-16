@@ -1,7 +1,6 @@
 package com.bytex.snamp.concurrent;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.TimeSpan;
 
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 
@@ -30,11 +29,6 @@ public abstract class LongAccumulator extends AbstractAccumulator {
         this.current = this.initialValue = initialValue;
     }
 
-    protected LongAccumulator(final long initialValue,
-                              final TimeSpan ttl){
-        this(initialValue, ttl.toMillis());
-    }
-
     /**
      * Combines the current value of the accumulator with a new value.
      * @param current The current value stored in this accumulator.
@@ -42,12 +36,6 @@ public abstract class LongAccumulator extends AbstractAccumulator {
      * @return A new value.
      */
     protected abstract long combine(final long current, final long newValue);
-
-    private synchronized long reset(final long initialValue) {
-        if (isExpired(true))
-            CURRENT_VALUE_ACCESSOR.set(this, initialValue);
-        return CURRENT_VALUE_ACCESSOR.get(this);
-    }
 
     private long updateImpl(final long value) {
         long newValue;
@@ -59,7 +47,7 @@ public abstract class LongAccumulator extends AbstractAccumulator {
     }
 
     @Override
-    public final void reset(){
+    public final synchronized void reset(){
         super.reset();
         CURRENT_VALUE_ACCESSOR.set(this, initialValue);
     }
@@ -70,7 +58,9 @@ public abstract class LongAccumulator extends AbstractAccumulator {
      * @return Modified accumulator value.
      */
     public final long update(final long value){
-        return isExpired(false) ? reset(value) : updateImpl(value);
+        if(isExpired())
+            reset();
+        return updateImpl(value);
     }
 
     /**
@@ -79,7 +69,9 @@ public abstract class LongAccumulator extends AbstractAccumulator {
      */
     @Override
     public final long longValue() {
-        return isExpired(false) ? reset(initialValue) : CURRENT_VALUE_ACCESSOR.get(this);
+        if(isExpired())
+            reset();
+        return CURRENT_VALUE_ACCESSOR.get(this);
     }
 
     /**

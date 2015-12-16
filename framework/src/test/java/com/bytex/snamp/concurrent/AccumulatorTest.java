@@ -16,16 +16,16 @@ public final class AccumulatorTest extends Assert {
         assertEquals(15L, acc.update(10L));
         assertEquals(20L, acc.update(5L));
         Thread.sleep(501L);
-        assertEquals(5L, acc.update(5L));
+        assertEquals(10L, acc.update(5L));
     }
 
     @Test
     public void sumIntAccumulator() throws InterruptedException {
         final IntAccumulator acc = IntAccumulator.adder(5, 500L);
-        assertEquals(15L, acc.update(10));
-        assertEquals(20L, acc.update(5));
+        assertEquals(15, acc.update(10));
+        assertEquals(20, acc.update(5));
         Thread.sleep(501L);
-        assertEquals(5L, acc.update(5));
+        assertEquals(10, acc.update(5));
     }
 
     @Test
