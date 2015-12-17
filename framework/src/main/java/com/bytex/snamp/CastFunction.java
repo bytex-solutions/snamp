@@ -14,13 +14,14 @@ import java.util.Objects;
  * @version 1.0
  */
 final class CastFunction<O> implements Function<Object, O>, Serializable {
+    private static final long serialVersionUID = -4293792455315486544L;
     private final Class<O> type;
 
     private CastFunction(final Class<O> t){
         this.type = Objects.requireNonNull(t);
     }
 
-    public static <O> CastFunction<O> of(final Class<O> targetType){
+    static <O> CastFunction<O> of(final Class<O> targetType){
         return new CastFunction<>(targetType);
     }
 
