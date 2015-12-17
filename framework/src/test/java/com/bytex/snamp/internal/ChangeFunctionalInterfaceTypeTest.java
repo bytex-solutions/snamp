@@ -21,10 +21,24 @@ public class ChangeFunctionalInterfaceTypeTest extends Assert {
         }
     }
 
+    private static final class TestCallable implements Callable<Long>{
+        @Override
+        public Long call() {
+            return 42L;
+        }
+    }
+
     @Test
-    public void changeInterfaceTypeTest() throws Exception {
+    public void supplierToCallableTest() throws Exception {
         final Callable newInterface =
                 changeFunctionalInterfaceType(new TestSupplier(), Supplier.class, Callable.class);
         assertEquals(42, newInterface.call());
+    }
+
+    @Test
+    public void callableToSupplierTest(){
+        final Supplier newInterface =
+                changeFunctionalInterfaceType(new TestCallable(), Callable.class, Supplier.class);
+        assertEquals(42L, newInterface.get());
     }
 }

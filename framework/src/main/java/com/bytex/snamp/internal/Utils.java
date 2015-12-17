@@ -269,16 +269,20 @@ public final class Utils {
     public static <I, O> O changeFunctionalInterfaceType(final I fi,
                                                          final Class<I> inputInterface,
                                                          final Class<O> outputInterface) {
-        for (final Method candidate : inputInterface.getDeclaredMethods())
-            if (isPublicAbstract(candidate.getModifiers())) {
-                final MethodHandle handle;
-                try {
-                    handle = MethodHandles.publicLookup().unreflect(candidate);
-                } catch (final IllegalAccessException e) {
-                    throw new IllegalArgumentException("Invalid interface method " + candidate);
+        if (outputInterface.isInstance(fi))
+            return outputInterface.cast(fi);
+        else if (MethodHandleProxies.isWrapperInstance(fi))
+            return MethodHandleProxies.asInterfaceInstance(outputInterface, MethodHandleProxies.wrapperInstanceTarget(fi));
+        else for (final Method candidate : inputInterface.getDeclaredMethods())
+                if (isPublicAbstract(candidate.getModifiers())) {
+                    final MethodHandle handle;
+                    try {
+                        handle = MethodHandles.publicLookup().unreflect(candidate);
+                    } catch (final IllegalAccessException e) {
+                        throw new IllegalArgumentException("Invalid interface method " + candidate);
+                    }
+                    return MethodHandleProxies.asInterfaceInstance(outputInterface, handle.bindTo(fi));
                 }
-                return MethodHandleProxies.asInterfaceInstance(outputInterface, handle.bindTo(fi));
-            }
         throw new IllegalArgumentException("Incorrect interface " + inputInterface);
     }
 }
