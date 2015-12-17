@@ -1,5 +1,6 @@
-package com.bytex.snamp.internal;
+package com.bytex.snamp.adapters;
 
+import com.bytex.snamp.internal.EmptyEntryReader;
 import com.google.common.collect.HashMultimap;
 import org.junit.Assert;
 import org.junit.Test;

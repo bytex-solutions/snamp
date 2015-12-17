@@ -6,7 +6,7 @@ import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
-import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.internal.OperatingSystem;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.bytex.snamp.scripting.OSGiScriptEngineManager;
 import com.bytex.snamp.testing.SnampDependencies;
@@ -144,7 +144,7 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
 
     @Test
     public void readMemStatusTest() throws BundleException, IOException, JMException {
-        Assume.assumeTrue(Utils.IS_OS_LINUX);
+        Assume.assumeTrue(OperatingSystem.isLinux());
         final Object memStatus = readAttribute("ms");
         assertNotNull(memStatus);
         assertTrue(memStatus instanceof CompositeData);

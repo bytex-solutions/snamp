@@ -2,7 +2,7 @@ package com.bytex.snamp.connectors.groovy;
 
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
-import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.internal.OperatingSystem;
 import com.google.common.base.Strings;
 import org.junit.Assert;
 import org.junit.Test;
@@ -23,7 +23,7 @@ public final class ManagedResourceScriptEngineTest extends Assert {
     private static String getScriptDir(){
         String path = System.getProperty("DummyScriptFile");
         if(!Strings.isNullOrEmpty(path))
-            path = Paths.get(path, Utils.IS_OS_WINDOWS ? "sample-groovy-scripts\\" : "sample-groovy-scripts/").toAbsolutePath().toString();
+            path = Paths.get(path, OperatingSystem.isWindows() ? "sample-groovy-scripts\\" : "sample-groovy-scripts/").toAbsolutePath().toString();
         return path;
     }
 

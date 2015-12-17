@@ -1,13 +1,12 @@
 package com.bytex.jcommands.channels;
 
-import com.bytex.snamp.SafeCloseable;
-import com.google.common.collect.ImmutableMap;
 import com.bytex.jcommands.ChannelProcessingMode;
 import com.bytex.jcommands.ChannelProcessor;
 import com.bytex.jcommands.CommandExecutionChannel;
-import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.MethodStub;
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.io.IOUtils;
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.exec.ExecuteException;
 
 import java.io.IOException;
@@ -41,13 +40,8 @@ public final class LocalProcessExecutionChannel extends HashMap<String, String> 
     }
 
     int getNormalExitCode() {
-        if (containsKey(NORMAL_EXIT_CODE_PARAM))
-            return Integer.parseInt(get(NORMAL_EXIT_CODE_PARAM));
-        else if (Utils.IS_OS_LINUX)
-            return 0;
-        else if (Utils.IS_OS_WINDOWS)
-            return 0;
-        else return 0;
+        return containsKey(NORMAL_EXIT_CODE_PARAM) ?
+                Integer.parseInt(get(NORMAL_EXIT_CODE_PARAM)) : 0;
     }
 
     void setNormalExitCode(final int value){

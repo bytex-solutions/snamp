@@ -1,4 +1,4 @@
-package com.bytex.snamp.internal;
+package com.bytex.snamp.adapters;
 
 import com.bytex.snamp.EntryReader;
 import com.google.common.collect.ImmutableSet;
@@ -14,7 +14,7 @@ import java.util.Objects;
  * @version 1.0
  * @since 1.0
  */
-public final class WeakMultimap {
+final class WeakMultimap {
 
     private WeakMultimap(){
 

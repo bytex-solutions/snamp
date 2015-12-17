@@ -4,7 +4,7 @@ import com.bytex.snamp.concurrent.FutureThread;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.attributes.AttributeSupport;
-import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.internal.OperatingSystem;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import org.junit.Assume;
 import org.junit.Test;
@@ -46,7 +46,7 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
 
     @Test()
     public void loadTest() throws InterruptedException, ExecutionException, JMException {
-        Assume.assumeTrue(Utils.IS_OS_LINUX);
+        Assume.assumeTrue(OperatingSystem.isLinux());
         final ManagedResourceConnector connector = getManagementConnector();
         assertNotNull(connector);
         try {
@@ -77,7 +77,7 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
 
     @Test
     public void readMemStatusAttribute() throws JMException {
-        Assume.assumeTrue(Utils.IS_OS_LINUX);
+        Assume.assumeTrue(OperatingSystem.isLinux());
         final ManagedResourceConnector connector = getManagementConnector();
         assertNotNull(connector);
         try {

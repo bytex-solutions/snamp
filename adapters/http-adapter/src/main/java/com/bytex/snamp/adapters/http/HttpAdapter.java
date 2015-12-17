@@ -1,14 +1,13 @@
 package com.bytex.snamp.adapters.http;
 
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.adapters.AbstractResourceAdapter;
 import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.adapters.modeling.*;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
-import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.internal.KeyedObjects;
-import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.json.JsonUtils;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
@@ -26,6 +25,7 @@ import org.osgi.service.http.NamespaceException;
 import javax.management.*;
 import javax.servlet.Servlet;
 import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Application;
@@ -97,15 +97,19 @@ final class HttpAdapter extends AbstractResourceAdapter {
             return new URI(request.getRequestURL().toString());
         }
 
+        private AtmosphereConfig getAtmosphereConfig(final ServletRequest request){
+            final Object result = request.getAttribute(ATMOSPHERE_CONFIG);
+            if(result instanceof AtmosphereConfig)
+                return (AtmosphereConfig) result;
+            else throw new IllegalStateException(String.format("%s resource broadcaster cannot catch Atmosphere Framework config", resourceName));
+        }
+
         @Override
         public void initialize(final HttpServletRequest request) throws URISyntaxException {
             if (request != null && !isInitialized() && !isDestroyed())
                 synchronized (this) {
                     if (isInitialized() || isDestroyed()) return;
-                    final AtmosphereConfig frameworkConfig = Utils.safeCast(request.getAttribute(ATMOSPHERE_CONFIG), AtmosphereConfig.class);
-                    if (frameworkConfig == null)
-                        throw new RuntimeException(String.format("%s resource broadcaster cannot catch Atmosphere Framework config", resourceName));
-                    else initialize(resourceName, getRequestURI(request), frameworkConfig);
+                    else initialize(resourceName, getRequestURI(request), getAtmosphereConfig(request));
                 }
         }
 

@@ -28,10 +28,7 @@ import javax.management.*;
 import javax.management.openmbean.*;
 import java.beans.*;
 import java.beans.IntrospectionException;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.ref.WeakReference;
@@ -289,11 +286,23 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             return getType(method.getMethod().getReturnType());
         }
 
+        private static <A extends Annotation> A getParameterAnnotation(final Method method,
+                                                                      final int parameterIndex,
+                                                                      final Class<A> annotationType) {
+            final Annotation[][] annotations = method.getParameterAnnotations();
+            if(annotations.length >= parameterIndex)
+                return null;
+            for(final Annotation candidate: annotations[parameterIndex])
+                if(annotationType.isInstance(candidate))
+                    return annotationType.cast(candidate);
+            return null;
+        }
+
         private static OpenMBeanParameterInfoSupport[] getParameters(final MethodDescriptor method) throws ReflectionException {
             final Class<?>[] parameters = method.getMethod().getParameterTypes();
             final OpenMBeanParameterInfoSupport[] result = new OpenMBeanParameterInfoSupport[parameters.length];
             for (int i = 0; i < parameters.length; i++) {
-                final OperationParameter metadata = Utils.getParameterAnnotation(method.getMethod(), i, OperationParameter.class);
+                final OperationParameter metadata = getParameterAnnotation(method.getMethod(), i, OperationParameter.class);
                 final String name;
                 final String description;
                 if (metadata == null)
