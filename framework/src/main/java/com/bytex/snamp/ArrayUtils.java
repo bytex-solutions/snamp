@@ -5,6 +5,7 @@ import com.google.common.base.Predicate;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ObjectArrays;
 import com.google.common.primitives.*;
 
@@ -28,6 +29,15 @@ public final class ArrayUtils {
     private interface ByteArrayConverter<T>{
         byte[] convert(final T array, final int index);
     }
+
+    private static final ImmutableSet<SimpleType<?>> PRIMITIVE_TYPES = ImmutableSet.<SimpleType<?>>of(SimpleType.BOOLEAN,
+            SimpleType.CHARACTER,
+            SimpleType.BYTE,
+            SimpleType.SHORT,
+            SimpleType.INTEGER,
+            SimpleType.LONG,
+            SimpleType.FLOAT,
+            SimpleType.DOUBLE);
 
     private static final LoadingCache<Class<?>, Object> EMPTY_ARRAYS = CacheBuilder
             .newBuilder()
@@ -75,7 +85,7 @@ public final class ArrayUtils {
     /**
      * Removes all empty arrays from the cache.
      */
-    public static void invalidateEmptyArrays(){
+    static void invalidateEmptyArrays(){
         EMPTY_ARRAYS.invalidateAll();
     }
 
@@ -283,25 +293,8 @@ public final class ArrayUtils {
         else return false;
     }
 
-    @SafeVarargs
-    private static <T> boolean oneOf(final T first, final T... other){
-        for(final T item: other)
-            if(Objects.equals(first, item)) return true;
-        return false;
-    }
-
     private static <T> ArrayType<T[]> createArrayType(final SimpleType<T> elementType) throws OpenDataException{
-
-        final boolean primitive = oneOf(elementType,
-                SimpleType.BOOLEAN,
-                SimpleType.CHARACTER,
-                SimpleType.BYTE,
-                SimpleType.SHORT,
-                SimpleType.INTEGER,
-                SimpleType.LONG,
-                SimpleType.FLOAT,
-                SimpleType.DOUBLE);
-        return new ArrayType<>(elementType, primitive);
+        return new ArrayType<>(elementType, PRIMITIVE_TYPES.contains(elementType));
     }
 
     public static <T> ArrayType<T[]> createArrayType(final OpenType<T> elementType) throws OpenDataException {
