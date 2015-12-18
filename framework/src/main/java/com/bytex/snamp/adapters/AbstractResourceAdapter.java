@@ -610,6 +610,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
             throw new IOException(String.format("Unable to release resources associated with %s adapter instance", adapterInstanceName), e);
         } finally {
             mutableState = InternalState.finalState();
+            clearCache();
         }
     }
 

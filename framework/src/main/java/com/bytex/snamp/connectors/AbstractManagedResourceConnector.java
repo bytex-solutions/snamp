@@ -113,6 +113,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
         //change state of the connector
         closed.set();
         metrics = null;
+        clearCache();
     }
 
     /**
