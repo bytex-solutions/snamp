@@ -68,9 +68,9 @@ public final class SummaryMetrics extends AbstractAggregator implements MetricsR
         }
     }
 
-    private static final class GlobalAttributeMetrics extends AbstractMetrics<AttributeMetrics> implements AttributeMetrics {
+    private static final class SummaryAttributeMetrics extends AbstractMetrics<AttributeMetrics> implements AttributeMetrics {
 
-        private GlobalAttributeMetrics(final BundleContext context) {
+        private SummaryAttributeMetrics(final BundleContext context) {
             super(AttributeMetrics.class, context);
         }
 
@@ -115,8 +115,8 @@ public final class SummaryMetrics extends AbstractAggregator implements MetricsR
         }
     }
 
-    private static final class GlobalNotificationMetrics extends AbstractMetrics<NotificationMetrics> implements NotificationMetrics {
-        private GlobalNotificationMetrics(final BundleContext context) {
+    private static final class SummaryNotificationMetrics extends AbstractMetrics<NotificationMetrics> implements NotificationMetrics {
+        private SummaryNotificationMetrics(final BundleContext context) {
             super(NotificationMetrics.class, context);
         }
 
@@ -141,8 +141,8 @@ public final class SummaryMetrics extends AbstractAggregator implements MetricsR
         }
     }
 
-    private static final class GlobalOperationMetrics extends AbstractMetrics<OperationMetrics> implements OperationMetrics {
-        private GlobalOperationMetrics(final BundleContext context) {
+    private static final class SummaryOperationMetrics extends AbstractMetrics<OperationMetrics> implements OperationMetrics {
+        private SummaryOperationMetrics(final BundleContext context) {
             super(OperationMetrics.class, context);
         }
 
@@ -168,16 +168,16 @@ public final class SummaryMetrics extends AbstractAggregator implements MetricsR
     }
 
     @Aggregation
-    private final GlobalAttributeMetrics attributes;
+    private final SummaryAttributeMetrics attributes;
     @Aggregation
-    private final GlobalNotificationMetrics notifications;
+    private final SummaryNotificationMetrics notifications;
     @Aggregation
-    private final GlobalOperationMetrics operations;
+    private final SummaryOperationMetrics operations;
 
     public SummaryMetrics(final BundleContext context){
-        attributes = new GlobalAttributeMetrics(context);
-        notifications = new GlobalNotificationMetrics(context);
-        operations = new GlobalOperationMetrics(context);
+        attributes = new SummaryAttributeMetrics(context);
+        notifications = new SummaryNotificationMetrics(context);
+        operations = new SummaryOperationMetrics(context);
     }
 
     @Override

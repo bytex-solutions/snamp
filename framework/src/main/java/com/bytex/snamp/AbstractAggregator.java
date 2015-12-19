@@ -38,70 +38,47 @@ import java.util.concurrent.ExecutionException;
  * @version 1.0
  */
 public abstract class AbstractAggregator implements Aggregator {
-    private static final class SimpleAggregator extends Switch<Class<?>, Object> implements Aggregator{
-        private static final class IsAssignableFromCase<T> extends CaseStatement<Class<?>, Object>{
-            private final Class<T> aggregatedObjectType;
-            private final T aggregatedObject;
+    private interface AggregationSupplier {
+        Object get(final Aggregator owner) throws ReflectiveOperationException;
+    }
 
-            private IsAssignableFromCase(final Class<T> et, final T obj){
-                this.aggregatedObjectType = Objects.requireNonNull(et);
-                this.aggregatedObject = Objects.requireNonNull(obj);
-            }
+    private static final class FieldAggregationSupplier implements AggregationSupplier {
+        private final Field field;
 
-            @Override
-            public boolean match(final Class<?> expectedType) {
-                return expectedType.isAssignableFrom(aggregatedObjectType);
-            }
-
-            @Override
-            public T apply(final Class<?> expectedType) {
-                return aggregatedObject;
-            }
-        }
-
-        private <T> void addCase(final Class<T> objectType, final T aggregatedObject){
-            addCase(new IsAssignableFromCase<>(objectType, aggregatedObject));
+        private FieldAggregationSupplier(final Field fld){
+            this.field = Objects.requireNonNull(fld);
         }
 
         @Override
-        public <T> T queryObject(final Class<T> objectType) {
-            final Object obj = apply(objectType);
-            return objectType.isInstance(obj) ? objectType.cast(obj) : null;
+        public Object get(final Aggregator owner) throws IllegalAccessException {
+            return field.get(owner);
         }
     }
 
-    /**
-     * Represents aggregation builder.
-     * This class cannot be inherited or instantiated directly from your code.
-     */
-    public static final class AggregationBuilder implements Supplier<Aggregator>{
-        private SimpleAggregator aggregator;
+    private static final class MethodAggregationSupplier implements AggregationSupplier {
+        private final Method method;
 
-        private AggregationBuilder(){
-
-        }
-
-        public <T> AggregationBuilder aggregate(final Class<T> objectType, final T obj){
-            if(aggregator == null)
-                aggregator = new SimpleAggregator();
-            aggregator.addCase(objectType, obj);
-            return this;
+        private MethodAggregationSupplier(final Method m){
+            this.method = Objects.requireNonNull(m);
         }
 
         @Override
-        public Aggregator get() {
-            final Aggregator result = this.aggregator;
-            this.aggregator = null;
-            return result == null ? new SimpleAggregator() : result;
-        }
-
-        public Aggregator build(){
-            return get();
+        public Object get(final Aggregator owner) throws InvocationTargetException, IllegalAccessException {
+            return method.invoke(owner);
         }
     }
 
-    private interface AggregationProvider{
-        <T> T get(final Aggregator owner, final Class<T> expectedType) throws ReflectiveOperationException;
+    private static final class ObjectAggregationSupplier implements AggregationSupplier{
+        private final Object object;
+
+        private ObjectAggregationSupplier(final Object obj){
+            this.object = Objects.requireNonNull(obj);
+        }
+
+        @Override
+        public Object get(final Aggregator owner) {
+            return object;
+        }
     }
 
     private static final class AggregationNotFoundException extends Exception{
@@ -112,54 +89,74 @@ public abstract class AbstractAggregator implements Aggregator {
         }
     }
 
-    private static final class AggregationCacheLoader extends CacheLoader<Class<?>, AggregationProvider>{
+    private static final class AggregationCacheLoader extends CacheLoader<Class<?>, AggregationSupplier>{
         private final Class<? extends Aggregator> aggregatorType;
 
         private AggregationCacheLoader(final Class<? extends Aggregator> declaredType){
             this.aggregatorType = declaredType;
         }
 
-        private static AggregationProvider createAggregationProvider(final Field fld){
-            return new AggregationProvider() {
-                @Override
-                public <T> T get(final Aggregator owner, final Class<T> expectedType) throws IllegalAccessException {
-                    return expectedType.cast(fld.get(owner));
-                }
-            };
-        }
-
-        private static AggregationProvider createAggregationProvider(final Method m) {
-            return new AggregationProvider() {
-                @Override
-                public <T> T get(final Aggregator owner, final Class<T> expectedType) throws InvocationTargetException, IllegalAccessException {
-                    return expectedType.cast(m.invoke(owner));
-                }
-            };
-        }
-
-        private static AggregationProvider load(final Class<?> inheritanceFrame, final Class<?> serviceType) throws AggregationNotFoundException {
+        private static AggregationSupplier load(final Class<?> inheritanceFrame, final Class<?> serviceType) {
             //iterates through fields
             for (final Field f : inheritanceFrame.getDeclaredFields())
                 if (f.isAnnotationPresent(Aggregation.class) && serviceType.isAssignableFrom(f.getType())) {
                     if (!f.isAccessible()) f.setAccessible(true);
-                    return createAggregationProvider(f);
+                    return new FieldAggregationSupplier(f);
                 }
             //iterates through methods
             for (final Method m : inheritanceFrame.getDeclaredMethods())
                 if (m.isAnnotationPresent(Aggregation.class) && serviceType.isAssignableFrom(m.getReturnType())) {
                     if (!m.isAccessible()) m.setAccessible(true);
-                    return createAggregationProvider(m);
+                    return new MethodAggregationSupplier(m);
                 }
-            throw new AggregationNotFoundException();
+            return null;
         }
 
         @Override
-        public AggregationProvider load(final Class<?> serviceType) throws AggregationNotFoundException {
-            return load(aggregatorType, serviceType);
+        public AggregationSupplier load(final Class<?> serviceType) throws AggregationNotFoundException {
+            for (Class<?> inheritanceFrame = aggregatorType; !inheritanceFrame.equals(AbstractAggregator.class); inheritanceFrame = inheritanceFrame.getSuperclass()) {
+                final AggregationSupplier result = load(inheritanceFrame, serviceType);
+                if (result != null) return result;
+            }
+            throw new AggregationNotFoundException();
         }
     }
 
-    private final LoadingCache<Class<?>, AggregationProvider> providers;
+    /**
+     * Represents aggregation builder.
+     * This class cannot be inherited or instantiated directly from your code.
+     */
+    public static final class AggregationBuilder implements Supplier<AbstractAggregator>{
+        private AbstractAggregator aggregator;
+
+        private AggregationBuilder(){
+
+        }
+
+        private static AbstractAggregator createAggregator(){
+            return new AbstractAggregator() {};
+        }
+
+        public <T> AggregationBuilder aggregate(final Class<T> objectType, final T obj) {
+            if (aggregator == null)
+                aggregator = createAggregator();
+            aggregator.providers.put(objectType, new ObjectAggregationSupplier(obj));
+            return this;
+        }
+
+        @Override
+        public AbstractAggregator get() {
+            final AbstractAggregator result = this.aggregator;
+            this.aggregator = null;
+            return result == null ? createAggregator() : result;
+        }
+
+        public Aggregator build(){
+            return get();
+        }
+    }
+
+    private final LoadingCache<Class<?>, AggregationSupplier> providers;
 
     protected AbstractAggregator() {
         providers = CacheBuilder.newBuilder().build(new AggregationCacheLoader(getClass()));
@@ -181,7 +178,6 @@ public abstract class AbstractAggregator implements Aggregator {
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.METHOD, ElementType.FIELD})
     protected @interface Aggregation{
-
     }
 
     private <T> T queryObjectFallback(final Class<T> objectType, final Aggregator fallback) {
@@ -196,7 +192,7 @@ public abstract class AbstractAggregator implements Aggregator {
     protected final <T> T queryObject(final Class<T> objectType, final Aggregator fallback) {
         try {
             //try to load from cache
-            return providers.get(objectType).get(this, objectType);
+            return objectType.cast(providers.get(objectType).get(this));
         } catch (final ExecutionException e) {
             return e.getCause() instanceof AggregationNotFoundException ?
                     queryObjectFallback(objectType, fallback) :  //try fallback scenarios

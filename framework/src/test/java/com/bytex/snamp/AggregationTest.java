@@ -1,5 +1,6 @@
 package com.bytex.snamp;
 
+import com.bytex.snamp.connectors.metrics.MetricsReader;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -7,7 +8,10 @@ import org.junit.Test;
  * @author Roman Sakno
  */
 public final class AggregationTest extends Assert {
-    private static final class TestAggregator extends AbstractAggregator {
+    private interface SubInterface{
+
+    }
+    private static final class TestAggregator extends AbstractAggregator implements SubInterface {
 
         @Aggregation
         @SpecialUse
@@ -22,10 +26,12 @@ public final class AggregationTest extends Assert {
 
 
     @Test
-    public void serviceRetrievingTest(){
+    public void serviceRetrievingTest() {
         final TestAggregator provider = new TestAggregator();
-        assertTrue(provider.queryObject(StringBuilder.class) != null);
-        assertTrue(provider.queryObject(Short[].class) != null);
+        assertNotNull(provider.queryObject(StringBuilder.class));
+        assertNotNull(provider.queryObject(Short[].class));
+        assertNotNull(provider.queryObject(SubInterface.class));
+        assertNull(provider.queryObject(MetricsReader.class));
     }
 
     @Test
