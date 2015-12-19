@@ -128,7 +128,7 @@ START LEVEL 30 , List Threshold: 50
  87 | Installed |  80 | 1.0.0                      | Apache Aries Proxy API
  88 | Installed |  80 | 2.3.4                      | SNMP4J
  89 | Installed |  80 | 1.0.0                      | SNMP Resource Adapter
- 90 | Installed |  80 | 2.4.3                      | Groovy Runtime
+ 90 | Installed |  80 | 2.4.5                      | Groovy Runtime
  91 | Installed |  80 | 2.4.0.final_20141213170938 | Ivy
  92 | Installed |  80 | 1.0.0                      | Groovy Resource Adapter
  93 | Installed |  80 | 1.0.0                      | SNMP Connector

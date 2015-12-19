@@ -181,7 +181,7 @@ Initialization script used to initialize instance of the connector. Name of the 
 As the best practice, initialization script can be used for declaring references to third-party modules and libraries:
 
 ```groovy
-@Grab(group = 'org.codehaus.groovy', module = 'groovy-json', version = '2.4.3')
+@Grab(group = 'org.codehaus.groovy', module = 'groovy-json', version = '2.4.5')
 @GrabConfig(initContextClassLoader = true)
 import groovy.json.JsonSlurper
 ```
@@ -203,7 +203,7 @@ Special functions that can be declared in the script:
 Following example demonstrates simple initialization script:
 
 ```groovy
-@Grab(group = 'org.codehaus.groovy', module = 'groovy-json', version = '2.4.3')
+@Grab(group = 'org.codehaus.groovy', module = 'groovy-json', version = '2.4.5')
 @GrabConfig(initContextClassLoader = true)
 import groovy.json.JsonSlurper
 
