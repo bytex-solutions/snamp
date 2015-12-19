@@ -17,7 +17,6 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.snmp4j.security.AuthSHA;
 import org.snmp4j.security.PrivAES128;
-import org.snmp4j.security.PrivAES256;
 import org.snmp4j.security.SecurityLevel;
 import org.snmp4j.smi.Integer32;
 import org.snmp4j.smi.OID;
