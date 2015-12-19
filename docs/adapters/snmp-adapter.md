@@ -85,6 +85,8 @@ Each user should be configured using configuration parameters with the following
   * `des` - Data Encryption Algorithm
   * `3des` - Triple DES
 
+> Oracle JRE doesn't support AES encryption with 192/256 bit key strength. Use OpenJDK instead of Oracle JDK or decrease key strenght.
+
 Example:
 ```
 snmpv3-groups = group1; group2
