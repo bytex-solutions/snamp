@@ -31,9 +31,18 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
 
         }
 
+        private ResourceEventListenerList(final ResourceEventListenerList listeners){
+            super(listeners);
+        }
+
         @Override
         protected void invoke(final ResourceEvent event, final ResourceEventListener listener) {
             listener.handle(event);
+        }
+
+        @Override
+        public ResourceEventListenerList clone() {
+            return new ResourceEventListenerList(this);
         }
     }
 
@@ -149,9 +158,15 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
     }
 
     protected final void fireResourceEvent(final FeatureModifiedEvent<?> event) {
+        final ResourceEventListenerList snapshot;
         try (final LockScope ignored = beginWrite(resourceEventListenerSyncGroup)) {
-            resourceEventListeners.fire(event);
+            /*
+                We can't call 'fire' method is the block to avoid deadlock with
+                resource adapter
+             */
+            snapshot = resourceEventListeners.clone();
         }
+        snapshot.fire(event);
     }
 
     protected final F[] toArray(final Collection<? extends FeatureHolder<F>> features) {

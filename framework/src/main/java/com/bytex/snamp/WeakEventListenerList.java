@@ -12,7 +12,7 @@ import java.util.*;
  * @since 1.0
  */
 @ThreadSafe(false)
-public abstract class WeakEventListenerList<L extends EventListener, E extends EventObject> extends LinkedList<WeakEventListener<L>> {
+public abstract class WeakEventListenerList<L extends EventListener, E extends EventObject> extends LinkedList<WeakEventListener<L>> implements Cloneable {
     private static final long serialVersionUID = -9139754747382955308L;
 
     /**
@@ -20,6 +20,10 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
      */
     protected WeakEventListenerList(){
 
+    }
+
+    protected WeakEventListenerList(final WeakEventListenerList<L, E> listeners){
+        super(listeners);
     }
 
     /**
@@ -64,6 +68,8 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
      * @param listener A listener to invoke.
      */
     protected abstract void invoke(final E event, final L listener);
+
+    public abstract WeakEventListenerList<L, E> clone();
 
     /**
      * Passes event object to all listeners in this list.

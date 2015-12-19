@@ -18,9 +18,22 @@ public class MulticastNotificationListener extends ThreadSafeObject implements N
     private static final class NotificationListenerList extends WeakEventListenerList<NotificationListener, NotificationEvent>{
         private static final long serialVersionUID = 5751134745848417480L;
 
+        private NotificationListenerList(){
+
+        }
+
+        private NotificationListenerList(final NotificationListenerList listeners){
+            super(listeners);
+        }
+
         @Override
         protected void invoke(final NotificationEvent event, final NotificationListener listener) {
             listener.handleNotification(event);
+        }
+
+        @Override
+        public NotificationListenerList clone() {
+            return new NotificationListenerList(this);
         }
     }
 
