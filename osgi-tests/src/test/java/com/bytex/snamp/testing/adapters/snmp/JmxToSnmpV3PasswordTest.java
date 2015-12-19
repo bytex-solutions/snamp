@@ -16,6 +16,7 @@ import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.snmp4j.security.AuthSHA;
+import org.snmp4j.security.PrivAES128;
 import org.snmp4j.security.PrivAES256;
 import org.snmp4j.security.SecurityLevel;
 import org.snmp4j.smi.Integer32;
@@ -62,8 +63,10 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
                 SecurityLevel.authPriv,
                 PASSWORD,
                 AuthSHA.ID,
+                // Oracle JRE does not support 256 by default, so for test compatibility the key in use has been changed to 128.
+                // FYI: it DOES work with any other JRE, and either works with necessary Oracle JRE modules
                 PRIVACY_KEY,
-                PrivAES256.ID);
+                PrivAES128.ID);
     }
 
     @Override
@@ -339,7 +342,9 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
         snmpAdapter.getParameters().put(USER_NAME + "-password", PASSWORD);
         snmpAdapter.getParameters().put(USER_NAME + "-auth-protocol", "sha");
         snmpAdapter.getParameters().put(USER_NAME + "-privacy-key", PRIVACY_KEY);
-        snmpAdapter.getParameters().put(USER_NAME + "-privacy-protocol", "AES256");
+        // Oracle JRE does not support 256 by default, so for test compatibility the key in use has been changed to 128.
+        // FYI: it DOES work with any other JRE, and either works with necessary Oracle JRE modules
+        snmpAdapter.getParameters().put(USER_NAME + "-privacy-protocol", "AES128");
         //group2 setup
         snmpAdapter.getParameters().put("group2-security-level", "authNoPriv");
         snmpAdapter.getParameters().put("group2-access-rights", "read");
