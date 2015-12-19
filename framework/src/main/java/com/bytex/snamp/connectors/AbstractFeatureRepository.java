@@ -25,24 +25,13 @@ import java.util.*;
 public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> extends ThreadSafeObject implements Iterable<F> {
 
     private static final class ResourceEventListenerList extends WeakEventListenerList<ResourceEventListener, ResourceEvent> {
-        private static final long serialVersionUID = -9139754747382955308L;
-
         private ResourceEventListenerList() {
 
-        }
-
-        private ResourceEventListenerList(final ResourceEventListenerList listeners){
-            super(listeners);
         }
 
         @Override
         protected void invoke(final ResourceEvent event, final ResourceEventListener listener) {
             listener.handle(event);
-        }
-
-        @Override
-        public ResourceEventListenerList clone() {
-            return new ResourceEventListenerList(this);
         }
     }
 
@@ -112,18 +101,20 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
      */
     protected final Class<F> metadataType;
     private final ResourceEventListenerList resourceEventListeners;
-    private final Enum<?> resourceEventListenerSyncGroup;
     private final String resourceName;
 
     protected <G extends Enum<G>> AbstractFeatureRepository(final String resourceName,
                                                             final Class<F> metadataType,
-                                                            final Class<G> resourceGroupDef,
-                                                            final G resourceEventListenerSyncGroup) {
+                                                            final Class<G> resourceGroupDef) {
         super(resourceGroupDef);
         this.metadataType = Objects.requireNonNull(metadataType);
         this.resourceEventListeners = new ResourceEventListenerList();
-        this.resourceEventListenerSyncGroup = Objects.requireNonNull(resourceEventListenerSyncGroup);
         this.resourceName = resourceName;
+    }
+
+    protected AbstractFeatureRepository(final String resourceName,
+                                        final Class<F> metadataType){
+        this(resourceName, metadataType, SingleResourceGroup.class);
     }
 
     /**
@@ -141,32 +132,21 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
      * @param listener Repository event listener to add.
      */
     public final void addModelEventListener(final ResourceEventListener listener) {
-        try (final LockScope ignored = beginWrite(resourceEventListenerSyncGroup)) {
-            resourceEventListeners.add(listener);
-        }
+        resourceEventListeners.add(listener);
     }
 
     /**
      * Removes the specified repository event listener.
      *
      * @param listener The listener to remove.
+     * @return {@literal true}, if listener is removed successfully; otherwise, {@literal false}.
      */
-    public final void removeModelEventListener(final ResourceEventListener listener) {
-        try (final LockScope ignored = beginWrite(resourceEventListenerSyncGroup)) {
-            resourceEventListeners.remove(listener);
-        }
+    public final boolean removeModelEventListener(final ResourceEventListener listener) {
+        return resourceEventListeners.remove(listener);
     }
 
     protected final void fireResourceEvent(final FeatureModifiedEvent<?> event) {
-        final ResourceEventListenerList snapshot;
-        try (final LockScope ignored = beginWrite(resourceEventListenerSyncGroup)) {
-            /*
-                We can't call 'fire' method is the block to avoid deadlock with
-                resource adapter
-             */
-            snapshot = resourceEventListeners.clone();
-        }
-        snapshot.fire(event);
+        resourceEventListeners.fire(event);
     }
 
     protected final F[] toArray(final Collection<? extends FeatureHolder<F>> features) {
@@ -178,9 +158,7 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
     }
 
     protected final void removeAllResourceEventListeners() {
-        try (final LockScope ignored = beginWrite(resourceEventListenerSyncGroup)) {
-            resourceEventListeners.clear();
-        }
+        resourceEventListeners.clear();
     }
 
     /**

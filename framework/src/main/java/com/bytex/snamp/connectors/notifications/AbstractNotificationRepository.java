@@ -31,11 +31,6 @@ import java.util.logging.Logger;
  * @version 1.0
  */
 public abstract class AbstractNotificationRepository<M extends MBeanNotificationInfo> extends AbstractFeatureRepository<M> implements NotificationSupport, SafeCloseable {
-    private enum ANSResource{
-        NOTIFICATIONS,
-        RESOURCE_EVENT_LISTENERS
-    }
-
     private static final class NotificationHolder<M extends MBeanNotificationInfo> extends FeatureHolder<M>{
         private NotificationHolder(final M metadata,
                                    final String category,
@@ -141,10 +136,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     protected AbstractNotificationRepository(final String resourceName,
                                              final Class<M> notifMetadataType,
                                              final LongCounter sequenceNumberGenerator) {
-        super(resourceName,
-                notifMetadataType,
-                ANSResource.class,
-                ANSResource.RESOURCE_EVENT_LISTENERS);
+        super(resourceName, notifMetadataType);
         notifications = createNotifications();
         listeners = new NotificationListenerList();
         this.sequenceNumberGenerator = Objects.requireNonNull(sequenceNumberGenerator);
@@ -193,7 +185,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     protected final void fire(final NotificationCollector sender){
         //collect notifications
-        try(final LockScope ignored = beginRead(ANSResource.NOTIFICATIONS)){
+        try(final LockScope ignored = beginRead()){
             for(final NotificationHolder<M> holder: notifications.values())
                 sender.process(holder.getMetadata());
         }
@@ -221,7 +213,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
         if (isSuspended()) return; //check if events are suspended
 
         final Collection<Notification> notifs;
-        try (final LockScope ignored = beginRead(ANSResource.NOTIFICATIONS)) {
+        try (final LockScope ignored = beginRead()) {
             notifs = Lists.newArrayListWithExpectedSize(notifications.size());
             for (final NotificationHolder<M> holder : notifications.values())
                 if (Objects.equals(NotificationDescriptor.getName(holder.getMetadata()), category)) {
@@ -278,7 +270,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     public final M enableNotifications(final String category, final CompositeData options) {
         NotificationHolder<M> holder;
-        try(final LockScope ignored = beginWrite(ANSResource.NOTIFICATIONS)) {
+        try(final LockScope ignored = beginWrite()) {
             holder = notifications.get(category);
             if(holder != null) {
                 if (holder.equals(category, options))
@@ -321,7 +313,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     @Override
     public final M remove(final String category) {
         final NotificationHolder<M> holder;
-        try (final LockScope ignored = beginWrite(ANSResource.NOTIFICATIONS)) {
+        try (final LockScope ignored = beginWrite()) {
             holder = notifications.get(category);
             if (holder != null) {
                 notificationRemoved(holder.getMetadata());
@@ -341,7 +333,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     @Override
     public final ImmutableSet<String> getIDs() {
-        try (final LockScope ignored = beginRead(ANSResource.NOTIFICATIONS)) {
+        try (final LockScope ignored = beginRead()) {
             return ImmutableSet.copyOf(notifications.keySet());
         }
     }
@@ -351,7 +343,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      * @return {@literal true}, if all notifications disabled; otherwise, {@literal false}.
      */
     protected final boolean hasNoNotifications() {
-        try (final LockScope ignored = beginRead(ANSResource.NOTIFICATIONS)) {
+        try (final LockScope ignored = beginRead()) {
             return notifications.isEmpty();
         }
     }
@@ -411,14 +403,14 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     @Override
     public final M[] getNotificationInfo() {
-        try (final LockScope ignored = beginRead(ANSResource.NOTIFICATIONS)) {
+        try (final LockScope ignored = beginRead()) {
             return toArray(notifications.values());
         }
     }
 
     @Override
     public final M getNotificationInfo(final String category) {
-        try (final LockScope ignored = beginRead(ANSResource.NOTIFICATIONS)) {
+        try (final LockScope ignored = beginRead()) {
             final NotificationHolder<M> holder = notifications.get(category);
             return holder != null ? holder.getMetadata() : null;
         }
@@ -454,7 +446,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     public final void removeAll(final boolean removeNotificationListeners,
                                 final boolean removeResourceEventListeners){
-        try(final LockScope ignored = beginWrite(ANSResource.NOTIFICATIONS)){
+        try(final LockScope ignored = beginWrite()){
             for(final NotificationHolder<M> holder: notifications.values()) {
                 notificationRemoved(holder.getMetadata());
                 disableNotifications(holder.getMetadata());
@@ -474,7 +466,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
 
     @Override
     public final int size() {
-        try(final LockScope ignored = beginWrite(ANSResource.NOTIFICATIONS)){
+        try(final LockScope ignored = beginWrite()){
             return notifications.size();
         }
     }

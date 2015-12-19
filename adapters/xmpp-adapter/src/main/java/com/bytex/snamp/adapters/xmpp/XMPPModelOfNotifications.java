@@ -9,6 +9,9 @@ import com.bytex.snamp.EntryReader;
 import javax.management.MBeanNotificationInfo;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * @author Roman Sakno
@@ -16,23 +19,21 @@ import java.util.Map;
  * @since 1.0
  */
 final class XMPPModelOfNotifications extends MulticastNotificationListener implements NotificationSet<XMPPNotificationAccessor> {
-    private enum XNMResource{
-        LISTENERS,
-        NOTIFICATIONS
-    }
-
     private final Map<String, ResourceNotificationList<XMPPNotificationAccessor>> notifications;
+    private final ReadWriteLock lock;
 
     XMPPModelOfNotifications(){
-        super(XNMResource.class, XNMResource.LISTENERS);
         notifications = new HashMap<>(10);
+        lock = new ReentrantReadWriteLock();
     }
 
     XMPPNotificationAccessor enableNotifications(final String resourceName,
-                             final MBeanNotificationInfo metadata){
-        try(final LockScope ignored = beginWrite(XNMResource.NOTIFICATIONS)){
+                             final MBeanNotificationInfo metadata) {
+        final Lock writeLock = lock.writeLock();
+        writeLock.lock();
+        try {
             final ResourceNotificationList<XMPPNotificationAccessor> resource;
-            if(notifications.containsKey(resourceName))
+            if (notifications.containsKey(resourceName))
                 resource = notifications.get(resourceName);
             else notifications.put(resourceName, resource = new ResourceNotificationList<>());
             final XMPPNotificationAccessor router = new XMPPNotificationAccessor(metadata,
@@ -40,12 +41,16 @@ final class XMPPModelOfNotifications extends MulticastNotificationListener imple
                     resourceName);
             resource.put(router);
             return router;
+        } finally {
+            writeLock.unlock();
         }
     }
 
     XMPPNotificationAccessor disableNotifications(final String resourceName,
                                               final MBeanNotificationInfo metadata){
-        try(final LockScope ignored = beginWrite(XNMResource.NOTIFICATIONS)){
+        final Lock writeLock = lock.writeLock();
+        writeLock.lock();
+        try{
             final ResourceNotificationList<XMPPNotificationAccessor> resource =
                     notifications.get(resourceName);
             if(resource == null) return null;
@@ -53,32 +58,46 @@ final class XMPPModelOfNotifications extends MulticastNotificationListener imple
             if(resource.isEmpty())
                 notifications.remove(resourceName);
             return accessor;
+        } finally {
+            writeLock.unlock();
         }
     }
 
     Iterable<XMPPNotificationAccessor> clear(final String resourceName){
-        try(final LockScope ignored = beginWrite(XNMResource.NOTIFICATIONS)){
+        final Lock writeLock = lock.writeLock();
+        writeLock.lock();
+        try{
             final ResourceNotificationList<XMPPNotificationAccessor> resource =
                     notifications.remove(resourceName);
             return resource != null ? resource.values() : ImmutableList.<XMPPNotificationAccessor>of();
+        } finally {
+            writeLock.unlock();
         }
     }
 
     void clear(){
         removeAll();
-        try(final LockScope ignored = beginWrite(XNMResource.NOTIFICATIONS)){
+        final Lock writeLock = lock.writeLock();
+        writeLock.lock();
+        try{
             for(final ResourceNotificationList<?> list: notifications.values())
                 list.clear();
             notifications.clear();
+        }finally {
+            writeLock.unlock();
         }
     }
 
     @Override
     public <E extends Exception> void forEachNotification(final EntryReader<String, ? super XMPPNotificationAccessor, E> notificationReader) throws E {
-        try(final LockScope ignored = beginRead(XNMResource.NOTIFICATIONS)){
+        final Lock readLock = lock.readLock();
+        readLock.lock();
+        try{
             for(final ResourceNotificationList<XMPPNotificationAccessor> list: notifications.values())
                 for(final XMPPNotificationAccessor accessor: list.values())
                     if(!notificationReader.read(accessor.resourceName, accessor)) return;
+        }finally {
+            readLock.unlock();
         }
     }
 }

@@ -32,11 +32,6 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
  * @since 1.0
  */
 public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> extends AbstractFeatureRepository<M> implements OperationSupport, SafeCloseable {
-    private enum AOSResource{
-        OPERATIONS,
-        RESOURCE_EVENT_LISTENERS
-    }
-
     /**
      * Represents information about operation invocation. This class cannot be inherited or instantiated directly
      * from your code.
@@ -237,7 +232,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
 
     protected AbstractOperationRepository(final String resourceName,
                                           final Class<M> metadataType) {
-        super(resourceName, metadataType, AOSResource.class, AOSResource.RESOURCE_EVENT_LISTENERS);
+        super(resourceName, metadataType);
         operations = createOperations();
         metrics = new OperationMetricsWriter();
     }
@@ -278,7 +273,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
     @Override
     public final M remove(final String operationID) {
         final OperationHolder<M> holder;
-        try (final LockScope ignored = beginWrite(AOSResource.OPERATIONS)) {
+        try (final LockScope ignored = beginWrite()) {
             holder = operations.get(operationID);
             if(holder != null){
                 operationRemoved(holder.getMetadata());
@@ -306,7 +301,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
                                    final TimeSpan invocationTimeout,
                                    final CompositeData options){
         OperationHolder<M> holder;
-        try(final LockScope ignored = beginWrite(AOSResource.OPERATIONS)){
+        try(final LockScope ignored = beginWrite()){
             holder = operations.get(operationName);
             if(holder != null)
                 if(holder.equals(operationName, options))
@@ -368,7 +363,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      */
     @Override
     public final M[] getOperationInfo() {
-        try(final LockScope ignored = beginRead(AOSResource.OPERATIONS)){
+        try(final LockScope ignored = beginRead()){
             return toArray(operations.values());
         }
     }
@@ -381,7 +376,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      */
     @Override
     public final M getOperationInfo(final String operationID) {
-        try(final LockScope ignored = beginRead(AOSResource.OPERATIONS)){
+        try(final LockScope ignored = beginRead()){
             final OperationHolder<M> holder = operations.get(operationID);
             return holder != null ? holder.getMetadata() : null;
         }
@@ -418,7 +413,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
     public final Object invoke(final String operationName,
                          final Object[] params,
                          final String[] signature) throws MBeanException, ReflectionException {
-        try (final LockScope ignored = beginRead(AOSResource.OPERATIONS)) {
+        try (final LockScope ignored = beginRead()) {
             final OperationHolder<M> holder = operations.get(operationName);
             if (holder != null)
                 return invoke(holder, params);
@@ -438,7 +433,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      * @param removeResourceListeners {@literal true} to remove all resource listeners; otherwise, {@literal false}.
      */
     public final void removeAll(final boolean removeResourceListeners) {
-        try (final LockScope ignored = beginWrite(AOSResource.OPERATIONS)) {
+        try (final LockScope ignored = beginWrite()) {
             for (final OperationHolder<M> holder : operations.values()) {
                 operationRemoved(holder.getMetadata());
                 disableOperation(holder.getMetadata());
@@ -456,7 +451,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      */
     @Override
     public final ImmutableSet<String> getIDs() {
-        try(final LockScope ignored = beginRead(AOSResource.OPERATIONS)){
+        try(final LockScope ignored = beginRead()){
             return ImmutableSet.copyOf(operations.keySet());
         }
     }
@@ -468,7 +463,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
 
     @Override
     public final int size() {
-        try (final LockScope ignored = beginWrite(AOSResource.OPERATIONS)) {
+        try (final LockScope ignored = beginWrite()) {
             return operations.size();
         }
     }

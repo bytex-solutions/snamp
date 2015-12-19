@@ -38,11 +38,6 @@ import java.util.logging.Logger;
  * @version 1.0
  */
 public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> extends AbstractFeatureRepository<M> implements AttributeSupport, SafeCloseable {
-    private enum AASResource {
-        ATTRIBUTES,
-        RESOURCE_EVENT_LISTENERS
-    }
-
     private static final class AttributeHolder<M extends MBeanAttributeInfo> extends FeatureHolder<M> {
         private AttributeHolder(final M metadata,
                                 final String attributeName,
@@ -82,10 +77,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     protected AbstractAttributeRepository(final String resourceName,
                                           final Class<M> attributeMetadataType) {
-        super(resourceName,
-                attributeMetadataType,
-                AASResource.class,
-                AASResource.RESOURCE_EVENT_LISTENERS);
+        super(resourceName, attributeMetadataType);
         attributes = createAttributes();
         metrics = new AttributeMetricsWriter();
     }
@@ -119,7 +111,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     @ThreadSafe
     @Override
     public final int size() {
-        try (final LockScope ignored = beginRead(AASResource.ATTRIBUTES)) {
+        try (final LockScope ignored = beginRead()) {
             return attributes.size();
         }
     }
@@ -131,7 +123,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     @Override
     public final M[] getAttributeInfo() {
-        try (final LockScope ignored = beginRead(AASResource.ATTRIBUTES)) {
+        try (final LockScope ignored = beginRead()) {
             return toArray(attributes.values());
         }
     }
@@ -144,7 +136,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     @Override
     public final M getAttributeInfo(final String attributeName) {
-        try (final LockScope ignored = beginRead(AASResource.ATTRIBUTES)) {
+        try (final LockScope ignored = beginRead()) {
             final AttributeHolder<M> holder = attributes.get(attributeName);
             return holder != null ? holder.getMetadata() : null;
         }
@@ -314,7 +306,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
                                 final TimeSpan readWriteTimeout,
                                 final CompositeData options) {
         AttributeHolder<M> holder;
-        try (final LockScope ignored = beginWrite(AASResource.ATTRIBUTES)) {
+        try (final LockScope ignored = beginWrite()) {
             holder = attributes.get(attributeName);
             //if attribute exists then we should check whether the input arguments
             //are equal to the existing attribute options
@@ -399,7 +391,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     @Override
     public final Object getAttribute(final String attributeName) throws AttributeNotFoundException, MBeanException, ReflectionException {
-        try (final LockScope ignored = beginRead(AASResource.ATTRIBUTES)) {
+        try (final LockScope ignored = beginRead()) {
             if (attributes.containsKey(attributeName))
                 return getAttribute(attributes.get(attributeName));
             else throw JMExceptionUtils.attributeNotFound(attributeName);
@@ -470,7 +462,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     @Override
     public final void setAttribute(final Attribute attribute) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
-        try (final LockScope ignored = beginRead(AASResource.ATTRIBUTES)) {
+        try (final LockScope ignored = beginRead()) {
             if (attributes.containsKey(attribute.getName()))
                 setAttribute(attributes.get(attribute.getName()), attribute.getValue());
             else throw JMExceptionUtils.attributeNotFound(attribute.getName());
@@ -542,7 +534,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     @Override
     public final M remove(final String attributeID) {
         final AttributeHolder<M> holder;
-        try (final LockScope ignored = beginWrite(AASResource.ATTRIBUTES)) {
+        try (final LockScope ignored = beginWrite()) {
             holder = removeImpl(attributeID);
         }
         if (holder != null) {
@@ -557,7 +549,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      * @param removeAttributeEventListeners {@literal true} to remove all attribute listeners; otherwise, {@literal false}.
      */
     public final void removeAll(final boolean removeAttributeEventListeners) {
-        try (final LockScope ignored = beginWrite(AASResource.ATTRIBUTES)) {
+        try (final LockScope ignored = beginWrite()) {
             for (final AttributeHolder<M> holder : attributes.values()) {
                 attributeRemoved(holder.getMetadata());
                 disconnectAttribute(holder.getMetadata());
@@ -575,7 +567,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     @Override
     public final ImmutableSet<String> getIDs() {
-        try(final LockScope ignored = beginRead(AASResource.ATTRIBUTES)){
+        try(final LockScope ignored = beginRead()){
             return ImmutableSet.copyOf(attributes.keySet());
         }
     }
