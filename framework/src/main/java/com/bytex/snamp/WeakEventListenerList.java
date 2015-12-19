@@ -97,6 +97,7 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
      */
     @SuppressWarnings("unchecked")
     public final synchronized void clear() {
+        if (listeners == null) return;
         for (int index = 0; index <= listeners.length; index++) {
             final WeakEventListener<L> listenerRef = listeners[index];
             listeners[index] = null;
