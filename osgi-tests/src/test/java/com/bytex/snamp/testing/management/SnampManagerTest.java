@@ -113,7 +113,6 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             TabularDataUtils.forEachRow(attrs, new SafeConsumer<CompositeData>() {
                 @Override
                 public void accept(final CompositeData row) {
-                    assertTrue(row.get("userDefinedName") instanceof String);
                     assertTrue(row.get("description") instanceof String);
                     assertTrue(row.get("parameters") instanceof TabularData);
                     assertTrue(row.get("type") instanceof String);
