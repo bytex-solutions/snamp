@@ -75,6 +75,8 @@ aes256 | [Advanced Encryption Standard](http://en.wikipedia.org/wiki/Advanced_En
 des | [Data Encryption Standard](http://en.wikipedia.org/wiki/Data_Encryption_Standard)
 3des | [Triple Data Encryption Algorithm](http://en.wikipedia.org/wiki/Triple_DES)
 
+> Oracle JRE doesn't support AES encryption with 192/256 bit key strength. Use OpenJDK instead of Oracle JDK or decrease key strength.
+
 ## Configuring attributes
 SNMP Resource Connector interprets SNMP Managed Object as an attribute. Each SNMP Managed Object is identified by OID (OBject Identifier). Structurally, an OID consists of a node in a hierarchically-assigned namespace, formally defined using the ITU-T's ASN.1 standard, [X.690](http://en.wikipedia.org/wiki/X.690).
 
