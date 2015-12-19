@@ -4,6 +4,7 @@ import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.core.ServiceHolder;
+import com.bytex.snamp.internal.OperatingSystem;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
@@ -27,8 +28,12 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
  */
 @SnampDependencies({SnampFeature.JMX_CONNECTOR, SnampFeature.GROOVY_ADAPTER})
 public final class CommandsTest extends AbstractSnampIntegrationTest {
-    private CharSequence runCommand(final CharSequence command) throws Exception{
+    private CharSequence runCommand(String command) throws Exception{
         final ServiceHolder<CommandProcessor> processorRef = new ServiceHolder<>(getTestBundleContext(), CommandProcessor.class);
+        // On windows we have path separator that conflicts with escape symbols
+        if (OperatingSystem.isWindows()) {
+            command = command.replace("\\", "\\\\");
+        }
         final File outFile = File.createTempFile("snamp", "out");
         final File errFile = File.createTempFile("snamp", "err");
         try (final PipedInputStream input = new PipedInputStream();
@@ -326,7 +331,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
     @Override
