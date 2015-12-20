@@ -48,6 +48,7 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
     /**
      * Adds a new weak reference to the specified listener.
      * @param listener An event listener. Cannot be {@literal null}.
+     * @return Always {@literal true}.
      */
     @Override
     @SuppressWarnings("unchecked")
@@ -246,7 +247,7 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
     /**
      * Removes all listeners from this list.
      */
-    @SuppressWarnings("unchecked")
+    @Override
     public final synchronized void clear() {
         if (listeners == null) return;
         for (int index = 0; index < listeners.length; index++) {
