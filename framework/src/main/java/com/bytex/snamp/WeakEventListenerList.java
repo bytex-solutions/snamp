@@ -15,6 +15,7 @@ import java.util.*;
  */
 @ThreadSafe
 public abstract class WeakEventListenerList<L extends EventListener, E extends EventObject> implements Collection<L> {
+    private static final WeakEventListener[] EMPTY_LISTENERS = new WeakEventListener[0];
     private volatile WeakEventListener<L>[] listeners;
 
     /**
@@ -53,8 +54,7 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
     @Override
     @SuppressWarnings("unchecked")
     public final synchronized boolean add(final L listener) {
-        if(listeners == null)
-            listeners = ArrayUtils.emptyArray(WeakEventListener[].class);
+        if(listeners == null) listeners = EMPTY_LISTENERS;
         final WeakEventListener<L>[] newSnapshot = new WeakEventListener[listeners.length + 1];
         int outputIndex = 0;
         //remove dead references
@@ -158,17 +158,16 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
     @SuppressWarnings("unchecked")
     @Override
     public synchronized final boolean addAll(final Collection<? extends L> c) {
-        if(listeners == null)
-            listeners = ArrayUtils.emptyArray(WeakEventListener[].class);
+        if (listeners == null) listeners = EMPTY_LISTENERS;
         final WeakEventListener<L>[] newSnapshot = new WeakEventListener[listeners.length + c.size()];
         int outputIndex = 0;
         //remove dead references
-        for(final WeakEventListener<L> listenerRef: listeners)
+        for (final WeakEventListener<L> listenerRef : listeners)
             if (listenerRef.get() != null)
                 newSnapshot[outputIndex++] = listenerRef;
 
         //insert new elements into the end of list
-        for(final L listener: c)
+        for (final L listener : c)
             newSnapshot[outputIndex++] = new WeakEventListener<>(listener);
 
         this.listeners = Arrays.copyOf(newSnapshot, outputIndex);
