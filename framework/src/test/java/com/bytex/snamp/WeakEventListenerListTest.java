@@ -1,5 +1,6 @@
 package com.bytex.snamp;
 
+import com.google.common.collect.ImmutableList;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -17,10 +18,43 @@ public final class WeakEventListenerListTest extends Assert {
     }
 
     private static final class DummyEventListenerList extends WeakEventListenerList<DummyListener, EventObject>{
+
         @Override
         protected void invoke(final EventObject event, final DummyListener listener) {
             listener.invoke();
         }
+    }
+
+    @Test
+    public void toArrayTest(){
+        final DummyEventListenerList listeners = new DummyEventListenerList();
+        final DummyListener listener = new DummyListener() {
+            @Override
+            public void invoke() {
+
+            }
+        };
+        listeners.addAll(ImmutableList.of(listener, listener));
+        assertEquals(2, listeners.size());
+        EventListener[] array = listeners.toArray();
+        assertEquals(2, array.length);
+    }
+
+    @Test
+    public void toArray2Test(){
+        final DummyEventListenerList listeners = new DummyEventListenerList();
+        final DummyListener listener = new DummyListener() {
+            @Override
+            public void invoke() {
+
+            }
+        };
+        listeners.addAll(ImmutableList.of(listener, listener));
+        assertEquals(2, listeners.size());
+        final DummyListener[] array = listeners.toArray(new DummyListener[3]);
+        assertEquals(listener, array[0]);
+        assertEquals(listener, array[1]);
+        assertEquals(null, array[2]);
     }
 
     @Test
@@ -35,6 +69,7 @@ public final class WeakEventListenerListTest extends Assert {
         listeners.add(listener);
         listeners.add(listener);
         assertEquals(2, listeners.size());
+        assertTrue(listeners.contains(listener));
         for (final DummyListener l : listeners)
             assertEquals(System.identityHashCode(listener), System.identityHashCode(l));
         assertTrue(listeners.remove(listener));
@@ -55,6 +90,7 @@ public final class WeakEventListenerListTest extends Assert {
             }
         };
         listeners.add(listener);
+        assertTrue(listeners.containsAll(ImmutableList.of(listener)));
         listeners.fire(new EventObject(this));
         assertTrue(fired.get());
     }
