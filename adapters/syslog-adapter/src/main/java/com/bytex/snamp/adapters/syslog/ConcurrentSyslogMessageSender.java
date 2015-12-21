@@ -1,5 +1,6 @@
 package com.bytex.snamp.adapters.syslog;
 
+import com.bytex.snamp.SafeCloseable;
 import com.cloudbees.syslog.SyslogMessage;
 import com.cloudbees.syslog.sender.AbstractSyslogMessageSender;
 import com.cloudbees.syslog.sender.SyslogMessageSender;
@@ -16,7 +17,7 @@ import java.util.concurrent.Executors;
  * @version 1.0
  * @since 1.0
  */
-final class ConcurrentSyslogMessageSender extends AbstractSyslogMessageSender implements Closeable {
+final class ConcurrentSyslogMessageSender extends AbstractSyslogMessageSender implements Closeable, SafeCloseable {
     private final SyslogMessageSender messageSender;
     private final ExecutorService executor;
 

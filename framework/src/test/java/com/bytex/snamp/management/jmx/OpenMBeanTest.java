@@ -1,5 +1,6 @@
 package com.bytex.snamp.management.jmx;
 
+import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.jmx.OpenMBean;
 import org.junit.Assert;
 import org.junit.Test;
@@ -60,7 +61,7 @@ public final class OpenMBeanTest extends Assert {
         mbean.setAttribute(new Attribute("Temperature", 52));
         assertEquals(52, mbean.getAttribute("Temperature"));
         assertEquals(2, mbean.getMBeanInfo().getAttributes().length);
-        MBeanAttributeInfo info = mbean.getMBeanInfo().getAttributes()[0];
+        MBeanAttributeInfo info = ArrayUtils.getFirst(mbean.getMBeanInfo().getAttributes());
         assertEquals("Temperature", info.getName());
         assertTrue(info instanceof OpenMBeanAttributeInfo);
         assertTrue(info.isReadable());

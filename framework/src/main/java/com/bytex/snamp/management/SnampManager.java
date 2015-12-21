@@ -1,6 +1,7 @@
 package com.bytex.snamp.management;
 
 import com.bytex.snamp.core.FrameworkService;
+import com.bytex.snamp.core.SupportService;
 
 import java.util.Collection;
 
@@ -10,7 +11,7 @@ import java.util.Collection;
  * @version 1.0
  * @since 1.0
  */
-public interface SnampManager extends FrameworkService {
+public interface SnampManager extends SupportService {
 
     /**
      * Returns a read-only collection of installed resource connectors.

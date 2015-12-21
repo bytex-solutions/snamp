@@ -1,28 +1,27 @@
 package com.bytex.snamp.core;
 
+import com.bytex.snamp.SafeCloseable;
+import com.bytex.snamp.TimeSpan;
 import com.google.common.base.Joiner;
 import com.google.common.base.Stopwatch;
-import com.google.common.base.Ticker;
-import com.bytex.snamp.Consumer;
-import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.internal.IllegalStateFlag;
-import com.bytex.snamp.internal.annotations.MethodStub;
+import com.google.common.collect.Maps;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Stack;
+import java.util.Objects;
+import java.util.ResourceBundle;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.*;
 
 /**
- *
+ * Logical operation represented as logging scope in which all log messages are correlated.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-public class LogicalOperation implements AutoCloseable {
-    private static final ThreadLocal<LogicalOperation> operations = new ThreadLocal<>();
-    static final CorrelationIdentifierGenerator correlIdGenerator = new DefaultCorrelationIdentifierGenerator();
+public class LogicalOperation extends Logger implements SafeCloseable {
+    static final CorrelationIdentifierGenerator CORREL_ID_GEN = new DefaultCorrelationIdentifierGenerator();
+    private static final Joiner.MapJoiner TO_STRING_JOINER = Joiner.on(',').withKeyValueSeparator("=");
 
     /**
      * Represents correlation identifier generator.
@@ -38,6 +37,10 @@ public class LogicalOperation implements AutoCloseable {
         long generate();
     }
 
+    /**
+     * Represents default CorrelID generator.
+     * This class cannot be inherited.
+     */
     protected static final class DefaultCorrelationIdentifierGenerator extends AtomicLong implements CorrelationIdentifierGenerator{
         private static final long serialVersionUID = 1744163230081925999L;
 
@@ -49,66 +52,321 @@ public class LogicalOperation implements AutoCloseable {
             this(0L);
         }
 
+        /**
+         * Generates a new unique correlation identifier.
+         * @return A new unique correlation identifier.
+         */
         @Override
         public long generate() {
             return getAndIncrement();
         }
     }
 
-    private final String name;
-    private LogicalOperation parent;
-    private final IllegalStateFlag operationState = createStateFlagHolder();
-    private final Stopwatch timer;
+    private final String operationName;
     private final long correlationID;
+    private final Stopwatch timer;
+    private final Logger logger;
 
-    /**
-     * Initializes a new logical operation and push it into the stack.
-     * @param name The name of the logical operation.
-     * @param correlationID The correlation identifier generator.
-     * @param ticker The ticker used to measure duration of the logical operation execution.
-     */
-    protected LogicalOperation(final String name,
-                               final CorrelationIdentifierGenerator correlationID,
-                               final Ticker ticker){
-        this.name = name;
-        timer = Stopwatch.createStarted(ticker);
-        if((parent = current()) != null)
-            this.correlationID = parent.getCorrelationID();
-        else if(correlationID != null)
-            this.correlationID = correlationID.generate();
-        else this.correlationID = -1;
-        operations.set(this);
-    }
-
-    private static IllegalStateFlag createStateFlagHolder(){
-        return new IllegalStateFlag() {
-            @Override
-            protected IllegalStateException create() {
-                return new IllegalStateException("Logical operation is finished");
-            }
-        };
+    private LogicalOperation(final Logger logger,
+                             final String operationName,
+                             final long correlationID){
+        super(logger.getName(), logger.getResourceBundleName());
+        this.operationName = Objects.requireNonNull(operationName);
+        this.correlationID = correlationID;
+        this.timer = Stopwatch.createStarted();
+        this.logger = logger;
+        logger.entering(null, operationName);
     }
 
     /**
-     * Initializes a new logical operation and push it into the stack.
-     * @param name The name of the logical operation.
+     * Initializes a new logical operation.
+     * @param logger The underlying logger. Cannot be {@literal null}.
+     * @param operationName The name of the logical operation.
      * @param correlationID The correlation identifier generator.
      */
-    public LogicalOperation(final String name,
+    public LogicalOperation(final Logger logger,
+                            final String operationName,
+                               final CorrelationIdentifierGenerator correlationID) {
+        this(logger, operationName, correlationID != null ? correlationID.generate() : -1L);
+    }
+
+    /**
+     * Initializes a new logical operation.
+     * @param loggerName Name of the underlying logger. Cannot be {@literal null}.
+     * @param operationName The name of the logical operation.
+     * @param correlationID The correlation identifier generator.
+     */
+    public LogicalOperation(final String loggerName,
+                            final String operationName,
                             final CorrelationIdentifierGenerator correlationID){
-        this(name, correlationID, Ticker.systemTicker());
+        this(Logger.getLogger(loggerName), operationName, correlationID);
     }
 
     /**
-     * Initializes a new logical operation and push it into the stack.
-     * <p>
-     *     This constructor generates a new unique correlation identifier
-     *     across all threads in the application.
-     * </p>
-     * @param name The name of the logical operation.
+     * Initializes a new logical operation that is connected with the specified parent operation.
+     * @param operationName The name of the logical operation.
+     * @param parent The parent logical operation. Cannot be {@literal null}.
      */
-    public LogicalOperation(final String name){
-        this(name, correlIdGenerator);
+    public LogicalOperation(final String operationName,
+                            final LogicalOperation parent) {
+        this(parent.logger, operationName, parent.getCorrelationID());
+    }
+
+    /**
+     * Get the current filter for this Logger.
+     *
+     * @return a filter object (may be null)
+     */
+    @Override
+    public final Filter getFilter() {
+        return logger.getFilter();
+    }
+
+    /**
+     * Set a filter to control output on this Logger.
+     * <p/>
+     * After passing the initial "level" check, the Logger will
+     * call this Filter to check if a log record should really
+     * be published.
+     *
+     * @param newFilter a filter object (may be null)
+     * @throws SecurityException if a security manager exists and if
+     *                           the caller does not have LoggingPermission("control").
+     */
+    @Override
+    public final void setFilter(final Filter newFilter) throws SecurityException {
+        logger.setFilter(newFilter);
+    }
+
+    /**
+     * Get the Handlers associated with this logger.
+     * <p/>
+     *
+     * @return an array of all registered Handlers
+     */
+    @Override
+    public final Handler[] getHandlers() {
+        return logger.getHandlers();
+    }
+
+    /**
+     * Set the parent for this Logger.  This method is used by
+     * the LogManager to update a Logger when the namespace changes.
+     * <p/>
+     * It should not be called from application code.
+     * <p/>
+     *
+     * @param parent the new parent logger
+     * @throws SecurityException if a security manager exists and if
+     *                           the caller does not have LoggingPermission("control").
+     */
+    @Override
+    public final void setParent(final Logger parent) {
+        logger.setParent(parent);
+    }
+
+    /**
+     * Return the parent for this Logger.
+     * <p/>
+     * This method returns the nearest extant parent in the namespace.
+     * Thus if a Logger is called "a.b.c.d", and a Logger called "a.b"
+     * has been created but no logger "a.b.c" exists, then a call of
+     * getParent on the Logger "a.b.c.d" will return the Logger "a.b".
+     * <p/>
+     * The result will be null if it is called on the root Logger
+     * in the namespace.
+     *
+     * @return nearest existing parent Logger
+     */
+    @Override
+    public final Logger getParent() {
+        return logger.getParent();
+    }
+
+    /**
+     * Set the log level specifying which message levels will be
+     * logged by this logger.  Message levels lower than this
+     * value will be discarded.  The level value Level.OFF
+     * can be used to turn off logging.
+     * <p/>
+     * If the new level is null, it means that this node should
+     * inherit its level from its nearest ancestor with a specific
+     * (non-null) level value.
+     *
+     * @param newLevel the new value for the log level (may be null)
+     * @throws SecurityException if a security manager exists and if
+     *                           the caller does not have LoggingPermission("control").
+     */
+    @Override
+    public final void setLevel(final Level newLevel) throws SecurityException {
+        logger.setLevel(newLevel);
+    }
+
+    /**
+     * Get the log Level that has been specified for this Logger.
+     * The result may be null, which means that this logger's
+     * effective level will be inherited from its parent.
+     *
+     * @return this Logger's level
+     */
+    @Override
+    public final Level getLevel() {
+        return logger.getLevel();
+    }
+
+    /**
+     * Retrieve the localization resource bundle name for this
+     * logger.  Note that if the result is null, then the Logger
+     * will use a resource bundle name inherited from its parent.
+     *
+     * @return localization bundle name (may be null)
+     */
+    @Override
+    public final String getResourceBundleName() {
+        return logger.getResourceBundleName();
+    }
+
+    /**
+     * Retrieve the localization resource bundle for this
+     * logger for the current default locale.  Note that if
+     * the result is null, then the Logger will use a resource
+     * bundle inherited from its parent.
+     *
+     * @return localization bundle (may be null)
+     */
+    @Override
+    public final ResourceBundle getResourceBundle() {
+        return logger.getResourceBundle();
+    }
+
+    /**
+     * Check if a message of the given level would actually be logged
+     * by this logger.  This check is based on the Loggers effective level,
+     * which may be inherited from its parent.
+     *
+     * @param level a message logging level
+     * @return true if the given message level is currently being logged.
+     */
+    @Override
+    public final boolean isLoggable(final Level level) {
+        return logger.isLoggable(level);
+    }
+
+    /**
+     * Get the name for this logger.
+     *
+     * @return logger name.  Will be null for anonymous Loggers.
+     */
+    @Override
+    public final String getName() {
+        return logger.getName();
+    }
+
+    /**
+     * Add a log Handler to receive logging messages.
+     * <p/>
+     * By default, Loggers also send their output to their parent logger.
+     * Typically the root Logger is configured with a set of Handlers
+     * that essentially act as default handlers for all loggers.
+     *
+     * @param handler a logging Handler
+     * @throws SecurityException if a security manager exists and if
+     *                           the caller does not have LoggingPermission("control").
+     */
+    @Override
+    public final void addHandler(final Handler handler) throws SecurityException {
+        logger.addHandler(handler);
+    }
+
+    /**
+     * Remove a log Handler.
+     * <p/>
+     * Returns silently if the given Handler is not found or is null
+     *
+     * @param handler a logging Handler
+     * @throws SecurityException if a security manager exists and if
+     *                           the caller does not have LoggingPermission("control").
+     */
+    @Override
+    public final void removeHandler(final Handler handler) throws SecurityException {
+        logger.removeHandler(handler);
+    }
+
+    /**
+     * Specify whether or not this logger should send its output
+     * to its parent Logger.  This means that any LogRecords will
+     * also be written to the parent's Handlers, and potentially
+     * to its parent, recursively up the namespace.
+     *
+     * @param useParentHandlers true if output is to be sent to the
+     *                          logger's parent.
+     * @throws SecurityException if a security manager exists and if
+     *                           the caller does not have LoggingPermission("control").
+     */
+    @Override
+    public final void setUseParentHandlers(final boolean useParentHandlers) {
+        logger.setUseParentHandlers(useParentHandlers);
+    }
+
+    /**
+     * Discover whether or not this logger is sending its output
+     * to its parent logger.
+     *
+     * @return true if output is to be sent to the logger's parent
+     */
+    @Override
+    public final boolean getUseParentHandlers() {
+        return logger.getUseParentHandlers();
+    }
+
+    /**
+     * Log a LogRecord.
+     * <p/>
+     * All the other logging methods in this class call through
+     * this method to actually perform any logging.  Subclasses can
+     * override this single method to capture all log activity.
+     *
+     * @param record the LogRecord to be published
+     */
+    @Override
+    public final void log(final LogRecord record) {
+        record.setSourceMethodName(operationName);
+        record.setMessage(record.getMessage() + " Context: " + toString());
+        logger.log(record);
+    }
+
+    public final void log(final Level level,
+                          final String format,
+                          final Object param1,
+                          final Throwable e){
+        super.log(level, String.format(format, param1), e);
+    }
+
+    public final void log(final Level level,
+                          final String format,
+                          final Object param1,
+                          final Object param2,
+                          final Throwable e){
+        super.log(level, String.format(format, param1, param2), e);
+    }
+
+    public final void log(final Level level,
+                          final String format,
+                          final Object param1,
+                          final Object param2,
+                          final Object param3,
+                          final Throwable e){
+        super.log(level, String.format(format, param1, param2, param3), e);
+    }
+
+    public final void log(final Level level,
+                          final String format,
+                          final Object param1,
+                          final Object param2,
+                          final Object param3,
+                          final Object param4,
+                          final Throwable e){
+        super.log(level, String.format(format, param1, param2, param3, param4), e);
     }
 
     /**
@@ -133,111 +391,7 @@ public class LogicalOperation implements AutoCloseable {
      * @return The duration of logical operation execution.
      */
     public final TimeSpan getDuration(){
-        return new TimeSpan(getDuration(TimeUnit.NANOSECONDS), TimeUnit.NANOSECONDS);
-    }
-
-    /**
-     * Gets parent logical operation.
-     * @return The parent logical operation.
-     * @throws java.lang.IllegalStateException This operation is closed.
-     */
-    public final LogicalOperation getParent(){
-        operationState.verify();
-        return parent;
-    }
-
-    /**
-     * Gets a value indicating that this operation is closed.
-     * @return {@literal true}, if this operation is closed; otherwise, {@literal false}.
-     */
-    public final boolean isClosed(){
-        return operationState.get();
-    }
-
-    /**
-     * Gets name of this logical operation.
-     * @return The name of this logical operation.
-     */
-    public final String getName(){
-        return name;
-    }
-
-    /**
-     * Gets current logical operation.
-     * @return The current logical operation.
-     */
-    public static LogicalOperation current(){
-        return operations.get();
-    }
-
-    /**
-     * Processes the current logical operation.
-     * @param handler The logical operation handler.
-     * @param <E> Type of the exception that may be produced by handler.
-     * @return {@literal true}, if the caller method is in logical operation; otherwise, {@literal false}.
-     * @throws E Unable to process logical operation.
-     */
-    public static <E extends Throwable> boolean current(final Consumer<LogicalOperation, E> handler) throws E{
-        final LogicalOperation current = current();
-        if(current != null){
-            handler.accept(current);
-            return true;
-        }
-        else return false;
-    }
-
-    private static LogicalOperation pop(){
-        final LogicalOperation current = operations.get();
-        if(current != null) {
-            operations.set(current.parent);
-            current.parent = null;
-        }
-        return current;
-    }
-
-    /**
-     * Captures the stack of logical operations at the current thread.
-     * @return The stack of logical operations.
-     */
-    public static Stack<LogicalOperation> dumpStack(){
-        final Stack<LogicalOperation> result = new Stack<>();
-        LogicalOperation lookup = current();
-        while (lookup != null){
-            result.add(0, lookup);
-            lookup = lookup.getParent();
-        }
-        return result;
-    }
-
-    protected final  <L extends LogicalOperation> L findParent(final Class<L> operationClass){
-        LogicalOperation lookup = getParent();
-        while (lookup != null)
-            if(operationClass.isInstance(lookup)) return operationClass.cast(lookup);
-            else lookup = lookup.parent;
-        return null;
-    }
-
-    /**
-     * Finds logical operation in the logical operation stack of the current thread by its type.
-     * @param operationClass The type of the logical operation.
-     * @param <L> The type of the logical operation.
-     * @return The logical operation; or {@literal null} if the current stack doesn't contain
-     *  the logical operation of appropriate type.
-     */
-    public static <L extends LogicalOperation> L find(final Class<L> operationClass){
-        LogicalOperation lookup = current();
-        if(lookup == null) return null;
-        else if(operationClass.isInstance(lookup))
-            return operationClass.cast(lookup);
-        else return lookup.findParent(operationClass);
-    }
-
-    /**
-     * Invokes at the end of the logical operation.
-     */
-    @MethodStub
-    protected void onClose(){
-
+        return TimeSpan.ofNanos(getDuration(TimeUnit.NANOSECONDS));
     }
 
     /**
@@ -245,7 +399,7 @@ public class LogicalOperation implements AutoCloseable {
      * @param output An output map to populate with string data.
      */
     protected void collectStringData(final Map<String, Object> output) {
-        output.put("name", name);
+        output.put("name", operationName);
         output.put("duration", timer);
         output.put("correlationID", correlationID);
     }
@@ -256,23 +410,17 @@ public class LogicalOperation implements AutoCloseable {
      */
     @Override
     public final String toString() {
-        final Map<String, Object> result = new HashMap<>(10);
+        final Map<String, Object> result = Maps.newHashMap();
         collectStringData(result);
-        return Joiner.on(',').withKeyValueSeparator("=").join(result);
+        return TO_STRING_JOINER.join(result);
     }
 
     /**
-     * Pops the logical operation from the stack.
+     * Closes scope of the logical operation.
      */
     @Override
     public final void close() {
-        try{
-            onClose();
-        }
-        finally {
-            pop();
-            timer.stop();
-            operationState.set();
-        }
+        exiting(null, operationName);
+        timer.stop();
     }
 }

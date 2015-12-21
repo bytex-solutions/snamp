@@ -13,7 +13,7 @@ import java.util.Objects;
  * @version 1.0
  * @since 1.0
  */
-final class WeakEventListener<L extends EventListener> extends WeakReference<L> implements Supplier<L> {
+final class WeakEventListener<L extends EventListener> extends WeakReference<L> implements Supplier<L>, EventListener {
 
     WeakEventListener(final L listener) {
         super(Objects.requireNonNull(listener));

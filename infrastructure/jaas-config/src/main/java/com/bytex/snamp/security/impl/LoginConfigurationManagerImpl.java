@@ -1,15 +1,13 @@
 package com.bytex.snamp.security.impl;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Multimap;
-import com.google.common.net.MediaType;
-import com.google.gson.Gson;
 import com.bytex.snamp.AbstractAggregator;
-import com.bytex.snamp.ServiceReferenceHolder;
-import com.bytex.snamp.core.OSGiLoggingContext;
+import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.security.LoginConfigurationManager;
 import com.bytex.snamp.security.auth.login.json.JsonConfiguration;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multimap;
+import com.google.gson.Gson;
 import org.apache.karaf.jaas.config.JaasRealm;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
@@ -17,8 +15,8 @@ import org.osgi.service.cm.ConfigurationAdmin;
 
 import javax.security.auth.login.AppConfigurationEntry;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.Reader;
+import java.io.Writer;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,7 +28,6 @@ import java.util.logging.Logger;
  */
 final class LoginConfigurationManagerImpl extends AbstractAggregator implements LoginConfigurationManager {
     private static final String LOGGER_NAME = "com.bytex.snamp.login.config";
-    static final String CONFIGURATION_MIME_TYPE = MediaType.JSON_UTF_8.toString();
     private final Gson formatter;
 
     LoginConfigurationManagerImpl(final Gson formatter){
@@ -38,7 +35,7 @@ final class LoginConfigurationManagerImpl extends AbstractAggregator implements 
     }
 
     private BundleContext getContext(){
-        return Utils.getBundleContextByObject(this);
+        return Utils.getBundleContextOfObject(this);
     }
 
     /**
@@ -48,10 +45,10 @@ final class LoginConfigurationManagerImpl extends AbstractAggregator implements 
      * @throws java.io.IOException Some I/O problem occurred.
      */
     @Override
-    public void dumpConfiguration(final OutputStream out) throws IOException {
+    public void dumpConfiguration(final Writer out) throws IOException {
         final JsonConfiguration config = new JsonConfiguration();
         try {
-            dumpConfiguration(Utils.getBundleContextByObject(this), formatter, config);
+            dumpConfiguration(Utils.getBundleContextOfObject(this), formatter, config);
         } catch (final InvalidSyntaxException e) {
             throw new IOException(e);
         }
@@ -71,11 +68,27 @@ final class LoginConfigurationManagerImpl extends AbstractAggregator implements 
     public void dumpConfiguration(final Multimap<String, AppConfigurationEntry> out) {
         try {
             dumpConfiguration(getContext(), formatter, out);
+        } catch (final InvalidSyntaxException | IOException e) {
+            getLogger().log(Level.SEVERE, "Unable to dump JAAS configuration", e);
         }
-        catch (final InvalidSyntaxException | IOException e) {
-            try(final OSGiLoggingContext logger = OSGiLoggingContext.get(getLogger(), getContext())){
-                logger.log(Level.SEVERE, "Unable to dump JAAS configuration", e);
-            }
+    }
+
+    /**
+     * Setup empty configuration.
+     *
+     * @throws IOException Unable to setup configuration.
+     */
+    @Override
+    public void resetConfiguration() throws IOException {
+        final BundleContext context = getContext();
+        final ServiceHolder<ConfigurationAdmin> adminRef = new ServiceHolder<>(context,
+                ConfigurationAdmin.class);
+        try{
+            JaasRealmImpl.deleteAll(adminRef.getService());
+        } catch (final InvalidSyntaxException e) {
+            throw new IOException(e);
+        } finally {
+            adminRef.release(context);
         }
     }
 
@@ -86,10 +99,10 @@ final class LoginConfigurationManagerImpl extends AbstractAggregator implements 
      * @throws java.io.IOException Some I/O problem occurred.
      */
     @Override
-    public void loadConfiguration(final InputStream in) throws IOException {
+    public void loadConfiguration(final Reader in) throws IOException {
         final JsonConfiguration config = JsonConfiguration.deserialize(formatter, in);
         final BundleContext context = getContext();
-        final ServiceReferenceHolder<ConfigurationAdmin> adminRef = new ServiceReferenceHolder<>(context,
+        final ServiceHolder<ConfigurationAdmin> adminRef = new ServiceHolder<>(context,
                 ConfigurationAdmin.class);
         try {
             //delete existing realms

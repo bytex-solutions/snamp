@@ -1,8 +1,8 @@
 package com.bytex.snamp.concurrent;
 
-import com.google.common.collect.ImmutableMap;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.TimeSpan;
+import com.google.common.collect.ImmutableMap;
 
 import java.util.EnumSet;
 import java.util.concurrent.locks.Lock;
@@ -70,14 +70,14 @@ public abstract class ThreadSafeObject {
         LockScope writeLock();
     }
 
-    private static final class ReentrantReadWriteLockSlim extends ReentrantReadWriteLock implements ReadWriteLockSlim{
-        private static final long serialVersionUID = -4854391672080527468L;
+    private static final class ReentrantReadWriteLockSlim implements ReadWriteLockSlim{
         private final ReadLockScope readLock;
         private final WriteLockScope writeLock;
 
         private ReentrantReadWriteLockSlim(){
-            readLock = new ReadLockScope(this);
-            writeLock = new WriteLockScope(this);
+            final ReentrantReadWriteLock reentrantLock = new ReentrantReadWriteLock();
+            readLock = new ReadLockScope(reentrantLock);
+            writeLock = new WriteLockScope(reentrantLock);
         }
 
         @SuppressWarnings("NullableProblems")
@@ -112,7 +112,7 @@ public abstract class ThreadSafeObject {
     private ThreadSafeObject(final EnumSet<?> groups) {
         switch (groups.size()) {
             case 0:
-                throw new IllegalArgumentException("Set is empty.");
+                throw new IllegalArgumentException("Empty resource groups");
             case 1:
                 resourceGroups = ImmutableMap.<Enum<?>, ReadWriteLockSlim>of(groups.iterator().next(), new ReentrantReadWriteLockSlim());
                 break;
@@ -263,4 +263,5 @@ public abstract class ThreadSafeObject {
     protected final void endRead() {
         endRead(SingleResourceGroup.INSTANCE);
     }
+
 }

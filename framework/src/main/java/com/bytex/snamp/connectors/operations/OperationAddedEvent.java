@@ -1,7 +1,6 @@
 package com.bytex.snamp.connectors.operations;
 
 import com.bytex.snamp.connectors.FeatureAddedEvent;
-import com.bytex.snamp.internal.Utils;
 
 import javax.management.MBeanOperationInfo;
 
@@ -26,6 +25,7 @@ public class OperationAddedEvent extends FeatureAddedEvent<MBeanOperationInfo> {
      */
     @Override
     public final OperationSupport getSource() {
-        return Utils.safeCast(source, OperationSupport.class);
+        assert source instanceof OperationSupport: source;
+        return (OperationSupport) source;
     }
 }

@@ -3,7 +3,7 @@ package com.bytex.snamp.connectors.wmq;
 import com.ibm.mq.MQException;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 
 import javax.management.openmbean.CompositeData;
 import java.beans.IntrospectionException;
@@ -32,18 +32,18 @@ public final class MQConnectorActivator extends ManagedResourceActivator<MQConne
     private static final class MQConnectorFactory extends ManagedResourceConnectorModeler<MQConnector> {
 
         @Override
-        protected boolean addAttribute(final MQConnector connector, final String attributeID, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
-            return connector.addAttribute(attributeID, attributeName, readWriteTimeout, options) != null;
+        protected boolean addAttribute(final MQConnector connector, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+            return connector.addAttribute(attributeName, readWriteTimeout, options) != null;
         }
 
         @Override
-        protected boolean enableNotifications(final MQConnector connector, final String listId, final String category, final CompositeData options) {
+        protected boolean enableNotifications(final MQConnector connector, final String category, final CompositeData options) {
             //not supported
             return false;
         }
 
         @Override
-        protected boolean enableOperation(final MQConnector connector, final String operationID, final String operationName, final TimeSpan timeout, final CompositeData options) {
+        protected boolean enableOperation(final MQConnector connector, final String operationName, final TimeSpan timeout, final CompositeData options) {
             //not supported
             return false;
         }

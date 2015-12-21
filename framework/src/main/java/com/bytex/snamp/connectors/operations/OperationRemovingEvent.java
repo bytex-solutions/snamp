@@ -1,7 +1,6 @@
 package com.bytex.snamp.connectors.operations;
 
 import com.bytex.snamp.connectors.FeatureRemovingEvent;
-import com.bytex.snamp.internal.Utils;
 
 import javax.management.MBeanOperationInfo;
 
@@ -26,6 +25,7 @@ public class OperationRemovingEvent extends FeatureRemovingEvent<MBeanOperationI
      */
     @Override
     public final OperationSupport getSource() {
-        return Utils.safeCast(source, OperationSupport.class);
+        assert source instanceof OperationSupport : source;
+        return (OperationSupport) source;
     }
 }

@@ -1,11 +1,10 @@
 package com.bytex.snamp.testing.connectors.jmx;
 
-import com.google.common.base.Supplier;
-import com.google.common.reflect.TypeToken;
-import com.bytex.snamp.TypeTokens;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
+import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.OperationConfiguration;
 import com.bytex.snamp.connectors.operations.OperationSupport;
 import com.bytex.snamp.testing.connectors.AbstractResourceConnectorTest;
+import com.google.common.reflect.TypeToken;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 
@@ -16,7 +15,8 @@ import javax.management.ReflectionException;
 import javax.management.openmbean.CompositeData;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
-import java.util.Map;
+
+import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
 
 /**
  * @author Roman Sakno
@@ -30,24 +30,21 @@ public final class JmxConnectorWithMXBeanTest extends AbstractJmxConnectorTest<M
     }
 
     @Override
-    protected void fillOperations(final Map<String, OperationConfiguration> operations,
-                                  final Supplier<OperationConfiguration> operationFactory) {
-        OperationConfiguration operation = operationFactory.get();
-        operation.setOperationName("gc");
+    protected void fillOperations(final EntityMap<? extends OperationConfiguration> operations) {
+        OperationConfiguration operation = operations.getOrAdd("forceGC");
+        setFeatureName(operation, "gc");
         operation.getParameters().put("objectName", ManagementFactory.MEMORY_MXBEAN_NAME);
-        operations.put("forceGC", operation);
     }
 
     @Override
-    protected void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory) {
-        AttributeConfiguration attribute = attributeFactory.get();
-        attribute.setAttributeName("ObjectPendingFinalizationCount");
+    protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
+        AttributeConfiguration attribute = attributes.getOrAdd("1");
+        setFeatureName(attribute, "ObjectPendingFinalizationCount");
         attribute.getParameters().put("objectName", ManagementFactory.MEMORY_MXBEAN_NAME);
-        attributes.put("1", attribute);
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("HeapMemoryUsage");
+
+        attribute = attributes.getOrAdd("2");
+        setFeatureName(attribute, "HeapMemoryUsage");
         attribute.getParameters().put("objectName", ManagementFactory.MEMORY_MXBEAN_NAME);
-        attributes.put("2", attribute);
     }
 
     @Override
@@ -58,7 +55,7 @@ public final class JmxConnectorWithMXBeanTest extends AbstractJmxConnectorTest<M
 
     @Test
     public void testForAttributes() throws Exception {
-        testAttribute("1", TypeTokens.INTEGER, 0,
+        testAttribute("1", TypeToken.of(Integer.class), 0,
                 AbstractResourceConnectorTest.<Integer>valueEquator(),
                 true);
         testAttribute("2", TypeToken.of(CompositeData.class),
@@ -69,7 +66,8 @@ public final class JmxConnectorWithMXBeanTest extends AbstractJmxConnectorTest<M
 
     @Test
     public void operationTest() throws ReflectionException, MBeanException {
-        final OperationSupport operationSupport = getManagementConnector(getTestBundleContext()).queryObject(OperationSupport.class);
+        final OperationSupport operationSupport = getManagementConnector(getTestBundleContext())
+                .queryObject(OperationSupport.class);
         try{
             final Object result = operationSupport.invoke("forceGC", new Object[0], new String[0]);
             assertNull(result);

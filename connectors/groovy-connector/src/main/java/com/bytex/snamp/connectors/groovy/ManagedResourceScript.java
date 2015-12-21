@@ -1,22 +1,22 @@
 package com.bytex.snamp.connectors.groovy;
 
-import com.google.common.base.Supplier;
-import com.google.common.eventbus.Subscribe;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.Consumer;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.Repeater;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.connectors.notifications.NotificationSupport;
-import com.bytex.snamp.core.OSGiLoggingContext;
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.core.DistributedServices;
+import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.Communicator;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.JMExceptionUtils;
+import com.google.common.base.Supplier;
+import com.google.common.eventbus.Subscribe;
 import groovy.lang.Closure;
 import groovy.lang.Script;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
 
 import javax.management.*;
 import java.io.IOException;
@@ -96,7 +96,7 @@ abstract class ManagedResourceScript extends Script implements ManagedResourceSc
             if (connector == null)
                 throw new MBeanException(new NullPointerException("Managed resource doesn't support notifications"));
             for (final MBeanNotificationInfo notification : connector.getNotificationInfo())
-                if (ArrayUtils.contains(notification.getNotifTypes(), notificationType)) {
+                if (ArrayUtils.containsAny(notification.getNotifTypes(), notificationType)) {
                     metadata = DescriptorUtils.asDictionary(notification.getDescriptor());
                     return;
                 }
@@ -161,6 +161,7 @@ abstract class ManagedResourceScript extends Script implements ManagedResourceSc
     }
 
     private static final class AttributeValueWriter extends Attribute implements Consumer<ManagedResourceConnector, JMException> {
+        private static final long serialVersionUID = 2544352906527154257L;
 
         private AttributeValueWriter(final String name, final Object value) {
             super(name, value);
@@ -209,41 +210,31 @@ abstract class ManagedResourceScript extends Script implements ManagedResourceSc
 
     @SpecialUse
     protected static void error(final String message) {
-        try(final OSGiLoggingContext logger = OSGiLoggingContext.get(getLogger(), getBundleContext())){
-            logger.severe(message);
-        }
+        getLogger().severe(message);
     }
 
     @SpecialUse
     protected static void warning(final String message) {
-        try(final OSGiLoggingContext logger = OSGiLoggingContext.get(getLogger(), getBundleContext())){
-            logger.warning(message);
-        }
+        getLogger().warning(message);
     }
 
     @SpecialUse
     protected static void info(final String message) {
-        try(final OSGiLoggingContext logger = OSGiLoggingContext.get(getLogger(), getBundleContext())){
-            logger.info(message);
-        }
+        getLogger().info(message);
     }
 
     @SpecialUse
     protected static void debug(final String message) {
-        try(final OSGiLoggingContext logger = OSGiLoggingContext.get(getLogger(), getBundleContext())){
-            logger.config(message);
-        }
+        getLogger().config(message);
     }
 
     @SpecialUse
     protected static void fine(final String message) {
-        try(final OSGiLoggingContext logger = OSGiLoggingContext.get(getLogger(), getBundleContext())){
-            logger.fine(message);
-        }
+        getLogger().fine(message);
     }
 
     private static BundleContext getBundleContext() {
-        return FrameworkUtil.getBundle(ManagedResourceScript.class).getBundleContext();
+        return Utils.getBundleContext(ManagedResourceScript.class);
     }
 
     private static <E extends Throwable> void processResourceConnector(final String resourceName,
@@ -349,6 +340,11 @@ abstract class ManagedResourceScript extends Script implements ManagedResourceSc
     @SpecialUse
     protected static Communicator getCommunicator(final String sessionName) throws ExecutionException {
         return Communicator.getSession(sessionName);
+    }
+
+    @SpecialUse
+    protected static boolean isActiveClusterNode(){
+        return DistributedServices.isActiveNode(getBundleContext());
     }
 
     @SpecialUse

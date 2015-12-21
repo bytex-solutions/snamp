@@ -1,26 +1,22 @@
 package com.bytex.snamp.adapters.groovy;
 
-import com.google.common.eventbus.Subscribe;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.adapters.modeling.AttributeAccessor;
-import com.bytex.snamp.adapters.modeling.NotificationAccessor;
 import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.adapters.groovy.dsl.GroovyManagementModel;
+import com.bytex.snamp.adapters.modeling.AttributeAccessor;
+import com.bytex.snamp.adapters.modeling.NotificationAccessor;
 import com.bytex.snamp.concurrent.Repeater;
-import com.bytex.snamp.core.OSGiLoggingContext;
-import com.bytex.snamp.internal.RecordReader;
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.io.Communicator;
+import com.google.common.eventbus.Subscribe;
 import groovy.lang.Closure;
 import groovy.lang.Script;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
 
-import javax.management.*;
+import javax.management.JMException;
 import java.util.EventListener;
 import java.util.concurrent.ExecutionException;
-import java.util.logging.Logger;
 
 /**
  * Represents an abstract class for adapter automation script.
@@ -30,10 +26,6 @@ import java.util.logging.Logger;
  */
 public abstract class ResourceAdapterScript extends Script implements AutoCloseable, NotificationListener {
     public static final String MODEL_GLOBAL_VAR = "resources";
-
-    private static Logger getLogger() {
-        return ResourceAdapterInfo.getLogger();
-    }
 
     private GroovyManagementModel getModel() {
         return (GroovyManagementModel) super.getProperty(MODEL_GLOBAL_VAR);
@@ -93,45 +85,31 @@ public abstract class ResourceAdapterScript extends Script implements AutoClosea
 
     @SpecialUse
     protected static void error(final String message) {
-        try (final OSGiLoggingContext logger = OSGiLoggingContext.get(ResourceAdapterInfo.getLogger(), getBundleContext())) {
-            logger.severe(message);
-        }
+        ResourceAdapterInfo.getLogger().severe(message);
     }
 
     @SpecialUse
     protected static void warning(final String message) {
-        try (final OSGiLoggingContext logger = OSGiLoggingContext.get(getLogger(), getBundleContext())) {
-            logger.warning(message);
-        }
+        ResourceAdapterInfo.getLogger().warning(message);
     }
 
     @SpecialUse
     protected static void info(final String message) {
-        try (final OSGiLoggingContext logger = OSGiLoggingContext.get(getLogger(), getBundleContext())) {
-            logger.info(message);
-        }
+        ResourceAdapterInfo.getLogger().info(message);
     }
 
     @SpecialUse
     protected static void debug(final String message) {
-        try (final OSGiLoggingContext logger = OSGiLoggingContext.get(getLogger(), getBundleContext())) {
-            logger.config(message);
-        }
+        ResourceAdapterInfo.getLogger().config(message);
     }
 
     @SpecialUse
     protected static void fine(final String message) {
-        try (final OSGiLoggingContext logger = OSGiLoggingContext.get(getLogger(), getBundleContext())) {
-            logger.fine(message);
-        }
-    }
-
-    private static BundleContext getBundleContext() {
-        return FrameworkUtil.getBundle(ResourceAdapterScript.class).getBundleContext();
+        ResourceAdapterInfo.getLogger().fine(message);
     }
 
     private static void processAttributes(final AttributesRootAPI model, final Closure<?> closure) throws JMException {
-        model.processAttributes(new RecordReader<String, AttributeAccessor, JMException>() {
+        model.processAttributes(new EntryReader<String, AttributeAccessor, JMException>() {
             @Override
             public boolean read(final String resourceName, final AttributeAccessor accessor) throws JMException {
                 switch (closure.getMaximumNumberOfParameters()) {
@@ -159,7 +137,7 @@ public abstract class ResourceAdapterScript extends Script implements AutoClosea
     }
 
     private static void processEvents(final EventsRootAPI model, final Closure<?> closure) throws JMException {
-        model.processEvents(new RecordReader<String, NotificationAccessor, JMException>() {
+        model.processEvents(new EntryReader<String, NotificationAccessor, JMException>() {
             @Override
             public boolean read(final String resourceName, final NotificationAccessor accessor) throws JMException {
                 switch (closure.getMaximumNumberOfParameters()) {
@@ -210,7 +188,7 @@ public abstract class ResourceAdapterScript extends Script implements AutoClosea
 
     @SpecialUse
     protected final ResourceAttributesAnalyzer<?> attributesAnalyzer(final long checkPeriod){
-        return attributesAnalyzer(new TimeSpan(checkPeriod));
+        return attributesAnalyzer(TimeSpan.ofMillis(checkPeriod));
     }
 
     @SpecialUse

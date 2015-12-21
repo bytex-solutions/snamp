@@ -1,13 +1,15 @@
 package com.bytex.snamp.adapters;
 
+import com.bytex.snamp.ExceptionPlaceholder;
+import com.bytex.snamp.Internal;
+import com.bytex.snamp.TimeSpan;
+import com.bytex.snamp.concurrent.GroupedThreadFactory;
+import com.bytex.snamp.EntryReader;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.bytex.snamp.concurrent.AsyncEventListener;
-import com.bytex.snamp.concurrent.GroupedThreadFactory;
-import com.bytex.snamp.core.LogicalOperation;
-import com.bytex.snamp.internal.WeakMultimap;
 
 import java.lang.ref.WeakReference;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -17,14 +19,48 @@ import java.util.concurrent.Executors;
  * @since 1.0
  */
 final class ResourceAdapterEventBus {
+    private static final ExecutorService EVENT_EXECUTOR =
+            Executors.newSingleThreadExecutor(new GroupedThreadFactory("ADAPTER_EVENT_BUS"));
+
+    private static final class AdapterEventHandler implements EntryReader<String, ResourceAdapterEventListener, ExceptionPlaceholder> {
+        private final String adapterName;
+        private final ResourceAdapterEvent event;
+
+        private AdapterEventHandler(final String adapterName,
+                                    final ResourceAdapterEvent event) {
+            this.adapterName = adapterName;
+            this.event = event;
+        }
+
+        private static Runnable eventWithListener(final ResourceAdapterEvent event, final ResourceAdapterEventListener listener) {
+            return new Runnable() {
+                @Override
+                public void run() {
+                    listener.handle(event);
+                }
+            };
+        }
+
+        @Override
+        public boolean read(final String adapterName, final ResourceAdapterEventListener listener) {
+            if (Objects.equals(this.adapterName, adapterName))
+                if (EVENT_EXECUTOR.isTerminated())
+                    listener.handle(event);
+                else EVENT_EXECUTOR.execute(eventWithListener(event, listener));
+            return true;
+        }
+    }
+
     private static final Multimap<String, WeakReference<ResourceAdapterEventListener>> listeners =
             HashMultimap.create(10, 3);
-    private static final ExecutorService eventExecutor =
-            Executors.newSingleThreadExecutor(new GroupedThreadFactory("ADAPTER_EVENTS"));
-
 
     private ResourceAdapterEventBus(){
+    }
 
+    @Internal
+    static boolean disableAsyncMode(final TimeSpan terminationTimeout) throws InterruptedException {
+        EVENT_EXECUTOR.shutdown();
+        return EVENT_EXECUTOR.awaitTermination(terminationTimeout.duration, terminationTimeout.unit);
     }
 
     static boolean addEventListener(final String adapterName,
@@ -44,40 +80,29 @@ final class ResourceAdapterEventBus {
     }
 
     private static void fireAdapterListeners(final String adapterName,
-                                             final ResourceAdapterEvent event){
-        synchronized (listeners){
-            WeakMultimap.gc(listeners);
-            for(final WeakReference<ResourceAdapterEventListener> listenerRef: listeners.get(adapterName)){
-                final ResourceAdapterEventListener listener = listenerRef.get();
-                if(listener instanceof AsyncEventListener)
-                    eventExecutor.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            listener.handle(event);
-                        }
-                    });
-                else if(listener != null) listener.handle(event);
-            }
+                                             final ResourceAdapterEvent event) {
+        synchronized (listeners) {
+            WeakMultimap.iterate(listeners, new AdapterEventHandler(adapterName, event));
         }
     }
 
-    static void notifyAdapterStopped(final String adapterName, final ResourceAdapter adapter){
-        adapter.getLogger().info(String.format("Adapter %s is stopped. Context: %s", adapter.getInstanceName(), LogicalOperation.current()));
+    static void notifyAdapterStopped(final String adapterName, final ResourceAdapter adapter) {
+        adapter.getLogger().info(String.format("Adapter %s is stopped", adapter.getInstanceName()));
         fireAdapterListeners(adapterName, new ResourceAdapterStoppedEvent(adapter));
     }
 
     static void notifyAdapterStarted(final String adapterName, final ResourceAdapter adapter){
-        adapter.getLogger().info(String.format("Adapter %s is started. Context: %s", adapter.getInstanceName(), LogicalOperation.current()));
+        adapter.getLogger().info(String.format("Adapter %s is started", adapter.getInstanceName()));
         fireAdapterListeners(adapterName, new ResourceAdapterStartedEvent(adapter));
     }
 
     static void notifyAdapterUpdating(final String adapterName, final ResourceAdapter adapter){
-        adapter.getLogger().info(String.format("Adapter %s is updating. Context: %s", adapter.getInstanceName(), LogicalOperation.current()));
+        adapter.getLogger().info(String.format("Adapter %s is updating", adapter.getInstanceName()));
         fireAdapterListeners(adapterName, new ResourceAdapterUpdatingEvent(adapter));
     }
 
     static void notifyAdapterUpdated(final String adapterName, final ResourceAdapter adapter) {
-        adapter.getLogger().info(String.format("Adapter %s is updated. Context: %s", adapter.getInstanceName(), LogicalOperation.current()));
+        adapter.getLogger().info(String.format("Adapter %s is updated", adapter.getInstanceName()));
         fireAdapterListeners(adapterName, new ResourceAdapterUpdatedEvent(adapter));
     }
 }

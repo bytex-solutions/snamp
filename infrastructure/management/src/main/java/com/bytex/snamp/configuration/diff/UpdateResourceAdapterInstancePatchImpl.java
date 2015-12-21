@@ -1,7 +1,7 @@
 package com.bytex.snamp.configuration.diff;
 
 import com.bytex.snamp.configuration.AbstractAgentConfiguration;
-import com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
+import com.bytex.snamp.configuration.AgentConfiguration.*;
 
 import java.util.Map;
 
@@ -17,11 +17,10 @@ final class UpdateResourceAdapterInstancePatchImpl extends AbstractResourceAdapt
     }
 
     @Override
-    protected void applyTo(final Map<String, ResourceAdapterConfiguration> adapters) {
-        final ResourceAdapterConfiguration baselineConfig = adapters.get(getAdapterInstanceName());
+    protected void applyTo(final EntityMap<? extends ResourceAdapterConfiguration> adapters) {
+        ResourceAdapterConfiguration baselineConfig = adapters.get(getAdapterInstanceName());
         if (baselineConfig == null)
-            adapters.put(getAdapterInstanceName(), getAdapter());
-        else
-            AbstractAgentConfiguration.copy(getAdapter(), baselineConfig);
+            baselineConfig = adapters.getOrAdd(getAdapterInstanceName());
+        AbstractAgentConfiguration.copy(getAdapter(), baselineConfig);
     }
 }

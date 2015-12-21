@@ -56,7 +56,7 @@ public final class CompositeTypeBuilder implements OpenTypeBuilder<CompositeType
      * @param value The description of the composite type. Cannot be {@literal null} or empty.
      * @return This builder.
      */
-    public final CompositeTypeBuilder setDescription(final String value){
+    public CompositeTypeBuilder setDescription(final String value){
         this.typeDescription = Objects.requireNonNull(value, "value is null.");
         return this;
     }
@@ -94,7 +94,7 @@ public final class CompositeTypeBuilder implements OpenTypeBuilder<CompositeType
      * @return A new instance of the {@link javax.management.openmbean.CompositeType} instance.
      * @throws javax.management.openmbean.OpenDataException Invalid composite type.
      */
-    public final CompositeType build() throws OpenDataException {
+    public CompositeType build() throws OpenDataException {
         return build(typeName,
                 typeDescription,
                 items);
@@ -116,15 +116,15 @@ public final class CompositeTypeBuilder implements OpenTypeBuilder<CompositeType
 
     /**
      * Constructs a new composite data.
-     * @param values
-     * @return
-     * @throws OpenDataException
+     * @param items The mappings of all the item names to their values
+     * @return A new instance of composite data.
+     * @throws OpenDataException Invalid items.
      */
-    public final CompositeData build(final Map<String, ?> values) throws OpenDataException {
-        return new CompositeDataSupport(build(), values);
+    public CompositeData build(final Map<String, ?> items) throws OpenDataException {
+        return new CompositeDataSupport(build(), items);
     }
 
-    final int size(){
+    int size(){
         return items.size();
     }
 
@@ -134,7 +134,7 @@ public final class CompositeTypeBuilder implements OpenTypeBuilder<CompositeType
      * @throws java.lang.IllegalStateException Invalid composite type.
      */
     @Override
-    public final CompositeType get() throws IllegalStateException{
+    public CompositeType get() throws IllegalStateException{
         try {
             return build();
         } catch (final OpenDataException e) {

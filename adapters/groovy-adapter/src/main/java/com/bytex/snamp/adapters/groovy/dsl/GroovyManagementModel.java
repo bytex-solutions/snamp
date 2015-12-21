@@ -1,12 +1,12 @@
 package com.bytex.snamp.adapters.groovy.dsl;
 
+import com.bytex.snamp.Aggregator;
+import com.bytex.snamp.SpecialUse;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.bytex.snamp.Aggregator;
-import com.bytex.snamp.internal.CallableSupplier;
-import com.bytex.snamp.internal.annotations.SpecialUse;
 import groovy.lang.GroovyObjectSupport;
 
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -24,9 +24,9 @@ public abstract class GroovyManagementModel extends GroovyObjectSupport implemen
 
     private GroovyManagedResource getOrPutResource(final String resourceName) {
         try {
-            return cache.get(resourceName, new CallableSupplier<GroovyManagedResource>() {
+            return cache.get(resourceName, new Callable<GroovyManagedResource>() {
                 @Override
-                public GroovyManagedResource get() {
+                public GroovyManagedResource call() {
                     return new GroovyManagedResource(GroovyManagementModel.this, resourceName);
                 }
             });

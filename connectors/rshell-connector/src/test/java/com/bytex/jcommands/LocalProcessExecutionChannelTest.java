@@ -1,12 +1,12 @@
 package com.bytex.jcommands;
 
-import com.google.common.collect.ImmutableMap;
 import com.bytex.jcommands.channels.CommandExecutionChannels;
 import com.bytex.jcommands.channels.LocalProcessExecutionChannel;
 import com.bytex.jcommands.impl.XmlCommandLineTemplate;
 import com.bytex.jcommands.impl.XmlParserDefinition;
 import com.bytex.jcommands.impl.XmlParsingResultType;
-import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.internal.OperatingSystem;
+import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
@@ -31,7 +31,7 @@ public class LocalProcessExecutionChannelTest extends Assert {
 
     @Test
     public void echoTest() throws Exception {
-        Assume.assumeTrue("Linux-specific test", Utils.IS_OS_LINUX);
+        Assume.assumeTrue("Linux-specific test", OperatingSystem.isLinux());
         try(final CommandExecutionChannel channel = CommandExecutionChannels.createLocalProcessExecutionChannel()){
             final String str = "Hello, world!";
             final String result = channel.exec(new ChannelProcessor<String, String, Exception>() {
@@ -52,7 +52,7 @@ public class LocalProcessExecutionChannelTest extends Assert {
 
     @Test
     public void freeMemTest() throws IOException, ScriptException {
-        Assume.assumeTrue("Linux-specific test", Utils.IS_OS_LINUX);
+        Assume.assumeTrue("Linux-specific test", OperatingSystem.isLinux());
         final XmlCommandLineTemplate template = new XmlCommandLineTemplate();
         template.setCommandTemplate("free {format}");
         template.getCommandOutputParser().setParsingLanguage(XmlParserDefinition.REGEXP_LANG);

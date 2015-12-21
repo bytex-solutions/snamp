@@ -2,16 +2,17 @@ package com.bytex.snamp.testing;
 
 import com.bytex.snamp.Consumer;
 import com.bytex.snamp.ExceptionalCallable;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.*;
 import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.PersistentConfigurationManager;
 import com.bytex.snamp.configuration.SerializableAgentConfiguration;
-import com.bytex.snamp.internal.annotations.SpecialUse;
 import org.junit.After;
 import org.junit.Before;
 import org.ops4j.pax.exam.karaf.options.KarafFeaturesOption;
+import org.ops4j.pax.exam.options.MavenArtifactUrlReference;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.cm.ConfigurationAdmin;
 
@@ -20,7 +21,10 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
 
 /**
  * Represents an abstract class for all SNAMP-based integration tests.
@@ -57,6 +61,23 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
                 fire(e.getSource());
         }
     }
+    private static final EnvironmentBuilder SNAMP_ENV_BUILDER = new EnvironmentBuilder() {
+        @Override
+        public Collection<KarafFeaturesOption> getFeatures(final Class<? extends AbstractIntegrationTest> testType) {
+            final Collection<KarafFeaturesOption> result = new LinkedList<>();
+            for (final SnampDependencies deps : TestUtils.getAnnotations(testType, SnampDependencies.class))
+                for (final SnampFeature feature : deps.value())
+                    try {
+                        result.add(new SnampFeatureOption(feature));
+                    } catch (final MalformedURLException e) {
+                        fail(e.getMessage());
+                    }
+            for(final MavenDependencies deps: TestUtils.getAnnotations(testType, MavenDependencies.class))
+                for(final MavenFeature feature: deps.value())
+                    result.add(new KarafFeaturesOption(new MavenArtifactUrlReference().artifactId(feature.artifactId()).groupId(feature.groupId()).version(feature.version()).type("xml").classifier("features"), feature.name()));
+            return result;
+        }
+    };
 
     private PersistentConfigurationManager configManager = null;
     @Inject
@@ -64,20 +85,7 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
     private ConfigurationAdmin configAdmin = null;
 
     protected AbstractSnampIntegrationTest(){
-        super(new EnvironmentBuilder() {
-            @Override
-            public Collection<KarafFeaturesOption> getFeatures(final Class<? extends AbstractIntegrationTest> testType) {
-                final Collection<KarafFeaturesOption> result = new LinkedList<>();
-                for (final SnampDependencies deps : TestUtils.getAnnotations(testType, SnampDependencies.class))
-                    for (final SnampFeature feature : deps.value())
-                        try {
-                            result.add(new SnampFeatureOption(feature));
-                        } catch (final MalformedURLException e) {
-                            fail(e.getMessage());
-                        }
-                return result;
-            }
-        });
+        super(SNAMP_ENV_BUILDER);
         //WORKAROUND for system properties with relative path
         if(!isInTestContainer()){
             expandSystemPropertyFileName(SnampSystemProperties.JAAS_CONFIG_FILE);
@@ -101,6 +109,12 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
         return configManager;
     }
 
+    private void refreshConfiguration() throws IOException{
+        if(configManager == null)
+            configManager = new PersistentConfigurationManager(configAdmin);
+        configManager.load();
+    }
+
     /**
      * Creates a new configuration for running this test.
      * @param config The configuration to set.
@@ -110,6 +124,14 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
     protected final <E extends Throwable> void processConfiguration(final Consumer<? super SerializableAgentConfiguration, E> handler,
                                                                     final boolean saveChanges) throws E, IOException {
         getTestConfigurationManager().processConfiguration(handler, saveChanges);
+    }
+
+    protected final <E extends Throwable> void processConfiguration(final Consumer<? super SerializableAgentConfiguration, E> handler,
+                                                                    final boolean refresh,
+                                                                    final boolean saveChanges) throws E, IOException{
+        if(refresh)
+            refreshConfiguration();
+        processConfiguration(handler, saveChanges);
     }
 
     protected void beforeStartTest(final BundleContext context) throws Exception{
@@ -156,8 +178,12 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
         ResourceAdapterClient.addEventListener(adapterName, synchronizer);
         try {
             final V result = handler.call();
-            synchronizer.getAwaitor().await(timeout);
+            synchronizer.getAwaitor().get(timeout.duration, timeout.unit);
             return result;
+        }
+        catch (final ExecutionException e){
+            fail(e.getCause().getMessage());
+            return null;
         }
         finally {
             ResourceAdapterClient.removeEventListener(adapterName, synchronizer);
@@ -171,11 +197,18 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
         ResourceAdapterClient.addEventListener(adapterName, synchronizer);
         try {
             final V result = handler.call();
-            synchronizer.getAwaitor().await(timeout);
+            synchronizer.getAwaitor().get(timeout.duration, timeout.unit);
             return result;
+        } catch (final ExecutionException e){
+            fail(e.getCause().getMessage());
+            return null;
         }
         finally {
             ResourceAdapterClient.removeEventListener(adapterName, synchronizer);
         }
+    }
+
+    protected static void setFeatureName(final FeatureConfiguration feature, final String name){
+        feature.getParameters().put(FeatureConfiguration.NAME_KEY, name);
     }
 }

@@ -7,7 +7,7 @@ import com.bytex.snamp.adapters.modeling.AttributeSet;
 import com.bytex.snamp.adapters.modeling.FeatureAccessor;
 import com.bytex.snamp.adapters.modeling.NotificationSet;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
-import com.bytex.snamp.internal.RecordReader;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.internal.Utils;
 import org.osgi.framework.BundleContext;
 
@@ -35,13 +35,13 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
         }
 
         @Override
-        public <E extends Exception> void forEachAttribute(final RecordReader<String, ? super JmxAttributeAccessor, E> attributeReader) throws E {
+        public <E extends Exception> void forEachAttribute(final EntryReader<String, ? super JmxAttributeAccessor, E> attributeReader) throws E {
             for (final ProxyMBean bean : values())
                 if (!bean.forEachAttribute(attributeReader)) return;
         }
 
         @Override
-        public <E extends Exception> void forEachNotification(final RecordReader<String, ? super JmxNotificationAccessor, E> notificationReader) throws E {
+        public <E extends Exception> void forEachNotification(final EntryReader<String, ? super JmxNotificationAccessor, E> notificationReader) throws E {
             for(final ProxyMBean bean: values())
                 if(!bean.forEachNotification(notificationReader)) return;
         }
@@ -73,7 +73,7 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
         if(exposedBeans.containsKey(resourceName))
             bean = exposedBeans.get(resourceName);
         else {
-            exposedBeans.put(bean = new ProxyMBean(resourceName));
+            exposedBeans.put(bean = new ProxyMBean(resourceName, getLogger()));
             if(rootObjectName != null) {
                 //register bean
                 if (usePlatformMBean)
@@ -128,7 +128,7 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
     }
 
     private BundleContext getBundleContext(){
-        return Utils.getBundleContextByObject(this);
+        return Utils.getBundleContextOfObject(this);
     }
 
     @Override

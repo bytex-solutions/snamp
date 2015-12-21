@@ -1,8 +1,8 @@
 Java Authentication & Authorization Service
 ====
-Originally, Apache Karaf allows to configure groups, users and their passwords, and there is no way to specify custom login modules. But with SNAMP JAAS extension  it is possible to specify any JAAS modules and realms using external file with JSON content which is very close to native JAAS configuration file supported by Java.
+Originally, Apache Karaf allows to configure groups, users and their passwords, and there is no way to specify custom login modules. But with SNAMP JAAS extension it is possible to specify any JAAS module and realm using external file. This file contains JSON content which is very close to the native JAAS configuration file supported by Java.
 
-If you not familiar with JAAS it is highly recommended to read the following articles:
+If you are not familiar with JAAS it is highly recommended to read the following articles:
 * [Java Authentication and Authorization Service Reference Guide](http://docs.oracle.com/javase/7/docs/technotes/guides/security/jaas/JAASRefGuide.html)
 * [Apache Karaf Security Framework](https://karaf.apache.org/manual/latest/developers-guide/security-framework.html)
 
@@ -52,4 +52,18 @@ Example:
 
 **The third**, edit `<snamp>/etc/users.properties` file and use any realm from JSON-based JAAS configuration.
 
-A good case of using custom JAAS is to import existing users and groups from your Enterprise Directory using LDAP protocol. You can achieve this with `org.apache.karaf.jaas.modules.ldap.LDAPLoginModule` login module name.
+Popular use case of custom JAAS is importing existing users and groups from your Enterprise Directory using LDAP protocol. You can achieve this with `org.apache.karaf.jaas.modules.ldap.LDAPLoginModule` login module name.
+
+Updating JAAS configuration with SNAMP Management Console
+===
+You can update your JAAS settings using simple interface of SNAMP Management Console.
+
+In the "JAAS configuration" tab you can read and modify your current JAAS property. 
+
+You can update your JAAS settings using simple interface of SNAMP Management Console.
+
+Use "Change JAAS configuration" button to upload new JAAS settings:
+![JAAS Example](images/jaasWindow.png)
+
+Then change the lines:
+![JAAS Example](images/jaas.png)

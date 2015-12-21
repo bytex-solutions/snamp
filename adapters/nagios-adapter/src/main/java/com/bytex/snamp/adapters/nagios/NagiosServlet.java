@@ -22,7 +22,7 @@ final class NagiosServlet extends ServletContainer {
         return result;
     }
 
-    public NagiosServlet(final NagiosActiveCheckService serviceImpl) {
+    NagiosServlet(final NagiosActiveCheckService serviceImpl) {
         super(createResourceConfig(Objects.requireNonNull(serviceImpl)));
     }
 }

@@ -1,30 +1,45 @@
 package com.bytex.snamp.concurrent;
 
-import com.google.common.base.Stopwatch;
 import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.core.LogicalOperation;
+import com.google.common.base.Stopwatch;
 
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 /**
  * Represents synchronization primitive based on looping using
  * the custom condition.
  * @param <T> Type of the spinning result.
- * @param <E> Type of the exception that may be thrown by synchronization method.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-public abstract class SpinWait<T, E extends Throwable> implements Awaitor<T, E> {
-    private final TimeSpan delay;
+public abstract class SpinWait<T> implements Future<T> {
+    private enum SpinState {
+        ACTIVE(false),
+        CANCELLED(true),
+        FAILED(true),
+        COMPLETED(true);
+
+        private final boolean isDone;
+
+        SpinState(final boolean done){
+            this.isDone = done;
+        }
+    }
+
+    private final long delayMillis;
+    private final VolatileBox<SpinState> state;
+    private volatile Object result;
+
     /**
      * Represents default value of the spin delay.
      */
-    protected static final TimeSpan DEFAULT_SPIN_DELAY = new TimeSpan(1);
+    protected static final TimeSpan DEFAULT_SPIN_DELAY = TimeSpan.ofMillis(1);
 
     protected SpinWait(final TimeSpan spinDelay){
-        this.delay = spinDelay;
+        this.delayMillis = spinDelay.toMillis();
+        state = new VolatileBox<>(SpinState.ACTIVE);
+        result = null;
     }
 
     protected SpinWait(){
@@ -37,30 +52,59 @@ public abstract class SpinWait<T, E extends Throwable> implements Awaitor<T, E> 
      *     Spinning will continue until this method return not {@literal null}.
      * </p>
      * @return An object used as indicator to break the spinning.
-     * @throws E Internal checker error.
+     * @throws Throwable An error occurred during execution of single spin action.
      */
-    protected abstract T get() throws E;
+    protected abstract T spin() throws Throwable;
+
+    @SuppressWarnings("unchecked")
+    private T checkState() throws ExecutionException, CancellationException{
+        switch (state.get()){
+            case CANCELLED: throw new CancellationException();
+            case COMPLETED: return (T)result;
+            case FAILED: throw new ExecutionException((Throwable)result);
+            default: throw new IllegalStateException("Unexpected state ".concat(state.toString()));
+        }
+    }
+
+    private T get(final long timeoutMillis) throws InterruptedException, ExecutionException, TimeoutException {
+        final Stopwatch timer = Stopwatch.createStarted();
+        while (!state.get().isDone) {
+            final T result;
+            try {
+                result = spin();
+            } catch (final Throwable e) {
+                if (state.compareAndSet(SpinState.ACTIVE, SpinState.FAILED))
+                    this.result = e;
+                break;
+            }
+            if (result != null && state.compareAndSet(SpinState.ACTIVE, SpinState.COMPLETED))
+                 this.result = result;
+            else if (timer.elapsed(TimeUnit.MILLISECONDS) >= timeoutMillis)
+                throw new TimeoutException("Spin wait timed out");
+            else if (Thread.interrupted()) throw spinWaitInterrupted();
+            else Thread.sleep(delayMillis);
+        }
+        return checkState();
+    }
 
     /**
-     * Blocks the caller thread until the event will not be raised.
+     * Waits if necessary for at most the given time for the computation
+     * to complete, and then retrieves its result, if available.
      *
-     * @param timeout Event waiting timeout.
-     * @return The event data.
-     * @throws java.util.concurrent.TimeoutException timeout parameter too small for waiting.
-     * @throws InterruptedException                  Waiting thread is aborted.
-     * @throws E {@link #get()} throws an exception.
-     * @see #get()
+     * @param timeout the maximum time to wait
+     * @param unit    the time unit of the timeout argument
+     * @return the computed result
+     * @throws CancellationException if the computation was cancelled
+     * @throws ExecutionException    if the computation threw an
+     *                               exception
+     * @throws InterruptedException  if the current thread was interrupted
+     *                               while waiting
+     * @throws TimeoutException      if the wait timed out
+     * @see #spin()
      */
     @Override
-    public final T await(final TimeSpan timeout) throws TimeoutException, InterruptedException, E {
-        if(timeout == null) return await();
-        final Stopwatch timer = Stopwatch.createStarted();
-        T result;
-        while ((result = get()) == null)
-            if(timer.elapsed(TimeUnit.MILLISECONDS) > timeout.toMillis()) throw new TimeoutException(String.format("Spin wait timed out. Context: %s", LogicalOperation.current()));
-            else if(Thread.interrupted()) throw spinWaitInterrupted();
-            else if(delay != null) Thread.sleep(delay.toMillis());
-        return result;
+    public final T get(final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        return get(unit.toMillis(timeout));
     }
 
     /**
@@ -68,19 +112,64 @@ public abstract class SpinWait<T, E extends Throwable> implements Awaitor<T, E> 
      *
      * @return The event data.
      * @throws InterruptedException Waiting thread is aborted.
-     * @throws E {@link #get()} throws an exception.
-     * @see #get()
+     * @throws ExecutionException Method {@link #spin()} raises an exception.
+     * @see #spin()
      */
     @Override
-    public final T await() throws InterruptedException, E {
-        T result;
-        while ((result = get()) == null)
-            if(Thread.interrupted()) throw spinWaitInterrupted();
-            else if(delay != null) Thread.sleep(delay.toMillis());
-        return result;
+    public final T get() throws InterruptedException, ExecutionException {
+        while (!state.get().isDone) {
+            final T result;
+            try {
+                result = spin();
+            } catch (final Throwable e) {
+                if (state.compareAndSet(SpinState.ACTIVE, SpinState.FAILED))
+                    this.result = e;
+                break;
+            }
+            if (result != null && state.compareAndSet(SpinState.ACTIVE, SpinState.COMPLETED))
+                this.result = result;
+            else if (Thread.interrupted()) throw spinWaitInterrupted();
+            else Thread.sleep(delayMillis);
+        }
+        return checkState();
     }
 
     private static InterruptedException spinWaitInterrupted(){
         return new InterruptedException("SpinWait interrupted");
+    }
+
+    /**
+     * Cancels awaiting.
+     * @param mayInterruptIfRunning Not used.
+     * @return {@literal true}, if awaiting is cancelled successfully; {@literal false}, if previously cancelled.
+     */
+    @Override
+    public final boolean cancel(final boolean mayInterruptIfRunning) {
+        return state.compareAndSet(SpinState.ACTIVE, SpinState.CANCELLED);
+    }
+
+    /**
+     * Returns <tt>true</tt> if this task was cancelled before it completed
+     * normally.
+     *
+     * @return <tt>true</tt> if this task was cancelled before it completed
+     */
+    @Override
+    public final boolean isCancelled() {
+        return state.get() == SpinState.CANCELLED;
+    }
+
+    /**
+     * Returns <tt>true</tt> if this task completed.
+     * <p/>
+     * Completion may be due to normal termination, an exception, or
+     * cancellation -- in all of these cases, this method will return
+     * <tt>true</tt>.
+     *
+     * @return <tt>true</tt> if this task completed
+     */
+    @Override
+    public final boolean isDone() {
+        return state.get().isDone;
     }
 }

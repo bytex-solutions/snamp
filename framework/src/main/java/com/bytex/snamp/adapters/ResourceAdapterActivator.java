@@ -1,12 +1,12 @@
 package com.bytex.snamp.adapters;
 
-import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.configuration.PersistentConfigurationManager;
-import com.bytex.snamp.core.*;
-import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.internal.annotations.MethodStub;
+import com.bytex.snamp.core.AbstractServiceLibrary;
+import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.management.Maintainable;
+import com.google.common.collect.ObjectArrays;
 import org.osgi.framework.*;
 import org.osgi.service.cm.ConfigurationAdmin;
 
@@ -16,6 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.bytex.snamp.adapters.ResourceAdapter.ADAPTER_NAME_MANIFEST_HEADER;
+import static com.bytex.snamp.ArrayUtils.emptyArray;
 
 /**
  * Represents lifetime manager for managed resource adapter.
@@ -68,17 +69,6 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
             this(getAdapterName(factory), factory, dependencies);
         }
 
-        private BundleContext getBundleContext(){
-            return Utils.getBundleContextByObject(adapterFactory);
-        }
-
-        private OSGiLoggingContext getLoggingContext() {
-            Logger logger = getActivationPropertyValue(LOGGER_HOLDER);
-            if (logger == null)
-                logger = AbstractResourceAdapter.getLogger(adapterName);
-            return OSGiLoggingContext.get(logger, getBundleContext());
-        }
-
         @Override
         protected TAdapter update(final TAdapter adapter,
                                   final Dictionary<String, ?> configuration,
@@ -110,37 +100,24 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
             adapter.close();
         }
 
-        /**
-         * Log error details when {@link #updateService(Object, java.util.Dictionary, com.bytex.snamp.core.AbstractBundleActivator.RequiredService[])} failed.
-         *
-         * @param servicePID    The persistent identifier associated with the service.
-         * @param configuration The configuration of the service.
-         * @param e             An exception occurred when updating service.
-         */
         @Override
-        protected void failedToUpdateService(final String servicePID, final Dictionary<String, ?> configuration, final Exception e) {
-            try(final OSGiLoggingContext logger = getLoggingContext()){
-                logger.log(Level.SEVERE, String.format("Unable to update adapter. Name: %s, instance: %s. Context: %s",
+        protected void failedToUpdateService(final Logger logger,
+                                             final String servicePID,
+                                             final Dictionary<String, ?> configuration,
+                                             final Exception e) {
+            logger.log(Level.SEVERE,
+                    String.format("Unable to update adapter. Name: %s, instance: %s",
                             adapterName,
-                            PersistentConfigurationManager.getAdapterInstanceName(configuration),
-                            LogicalOperation.current()),
-                        e);
-            }
+                            PersistentConfigurationManager.getAdapterInstanceName(configuration)),
+                    e);
         }
 
-        /**
-         * Logs error details when {@link #dispose(Object, boolean)} failed.
-         *
-         * @param servicePID The persistent identifier of the service to dispose.
-         * @param e          An exception occurred when disposing service.
-         */
         @Override
-        protected void failedToCleanupService(final String servicePID, final Exception e) {
-            try(final OSGiLoggingContext logger = getLoggingContext()){
-                logger.log(Level.SEVERE, String.format("Unable to release adapter. Name: %s. Context: %s",
-                        LogicalOperation.current(),
-                        adapterName), e);
-            }
+        protected void failedToCleanupService(final Logger logger,
+                                              final String servicePID,
+                                              final Exception e) {
+            logger.log(Level.SEVERE, String.format("Unable to release adapter. Name: %s", adapterName),
+                    e);
         }
     }
 
@@ -252,12 +229,12 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
      */
     protected ResourceAdapterActivator(final ResourceAdapterFactory<TAdapter> factory,
                                        final SupportAdapterServiceManager<?, ?>... optionalServices){
-        this(factory, EMPTY_REQUIRED_SERVICES, optionalServices);
+        this(factory, emptyArray(RequiredService[].class), optionalServices);
     }
 
     private ResourceAdapterActivator(final ResourceAdapterRegistry<?> registry,
                                      final SupportAdapterServiceManager<?, ?>[] optionalServices) {
-        super(ArrayUtils.addToEnd(optionalServices, registry, ProvidedService.class));
+        super(ObjectArrays.concat(new ServiceSubRegistryManager<?, ?>[]{registry}, optionalServices, ProvidedService.class));
     }
 
     /**
@@ -325,21 +302,14 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
     protected final void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception {
         activationProperties.publish(ADAPTER_NAME_HOLDER, getAdapterName());
         activationProperties.publish(LOGGER_HOLDER, getLogger());
-        try(final OSGiLoggingContext logger = getLoggingContext()){
-            logger.info(String.format("Activating resource adapters of type %s. Context: %s", getAdapterName(),
-                    LogicalOperation.current()));
-        }
+        getLogger().info(String.format("Activating resource adapters of type %s", getAdapterName()));
     }
-
-    private BundleContext getAdapterContext(){
-        return Utils.getBundleContextByObject(this);
-    }
-
 
     /**
      * Gets logger associated with this activator.
      * @return A logger associated with this activator.
      */
+    @Override
     protected Logger getLogger(){
         return AbstractResourceAdapter.getLogger(getAdapterName());
     }
@@ -352,15 +322,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
      */
     @Override
     protected final void deactivate(final ActivationPropertyReader activationProperties) throws Exception {
-        try(final OSGiLoggingContext logger = getLoggingContext()){
-            logger.info(String.format("Unloading adapters of type %s. Context: %s",
-                    getAdapterName(),
-                    LogicalOperation.current()));
-        }
-    }
-
-    private OSGiLoggingContext getLoggingContext(){
-        return OSGiLoggingContext.get(getLogger(), getAdapterContext());
+        getLogger().info(String.format("Unloading adapters of type %s", getAdapterName()));
     }
 
     /**
@@ -371,11 +333,9 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
      */
     @Override
     protected void activationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
-        try(final OSGiLoggingContext logger = getLoggingContext()) {
-            logger.log(Level.SEVERE, String.format("Unable to activate %s resource adapter instance. Context: %s",
-                    getAdapterName(),
-                    LogicalOperation.current()), e);
-        }
+        getLogger().log(Level.SEVERE, String.format("Unable to activate %s resource adapter instance",
+                        getAdapterName()),
+                e);
     }
 
     /**
@@ -386,11 +346,9 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
      */
     @Override
     protected void deactivationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
-        try(final OSGiLoggingContext logger = getLoggingContext()){
-            logger.log(Level.SEVERE, String.format("Unable to deactivate %s resource adapter instance. Context: %s",
-                    getAdapterName(),
-                    LogicalOperation.current()), e);
-        }
+        getLogger().log(Level.SEVERE, String.format("Unable to deactivate %s resource adapter instance",
+                        getAdapterName()),
+                e);
     }
 
     /**
@@ -406,7 +364,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
 
     private static List<Bundle> getResourceAdapterBundles(final BundleContext context){
         final Bundle[] bundles = context.getBundles();
-        final List<Bundle> result = new ArrayList<>(bundles.length);
+        final List<Bundle> result = new LinkedList<>();
         for(final Bundle bnd: bundles)
             if(isResourceAdapterBundle(bnd)) result.add(bnd);
         return result;
@@ -424,51 +382,71 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
     /**
      * Stops all managed resource adapters loaded into the current OSGi environment.
      * @param context The context of the calling bundle. Cannot be {@literal null}.
+     * @return Number of stopped bundles.
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
      * @throws BundleException Unable to stop adapters.
      */
-    public static void stopResourceAdapters(final BundleContext context) throws BundleException {
+    public static int stopResourceAdapters(final BundleContext context) throws BundleException {
         if(context == null) throw new IllegalStateException("context is null.");
-        for(final Bundle bnd: getResourceAdapterBundles(context))
+        int count = 0;
+        for(final Bundle bnd: getResourceAdapterBundles(context)) {
             bnd.stop();
+            count += 1;
+        }
+        return count;
     }
 
     /**
      * Stops the specified managed resource adapter.
      * @param context The context of the calling bundle. Cannot be {@literal null}.
      * @param adapterName The name of the adapter to stop.
+     * @return {@literal true}, if bundle with the specified adapter exists; otherwise, {@literal false}.
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
      * @throws BundleException Unable to stop adapters.
      */
-    public static void stopResourceAdapter(final BundleContext context, final String adapterName) throws BundleException {
+    public static boolean stopResourceAdapter(final BundleContext context, final String adapterName) throws BundleException {
         if(context == null) throw new IllegalArgumentException("context is null.");
-        for(final Bundle bnd: getResourceAdapterBundles(context, adapterName))
+        boolean success = false;
+        for(final Bundle bnd: getResourceAdapterBundles(context, adapterName)) {
             bnd.stop();
+            success = true;
+        }
+        return success;
     }
 
     /**
      * Starts all managed resource adapters loaded into the current OSGi environment.
      * @param context The context of the calling bundle. Cannot be {@literal null}.
+     * @return Number of started bundles with adapters.
      * @throws BundleException Unable to start adapters.
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
      */
-    public static void startResourceAdapters(final BundleContext context) throws BundleException{
+    public static int startResourceAdapters(final BundleContext context) throws BundleException{
         if(context == null) throw new IllegalArgumentException("context is null.");
-        for(final Bundle bnd: getResourceAdapterBundles(context))
+        int count = 0;
+        for(final Bundle bnd: getResourceAdapterBundles(context)) {
             bnd.start();
+            count += 1;
+        }
+        return count;
     }
 
     /**
      * Starts the specified managed resource adapter.
      * @param context The context of the calling bundle. Cannot be {@literal null}.
      * @param adapterName The name of the adapter to start.
+     * @return {@literal true}, if bundle with the specified adapter exists; otherwise, {@literal false}.
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
      * @throws BundleException Unable to start adapter.
      */
-    public static void startResourceAdapter(final BundleContext context, final String adapterName) throws BundleException{
+    public static boolean startResourceAdapter(final BundleContext context, final String adapterName) throws BundleException{
         if(context == null) throw new IllegalArgumentException("context is null.");
-        for(final Bundle bnd: getResourceAdapterBundles(context, adapterName))
+        boolean success = false;
+        for(final Bundle bnd: getResourceAdapterBundles(context, adapterName)) {
             bnd.start();
+            success = true;
+        }
+        return success;
     }
 
     private static String getAdapterName(final Bundle bnd){

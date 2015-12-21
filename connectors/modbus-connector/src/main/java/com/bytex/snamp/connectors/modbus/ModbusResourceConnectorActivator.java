@@ -2,7 +2,7 @@ package com.bytex.snamp.connectors.modbus;
 
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 
 import javax.management.openmbean.CompositeData;
 import java.io.IOException;
@@ -21,8 +21,8 @@ public final class ModbusResourceConnectorActivator extends ManagedResourceActiv
     private static final class ModbusConnectorFactory extends ManagedResourceConnectorModeler<ModbusResourceConnector>{
 
         @Override
-        protected boolean addAttribute(final ModbusResourceConnector connector, final String attributeID, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
-            return connector.addAttribute(attributeID, attributeName, readWriteTimeout, options);
+        protected boolean addAttribute(final ModbusResourceConnector connector, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+            return connector.addAttribute(attributeName, readWriteTimeout, options);
         }
 
         @Override
@@ -31,7 +31,7 @@ public final class ModbusResourceConnectorActivator extends ManagedResourceActiv
         }
 
         @Override
-        protected boolean enableNotifications(final ModbusResourceConnector connector, final String listId, final String category, final CompositeData options) {
+        protected boolean enableNotifications(final ModbusResourceConnector connector, final String category, final CompositeData options) {
             //not supported
             return false;
         }
@@ -42,7 +42,7 @@ public final class ModbusResourceConnectorActivator extends ManagedResourceActiv
         }
 
         @Override
-        protected boolean enableOperation(final ModbusResourceConnector connector, final String operationID, final String operationName, final TimeSpan invocationTimeout, final CompositeData options) {
+        protected boolean enableOperation(final ModbusResourceConnector connector, final String operationName, final TimeSpan invocationTimeout, final CompositeData options) {
             //not supported
             return false;
         }

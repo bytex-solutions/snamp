@@ -1,12 +1,7 @@
 package com.bytex.snamp.concurrent;
 
-import com.bytex.snamp.Consumer;
-import com.bytex.snamp.ExceptionPlaceholder;
-import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.core.LogicalOperation;
-
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.locks.AbstractQueuedSynchronizer;
+import com.google.common.util.concurrent.AbstractFuture;
+import com.google.common.util.concurrent.ListenableFuture;
 
 /**
  * Represents synchronization event that is used to synchronize with some
@@ -16,34 +11,6 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
  * @since 1.0
  */
 public class SynchronizationEvent<T> {
-    /**
-     * Represents synchronization event awaitor.
-     * @param <T> Type of the event.
-     * @author Roman Sakno
-     * @since 1.0
-     * @version 1.0
-     */
-    public interface EventAwaitor<T> extends Awaitor<T, ExceptionPlaceholder>{
-        /**
-         * Blocks the caller thread until the event will not be raised.
-         *
-         * @param timeout Event waiting timeout.
-         * @return The event data.
-         * @throws java.util.concurrent.TimeoutException timeout parameter too small for waiting.
-         * @throws InterruptedException                  Waiting thread is aborted.
-         */
-        @Override
-        T await(final TimeSpan timeout) throws TimeoutException, InterruptedException;
-
-        /**
-         * Blocks the caller thread (may be infinitely) until the event will not be raised.
-         *
-         * @return The event data.
-         * @throws InterruptedException Waiting thread is aborted.
-         */
-        @Override
-        T await() throws InterruptedException;
-    }
 
     /**
      * Represents internal state of the synchronization event.
@@ -51,59 +18,15 @@ public class SynchronizationEvent<T> {
      *
      * @param <T> Type of the event object.
      */
-    private static final class EventState<T> extends AbstractQueuedSynchronizer implements EventAwaitor<T> {
-        private static final long serialVersionUID = 7883990808552287879L;
-        private T eventObj;
-
-        public EventState() {
-            setState(0);
-            eventObj = null;
-        }
-
-        private boolean isSignalled() {
-            return getState() != 0;
-        }
-
-        protected int tryAcquireShared(int ignore) {
-            return isSignalled() ? 1 : -1;
-        }
-
-        protected boolean tryReleaseShared(int ignore) {
-            setState(1);
-            return true;
-        }
-
-        private boolean set(final T result) {
-            if (isSignalled()) return false;
-            this.eventObj = result;
-            return releaseShared(1);
-        }
-
-        /**
-         * Blocks the caller thread until the event will not be raised.
-         *
-         * @param timeout Event waiting timeout.
-         * @return The event data.
-         * @throws java.util.concurrent.TimeoutException timeout parameter too small for waiting.
-         * @throws InterruptedException                  Waiting thread is aborted.
-         */
+    private static final class EventState<T> extends AbstractFuture<T> {
         @Override
-        public T await(final TimeSpan timeout) throws TimeoutException, InterruptedException {
-            if (timeout == TimeSpan.INFINITE) return await();
-            else if (tryAcquireSharedNanos(1, timeout.toNanos())) return eventObj;
-            else throw new TimeoutException(String.format("Event timed out. Context: %s", LogicalOperation.current()));
+        public boolean set(final T value) {
+            return super.set(value);
         }
 
-        /**
-         * Blocks the caller thread (may be infinitely) until the event will not be raised.
-         *
-         * @return The event data.
-         * @throws InterruptedException Waiting thread is aborted.
-         */
         @Override
-        public T await() throws InterruptedException {
-            acquireSharedInterruptibly(1);
-            return eventObj;
+        public boolean setException(final Throwable throwable) {
+            return super.setException(throwable);
         }
     }
 
@@ -149,13 +72,11 @@ public class SynchronizationEvent<T> {
         return result;
     }
 
-    /**
-     * Determines whether this event is in signalled state.
-     *
-     * @return {@literal true}, if this event is in signalled state; otherwise, {@literal false}.
-     */
-    protected final boolean signalled() {
-        return state.isSignalled();
+    public synchronized final boolean raise(final Throwable e){
+        final boolean result = state.setException(e);
+        if (autoReset)
+            state = new EventState<>();
+        return result;
     }
 
     /**
@@ -163,23 +84,7 @@ public class SynchronizationEvent<T> {
      *
      * @return A new awaitor for this event.
      */
-    public final EventAwaitor<T> getAwaitor() {
+    public final ListenableFuture<T> getAwaitor() {
         return state;
-    }
-
-    protected final <E extends Throwable> EventAwaitor<T> getAwaitor(final Consumer<? super SynchronizationEvent<T>, E> handler) throws E{
-        final EventAwaitor<T> awaitor = getAwaitor();
-        handler.accept(this);
-        return awaitor;
-    }
-
-    public static <T, E extends Throwable> EventAwaitor<T> processEvent(final Consumer<? super SynchronizationEvent<T>, E> handler,
-                                                                 final boolean autoReset) throws E{
-        final SynchronizationEvent<T> event = new SynchronizationEvent<>(autoReset);
-        return event.getAwaitor(handler);
-    }
-
-    public static <T, E extends Throwable> EventAwaitor<T> processEvent(final Consumer<? super SynchronizationEvent<T>, E> handler) throws E{
-        return processEvent(handler, DEFAULT_AUTO_RESET);
     }
 }

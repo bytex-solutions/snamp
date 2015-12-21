@@ -1,8 +1,9 @@
 package com.bytex.snamp.adapters;
 
-import com.google.common.collect.*;
 import com.bytex.snamp.AbstractAggregator;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.ExceptionPlaceholder;
+import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.modeling.*;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
@@ -17,11 +18,9 @@ import com.bytex.snamp.connectors.notifications.NotificationSupport;
 import com.bytex.snamp.connectors.operations.OperationAddedEvent;
 import com.bytex.snamp.connectors.operations.OperationRemovingEvent;
 import com.bytex.snamp.core.LogicalOperation;
-import com.bytex.snamp.core.OSGiLoggingContext;
 import com.bytex.snamp.core.RichLogicalOperation;
-import com.bytex.snamp.internal.RecordReader;
-import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.DescriptorUtils;
+import com.google.common.collect.*;
 import org.osgi.framework.*;
 
 import javax.management.MBeanAttributeInfo;
@@ -30,11 +29,14 @@ import javax.management.MBeanNotificationInfo;
 import javax.management.MBeanOperationInfo;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.util.*;
+import java.util.Collection;
+import java.util.Dictionary;
+import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.bytex.snamp.internal.Utils.getBundleContextByObject;
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**
  * Represents a base class for constructing custom resource adapters.
@@ -64,13 +66,17 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
     private static final class AdapterLogicalOperation extends RichLogicalOperation {
         private static final String ADAPTER_INSTANCE_NAME_PROPERTY = "adapterInstanceName";
 
-        private AdapterLogicalOperation(final String operationName,
+        private AdapterLogicalOperation(final Logger logger,
+                                        final String operationName,
                                         final String adapterInstanceName){
-            super(operationName, ADAPTER_INSTANCE_NAME_PROPERTY, adapterInstanceName);
+            super(logger,
+                    operationName,
+                    ImmutableMap.of(ADAPTER_INSTANCE_NAME_PROPERTY, adapterInstanceName));
         }
 
-        private static AdapterLogicalOperation connectorChangesDetected(final String adapterInstanceName){
-            return new AdapterLogicalOperation("processResourceConnectorChanges", adapterInstanceName);
+        private static AdapterLogicalOperation connectorChangesDetected(final Logger logger,
+                                                                        final String adapterInstanceName){
+            return new AdapterLogicalOperation(logger, "processResourceConnectorChanges", adapterInstanceName);
         }
     }
 
@@ -320,10 +326,8 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * @param feature The resource feature.
      * @param e The exception.
      */
-    protected void failedToAddFeature(final String resourceName, final MBeanFeatureInfo feature, final Exception e){
-        try(final OSGiLoggingContext logger = getLoggingContext()){
-            logger.log(Level.WARNING, String.format("Failed to add %s resource feature %s", resourceName, feature), e);
-        }
+    protected void failedToAddFeature(final String resourceName, final MBeanFeatureInfo feature, final Exception e) {
+        getLogger().log(Level.WARNING, String.format("Failed to add %s resource feature %s", resourceName, feature), e);
     }
 
     /**
@@ -343,10 +347,8 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         }
     }
 
-    protected void failedToRemoveFeatures(final String resourceName, final Exception e){
-        try(final OSGiLoggingContext logger = getLoggingContext()){
-            logger.log(Level.SEVERE, String.format("Failed to remove %s resource features", resourceName), e);
-        }
+    protected void failedToRemoveFeatures(final String resourceName, final Exception e) {
+        getLogger().log(Level.SEVERE, String.format("Failed to remove %s resource features", resourceName), e);
     }
 
     /**
@@ -373,10 +375,8 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
 
     protected void failedToRemoveFeature(final String resourceName,
                                          final MBeanFeatureInfo feature,
-                                         final Exception e){
-        try(final OSGiLoggingContext logger = getLoggingContext()){
-            logger.log(Level.SEVERE, String.format("Failed to remove %s resource feature %s", resourceName, feature), e);
-        }
+                                         final Exception e) {
+        getLogger().log(Level.SEVERE, String.format("Failed to remove %s resource feature %s", resourceName, feature), e);
     }
 
     /**
@@ -403,7 +403,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      */
     protected void update(final Map<String, String> current,
                           final Map<String, String> newParameters) throws Exception{
-        if(!Utils.mapsAreEqual(current, newParameters))
+        if(!current.equals(newParameters))
             restart(newParameters);
     }
 
@@ -555,7 +555,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
     @Override
     public final void serviceChanged(final ServiceEvent event) {
         if (ManagedResourceConnectorClient.isResourceConnector(event.getServiceReference()))
-            try (final LogicalOperation ignored = AdapterLogicalOperation.connectorChangesDetected(adapterInstanceName)) {
+            try (final LogicalOperation logger = AdapterLogicalOperation.connectorChangesDetected(getLogger(), adapterInstanceName)) {
                 @SuppressWarnings("unchecked")
                 final ServiceReference<ManagedResourceConnector> connectorRef = (ServiceReference<ManagedResourceConnector>) event.getServiceReference();
                 final String resourceName = ManagedResourceConnectorClient.getManagedResourceName(connectorRef);
@@ -563,18 +563,15 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                     case ServiceEvent.MODIFIED_ENDMATCH:
                     case ServiceEvent.UNREGISTERING:
                         removeResource(connectorRef);
-                        break;
+                        return;
                     case ServiceEvent.REGISTERED:
                         addResource(connectorRef);
-                        break;
+                        return;
                     default:
-                        try (final OSGiLoggingContext logger = getLoggingContext()) {
-                            logger.info(String.format("Unexpected event %s captured by adapter %s for resource %s. Context: %s",
-                                    event.getType(),
-                                    adapterInstanceName,
-                                    resourceName,
-                                    LogicalOperation.current()));
-                        }
+                        logger.info(String.format("Unexpected event %s captured by adapter %s for resource %s",
+                                event.getType(),
+                                        adapterInstanceName,
+                                        resourceName));
                 }
             }
     }
@@ -613,6 +610,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
             throw new IOException(String.format("Unable to release resources associated with %s adapter instance", adapterInstanceName), e);
         } finally {
             mutableState = InternalState.finalState();
+            clearCache();
         }
     }
 
@@ -625,11 +623,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
     }
 
     private BundleContext getBundleContext(){
-        return getBundleContextByObject(this);
-    }
-
-    private OSGiLoggingContext getLoggingContext(){
-        return OSGiLoggingContext.get(getLogger(), getBundleContext());
+        return getBundleContextOfObject(this);
     }
 
     /**
@@ -683,7 +677,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
 
     protected static <TAccessor extends AttributeAccessor & FeatureBindingInfo<MBeanAttributeInfo>> Multimap<String, ? extends FeatureBindingInfo<MBeanAttributeInfo>> getBindings(final AttributeSet<TAccessor> model){
         final Multimap<String, TAccessor> result = HashMultimap.create();
-        model.forEachAttribute(new RecordReader<String, TAccessor, ExceptionPlaceholder>() {
+        model.forEachAttribute(new EntryReader<String, TAccessor, ExceptionPlaceholder>() {
             @Override
             public boolean read(final String resourceName, final TAccessor accessor) {
                 return result.put(resourceName, accessor);
@@ -694,12 +688,24 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
 
     protected static <TAccessor extends NotificationAccessor & FeatureBindingInfo<MBeanNotificationInfo>> Multimap<String, ? extends FeatureBindingInfo<MBeanNotificationInfo>> getBindings(final NotificationSet<TAccessor> model){
         final Multimap<String, TAccessor> result = HashMultimap.create();
-        model.forEachNotification(new RecordReader<String, TAccessor, ExceptionPlaceholder>() {
+        model.forEachNotification(new EntryReader<String, TAccessor, ExceptionPlaceholder>() {
             @Override
             public boolean read(final String resourceName, final TAccessor accessor) {
                 return result.put(resourceName, accessor);
             }
         });
         return result;
+    }
+
+    /**
+     * Disables asynchronous mode used to process events in this bus.
+     * <p>
+     *     This method should be used for debugging purposes only.
+     * @param terminationTimeout Termination timeout of thread pool used to process events.
+     * @return {@literal true}, if Bus is switched to synchronous mode; otherwise, {@literal false}.
+     * @throws InterruptedException Switching is terminated.
+     */
+    public static boolean disableEventAsyncMode(final TimeSpan terminationTimeout) throws InterruptedException {
+        return ResourceAdapterEventBus.disableAsyncMode(terminationTimeout);
     }
 }

@@ -1,9 +1,10 @@
 package com.bytex.snamp.core;
 
-import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableMap;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  * Represents a rich version of logical operation that have
@@ -15,71 +16,31 @@ import java.util.*;
 public class RichLogicalOperation extends LogicalOperation {
     private final ImmutableMap<String, ?> properties;
 
-    protected RichLogicalOperation(final String name,
+    protected RichLogicalOperation(final Logger logger,
+                                   final String name,
                                final CorrelationIdentifierGenerator correlationID,
-                               final Ticker ticker,
                                final ImmutableMap<String, ?> params) {
-        super(name, correlationID, ticker);
+        super(logger, name, correlationID);
         this.properties = params != null ? params : ImmutableMap.<String, Object>of();
     }
 
-    public RichLogicalOperation(final String name,
-                                final CorrelationIdentifierGenerator correlationID,
+    public RichLogicalOperation(final Logger logger,
+                                final String name,
                                 final ImmutableMap<String, ?> params){
-        this(name, correlationID, Ticker.systemTicker(), params);
+        this(logger, name, CORREL_ID_GEN, params);
     }
 
-    public RichLogicalOperation(final String name,
+    public RichLogicalOperation(final String loggerName,
+                                final String name,
                                 final ImmutableMap<String, ?> params){
-        this(name, correlIdGenerator, params);
+        this(loggerName, name, CORREL_ID_GEN, params);
     }
 
-    public RichLogicalOperation(final String name,
-                                final String propertyName,
-                                final Object propertyValue){
-        this(name, ImmutableMap.of(propertyName, propertyValue));
-    }
-
-    public RichLogicalOperation(final String name,
-                                final String propertyName1,
-                                final Object propertyValue1,
-                                final String propertyName2,
-                                final Object propertyValue2){
-        this(name, ImmutableMap.of(propertyName1, propertyValue1,
-                propertyName2, propertyValue2));
-    }
-
-    public RichLogicalOperation(final String name,
-                                final String propertyName1,
-                                final Object propertyValue1,
-                                final String propertyName2,
-                                final Object propertyValue2,
-                                final String propertyName3,
-                                final Object propertyValue3) {
-        this(name, ImmutableMap.of(propertyName1, propertyValue1,
-                propertyName2, propertyValue2,
-                propertyName3, propertyValue3));
-    }
-
-    public RichLogicalOperation(final String name,
-                                final String propertyName1,
-                                final Object propertyValue1,
-                                final String propertyName2,
-                                final Object propertyValue2,
-                                final String propertyName3,
-                                final Object propertyValue3,
-                                final String propertyName4,
-                                final Object propertyValue4) {
-        this(name, ImmutableMap.of(propertyName1, propertyValue1,
-                propertyName2, propertyValue2,
-                propertyName3, propertyValue3,
-                propertyName4, propertyValue4));
-    }
-
-    private void fillProperties(final Set<String> output){
-        output.addAll(properties.keySet());
-        final RichLogicalOperation lookup = findParent(RichLogicalOperation.class);
-        if(lookup != null) lookup.fillProperties(output);
+    protected RichLogicalOperation(final String loggerName,
+                                   final String name,
+                                   final CorrelationIdentifierGenerator correlationID,
+                                   final ImmutableMap<String, ?> params) {
+        this(Logger.getLogger(loggerName), name, correlationID, params);
     }
 
     /**
@@ -91,9 +52,7 @@ public class RichLogicalOperation extends LogicalOperation {
      * @return A set of properties.
      */
     public final Set<String> getProperties(){
-        final Set<String> result = new HashSet<>(properties.size());
-        fillProperties(result);
-        return result;
+        return properties.keySet();
     }
 
     /**
@@ -103,10 +62,7 @@ public class RichLogicalOperation extends LogicalOperation {
      * @return The value of the property.
      */
     public final Object getProperty(final String name, final Object defVal){
-        if(properties.containsKey(name))
-            return properties.get(name);
-        final RichLogicalOperation lookup = findParent(RichLogicalOperation.class);
-        return lookup != null ? lookup.getProperty(name, defVal) : defVal;
+        return properties.containsKey(name) ? properties.get(name) : defVal;
     }
 
     /**
@@ -124,12 +80,13 @@ public class RichLogicalOperation extends LogicalOperation {
      * @return The value of the property.
      */
     public final <P> P getProperty(final String name, final Class<P> propertyType, final P defVal){
-        if(properties.containsKey(name)){
-            final Object property = properties.get(name);
-            if(propertyType.isInstance(property)) return propertyType.cast(property);
+        final Object result = properties.get(name);
+        try{
+            return propertyType.cast(result);
         }
-        final RichLogicalOperation lookup = findParent(RichLogicalOperation.class);
-        return lookup != null ? lookup.getProperty(name, propertyType, defVal) : defVal;
+        catch (final ClassCastException ignored){
+            return defVal;
+        }
     }
 
     /**
@@ -138,21 +95,8 @@ public class RichLogicalOperation extends LogicalOperation {
      * @param output An output map to populate with string data.
      */
     @Override
-    protected void collectStringData(final Map<String, Object> output) {
+    protected final void collectStringData(final Map<String, Object> output) {
         super.collectStringData(output);
         output.putAll(properties);
-    }
-
-    /**
-     * Captures all properties from the current logical operation stack.
-     * @return A map of captured properties.
-     */
-    public static Map<String, ?> dumpProperties(){
-        final RichLogicalOperation lookup = find(RichLogicalOperation.class);
-        if(lookup == null) return Collections.emptyMap();
-        final Map<String, Object> result = new HashMap<>(10);
-        for(final String propertyName: lookup.getProperties())
-            result.put(propertyName, lookup.getProperty(propertyName, null));
-        return result;
     }
 }

@@ -1,6 +1,7 @@
 package com.bytex.snamp;
 
 import com.google.common.base.Function;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Supplier;
 
 import java.io.Serializable;
@@ -81,7 +82,7 @@ public class Box<T> implements Wrapper<T>, Supplier<T>, SafeConsumer<T>, Cloneab
      * @return An object stored in this box; or {@code defval} if stored object is {@literal null}.
      */
     public final T getOrDefault(final T defval){
-        return value != null ? value : defval;
+        return MoreObjects.firstNonNull(value, defval);
     }
 
     /**
@@ -90,16 +91,6 @@ public class Box<T> implements Wrapper<T>, Supplier<T>, SafeConsumer<T>, Cloneab
      */
     public final void set(final T value){
         this.value = value;
-    }
-
-    /**
-     * Places a new value into this container.
-     * @param value The value to be transformed and placed into this container.
-     * @param transformer The transformer applied to input value.
-     * @param <I> Type of the value to be transformed.
-     */
-    public final <I> void set(final I value, final Function<I, T> transformer){
-        set(transformer.apply(value));
     }
 
     /**
@@ -112,7 +103,7 @@ public class Box<T> implements Wrapper<T>, Supplier<T>, SafeConsumer<T>, Cloneab
      * @return The wrapped object handling result.
      */
     @Override
-    public final <R> R handle(final Function<T, R> handler) {
+    public final <R> R apply(final Function<T, R> handler) {
         return handler.apply(value);
     }
 

@@ -1,12 +1,8 @@
 package com.bytex.snamp.adapters.snmp;
 
-import com.google.common.primitives.Shorts;
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.Consumer;
-import com.bytex.snamp.SafeConsumer;
-import com.bytex.snamp.adapters.AbstractResourceAdapter;
-import com.bytex.snamp.core.OSGiLoggingContext;
 import com.bytex.snamp.io.IOUtils;
+import com.google.common.primitives.Shorts;
 import org.snmp4j.SNMP4JSettings;
 import org.snmp4j.agent.MOAccess;
 import org.snmp4j.agent.mo.MOAccessImpl;
@@ -18,7 +14,6 @@ import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.Variable;
 
 import javax.management.MBeanAttributeInfo;
-import javax.management.ReflectionException;
 import javax.management.openmbean.ArrayType;
 import java.io.*;
 import java.lang.reflect.Array;
@@ -33,14 +28,14 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.bytex.snamp.ArrayUtils.emptyArray;
+
 /**
  * @author Roman Sakno
  */
 final class SnmpHelpers {
     private static final String AUTO_PREFIX_PROPERTY = "com.bytex.snamp.adapters.snmp.oidPrefix";
     static final Charset SNMP_ENCODING = StandardCharsets.UTF_8;
-    static final String ADAPTER_NAME = "snmp";
-    private static final String LOGGER_NAME = AbstractResourceAdapter.getLoggerName(ADAPTER_NAME);
     private static final TimeZone ZERO_TIME_ZONE = new SimpleTimeZone(0, "UTC");
     private static final AtomicInteger POSTFIX_COUNTER = new AtomicInteger(1);
 
@@ -137,7 +132,7 @@ final class SnmpHelpers {
                 return output.toByteArray();
             }
             catch (final IOException e){
-                return new byte[0];
+                return emptyArray(byte[].class);
             }
         }
 
@@ -182,47 +177,47 @@ final class SnmpHelpers {
         private int offsetInMinutes;
         private boolean directionFromUTCPlus;
 
-        public final void setYear(final int year) {
+        public void setYear(final int year) {
             this.year = year;
         }
 
-        public final void setMonth(final int month) {
+        public void setMonth(final int month) {
             this.month = month;
         }
 
-        public final void setDayOfMonth(final int dayOfMonth) {
+        public void setDayOfMonth(final int dayOfMonth) {
             this.dayOfMonth = dayOfMonth;
         }
 
-        public final void setHourOfDay(final int hourOfDay) {
+        public void setHourOfDay(final int hourOfDay) {
             this.hourOfDay = hourOfDay;
         }
 
-        public final void setDeciseconds(final int deciseconds) {
+        public void setDeciseconds(final int deciseconds) {
             this.deciseconds = deciseconds;
         }
 
-        public final void setMinute(final int minute) {
+        public void setMinute(final int minute) {
             this.minute = minute;
         }
 
-        public final void setSecond(final int second) {
+        public void setSecond(final int second) {
             this.second = second;
         }
 
-        public final void setOffsetInHours(final int offsetInHours) {
+        public void setOffsetInHours(final int offsetInHours) {
             this.offsetInHours = offsetInHours;
         }
 
-        public final void setOffsetInMinutes(final int offsetInMinutes) {
+        public void setOffsetInMinutes(final int offsetInMinutes) {
             this.offsetInMinutes = offsetInMinutes;
         }
 
-        public final void setDirectionFromUTCPlus(final boolean directionFromUTCPlus) {
+        public void setDirectionFromUTCPlus(final boolean directionFromUTCPlus) {
             this.directionFromUTCPlus = directionFromUTCPlus;
         }
 
-        public final Calendar build(){
+        public Calendar build(){
             final Calendar cal = createCalendar();
             int offsetMills = offsetInHours * 3600000 + offsetInMinutes * 60000;
             if(!directionFromUTCPlus) offsetMills = -offsetMills;
@@ -245,7 +240,7 @@ final class SnmpHelpers {
 
         private static String addLeadingZeroes(final String value, final int requiredLength){
             if(value == null) return addLeadingZeroes("", requiredLength);
-            else if(value.length() < requiredLength) return addLeadingZeroes("0" + value, requiredLength);
+            else if(value.length() < requiredLength) return addLeadingZeroes("0".concat(value), requiredLength);
             else return value;
         }
 
@@ -341,28 +336,24 @@ final class SnmpHelpers {
         return column != null ? column.getColumnID() : -1;
     }
 
-    static Object toArray(final List<?> lst, final ArrayType<?> arrayType) throws ReflectionException {
+    static Object toArray(final List<?> lst, final ArrayType<?> arrayType) {
         final Object result = ArrayUtils.newArray(arrayType, lst.size());
+        assert result != null;
         for(int i = 0; i < lst.size(); i++)
             Array.set(result, i, lst.get(i));
         return result;
     }
 
-    static <E extends Exception> void withLogger(final Consumer<Logger, E> contextBody) throws E {
-        OSGiLoggingContext.within(LOGGER_NAME, contextBody);
+    static Logger getLogger(){
+        return SnmpResourceAdapter.getLoggerImpl();
     }
 
-    private static void log(final Level lvl, final String message, final Object[] args, final Throwable e){
-        withLogger(new SafeConsumer<Logger>() {
-            @Override
-            public void accept(final Logger logger) {
-                logger.log(lvl, String.format(message, args), e);
-            }
-        });
+    private static void log(final Level lvl, final String message, final Object[] args, final Throwable e) {
+        getLogger().log(lvl, String.format(message, args), e);
     }
 
     static void log(final Level lvl, final String message, final Throwable e){
-        log(lvl, message, new Object[0], e);
+        log(lvl, message, emptyArray(String[].class), e);
     }
 
     static void log(final Level lvl, final String message, final Object arg0, final Throwable e){
@@ -378,11 +369,11 @@ final class SnmpHelpers {
     }
 
     static OID generateOID(final OID prefix){
-        return new OID(prefix).append(POSTFIX_COUNTER.getAndIncrement());
+        return new OID(prefix).append(POSTFIX_COUNTER.getAndIncrement()).append(0);
     }
 
     static OID generateOID() throws ParseException {
-        final OID prefix = new OID(SNMP4JSettings.getOIDTextFormat().parse(System.getProperty(AUTO_PREFIX_PROPERTY, "1.1.1")));
+        final OID prefix = new OID(SNMP4JSettings.getOIDTextFormat().parse(System.getProperty(AUTO_PREFIX_PROPERTY, "1.1")));
         return generateOID(prefix);
     }
 }

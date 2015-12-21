@@ -88,9 +88,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.jolokia</groupId>
-            <artifactId>jolokia-osgi</artifactId>
-            <version>${jolokia.version}</version>
+            <groupId>org.apache.qpid</groupId>
+            <artifactId>qpid-broker</artifactId>
+            <version>0.32</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

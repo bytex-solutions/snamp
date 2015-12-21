@@ -1,6 +1,6 @@
 package com.bytex.snamp.adapters.groovy.dsl;
 
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 import groovy.lang.GroovyObjectSupport;
 
 import javax.management.*;
@@ -17,7 +17,7 @@ public final class GroovyResourceAttribute extends GroovyObjectSupport {
     private final AttributesView attributes;
     private final String attributeName;
     private final String resourceName;
-    private volatile GroovyFeatureMetadata<MBeanAttributeInfo> metadata;
+    private volatile GroovyFeatureMetadata<MBeanAttributeInfo> metadataCache;
 
     GroovyResourceAttribute(final AttributesView attributes,
                             final String resourceName,
@@ -37,17 +37,17 @@ public final class GroovyResourceAttribute extends GroovyObjectSupport {
         return attributes.getAttributeValue(resourceName, attributeName);
     }
 
-    private synchronized GroovyFeatureMetadata<MBeanAttributeInfo> getMetadataSync(){
-        if(metadata == null)
+    private synchronized GroovyFeatureMetadata<MBeanAttributeInfo> getMetadataImpl() {
+        if (metadataCache == null)
             for (final MBeanAttributeInfo metadata : attributes.getAttributesMetadata(resourceName))
                 if (Objects.equals(attributeName, metadata.getName()))
-                    return this.metadata = new GroovyFeatureMetadata<>(metadata);
-        return metadata;
+                    return metadataCache = new GroovyFeatureMetadata<>(metadata);
+        return metadataCache;
     }
 
     @SpecialUse
     public GroovyFeatureMetadata<MBeanAttributeInfo> getMetadata() {
-        return metadata == null ? getMetadataSync() : metadata;
+        return metadataCache == null ? getMetadataImpl() : metadataCache;
     }
 
     @Override

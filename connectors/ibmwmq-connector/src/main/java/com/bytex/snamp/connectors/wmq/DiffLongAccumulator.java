@@ -32,7 +32,7 @@ final class DiffLongAccumulator {
      * @param value A new value to be combined with existing accumulator value.
      * @return Modified accumulator value.
      */
-    final synchronized long update(final long value) {
+    synchronized long update(final long value) {
         final long currentTime = System.currentTimeMillis();
         if (current == 0L || (currentTime - timer > timeToLive)) {
             current = value;

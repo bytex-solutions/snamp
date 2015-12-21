@@ -1,19 +1,18 @@
 package com.bytex.snamp.jmx;
 
+import com.bytex.snamp.MethodStub;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.internal.annotations.MethodStub;
 
 import javax.management.*;
 import javax.management.openmbean.*;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
+
+import static com.bytex.snamp.ArrayUtils.emptyArray;
 
 /**
  * Represents an abstract class for building Open MBeans.
@@ -162,33 +161,119 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
     }
 
     public static abstract class OpenOperation<R, T extends OpenType<R>> extends OpenMBeanElement<MBeanOperationInfo>{
+        private static final class OperationArgumentException extends IllegalArgumentException{
+            private static final long serialVersionUID = 1217237225436599211L;
+
+            private OperationArgumentException(final OpenMBeanParameterInfo nullParameter) {
+                super(String.format("Parameter %s cannot be null", nullParameter.getName()));
+            }
+
+            private OperationArgumentException(final OpenType<?> expectedType, final OpenDataException e){
+                super(String.format("Illegal type of the actual argument. Expected type: %s", expectedType), e);
+            }
+        }
+
+        /**
+         * Describes parameter of the operation.
+         * @param <T> Type of the parameter
+         */
+        public static class TypedParameterInfo<T> extends OpenMBeanParameterInfoSupport {
+            private static final long serialVersionUID = -3343022428532139904L;
+            private final boolean nullable;
+            private final T defaultValue;
+
+            public TypedParameterInfo(final String name,
+                                      final String description,
+                                      final OpenType<T> openType,
+                                      final boolean nullable,
+                                      final T defValue) {
+                super(name, description, openType);
+                this.nullable = nullable;
+                this.defaultValue = defValue;
+            }
+
+            public TypedParameterInfo(final String name,
+                                      final String description,
+                                      final OpenType<T> openType) {
+                this(name, description, openType, true);
+            }
+
+            public TypedParameterInfo(final String name,
+                                      final String description,
+                                      final OpenType<T> openType,
+                                      final boolean nullable) {
+                this(name, description, openType, nullable, null);
+            }
+
+            /**
+             * Determines whether value of this parameter can be {@literal null}.
+             *
+             * @return {@literal true}, if this value of this parameter can be {@literal null}; otherwise, {@literal false}.
+             */
+            public final boolean isNullable() {
+                return nullable;
+            }
+
+            @Override
+            public final T getDefaultValue() {
+                return defaultValue;
+            }
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public final OpenType<T> getOpenType() {
+                return (OpenType<T>) super.getOpenType();
+            }
+
+            /**
+             * Extracts actual value of this parameter from the map of arguments.
+             * @param arguments A map of arguments.
+             * @return Actual value of this parameter.
+             * @throws IllegalArgumentException Incorrect actual value of this parameter.
+             */
+            public final T getArgument(final Map<String, ?> arguments) throws OperationArgumentException {
+                if (arguments.containsKey(getName())) {
+                    try {
+                        return cast(getOpenType(), arguments.get(getName()));
+                    } catch (final OpenDataException e) {
+                        throw new OperationArgumentException(getOpenType(), e);
+                    }
+                } else if (nullable || defaultValue != null)
+                    return defaultValue;
+                else
+                    throw new OperationArgumentException(this);
+            }
+        }
+
+        /**
+         * Represents return type of this operation.
+         */
         protected final T returnType;
-        private final List<OpenMBeanParameterInfo> parameters;
+        private final ImmutableList<OpenMBeanParameterInfo> parameters;
 
         protected OpenOperation(final String operationName, final T returnType, final OpenMBeanParameterInfo... parameters){
             super(operationName);
             this.returnType = returnType;
-            this.parameters = Arrays.asList(parameters);
-        }
-
-        protected static <T> T getArgument(final String paramName, final Class<T> paramType, final Map<String, ?> arguments){
-            return Utils.getProperty(arguments, paramName, paramType);
+            this.parameters = ImmutableList.copyOf(parameters);
         }
 
         public abstract R invoke(final Map<String, ?> arguments) throws Exception;
 
-        private R invoke(final Object[] arguments) throws ReflectionException{
-            if(arguments.length < parameters.size())
+        private R invoke(final Object[] arguments) throws ReflectionException, MBeanException {
+            if (arguments.length < parameters.size())
                 throw new ReflectionException(new IllegalArgumentException(String.format("Invalid arguments count. Expected %s but found %s.", parameters.size(), arguments.length)));
             final Map<String, Object> args = Maps.newHashMapWithExpectedSize(arguments.length);
-            for(int i = 0; i < arguments.length; i++){
+            for (int i = 0; i < arguments.length; i++) {
                 final OpenMBeanParameterInfo paramInfo = parameters.get(i);
                 args.put(paramInfo.getName(), arguments[i]);
             }
-            try{
+            try {
                 return invoke(args);
-            }
-            catch (final Exception e){
+            } catch (final OperationArgumentException e) {
+                throw new MBeanException(e);
+            } catch (final MBeanException | ReflectionException e) {
+                throw e;
+            } catch (final Exception e) {
                 throw new ReflectionException(e);
             }
         }
@@ -341,15 +426,14 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
         }
 
         @SuppressWarnings("unchecked")
+        private synchronized Class<V> getJavaTypeSync() throws ClassNotFoundException{
+            if(javaType == null)
+                javaType = (Class<V>)Class.forName(openType.getClassName());
+            return javaType;
+        }
+
         private Class<V> getJavaType() throws ClassNotFoundException {
-            Class<V> result = javaType;
-                if(result == null)
-                    synchronized (this){
-                        result = javaType;
-                        if(result == null)
-                            result = javaType = (Class<V>)Class.forName(openType.getClassName());
-                    }
-            return result;
+            return javaType == null ? getJavaTypeSync() : javaType;
         }
 
         /**
@@ -359,7 +443,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
         public final boolean isReadable(){
             try {
                 final Method getter = getClass().getMethod(GET_VALUE_METHOD);
-                return Objects.equals(getter.getDeclaringClass(), getClass());
+                return getClass().equals(getter.getDeclaringClass());
             }
             catch (final NoSuchMethodException e) {
                 return false;
@@ -373,7 +457,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
         public final boolean isWritable(){
             try {
                 final Method getter = getClass().getMethod(SET_VALUE_METHOD, getJavaType());
-                return Objects.equals(getter.getDeclaringClass(), getClass());
+                return getClass().equals(getter.getDeclaringClass());
             }
             catch (final ReflectiveOperationException e) {
                 return false;
@@ -602,14 +686,12 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
         return result;
     }
 
-    @SuppressWarnings("UnusedDeclaration")
     protected final <N> void sendNotification(final Class<? extends OpenNotification<N>> notifType, final N eventObject){
         for(final OpenNotification<?> n: notifications)
             if(notifType.isInstance(n))
                 sendNotification(notifType.cast(n).createNotification(this, eventObject));
     }
 
-    @SuppressWarnings("UnusedDeclaration")
     public final void sendNotification(final String name, final Object eventObject){
         for(final OpenNotification<?> n: notifications)
             if(Objects.equals(name, n.name))
@@ -627,7 +709,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
         return new OpenMBeanInfoSupport(getClass().getName(),
                 getDescription(),
                 getAttributes(),
-                new OpenMBeanConstructorInfo[0],
+                emptyArray(OpenMBeanConstructorInfo[].class),
                 getOperations(),
                 getNotifications(),
                 getDescriptor());
@@ -655,7 +737,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
         public final OpenMBeanOperationInfoSupport get() {
             return new OpenMBeanOperationInfoSupport(name,
                     getDescription(),
-                    null,
+                    emptyArray(OpenMBeanParameterInfo[].class),
                     SimpleType.VOID,
                     getImpact(),
                     getDescriptor());
@@ -664,5 +746,20 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
         protected int getImpact(){
             return MBeanOperationInfo.UNKNOWN;
         }
+    }
+
+    /**
+     * Casts value to the specified JMX Open Type.
+     * @param type JMX Open Type. Cannot be {@literal null}.
+     * @param value Value to cast.
+     * @param <T> Type of the conversion result.
+     * @return Converter value.
+     * @throws OpenDataException Unable to cast value to the specified JMX Open Type.
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T cast(final OpenType<T> type, final Object value) throws OpenDataException{
+        if(type.isValue(value))
+            return (T)value;
+        else throw new OpenDataException(String.format("Unable cast %s to %s", value, type));
     }
 }

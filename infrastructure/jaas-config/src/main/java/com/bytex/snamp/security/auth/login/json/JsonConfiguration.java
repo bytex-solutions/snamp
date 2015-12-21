@@ -314,15 +314,14 @@ public final class JsonConfiguration extends AdvancedConfiguration {
         return entries.toString();
     }
 
-    public static JsonConfiguration deserialize(final Gson formatter, final InputStream stream) throws IOException {
-        try(final Reader reader = new InputStreamReader(stream, CONFIG_ENCODING)){
-            return formatter.fromJson(reader, JsonConfiguration.class);
-        }
+    public static JsonConfiguration deserialize(final Gson formatter, final Reader stream) throws IOException {
+        return formatter.fromJson(stream, JsonConfiguration.class);
     }
 
-    public static JsonConfiguration deserialize(final Gson formatter, final URL location) throws IOException{
-        try(final InputStream stream = location.openStream()){
-            return deserialize(formatter, stream);
+    public static JsonConfiguration deserialize(final Gson formatter, final URL location) throws IOException {
+        try (final InputStream stream = location.openStream();
+             final InputStreamReader reader = new InputStreamReader(stream, CONFIG_ENCODING)) {
+            return deserialize(formatter, reader);
         }
     }
 
@@ -330,15 +329,14 @@ public final class JsonConfiguration extends AdvancedConfiguration {
         return deserialize(formatter, configFile.toURI().toURL());
     }
 
-    public void serialize(final Gson formatter, final OutputStream out) throws IOException {
-        try(final Writer writer = new OutputStreamWriter(out, CONFIG_ENCODING)){
-            writer.write(formatter.toJson(this, JsonConfiguration.class));
-        }
+    public void serialize(final Gson formatter, final Writer out) throws IOException {
+        formatter.toJson(this, out);
     }
 
     public void serialize(final Gson formatter, final File configFile) throws IOException{
-        try(final OutputStream out = new FileOutputStream(configFile)){
-            serialize(formatter, out);
+        try(final OutputStream out = new FileOutputStream(configFile);
+            final OutputStreamWriter writer = new OutputStreamWriter(out, CONFIG_ENCODING)){
+            serialize(formatter, writer);
         }
     }
 }

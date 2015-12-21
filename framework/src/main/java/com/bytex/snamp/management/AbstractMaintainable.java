@@ -1,15 +1,15 @@
 package com.bytex.snamp.management;
 
+import com.bytex.snamp.AbstractAggregator;
+import com.bytex.snamp.concurrent.FutureThread;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.ObjectArrays;
 import com.google.common.util.concurrent.Futures;
-import com.bytex.snamp.AbstractAggregator;
-import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.concurrent.FutureThread;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -95,7 +95,7 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
          */
         public String doAction(Object[] args, final Locale loc) throws Exception {
             if (localeSpecific)
-                args = ArrayUtils.addToEnd(args, loc, Object.class);
+                args = ObjectArrays.concat(args, new Locale[]{loc}, Object.class);
             try {
                 return Objects.toString(handle.invokeWithArguments(args));
             } catch (final Exception | Error e) {
@@ -103,6 +103,25 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
             } catch (final Throwable e) {
                 throw new UndeclaredThrowableException(e);
             }
+        }
+
+        @Override
+        public int hashCode() {
+            return localeSpecific ? handle.hashCode() ^ 1 : handle.hashCode();
+        }
+
+        private boolean equals(final ActionHandle other){
+            return handle.equals(other.handle);
+        }
+
+        @Override
+        public boolean equals(final Object other) {
+            return other instanceof ActionHandle ? equals((ActionHandle)other) : handle.equals(other);
+        }
+
+        @Override
+        public String toString() {
+            return handle.toString();
         }
     }
 
@@ -189,6 +208,11 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
             @Override
             public String call() throws Exception {
                 return action.doAction(arguments, loc);
+            }
+
+            @Override
+            public String toString() {
+                return action.toString();
             }
         });
     }

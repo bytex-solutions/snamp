@@ -1,12 +1,12 @@
 package com.bytex.snamp.adapters.xmpp;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.bytex.snamp.StringAppender;
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.adapters.modeling.NotificationRouter;
+import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.jmx.DescriptorUtils;
-import com.bytex.snamp.jmx.json.Formatters;
+import com.bytex.snamp.jmx.json.JsonUtils;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.jivesoftware.smack.packet.ExtensionElement;
 import org.jivesoftware.smackx.jiveproperties.packet.JivePropertiesExtension;
 
@@ -25,7 +25,7 @@ import java.util.Map;
 final class XMPPNotificationAccessor extends NotificationRouter {
     static final String LISTEN_COMMAND_PATTERN = "notifs %s";
     final String resourceName;
-    private static final Gson FORMATTER = Formatters.enableAll(new GsonBuilder())
+    private static final Gson FORMATTER = JsonUtils.registerTypeAdapters(new GsonBuilder())
             .serializeSpecialFloatingPointValues()
             .serializeNulls()
             .create();
@@ -56,18 +56,20 @@ final class XMPPNotificationAccessor extends NotificationRouter {
         return FORMATTER.toJson(notif);
     }
 
-    final String getListenCommand(){
+    String getListenCommand(){
         final Map<String, ?> filterParams = DescriptorUtils.toMap(getDescriptor());
-        switch (filterParams.size()){
-            case 0: return String.format(LISTEN_COMMAND_PATTERN, "");
+        switch (filterParams.size()) {
+            case 0:
+                return String.format(LISTEN_COMMAND_PATTERN, "");
             case 1:
-                for(final Map.Entry<String, ?> entry: filterParams.entrySet())
+                for (final Map.Entry<String, ?> entry : filterParams.entrySet())
                     return String.format(LISTEN_COMMAND_PATTERN, String.format("(%s=%s)", entry.getKey(), entry.getValue()));
             default:
-                final StringAppender filter = new StringAppender(30);
-                for(final Map.Entry<String, ?> entry: filterParams.entrySet())
-                    filter.append(null, "(%s=%s)", entry.getKey(), entry.getValue());
+                final StringBuilder filter = new StringBuilder(30);
+                for (final Map.Entry<String, ?> entry : filterParams.entrySet())
+                    IOUtils.append(null, "(%s=%s)", entry.getKey(), entry.getValue());
                 return String.format("(&(%s))", filter);
+
         }
     }
 }

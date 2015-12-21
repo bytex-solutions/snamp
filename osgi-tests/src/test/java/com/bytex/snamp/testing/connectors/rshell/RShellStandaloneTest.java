@@ -1,11 +1,10 @@
 package com.bytex.snamp.testing.connectors.rshell;
 
-import com.google.common.base.Supplier;
 import com.bytex.snamp.concurrent.FutureThread;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.attributes.AttributeSupport;
-import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.internal.OperatingSystem;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import org.junit.Assume;
 import org.junit.Test;
@@ -13,9 +12,10 @@ import org.osgi.framework.BundleContext;
 
 import javax.management.JMException;
 import javax.management.openmbean.CompositeData;
-import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+
+import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
 
 /**
  * @author Roman Sakno
@@ -38,16 +38,15 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
     }
 
     @Override
-    protected void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory) {
-        AttributeConfiguration attribute = attributeFactory.get();
-        attribute.setAttributeName(getPathToFileInProjectRoot("freemem-tool-profile.xml"));
+    protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
+        AttributeConfiguration attribute = attributes.getOrAdd("ms");
+        setFeatureName(attribute, getPathToFileInProjectRoot("freemem-tool-profile.xml"));
         attribute.getParameters().put("format", "-m");
-        attributes.put("ms", attribute);
     }
 
     @Test()
     public void loadTest() throws InterruptedException, ExecutionException, JMException {
-        Assume.assumeTrue(Utils.IS_OS_LINUX);
+        Assume.assumeTrue(OperatingSystem.isLinux());
         final ManagedResourceConnector connector = getManagementConnector();
         assertNotNull(connector);
         try {
@@ -78,7 +77,7 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
 
     @Test
     public void readMemStatusAttribute() throws JMException {
-        Assume.assumeTrue(Utils.IS_OS_LINUX);
+        Assume.assumeTrue(OperatingSystem.isLinux());
         final ManagedResourceConnector connector = getManagementConnector();
         assertNotNull(connector);
         try {

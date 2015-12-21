@@ -1,6 +1,6 @@
 package com.bytex.snamp.adapters.xmpp;
 
-import com.bytex.snamp.StringAppender;
+import com.bytex.snamp.io.IOUtils;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -36,9 +36,9 @@ final class ListOfAttributesCommand extends AbstractCommand {
     private void printAttributes(final String resourceName,
                                  final boolean withNames,
                                  final boolean details,
-                                 final StringAppender output) {
+                                 final StringBuilder output) {
         for (final String attributeName : reader.getResourceAttributes(resourceName))
-            output.appendln(reader.printOptions(resourceName, attributeName, withNames, details));
+            IOUtils.appendln(output, reader.printOptions(resourceName, attributeName, withNames, details));
     }
 
     @Override
@@ -46,14 +46,16 @@ final class ListOfAttributesCommand extends AbstractCommand {
         final boolean withNames = input.hasOption(SHOW_NAMES_OPTION.getOpt());
         final boolean details = input.hasOption(SHOW_DETAILS_OPTION.getOpt());
         final String resourceName = input.getOptionValue(RESOURCE_OPTION.getOpt(), "");
-        final StringAppender output = new StringAppender(64);
-        if (resourceName.isEmpty())
-            for (final String r : reader.getHostedResources())
-                printAttributes(r, withNames, details, output);
-        else printAttributes(resourceName, withNames, details, output);
         final Message msg = new Message();
-        msg.setSubject("List of attributes");
-        msg.setBody(output.toString());
+        {
+            final StringBuilder output = new StringBuilder(64);
+            if (resourceName.isEmpty())
+                for (final String r : reader.getHostedResources())
+                    printAttributes(r, withNames, details, output);
+            else printAttributes(resourceName, withNames, details, output);
+            msg.setSubject("List of attributes");
+            msg.setBody(output.toString());
+        }
         return msg;
     }
 }

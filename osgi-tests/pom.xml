@@ -13,16 +13,13 @@
     <artifactId>osgi-tests</artifactId>
     <version>${project.parent.version}</version>
     <properties>
-        <exam.version>4.4.0</exam.version>
-        <felix.gogo.version>0.14.0</felix.gogo.version>
-        <slf4jVersion>1.7.7</slf4jVersion>
+        <exam.version>4.6.0</exam.version>
     </properties>
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.servicemix.tooling</groupId>
                 <artifactId>depends-maven-plugin</artifactId>
-                <version>1.2</version>
                 <executions>
                     <execution>
                         <id>generate-depends-file</id>
@@ -94,7 +91,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>${slf4jVersion}</version>
+            <version>${slf4j.api.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.karaf.package</groupId>
@@ -132,18 +129,6 @@
                 <exclusion>
                     <groupId>org.eclipse</groupId>
                     <artifactId>org.eclipse.osgi</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.gogo.runtime</artifactId>
-            <version>${felix.gogo.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -316,7 +301,7 @@
         <dependency>
             <groupId>org.apache.sshd</groupId>
             <artifactId>sshd-core</artifactId>
-            <version>0.12.0</version>
+            <version>${sshd.version}</version>
             <scope>test</scope>
             <exclusions>
                 <exclusion>
@@ -366,13 +351,37 @@
         <dependency>
             <groupId>org.atmosphere</groupId>
             <artifactId>wasync</artifactId>
-            <version>2.0.0</version>
+            <version>2.1.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.jolokia</groupId>
             <artifactId>jolokia-osgi</artifactId>
             <version>${jolokia.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.thrift</groupId>
+            <artifactId>libthrift</artifactId>
+            <version>${thrift.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.karaf.shell</groupId>
+            <artifactId>org.apache.karaf.shell.console</artifactId>
+            <scope>test</scope>
+            <version>${karaf.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.geronimo.specs</groupId>
+            <artifactId>geronimo-jms_1.1_spec</artifactId>
+            <version>1.1.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.bytex.snamp</groupId>
+            <artifactId>mq-connector</artifactId>
+            <version>${snamp.connectors.mq.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

@@ -1,6 +1,6 @@
 package com.bytex.snamp.testing.configuration;
 
-import com.bytex.snamp.ServiceReferenceHolder;
+import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.PersistentConfigurationManager;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
@@ -16,7 +16,7 @@ public class PersistentConfigurationTest extends AbstractSnampIntegrationTest {
 
     @Test
     public void configurationTest() throws Exception {
-        final ServiceReferenceHolder<ConfigurationAdmin> admin = new ServiceReferenceHolder<>(getTestBundleContext(), ConfigurationAdmin.class);
+        final ServiceHolder<ConfigurationAdmin> admin = new ServiceHolder<>(getTestBundleContext(), ConfigurationAdmin.class);
         try{
             final PersistentConfigurationManager manager = new PersistentConfigurationManager(admin);
             manager.load();
@@ -26,19 +26,16 @@ public class PersistentConfigurationTest extends AbstractSnampIntegrationTest {
             assertEquals(0, currentConfig.getManagedResources().size());
             //save adapter
             final AgentConfiguration.ResourceAdapterConfiguration adapter =
-                    currentConfig.newConfigurationEntity(AgentConfiguration.ResourceAdapterConfiguration.class);
+                    currentConfig.getResourceAdapters().getOrAdd("adapter1");
             assertNotNull(adapter);
             adapter.setAdapterName("snmp");
             adapter.getParameters().put("param1", "value");
-            currentConfig.getResourceAdapters().put("adapter1", adapter);
             //save connector
-            final AgentConfiguration.ManagedResourceConfiguration resource = currentConfig.newConfigurationEntity(AgentConfiguration.ManagedResourceConfiguration.class);
+            final AgentConfiguration.ManagedResourceConfiguration resource = currentConfig.getManagedResources().getOrAdd("resource1");
             resource.setConnectionString("connection string");
             resource.setConnectionType("jmx");
             resource.getParameters().put("param2", "value2");
-            final AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration attr = resource.newElement(AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class);
-            resource.getElements(AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class).put("attr1", attr);
-            currentConfig.getManagedResources().put("resource1", resource);
+            resource.getFeatures(AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class).getOrAdd("attr1");
             //save and reload again
             manager.save();
             manager.load();
@@ -49,7 +46,8 @@ public class PersistentConfigurationTest extends AbstractSnampIntegrationTest {
             assertTrue(currentConfig.getManagedResources().containsKey("resource1"));
             assertEquals("value", currentConfig.getResourceAdapters().get("adapter1").getParameters().get("param1"));
             assertEquals("value2", currentConfig.getManagedResources().get("resource1").getParameters().get("param2"));
-            assertNotNull(currentConfig.getManagedResources().get("resource1").getElements(AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class).get("attr1"));
+            assertNotNull(currentConfig.getManagedResources().get("resource1")
+                    .getFeatures(AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class).get("attr1"));
             //delete managed resource
             currentConfig.getManagedResources().remove("resource1");
             assertEquals(0, currentConfig.getManagedResources().size());

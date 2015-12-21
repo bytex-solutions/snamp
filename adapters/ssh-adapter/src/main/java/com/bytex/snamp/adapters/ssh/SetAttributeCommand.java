@@ -1,7 +1,6 @@
 package com.bytex.snamp.adapters.ssh;
 
 import com.bytex.snamp.Consumer;
-import com.bytex.snamp.adapters.modeling.WriteAttributeLogicalOperation;
 import com.bytex.snamp.core.LogicalOperation;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -18,7 +17,7 @@ import java.io.StringReader;
  * @since 1.0
  */
 final class SetAttributeCommand extends AbstractAttributeCommand {
-    static final String COMMAND_USAGE = String.format(SshAttributeAccessor.SET_COMMAND_PATTERN, "<name>", "<resource>", "<value-as-json>");;
+    static final String COMMAND_USAGE = String.format(SshAttributeAccessor.SET_COMMAND_PATTERN, "<name>", "<resource>", "<value-as-json>");
     static final String COMMAND_NAME = "set";
     static final String COMMAND_DESC = "Set attribute value";
     private static final Option VALUE_OPTION = new Option("v", "value", true, "Attribute value in JSON format");
@@ -47,7 +46,7 @@ final class SetAttributeCommand extends AbstractAttributeCommand {
             if(!getAdapterController().processAttribute(resourceName, attributeName, new Consumer<SshAttributeMapping, CommandException>() {
                 @Override
                 public void accept(final SshAttributeMapping attribute) throws CommandException {
-                    try (final LogicalOperation ignored = new WriteAttributeLogicalOperation(attribute.getOriginalName(), attributeName);
+                    try (final LogicalOperation ignored = SshHelpers.writeAttributeLogicalOperation(attribute.getOriginalName(), attributeName);
                          final StringReader reader = new StringReader(attributeValue)) {
                         attribute.setValue(reader);
                         output.println("OK");

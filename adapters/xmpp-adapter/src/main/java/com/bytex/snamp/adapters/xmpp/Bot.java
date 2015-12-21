@@ -1,11 +1,11 @@
 package com.bytex.snamp.adapters.xmpp;
 
 import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.concurrent.VolatileBox;
-import com.bytex.snamp.core.OSGiLoggingContext;
-import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.core.LogicalOperation;
 import com.bytex.snamp.jmx.ExpressionBasedDescriptorFilter;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.chat.Chat;
@@ -14,7 +14,6 @@ import org.jivesoftware.smack.chat.ChatMessageListener;
 import org.jivesoftware.smack.packet.ExtensionElement;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.XMPPError;
-import org.osgi.framework.BundleContext;
 
 import java.io.Closeable;
 import java.lang.ref.WeakReference;
@@ -32,10 +31,18 @@ import java.util.regex.Pattern;
  * @version 1.0
  * @since 1.0
  */
-final class Bot implements ChatManagerListener, Closeable {
+final class Bot implements ChatManagerListener, Closeable, SafeCloseable {
     private static final Pattern COMMAND_DELIMITER = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
+    private static final class SayHelloLogicalOperation extends LogicalOperation {
+        private static final CorrelationIdentifierGenerator CORREL_ID_GEN =
+                new DefaultCorrelationIdentifierGenerator();
 
-    private static final class ChatSession<A extends AttributeReader & AttributeWriter> extends WeakReference<Chat> implements ChatMessageListener, Closeable, NotificationListener{
+        private SayHelloLogicalOperation(final Logger logger) {
+            super(logger, "sayHello", CORREL_ID_GEN);
+        }
+    }
+
+    private static final class ChatSession<A extends AttributeReader & AttributeWriter> extends WeakReference<Chat> implements ChatMessageListener, Closeable, SafeCloseable, NotificationListener{
         private final Logger logger;
         private final A attributes;
         private volatile boolean closed;
@@ -49,10 +56,6 @@ final class Bot implements ChatManagerListener, Closeable {
             this.logger = logger;
             this.attributes = attributes;
             notificationFilter = new VolatileBox<>(null);
-        }
-
-        private BundleContext getBundleContext(){
-            return Utils.getBundleContextByObject(this);
         }
 
         @Override
@@ -128,9 +131,7 @@ final class Bot implements ChatManagerListener, Closeable {
         }
 
         private void unableToSendMessage(final Exception e) {
-            try (final OSGiLoggingContext context = OSGiLoggingContext.get(logger, getBundleContext())) {
-                context.log(Level.WARNING, "Unable to send XMPP message", e);
-            }
+            logger.log(Level.WARNING, "Unable to send XMPP message", e);
         }
 
         @Override
@@ -197,19 +198,15 @@ final class Bot implements ChatManagerListener, Closeable {
         sayHello(chat);
     }
 
-    private void sayHello(final Chat chat){
+    private void sayHello(final Chat chat) {
+        final LogicalOperation logger = new SayHelloLogicalOperation(this.logger);
         try {
             chat.sendMessage(String.format("Hi, %s!", chat.getParticipant()));
+        } catch (final SmackException.NotConnectedException e) {
+            logger.log(Level.WARNING, "Unable to send Hello message", e);
+        } finally {
+            logger.close();
         }
-        catch (final SmackException.NotConnectedException e) {
-            try(final OSGiLoggingContext context = OSGiLoggingContext.get(logger, getBundleContext())){
-                context.log(Level.WARNING, "Unable to send Hello message", e);
-            }
-        }
-    }
-
-    private BundleContext getBundleContext(){
-        return Utils.getBundleContextByObject(this);
     }
 
     private static String[] splitArguments(final String value){

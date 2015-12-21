@@ -4,9 +4,11 @@ SNAMP Management Information Model is a special abstraction layer specifying dat
 
 ![Management Information Flow](images/inform-flow.png)
 
-As you can see at the figure above **Resource Connector** converts protocol-specific data to the entities in **Management Information Model**. **Resource Adapter** uses this unified representation of the management information and transforms it to another management protocol expected by **monitoring & management tool**.
+As far as you can see at the figure above, **Resource Connector** converts protocol-specific data to the entities in **Management Information Model**. 
+**Resource Adapter** uses this unified representation of the management information and transforms it to another management protocol (expected by **monitoring & management tool**).
 
 Management Information Model consists of the following entities:
+
 * Attributes
 * Events
 * Operations
@@ -15,12 +17,13 @@ The attribute has its _data type_ that reflects format (or semantics) of attribu
 
 The event emitted by **managed resource** will be translated into the unified object and delivered to **Resource Adapter** via **Resource Connector**.
 
-The operation has its set of _formal parameters_ and _return value_. Each parameter and return value have a _data type_.
+The operation has its own set of _formal parameters_ and _return value_. Each parameter and return value belong to some _data type_.
 
 ## Type System
 SNAMP supports the following set of data types:
+
 * Scalar types
-  * datetime - the number of milliseconds since January 1, 1970, 00:00:00 GMT
+  * datetime - number of milliseconds since January 1, 1970, 00:00:00 GMT
   * int8 - 8-bit signed integer
   * int16 - 16-bit signed integer
   * int32 - 32-bit signed integer
@@ -47,10 +50,10 @@ SNAMP supports the following set of data types:
   * array(string) - array of strings
   * array(objectname) - array of object names
   * array(bool) - array of boolean values
-* Dictionary - a set of key/value pairs with unique keys. Each key is a _string_. The value in the pair may have any scalar type supported by SNAMP Management Information Model
-* Table - a set of rows and columns. The name of the column is a _string_. The cell value may have any scalar type supported by SNAMP Management Information Model
+* Dictionary - set of key/value pairs with unique keys. Each key is a _string_. The value in the pair may belong to any scalar type supported by SNAMP Management Information Model
+* Table - set of rows and columns. The name of the column is a _string_. The cell value may belong to any scalar type supported by SNAMP Management Information Model
 
-You should take into account that the semantics of the protocol-specific data type may be loss during conversion. For example, we have configured SNMP Adapter and JMX Connector. JMX-compliant managed resource exposes attribute of `Float` JMX type. This JMX-specific type can be converted directly to `float` value in SNAMP Management Information Model. But ASN.1 type system (used by SNMP protocol) doesn't have support for IEEE-754 floating-point numbers. Therefore, SNMP Adapter converts `float` value to ASN.1 `OCTET_STRING`.  
+You should take into account that the semantics of the protocol-specific data type might be lost during conversion. For example, we have configured SNMP Adapter and JMX Connector. JMX-compliant managed resource exposes attribute of `Float` JMX type. This JMX-specific type can be converted directly to `float` value in SNAMP Management Information Model. But ASN.1 type system (used by SNMP protocol) doesn't have support for IEEE-754 floating-point numbers. Therefore, SNMP Adapter converts `float` value to ASN.1 `OCTET_STRING`.  
 > Some Resource Adapter provide configuration properties allowing you to specify conversion rules. For example, `int32` value may be converted into ASN.1 `INTEGER_32` or 4-byte `OCTET_STRING`.
 
 ## Notification
@@ -60,9 +63,9 @@ The structure of **Notification Object**:
 
 Field | Data Type | Description
 ---- | ---- | ----
-TimeStamp | datetime | The notification emission date
-Source | string | The name of the managed resource emitting notification
-Type | string | The name of the notification (differs from event category)
+TimeStamp | datetime | Notification emission date
+Source | string | Name of the managed resource emitting notification
+Type | string | Name of the notification (differs from event category)
 Message | string | Human-readable description of the notification
-Sequence Number | int64 | The notification sequence number within the source. It's a serial number identifying a particular instance of notification in the context of the notification source. The notification model does not assume that notifications will be received in the same order that they are sent. The sequence number helps you to sort received notifications
-Payload | _any supported data type_ | Additional payload delivered from **managed resource**. The semantics of this part of the notification depends on the connected **managed reresource** and its management protocol
+Sequence Number | int64 | Notification sequence number within the source. That is the serial number identifying particular instance of notification (in the context of the notification source). Notification model does not assume that notifications will be received in the same order that they are sent. Sequence number helps you to sort received notifications
+Payload | _any supported data type_ | Additional payload delivered from **managed resource**. Semantics of this part of the notification depends on the connected **managed reresource** and its management protocol

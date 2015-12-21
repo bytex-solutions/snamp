@@ -22,10 +22,11 @@ public interface AttributeConnector {
 
     /**
      * Loads attribute described in Groovy script.
+     * @param attributeName The name of the attribute.
      * @param descriptor The attribute descriptor.
      * @return Attribute accessor.
      * @throws ResourceException Unable to find file.
      * @throws ScriptException Invalid script program.
      */
-    AttributeAccessor loadAttribute(final AttributeDescriptor descriptor) throws ResourceException, ScriptException;
+    AttributeAccessor loadAttribute(final String attributeName, final AttributeDescriptor descriptor) throws ResourceException, ScriptException;
 }

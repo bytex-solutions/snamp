@@ -72,10 +72,10 @@ public interface DiscoveryService extends SupportService {
      * Attempts to discover collection of managed entities (such as attributes or notifications)
      * using managed resource connection string.
      * <p>
-     *     Do not add elements from the returned collection directly in {@link com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration#getElements(Class)}
+     *     Do not add elements from the returned collection directly in {@link com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration#getFeatures(Class)}
      *     result set, use the following algorithm:
      *     <ul>
-     *         <li>Create a new managed entity with {@link com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration#newElement(Class)} method.</li>
+     *         <li>Create a new managed entity with {@link com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration#getFeatures(Class)} method.</li>
      *         <li>Use {@link com.bytex.snamp.configuration.AbstractAgentConfiguration#copy(com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration, com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration)}
      *         or {@link com.bytex.snamp.configuration.AbstractAgentConfiguration#copy(com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration, com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration)} method
      *         to copy managed entity returned by this method into the newly created entity.</li>
@@ -100,6 +100,7 @@ public interface DiscoveryService extends SupportService {
      * @param entityTypes An array of requested entity types.
      * @return Discovery result.
      */
+    @SuppressWarnings("unchecked")
     DiscoveryResult discover(final String connectionString,
                              final Map<String, String> connectionOptions,
                              final Class<? extends FeatureConfiguration>... entityTypes);

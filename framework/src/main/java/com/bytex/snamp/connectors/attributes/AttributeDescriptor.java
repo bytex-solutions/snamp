@@ -1,5 +1,7 @@
 package com.bytex.snamp.connectors.attributes;
 
+import com.bytex.snamp.configuration.AgentConfiguration;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.bytex.snamp.TimeSpan;
@@ -37,32 +39,27 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
      * @param attributeConfig The attribute configuration used to create descriptor. Cannot be {@literal null}.
      */
     public AttributeDescriptor(final AttributeConfiguration attributeConfig){
-        this(attributeConfig.getAttributeName(),
-                attributeConfig.getReadWriteTimeout(),
+        this(attributeConfig.getReadWriteTimeout(),
                 new ConfigParameters(attributeConfig));
     }
 
     /**
      * Initializes a new attribute descriptor.
-     * @param attributeName The original name of the connected attribute.
      * @param readWriteTimeout Attribute read/write timeout.
      * @param options Attribute connection options.
      */
-    public AttributeDescriptor(final String attributeName,
-                               final TimeSpan readWriteTimeout,
+    public AttributeDescriptor(final TimeSpan readWriteTimeout,
                                final CompositeData options){
-        this(getFields(attributeName, readWriteTimeout, options));
+        this(getFields(readWriteTimeout, options));
     }
 
     private AttributeDescriptor(final Map<String, ?> fields){
         super(fields);
     }
 
-    private static Map<String, ?> getFields(final String attributeName,
-                                            final TimeSpan readWriteTimeout,
+    private static Map<String, ?> getFields(final TimeSpan readWriteTimeout,
                                             final CompositeData options){
-        final Map<String, Object> fields = Maps.newHashMapWithExpectedSize(options.values().size() + 3);
-        fields.put(ATTRIBUTE_NAME_FIELD, attributeName);
+        final Map<String, Object> fields = Maps.newHashMapWithExpectedSize(options.values().size() + 1);
         fields.put(READ_WRITE_TIMEOUT_FIELD, readWriteTimeout);
         fillMap(options, fields);
         return fields;
@@ -78,16 +75,17 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
         return ot != null ? WellKnownType.getType(ot) : WellKnownType.getType(attribute.getType());
     }
 
-    public final String getAttributeName(){
-        return getAttributeName(this);
-    }
-
     public final TimeSpan getReadWriteTimeout(){
         return getReadWriteTimeout(this);
     }
 
     public final String getDescription(){
         return getDescription(this);
+    }
+
+    public final String getDescription(final String defval){
+        final String result = getDescription();
+        return Strings.isNullOrEmpty(result) ? defval : result;
     }
 
     /**
@@ -111,7 +109,6 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
      */
     @Override
     public final void fill(final AttributeConfiguration entity) {
-        entity.setAttributeName(getAttributeName());
         entity.setReadWriteTimeout(getReadWriteTimeout());
         for (final String fieldName : getFieldNames())
             switch (fieldName) {
@@ -137,22 +134,14 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
         return setFields(DescriptorUtils.toMap(values));
     }
 
-    public static String getAttributeName(final Descriptor metadata){
-        return DescriptorUtils.getField(metadata, ATTRIBUTE_NAME_FIELD, String.class);
-    }
-
-    public static String getAttributeName(final MBeanAttributeInfo metadata){
-        return getAttributeName(metadata.getDescriptor());
-    }
-
     public static TimeSpan getReadWriteTimeout(final Descriptor metadata){
         final Object timeout = metadata.getFieldValue(READ_WRITE_TIMEOUT_FIELD);
         if(timeout instanceof TimeSpan)
             return (TimeSpan)timeout;
         else if(timeout instanceof Number)
-            return new TimeSpan(((Number)timeout).longValue());
+            return TimeSpan.ofMillis(((Number)timeout).longValue());
         else if(timeout instanceof String)
-            return new TimeSpan(Long.parseLong(timeout.toString()));
+            return TimeSpan.ofMillis(Long.parseLong(timeout.toString()));
         else return null;
     }
 
@@ -183,6 +172,14 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
         return result;
     }
 
+    public final AttributeDescriptor setOpenType(final OpenType<?> value){
+        return value != null ? setFields(ImmutableMap.of(OPEN_TYPE, value)) : this;
+    }
+
+    public final OpenType<?> getOpenType(){
+        return getOpenType(this);
+    }
+
     /**
      * Determines whether the field with the specified name is defined in this descriptor.
      * @param fieldName The name of the field to check.
@@ -210,8 +207,19 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
      * This can be happened because connector is in Smart mode.
      * @return {@literal true}, if the attribute with this descriptor will be added automatically by connector itself; otherwise, {@literal false}.
      */
+    @Override
     public final boolean isAutomaticallyAdded(){
-        return hasField(AUTOMATICALLY_ADDED_FIELD);
+        return hasField(AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration.AUTOMATICALLY_ADDED_KEY);
+    }
+
+    public final String getName(final String defName){
+        return hasField(AttributeConfiguration.NAME_KEY) ? getAlternativeName() : defName;
+    }
+
+
+    @Override
+    public final String getAlternativeName(){
+        return getField(AttributeConfiguration.NAME_KEY, String.class);
     }
 
     /**
@@ -220,5 +228,12 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
      */
     public final String getUnit(){
         return getField(DescriptorUtils.UNIT_OF_MEASUREMENT_FIELD, String.class);
+    }
+
+    public static String getName(final MBeanAttributeInfo metadata) {
+        return DescriptorUtils.getField(metadata.getDescriptor(),
+                AttributeConfiguration.NAME_KEY,
+                String.class,
+                metadata.getName());
     }
 }

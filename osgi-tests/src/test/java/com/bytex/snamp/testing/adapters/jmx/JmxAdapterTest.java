@@ -1,22 +1,22 @@
 package com.bytex.snamp.testing.adapters.jmx;
 
-import com.google.common.base.Supplier;
-import com.google.common.collect.ImmutableMap;
 import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.adapters.ResourceAdapterClient;
-import com.bytex.snamp.concurrent.Awaitor;
 import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
-import com.bytex.snamp.internal.RecordReader;
+import com.bytex.snamp.EntryReader;
+import com.bytex.snamp.connectors.ManagedResourceConnector;
+import com.bytex.snamp.connectors.metrics.MetricsReader;
 import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.bytex.snamp.jmx.TabularDataBuilder;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connectors.jmx.TestOpenMBean;
+import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
@@ -32,15 +32,18 @@ import javax.management.remote.JMXServiceURL;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Hashtable;
-import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import static com.bytex.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
+import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import static com.bytex.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
-import static com.bytex.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
 
 /**
  * @author Roman Sakno
@@ -147,7 +150,7 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
     }
 
     @Test
-    public void notificationTest() throws BundleException, JMException, IOException, TimeoutException, InterruptedException {
+    public void notificationTest() throws BundleException, JMException, IOException, TimeoutException, InterruptedException, ExecutionException {
         final Attribute attr = new Attribute("1.0", "Garry Oldman");
         final String connectionString = String.format("service:jmx:rmi:///jndi/rmi://localhost:%s/karaf-root", JMX_KARAF_PORT);
         try(final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(connectionString), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
@@ -171,14 +174,14 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
                     }
                 }
             }, null, null);
-            final Awaitor<Notification, ExceptionPlaceholder> attributeChangedEventAwaitor = attributeChangedEvent.getAwaitor();
-            final Awaitor<Notification, ExceptionPlaceholder> testEventAwaitor = testEvent.getAwaitor();
-            final Awaitor<Notification, ExceptionPlaceholder> eventWithAttachmentHolderAwaitor = eventWithAttachmentHolder.getAwaitor();
+            final Future<Notification> attributeChangedEventAwaitor = attributeChangedEvent.getAwaitor();
+            final Future<Notification> testEventAwaitor = testEvent.getAwaitor();
+            final Future<Notification> eventWithAttachmentHolderAwaitor = eventWithAttachmentHolder.getAwaitor();
             //force attribute change
             connection.setAttribute(resourceObjectName, attr);
-            assertNotNull(attributeChangedEventAwaitor.await(TimeSpan.fromSeconds(10)));
-            assertNotNull(testEventAwaitor.await(TimeSpan.fromSeconds(10)));
-            final Notification withAttachment = eventWithAttachmentHolderAwaitor.await(TimeSpan.fromSeconds(10));
+            assertNotNull(attributeChangedEventAwaitor.get(10, TimeUnit.SECONDS));
+            assertNotNull(testEventAwaitor.get(10, TimeUnit.SECONDS));
+            final Notification withAttachment = eventWithAttachmentHolderAwaitor.get(10, TimeUnit.SECONDS);
             assertNotNull(withAttachment);
             assertNotNull(withAttachment.getUserData() instanceof TabularData);
         }
@@ -193,10 +196,10 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
     }
 
     @Test
-    public void attributeBindingTest() throws TimeoutException, InterruptedException {
-        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.fromSeconds(2));
+    public void attributeBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
+        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
         try {
-            assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new RecordReader<String, FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
+            assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new EntryReader<String, FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
                 @Override
                 public boolean read(final String resourceName, final FeatureBindingInfo<MBeanAttributeInfo> bindingInfo) {
                     return bindingInfo.getProperty(FeatureBindingInfo.MAPPED_TYPE) instanceof OpenType<?>;
@@ -208,10 +211,10 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
     }
 
     @Test
-    public void notificationBindingTest() throws TimeoutException, InterruptedException {
-        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.fromSeconds(2));
+    public void notificationBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
+        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
         try {
-            assertTrue(client.forEachFeature(MBeanNotificationInfo.class, new RecordReader<String, FeatureBindingInfo<MBeanNotificationInfo>, ExceptionPlaceholder>() {
+            assertTrue(client.forEachFeature(MBeanNotificationInfo.class, new EntryReader<String, FeatureBindingInfo<MBeanNotificationInfo>, ExceptionPlaceholder>() {
                 @Override
                 public boolean read(final String resourceName, final FeatureBindingInfo<MBeanNotificationInfo> bindingInfo) {
                     return bindingInfo != null;
@@ -222,14 +225,24 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
         }
     }
 
+    @Test
+    public void metricsTest(){
+        final ManagedResourceConnector connector = getManagementConnector();
+        try{
+            assertNotNull(connector.queryObject(MetricsReader.class));
+        }
+        finally {
+            releaseManagementConnector();
+        }
+    }
+
     @Override
-    protected void fillAdapters(final Map<String, ResourceAdapterConfiguration> adapters, final Supplier<ResourceAdapterConfiguration> adapterFactory) {
-        final ResourceAdapterConfiguration restAdapter = adapterFactory.get();
+    protected void fillAdapters(final EntityMap<? extends ResourceAdapterConfiguration> adapters) {
+        final ResourceAdapterConfiguration restAdapter = adapters.getOrAdd(INSTANCE_NAME);
         restAdapter.setAdapterName(ADAPTER_NAME);
         restAdapter.getParameters().put("objectName", ROOT_OBJECT_NAME);
         restAdapter.getParameters().put("usePlatformMBean", Boolean.toString(isInTestContainer()));
         restAdapter.getParameters().put("dbgUsePureSerialization", "true");
-        adapters.put(INSTANCE_NAME, restAdapter);
     }
 
     @Override
@@ -247,7 +260,7 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
                 ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
                 return null;
             }
-        }, TimeSpan.fromMinutes(4));
+        }, TimeSpan.ofMinutes(4));
     }
 
     @Override
@@ -257,73 +270,61 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
     }
 
     @Override
-    protected void fillEvents(final Map<String, EventConfiguration> events, final Supplier<EventConfiguration> eventFactory) {
-        EventConfiguration event = eventFactory.get();
-        event.setCategory(AttributeChangeNotification.ATTRIBUTE_CHANGE);
+    protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
+        EventConfiguration event = events.getOrAdd("19.1");
+        setFeatureName(event, AttributeChangeNotification.ATTRIBUTE_CHANGE);
         event.getParameters().put("severity", "notice");
         event.getParameters().put("objectName", BEAN_NAME);
-        events.put("19.1", event);
 
-        event = eventFactory.get();
-        event.setCategory("com.bytex.snamp.connectors.tests.impl.testnotif");
+        event = events.getOrAdd("20.1");
+        setFeatureName(event, "com.bytex.snamp.connectors.tests.impl.testnotif");
         event.getParameters().put("severity", "panic");
         event.getParameters().put("objectName", BEAN_NAME);
-        events.put("20.1", event);
 
-        event = eventFactory.get();
-        event.setCategory("com.bytex.snamp.connectors.tests.impl.plainnotif");
+        event = events.getOrAdd("21.1");
+        setFeatureName(event, "com.bytex.snamp.connectors.tests.impl.plainnotif");
         event.getParameters().put("severity", "notice");
         event.getParameters().put("objectName", BEAN_NAME);
-        events.put("21.1", event);
     }
 
     @Override
-    protected void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory) {
-        AttributeConfiguration attribute = attributeFactory.get();
-        attribute.setAttributeName("string");
+    protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
+        AttributeConfiguration attribute = attributes.getOrAdd("1.0");
+        setFeatureName(attribute, "string");
         attribute.getParameters().put("objectName", BEAN_NAME);
-        attributes.put("1.0", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("boolean");
+        attribute = attributes.getOrAdd("2.0");
+        setFeatureName(attribute, "boolean");
         attribute.getParameters().put("objectName", BEAN_NAME);
-        attributes.put("2.0", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("int32");
+        attribute = attributes.getOrAdd("3.0");
+        setFeatureName(attribute, "int32");
         attribute.getParameters().put("objectName", BEAN_NAME);
-        attributes.put("3.0", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("bigint");
+        attribute = attributes.getOrAdd("4.0");
+        setFeatureName(attribute, "bigint");
         attribute.getParameters().put("objectName", BEAN_NAME);
-        attributes.put("4.0", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("array");
+        attribute = attributes.getOrAdd("5.1");
+        setFeatureName(attribute, "array");
         attribute.getParameters().put("objectName", BEAN_NAME);
-        attributes.put("5.1", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("dictionary");
+        attribute = attributes.getOrAdd("6.1");
+        setFeatureName(attribute, "dictionary");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("typeName", "dict");
-        attributes.put("6.1", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("table");
+        attribute = attributes.getOrAdd("7.1");
+        setFeatureName(attribute, "table");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("typeName", "table");
-        attributes.put("7.1", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("float");
+        attribute = attributes.getOrAdd("8.0");
+        setFeatureName(attribute, "float");
         attribute.getParameters().put("objectName", BEAN_NAME);
-        attributes.put("8.0", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("date");
+        attribute = attributes.getOrAdd("9.0");
+        setFeatureName(attribute, "date");
         attribute.getParameters().put("objectName", BEAN_NAME);
-        attributes.put("9.0", attribute);
     }
 }

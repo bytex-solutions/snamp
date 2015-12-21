@@ -1,11 +1,6 @@
 package com.bytex.snamp.testing.connectors.snmp;
 
-import com.google.common.base.Supplier;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.reflect.TypeToken;
 import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.TypeTokens;
 import com.bytex.snamp.concurrent.Repeater;
 import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.configuration.AgentConfiguration;
@@ -15,6 +10,9 @@ import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.connectors.notifications.NotificationSupport;
 import com.bytex.snamp.testing.connectors.AbstractResourceConnectorTest;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.reflect.TypeToken;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.snmp4j.TransportMapping;
@@ -41,7 +39,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.TimeUnit;
+
+import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
 
 /**
  * Represents SNMPv2 connector test with local SNMP agent.
@@ -207,7 +207,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
             public void stop() {
                 if (notifSender != null)
                     try {
-                        notifSender.stop(TimeSpan.fromSeconds(1));
+                        notifSender.stop(TimeSpan.ofSeconds(1));
                     } catch (final Exception e) {
                         fail(e.getMessage());
                     }
@@ -224,7 +224,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
                 run();
                 if (coldStart) sendColdStartNotification();
                 coldStart = false;
-                notifSender = new Repeater(TimeSpan.fromSeconds(1)) {
+                notifSender = new Repeater(TimeSpan.ofSeconds(1)) {
                     @Override
                     protected void doAction() {
                         final VariableBinding[] bindings = {
@@ -241,89 +241,78 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     }
 
     @Override
+    protected boolean enableRemoteDebugging() {
+        return false;
+    }
+
+    @Override
     protected void beforeStartTest(final BundleContext context) throws Exception {
         agent.init();
     }
 
     @Override
-    protected void fillEvents(final Map<String, EventConfiguration> events, final Supplier<EventConfiguration> eventFactory) {
-        EventConfiguration event = eventFactory.get();
-        event.setCategory("1.7.1");
+    protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
+        EventConfiguration event = events.getOrAdd("snmp-notif");
+        setFeatureName(event, "1.7.1");
         event.getParameters().put("messageTemplate", "{1.0} - {2.0}");
-        events.put("snmp-notif", event);
     }
 
     @Override
-    protected void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory) {
-        AttributeConfiguration attribute = attributeFactory.get();
-        attribute.setAttributeName("1.6.10.0");
-        attributes.put("opaqueAttr", attribute);
+    protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
+        AttributeConfiguration attribute = attributes.getOrAdd("opaqueAttr");
+        setFeatureName(attribute, "1.6.10.0");
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("1.6.9.0");
-        attributes.put("ipAddressAsByte", attribute);
+        attribute = attributes.getOrAdd("ipAddressAsByte");
+        setFeatureName(attribute, "1.6.9.0");
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("1.6.9.0");
+        attribute = attributes.getOrAdd("ipAddressAsString");
+        setFeatureName(attribute, "1.6.9.0");
         attribute.getParameters().put("snmpConversionFormat", "text");
-        attributes.put("ipAddressAsString", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("1.6.8.0");
-        attributes.put("oidAsIntArray", attribute);
+        attribute = attributes.getOrAdd("oidAsIntArray");
+        setFeatureName(attribute, "1.6.8.0");
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("1.6.8.0");
+        attribute = attributes.getOrAdd("oidAsString");
+        setFeatureName(attribute, "1.6.8.0");
         attribute.getParameters().put("snmpConversionFormat", "text");
-        attributes.put("oidAsString", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("1.6.7.0");
-        attributes.put("gauge", attribute);
+        attribute = attributes.getOrAdd("gauge");
+        setFeatureName(attribute, "1.6.7.0");
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("1.6.6.0");
-        attributes.put("counter64", attribute);
+        attribute = attributes.getOrAdd("counter64");
+        setFeatureName(attribute, "1.6.6.0");
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("1.6.5.0");
-        attributes.put("counter32", attribute);
+        attribute = attributes.getOrAdd("counter32");
+        setFeatureName(attribute, "1.6.5.0");
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("1.6.4.0");
-        attributes.put("timeTicksAsLong", attribute);
+        attribute = attributes.getOrAdd("timeTicksAsLong");
+        setFeatureName(attribute, "1.6.4.0");
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("1.6.4.0");
+        attribute = attributes.getOrAdd("timeTicksAsString");
+        setFeatureName(attribute, "1.6.4.0");
         attribute.getParameters().put("snmpConversionFormat", "text");
-        attributes.put("timeTicksAsString", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("1.6.3.0");
-        attributes.put("uint32", attribute);
+        attribute = attributes.getOrAdd("uint32");
+        setFeatureName(attribute, "1.6.3.0");
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("1.6.2.0");
-        attributes.put("int32", attribute);
+        attribute = attributes.getOrAdd("int32");
+        setFeatureName(attribute, "1.6.2.0");
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("1.6.1.0");
+        attribute = attributes.getOrAdd("octetstring");
+        setFeatureName(attribute, "1.6.1.0");
         attribute.getParameters().put("snmpConversionFormat", "text");
-        attributes.put("octetstring", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("1.6.1.0");
+        attribute = attributes.getOrAdd("hexstring");
+        setFeatureName(attribute, "1.6.1.0");
         attribute.getParameters().put("snmpConversionFormat", "hex");
-        attributes.put("hexstring", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("1.6.1.0");
+        attribute = attributes.getOrAdd("octetstringAsByteArray");
+        setFeatureName(attribute, "1.6.1.0");
         attribute.getParameters().put("snmpConversionFormat", "raw");
-        attributes.put("octetstringAsByteArray", attribute);
     }
 
     @Test
-    public void notificationTest() throws TimeoutException, InterruptedException, JMException {
+    public void notificationTest() throws Exception {
         final ManagedResourceConnector connector = getManagementConnector();
         try {
             final NotificationSupport notifications = connector.queryObject(NotificationSupport.class);
@@ -341,7 +330,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
             assertNotNull(addresses);
             assertEquals(1, addresses.length);
             assertTrue(addresses[0] instanceof UdpAddress);
-            final Notification n = trap.getAwaitor().await(TimeSpan.fromSeconds(6));
+            final Notification n = trap.getAwaitor().get(6, TimeUnit.SECONDS);
             assertNotNull(n);
             assertEquals("Hello, world! - 42", n.getMessage());
             assertEquals(0L, n.getSequenceNumber());
@@ -368,7 +357,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
                 arrayEquator(),
                 false);
         testAttribute("ipAddressAsString",
-                TypeTokens.STRING,
+                TypeToken.of(String.class),
                 "192.168.0.1",
                 AbstractResourceConnectorTest.<String>valueEquator(),
                 false);
@@ -382,7 +371,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
                 arrayEquator(),
                 false);
         testAttribute("oidAsString",
-                TypeTokens.STRING,
+                TypeToken.of(String.class),
                 "1.4.5.3.1",
                 AbstractResourceConnectorTest.<String>valueEquator(),
                 false);
@@ -391,7 +380,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     @Test
     public void testForGauge32Property() throws JMException {
         testAttribute("gauge",
-                TypeTokens.LONG,
+                TypeToken.of(Long.class),
                 42L,
                 false);
     }
@@ -399,7 +388,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     @Test
     public void testForCounter64Property() throws JMException {
         testAttribute("counter64",
-                TypeTokens.LONG,
+                TypeToken.of(Long.class),
                 42L,
                 false);
     }
@@ -407,7 +396,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     @Test
     public void testForCounter32Property() throws JMException {
         testAttribute("counter32",
-                TypeTokens.LONG,
+                TypeToken.of(Long.class),
                 42L,
                 AbstractResourceConnectorTest.<Long>valueEquator(),
                 false);
@@ -416,11 +405,11 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     @Test
     public void testForTimeTicksProperty() throws JMException {
         testAttribute("timeTicksAsLong",
-                TypeTokens.LONG,
+                TypeToken.of(Long.class),
                 642584970L,
                 false);
         testAttribute("timeTicksAsString",
-                TypeTokens.STRING,
+                TypeToken.of(String.class),
                 new TimeTicks(642584974L).toString(),
                 false);
     }
@@ -428,7 +417,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     @Test
     public void testForUnsignedInteger32Property() throws JMException {
         testAttribute("uint32",
-                TypeTokens.LONG,
+                TypeToken.of(Long.class),
                 42L,
                 false);
     }
@@ -436,7 +425,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     @Test
     public void testForInteger32Property() throws JMException {
         testAttribute("int32",
-                TypeTokens.INTEGER,
+                TypeToken.of(Integer.class),
                 42,
                 false);
     }
@@ -444,11 +433,11 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     @Test
     public void testForOctetStringProperty() throws IOException, JMException {
         testAttribute("octetstring",
-                TypeTokens.STRING,
+                TypeToken.of(String.class),
                 "Jack Ryan",
                 false);
         testAttribute("hexstring",
-                TypeTokens.STRING,
+                TypeToken.of(String.class),
                 new OctetString("Java Enterprise Edition").toHexString(),
                 false);
         testAttribute("octetstringAsByteArray",

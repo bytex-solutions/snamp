@@ -45,7 +45,7 @@ final class SetAttributeCommand extends AbstractAttributeCommand {
         else {
             final Message result = new Message();
             result.setSubject(String.format("Set '%s/%s' attribute", resourceName, attributeID));
-            result.setBody("New value is " + attributeValue);
+            result.setBody("New value is ".concat(attributeValue));
             return result;
         }
     }

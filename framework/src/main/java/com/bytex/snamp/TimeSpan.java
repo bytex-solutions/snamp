@@ -1,7 +1,6 @@
 package com.bytex.snamp;
 
 import com.google.common.primitives.Longs;
-import com.bytex.snamp.internal.annotations.ThreadSafe;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -12,7 +11,7 @@ import java.util.concurrent.TimeUnit;
  *
  * <p><b>Example:</b><br/>
  * <pre>{@code
- *     TimeSpan t = new TimeSpan(10, TimeUnit.SECONDS); //represents 10 seconds
+ *     TimeSpan t = TimeSpan.ofSeconds(10); //represents 10 seconds
  *     System.out.println(t.duration); //10
  *     t = t.convert(TimeUnit.MILLISECONDS); //represents 10 second but in MILLISECONDS representation
  *     System.out.println(t.duration); //10000
@@ -24,8 +23,10 @@ import java.util.concurrent.TimeUnit;
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
+ * @see <a href="http://openjdk.java.net/jeps/169">Java Value Object</a>
+ * @see <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/doc-files/ValueBased.html">Value-based class</a>
  */
-public final class TimeSpan implements Serializable {
+public final class TimeSpan implements Serializable, Comparable<TimeSpan> {
     /**
      * Represents infinite time interval.
      */
@@ -36,10 +37,6 @@ public final class TimeSpan implements Serializable {
      */
     public static final TimeSpan ZERO = new TimeSpan(0L, TimeUnit.NANOSECONDS);
 
-    /**
-     * Represents maximum value.
-     */
-    public static final TimeSpan MAX_VALUE = new TimeSpan(Long.MAX_VALUE, TimeUnit.DAYS);
     private static final long serialVersionUID = -5363358862646385345L;
 
     /**
@@ -57,9 +54,67 @@ public final class TimeSpan implements Serializable {
      * @param time The duration value.
      * @param unit The duration measurement unit.
      */
-    public TimeSpan(final long time, final TimeUnit unit) {
+    private TimeSpan(final long time, final TimeUnit unit) {
       this.duration = time;
       this.unit = unit == null ? TimeUnit.MILLISECONDS : unit;
+    }
+
+    public static TimeSpan of(final long time, final TimeUnit unit){
+        return new TimeSpan(time, unit);
+    }
+
+    /**
+     * Creates a new time span from the nanoseconds.
+     * @param nanos Time span, in nanoseconds.
+     * @return A new time span.
+     */
+    public static TimeSpan ofNanos(final long nanos){
+        return of(nanos, TimeUnit.NANOSECONDS);
+    }
+
+    /**
+     * Creates a new time span from the nanoseconds.
+     * @param nanos Time span, in nanoseconds.
+     * @return A new time span.
+     */
+    public static TimeSpan ofNanos(final String nanos){
+        return ofNanos(Long.parseLong(nanos));
+    }
+
+    /**
+     * Creates a new time span from the milliseconds.
+     * @param millis Time span, in milliseconds.
+     * @return A new time span.
+     */
+    public static TimeSpan ofMillis(final long millis){
+        return of(millis, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * Creates a new time span from the milliseconds.
+     * @param millis Time span, in milliseconds.
+     * @return A new time span.
+     */
+    public static TimeSpan ofMillis(final String millis){
+        return ofMillis(Long.parseLong(millis));
+    }
+
+    /**
+     * Creates a new time span from the microseconds.
+     * @param micros Time span, in microseconds.
+     * @return A new time span.
+     */
+    public static TimeSpan ofMicros(final long micros){
+        return of(micros, TimeUnit.MICROSECONDS);
+    }
+
+    /**
+     * Creates a new time span from the microseconds.
+     * @param micros Time span, in microseconds.
+     * @return A new time span.
+     */
+    public static TimeSpan ofMicros(final String micros){
+        return ofMicros(Long.parseLong(micros));
     }
 
     /**
@@ -67,9 +122,17 @@ public final class TimeSpan implements Serializable {
      * @param seconds Time span, in seconds.
      * @return A new time span.
      */
-    @SuppressWarnings("UnusedDeclaration")
-    public static TimeSpan fromSeconds(final long seconds){
-        return new TimeSpan(seconds, TimeUnit.SECONDS);
+    public static TimeSpan ofSeconds(final long seconds){
+        return of(seconds, TimeUnit.SECONDS);
+    }
+
+    /**
+     * Creates a new time span from the seconds.
+     * @param seconds Time span, in seconds.
+     * @return A new time span.
+     */
+    public static TimeSpan ofSeconds(final String seconds){
+        return ofSeconds(Long.parseLong(seconds));
     }
 
     /**
@@ -77,9 +140,17 @@ public final class TimeSpan implements Serializable {
      * @param minutes Time span, in minutes.
      * @return A new time span.
      */
-    @SuppressWarnings("UnusedDeclaration")
-    public static TimeSpan fromMinutes(final long minutes){
-        return new TimeSpan(minutes, TimeUnit.MINUTES);
+    public static TimeSpan ofMinutes(final long minutes){
+        return of(minutes, TimeUnit.MINUTES);
+    }
+
+    /**
+     * Creates a new time span from the minutes.
+     * @param minutes Time span, in minutes.
+     * @return A new time span.
+     */
+    public static TimeSpan ofMinutes(final String minutes){
+        return ofMinutes(Long.parseLong(minutes));
     }
 
     /**
@@ -87,9 +158,17 @@ public final class TimeSpan implements Serializable {
      * @param hours Time span, in hours.
      * @return A new time span.
      */
-    @SuppressWarnings("UnusedDeclaration")
-    public static TimeSpan fromHours(final long hours){
-        return new TimeSpan(hours, TimeUnit.HOURS);
+    public static TimeSpan ofHours(final long hours){
+        return of(hours, TimeUnit.HOURS);
+    }
+
+    /**
+     * Creates a new time span from the hours.
+     * @param hours Time span, in hours.
+     * @return A new time span.
+     */
+    public static TimeSpan ofHours(final String hours){
+        return ofHours(Long.parseLong(hours));
     }
 
     /**
@@ -97,20 +176,17 @@ public final class TimeSpan implements Serializable {
      * @param days Time span, in days.
      * @return A new time span.
      */
-    @SuppressWarnings("UnusedDeclaration")
-    public static TimeSpan fromDays(final long days){
-        return new TimeSpan(days, TimeUnit.DAYS);
+    public static TimeSpan ofDays(final long days){
+        return of(days, TimeUnit.DAYS);
     }
 
     /**
-     * Initializes a new milliseconds interval.<br/>
-     * <p>
-     *     This constructor is equivalent to {@code new TimeSpan(value, TimeUnit.MILLISECONDS}</code>
-     * </p>
-     * @param milliseconds The number of milliseconds in interval.
+     * Creates a new time span from the days.
+     * @param days Time span, in days.
+     * @return A new time span.
      */
-    public TimeSpan(final long milliseconds) {
-        this(milliseconds, TimeUnit.MILLISECONDS);
+    public static TimeSpan ofDays(final String days){
+        return ofDays(Long.parseLong(days));
     }
 
     /**
@@ -119,9 +195,8 @@ public final class TimeSpan implements Serializable {
      * @return A new time interval with the specified measurement unit.
      */
     @ThreadSafe
-    public TimeSpan convert(TimeUnit unit){
-        if(unit == null) unit = TimeUnit.MILLISECONDS;
-        return new TimeSpan(unit.convert(this.duration, this.unit));
+    public TimeSpan convert(final TimeUnit unit) {
+        return unit == null ? convert(TimeUnit.MILLISECONDS) : new TimeSpan(unit.convert(this.duration, this.unit), unit);
     }
 
     /**
@@ -138,7 +213,7 @@ public final class TimeSpan implements Serializable {
      * @return A newly created time span with increased scale,
      */
     @ThreadSafe
-    public final TimeSpan up(){
+    public TimeSpan up(){
         switch (this.unit){
             case NANOSECONDS: return convert(TimeUnit.MICROSECONDS);
             case MICROSECONDS: return convert(TimeUnit.MILLISECONDS);
@@ -151,58 +226,18 @@ public final class TimeSpan implements Serializable {
     }
 
     /**
-     * Returns the auto-scaled time interval.<br/>
-     * <p>
-     *     <b>Example:</b><br/>
-     *     <pre>{@code
-     *         TimeSpan value = new TimeSpan(60000);<br/>
-     *         value = value.autoScale();//new time span has duration value = 1 and unit = MINUTES<br/>
-     *     }</pre>
-     * </p>
-     * @return The auto-scaled time interval.
-     * @see #autoScale(long, java.util.concurrent.TimeUnit)
-     */
-    @ThreadSafe
-    public final TimeSpan autoScale(){
-        TimeSpan result = this;
-        while (result.duration > 0 && result.unit != TimeUnit.DAYS)
-            result = result.up();
-        return result;
-    }
-
-    /**
-     * Creates a new auto-scaled time interval.
-     * @param duration The interval value.
-     * @param unit The interval measurement unit.
-     * @return Auto-scaled time interval.
-     * @see #autoScale()
-     */
-    @ThreadSafe
-    @SuppressWarnings("UnusedDeclaration")
-    public static TimeSpan autoScale(final long duration, final TimeUnit unit){
-        final TimeSpan temp = new TimeSpan(duration, unit);
-        return temp.autoScale();
-    }
-
-    /**
      * Returns the string representation of this instance.
      * @return The string representation of this instance.
      */
     @Override
     @ThreadSafe
-    public final String toString() {
-        return String.format("%s %s", duration, unit);
+    public String toString() {
+        return duration + " " + unit;
     }
 
-    /**
-     * Determines whether this instance represents the same duration as the specified object.
-     * @param obj An object to compare.
-     * @return {@literal true}, if this object the same duration as the specified object.
-     */
-    @ThreadSafe
-    public boolean equals(final TimeSpan obj) {
+    private boolean equals(final TimeSpan obj) {
         if(obj == null) return false;
-        else if(unit == obj.unit) return duration == obj.duration;
+        else if(unit.equals(obj.unit)) return duration == obj.duration;
         else return unit.toNanos(duration) == obj.unit.toNanos(obj.duration);
     }
 
@@ -223,7 +258,7 @@ public final class TimeSpan implements Serializable {
      */
     @Override
     public int hashCode() {
-        return Longs.hashCode(unit.convert(duration, TimeUnit.NANOSECONDS));
+        return Longs.hashCode(toNanos());
     }
 
     /**
@@ -235,7 +270,7 @@ public final class TimeSpan implements Serializable {
      */
     @ThreadSafe
     public static TimeSpan diff(final Date left, final Date right, final TimeUnit unit){
-        final TimeSpan temp = new TimeSpan(left.getTime() - right.getTime(), TimeUnit.MILLISECONDS);
+        final TimeSpan temp = new TimeSpan(left.getTime() - right.getTime(), TimeUnit.NANOSECONDS);
         return temp.convert(unit);
     }
 
@@ -274,5 +309,18 @@ public final class TimeSpan implements Serializable {
 
     public long toMillis(){
         return unit.toMillis(duration);
+    }
+
+    /**
+     * Compares this time span with the specified time span.
+     * @param other Time-based amount of time.
+     * @return Comparison result.
+     */
+    @Override
+    public int compareTo(final TimeSpan other) {
+        if(other == INFINITE)
+            return -1;
+        else if(unit.equals(other.unit)) return Long.compare(duration, other.duration);
+        else return Long.compare(toNanos(), other.toNanos());
     }
 }

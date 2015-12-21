@@ -32,7 +32,6 @@ final class ManagementShell implements Command, SessionAware {
     private static final Pattern COMMAND_DELIMITER = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
 
     private static final class CommandExecutionContextImpl extends Switch<Class<?>, Object> implements CommandExecutionContext{
-
         @SuppressWarnings("ResultOfMethodCallIgnored")
         private CommandExecutionContextImpl(final AdapterController controller,
                                             final ExecutorService executor){
@@ -50,7 +49,7 @@ final class ManagementShell implements Command, SessionAware {
 
         @Override
         public <T> T queryObject(final Class<T> objectType) {
-            return apply(objectType, objectType);
+            return objectType.cast(apply(objectType));
         }
     }
 
@@ -149,7 +148,7 @@ final class ManagementShell implements Command, SessionAware {
      * @param value The input stream to be associated with this command.
      */
     @Override
-    public final void setInputStream(final InputStream value) {
+    public void setInputStream(final InputStream value) {
         inStream.set(value);
     }
 
@@ -159,7 +158,7 @@ final class ManagementShell implements Command, SessionAware {
      * @param value The output stream to be associated with this command.
      */
     @Override
-    public final void setOutputStream(final OutputStream value) {
+    public void setOutputStream(final OutputStream value) {
         outStream.set(value);
     }
 
@@ -169,7 +168,7 @@ final class ManagementShell implements Command, SessionAware {
      * @param value The error stream to be associated with this command.
      */
     @Override
-    public final void setErrorStream(final OutputStream value) {
+    public void setErrorStream(final OutputStream value) {
         errStream.set(value);
     }
 
@@ -179,7 +178,7 @@ final class ManagementShell implements Command, SessionAware {
      * @param value The callback to be associated with this command.
      */
     @Override
-    public final void setExitCallback(final ExitCallback value) {
+    public void setExitCallback(final ExitCallback value) {
         exitCallback.set(value);
     }
 
@@ -255,7 +254,7 @@ final class ManagementShell implements Command, SessionAware {
     static Command createSshCommand(final String commandLine,
                                  final CommandExecutionContext controller) {
         final String[] parts = splitArguments(commandLine);
-        final ManagementShellCommand factory = createCommand(parts[0], controller);
+        final ManagementShellCommand factory = createCommand(ArrayUtils.getFirst(parts), controller);
         return factory.createSshCommand(ArrayUtils.remove(parts, 0));
     }
 
@@ -271,7 +270,7 @@ final class ManagementShell implements Command, SessionAware {
                                   final PrintWriter outStream,
                                   final PrintWriter errStream){
         final String[] parts = splitArguments(commandLine);
-        doCommand(parts[0],
+        doCommand(ArrayUtils.getFirst(parts),
                 ArrayUtils.remove(parts, 0),
                 context,
                 outStream,

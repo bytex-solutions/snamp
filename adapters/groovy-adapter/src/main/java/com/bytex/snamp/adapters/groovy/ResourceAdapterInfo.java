@@ -1,7 +1,7 @@
 package com.bytex.snamp.adapters.groovy;
 
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 import groovy.grape.Grape;
 import org.apache.ivy.Ivy;
 

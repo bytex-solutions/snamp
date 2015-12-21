@@ -29,7 +29,6 @@ import static com.bytex.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.*
  * @since 1.0
  */
 final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceAdapterProfile> {
-
     private static final class SnmpAdapterUpdateManager extends ResourceAdapterUpdateManager {
         private final SnmpAgent agent;
         private final SnmpResourceAdapterProfile profile;
@@ -60,7 +59,7 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
         @Override
         public void close() throws Exception {
             try {
-                agent.stop();
+                agent.close();
             }
             finally {
                 super.close();
@@ -125,13 +124,11 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
 
     @Override
     protected synchronized void start(final SnmpResourceAdapterProfile profile) throws IOException, DuplicateRegistrationException, SnmpAdapterAbsentParameterException {
-        getLogger().fine("Starting instance " + getInstanceName());
         //initialize restart manager and start SNMP agent
         updateManager = new SnmpAdapterUpdateManager(getInstanceName(),
                 profile,
                 contextFactory);
         updateManager.startAgent(attributes.values(), notifications.values());
-        getLogger().fine(String.format("Instance %s started", getInstanceName()));
     }
 
     private SnmpNotificationAcessor addNotification(final String resourceName,
@@ -168,8 +165,8 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
 
     @Override
     protected synchronized Iterable<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception {
-        final Iterable<SnmpNotificationAcessor> notifs = notifications.removeAll(resourceName);
-        final Collection<? extends SnmpAttributeAccessor> accessors = attributes.removeAll(resourceName);
+        final Iterable<? extends SnmpNotificationAcessor> notifs = notifications.removeAll(resourceName);
+        final Iterable<? extends SnmpAttributeAccessor> accessors = attributes.removeAll(resourceName);
         final SnmpAdapterUpdateManager updateManager = this.updateManager;
         if(updateManager != null){
             beginUpdate(updateManager, updateManager.getCallback());
@@ -287,6 +284,14 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
      */
     @Override
     public Logger getLogger() {
-        return getLogger(SnmpHelpers.ADAPTER_NAME);
+        return getLoggerImpl();
+    }
+
+    static String getAdapterNameImpl(){
+        return getAdapterName(SnmpResourceAdapter.class);
+    }
+
+    static Logger getLoggerImpl() {
+        return getLogger(getAdapterNameImpl());
     }
 }

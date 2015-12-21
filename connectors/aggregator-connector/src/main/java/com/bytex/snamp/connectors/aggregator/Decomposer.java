@@ -37,7 +37,8 @@ final class Decomposer extends UnaryAttributeAggregation<String> {
     }
 
     static SerializableAttributeConfiguration getConfiguration() {
-        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration(NAME);
+        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration();
+        result.setAlternativeName(NAME);
         fillParameters(result.getParameters());
         result.getParameters().put(AggregatorConnectorConfiguration.FIELD_PATH_PARAM, "");
         return result;

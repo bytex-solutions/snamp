@@ -1,15 +1,15 @@
 package com.bytex.snamp.adapters.snmp;
 
+import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.SafeConsumer;
+import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.TimeSpan;
+import com.bytex.snamp.adapters.modeling.AttributeAccessor;
+import com.bytex.snamp.jmx.TabularDataUtils;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.SafeConsumer;
-import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.adapters.modeling.AttributeAccessor;
-import com.bytex.snamp.internal.annotations.SpecialUse;
-import com.bytex.snamp.jmx.TabularDataUtils;
 import org.snmp4j.agent.*;
 import org.snmp4j.agent.mo.*;
 import org.snmp4j.agent.request.Request;
@@ -27,15 +27,14 @@ import javax.management.openmbean.*;
 import java.lang.reflect.Array;
 import java.text.ParseException;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 
 import static com.bytex.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.parseOID;
 import static com.bytex.snamp.adapters.snmp.SnmpHelpers.getAccessRestrictions;
+import static com.bytex.snamp.adapters.snmp.SnmpResourceAdapterProfile.createDefaultTypeMapper;
 import static com.bytex.snamp.jmx.DescriptorUtils.getField;
 import static com.bytex.snamp.jmx.DescriptorUtils.hasField;
-import static com.bytex.snamp.adapters.snmp.SnmpResourceAdapterProfile.createDefaultTypeMapper;
 
 /**
  * Represents SNMP table.
@@ -207,7 +206,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
         }
 
         private UpdateManager(){
-            this(new TimeSpan(5, TimeUnit.SECONDS));
+            this(TimeSpan.ofSeconds(5));
         }
 
         private void reset(){
@@ -285,7 +284,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
             return createColumns((CompositeType)type, typeMapper, access);
         else if(type instanceof TabularType)
             return createColumns((TabularType)type, typeMapper, access, useRowStatus);
-        else return new MONamedColumn[0];
+        else return ArrayUtils.emptyArray(MONamedColumn[].class);
     }
 
     private static OID makeRowID(final int rowIndex){
@@ -311,7 +310,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
         //save additional fields
         _connector = connector;
         cacheManager = hasField(connector.getMetadata().getDescriptor(), TABLE_CACHE_TIME_PARAM) ?
-                new UpdateManager(new TimeSpan(Integer.parseInt(getField(connector.getMetadata().getDescriptor(), TABLE_CACHE_TIME_PARAM, String.class)))):
+                new UpdateManager(TimeSpan.ofMillis(getField(connector.getMetadata().getDescriptor(), TABLE_CACHE_TIME_PARAM, String.class))):
                 new UpdateManager();
     }
 
@@ -328,7 +327,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
      * @return The metadata of the underlying attribute.
      */
     @Override
-    public final MBeanAttributeInfo getMetadata() {
+    public MBeanAttributeInfo getMetadata() {
         return _connector.getMetadata();
     }
 
@@ -336,7 +335,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
      * Determines whether this table is empty.
      * @return {@literal true}, if this table is empty; otherwise, {@literal false}.
      */
-    public final boolean isEmpty(){
+    public boolean isEmpty(){
         return getModel().getRowCount() == 0;
     }
 
@@ -440,7 +439,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
      * been called.
      */
     @Override
-    public final Date getLastUpdate() {
+    public Date getLastUpdate() {
         return cacheManager.getUpdateTimeStamp();
     }
 
@@ -454,7 +453,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
      * unknown/undefined.
      */
     @Override
-    public final Object getLastUpdateSource() {
+    public Object getLastUpdateSource() {
         return cacheManager.getUpdateSource();
     }
 
@@ -466,12 +465,12 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
      *                    If <code>null</code> the whole managed object has to be updated.
      */
     @Override
-    public final void update(final MOQuery updateScope) {
+    public void update(final MOQuery updateScope) {
         update((MOScope)updateScope);
     }
 
     @Override
-    public final void update(final MOScope updateScope){
+    public void update(final MOScope updateScope){
         try {
             fillTableIfNecessary();
         }
@@ -568,7 +567,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
     }
 
     @Override
-    public final void prepare(final SubRequest request) {
+    public void prepare(final SubRequest request) {
         try {
             TransactionInfo.pendingState(request, TransactionState.PREPARE);
         }
@@ -581,7 +580,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
     }
 
     @Override
-    public final void commit(final SubRequest request) {
+    public void commit(final SubRequest request) {
         try {
             TransactionInfo.pendingState(request, TransactionState.COMMIT);
         }
@@ -594,7 +593,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
     }
 
     @Override
-    public final void undo(final SubRequest request) {
+    public void undo(final SubRequest request) {
         try {
             TransactionInfo.pendingState(request, TransactionState.ROLLBACK);
         }
@@ -607,7 +606,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
     }
 
     @Override
-    public final void cleanup(final SubRequest request) {
+    public void cleanup(final SubRequest request) {
         try {
             final TransactionInfo info = TransactionInfo.pendingState(request, TransactionState.CLEANUP);
             switch (info.getCompletionState()) {
@@ -630,7 +629,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
     }
 
     @Override
-    public final AttributeAccessor disconnect(final MOServer server) {
+    public AttributeAccessor disconnect(final MOServer server) {
         if(server != null) {
             server.unregister(this, null);
         }
@@ -639,7 +638,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
     }
 
     @Override
-    public final boolean connect(final OID context, final MOServer server) throws DuplicateRegistrationException {
+    public boolean connect(final OID context, final MOServer server) throws DuplicateRegistrationException {
         if(getID().startsWith(context)) {
             server.register(this, null);
             return true;
@@ -648,7 +647,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
     }
 
     @Override
-    public final boolean equals(final MBeanAttributeInfo metadata) {
+    public boolean equals(final MBeanAttributeInfo metadata) {
         try {
             return Objects.equals(getID(), new OID(parseOID(metadata)));
         } catch (final ParseException ignored) {

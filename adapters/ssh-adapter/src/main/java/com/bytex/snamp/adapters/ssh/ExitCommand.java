@@ -1,6 +1,6 @@
 package com.bytex.snamp.adapters.ssh;
 
-import com.bytex.snamp.internal.annotations.MethodStub;
+import com.bytex.snamp.MethodStub;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 

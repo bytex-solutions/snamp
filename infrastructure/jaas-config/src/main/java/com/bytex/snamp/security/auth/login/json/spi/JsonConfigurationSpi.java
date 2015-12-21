@@ -1,10 +1,9 @@
 package com.bytex.snamp.security.auth.login.json.spi;
 
+import com.bytex.snamp.core.LogicalOperation;
+import com.bytex.snamp.security.auth.login.json.JsonConfiguration;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.bytex.snamp.SafeConsumer;
-import com.bytex.snamp.core.OSGiLoggingContext;
-import com.bytex.snamp.security.auth.login.json.JsonConfiguration;
 
 import javax.security.auth.login.AppConfigurationEntry;
 import javax.security.auth.login.ConfigurationSpi;
@@ -26,6 +25,14 @@ import static javax.security.auth.login.Configuration.Parameters;
  */
 public final class JsonConfigurationSpi extends ConfigurationSpi {
     private static final String LOGGER_NAME = "com.bytex.snamp.login.config.spi";
+    private static final class RefreshEngineLogicalOperation extends LogicalOperation{
+        private static final CorrelationIdentifierGenerator CORREL_ID_GEN =
+                new DefaultCorrelationIdentifierGenerator();
+
+        private RefreshEngineLogicalOperation(){
+            super(Logger.getLogger(LOGGER_NAME), "engineRefresh", CORREL_ID_GEN);
+        }
+    }
 
     public static GsonBuilder init(final GsonBuilder builder) {
         return builder.registerTypeAdapter(JsonConfiguration.class, new JsonConfigurationSerializerDeserializer())
@@ -93,15 +100,13 @@ public final class JsonConfigurationSpi extends ConfigurationSpi {
      */
     @Override
     protected void engineRefresh() {
+        final LogicalOperation logger = new RefreshEngineLogicalOperation();
         try {
             configuration = deserializePrivileged(formatter, configFile);
         } catch (final Exception e) {
-            OSGiLoggingContext.within(LOGGER_NAME, new SafeConsumer<Logger>() {
-                @Override
-                public void accept(final Logger logger) {
-                    logger.log(Level.SEVERE, String.format("Unable to reload JAAS configuration from file %s", configFile), e);
-                }
-            });
+            logger.log(Level.SEVERE, "Unable to reload JAAS configuration from file %s", configFile, e);
+        } finally {
+            logger.close();
         }
     }
 }

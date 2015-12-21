@@ -4,7 +4,7 @@ import com.google.common.base.Predicate;
 import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.concurrent.WriteOnceRef;
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 import groovy.lang.Closure;
 import org.osgi.framework.InvalidSyntaxException;
 

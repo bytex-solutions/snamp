@@ -1,6 +1,6 @@
 package com.bytex.snamp.adapters.modeling;
 
-import com.bytex.snamp.internal.RecordReader;
+import com.bytex.snamp.EntryReader;
 
 /**
  * Represents reader for a set of attributes stored inside of the resource adapter.
@@ -15,5 +15,5 @@ public interface AttributeSet<TAccessor extends AttributeAccessor> {
      * @param <E> Type of the exception that may be produced by reader.
      * @throws E Unable to process attribute.
      */
-    <E extends Exception> void forEachAttribute(final RecordReader<String, ? super TAccessor, E> attributeReader) throws E;
+    <E extends Exception> void forEachAttribute(final EntryReader<String, ? super TAccessor, E> attributeReader) throws E;
 }

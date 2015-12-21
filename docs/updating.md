@@ -6,16 +6,16 @@ There are following updating scenarios available:
 * Install a new version of SNAMP Platform
 * Install a new version of SNAMP Management Console
 
-Some of these scenarios supporting Hot Upgrade without influence on availability.
+Some of these scenarios support Hot Upgrade (without any availability issues).
 
 ## Update Resource Adapter
-Open the shell console and print `feature:list -i`. Yo will see something like this:
+Open the shell console and print `feature:list -i`. You will see following output (or similar):
 ```
 Name                         | Version          | Installed | Repository              | Description
 ------------------------------------------------------------------------------------------------------
 ibmwmq-connector-feature     | 1.0.0            | x         | snamp                   | IBM MQ Connector Karaf Feature
 nsca-adapter-feature         | 1.0.0            | x         | snamp                   | NSCA Adapter Karaf Feature
-jndi                         | 3.0.3            | x         | enterprise-3.0.3        | OSGi Service Registry JNDI access
+jndi                         | 3.0.5            | x         | enterprise-3.0.5        | OSGi Service Registry JNDI access
 nrdp-adapter-feature         | 1.0.0            | x         | snamp                   | NRDP Adapter Karaf Feature
 jmx-connector-feature        | 1.0.0            | x         | snamp                   | JMX Connector Karaf Feature
 http-adapter-feature         | 1.0.0            | x         | snamp                   | HTTP Adapter Karaf Feature
@@ -26,16 +26,16 @@ pax-jetty                    | 8.1.15.v20140411 | x         | org.ops4j.pax.web-
 pax-http                     | 3.1.4            | x         | org.ops4j.pax.web-3.1.4 | Implementation of the OSGI HTTP Service
 pax-http-whiteboard          | 3.1.4            | x         | org.ops4j.pax.web-3.1.4 | Provide HTTP Whiteboard pattern support
 pax-war                      | 3.1.4            | x         | org.ops4j.pax.web-3.1.4 | Provide support of a full WebContainer
-standard                     | 3.0.3            | x         | standard-3.0.3          | Karaf standard feature
-config                       | 3.0.3            | x         | standard-3.0.3          | Provide OSGi ConfigAdmin support
-region                       | 3.0.3            | x         | standard-3.0.3          | Provide Region Support
-package                      | 3.0.3            | x         | standard-3.0.3          | Package commands and mbeans
-http                         | 3.0.3            | x         | standard-3.0.3          | Implementation of the OSGI HTTP Service
-war                          | 3.0.3            | x         | standard-3.0.3          | Turn Karaf as a full WebContainer
-kar                          | 3.0.3            | x         | standard-3.0.3          | Provide KAR (KARaf archive) support
-ssh                          | 3.0.3            | x         | standard-3.0.3          | Provide a SSHd server on Karaf
-management                   | 3.0.3            | x         | standard-3.0.3          | Provide a JMX MBeanServer and a set of MBeans in K
-eventadmin                   | 3.0.3            | x         | standard-3.0.3          | OSGi Event Admin service specification for event-b
+standard                     | 3.0.5            | x         | standard-3.0.5          | Karaf standard feature
+config                       | 3.0.5            | x         | standard-3.0.5          | Provide OSGi ConfigAdmin support
+region                       | 3.0.5            | x         | standard-3.0.5          | Provide Region Support
+package                      | 3.0.5            | x         | standard-3.0.5          | Package commands and mbeans
+http                         | 3.0.5            | x         | standard-3.0.5          | Implementation of the OSGI HTTP Service
+war                          | 3.0.5            | x         | standard-3.0.5          | Turn Karaf as a full WebContainer
+kar                          | 3.0.5            | x         | standard-3.0.5          | Provide KAR (KARaf archive) support
+ssh                          | 3.0.5            | x         | standard-3.0.5          | Provide a SSHd server on Karaf
+management                   | 3.0.5            | x         | standard-3.0.5          | Provide a JMX MBeanServer and a set of MBeans in K
+eventadmin                   | 3.0.5            | x         | standard-3.0.5          | OSGi Event Admin service specification for event-b
 snmp-adapter-feature         | 1.0.0            | x         | snamp                   | SNMP Adapter Karaf Feature
 aggregator-connector-feature | 1.0.0            | x         | snamp                   | Resource Aggregator Karaf Feature
 jmx-adapter-feature          | 1.0.0            | x         | snamp                   | JMX Adapter Karaf Feature
@@ -54,16 +54,18 @@ cellar-shell                 | 3.0.3            | x         | karaf-cellar-3.0.3
 cellar                       | 3.0.3            | x         | karaf-cellar-3.0.3      | Karaf clustering
 syslog-adapter-feature       | 1.0.0            | x         | snamp                   | Syslog Adapter Karaf Feature
 ```
-Select SNAMP Resource Adapter which you want to upgrade. For example, you want to update `SNMP Resource Adapter`.
+Select SNAMP Resource Adapter which you want to upgrade. Let it be `SNMP Resource Adapter`.
 
 The first, you should uninstall it:
+
 1. Go to `<snamp>/deploy` folder and delete `snmp-adapter-feature-1.0.0.kar` file
-2. Verify that SNMP Resource Adapter is uninstalled with `feature:list -i` command
+1. Make sure SNMP Resource Adapter is uninstalled with executing `feature:list -i` command
 
 The second, you should install a new version of SNAMP Resource Adapter:
-1. Download a new version of SNAMP Resource Adapter. The name of the downloaded file must have name similar to this: `snmp-adapter-feature-1.1.0.kar`
-2. Copy downloaded file into `<snamp>/deploy` folder. The folder is automatically tracked by SNAMP. Therefore, a new version of the component will be automatically installed into OSGi environment.
-3. Verify installation with `feature:list -i` command. Make sure that _snmp-adapter-feature_ is presented in the command output and its version equal to `1.1.0`:
+
+1. Download the new version of SNAMP Resource Adapter. The name of the downloaded file must be similar to this: `snmp-adapter-feature-1.1.0.kar`
+1. Copy downloaded file into `<snamp>/deploy` folder. The folder is automatically tracked by SNAMP. Therefore, the new version of the component will be automatically installed into OSGi environment.
+1. Verify installation with `feature:list -i` command. Make sure that _snmp-adapter-feature_ is presented in the command output and corresponding version equals to `1.1.0`:
 
 ```
 snmp-adapter-feature         | 1.1.0            | x         | snamp                   | SNMP Adapter Karaf Feature
@@ -71,22 +73,38 @@ snmp-adapter-feature         | 1.1.0            | x         | snamp             
 ```
 
 There is alternative ways to verify Resource Adapter update:
-* Print `bundle:list` and verify that `SNMP Resource Adapter` bundle exist
+
+* Print `bundle:list` and make sure `SNMP Resource Adapter` bundle exists
 * Inspect log using `log:display -n 10` or ` log:exception-display ` command in the shell console
 
 ## Update Resource Connector
-Resource Connector can be updated in the same way as Resource Adapter. See instructions above for more details.
+Resource Connector can be updated with the same approach as Resource Adapter. See instructions above for more details.
 
-Note that Resource Connector or Resource Adapter can be updated without shutting down SNAMP. Updating component on the single node in cluster causes cascade update on all nodes. Therefore, there is no influence on availability.
+Note that Resource Connector or Resource Adapter can be updated without shutting down SNAMP. Updating component withing the single node in cluster causes cascade update of all the nodes. There are no availability issues.
 
 ## Update SNAMP Platform
 SNAMP Platform is a core set of OSGi bundles with basic SNAMP functionality.
+
 1. Download `platform-feature-X.Y.Z.kar` archive.
-2. Print `feature:uninstall platform-feature` in the shell console
-3. Copy downloaded platform into `<snamp>/deploy` folder
+1. Print `feature:uninstall platform-feature` in the shell console
+1. Copy downloaded platform into `<snamp>/deploy` folder
 
 Verify your installation using `feature:list -i`, `bundle:list` and `log:exception-display` shell commands.
 
-Note that updating of SNAMP Platform might affects availability. But you can detach node from the cluster and update SNAMP Platform, setup balancer for this updated node, repeat updating actions for each detached node and restore balancer configuration.
+Note that updating of SNAMP Platform might affect availability. You can avoid it with following steps:
+
+1. Detach node from the cluster
+1. Update SNAMP Platform
+1. Setup balancer for updated node
+1. Repeat previous actions for each detached node
+1. Restore balancer configuration.
 
 ## Update Management Console
+
+1. Get `web-console-feature-X.Y.Z.kar` archive.
+1. Print `feature:uninstall platform-feature` in the shell console (or just remove corresponding artifact from `<snamp>/deploy` folder)
+1. Copy downloaded artifact into `<snamp>/deploy` folder
+
+Verify your update using `feature:list -i`, `bundle:list` and `log:exception-display` shell commands.
+Open the [link](http://YOUR_HOST:3535/hawtio/login).
+3535 is a default port for web-console. In case of local installation you can check [this](http://localhost:3535/hawtio/login) link.

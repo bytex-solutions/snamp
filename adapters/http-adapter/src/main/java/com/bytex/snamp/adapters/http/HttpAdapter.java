@@ -1,17 +1,20 @@
 package com.bytex.snamp.adapters.http;
 
-import com.google.common.collect.*;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.ExceptionPlaceholder;
-import com.bytex.snamp.adapters.*;
+import com.bytex.snamp.adapters.AbstractResourceAdapter;
+import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.adapters.modeling.*;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
-import com.bytex.snamp.internal.RecordReader;
-import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.jmx.json.Formatters;
+import com.bytex.snamp.jmx.json.JsonUtils;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Multimap;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.sun.jersey.api.core.DefaultResourceConfig;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
 import org.atmosphere.cpr.AtmosphereConfig;
@@ -22,6 +25,7 @@ import org.osgi.service.http.NamespaceException;
 import javax.management.*;
 import javax.servlet.Servlet;
 import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Application;
@@ -93,15 +97,19 @@ final class HttpAdapter extends AbstractResourceAdapter {
             return new URI(request.getRequestURL().toString());
         }
 
+        private AtmosphereConfig getAtmosphereConfig(final ServletRequest request){
+            final Object result = request.getAttribute(ATMOSPHERE_CONFIG);
+            if(result instanceof AtmosphereConfig)
+                return (AtmosphereConfig) result;
+            else throw new IllegalStateException(String.format("%s resource broadcaster cannot catch Atmosphere Framework config", resourceName));
+        }
+
         @Override
         public void initialize(final HttpServletRequest request) throws URISyntaxException {
             if (request != null && !isInitialized() && !isDestroyed())
                 synchronized (this) {
                     if (isInitialized() || isDestroyed()) return;
-                    final AtmosphereConfig frameworkConfig = Utils.safeCast(request.getAttribute(ATMOSPHERE_CONFIG), AtmosphereConfig.class);
-                    if (frameworkConfig == null)
-                        throw new RuntimeException(String.format("%s resource broadcaster cannot catch Atmosphere Framework config", resourceName));
-                    else initialize(resourceName, getRequestURI(request), frameworkConfig);
+                    else initialize(resourceName, getRequestURI(request), getAtmosphereConfig(request));
                 }
         }
 
@@ -145,7 +153,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
 
     private static final class HttpModelOfNotifications extends ModelOfNotifications<HttpNotificationAccessor> implements NotificationSupport{
         private final KeyedObjects<String, NotificationBroadcaster> notifications;
-        private static final Gson FORMATTER = Formatters.enableAll(new GsonBuilder())
+        private static final Gson FORMATTER = JsonUtils.registerTypeAdapters(new GsonBuilder())
                 .serializeSpecialFloatingPointValues()
                 .serializeNulls()
                 .create();
@@ -186,7 +194,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
         }
 
         @Override
-        public <E extends Exception> void forEachNotification(final RecordReader<String, ? super HttpNotificationAccessor, E> notificationReader) throws E {
+        public <E extends Exception> void forEachNotification(final EntryReader<String, ? super HttpNotificationAccessor, E> notificationReader) throws E {
             try (final LockScope ignored = beginRead()) {
                 for (final NotificationBroadcaster broadcaster : notifications.values())
                     for (final HttpNotificationAccessor accessor : broadcaster.notifications.values())
@@ -319,10 +327,10 @@ final class HttpAdapter extends AbstractResourceAdapter {
                                                                                                     final AttributeSet<HttpAttributeAccessor> attributes){
         final Multimap<String, ReadOnlyFeatureBindingInfo<MBeanAttributeInfo>> result =
                 HashMultimap.create();
-        attributes.forEachAttribute(new RecordReader<String, HttpAttributeAccessor, ExceptionPlaceholder>() {
+        attributes.forEachAttribute(new EntryReader<String, HttpAttributeAccessor, ExceptionPlaceholder>() {
             @Override
             public boolean read(final String resourceName, final HttpAttributeAccessor accessor) {
-                return result.put(resourceName, new ReadOnlyFeatureBindingInfo<MBeanAttributeInfo>(accessor,
+                return result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor,
                         "path", accessor.getPath(servletContext, resourceName),
                         FeatureBindingInfo.MAPPED_TYPE, accessor.getJsonType()
                 ));
@@ -335,12 +343,12 @@ final class HttpAdapter extends AbstractResourceAdapter {
                                                                                                           final NotificationSet<HttpNotificationAccessor> notifs){
         final Multimap<String, ReadOnlyFeatureBindingInfo<MBeanNotificationInfo>> result =
                 HashMultimap.create();
-        notifs.forEachNotification(new RecordReader<String, HttpNotificationAccessor, ExceptionPlaceholder>() {
+        notifs.forEachNotification(new EntryReader<String, HttpNotificationAccessor, ExceptionPlaceholder>() {
             @Override
             public boolean read(final String resourceName, final HttpNotificationAccessor accessor) {
-                return result.put(resourceName, new ReadOnlyFeatureBindingInfo<MBeanNotificationInfo>(accessor,
-                            "path", accessor.getPath(servletContext, resourceName)
-                        ));
+                return result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor,
+                        "path", accessor.getPath(servletContext, resourceName)
+                ));
             }
         });
         return result;

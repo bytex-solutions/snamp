@@ -130,7 +130,7 @@ final class AggregatorConnectorConfiguration extends ConfigurationEntityDescript
 
     static TimeSpan getNotificationFrequency(final Map<String, String> parameters){
         return parameters.containsKey(NOTIFICATION_FREQUENCY_PARAM) ?
-                new TimeSpan(Long.parseLong(parameters.get(NOTIFICATION_FREQUENCY_PARAM))) :
-                TimeSpan.fromSeconds(5);
+                TimeSpan.ofMillis(parameters.get(NOTIFICATION_FREQUENCY_PARAM)) :
+                TimeSpan.ofSeconds(5);
     }
 }

@@ -137,16 +137,16 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
             new MBeanOperationInfo[]{REVERSE_METHOD},
             new MBeanNotificationInfo[]{PROPERTY_CHANGED_EVENT, TIMER_EVENT, PLAIN_EVENT});
 
-    private String chosenString;
-    private boolean aBoolean;
-    private int anInt;
-    private BigInteger aBigInt;
-    private short[] array;
-    private CompositeData dictionary;
-    private TabularData table;
+    private volatile String chosenString;
+    private volatile boolean aBoolean;
+    private volatile int anInt;
+    private volatile BigInteger aBigInt;
+    private volatile short[] array;
+    private volatile CompositeData dictionary;
+    private volatile TabularData table;
     private final AtomicLong sequenceCounter;
-    private  float aFloat;
-    private Date aDate;
+    private volatile float aFloat;
+    private volatile Date aDate;
 
     public TestOpenMBean(final boolean generateNotifs) {
         super(PROPERTY_CHANGED_EVENT, TIMER_EVENT);
@@ -179,11 +179,11 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
                 put("col3", "Luke Skywalker");
             }}));
         }
-        catch (final OpenDataException e){
+        catch (final OpenDataException ignored){
 
         }
         if(generateNotifs){
-            final Repeater generator = new Repeater(TimeSpan.fromSeconds(2)) {
+            final Repeater generator = new Repeater(TimeSpan.ofSeconds(2)) {
                 @Override
                 protected void doAction() {
                     propertyChanged("ATTR", STRING_PROPERTY.getType(), "previous", "next");
@@ -197,43 +197,43 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
         this(false);
     }
 
-    public final short[] getArray(){
+    public short[] getArray(){
         return array;
     }
 
-    public final void setArray(final short[] value){
+    public void setArray(final short[] value){
         array = value;
     }
 
-    public final BigInteger getBigInt(){
+    public BigInteger getBigInt(){
         return aBigInt;
     }
 
-    public final void setBigInt(final BigInteger value){
+    public void setBigInt(final BigInteger value){
         aBigInt = value;
     }
 
-    public final int getInt32(){
+    public int getInt32(){
         return anInt;
     }
 
-    public final void setInt32(final int value){
+    public void setInt32(final int value){
         anInt = value;
     }
 
-    public final String getString(){
+    public String getString(){
         return chosenString;
     }
 
-    public final void setString(final String value){
+    public void setString(final String value){
         chosenString = value;
     }
 
-    public final boolean getBoolean(){
+    public boolean getBoolean(){
         return aBoolean;
     }
 
-    public final void setBoolean(final boolean value){
+    public void setBoolean(final boolean value){
         aBoolean = value;
     }
 
@@ -267,7 +267,7 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
      * @see #setAttribute
      */
     @Override
-    public final Object getAttribute(final String attribute) throws AttributeNotFoundException {
+    public Object getAttribute(final String attribute) throws AttributeNotFoundException {
         if(Objects.equals(attribute, STRING_PROPERTY.getName()))
             return chosenString;
         else if(Objects.equals(attribute, BOOLEAN_PROPERTY.getName()))
@@ -329,7 +329,7 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
      * @see #getAttribute
      */
     @Override
-    public final void setAttribute(final Attribute attribute) throws AttributeNotFoundException{
+    public void setAttribute(final Attribute attribute) throws AttributeNotFoundException{
         final Object oldValue;
         final Object newValue;
         final String attributeType;
@@ -390,13 +390,13 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
      * @see #setAttributes
      */
     @Override
-    public final AttributeList getAttributes(final String[] attributes) {
+    public AttributeList getAttributes(final String[] attributes) {
         final AttributeList result = new AttributeList();
         for(final String aname: attributes)
             try{
                 result.add(new Attribute(aname, getAttribute(aname)));
             }
-            catch (final AttributeNotFoundException e){
+            catch (final AttributeNotFoundException ignored){
 
             }
         return result;
@@ -411,14 +411,14 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
      * @see #getAttributes
      */
     @Override
-    public final AttributeList setAttributes(final AttributeList attributes) {
+    public AttributeList setAttributes(final AttributeList attributes) {
         final AttributeList result = new AttributeList();
         for(final Attribute a: attributes.asList())
             try {
                 setAttribute(a);
                 result.add(new Attribute(a.getName(), getAttribute(a.getName())));
             }
-            catch (final AttributeNotFoundException e){
+            catch (final AttributeNotFoundException ignored){
 
             }
         return result;
@@ -461,7 +461,7 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
      *         exposed by this Dynamic MBean to be retrieved.
      */
     @Override
-    public final MBeanInfo getMBeanInfo() {
+    public MBeanInfo getMBeanInfo() {
         return BEAN_INFO;
     }
 }

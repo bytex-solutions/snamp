@@ -22,14 +22,14 @@ public final class ConfigurationDiffEngine {
     }
 
     private static void computeAdaptersGap(final Collection<ConfigurationPatch> output,
-                                           final Map<String, ResourceAdapterConfiguration> target,
-                                           final Map<String, ResourceAdapterConfiguration> baseline){
+                                           final Map<String, ? extends ResourceAdapterConfiguration> target,
+                                           final Map<String, ? extends ResourceAdapterConfiguration> baseline){
         //compute gaps for adapters that should be deleted from baseline config
-        for(final Map.Entry<String, ResourceAdapterConfiguration> adapterInstance: baseline.entrySet())
+        for(final Map.Entry<String, ? extends ResourceAdapterConfiguration> adapterInstance: baseline.entrySet())
             if(!target.containsKey(adapterInstance.getKey()))
                 output.add(new RemoveResourceAdapterPatchImpl(adapterInstance.getKey(), adapterInstance.getValue()));
 
-        for(final Map.Entry<String, ResourceAdapterConfiguration> adapterInstance: target.entrySet())
+        for(final Map.Entry<String, ? extends ResourceAdapterConfiguration> adapterInstance: target.entrySet())
             //compute gaps between two resource adapters
             if(baseline.containsKey(adapterInstance.getKey())){
                 final ResourceAdapterConfiguration targetConfig = adapterInstance.getValue();
@@ -41,14 +41,14 @@ public final class ConfigurationDiffEngine {
     }
 
     private static void computeResourcesGap(final Collection<ConfigurationPatch> output,
-                                            final Map<String, ManagedResourceConfiguration> target,
-                                            final Map<String, ManagedResourceConfiguration> baseline) {
+                                            final Map<String, ? extends ManagedResourceConfiguration> target,
+                                            final Map<String, ? extends ManagedResourceConfiguration> baseline) {
         //compute gaps for resources that should be deleted from baseline config
-        for (final Map.Entry<String, ManagedResourceConfiguration> resource : baseline.entrySet())
+        for (final Map.Entry<String, ? extends ManagedResourceConfiguration> resource : baseline.entrySet())
             if (!target.containsKey(resource.getKey()))
                 output.add(new RemoveManagedResourcePatchImpl(resource.getKey(), resource.getValue()));
 
-        for(final Map.Entry<String, ManagedResourceConfiguration> resource : target.entrySet())
+        for(final Map.Entry<String, ? extends ManagedResourceConfiguration> resource : target.entrySet())
             if(baseline.containsKey(resource.getKey())){
                 final ManagedResourceConfiguration targetConfig = resource.getValue();
                 if(!AbstractAgentConfiguration.equals(targetConfig, baseline.get(resource.getKey())))

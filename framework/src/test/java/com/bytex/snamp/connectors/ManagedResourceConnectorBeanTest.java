@@ -1,17 +1,17 @@
 package com.bytex.snamp.connectors;
 
-import com.google.common.collect.ImmutableMap;
-import com.bytex.snamp.ExceptionPlaceholder;
+import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.modeling.AttributeValue;
-import com.bytex.snamp.concurrent.Awaitor;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
+import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import com.bytex.snamp.configuration.ConfigParameters;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.attributes.CustomAttributeInfo;
 import com.bytex.snamp.connectors.discovery.DiscoveryService;
 import com.bytex.snamp.connectors.notifications.SynchronizationListener;
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -22,9 +22,10 @@ import java.beans.IntrospectionException;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Locale;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
+import static com.bytex.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.*;
 
 /**
  * Represents tests for {@link ManagedResourceConnectorBean} class.
@@ -60,13 +61,13 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
 
             @Override
             public String toJmxValue(final Object attributeValue, final CustomAttributeInfo metadata) {
-                assertEquals("property1", metadata.getDescriptor().getAttributeName());
+                assertEquals("property1", metadata.getDescriptor().getAlternativeName());
                 return attributeValue.toString();
             }
 
             @Override
             public Object fromJmxValue(final String jmxValue, final CustomAttributeInfo metadata) {
-                assertEquals("property1", metadata.getDescriptor().getAttributeName());
+                assertEquals("property1", metadata.getDescriptor().getAlternativeName());
                 return jmxValue;
             }
         }
@@ -91,39 +92,39 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
 
         @SpecialUse
         @ManagementAttribute(marshaller = Property1Marshaller.class)
-        public final String getProperty1() {
+        public String getProperty1() {
             return field1;
         }
 
         @SpecialUse
-        public final void setProperty1(final String value) {
+        public void setProperty1(final String value) {
             field1 = value;
             emitPropertyChanged("property1");
         }
 
         @SpecialUse
-        public final int getProperty2() {
+        public int getProperty2() {
             return field2;
         }
 
         @SpecialUse
-        public final void setProperty2(final int value) {
+        public void setProperty2(final int value) {
             field2 = value;
             emitPropertyChanged("property2");
         }
 
         @SpecialUse
-        public final boolean getProperty3() {
+        public boolean getProperty3() {
             return field3;
         }
 
         @SpecialUse
-        public final void setProperty3(final boolean value) {
+        public void setProperty3(final boolean value) {
             field3 = value;
             emitPropertyChanged("property3");
         }
 
-        protected final void emitPropertyChanged(final String propertyName) {
+        protected void emitPropertyChanged(final String propertyName) {
             emitNotification(TestNotificationType.PROPERTY_CHANGED, String.format("Property %s is changed", propertyName), "Attachment string");
         }
 
@@ -146,31 +147,49 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         assertEquals(1, events.size());
     }
 
+    private static ConfigParameters makeAttributeConfig(final String name){
+        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration();
+        result.setAlternativeName(name);
+        return new ConfigParameters(result);
+    }
+
+    private static ConfigParameters makeEventConfig(final String name){
+        final SerializableEventConfiguration result = new SerializableEventConfiguration();
+        result.setAlternativeName(name);
+        return new ConfigParameters(result);
+    }
+
+    private static ConfigParameters makeOperationConfig(final String name){
+        final SerializableOperationConfiguration result = new SerializableOperationConfiguration();
+        result.setAlternativeName(name);
+        return new ConfigParameters(result);
+    }
+
     @Test
-    public final void testConnectorBean() throws IntrospectionException, JMException, InterruptedException, TimeoutException {
+    public void testConnectorBean() throws Exception {
         final TestManagementConnectorBean connector = new TestManagementConnectorBean();
         connector.field1 = "123";
         final MBeanAttributeInfo md;
-        assertNotNull(md = connector.addAttribute("0", "property1", TimeSpan.fromSeconds(1), ConfigParameters.empty()));
+        assertNotNull(md = connector.addAttribute("p1", TimeSpan.ofSeconds(1), makeAttributeConfig("property1")));
         //enables notifications
-        assertNotNull(connector.enableNotifications("list1", "propertyChanged", ConfigParameters.empty()));
+        assertNotNull(connector.enableNotifications("propertyChanged", makeEventConfig("propertyChanged")));
         final SynchronizationListener listener = new SynchronizationListener();
-        final Awaitor<Notification, ExceptionPlaceholder> notifAwaitor = listener.getAwaitor();
+        final Future<Notification> notifAwaitor = listener.getAwaitor();
         connector.addNotificationListener(listener, null, null);
-        assertEquals(connector.getProperty1(), connector.getAttribute("0"));
-        connector.setAttribute(new AttributeValue("0", "1234567890", SimpleType.STRING));
-        final Notification n = notifAwaitor.await(new TimeSpan(10, TimeUnit.SECONDS));
+        assertEquals(connector.getProperty1(), connector.getAttribute("p1"));
+        connector.setAttribute(new AttributeValue("p1", "1234567890", SimpleType.STRING));
+        final Notification n = notifAwaitor.get(10, TimeUnit.SECONDS);
         assertNotNull(n);
         assertEquals("Property property1 is changed", n.getMessage());
         assertEquals("Attachment string", n.getUserData());
-        assertEquals(connector.getProperty1(), connector.getAttribute("0"));
+        assertEquals(connector.getProperty1(), connector.getAttribute("p1"));
         assertTrue(md.isReadable());
         assertTrue(md.isWritable());
-        assertEquals("property1", AttributeDescriptor.getAttributeName(md));
+        assertEquals("p1", md.getName());
         assertEquals(SimpleType.STRING, AttributeDescriptor.getOpenType(md));
         //enables operations
-        assertNotNull(connector.enableOperation("sum", "computeSum", TimeSpan.INFINITE, ConfigParameters.empty()));
-        final Object result = connector.invoke("sum", new Object[]{4, 5}, new String[0]);
+        assertNotNull(connector.enableOperation("cs", TimeSpan.INFINITE, makeOperationConfig("computeSum")));
+        final Object result = connector.invoke("cs", new Object[]{4, 5}, ArrayUtils.emptyArray(String[].class));
         assertTrue(result instanceof Integer);
         assertEquals(9, result);
     }

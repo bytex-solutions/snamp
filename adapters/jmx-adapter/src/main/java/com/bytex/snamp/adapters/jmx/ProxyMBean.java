@@ -1,22 +1,21 @@
 package com.bytex.snamp.adapters.jmx;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.adapters.modeling.*;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.notifications.NotificationListenerList;
-import com.bytex.snamp.internal.RecordReader;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.io.Buffers;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.management.OpenMBeanProvider;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
 import javax.management.*;
-import javax.management.NotificationListener;
 import javax.management.openmbean.*;
 import java.io.Closeable;
 import java.lang.management.ManagementFactory;
@@ -24,6 +23,7 @@ import java.nio.*;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Represents proxy MBean that is used to expose attributes and notifications
@@ -104,7 +104,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
         }
 
         @Override
-        public final OpenMBeanAttributeInfoSupport cloneMetadata() {
+        public OpenMBeanAttributeInfoSupport cloneMetadata() {
             return new OpenMBeanAttributeInfoSupport(getMetadata().getName(),
                     getMetadata().getDescription(),
                     arrayType,
@@ -146,14 +146,16 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     private final NotificationListenerList listeners;
     private final String resourceName;
     private ServiceRegistration<?> registration;
+    private final Logger logger;
 
-    ProxyMBean(final String resourceName){
+    ProxyMBean(final String resourceName, final Logger logger){
         super(MBeanResources.class);
         this.resourceName = resourceName;
         this.notifications = new ResourceNotificationList<>();
         this.attributes = new ResourceAttributeList<>();
         this.listeners = new NotificationListenerList();
         this.registration = null;
+        this.logger = Objects.requireNonNull(logger);
     }
 
     String getResourceName(){
@@ -305,7 +307,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
             try {
                 result.add(new Attribute(attributeName, getAttribute(attributeName)));
             } catch (final JMException e) {
-                JmxAdapterHelpers.log(Level.WARNING, "Unable to get value of %s attribute", attributeName, e);
+                logger.log(Level.WARNING, String.format("Unable to get value of %s attribute", attributeName), e);
             }
         return result;
     }
@@ -328,10 +330,10 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
                     result.add(entry);
                 }
                 catch (final JMException e) {
-                    JmxAdapterHelpers.log(Level.WARNING,
-                            "Unable to set attribute %s",
-                            entry,
-                            e);
+                        logger.log(Level.WARNING,
+                                String.format("Unable to set attribute %s",
+                                entry),
+                                e);
                 }
         return result;
     }
@@ -384,8 +386,8 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
         return new OpenMBeanInfoSupport(getClass().getName(),
                 String.format("Represents %s resource as MBean", resourceName),
                 getAttributeInfo(),
-                new OpenMBeanConstructorInfo[0],
-                new OpenMBeanOperationInfo[0],
+                ArrayUtils.emptyArray(OpenMBeanConstructorInfo[].class),
+                ArrayUtils.emptyArray(OpenMBeanOperationInfo[].class),
                 getNotificationInfo());
     }
 
@@ -442,7 +444,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
         listeners.handleNotification(notification, handback);
     }
 
-    <E extends Exception> boolean forEachAttribute(final RecordReader<String, ? super JmxAttributeAccessor, E> attributeReader) throws E {
+    <E extends Exception> boolean forEachAttribute(final EntryReader<String, ? super JmxAttributeAccessor, E> attributeReader) throws E {
         try(final LockScope ignored = beginRead(MBeanResources.ATTRIBUTES)){
             for(final JmxAttributeAccessor accessor: attributes.values())
                 if(!attributeReader.read(resourceName, accessor)) return false;
@@ -450,7 +452,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
         return true;
     }
 
-    <E extends Exception> boolean forEachNotification(final RecordReader<String, ? super JmxNotificationAccessor, E> notificationReader) throws E {
+    <E extends Exception> boolean forEachNotification(final EntryReader<String, ? super JmxNotificationAccessor, E> notificationReader) throws E {
         try(final LockScope ignored = beginRead(MBeanResources.NOTIFICATIONS)){
             for(final JmxNotificationAccessor accessor: notifications.values())
                 if(!notificationReader.read(resourceName, accessor)) return false;

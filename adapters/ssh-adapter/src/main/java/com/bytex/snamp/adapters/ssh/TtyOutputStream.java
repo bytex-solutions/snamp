@@ -1,6 +1,6 @@
 package com.bytex.snamp.adapters.ssh;
 
-import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.internal.OperatingSystem;
 import jline.console.ConsoleReader;
 
 import java.io.FilterOutputStream;
@@ -26,6 +26,6 @@ final class TtyOutputStream extends FilterOutputStream {
     }
 
     static boolean needToApply() {
-        return Utils.IS_OS_LINUX || Utils.IS_OS_MAC_OSX;
+        return OperatingSystem.isLinux() || OperatingSystem.isMacOSX();
     }
 }

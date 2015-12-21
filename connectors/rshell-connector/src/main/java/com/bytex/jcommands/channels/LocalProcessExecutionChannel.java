@@ -1,12 +1,12 @@
 package com.bytex.jcommands.channels;
 
-import com.google.common.collect.ImmutableMap;
 import com.bytex.jcommands.ChannelProcessingMode;
 import com.bytex.jcommands.ChannelProcessor;
 import com.bytex.jcommands.CommandExecutionChannel;
-import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.internal.annotations.MethodStub;
+import com.bytex.snamp.MethodStub;
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.io.IOUtils;
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.exec.ExecuteException;
 
 import java.io.IOException;
@@ -24,7 +24,7 @@ import java.util.Set;
  * @version 1.0
  * @since 1.0
  */
-public final class LocalProcessExecutionChannel extends HashMap<String, String> implements CommandExecutionChannel {
+public final class LocalProcessExecutionChannel extends HashMap<String, String> implements CommandExecutionChannel, SafeCloseable {
     public static final String CHANNEL_NAME = "process";
     private static final String NORMAL_EXIT_CODE_PARAM = "normalExitCode";
     private static final long serialVersionUID = 5308027932652020638L;
@@ -40,13 +40,8 @@ public final class LocalProcessExecutionChannel extends HashMap<String, String> 
     }
 
     int getNormalExitCode() {
-        if (containsKey(NORMAL_EXIT_CODE_PARAM))
-            return Integer.parseInt(get(NORMAL_EXIT_CODE_PARAM));
-        else if (Utils.IS_OS_LINUX)
-            return 0;
-        else if (Utils.IS_OS_WINDOWS)
-            return 0;
-        else return 0;
+        return containsKey(NORMAL_EXIT_CODE_PARAM) ?
+                Integer.parseInt(get(NORMAL_EXIT_CODE_PARAM)) : 0;
     }
 
     void setNormalExitCode(final int value){

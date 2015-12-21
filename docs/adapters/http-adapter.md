@@ -1,16 +1,18 @@
 HTTP Resource Adapter
 ====
 
-HTTP Resource Adapter allows to manage and monitor connected resources via HTTP protocol. The adapter exposes REST service which uses JSON data exchange format.
+HTTP Resource Adapter allows to manage and monitor connected resources via HTTP protocol. This adapter exposes REST service which uses JSON data exchange format.
+
+![Communication Scheme](http-adapter.png)
 
 By default, REST service is available at the following URL:
 ```
-http://<snamp-host>:8181/snamp/adapters/http/<adapter-instance-name>
+http://<snamp-host>:3535/snamp/adapters/http/<adapter-instance-name>
 ```
 
 You can change HTTP port in `<snamp>/etc/org.ops4j.pax.web.cfg` file or by typing `config:property-set -p org.ops4j.pax.web org.osgi.service.http.port 8080` in the shell console. See [Apache Karaf HTTP Service](http://karaf.apache.org/manual/latest/users-guide/http.html) for more details.
 
-HTTP Resource Adapter supports the following features (if they are supported by managed resources too):
+HTTP Resource Adapter supports following features (if they these features supported by managed resources as well):
 
 Feature | Description
 ---- | ----
@@ -19,12 +21,12 @@ Notifications | Receiving notifications asynchronously using WebSockets/Comet/SS
 
 Attribute is accessible using the following URL:
 ```
-http://<snamp-host>:8181/snamp/adapters/http/<adapter-instance-name>/attributes/<resource-name>/<attribute-name>
+http://<snamp-host>:3535/snamp/adapters/http/<adapter-instance-name>/attributes/<resource-name>/<attribute-name>
 ```
 
-Use `GET` request to obtain attribute value and `POST` to change its value. For example:
+Use `GET` request to retrieve attribute value and `POST` to change its value. For example:
 ```
-HTTP POST http://localhost:8181/snamp/adapters/http/dummy-instance/attributes/java-app-server/logLevel
+HTTP POST http://localhost:3535/snamp/adapters/http/dummy-instance/attributes/java-app-server/logLevel
 Content-Type: application/json
 
 "DEBUG"
@@ -38,7 +40,7 @@ Also, Web client may receive notifications using one of the supported technologi
 
 It is recommended to use [atmosphere-javascript 2.2.6](https://github.com/Atmosphere/atmosphere-javascript) client-side library to simplify receiving notifications. URL for notifications:
 ```
-HTTP GET http://<snamp-host>:8181/snamp/adapters/http/<adapter-instance-name>/notifications/<notif-name>
+HTTP GET http://<snamp-host>:3535/snamp/adapters/http/<adapter-instance-name>/notifications/<notif-name>
 ```
 
 ## Configuration Parameters
@@ -51,7 +53,7 @@ dateFormat | String | No | Configures adapter to serialize Date objects into JSO
 Any other configuration parameters will be ignored by adapter.
 
 ## Data formats
-HTTP Resource Adapter uses JSON as representation of management information. The following table describes mapping between types of **Management Information Model** and JSON:
+HTTP Resource Adapter uses JSON as a representation of the management information. Following table describes mapping between types of **Management Information Model** and JSON:
 
 Management Information Model | JSON data type
 ---- | ----
@@ -70,7 +72,7 @@ float32 | Number
 float64 | Number
 
 ### Array
-An array data that comes from managed resource will be converted into appropriate JSON array type. For example, array of `int32` values will be converted into array of Numbers (`[1, 5, 7.8, 42]`).
+An array data that comes from managed resource will be converted into appropriate JSON array type. For example, an array of `int32` values will be converted into an array of Numbers (`[1, 5, 7.8, 42]`).
 
 ### Table
 Table is represented in JSON format as follows:
@@ -106,7 +108,7 @@ Table is represented in JSON format as follows:
 
 > When you change table rows (via POST request) you should not modify anything in `type` element.
 
-The possible values of `type` element: `void`, `bool`, `int8`, `int16`, `int32`, `int64`, `char`, `string`, `objectname`, `float32`, `float64`, `bigint`, `bigdec`, `date`.
+Possible values of `type` element: `void`, `bool`, `int8`, `int16`, `int32`, `int64`, `char`, `string`, `objectname`, `float32`, `float64`, `bigint`, `bigdec`, `date`.
 
 ### Dictionary
 Dictionary is represented in JSON format as follows:
@@ -159,4 +161,4 @@ Notification received through WebSocket/Comet/SSE channel can be represented in 
 }
 ```
 
-The information model of the notification described in **Management Information Model** page.
+Information model of the notification described in **Management Information Model** page.

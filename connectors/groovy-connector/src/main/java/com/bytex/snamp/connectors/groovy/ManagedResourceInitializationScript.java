@@ -1,7 +1,7 @@
 package com.bytex.snamp.connectors.groovy;
 
 import com.google.common.collect.ImmutableList;
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 import groovy.lang.Binding;
 
 import java.util.Collection;
@@ -29,7 +29,8 @@ public abstract class ManagedResourceInitializationScript extends ManagedResourc
      */
     @SpecialUse
     protected final void attribute(final String name, final Map<String, String> parameters){
-        final SerializableAttributeConfiguration config = new SerializableAttributeConfiguration(name);
+        final SerializableAttributeConfiguration config = new SerializableAttributeConfiguration();
+        config.setAlternativeName(name);
         config.setParameters(parameters);
         attributes.add(config);
     }
@@ -41,7 +42,8 @@ public abstract class ManagedResourceInitializationScript extends ManagedResourc
      */
     @SpecialUse
     protected final void event(final String category, final Map<String, String> parameters){
-        final SerializableEventConfiguration config = new SerializableEventConfiguration(category);
+        final SerializableEventConfiguration config = new SerializableEventConfiguration();
+        config.setAlternativeName(category);
         config.setParameters(parameters);
         events.add(config);
     }

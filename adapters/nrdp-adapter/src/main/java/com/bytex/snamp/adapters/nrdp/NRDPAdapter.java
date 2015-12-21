@@ -3,6 +3,8 @@ package com.bytex.snamp.adapters.nrdp;
 import ch.shamu.jsendnrdp.NRDPServerConnectionSettings;
 import ch.shamu.jsendnrdp.domain.NagiosCheckResult;
 import ch.shamu.jsendnrdp.domain.State;
+import com.bytex.snamp.core.DistributedServices;
+import com.bytex.snamp.internal.Utils;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -11,7 +13,7 @@ import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.*;
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.adapters.modeling.*;
-import com.bytex.snamp.internal.RecordReader;
+import com.bytex.snamp.EntryReader;
 
 import javax.management.*;
 import java.util.HashMap;
@@ -45,7 +47,7 @@ final class NRDPAdapter extends AbstractResourceAdapter {
         }
 
         @Override
-        public <E extends Exception> void forEachNotification(final RecordReader<String, ? super NRDPNotificationAccessor, E> notificationReader) throws E {
+        public <E extends Exception> void forEachNotification(final EntryReader<String, ? super NRDPNotificationAccessor, E> notificationReader) throws E {
             try(final LockScope ignored = beginRead()){
                 for(final ResourceNotificationList<NRDPNotificationAccessor> list: notifications.values())
                     for(final NRDPNotificationAccessor accessor: list.values())
@@ -128,9 +130,11 @@ final class NRDPAdapter extends AbstractResourceAdapter {
         }
 
         @Override
-        protected void processAttribute(final String resourceName, final NRDPAttributeAccessor accessor) {
-            final NagiosCheckResult payload = accessor.getCheckResult(resourceName);
-            checkSender.send(payload);
+        protected boolean processAttribute(final String resourceName, final NRDPAttributeAccessor accessor) {
+            if (DistributedServices.isActiveNode(Utils.getBundleContextOfObject(this))) {
+                checkSender.send(accessor, resourceName);
+                return true;
+            } else return false;
         }
     }
 
@@ -187,7 +191,7 @@ final class NRDPAdapter extends AbstractResourceAdapter {
     }
 
     @Override
-    protected synchronized void stop() {
+    protected synchronized void stop() throws InterruptedException {
         if(attributeChecker != null){
             attributeChecker.close();
         }

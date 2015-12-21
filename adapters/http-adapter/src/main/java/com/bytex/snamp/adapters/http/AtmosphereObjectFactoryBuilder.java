@@ -2,11 +2,12 @@ package com.bytex.snamp.adapters.http;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
-import com.bytex.snamp.internal.CallableSupplier;
 import org.atmosphere.cpr.AtmosphereFramework;
 import org.atmosphere.cpr.AtmosphereObjectFactory;
 
 import java.util.concurrent.Callable;
+
+import static com.bytex.snamp.internal.Utils.changeFunctionalInterfaceType;
 
 /**
  * @author Roman Sakno
@@ -39,10 +40,10 @@ final class AtmosphereObjectFactoryBuilder implements Supplier<AtmosphereObjectF
         return this;
     }
 
+    @SuppressWarnings("unchecked")
     public <V> AtmosphereObjectFactoryBuilder add(final Class<V> classType,
-                                                  final Supplier<? extends V> factory){
-        factories.put(classType, CallableSupplier.create(factory));
-        return this;
+                                                  final Supplier<? extends V> factory) {
+        return add(classType, changeFunctionalInterfaceType(factory, Supplier.class, Callable.class));
     }
 
     public AtmosphereObjectFactory build(){

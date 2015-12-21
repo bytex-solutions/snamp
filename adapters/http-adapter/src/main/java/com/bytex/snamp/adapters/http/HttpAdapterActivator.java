@@ -1,7 +1,7 @@
 package com.bytex.snamp.adapters.http;
 
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 import org.osgi.service.http.HttpService;
 
 /**

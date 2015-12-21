@@ -1,11 +1,12 @@
 package com.bytex.snamp.jmx;
 
 import com.google.common.base.Predicate;
+import com.google.common.base.Supplier;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.reflect.TypeToken;
-import com.bytex.snamp.internal.annotations.Internal;
+import com.bytex.snamp.Internal;
 
 import javax.management.openmbean.*;
 import java.io.Serializable;
@@ -24,7 +25,7 @@ import java.util.concurrent.ExecutionException;
  * @version 1.0
  * @since 1.0
  */
-public enum  WellKnownType implements Serializable, Type, Predicate {
+public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Class<?>> {
     /**
      * Represents {@link java.lang.Void} data type.
      */
@@ -83,7 +84,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate {
     /**
      * Represents {@link java.util.Date} data type.
      */
-    DATE("date/time", SimpleType.DATE),
+    DATE("datetime", SimpleType.DATE),
 
     /**
      * Represents {@link java.math.BigInteger} data type.
@@ -263,7 +264,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate {
 
         private static WellKnownType load(@SuppressWarnings("NullableProblems") final String className) throws InvalidKeyException {
             for (final WellKnownType type : values())
-                if (Objects.equals(className, type.getJavaType().getName()))
+                if (className.equals(type.getJavaType().getName()))
                     return type;
             throw cacheMissing(className);
         }
@@ -301,7 +302,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate {
     }
 
     private static final LoadingCache<Object, WellKnownType> cache =
-            CacheBuilder.newBuilder().softValues().build(new WellKnownTypeCacheLoader());
+            CacheBuilder.newBuilder().weakKeys().build(new WellKnownTypeCacheLoader());
 
     private final OpenType<?> openType;
     private final Class<?> javaType;
@@ -393,6 +394,15 @@ public enum  WellKnownType implements Serializable, Type, Predicate {
         return openType instanceof ArrayType<?> || javaType.isArray();
     }
 
+    public final boolean isPrimitiveArray(){
+        return openType instanceof ArrayType<?> && ((ArrayType<?>)openType).isPrimitiveArray();
+    }
+
+    public final boolean isSimpleArray(){
+        return openType instanceof ArrayType<?> &&
+                ((ArrayType<?>)openType).getElementOpenType() instanceof SimpleType<?>;
+    }
+
     /**
      * Determines whether this type is primitive.
      * <p>
@@ -480,6 +490,18 @@ public enum  WellKnownType implements Serializable, Type, Predicate {
      */
     public final TypeToken<?> getTypeToken(){
         return TypeToken.of(getJavaType());
+    }
+
+    /**
+     * Gets type by its display name.
+     * @param displayName Display name of the type.
+     * @return A type converted from its display name; or {@literal null}, if display name is invalid.
+     */
+    public static WellKnownType parse(final String displayName){
+        for(final WellKnownType candidate: values())
+            if(candidate.displayName.equals(displayName))
+                return candidate;
+        return null;
     }
 
     /**
@@ -645,5 +667,14 @@ public enum  WellKnownType implements Serializable, Type, Predicate {
     @Override
     public String toString() {
         return javaType.getCanonicalName();
+    }
+
+    /**
+     * Gets underlying Java type that represents this SNAMP well-known type.
+     * @return The underlying Java type.
+     */
+    @Override
+    public Class<?> get() {
+        return getJavaType();
     }
 }

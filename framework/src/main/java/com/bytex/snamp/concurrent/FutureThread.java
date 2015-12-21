@@ -1,9 +1,6 @@
 package com.bytex.snamp.concurrent;
 
-import com.bytex.snamp.internal.annotations.SpecialUse;
-
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 /**
  * Represents standalone future which computation can be executed in the separated thread.
@@ -11,42 +8,49 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
  * @version 1.0
  * @since 1.0
  */
-public class FutureThread<V> extends Thread implements Future<V> {
+public class FutureThread<V> extends Thread implements Future<V>{
     /**
      * Represents state of this thread.
      * @author Roman Sakno
      * @since 1.0
      * @version 1.0
      */
-    private enum State{
+    private enum ThreadState {
         /**
          * Thread is created but not started.
          */
-        CREATED,
+        CREATED(false),
 
         /**
          * Thread is running.
          */
-        RUNNING,
+        RUNNING(false),
 
         /**
          * Thread is cancelled.
          */
-        CANCELLED,
+        CANCELLED(true),
+
+        /**
+         * Thread throws exception.
+         */
+        FAILED(true),
 
         /**
          * Thread is completed.
          */
-        COMPLETED
+        COMPLETED(true);
+
+        private final boolean isDone;
+
+        ThreadState(final boolean done){
+            this.isDone = done;
+        }
     }
 
-    private static final AtomicReferenceFieldUpdater<FutureThread, State> STATE_UPDATER =
-            AtomicReferenceFieldUpdater.newUpdater(FutureThread.class, State.class, "state");
     private final Callable<V> implementation;
-    private volatile V result;
-    private volatile Exception error;
-    @SpecialUse
-    private volatile State state;
+    private volatile Object result;
+    private final VolatileBox<ThreadState> state;
 
     /**
      * Initializes a new standalone future.
@@ -64,9 +68,7 @@ public class FutureThread<V> extends Thread implements Future<V> {
     public FutureThread(final ThreadGroup group, final Callable<V> impl){
         super(group, impl.toString());
         implementation = impl;
-        result = null;
-        error = null;
-        state = State.CREATED;
+        state = new VolatileBox<>(ThreadState.CREATED);
         setDaemon(true);
     }
 
@@ -87,18 +89,19 @@ public class FutureThread<V> extends Thread implements Future<V> {
      */
     @Override
     public final void run() {
-        state = State.RUNNING;
-        try {
-            result = implementation.call();
-        }
-        catch (final InterruptedException e){
-            state = State.CANCELLED;
-        }
-        catch (final Exception e) {
-            error = e;
-        }
-        finally {
-            state = isInterrupted() ? State.CANCELLED : State.COMPLETED;
+        if (state.compareAndSet(ThreadState.CREATED, ThreadState.RUNNING)) {
+            try {
+                result = implementation.call();
+            } catch (final InterruptedException e) {
+                state.set(ThreadState.CANCELLED);
+                result = null;
+                return;
+            } catch (final Exception e) {
+                state.set(ThreadState.FAILED);
+                result = e;
+                return;
+            }
+            state.set(isInterrupted() ? ThreadState.CANCELLED : ThreadState.COMPLETED);
         }
     }
 
@@ -126,7 +129,7 @@ public class FutureThread<V> extends Thread implements Future<V> {
     @Override
     public final boolean cancel(final boolean mayInterruptIfRunning) {
         if (isInterrupted()) return false;
-        switch (STATE_UPDATER.getAndSet(this, State.CANCELLED)) {
+        switch (state.getAndSet(ThreadState.CANCELLED)) {
             case RUNNING:
                 if(mayInterruptIfRunning) {
                     interrupt();
@@ -148,7 +151,7 @@ public class FutureThread<V> extends Thread implements Future<V> {
      */
     @Override
     public final boolean isCancelled() {
-        return state == State.CANCELLED;
+        return state.get() == ThreadState.CANCELLED;
     }
 
     /**
@@ -162,16 +165,22 @@ public class FutureThread<V> extends Thread implements Future<V> {
      */
     @Override
     public final boolean isDone() {
-        switch (state){
-            case COMPLETED:
-            case CANCELLED: return true;
-            default: return false;
-        }
+        return state.get().isDone;
     }
 
-    private V getResult() throws ExecutionException{
-        if(error != null) throw new ExecutionException(error);
-        else return result;
+    @SuppressWarnings("unchecked")
+    private V getResult() throws ExecutionException {
+        final ThreadState st;
+        switch (st = state.get()) {
+            case FAILED:
+                throw new ExecutionException((Throwable) result);
+            case COMPLETED:
+                return (V) result;
+            case CANCELLED:
+                throw new CancellationException();
+            default:
+                throw new IllegalStateException("Incorrect state" + st);
+        }
     }
 
     /**

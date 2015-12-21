@@ -4,7 +4,6 @@ import com.bytex.snamp.TimeSpan;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -18,7 +17,7 @@ public class RepeaterTest extends Assert {
         private final AtomicLong c = new AtomicLong(0);
 
         public SecondsCounter(){
-            super(new TimeSpan(1, TimeUnit.SECONDS));
+            super(TimeSpan.ofSeconds(1));
         }
 
         public final long getValue(){
@@ -35,7 +34,7 @@ public class RepeaterTest extends Assert {
          * @param s A new repeater state.
          */
         @Override
-        protected final void stateChanged(final State s) {
+        protected final void stateChanged(final RepeaterState s) {
             switch (s){
                 case STARTED: c.getAndSet(0L);
             }
@@ -55,16 +54,16 @@ public class RepeaterTest extends Assert {
         try(final SecondsCounter counter = new SecondsCounter()){
             counter.run();
             Thread.sleep(5400);
-            counter.stop(new TimeSpan(400, TimeUnit.MILLISECONDS));
+            counter.stop(TimeSpan.ofMillis(400));
             assertEquals(5, counter.getValue());
-            assertEquals(Repeater.State.STOPPED, counter.getState());
+            assertEquals(Repeater.RepeaterState.STOPPED, counter.getState());
         }
     }
 
     @Test
     public final void exceptionTest() throws InterruptedException, TimeoutException {
         final String exceptionMessage = "Test exception";
-        try(final Repeater rep = new Repeater(new TimeSpan(1, TimeUnit.MILLISECONDS)) {
+        try(final Repeater rep = new Repeater(TimeSpan.ofMillis(1)) {
             private final AtomicLong counter = new AtomicLong(0);
 
             @Override
@@ -78,10 +77,10 @@ public class RepeaterTest extends Assert {
         }){
             rep.run();
             Thread.sleep(4000);
-            assertEquals(Repeater.State.FAILED, rep.getState());
+            assertEquals(Repeater.RepeaterState.FAILED, rep.getState());
             assertNotNull(rep.getException());
             assertEquals(exceptionMessage, rep.getException().getMessage());
-            assertEquals(Repeater.State.FAILED, rep.getState());
+            assertEquals(Repeater.RepeaterState.FAILED, rep.getState());
         }
     }
 }

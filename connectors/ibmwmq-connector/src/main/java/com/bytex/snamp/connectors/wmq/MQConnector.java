@@ -1,5 +1,7 @@
 package com.bytex.snamp.connectors.wmq;
 
+import com.bytex.snamp.core.DistributedServices;
+import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.ImmutableMap;
 import com.ibm.mq.MQException;
 import com.ibm.mq.constants.CMQC;
@@ -61,12 +63,12 @@ final class MQConnector extends ManagedResourceConnectorBean implements CMQC, CM
         queueName = properties.getQueueName();
         channelName = properties.getChannelName();
         mqmonitor = properties.createMessageAgent();
-        bytesSentLast24Hours = new DiffLongAccumulator(TimeSpan.fromHours(24));
-        bytesSentLastHour = new DiffLongAccumulator(TimeSpan.fromHours(1));
-        bytesReceivedLast24Hours = new DiffLongAccumulator(TimeSpan.fromHours(24));
-        bytesReceivedLastHour = new DiffLongAccumulator(TimeSpan.fromHours(1));
-        messagesProcessedLast24Hours = new DiffIntAccumulator(TimeSpan.fromHours(24));
-        messagesProcessedLastHour = new DiffIntAccumulator(TimeSpan.fromHours(1));
+        bytesSentLast24Hours = new DiffLongAccumulator(TimeSpan.ofDays(1));
+        bytesSentLastHour = new DiffLongAccumulator(TimeSpan.ofHours(1));
+        bytesReceivedLast24Hours = new DiffLongAccumulator(TimeSpan.ofHours(24));
+        bytesReceivedLastHour = new DiffLongAccumulator(TimeSpan.ofHours(1));
+        messagesProcessedLast24Hours = new DiffIntAccumulator(TimeSpan.ofHours(24));
+        messagesProcessedLastHour = new DiffIntAccumulator(TimeSpan.ofHours(1));
     }
 
     MQConnector(final String resourceName,
@@ -163,7 +165,7 @@ final class MQConnector extends ManagedResourceConnectorBean implements CMQC, CM
      * @throws MQException Invalid MQ parameters.
      * @throws IOException Network connection problems.
      */
-    @ManagementAttribute
+    @ManagementAttribute(description = "Determines whether the MQ is available.")
     public boolean isActive() throws IOException, MQException {
         return getQueueParameterThroughPCF(MQCA_Q_NAME, null) != null;
     }
@@ -175,7 +177,7 @@ final class MQConnector extends ManagedResourceConnectorBean implements CMQC, CM
      * @throws IOException Network connection problems.
      * @throws ParseException Unable to parse date/time.
      */
-    @ManagementAttribute
+    @ManagementAttribute(description = "Gets a time at which the last message was destructively read from the queue.")
     public Date getLastGetDate() throws MQException, IOException, ParseException {
         final Map<Integer, ?> filter  = ImmutableMap.of(
                 MQCA_Q_NAME, queueName,
@@ -196,7 +198,7 @@ final class MQConnector extends ManagedResourceConnectorBean implements CMQC, CM
      * @throws IOException Network connection problems.
      * @throws ParseException Unable to parse date/time.
      */
-    @ManagementAttribute
+    @ManagementAttribute(description = "Gets a time at which the last message was successfully put to the queue.")
     public Date getLastPutDate() throws MQException, IOException, ParseException {
         final Map<Integer, ?> filter  = ImmutableMap.of(
                 MQCA_Q_NAME, queueName,
@@ -218,7 +220,8 @@ final class MQConnector extends ManagedResourceConnectorBean implements CMQC, CM
      * @throws MQException Invalid MQ parameters.
      * @throws IOException Network connection problems.
      */
-    @ManagementAttribute
+    @ManagementAttribute(description = "Gets the number of handles that are currently valid for " +
+            "removing messages from the queue by means of the MQGET call.")
     public int getOpenHandlesForInput() throws MQException, IOException{
         return getQueueParameterThroughPCF(MQIA_OPEN_INPUT_COUNT, 0);
     }
@@ -230,7 +233,7 @@ final class MQConnector extends ManagedResourceConnectorBean implements CMQC, CM
      * @throws IOException Network connection problems.
      * @see <a href='http://publib.boulder.ibm.com/infocenter/wmqv6/v6r0/index.jsp?topic=%2Fcom.ibm.mq.csqzaw.doc%2Fuj19050_.htm'>MQIA_OPEN_OUTPUT_COUNT</a>
      */
-    @ManagementAttribute
+    @ManagementAttribute(description = "Gets the number of handles that are currently valid for adding messages to the queue by means of the MQPUT call.")
     public int getOpenHandlesForOutput() throws MQException, IOException {
         return getQueueParameterThroughPCF(MQIA_OPEN_OUTPUT_COUNT, 0);
     }
@@ -241,7 +244,7 @@ final class MQConnector extends ManagedResourceConnectorBean implements CMQC, CM
      * @throws MQException Invalid MQ parameters.
      * @throws IOException Network connection problems.
      */
-    @ManagementAttribute
+    @ManagementAttribute(description = "Gets the number of messages currently on the queue.")
     public int getQueueDepth() throws MQException, IOException {
         return getQueueParameterThroughPCF(MQIACF_Q_STATUS, 0);
     }
@@ -252,7 +255,7 @@ final class MQConnector extends ManagedResourceConnectorBean implements CMQC, CM
      * @throws MQException Invalid MQ parameters.
      * @throws IOException Network connection problems.
      */
-    @ManagementAttribute
+    @ManagementAttribute(description = "Gets age, in seconds, of the oldest message on the queue.")
     public int getOldestMessageAge() throws MQException, IOException {
         return getQueueParameterThroughPCF(MQIACF_OLDEST_MSG_AGE, 0);
     }
@@ -263,7 +266,7 @@ final class MQConnector extends ManagedResourceConnectorBean implements CMQC, CM
      * @throws MQException Invalid MQ parameters.
      * @throws IOException Network connection problems.
      */
-    @ManagementAttribute
+    @ManagementAttribute(description = "Gets amount of time, in microseconds, that a message spent on the queue")
     public int getMessageOnQueueTime() throws MQException, IOException{
         return getQueueParameterThroughPCF(MQIACF_Q_TIME_INDICATOR, 0);
     }
@@ -274,7 +277,7 @@ final class MQConnector extends ManagedResourceConnectorBean implements CMQC, CM
      * @throws MQException Invalid MQ parameters.
      * @throws IOException Network connection problems.
      */
-    @ManagementAttribute
+    @ManagementAttribute(description = "Gets the number of uncommitted changes (puts and gets) pending for the queue.")
     public int getUncommittedMessagesCount() throws MQException, IOException{
         return getQueueParameterThroughPCF(MQIACF_UNCOMMITTED_MSGS, 0);
     }
@@ -285,7 +288,7 @@ final class MQConnector extends ManagedResourceConnectorBean implements CMQC, CM
      * @throws MQException Invalid MQ parameters.
      * @throws IOException Network connection problems.
      */
-    @ManagementAttribute
+    @ManagementAttribute(description = "Gets the number of bytes sent through the channel.")
     public long getTotalBytesSent() throws MQException, IOException {
         return getChannelParameterThroughPCF(MQIACH_BYTES_SENT, 0L);
     }
@@ -296,7 +299,7 @@ final class MQConnector extends ManagedResourceConnectorBean implements CMQC, CM
      * @throws MQException Invalid MQ parameters.
      * @throws IOException Network connection problems.
      */
-    @ManagementAttribute
+    @ManagementAttribute(description = "Gets the number of bytes sent through the channel for the last hour.")
     public long getBytesSentLastHour() throws MQException, IOException {
         return bytesSentLastHour.update(getTotalBytesSent());
     }
@@ -307,7 +310,7 @@ final class MQConnector extends ManagedResourceConnectorBean implements CMQC, CM
      * @throws MQException Invalid MQ parameters.
      * @throws IOException Network connection problems.
      */
-    @ManagementAttribute
+    @ManagementAttribute(description = "Gets the number of bytes sent through the channel for the last day.")
     public long getBytesSentLast24Hours() throws MQException, IOException {
         return bytesSentLast24Hours.update(getTotalBytesSent());
     }
@@ -318,7 +321,7 @@ final class MQConnector extends ManagedResourceConnectorBean implements CMQC, CM
      * @throws MQException Invalid MQ parameters.
      * @throws IOException Network connection problems.
      */
-    @ManagementAttribute
+    @ManagementAttribute(description = "Gets the number of bytes received through the channel.")
     public long getTotalBytesReceived() throws MQException, IOException {
         return getChannelParameterThroughPCF(MQIACH_BYTES_RECEIVED, 0L);
     }
@@ -329,7 +332,7 @@ final class MQConnector extends ManagedResourceConnectorBean implements CMQC, CM
      * @throws MQException Invalid MQ parameters.
      * @throws IOException Network connection problems.
      */
-    @ManagementAttribute
+    @ManagementAttribute(description = "Gets the number of bytes received through the channel for the last hour.")
     public long getBytesReceivedLastHour() throws MQException, IOException{
         return bytesReceivedLastHour.update(getTotalBytesReceived());
     }
@@ -340,7 +343,7 @@ final class MQConnector extends ManagedResourceConnectorBean implements CMQC, CM
      * @throws MQException Invalid MQ parameters.
      * @throws IOException Network connection problems.
      */
-    @ManagementAttribute
+    @ManagementAttribute(description = "Gets the number of bytes received through the channel for the last day.")
     public long getBytesReceivedLast24Hours() throws MQException, IOException{
         return bytesReceivedLast24Hours.update(getTotalBytesReceived());
     }
@@ -351,7 +354,7 @@ final class MQConnector extends ManagedResourceConnectorBean implements CMQC, CM
      * @throws MQException Invalid MQ parameters.
      * @throws IOException Network connection problems.
      */
-    @ManagementAttribute
+    @ManagementAttribute(description = "Gets the number of messages sent or received, or number of MQI calls handled.")
     public int getProcessedMessagesCount() throws MQException, IOException {
         return getChannelParameterThroughPCF(MQIACH_MSGS, 0);
     }
@@ -362,7 +365,7 @@ final class MQConnector extends ManagedResourceConnectorBean implements CMQC, CM
      * @throws MQException Invalid MQ parameters.
      * @throws IOException Network connection problems.
      */
-    @ManagementAttribute
+    @ManagementAttribute(description = "Gets the number of messages sent or received, or number of MQI calls handled for the last hour.")
     public int getProcessedMessagesCountLastHour() throws MQException, IOException {
         return messagesProcessedLastHour.update(getProcessedMessagesCount());
     }
@@ -373,9 +376,19 @@ final class MQConnector extends ManagedResourceConnectorBean implements CMQC, CM
      * @throws MQException Invalid MQ parameters.
      * @throws IOException Network connection problems.
      */
-    @ManagementAttribute
+    @ManagementAttribute(description = "Gets the number of messages sent or received, or number of MQI calls handled for the last day.")
     public int getProcessedMessagesCountLast24Hours() throws MQException, IOException {
         return messagesProcessedLast24Hours.update(getProcessedMessagesCount());
+    }
+
+    /**
+     * Determines whether raising of registered events is suspended.
+     *
+     * @return {@literal true}, if events are suspended; otherwise {@literal false}.
+     */
+    @Override
+    public boolean isSuspended() {
+        return super.isSuspended() && !DistributedServices.isActiveNode(Utils.getBundleContextOfObject(this));
     }
 
     static Logger getLoggerImpl(){

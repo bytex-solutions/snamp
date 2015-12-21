@@ -16,29 +16,95 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
  */
 public final class ConfigurationDiffEngineTest extends Assert {
     @Test
-    public void diffTest(){
+    public void renameResourceTest(){
         final AgentConfiguration baseline = new SerializableAgentConfiguration();
-        final ManagedResourceConfiguration resource = baseline.newConfigurationEntity(ManagedResourceConfiguration.class);
-        final ManagedResourceConfiguration.AttributeConfiguration attr = resource.newElement(ManagedResourceConfiguration.AttributeConfiguration.class);
-        attr.setAttributeName("attribute");
-        attr.setReadWriteTimeout(TimeSpan.fromSeconds(1));
-        resource.getElements(ManagedResourceConfiguration.AttributeConfiguration.class).put("attr", attr);
+        final ManagedResourceConfiguration resource = baseline.getManagedResources().getOrAdd("resource1");
+        final ManagedResourceConfiguration.AttributeConfiguration attr = resource
+                .getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class)
+                .getOrAdd("attr");
+        attr.setReadWriteTimeout(TimeSpan.ofSeconds(1));
         resource.setConnectionString("connection-string");
         resource.setConnectionType("jmx");
         resource.getParameters().put("param", "value");
-        baseline.getManagedResources().put("resource1", resource);
+
+        final AgentConfiguration target = baseline.clone();
+        //remove old resource
+        target.getManagedResources().remove("resource1");
+        //add the same resource but with different name
+        AbstractAgentConfiguration.copy(resource, target.getManagedResources().getOrAdd("resource2"));
+
+        //merge and verify
+        ConfigurationDiffEngine.merge(target, baseline);
+        assertEquals(1, baseline.getManagedResources().size());
+        assertNull(baseline.getManagedResources().get("resource1"));
+        assertNotNull(baseline.getManagedResources().get("resource2"));
+    }
+
+    @Test
+    public void attributeAddRemoveTest(){
+        final AgentConfiguration baseline = new SerializableAgentConfiguration();
+        ManagedResourceConfiguration resource = baseline.getManagedResources().getOrAdd("resource1");
+        ManagedResourceConfiguration.AttributeConfiguration attr = resource
+                .getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class)
+                .getOrAdd("attr");
+        attr.setReadWriteTimeout(TimeSpan.ofSeconds(1));
+        resource.setConnectionString("connection-string");
+        resource.setConnectionType("jmx");
+        resource.getParameters().put("param", "value");
+
+        //add attribute
+        AgentConfiguration target = baseline.clone();
+        resource = target.getManagedResources().get("resource1");
+        attr = resource
+                .getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class)
+                .getOrAdd("attr2");
+        attr.getParameters().put("param2", "value2");
+
+        ConfigurationDiffEngine.merge(target, baseline);
+
+        assertEquals("value2", baseline.getManagedResources()
+                .get("resource1")
+                .getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class)
+                .get("attr2")
+                .getParameters()
+                .get("param2"));
+
+        //remove attribute
+        target = baseline.clone();
+        assertNotNull(target.getManagedResources()
+                .get("resource1")
+                .getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class)
+                .remove("attr2"));
+
+        ConfigurationDiffEngine.merge(target, baseline);
+
+        assertNull(baseline.getManagedResources()
+                .get("resource1")
+                .getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class)
+                .get("attr2"));
+    }
+
+    @Test
+    public void diffTest(){
+        final AgentConfiguration baseline = new SerializableAgentConfiguration();
+        final ManagedResourceConfiguration resource = baseline.getManagedResources().getOrAdd("resource1");
+        final ManagedResourceConfiguration.AttributeConfiguration attr = resource
+                .getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class)
+                .getOrAdd("attr");
+        attr.setReadWriteTimeout(TimeSpan.ofSeconds(1));
+        resource.setConnectionString("connection-string");
+        resource.setConnectionType("jmx");
+        resource.getParameters().put("param", "value");
         final AgentConfiguration target = baseline.clone();
         target.clear();
-        final ManagedResourceConfiguration resource2 = target.newConfigurationEntity(ManagedResourceConfiguration.class);
+        final ManagedResourceConfiguration resource2 = target.getManagedResources().getOrAdd("resource2");
         AbstractAgentConfiguration.copy(resource, resource2);
         resource2.setConnectionString("connection-string-2");
         resource2.setConnectionType("snmp");
-        target.getManagedResources().put("resource2", resource2);
-        final ManagedResourceConfiguration resource3 = target.newConfigurationEntity(ManagedResourceConfiguration.class);
+        final ManagedResourceConfiguration resource3 = target.getManagedResources().getOrAdd("resource3");
         AbstractAgentConfiguration.copy(resource, resource3);
         resource3.setConnectionString("connection-string-3");
-        target.getManagedResources().put("resource1", resource3);
-        assertEquals(2, ConfigurationDiffEngine.merge(target, baseline));
+        ConfigurationDiffEngine.merge(target, baseline);
         Assert.assertEquals(0, baseline.getResourceAdapters().size());
         Assert.assertEquals(2, baseline.getManagedResources().size());
     }

@@ -33,7 +33,8 @@ final class UnaryPercent extends UnaryAttributeAggregation<Double>{
     }
 
     static SerializableAttributeConfiguration getConfiguration() {
-        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration(NAME);
+        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration();
+        result.setAlternativeName(NAME);
         fillParameters(result.getParameters());
         result.getParameters().put(AggregatorConnectorConfiguration.VALUE_PARAM, "1");
         return result;

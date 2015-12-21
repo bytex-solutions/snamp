@@ -1,7 +1,6 @@
 package com.bytex.snamp.adapters.ssh;
 
 import com.bytex.snamp.Consumer;
-import com.bytex.snamp.adapters.modeling.ReadAttributeLogicalOperation;
 import com.bytex.snamp.core.LogicalOperation;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -48,7 +47,7 @@ final class GetAttributeCommand extends AbstractAttributeCommand {
             if(!getAdapterController().processAttribute(resourceName, attributeName, new Consumer<SshAttributeMapping, CommandException>() {
                 @Override
                 public void accept(final SshAttributeMapping attribute) throws CommandException {
-                    try(final LogicalOperation ignored = new ReadAttributeLogicalOperation(attribute.getOriginalName(), attributeName)) {
+                    try(final LogicalOperation ignored = SshHelpers.readAttributeLogicalOperation(attribute.getOriginalName(), attributeName)) {
                         attribute.printValue(output, format);
                     }
                     catch (final IOException | JMException e){

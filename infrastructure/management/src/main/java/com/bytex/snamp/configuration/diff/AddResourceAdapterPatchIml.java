@@ -1,8 +1,10 @@
 package com.bytex.snamp.configuration.diff;
 
+import com.bytex.snamp.configuration.AbstractAgentConfiguration;
+
 import java.util.Map;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.*;
 
 /**
  * @author Roman Sakno
@@ -15,7 +17,8 @@ final class AddResourceAdapterPatchIml extends AbstractResourceAdapterInstancePa
     }
 
     @Override
-    protected void applyTo(final Map<String, ResourceAdapterConfiguration> adapters) {
-        adapters.put(getAdapterInstanceName(), getAdapter());
+    protected void applyTo(final EntityMap<? extends ResourceAdapterConfiguration> adapters) {
+        AbstractAgentConfiguration.copy(getAdapter(),
+                adapters.getOrAdd(getAdapterInstanceName()));
     }
 }

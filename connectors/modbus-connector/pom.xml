@@ -12,7 +12,7 @@
     <version>${snamp.connectors.modbus.version}</version>
     <packaging>bundle</packaging>
     <name>Modbus Connector</name>
-    <description>SNAMP management connector for Modbus (over TCP and UDP) protocol</description>
+    <description>SNAMP resource connector for Modbus (over TCP and UDP) protocol</description>
     <build>
         <plugins>
             <plugin>
@@ -51,35 +51,27 @@
             <version>${snamp.framework.version}</version>
         </dependency>
         <dependency>
-            <scope>provided</scope>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.core</artifactId>
-            <version>${osgi.version}</version>
         </dependency>
         <dependency>
-            <scope>provided</scope>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.compendium</artifactId>
-            <version>${osgi.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>${guava.version}</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.ghgande</groupId>
             <artifactId>j2mod</artifactId>
             <scope>system</scope>
-            <version>1.0.3</version>
-            <systemPath>${basedir}/lib/j2mod-1.03.jar</systemPath>
+            <version>1.0.6</version>
+            <systemPath>${basedir}/lib/j2mod-1.06.jar</systemPath>
         </dependency>
     </dependencies>
 </project>

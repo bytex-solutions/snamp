@@ -1,29 +1,29 @@
 package com.bytex.snamp.adapters;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
-import com.google.common.util.concurrent.Futures;
-import com.bytex.snamp.ExceptionPlaceholder;
-import com.bytex.snamp.ServiceReferenceHolder;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.SpinWait;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.core.FrameworkService;
+import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.core.SupportService;
-import com.bytex.snamp.internal.RecordReader;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.management.Maintainable;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.util.concurrent.Futures;
 import org.osgi.framework.*;
 
 import javax.management.InstanceNotFoundException;
 import javax.management.MBeanFeatureInfo;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfiguration;
 import static com.bytex.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
+import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfiguration;
 
 /**
  * Represents a client of resource connector that can be used by adapter consumers.
@@ -32,8 +32,8 @@ import static com.bytex.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
  * @version 1.0
  * @since 1.0
  */
-public final class ResourceAdapterClient extends ServiceReferenceHolder<ResourceAdapter> {
-    private static final class ResourceAdapterServiceWait extends SpinWait<ServiceReference<ResourceAdapter>, ExceptionPlaceholder>{
+public final class ResourceAdapterClient extends ServiceHolder<ResourceAdapter> {
+    private static final class ResourceAdapterServiceWait extends SpinWait<ServiceReference<ResourceAdapter>>{
         private final BundleContext context;
         private final String instanceName;
 
@@ -44,7 +44,7 @@ public final class ResourceAdapterClient extends ServiceReferenceHolder<Resource
         }
 
         @Override
-        protected ServiceReference<ResourceAdapter> get() {
+        protected ServiceReference<ResourceAdapter> spin() {
             return getResourceAdapter(context, instanceName);
         }
     }
@@ -62,8 +62,8 @@ public final class ResourceAdapterClient extends ServiceReferenceHolder<Resource
 
     public ResourceAdapterClient(final BundleContext context,
                                  final String instanceName,
-                                 final TimeSpan instanceTimeout) throws TimeoutException, InterruptedException{
-        super(context, new ResourceAdapterServiceWait(context, instanceName).await(instanceTimeout));
+                                 final TimeSpan instanceTimeout) throws TimeoutException, InterruptedException, ExecutionException{
+        super(context, new ResourceAdapterServiceWait(context, instanceName).get(instanceTimeout.duration, instanceTimeout.unit));
     }
 
     private static ServiceReference<ResourceAdapter> getResourceAdapterAndCheck(final BundleContext context,
@@ -81,6 +81,7 @@ public final class ResourceAdapterClient extends ServiceReferenceHolder<Resource
      * @param instanceName The name of the instance.
      * @return A reference to the instance of resource adapter; or {@literal null} if instance doesn't exist.
      */
+    @SuppressWarnings("unchecked")
     public static ServiceReference<ResourceAdapter> getResourceAdapter(final BundleContext context,
                                                                                   final String instanceName) {
         try {
@@ -298,7 +299,7 @@ public final class ResourceAdapterClient extends ServiceReferenceHolder<Resource
     }
 
     public <M extends MBeanFeatureInfo, E extends Exception> boolean forEachFeature(final Class<M> featureType,
-                                                            final RecordReader<String, ? super FeatureBindingInfo<M>, E> reader) throws E {
+                                                            final EntryReader<String, ? super FeatureBindingInfo<M>, E> reader) throws E {
         final Multimap<String, ? extends FeatureBindingInfo<M>> features =
                 get().getBindings(featureType);
         for (final String resourceName : features.keySet())

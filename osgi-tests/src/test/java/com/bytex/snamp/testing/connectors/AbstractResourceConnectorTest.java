@@ -1,13 +1,9 @@
 package com.bytex.snamp.testing.connectors;
 
-import com.google.common.base.Supplier;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.reflect.TypeToken;
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.ExceptionPlaceholder;
+import com.bytex.snamp.Consumer;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.TypeTokens;
-import com.bytex.snamp.concurrent.Awaitor;
 import com.bytex.snamp.concurrent.SpinWait;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -17,22 +13,33 @@ import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
-import com.bytex.snamp.connectors.attributes.AttributeSupport;
+import com.bytex.snamp.connectors.notifications.NotificationSupport;
+import com.bytex.snamp.connectors.notifications.SynchronizationListener;
 import com.bytex.snamp.core.LogicalOperation;
+import com.bytex.snamp.core.RichLogicalOperation;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.reflect.TypeToken;
 import org.junit.rules.TestName;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceReference;
 
 import javax.management.Attribute;
+import javax.management.DynamicMBean;
 import javax.management.JMException;
-import javax.management.MBeanAttributeInfo;
+import javax.management.Notification;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Logger;
+
+import static com.bytex.snamp.configuration.AgentConfiguration.*;
 
 /**
  * Represents an abstract class for all integration tests that checks management connectors.
@@ -43,20 +50,22 @@ import java.util.concurrent.TimeoutException;
 public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegrationTest {
     private static final String CONNECTOR_TYPE_PROPERTY = "connectorType";
 
-    private static final class ConnectorTestLogicalOperation extends TestLogicalOperation{
+    private static final class ConnectorTestLogicalOperation extends RichLogicalOperation{
 
 
         private ConnectorTestLogicalOperation(final String operationName,
                                      final String connectorType,
                                      final TestName testName){
-            super(operationName, testName, CONNECTOR_TYPE_PROPERTY, connectorType);
+            super(Logger.getLogger(testName.getMethodName()), operationName, ImmutableMap.of(CONNECTOR_TYPE_PROPERTY, connectorType));
         }
 
-        private static ConnectorTestLogicalOperation startResourceConnector(final String connectorType, final TestName name){
+        private static ConnectorTestLogicalOperation startResourceConnector(final String connectorType,
+                                                                            final TestName name){
             return new ConnectorTestLogicalOperation("startResourceConnector", connectorType, name);
         }
 
-        private static ConnectorTestLogicalOperation stopResourceConnector(final String connectorType, final TestName name){
+        private static ConnectorTestLogicalOperation stopResourceConnector(final String connectorType,
+                                                                           final TestName name){
             return new ConnectorTestLogicalOperation("stopResourceConnector", connectorType, name);
         }
     }
@@ -116,26 +125,26 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
 
     private static void waitForConnector(final TimeSpan timeout,
                                   final String resourceName,
-                                  final BundleContext context) throws TimeoutException, InterruptedException {
-        final Awaitor<ServiceReference<ManagedResourceConnector>, ExceptionPlaceholder> awaitor = new SpinWait<ServiceReference<ManagedResourceConnector>, ExceptionPlaceholder>() {
+                                  final BundleContext context) throws TimeoutException, InterruptedException, ExecutionException {
+        final Future<ServiceReference<ManagedResourceConnector>> awaitor = new SpinWait<ServiceReference<ManagedResourceConnector>>() {
             @Override
-            protected ServiceReference<ManagedResourceConnector> get() {
+            protected ServiceReference<ManagedResourceConnector> spin() {
                 return ManagedResourceConnectorClient.getResourceConnector(context, resourceName);
             }
         };
-        awaitor.await(timeout);
+        awaitor.get(timeout.duration, timeout.unit);
     }
 
     private static void waitForNoConnector(final TimeSpan timeout,
                                            final String resourceName,
-                                           final BundleContext context) throws TimeoutException, InterruptedException {
-        final Awaitor<Object, ExceptionPlaceholder> awaitor = new SpinWait<Object, ExceptionPlaceholder>() {
+                                           final BundleContext context) throws TimeoutException, InterruptedException, ExecutionException {
+        final Future<?> awaitor = new SpinWait<Object>() {
             @Override
-            protected Object get() {
+            protected Object spin() {
                 return ManagedResourceConnectorClient.getResourceConnector(context, resourceName) != null ? null : new Object();
             }
         };
-        awaitor.await(timeout);
+        awaitor.get(timeout.duration, timeout.unit);
     }
 
     protected final ManagedResourceConnector getManagementConnector(final BundleContext context){
@@ -160,43 +169,43 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
 
 
 
-    protected void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory){
+    protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes){
 
     }
 
-    protected void fillEvents(final Map<String, EventConfiguration> events, final Supplier<EventConfiguration> eventFactory){
+    protected void fillEvents(final EntityMap<? extends EventConfiguration> events){
 
     }
 
-    protected void fillOperations(final Map<String, OperationConfiguration> operations, final Supplier<OperationConfiguration> operationFactory){
+    protected void fillOperations(final EntityMap<? extends OperationConfiguration> operations){
 
     }
 
     public static void stopResourceConnector(final TestName testName,
                                               final String connectorType,
                                              final String resourceName,
-                                               final BundleContext context) throws TimeoutException, InterruptedException, BundleException {
+                                               final BundleContext context) throws TimeoutException, InterruptedException, BundleException, ExecutionException {
         try(final LogicalOperation ignored = ConnectorTestLogicalOperation.stopResourceConnector(connectorType, testName)) {
-            ManagedResourceActivator.stopResourceConnector(context, connectorType);
-            waitForNoConnector(TimeSpan.fromSeconds(10), resourceName, context);
+            assertTrue(String.format("Connector %s is not deployed", connectorType), ManagedResourceActivator.stopResourceConnector(context, connectorType));
+            waitForNoConnector(TimeSpan.ofSeconds(10), resourceName, context);
         }
     }
 
-    protected final void stopResourceConnector(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
+    protected final void stopResourceConnector(final BundleContext context) throws BundleException, TimeoutException, InterruptedException, ExecutionException {
         stopResourceConnector(testName, connectorType, TEST_RESOURCE_NAME, context);
     }
 
     public static void startResourceConnector(final TestName testName,
                                               final String connectorType,
                                               final String resourceName,
-                                              final BundleContext context) throws TimeoutException, InterruptedException, BundleException {
+                                              final BundleContext context) throws TimeoutException, InterruptedException, BundleException, ExecutionException {
         try (final LogicalOperation ignored = ConnectorTestLogicalOperation.startResourceConnector(connectorType, testName)) {
-            ManagedResourceActivator.startResourceConnector(context, connectorType);
-            waitForConnector(TimeSpan.fromSeconds(10000), resourceName, context);
+            assertTrue(String.format("Connector %s is not deployed", connectorType), ManagedResourceActivator.startResourceConnector(context, connectorType));
+            waitForConnector(TimeSpan.ofSeconds(10), resourceName, context);
         }
     }
 
-    protected final void startResourceConnector(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
+    protected final void startResourceConnector(final BundleContext context) throws BundleException, TimeoutException, InterruptedException, ExecutionException {
         startResourceConnector(testName,
                 connectorType,
                 TEST_RESOURCE_NAME,
@@ -210,7 +219,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         startResourceConnector(context);
     }
 
-    protected void fillAdapters(final Map<String, AgentConfiguration.ResourceAdapterConfiguration> adapters, final Supplier<AgentConfiguration.ResourceAdapterConfiguration> adapterFactory){
+    protected void fillAdapters(final EntityMap<? extends ResourceAdapterConfiguration> adapters){
 
     }
 
@@ -221,36 +230,15 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
      */
     @Override
     protected final void setupTestConfiguration(final AgentConfiguration config) {
-        final AgentConfiguration.ManagedResourceConfiguration targetConfig =
-                config.newConfigurationEntity(AgentConfiguration.ManagedResourceConfiguration.class);
+        final ManagedResourceConfiguration targetConfig =
+                config.getManagedResources().getOrAdd(TEST_RESOURCE_NAME);
         targetConfig.getParameters().putAll(connectorParameters);
-        fillAdapters(config.getResourceAdapters(), new Supplier<AgentConfiguration.ResourceAdapterConfiguration>() {
-            @Override
-            public AgentConfiguration.ResourceAdapterConfiguration get() {
-                return config.newConfigurationEntity(AgentConfiguration.ResourceAdapterConfiguration.class);
-            }
-        });
+        fillAdapters(config.getResourceAdapters());
         targetConfig.setConnectionString(connectionString);
         targetConfig.setConnectionType(connectorType);
-        fillAttributes(targetConfig.getElements(AttributeConfiguration.class), new Supplier<AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration>() {
-            @Override
-            public AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration get() {
-                return targetConfig.newElement(AttributeConfiguration.class);
-            }
-        });
-        fillEvents(targetConfig.getElements(EventConfiguration.class), new Supplier<AgentConfiguration.ManagedResourceConfiguration.EventConfiguration>() {
-            @Override
-            public AgentConfiguration.ManagedResourceConfiguration.EventConfiguration get() {
-                return targetConfig.newElement(EventConfiguration.class);
-            }
-        });
-        fillOperations(targetConfig.getElements(OperationConfiguration.class), new Supplier<OperationConfiguration>() {
-            @Override
-            public OperationConfiguration get() {
-                return targetConfig.newElement(OperationConfiguration.class);
-            }
-        });
-        config.getManagedResources().put(TEST_RESOURCE_NAME, targetConfig);
+        fillAttributes(targetConfig.getFeatures(AttributeConfiguration.class));
+        fillEvents(targetConfig.getFeatures(EventConfiguration.class));
+        fillOperations(targetConfig.getFeatures(OperationConfiguration.class));
     }
 
     protected final <T> void testAttribute(final String attributeName,
@@ -258,11 +246,8 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
                                            final T attributeValue,
                                            final Equator<T> comparator,
                                            final boolean readOnlyTest) throws JMException {
+        final DynamicMBean connector = getManagementConnector();
         try{
-            final AttributeSupport connector = getManagementConnector().queryObject(AttributeSupport.class);
-            assertNotNull(connector);
-            final MBeanAttributeInfo metadata = connector.getAttributeInfo(attributeName);
-            assertEquals(attributeName, metadata.getName());
             if(!readOnlyTest)
                 connector.setAttribute(new Attribute(attributeName, attributeValue));
             final T newValue = TypeTokens.cast(connector.getAttribute(attributeName), attributeType);
@@ -331,5 +316,24 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
     protected final <E extends AgentConfiguration.EntityConfiguration> void testConfigurationDescriptor(final Class<E> entityType,
                                                                                                         final Set<String> parameters){
         testConfigurationDescriptor(getTestBundleContext(), connectorType, entityType, parameters);
+    }
+
+    protected final <E extends Throwable> Notification waitForNotification(final String listID,
+                                                     final Consumer<ManagedResourceConnector, E> sender,
+                                                                           final TimeSpan timeout) throws E, InterruptedException, ExecutionException, TimeoutException {
+        final SynchronizationListener listener = new SynchronizationListener(listID);
+        final Future<Notification> notifAwaitor;
+        final ManagedResourceConnector connector = getManagementConnector();
+        try {
+            connector
+                    .queryObject(NotificationSupport.class)
+                    .addNotificationListener(listener, null, null);
+            notifAwaitor = listener.getAwaitor();
+            sender.accept(connector);
+        }
+        finally {
+            releaseManagementConnector();
+        }
+        return notifAwaitor.get(timeout.duration, timeout.unit);
     }
 }

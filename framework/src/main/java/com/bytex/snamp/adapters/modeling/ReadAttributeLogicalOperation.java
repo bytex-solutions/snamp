@@ -2,6 +2,8 @@ package com.bytex.snamp.adapters.modeling;
 
 import com.bytex.snamp.adapters.AttributeRelatedLogicalOperation;
 
+import java.util.logging.Logger;
+
 /**
  * @author Roman Sakno
  * @version 1.0
@@ -10,27 +12,18 @@ import com.bytex.snamp.adapters.AttributeRelatedLogicalOperation;
 public class ReadAttributeLogicalOperation extends AttributeRelatedLogicalOperation {
     public static final String OPERATION_NAME = "readAttribute";
 
-    public ReadAttributeLogicalOperation(final String attributeName,
+    public ReadAttributeLogicalOperation(final Logger logger,
+                                         final String attributeName,
                                          final String attributeID){
-        super(OPERATION_NAME, attributeName, attributeID);
+        super(logger, OPERATION_NAME, attributeName, attributeID);
     }
 
-    public ReadAttributeLogicalOperation(final String attributeName,
+    public ReadAttributeLogicalOperation(final Logger logger,
+                                         final String attributeName,
                                          final String attributeID,
                                          final String propertyName,
                                          final Object propertyValue){
-        super(OPERATION_NAME, attributeName, attributeID,
+        super(logger, OPERATION_NAME, attributeName, attributeID,
                 propertyName, propertyValue);
-    }
-
-    public ReadAttributeLogicalOperation(final String attributeName,
-                                         final String attributeID,
-                                         final String propertyName1,
-                                         final Object propertyValue1,
-                                         final String propertyName2,
-                                         final Object propertyValue2){
-        super(OPERATION_NAME, attributeID, attributeName,
-                propertyName1, propertyValue1,
-                propertyName2, propertyValue2);
     }
 }

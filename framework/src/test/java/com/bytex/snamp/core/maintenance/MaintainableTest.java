@@ -1,6 +1,6 @@
 package com.bytex.snamp.core.maintenance;
 
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.management.AbstractMaintainable;
 import com.bytex.snamp.management.Maintainable;
 import com.bytex.snamp.management.MaintenanceActionInfo;
@@ -67,7 +67,7 @@ public final class MaintainableTest extends Assert {
          */
         @Override
         protected Object[] parseArguments(final MaintenanceActions action, final String arguments, final Locale loc) {
-            return new Object[]{Integer.valueOf(arguments)};
+            return new Object[]{Integer.parseInt(arguments)};
         }
 
         @Action

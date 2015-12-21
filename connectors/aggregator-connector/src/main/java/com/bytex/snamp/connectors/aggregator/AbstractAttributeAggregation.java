@@ -3,14 +3,11 @@ package com.bytex.snamp.connectors.aggregator;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.attributes.AttributeSpecifier;
-import com.bytex.snamp.connectors.attributes.OpenAttributeAccessor;
+import com.bytex.snamp.connectors.attributes.OpenMBeanAttributeAccessor;
 import com.bytex.snamp.internal.Utils;
 import org.osgi.framework.BundleContext;
 
-import javax.management.DynamicMBean;
-import javax.management.JMException;
-import javax.management.MBeanException;
-import javax.management.ReflectionException;
+import javax.management.*;
 import javax.management.openmbean.OpenType;
 
 /**
@@ -19,7 +16,7 @@ import javax.management.openmbean.OpenType;
  * @version 1.0
  * @since 1.0
  */
-abstract class AbstractAttributeAggregation<T> extends OpenAttributeAccessor<T> {
+abstract class AbstractAttributeAggregation<T> extends OpenMBeanAttributeAccessor<T> {
     private static final long serialVersionUID = -3564884715121017964L;
     private final String source;
 
@@ -35,6 +32,10 @@ abstract class AbstractAttributeAggregation<T> extends OpenAttributeAccessor<T> 
         source = AggregatorConnectorConfiguration.getSourceManagedResource(descriptor);
     }
 
+    protected static ManagedResourceConnectorClient getResource(final AttributeDescriptor descriptor,
+                                                                      final BundleContext context) throws AbsentAggregatorAttributeParameterException, InstanceNotFoundException {
+        return new ManagedResourceConnectorClient(context, AggregatorConnectorConfiguration.getSourceManagedResource(descriptor));
+    }
 
     /**
      * The name of the managed resource used as a source for attributes used in this aggregation.
@@ -71,6 +72,10 @@ abstract class AbstractAttributeAggregation<T> extends OpenAttributeAccessor<T> 
         }
     }
 
+    protected final BundleContext getBundleContext(){
+        return Utils.getBundleContextOfObject(this);
+    }
+
     /**
      * Gets value of this attribute.
      *
@@ -79,6 +84,6 @@ abstract class AbstractAttributeAggregation<T> extends OpenAttributeAccessor<T> 
      */
     @Override
     protected final T getValue() throws Exception {
-        return compute(Utils.getBundleContextByObject(this));
+        return compute(getBundleContext());
     }
 }

@@ -40,5 +40,7 @@
       <module>ibmwmq-connector</module>
       <module>groovy-connector</module>
       <module>modbus-connector</module>
+      <module>mda-connector</module>
+      <module>mq-connector</module>
   </modules>
 </project>

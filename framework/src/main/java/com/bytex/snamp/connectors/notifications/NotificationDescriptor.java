@@ -1,5 +1,8 @@
 package com.bytex.snamp.connectors.notifications;
 
+import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.configuration.AgentConfiguration;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.bytex.snamp.configuration.ConfigParameters;
@@ -37,26 +40,17 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
         super(fields);
     }
 
-    public NotificationDescriptor(final EventConfiguration eventConfig,
-                                  final NotificationSubscriptionModel subscriptionModel){
-        this(eventConfig.getCategory(),
-                subscriptionModel,
-                new ConfigParameters(eventConfig));
+    public NotificationDescriptor(final EventConfiguration eventConfig){
+        this((CompositeData) new ConfigParameters(eventConfig));
     }
 
-    public NotificationDescriptor(final String category,
-                                  final NotificationSubscriptionModel subscriptionModel,
-                                  final CompositeData options){
-        this(getFields(category, subscriptionModel, options));
+    public NotificationDescriptor(final CompositeData options){
+        this(getFields(options));
     }
 
-    private static Map<String, ?> getFields(final String category,
-                                            final NotificationSubscriptionModel subscriptionModel,
-                                            final CompositeData options){
-        final Map<String, Object> fields = Maps.newHashMapWithExpectedSize(options.values().size() + 3);
-        fields.put(NOTIFICATION_CATEGORY_FIELD, category);
+    private static Map<String, ?> getFields(final CompositeData options){
+        final Map<String, Object> fields = Maps.newHashMapWithExpectedSize(options.values().size() + 1);
         fields.put(SEVERITY_FIELD, getSeverity(options));
-        fields.put(SUBSCRIPTION_MODEL_FIELD, subscriptionModel);
         fillMap(options, fields);
         return fields;
     }
@@ -111,17 +105,17 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
      */
     @Override
     public final void fill(final EventConfiguration entity) {
-        entity.setCategory(getNotificationCategory());
         for (final String fieldName : getFieldNames())
-            switch (fieldName) {
-                default:
-                    entity.getParameters().put(fieldName, Objects.toString(getFieldValue(fieldName)));
-                case NOTIFICATION_CATEGORY_FIELD:
-            }
+            entity.getParameters().put(fieldName, Objects.toString(getFieldValue(fieldName)));
     }
 
     public final String getDescription(){
         return getDescription(this);
+    }
+
+    public final String getDescription(final String defval){
+        final String result = getDescription();
+        return Strings.isNullOrEmpty(result) ? defval : result;
     }
 
     public static String getDescription(final Descriptor metadata){
@@ -130,18 +124,6 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
 
     public static String getDescription(final MBeanNotificationInfo metadata){
         return metadata.getDescription();
-    }
-
-    public static String getNotificationCategory(final Descriptor metadata){
-        return DescriptorUtils.getField(metadata, NOTIFICATION_CATEGORY_FIELD, String.class);
-    }
-
-    public final String getNotificationCategory(){
-        return getNotificationCategory(this);
-    }
-
-    public static String getNotificationCategory(final MBeanNotificationInfo metadata){
-        return getNotificationCategory(metadata.getDescriptor());
     }
 
     public static Severity getSeverity(final Descriptor metadata) {
@@ -163,24 +145,16 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
         return getSeverity(metadata.getDescriptor());
     }
 
-    public static NotificationSubscriptionModel getSubscriptionModel(final Descriptor metadata){
-        return DescriptorUtils.getField(metadata, SUBSCRIPTION_MODEL_FIELD, NotificationSubscriptionModel.class, NotificationSubscriptionModel.MULTICAST);
-    }
-
-    public static NotificationSubscriptionModel getSubscriptionModel(final MBeanNotificationInfo metadata){
-        return getSubscriptionModel(metadata.getDescriptor());
-    }
-
-    public final NotificationSubscriptionModel getSubscriptionModel(){
-        return getSubscriptionModel(this);
-    }
-
     public static OpenType<?> getUserDataType(final Descriptor metadata){
         return DescriptorUtils.getField(metadata, USER_DATA_TYPE, OpenType.class);
     }
 
     public static OpenType<?> getUserDataType(final MBeanNotificationInfo metadata){
         return getUserDataType(metadata.getDescriptor());
+    }
+
+    public final OpenType<?> getUserDataType(){
+        return getUserDataType(this);
     }
 
     /**
@@ -196,12 +170,29 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
         return DescriptorUtils.getField(this, fieldName, fieldType);
     }
 
+    @Override
+    public final String getAlternativeName(){
+        return getField(EventConfiguration.NAME_KEY, String.class);
+    }
+
+    public final String getName(final String defName){
+        return hasField(EventConfiguration.NAME_KEY) ? getAlternativeName() : defName;
+    }
+
+    public static String getName(final MBeanNotificationInfo metadata){
+        return DescriptorUtils.getField(metadata.getDescriptor(),
+                EventConfiguration.NAME_KEY,
+                String.class,
+                ArrayUtils.getFirst(metadata.getNotifTypes()));
+    }
+
     /**
      * Indicating that the notification with this descriptor will be added automatically by connector itself.
      * This can be happened because connector is in Smart mode.
      * @return {@literal true}, if the attribute with this notification will be added automatically by connector itself; otherwise, {@literal false}.
      */
+    @Override
     public final boolean isAutomaticallyAdded(){
-        return hasField(AUTOMATICALLY_ADDED_FIELD);
+        return hasField(AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration.AUTOMATICALLY_ADDED_KEY);
     }
 }

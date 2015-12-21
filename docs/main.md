@@ -1,10 +1,10 @@
 SNAMP Documentation
 ====
-This is a top-level page of SNAMP technical documentation. Here you can found all necessary information about all aspects of installation, configuration and etc.
+This is a top-level page of SNAMP technical documentation. Here you can found all the necessary information about any aspect of installation, configuration etc.
 
 ## Fundamentals
 
-* [Overview](overview.md) - basic terms and concepts. This is a first page for all newbees
+* [Overview](overview.md) - basic terms and concepts. Getting familiar with a platform and modules
 * [Resource Adapters](adapters/introduction.md) - features of resource adapters
 * [Resource Connectors](connectors/introduction.md) - features of resource connectors
 
@@ -13,11 +13,11 @@ This is a top-level page of SNAMP technical documentation. Here you can found al
 * [Installation](installation.md) - how to install SNAMP in standalone and clustered configuration
 * [Performance](performance.md) - how to tune SNAMP to fit performance requirements
 * [Configuration](configuration.md) - how to configure SNAMP
-  * [Resource Adapters](adapters/introduction.md) - details about all SNAMP Resource Adapters
-  * [Resource Connectors](connectors/introduction.md) - details about all SNAMP Resource Connectors
+  * [Resource Adapters](adapters/introduction.md) - details about SNAMP Resource Adapters
+  * [Resource Connectors](connectors/introduction.md) - details about SNAMP Resource Connectors
+  * [Web Console](webconsole/overview.md) - how to configure SNAMP using web interface
 * [Management](mgmt.md) - how to manage SNAMP
-* [Updating](updating.md) - how to install new SNAMP components
-* [Troubleshooting](troubleshooting.md) - how to fix the most common troubles
+* [Updating](updating.md) - how to install new SNAMP components and update old ones
 * [Release Notes](ReleaseNotes.md) - what's new in the current version of SNAMP
 
 ## Developer's Guide
@@ -32,5 +32,4 @@ This is a top-level page of SNAMP technical documentation. Here you can found al
 * [Install SNAMP license](install-license.md) - how to install SNAMP license if you have purchased subscription
 
 ## Examples
-* [JMX over SNMP](examples/jmx-over-snmp.md)
-* [SNMP over HTTP](examples/snmp-over-http.md)
+* [Step-by-step guide](examples/complete-example.md) for SNAMP installation and configuration. Real-life example shows how to setup JMX-to-HTTP, JMX-to-SNMP, cmdline-to-HTTP, cmdline-to-SNMP bridges within a single SNAMP instance.

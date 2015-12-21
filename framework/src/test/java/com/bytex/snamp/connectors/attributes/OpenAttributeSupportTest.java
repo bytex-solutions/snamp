@@ -15,7 +15,7 @@ import javax.management.openmbean.SimpleType;
  * @since 1.0
  */
 public final class OpenAttributeSupportTest extends Assert {
-    private static final class StringAttribute extends OpenAttributeAccessor<String>{
+    private static final class StringAttribute extends OpenMBeanAttributeAccessor<String> {
         private static final String NAME = "str";
         private static final long serialVersionUID = -8503919173459779384L;
         private String value = "";
@@ -40,22 +40,22 @@ public final class OpenAttributeSupportTest extends Assert {
         }
     }
 
-    private static final class Attributes extends OpenAttributeSupport{
+    private static final class Attributes extends OpenAttributeRepository {
         @SuppressWarnings("unchecked")
         private Attributes() {
-            super("TEST RESOURCE", OpenAttributeAccessor.class);
+            super("TEST RESOURCE", OpenMBeanAttributeAccessor.class);
         }
 
         @Override
-        protected OpenAttributeAccessor<?> connectAttribute(final String attributeID, final AttributeDescriptor descriptor) throws Exception {
-            switch (descriptor.getAttributeName()){
-                case StringAttribute.NAME: return new StringAttribute(attributeID, descriptor);
+        protected OpenMBeanAttributeAccessor<?> connectAttribute(final String attributeName, final AttributeDescriptor descriptor) throws Exception {
+            switch (descriptor.getName(attributeName)){
+                case StringAttribute.NAME: return new StringAttribute(attributeName, descriptor);
                 default: throw new Exception("Unable to connect attribute");
             }
         }
 
         @Override
-        protected void failedToConnectAttribute(final String attributeID, final String attributeName, final Exception e) {
+        protected void failedToConnectAttribute(final String attributeName, final Exception e) {
             fail(e.getMessage());
         }
 
@@ -73,8 +73,10 @@ public final class OpenAttributeSupportTest extends Assert {
     @Test
     public void stringAttributeTest() throws Exception {
         final Attributes support = new Attributes();
-        support.addAttribute("a", "str", TimeSpan.INFINITE, new ConfigParameters(new SerializableAttributeConfiguration()));
-        support.addAttribute("b", "str", TimeSpan.INFINITE, new ConfigParameters(new SerializableAttributeConfiguration()));
+        final SerializableAttributeConfiguration attributeConfig = new SerializableAttributeConfiguration();
+        attributeConfig.setAlternativeName("str");
+        support.addAttribute("a", TimeSpan.INFINITE, new ConfigParameters(attributeConfig));
+        support.addAttribute("b", TimeSpan.INFINITE, new ConfigParameters(attributeConfig));
         support.setAttribute(new Attribute("a", "1"));
         support.setAttribute(new Attribute("b", "2"));
         assertEquals("1", support.getAttribute("a"));

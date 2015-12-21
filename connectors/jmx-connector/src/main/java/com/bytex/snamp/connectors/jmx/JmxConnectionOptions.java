@@ -14,6 +14,7 @@ import java.net.MalformedURLException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import static com.bytex.snamp.connectors.jmx.JmxConnectorConfigurationDescriptor.*;
 
@@ -75,10 +76,11 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
 
     /**
      * Creates a new instance of the connection manager.
+     * @param logger A logger used by watch dog to report about problems.
      * @return A new instance of the connection manager.
      */
-    final JmxConnectionManager createConnectionManager(){
-        return new JmxConnectionManager(this, watchDogPeriod);
+    JmxConnectionManager createConnectionManager(final Logger logger){
+        return new JmxConnectionManager(this, watchDogPeriod, logger);
     }
 
     /**
@@ -87,7 +89,7 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
      * @throws IOException If the connector client or the
      * connection cannot be made because of a communication problem.
      */
-    public final JMXConnector createConnection() throws IOException {
+    public JMXConnector createConnection() throws IOException {
         //this string should be used in OSGI environment. Otherwise, JMX connector
         //will not resolve the JMX registry via JNDI
         return Utils.withContextClassLoader(getClass().getClassLoader(), new ExceptionalCallable<JMXConnector, IOException>() {

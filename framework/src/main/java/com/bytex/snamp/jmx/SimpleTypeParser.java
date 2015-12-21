@@ -20,7 +20,6 @@ import java.util.Objects;
  * @see javax.management.openmbean.SimpleType
  */
 public final class SimpleTypeParser {
-
     private DateFormat dateFormat;
     private DecimalFormat numberFormat;
 
@@ -37,7 +36,7 @@ public final class SimpleTypeParser {
         numberFormat = Objects.requireNonNull(format);
     }
 
-    public final Comparable<?> parse(final WellKnownType type, final String value) throws SimpleTypeParseException{
+    public Comparable<?> parse(final WellKnownType type, final String value) throws SimpleTypeParseException{
         try {
             switch (type) {
                 case BIG_DECIMAL:

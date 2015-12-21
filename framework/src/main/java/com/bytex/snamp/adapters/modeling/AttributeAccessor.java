@@ -1,10 +1,7 @@
 package com.bytex.snamp.adapters.modeling;
 
-import com.google.common.reflect.TypeToken;
 import com.bytex.snamp.Consumer;
-import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.TypeTokens;
-import com.bytex.snamp.concurrent.SimpleCache;
 import com.bytex.snamp.connectors.FeatureModifiedEvent;
 import com.bytex.snamp.connectors.attributes.AttributeAddedEvent;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
@@ -12,6 +9,7 @@ import com.bytex.snamp.connectors.attributes.AttributeRemovingEvent;
 import com.bytex.snamp.connectors.attributes.AttributeSupport;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.WellKnownType;
+import com.google.common.reflect.TypeToken;
 
 import javax.management.*;
 import javax.management.openmbean.OpenType;
@@ -29,30 +27,6 @@ import java.text.ParseException;
  * @version 1.0
  */
 public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> implements AttributeValueReader, Consumer<Object, JMException> {
-    private static final class WellKnownTypeCache extends SimpleCache<FeatureAccessor<? extends MBeanAttributeInfo>, WellKnownType, ExceptionPlaceholder> {
-
-        @Override
-        protected WellKnownType init(final FeatureAccessor<? extends MBeanAttributeInfo> accessor) {
-            return AttributeDescriptor.getType(accessor.getMetadata());
-        }
-
-        private void clear(){
-            invalidate();
-        }
-    }
-
-    private static final class OpenTypeCache extends SimpleCache<FeatureAccessor<? extends MBeanAttributeInfo>, OpenType<?>, ExceptionPlaceholder> {
-
-        @Override
-        protected OpenType<?> init(final FeatureAccessor<? extends MBeanAttributeInfo> input) {
-            return AttributeDescriptor.getOpenType(input.getMetadata());
-        }
-
-        private void clear(){
-            invalidate();
-        }
-    }
-
     /**
      * Represents an exception that can be produced by attribute interceptor.
      * @author Roman Sakno
@@ -72,8 +46,8 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
     }
 
     private AttributeSupport attributeSupport;
-    private final WellKnownTypeCache wellKnownType;
-    private final OpenTypeCache openType;
+    private volatile WellKnownType wellKnownType;
+    private volatile OpenType<?> openType;
 
     /**
      * Initializes a new attribute accessor.
@@ -82,8 +56,6 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
     public AttributeAccessor(final MBeanAttributeInfo metadata) {
         super(metadata);
         attributeSupport = null;
-        wellKnownType = new WellKnownTypeCache();
-        openType = new OpenTypeCache();
     }
 
     /**
@@ -127,8 +99,8 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
     @Override
     public final void close() {
         attributeSupport = null;
-        wellKnownType.clear();
-        openType.clear();
+        wellKnownType = null;
+        openType = null;
     }
 
     /**
@@ -139,12 +111,24 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
         return getMetadata().getName();
     }
 
+    private synchronized WellKnownType getTypeImpl(){
+        if(wellKnownType == null)
+            wellKnownType = AttributeDescriptor.getType(getMetadata());
+        return wellKnownType;
+    }
+
     /**
      * Gets type of this attribute.
      * @return The type of this attribute.
      */
     public final WellKnownType getType(){
-        return wellKnownType.get(this);
+        return wellKnownType == null ? getTypeImpl() : wellKnownType;
+    }
+
+    private synchronized OpenType<?> getOpenTypeImpl(){
+        if(openType == null)
+            openType = AttributeDescriptor.getOpenType(getMetadata());
+        return openType;
     }
 
     /**
@@ -152,7 +136,7 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
      * @return The type of this attribute.
      */
     public final OpenType<?> getOpenType(){
-        return openType.get(this);
+        return openType == null ? getOpenTypeImpl() : openType;
     }
 
     /**
@@ -330,14 +314,8 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
             return (BigDecimal)value;
         else if(value instanceof BigInteger)
             return new BigDecimal((BigInteger)value);
-        else if(value instanceof Long)
-            return BigDecimal.valueOf((long)value);
-        else if(value instanceof Double)
-            return BigDecimal.valueOf((double)value);
-        else if(value instanceof Integer)
-            return BigDecimal.valueOf((int)value);
         else if(value instanceof Number)
-            return BigDecimal.valueOf(((Number)value).longValue());
+            return new BigDecimal(((Number)value).longValue());
         else return null;
     }
 

@@ -1,7 +1,7 @@
 package com.bytex.snamp.configuration.diff;
 
 import com.bytex.snamp.configuration.AgentConfiguration;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.AgentConfiguration.*;
 
 import java.util.Map;
 
@@ -30,7 +30,7 @@ abstract class AbstractManagedResourcePatch implements ManagedResourcePatch {
         return resourceConfig;
     }
 
-    protected abstract void applyTo(final Map<String, ManagedResourceConfiguration> baseline);
+    protected abstract void applyTo(final EntityMap<? extends ManagedResourceConfiguration> baseline);
 
     /**
      * Applies this patch to the baseline configuration.

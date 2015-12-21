@@ -1,6 +1,9 @@
 package com.bytex.snamp.concurrent;
 
 import com.bytex.snamp.TimeSpan;
+import com.google.common.base.Predicate;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 
 /**
  * Represents spin wait based on the periodic condition check.
@@ -8,7 +11,7 @@ import com.bytex.snamp.TimeSpan;
  * @version 1.0
  * @since 1.0
  */
-public abstract class ConditionWait<E extends Throwable> extends SpinWait<Object, E> {
+public abstract class ConditionWait extends SpinWait<Object> {
 
     protected ConditionWait(final TimeSpan spinDelay) {
         super(spinDelay);
@@ -22,21 +25,25 @@ public abstract class ConditionWait<E extends Throwable> extends SpinWait<Object
      * Do conditional check.
      *
      * @return {@literal true} to change the state of this spin wait to signalled; otherwise, {@literal false}.
-     * @throws E Internal condition check error.
+     * @throws Throwable Internal condition check error.
      */
-    protected abstract boolean checkCondition() throws E;
+    protected abstract boolean checkCondition() throws Throwable;
 
-    /**
-     * Gets an object used as indicator to break the spinning.
-     * <p>
-     * Spinning will continue until this method return not {@literal null}.
-     * </p>
-     *
-     * @return An object used as indicator to break the spinning.
-     * @throws E Internal checker error.
-     */
     @Override
-    protected final Object get() throws E {
+    protected final Object spin() throws Throwable {
         return checkCondition() ? this : null;
+    }
+
+    public static <T> ConditionWait create(final Predicate<? super T> predicate, final Supplier<? extends T> stateProvider){
+        return new ConditionWait() {
+            @Override
+            protected boolean checkCondition() {
+                return predicate.apply(stateProvider.get());
+            }
+        };
+    }
+
+    public static <T> ConditionWait create(final Predicate<? super T> predicate, final T state){
+        return create(predicate, Suppliers.ofInstance(state));
     }
 }

@@ -1,20 +1,21 @@
 package com.bytex.snamp.adapters.ssh;
 
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.base.Supplier;
-import com.google.common.collect.*;
 import com.bytex.snamp.Consumer;
 import com.bytex.snamp.ExceptionPlaceholder;
-import com.bytex.snamp.adapters.*;
+import com.bytex.snamp.adapters.AbstractResourceAdapter;
+import com.bytex.snamp.adapters.NotificationEvent;
+import com.bytex.snamp.adapters.NotificationEventBox;
 import com.bytex.snamp.adapters.modeling.*;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
-import com.bytex.snamp.internal.RecordReader;
-import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.jmx.ExpressionBasedDescriptorFilter;
 import com.bytex.snamp.jmx.TabularDataUtils;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.jmx.json.JsonSerializerFunction;
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.base.Supplier;
+import com.google.common.collect.*;
 import org.apache.sshd.SshServer;
 import org.apache.sshd.common.KeyPairProvider;
 import org.apache.sshd.server.Command;
@@ -57,7 +58,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         }
 
         @Override
-        public <E extends Exception> void forEachNotification(final RecordReader<String, ? super SshNotificationAccessor, E> notificationReader) throws E {
+        public <E extends Exception> void forEachNotification(final EntryReader<String, ? super SshNotificationAccessor, E> notificationReader) throws E {
             try (final LockScope ignored = beginRead()) {
                 for (final ResourceNotificationList<SshNotificationAccessor> list : notifications.values())
                     for (final SshNotificationAccessor accessor : list.values())
@@ -282,7 +283,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
                                   final String separator) {
             return Joiner.on(separator).join(Collections2.transform(values, new Function<Object, String>() {
                 @Override
-                public final String apply(final Object input) {
+                public String apply(final Object input) {
                     return String.format(format, input);
                 }
             }));
@@ -517,7 +518,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
     private static Multimap<String, ? extends FeatureBindingInfo<MBeanAttributeInfo>> getAttributes(final AttributeSet<SshAttributeAccessor> attributes){
         final Multimap<String, ReadOnlyFeatureBindingInfo<MBeanAttributeInfo>> result = HashMultimap.create();
-        attributes.forEachAttribute(new RecordReader<String, SshAttributeAccessor, ExceptionPlaceholder>() {
+        attributes.forEachAttribute(new EntryReader<String, SshAttributeAccessor, ExceptionPlaceholder>() {
             @Override
             public boolean read(final String resourceName, final SshAttributeAccessor accessor) {
                 final ImmutableMap.Builder<String, String> parameters = ImmutableMap.builder();
@@ -533,7 +534,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
     private static Multimap<String, ? extends FeatureBindingInfo<MBeanNotificationInfo>> getNotifications(final NotificationSet<SshNotificationAccessor> notifs){
         final Multimap<String, ReadOnlyFeatureBindingInfo<MBeanNotificationInfo>> result = HashMultimap.create();
-        notifs.forEachNotification(new RecordReader<String, SshNotificationAccessor, ExceptionPlaceholder>() {
+        notifs.forEachNotification(new EntryReader<String, SshNotificationAccessor, ExceptionPlaceholder>() {
             @Override
             public boolean read(final String resourceName, final SshNotificationAccessor accessor) {
                 return result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor, "listen-command", accessor.getListenCommand()));

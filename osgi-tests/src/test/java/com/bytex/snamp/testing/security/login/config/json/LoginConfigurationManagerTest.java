@@ -1,7 +1,7 @@
 package com.bytex.snamp.testing.security.login.config.json;
 
 import com.bytex.snamp.configuration.AgentConfiguration;
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.security.LoginConfigurationManager;
 import com.bytex.snamp.security.auth.login.json.JsonConfiguration;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
@@ -24,7 +24,7 @@ public final class LoginConfigurationManagerTest extends AbstractSnampIntegratio
     @Test
     public void jaasTest() throws InterruptedException, TimeoutException, InvalidSyntaxException {
         assertNotNull(manager);
-        JsonConfiguration conf = new JsonConfiguration();
+        final JsonConfiguration conf = new JsonConfiguration();
         manager.dumpConfiguration(conf);
         assertEquals(2, conf.size());
     }

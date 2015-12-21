@@ -1,8 +1,5 @@
 package com.bytex.snamp.connectors;
 
-import static com.bytex.snamp.connectors.ManagedResourceConnector.CONNECTOR_NAME_MANIFEST_HEADER;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.configuration.*;
@@ -10,12 +7,13 @@ import com.bytex.snamp.connectors.discovery.AbstractDiscoveryService;
 import com.bytex.snamp.connectors.discovery.DiscoveryService;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.FrameworkService;
-import com.bytex.snamp.core.LogicalOperation;
-import com.bytex.snamp.core.OSGiLoggingContext;
 import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.internal.annotations.MethodStub;
+import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.management.Maintainable;
+import com.google.common.collect.Maps;
+import com.google.common.collect.ObjectArrays;
+import com.google.common.collect.Sets;
 import org.osgi.framework.*;
 import org.osgi.service.cm.ConfigurationAdmin;
 
@@ -26,6 +24,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
+import static com.bytex.snamp.connectors.ManagedResourceConnector.CONNECTOR_NAME_MANIFEST_HEADER;
+import static com.bytex.snamp.ArrayUtils.emptyArray;
 
 /**
  * Represents a base class for management connector bundle.
@@ -116,7 +116,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          */
         <F extends FeatureConfiguration> void updateConnector(final TConnector connector,
                                                               final Class<F> featureType,
-                                                              final Map<String, F> features) throws Exception;
+                                                              final Map<String, ? extends F> features) throws Exception;
 
         /**
          * Releases all resources associated with the resource connector.
@@ -219,14 +219,12 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          *     If attribute exists in the managed resource connector then
          *     it should re-register an attribute.
          * @param connector The connector to modify.
-         * @param attributeID The attribute identifier.
          * @param attributeName The name of the attribute in the managed resource.
          * @param readWriteTimeout The attribute read/write timeout.
          * @param options The attribute configuration options.
          * @return {@literal true}, if attribute registered successfully; otherwise, {@literal false}.
          */
         protected abstract boolean addAttribute(final TConnector connector,
-                                             final String attributeID,
                                              final String attributeName,
                                              final TimeSpan readWriteTimeout,
                                              final CompositeData options);
@@ -239,17 +237,28 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         protected abstract void removeAttributesExcept(final TConnector connector,
                                                        final Set<String> attributes);
 
+        private static boolean setFeatureNameIfNecessary(final FeatureConfiguration feature,
+                                                         final String name){
+            if(feature.getParameters().containsKey(FeatureConfiguration.NAME_KEY))
+                return false;
+            else {
+                feature.getParameters().put(FeatureConfiguration.NAME_KEY, name);
+                return true;
+            }
+        }
+
         private void updateAttributes(final TConnector connector,
-                                      final Map<String, AttributeConfiguration> attributes){
+                                      final Map<String, ? extends AttributeConfiguration> attributes){
             final Set<String> addedAttributes = Sets.newHashSetWithExpectedSize(attributes.size());
-            for(final Map.Entry<String, AttributeConfiguration> attr: attributes.entrySet()) {
-                final String attributeID = attr.getKey();
+            for(final Map.Entry<String, ? extends AttributeConfiguration> attr: attributes.entrySet()) {
+                final String attributeName = attr.getKey();
                 final AttributeConfiguration config = attr.getValue();
-                if (addAttribute(connector, attributeID,
-                        config.getAttributeName(),
+                setFeatureNameIfNecessary(config, attributeName);
+                if (addAttribute(connector,
+                        attributeName,
                         config.getReadWriteTimeout(),
                         new ConfigParameters(config)))
-                    addedAttributes.add(attributeID);
+                    addedAttributes.add(attributeName);
             }
             removeAttributesExcept(connector, addedAttributes);
         }
@@ -262,13 +271,11 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          *     If notification is enabled in the managed resource connector then
          *     it should re-enable the notification (disable and then enable again).
          * @param connector The managed resource connector.
-         * @param listId The notification subscription identifier.
          * @param category The notification category.
          * @param options The notification configuration options.
          * @return {@literal true}, if the specified notification is enabled; otherwise, {@literal false}.
          */
         protected abstract boolean enableNotifications(final TConnector connector,
-                                                    final String listId,
                                                     final String category,
                                                     final CompositeData options);
 
@@ -281,22 +288,21 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                                            final Set<String> events);
 
         private void updateEvents(final TConnector connector,
-                                  final Map<String, EventConfiguration> events){
+                                  final Map<String, ? extends EventConfiguration> events){
             final Set<String> enabledEvents = Sets.newHashSetWithExpectedSize(events.size());
-            for(final Map.Entry<String, EventConfiguration> event: events.entrySet()){
-                final String listID = event.getKey();
+            for(final Map.Entry<String, ? extends EventConfiguration> event: events.entrySet()){
+                final String category = event.getKey();
                 final EventConfiguration config = event.getValue();
+                setFeatureNameIfNecessary(config, category);
                 if(enableNotifications(connector,
-                        listID,
-                        config.getCategory(),
+                        category,
                         new ConfigParameters(config)))
-                    enabledEvents.add(listID);
+                    enabledEvents.add(category);
             }
             disableNotificationsExcept(connector, enabledEvents);
         }
 
         protected abstract boolean enableOperation(final TConnector connector,
-                                                final String operationID,
                                                 final String operationName,
                                                 final TimeSpan invocationTimeout,
                                                 final CompositeData options);
@@ -310,13 +316,17 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                                         final Set<String> operations);
 
         private void updateOperations(final TConnector connector,
-                                      final Map<String, OperationConfiguration> operations){
+                                      final Map<String, ? extends OperationConfiguration> operations){
             final Set<String> enabledOperations = Sets.newHashSetWithExpectedSize(operations.size());
-            for(final Map.Entry<String, OperationConfiguration> op: operations.entrySet()){
-                final String operationID = op.getKey();
+            for(final Map.Entry<String, ? extends OperationConfiguration> op: operations.entrySet()){
+                final String operationName = op.getKey();
                 final OperationConfiguration config = op.getValue();
-                if(enableOperation(connector, operationID, config.getOperationName(), config.getInvocationTimeout(), new ConfigParameters(config)))
-                    enabledOperations.add(operationID);
+                setFeatureNameIfNecessary(config, operationName);
+                if(enableOperation(connector,
+                        operationName,
+                        config.getInvocationTimeout(),
+                        new ConfigParameters(config)))
+                    enabledOperations.add(operationName);
             }
             disableOperationsExcept(connector, enabledOperations);
         }
@@ -331,13 +341,13 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          */
         @SuppressWarnings("unchecked")
         @Override
-        public final <F extends FeatureConfiguration> void updateConnector(final TConnector connector, final Class<F> featureType, final Map<String, F> features) throws Exception {
+        public final <F extends FeatureConfiguration> void updateConnector(final TConnector connector, final Class<F> featureType, final Map<String, ? extends F> features) throws Exception {
             if(Objects.equals(featureType, AttributeConfiguration.class))
-                updateAttributes(connector, (Map<String, AttributeConfiguration>)features);
+                updateAttributes(connector, (Map<String, ? extends AttributeConfiguration>)features);
             else if(Objects.equals(featureType, EventConfiguration.class))
-                updateEvents(connector, (Map<String, EventConfiguration>)features);
+                updateEvents(connector, (Map<String, ? extends EventConfiguration>)features);
             else if(Objects.equals(featureType, OperationConfiguration.class))
-                updateOperations(connector, (Map<String, OperationConfiguration>)features);
+                updateOperations(connector, (Map<String, ? extends OperationConfiguration>)features);
         }
     }
 
@@ -369,14 +379,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         @Override
         protected boolean isActivationAllowed() {
             return getActivationPropertyValue(PREREQUISITES_CHECK_HOLDER);
-        }
-
-        private OSGiLoggingContext getLoggingContext() {
-            Logger logger = getActivationPropertyValue(LOGGER_HOLDER);
-            if (logger == null)
-                logger = AbstractManagedResourceConnector.getLogger(connectorType);
-            return OSGiLoggingContext.get(logger,
-                    Utils.getBundleContextByObject(controller));
         }
 
         private void updateFeatures(final TConnector connector,
@@ -431,34 +433,33 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
         /**
          * Log error details when {@link #updateService(Object, java.util.Dictionary, com.bytex.snamp.core.AbstractBundleActivator.RequiredService[])} failed.
-         *
+         * @param logger
          * @param servicePID    The persistent identifier associated with the service.
          * @param configuration The configuration of the service.
          * @param e             An exception occurred when updating service.
          */
         @Override
-        protected void failedToUpdateService(final String servicePID, final Dictionary<String, ?> configuration, final Exception e) {
-            try (final OSGiLoggingContext logger = getLoggingContext()) {
-                logger.log(Level.SEVERE, String.format("Unable to update connector. Connection string: %s, connection parameters: %s. Context: %s",
-                                PersistentConfigurationManager.getConnectionString(configuration),
-                                PersistentConfigurationManager.getResourceConnectorParameters(configuration),
-                                LogicalOperation.current()),
-                        e);
-            }
+        protected void failedToUpdateService(final Logger logger,
+                                             final String servicePID,
+                                             final Dictionary<String, ?> configuration,
+                                             final Exception e) {
+            logger.log(Level.SEVERE, String.format("Unable to update connector. Connection string: %s, connection parameters: %s",
+                            PersistentConfigurationManager.getConnectionString(configuration),
+                            PersistentConfigurationManager.getResourceConnectorParameters(configuration)),
+                    e);
         }
 
         /**
          * Logs error details when {@link #dispose(Object, boolean)} failed.
-         *
+         * @param logger
          * @param servicePID The persistent identifier of the service to dispose.
          * @param e          An exception occurred when disposing service.
          */
         @Override
-        protected void failedToCleanupService(final String servicePID, final Exception e) {
-            try (final OSGiLoggingContext logger = getLoggingContext()) {
-                logger.log(Level.SEVERE, String.format("Unable to dispose connector. Context: %s",
-                        LogicalOperation.current()), e);
-            }
+        protected void failedToCleanupService(final Logger logger,
+                                              final String servicePID,
+                                              final Exception e) {
+            logger.log(Level.SEVERE, "Unable to dispose connector", e);
         }
 
         /**
@@ -791,7 +792,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     protected ManagedResourceActivator(final ManagedResourceConnectorLifecycleController<TConnector> controller,
                                        final SupportConnectorServiceManager<?, ?>... optionalServices) {
         this(controller,
-                EMPTY_REQUIRED_SERVICES,
+                emptyArray(RequiredService[].class),
                 optionalServices);
     }
 
@@ -804,7 +805,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     protected ManagedResourceActivator(final ManagedResourceConnectorLifecycleController<TConnector> controller,
                                        final RequiredService<?>[] connectorDependencies,
                                        final SupportConnectorServiceManager<?, ?>[] optionalServices){
-        super(ArrayUtils.addToEnd(optionalServices, new ManagedResourceConnectorRegistry<>(controller, connectorDependencies), ProvidedService.class));
+        super(ObjectArrays.concat(optionalServices, new ServiceSubRegistryManager<?, ?>[]{ new ManagedResourceConnectorRegistry<>(controller, connectorDependencies)}, ProvidedService.class));
         this.prerequisitesOK = false;
     }
 
@@ -853,10 +854,8 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
             checkPrerequisites();
         } catch (final PrerequisiteException e) {
             if (e.abortStarting()) throw e;
-            else try (final OSGiLoggingContext logger = getLoggingContext()) {
-                logger.log(Level.WARNING, String.format("Preconditions for %s connector are not met", getConnectorType()), e);
-            }
-            finally {
+            else {
+                getLogger().log(Level.WARNING, String.format("Preconditions for %s connector are not met", getConnectorType()), e);
                 prerequisitesOK = false;
             }
         }
@@ -875,27 +874,16 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         activationProperties.publish(LOGGER_HOLDER, getLogger());
         activationProperties.publish(CONNECTOR_TYPE_HOLDER, getConnectorType());
         activationProperties.publish(PREREQUISITES_CHECK_HOLDER, prerequisitesOK);
-        try(final OSGiLoggingContext logger = getLoggingContext()){
-            logger.info(String.format("Activating resource connectors of type %s. Context: %s",
-                    getConnectorType(),
-                    LogicalOperation.current()));
-        }
+        getLogger().log(Level.INFO, String.format("Activating resource connectors of type %s", getConnectorType()));
     }
 
     /**
      * Gets logger associated with this activator.
      * @return The logger associated with this activator.
      */
+    @Override
     protected Logger getLogger(){
         return AbstractManagedResourceConnector.getLogger(getConnectorType());
-    }
-
-    private BundleContext getBundleContext(){
-        return Utils.getBundleContextByObject(this);
-    }
-
-    private OSGiLoggingContext getLoggingContext(){
-        return OSGiLoggingContext.get(getLogger(), getBundleContext());
     }
 
     /**
@@ -906,11 +894,8 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      */
     @Override
     protected void activationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
-        try (final OSGiLoggingContext logger = getLoggingContext()) {
-            logger.log(Level.SEVERE, String.format("Unable to instantiate %s connector. Context: %s",
-                    getConnectorType(),
-                    LogicalOperation.current()), e);
-        }
+        getLogger().log(Level.SEVERE, String.format("Unable to instantiate %s connector",
+                getConnectorType()), e);
     }
 
     /**
@@ -922,11 +907,8 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      */
     @Override
     protected void deactivationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
-        try (final OSGiLoggingContext logger = getLoggingContext()) {
-            logger.log(Level.SEVERE, String.format("Unable to release %s connector instance. Context: %s",
-                    getConnectorType(),
-                    LogicalOperation.current()), e);
-        }
+        getLogger().log(Level.SEVERE, String.format("Unable to release %s connector instance",
+                getConnectorType()), e);
     }
 
     /**
@@ -937,11 +919,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     @Override
     @MethodStub
     protected final void deactivate(final ActivationPropertyReader activationProperties) {
-        try(final OSGiLoggingContext logger = getLoggingContext()){
-            logger.info(String.format("Unloading connectors of type %s. Context: %s",
-                    getConnectorType(),
-                    LogicalOperation.current()));
-        }
+        getLogger().log(Level.INFO, String.format("Unloading connectors of type %s", getConnectorType()));
     }
 
     /**
@@ -955,10 +933,10 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
     /**
      * Determines whether the specified factory equals to this factory and produces
-     * the same type of the SNAMP management connector.
+     * the same type of the SNAMP resource connector.
      * @param factory The factory to compare.
      * @return {@literal true}, if the specified factory equals to this factory and produces
-     * the same type of the SNAMP management connector; otherwise, {@literal false}.
+     * the same type of the SNAMP resource connector; otherwise, {@literal false}.
      */
     public final boolean equals(final ManagedResourceActivator<?> factory){
         return factory != null && Objects.equals(getConnectorType(), factory.getConnectorType());
@@ -966,10 +944,10 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
     /**
      * Determines whether the specified factory equals to this factory and produces
-     * the same type of the SNAMP management connector.
+     * the same type of the SNAMP resource connector.
      * @param factory The factory to compare.
      * @return {@literal true}, if the specified factory equals to this factory and produces
-     * the same type of the SNAMP management connector; otherwise, {@literal false}.
+     * the same type of the SNAMP resource connector; otherwise, {@literal false}.
      */
     @Override
     public final boolean equals(final Object factory){
@@ -1022,7 +1000,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     /**
      * Determines whether the specified bundle provides implementation of the SNAMP Management Connector.
      * @param bnd The bundle to check.
-     * @return {@literal true}, if the specified bundle provides implementation of the management connector;
+     * @return {@literal true}, if the specified bundle provides implementation of the resource connector;
      *      otherwise, {@literal false}.
      */
     public static boolean isResourceConnectorBundle(final Bundle bnd) {
@@ -1039,7 +1017,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
     static List<Bundle> getResourceConnectorBundles(final BundleContext context, final String connectorName){
         final Bundle[] bundles = context.getBundles();
-        final List<Bundle> result = new ArrayList<>(bundles.length);
+        final List<Bundle> result = new LinkedList<>();
         for(final Bundle bnd: bundles)
             if(Objects.equals(getConnectorType(bnd), connectorName))
                 result.add(bnd);
@@ -1047,54 +1025,72 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     }
 
     /**
-     * Stops all bundles with management connectors.
+     * Stops all bundles with resource connectors.
      * @param context The context of the caller bundle. Cannot be {@literal null}.
+     * @return Number of stopped bundles.
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
-     * @throws org.osgi.framework.BundleException Unable to stop management connectors.
+     * @throws org.osgi.framework.BundleException Unable to stop resource connectors.
      */
-    @SuppressWarnings("UnusedDeclaration")
-    public static void stopResourceConnectors(final BundleContext context) throws BundleException {
+    public static int stopResourceConnectors(final BundleContext context) throws BundleException {
         if(context == null) throw new IllegalArgumentException("context is null.");
-        for(final Bundle bnd: getResourceConnectorBundles(context))
+        int count = 0;
+        for(final Bundle bnd: getResourceConnectorBundles(context)) {
             bnd.stop();
+            count += 1;
+        }
+        return count;
     }
 
     /**
-     * Stops the specified management connector.
+     * Stops the specified resource connector.
      * @param context The context of the caller bundle. Cannot be {@literal null}.
      * @param connectorName The name of the connector to stop.
-     * @throws BundleException Unable to stop management connector.
+     * @return {@literal true}, if bundle with the specified connector exist; otherwise, {@literal false}.
+     * @throws BundleException Unable to stop resource connector.
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
      */
-    public static void stopResourceConnector(final BundleContext context, final String connectorName) throws BundleException {
-        for(final Bundle bnd: getResourceConnectorBundles(context, connectorName))
+    public static boolean stopResourceConnector(final BundleContext context, final String connectorName) throws BundleException {
+        boolean success = false;
+        for(final Bundle bnd: getResourceConnectorBundles(context, connectorName)) {
             bnd.stop();
+            success = true;
+        }
+        return success;
     }
 
     /**
-     * Starts all bundles with management connectors.
+     * Starts all bundles with resource connectors.
      * @param context The context of the caller bundle. Cannot be {@literal null}.
+     * @return Number of started resource connectors.
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
-     * @throws org.osgi.framework.BundleException Unable to start management connectors.
+     * @throws org.osgi.framework.BundleException Unable to start resource connectors.
      */
-    @SuppressWarnings("UnusedDeclaration")
-    public static void startResourceConnectors(final BundleContext context) throws BundleException{
+    public static int startResourceConnectors(final BundleContext context) throws BundleException{
         if(context == null) throw new IllegalArgumentException("context is null.");
-        for(final Bundle bnd: getResourceConnectorBundles(context))
+        int count = 0;
+        for(final Bundle bnd: getResourceConnectorBundles(context)) {
             bnd.stop();
+            count += 1;
+        }
+        return count;
     }
 
     /**
-     * Starts management connector.
+     * Starts resource connector.
      * @param context The context of the caller bundle. Cannot be {@literal null}.
      * @param connectorName The name of the connector to start.
+     * @return {@literal true}, if bundle with the specified connector exists; otherwise, {@literal false}.
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
-     * @throws BundleException Unable to start management connector.
+     * @throws BundleException Unable to start resource connector.
      */
-    public static void startResourceConnector(final BundleContext context, final String connectorName) throws BundleException{
+    public static boolean startResourceConnector(final BundleContext context, final String connectorName) throws BundleException{
         if(context == null) throw new IllegalArgumentException("context is null.");
-        for(final Bundle bnd: getResourceConnectorBundles(context, connectorName))
+        boolean success = false;
+        for(final Bundle bnd: getResourceConnectorBundles(context, connectorName)) {
             bnd.start();
+            success = true;
+        }
+        return success;
     }
 
     /**
@@ -1122,8 +1118,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
     static boolean isResourceConnector(final ServiceReference<?> ref){
         return Utils.isInstanceOf(ref, ManagedResourceConnector.class) &&
-                ArrayUtils.contains(ref.getPropertyKeys(), CONNECTOR_NAME_MANIFEST_HEADER) &&
-                ArrayUtils.contains(ref.getPropertyKeys(), MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY);
+                ArrayUtils.containsAll(ref.getPropertyKeys(), CONNECTOR_NAME_MANIFEST_HEADER, MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY);
     }
 
     private static BigInteger toBigInteger(final String value){

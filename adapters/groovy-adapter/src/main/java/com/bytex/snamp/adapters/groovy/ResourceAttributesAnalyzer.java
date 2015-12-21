@@ -1,12 +1,14 @@
 package com.bytex.snamp.adapters.groovy;
 
+import com.bytex.snamp.core.DistributedServices;
+import com.bytex.snamp.internal.Utils;
 import com.google.common.base.Predicate;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.modeling.ModelOfAttributes;
 import com.bytex.snamp.adapters.modeling.AttributeAccessor;
 import com.bytex.snamp.adapters.modeling.PeriodicPassiveChecker;
 import com.bytex.snamp.concurrent.WriteOnceRef;
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 import groovy.lang.Closure;
 import org.osgi.framework.InvalidSyntaxException;
 
@@ -174,9 +176,13 @@ public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> ext
     }
 
     @Override
-    public final void processAttribute(final String resourceName, final TAccessor accessor) {
-        for (final AttributeSelectStatement group : selectionStatements)
-            if (group.match((DescriptorRead) accessor))
-                group.process(resourceName, accessor);
+    public final boolean processAttribute(final String resourceName, final TAccessor accessor) {
+        //abort if passive node
+        if (DistributedServices.isActiveNode(Utils.getBundleContextOfObject(this))) {
+            for (final AttributeSelectStatement group : selectionStatements)
+                if (group.match((DescriptorRead) accessor))
+                    group.process(resourceName, accessor);
+            return true;
+        } else return false;
     }
 }

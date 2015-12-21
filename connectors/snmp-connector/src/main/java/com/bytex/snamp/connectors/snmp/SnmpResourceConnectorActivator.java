@@ -3,7 +3,7 @@ package com.bytex.snamp.connectors.snmp;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 import org.snmp4j.log.OSGiLogFactory;
 
 import javax.management.openmbean.CompositeData;
@@ -36,8 +36,8 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
             return result;
         }
         @Override
-        protected boolean addAttribute(final SnmpResourceConnector connector, final String attributeID, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
-            return connector.addAttribute(attributeID, attributeName, readWriteTimeout, options);
+        protected boolean addAttribute(final SnmpResourceConnector connector, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+            return connector.addAttribute(attributeName, readWriteTimeout, options);
         }
 
         @Override
@@ -46,8 +46,8 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
         }
 
         @Override
-        protected boolean enableNotifications(final SnmpResourceConnector connector, final String listId, final String category, final CompositeData options) {
-            return connector.enableNotifications(listId, category, options);
+        protected boolean enableNotifications(final SnmpResourceConnector connector, final String category, final CompositeData options) {
+            return connector.enableNotifications(category, options);
         }
 
         @Override
@@ -56,7 +56,7 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
         }
 
         @Override
-        protected boolean enableOperation(final SnmpResourceConnector connector, final String operationID, final String operationName, final TimeSpan timeout, final CompositeData options) {
+        protected boolean enableOperation(final SnmpResourceConnector connector, final String operationName, final TimeSpan timeout, final CompositeData options) {
             //not supported
             return false;
         }

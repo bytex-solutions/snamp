@@ -1,12 +1,12 @@
 package com.bytex.snamp.io;
 
+import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.TimeSpan;
+import com.bytex.snamp.TypeTokens;
 import com.google.common.base.Splitter;
 import com.google.common.base.StandardSystemProperty;
 import com.google.common.base.Strings;
 import com.google.common.reflect.TypeToken;
-import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.TypeTokens;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -37,13 +37,17 @@ public final class IOUtils {
     public static String toString(final InputStream stream, final Charset encoding) throws IOException {
         if (encoding == null) return toString(stream, Charset.defaultCharset());
         final StringBuilder result = new StringBuilder(1024);
+        final char[] buffer = new char[128];
         try (final InputStreamReader reader = new InputStreamReader(stream, encoding)) {
-            final char[] buffer = new char[128];
             int count;
             while ((count = reader.read(buffer)) > 0)
                 result.append(buffer, 0, count);
         }
         return result.toString();
+    }
+
+    public static String toString(final InputStream stream) throws IOException {
+        return toString(stream, DEFAULT_CHARSET);
     }
 
     public static void writeString(final String value, final OutputStream output, final Charset encoding) throws IOException {
@@ -95,7 +99,7 @@ public final class IOUtils {
 
     public static boolean waitForData(final InputStream is,
                                       long timeout) throws IOException, InterruptedException {
-        while ((is.available() == 0) && timeout >= 0) {
+        while (timeout >= 0 && (is.available() == 0)) {
             final long PAUSE = 1L;
             Thread.sleep(PAUSE);
             timeout -= PAUSE;
@@ -109,9 +113,9 @@ public final class IOUtils {
     }
 
     public static String toString(final Reader reader) throws IOException {
-        final StringBuilder result = new StringBuilder();
+        final StringBuilder result = new StringBuilder(512);
+        final char[] buffer = new char[10];
         while (reader.ready()) {
-            final char[] buffer = new char[10];
             final int count = reader.read(buffer);
             result.append(buffer, 0, count);
         }
@@ -135,5 +139,26 @@ public final class IOUtils {
         for(int position = 0; position < bits.length(); position++)
             result[position] = bits.get(position);
         return result;
+    }
+
+    public static StringBuilder appendln(final StringBuilder builder,
+                                         final String value){
+        return newLine(builder.append(value));
+    }
+
+    public static StringBuilder appendln(final StringBuilder builder,
+                                         final String format,
+                                         final Object... args){
+        return newLine(append(builder, format, args));
+    }
+
+    public static StringBuilder append(final StringBuilder builder,
+                                       final String format,
+                                       final Object... args){
+        return builder.append(String.format(format, args));
+    }
+
+    public static StringBuilder newLine(final StringBuilder output) {
+        return output.append(System.lineSeparator());
     }
 }

@@ -4,6 +4,7 @@ import com.google.common.primitives.*;
 
 import java.nio.*;
 import java.util.Objects;
+import static com.bytex.snamp.ArrayUtils.emptyArray;
 
 /**
  * Represents a set of methods to work with {@link java.nio.Buffer}.
@@ -149,7 +150,7 @@ public final class Buffers {
             buffer.get(result);
             return result;
         }
-        else return new byte[0];
+        else return emptyArray(byte[].class);
     }
 
     public static char[] readRemaining(final CharBuffer buffer){
@@ -158,7 +159,7 @@ public final class Buffers {
             buffer.get(result);
             return result;
         }
-        else return new char[0];
+        else return emptyArray(char[].class);
     }
 
     public static short[] readRemaining(final ShortBuffer buffer){
@@ -167,7 +168,7 @@ public final class Buffers {
             buffer.get(result);
             return result;
         }
-        else return new short[0];
+        else return emptyArray(short[].class);
     }
 
     public static int[] readRemaining(final IntBuffer buffer){
@@ -176,7 +177,7 @@ public final class Buffers {
             buffer.get(result);
             return result;
         }
-        else return new int[0];
+        else return emptyArray(int[].class);
     }
 
     public static long[] readRemaining(final LongBuffer buffer){
@@ -185,7 +186,7 @@ public final class Buffers {
             buffer.get(result);
             return result;
         }
-        else return new long[0];
+        else return emptyArray(long[].class);
     }
 
     public static float[] readRemaining(final FloatBuffer buffer){
@@ -194,7 +195,7 @@ public final class Buffers {
             buffer.get(result);
             return result;
         }
-        else return new float[0];
+        else return emptyArray(float[].class);
     }
 
     public static double[] readRemaining(final DoubleBuffer buffer){
@@ -203,7 +204,7 @@ public final class Buffers {
             buffer.get(result);
             return result;
         }
-        else return new double[0];
+        else return emptyArray(double[].class);
     }
 
     /**

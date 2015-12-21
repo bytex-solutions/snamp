@@ -10,7 +10,7 @@
   <version>${snamp.connectors.jmx.version}</version>
   <packaging>bundle</packaging>
   <name>JMX Connector</name>
-  <description>SNAMP management connector for JMX protocol</description>
+  <description>SNAMP resource connector for JMX protocol</description>
     <build>
         <plugins>
             <plugin>
@@ -37,22 +37,16 @@
             <version>${snamp.framework.version}</version>
         </dependency>
         <dependency>
-            <scope>provided</scope>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.core</artifactId>
-            <version>${osgi.version}</version>
         </dependency>
         <dependency>
-            <scope>provided</scope>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.compendium</artifactId>
-            <version>${osgi.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>${guava.version}</version>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

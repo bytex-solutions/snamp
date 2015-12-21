@@ -1,22 +1,23 @@
 package com.bytex.snamp.connectors.groovy.impl;
 
-import com.google.common.base.Function;
-import com.google.common.base.Splitter;
-import com.google.common.base.StandardSystemProperty;
-import com.google.common.base.Strings;
 import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.MethodStub;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.GroupedThreadFactory;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
-import com.bytex.snamp.connectors.attributes.AbstractAttributeSupport;
+import com.bytex.snamp.connectors.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
-import com.bytex.snamp.connectors.attributes.OpenTypeAttributeInfo;
+import com.bytex.snamp.connectors.attributes.OpenMBeanAttributeInfoImpl;
 import com.bytex.snamp.connectors.groovy.*;
+import com.bytex.snamp.connectors.metrics.MetricsReader;
 import com.bytex.snamp.connectors.notifications.*;
-import com.bytex.snamp.core.OSGiLoggingContext;
+import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.internal.annotations.MethodStub;
+import com.google.common.base.Splitter;
+import com.google.common.base.StandardSystemProperty;
+import com.google.common.base.Strings;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
 import org.osgi.framework.BundleContext;
@@ -42,9 +43,8 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 final class GroovyResourceConnector extends AbstractManagedResourceConnector {
-    static final String NAME = ResourceConnectorInfo.NAME;
-
     private static final class GroovyNotificationInfo extends CustomNotificationInfo implements AutoCloseable{
+        private static final long serialVersionUID = -6413432323063142285L;
         private NotificationEmitter emitter;
 
         private GroovyNotificationInfo(final String notifType,
@@ -71,7 +71,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         }
     }
 
-    private static final class GroovyNotificationSupport extends AbstractNotificationSupport<GroovyNotificationInfo>{
+    private static final class GroovyNotificationRepository extends AbstractNotificationRepository<GroovyNotificationInfo> {
         private final EventConnector connector;
         private final NotificationListenerInvoker listenerInvoker;
 
@@ -99,18 +99,21 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
             }
         }
 
-        private GroovyNotificationSupport(final String resourceName,
-                                          final EventConnector connector){
-            super(resourceName, GroovyNotificationInfo.class);
+        private GroovyNotificationRepository(final String resourceName,
+                                             final EventConnector connector,
+                                             final BundleContext context){
+            super(resourceName,
+                    GroovyNotificationInfo.class,
+                    DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName)));
             this.connector = Objects.requireNonNull(connector);
-            final ExecutorService executor = Executors.newSingleThreadExecutor(new GroupedThreadFactory("notifs-" + resourceName));
+            final ExecutorService executor = Executors.newSingleThreadExecutor(new GroupedThreadFactory("notifications-".concat(resourceName)));
             this.listenerInvoker = createListenerInvoker(executor);
         }
 
-        private static NotificationListenerInvoker createListenerInvoker(final Executor executor){
+        private static NotificationListenerInvoker createListenerInvoker(final Executor executor) {
             return NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker(executor, new NotificationListenerInvokerFactory.ExceptionHandler() {
                 @Override
-                public final void handle(final Throwable e, final NotificationListener source) {
+                public void handle(final Throwable e, final NotificationListener source) {
                     getLoggerImpl().log(Level.SEVERE, "Unable to process JMX notification.", e);
                 }
             });
@@ -129,8 +132,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         @Override
         protected GroovyNotificationInfo enableNotifications(final String notifType,
                                                              final NotificationDescriptor metadata) throws ResourceException, ScriptException {
-            final NotificationEmitter emitter = connector.loadEvent(metadata,
-                    new NotificationEmitterSlim(metadata.getNotificationCategory()));
+            final NotificationEmitter emitter = connector.loadEvent(notifType, metadata, new NotificationEmitterSlim(metadata.getName(notifType)));
             return new GroovyNotificationInfo(notifType, metadata, emitter);
         }
 
@@ -145,26 +147,26 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         /**
          * Reports an error when enabling notifications.
          *
-         * @param listID   Subscription list identifier.
          * @param category An event category.
          * @param e        Internal connector error.
-         * @see #failedToEnableNotifications(Logger, Level, String, String, Exception)
+         * @see #failedToEnableNotifications(Logger, Level, String, Exception)
          */
         @Override
-        protected void failedToEnableNotifications(final String listID, final String category, final Exception e) {
-            failedToEnableNotifications(getLoggerImpl(), Level.SEVERE, listID, category, e);
+        protected void failedToEnableNotifications(final String category, final Exception e) {
+            failedToEnableNotifications(getLoggerImpl(), Level.SEVERE, category, e);
         }
     }
 
-    private static final class GroovyAttributeInfo extends OpenTypeAttributeInfo implements AutoCloseable{
+    private static final class GroovyAttributeInfo extends OpenMBeanAttributeInfoImpl implements AutoCloseable{
+        private static final long serialVersionUID = 2519548731335827051L;
         private final AttributeAccessor accessor;
 
-        private GroovyAttributeInfo(final String attributeID,
+        private GroovyAttributeInfo(final String attributeName,
                                     final AttributeDescriptor descriptor,
                                     final AttributeAccessor accessor){
-            super(attributeID,
+            super(attributeName,
                     accessor.type(),
-                    getDescription(descriptor, attributeID),
+                    getDescription(descriptor, attributeName),
                     accessor.specifier(),
                     descriptor);
             this.accessor = accessor;
@@ -182,25 +184,24 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         }
     }
 
-    private static final class GroovyAttributeSupport extends AbstractAttributeSupport<GroovyAttributeInfo>{
+    private static final class GroovyAttributeRepository extends AbstractAttributeRepository<GroovyAttributeInfo> {
         private final AttributeConnector connector;
 
-        private GroovyAttributeSupport(final String resourceName,
-                                       final AttributeConnector connector){
+        private GroovyAttributeRepository(final String resourceName,
+                                          final AttributeConnector connector){
             super(resourceName, GroovyAttributeInfo.class);
             this.connector = Objects.requireNonNull(connector);
         }
         @Override
-        protected GroovyAttributeInfo connectAttribute(final String attributeID,
+        protected GroovyAttributeInfo connectAttribute(final String attributeName,
                                                        final AttributeDescriptor descriptor) throws ResourceException, ScriptException {
-            final AttributeAccessor accessor = connector.loadAttribute(descriptor);
+            final AttributeAccessor accessor = connector.loadAttribute(attributeName, descriptor);
             //create wrapper
-            return new GroovyAttributeInfo(attributeID, descriptor, accessor);
+            return new GroovyAttributeInfo(attributeName, descriptor, accessor);
         }
-
         @Override
-        protected void failedToConnectAttribute(final String attributeID, final String attributeName, final Exception e) {
-            failedToConnectAttribute(getLoggerImpl(), Level.SEVERE, attributeID, attributeName, e);
+        protected void failedToConnectAttribute(final String attributeName, final Exception e) {
+            failedToConnectAttribute(getLoggerImpl(), Level.SEVERE, attributeName, e);
         }
 
         private static Object getAttribute(final AttributeAccessor accessor) throws Exception {
@@ -222,8 +223,8 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         }
 
         @Override
-        protected void failedToGetAttribute(final String attributeID, final Exception e) {
-            failedToGetAttribute(getLoggerImpl(), Level.SEVERE, attributeID, e);
+        protected void failedToGetAttribute(final String attributeName, final Exception e) {
+            failedToGetAttribute(getLoggerImpl(), Level.SEVERE, attributeName, e);
         }
 
         private static void setAttribute(final AttributeAccessor accessor,
@@ -259,22 +260,18 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
             try {
                 attributeInfo.close();
             } catch (final Exception e) {
-                try (final OSGiLoggingContext logger = OSGiLoggingContext.get(getLoggerImpl(), getBundleContext())) {
-                    logger.log(Level.WARNING, String.format("Unable to disconnect attribute %s", attributeInfo.getName()), e);
-                }
+                getLoggerImpl().log(Level.WARNING, String.format("Unable to disconnect attribute %s", attributeInfo.getName()), e);
             }
-        }
-
-        private BundleContext getBundleContext(){
-            return Utils.getBundleContextByObject(this);
         }
     }
 
     private static final String RESOURCE_NAME_VAR = ManagedResourceScriptBase.RESOURCE_NAME_VAR;
-    private final GroovyAttributeSupport attributes;
+    @Aggregation
+    private final GroovyAttributeRepository attributes;
     private static final Splitter PATH_SPLITTER;
     private final ManagedResourceInfo groovyConnector;
-    private final GroovyNotificationSupport events;
+    @Aggregation
+    private final GroovyNotificationRepository events;
 
     static {
         final String pathSeparator = StandardSystemProperty.PATH_SEPARATOR.value();
@@ -304,8 +301,14 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         groovyConnector = Strings.isNullOrEmpty(initScript) ?
                 null :
                 engine.init(initScript, params);
-        attributes = new GroovyAttributeSupport(resourceName, engine);
-        events = new GroovyNotificationSupport(resourceName, engine);
+        attributes = new GroovyAttributeRepository(resourceName, engine);
+        events = new GroovyNotificationRepository(resourceName, engine, Utils.getBundleContextOfObject(this));
+    }
+
+    @Aggregation
+    @SpecialUse
+    protected MetricsReader createMetricsReader(){
+        return assembleMetricsReader(attributes, events);
     }
 
     static Logger getLoggerImpl(){
@@ -344,16 +347,15 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         removeResourceEventListener(listener, attributes);
     }
 
-    boolean addAttribute(final String attributeID, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
-        verifyInitialization();
-        return attributes.addAttribute(attributeID, attributeName, readWriteTimeout, options) != null;
+    boolean addAttribute(final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+        verifyClosedState();
+        return attributes.addAttribute(attributeName, readWriteTimeout, options) != null;
     }
 
-    boolean enableNotifications(final String listID,
-                             final String category,
+    boolean enableNotifications(final String category,
                              final CompositeData options){
-        verifyInitialization();
-        return events.enableNotifications(listID, category, options) != null;
+        verifyClosedState();
+        return events.enableNotifications(category, options) != null;
     }
 
     void removeAttributesExcept(final Set<String> attributes) {
@@ -365,23 +367,6 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
     }
 
     /**
-     * Retrieves the aggregated object.
-     *
-     * @param objectType Type of the aggregated object.
-     * @return An instance of the requested object; or {@literal null} if object is not available.
-     */
-    @Override
-    public <T> T queryObject(final Class<T> objectType) {
-        return findObject(objectType,
-                new Function<Class<T>, T>() {
-                    @Override
-                    public T apply(final Class<T> objectType) {
-                        return GroovyResourceConnector.super.queryObject(objectType);
-                    }
-                }, attributes, events);
-    }
-
-    /**
      * Releases all resources associated with this connector.
      *
      * @throws Exception Unable to release resources associated with this connector.
@@ -389,8 +374,8 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
     @Override
     public void close() throws Exception {
         super.close();
-        attributes.removeAll(true);
-        events.removeAll(true, true);
+        attributes.close();
+        events.close();
         if(groovyConnector != null)
             groovyConnector.close();
     }

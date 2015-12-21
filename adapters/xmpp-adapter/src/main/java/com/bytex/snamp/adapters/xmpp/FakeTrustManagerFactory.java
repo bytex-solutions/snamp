@@ -1,6 +1,7 @@
 package com.bytex.snamp.adapters.xmpp;
 
-import com.bytex.snamp.internal.annotations.MethodStub;
+import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.MethodStub;
 
 import javax.net.ssl.*;
 import java.security.KeyStore;
@@ -29,7 +30,7 @@ final class FakeTrustManagerFactory extends TrustManagerFactorySpi {
         }
 
         public X509Certificate[] getAcceptedIssuers() {
-            return new X509Certificate[0];
+            return ArrayUtils.emptyArray(X509Certificate[].class);
         }
     };
 

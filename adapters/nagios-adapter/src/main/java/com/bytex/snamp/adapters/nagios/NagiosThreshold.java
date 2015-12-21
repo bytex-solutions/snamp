@@ -59,11 +59,7 @@ final class NagiosThreshold implements Predicate<Number> {
             return rangeChecker.apply((BigDecimal) value);
         else if (value instanceof BigInteger)
             return rangeChecker.apply(new BigDecimal((BigInteger) value));
-        else if (value instanceof Long)
-            return rangeChecker.apply(BigDecimal.valueOf((long) value));
-        else if (value instanceof Double)
-            return rangeChecker.apply(BigDecimal.valueOf((double) value));
-        else return rangeChecker.apply(BigDecimal.valueOf(value.doubleValue()));
+        else return rangeChecker.apply(new BigDecimal(value.doubleValue()));
     }
 
     public boolean check(final String value, final DecimalFormat format) throws ParseException {

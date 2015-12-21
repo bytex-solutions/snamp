@@ -19,7 +19,6 @@ public class NotificationBox extends ArrayBlockingQueue<Notification> implements
      */
     public NotificationBox(final int maxCapacity){
         super(maxCapacity);
-
     }
 
     /**

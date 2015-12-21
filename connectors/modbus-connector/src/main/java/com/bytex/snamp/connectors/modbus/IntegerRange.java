@@ -24,7 +24,7 @@ final class IntegerRange {
             lowerBound = Integer.parseInt(result.group("lower"));
             upperBound = Integer.parseInt(result.group("upper"));
             checkRange(lowerBound, upperBound);
-        } else throw new IllegalArgumentException("Incorrect range: " + range);
+        } else throw new IllegalArgumentException("Incorrect range: ".concat(range));
     }
 
     public int size() {

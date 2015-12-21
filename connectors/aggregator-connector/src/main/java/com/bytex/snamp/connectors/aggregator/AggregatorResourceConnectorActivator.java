@@ -20,23 +20,21 @@ public final class AggregatorResourceConnectorActivator extends ManagedResourceA
 
         @Override
         protected boolean addAttribute(final AggregatorResourceConnector connector,
-                                    final String attributeID,
                                     final String attributeName,
                                     final TimeSpan readWriteTimeout,
                                     final CompositeData options) {
-            return connector.addAttribute(attributeID, attributeName, readWriteTimeout, options);
+            return connector.addAttribute(attributeName, readWriteTimeout, options);
         }
 
         @Override
         protected boolean enableNotifications(final AggregatorResourceConnector connector,
-                                           final String listId,
                                            final String category,
                                            final CompositeData options) {
-            return connector.enableNotifications(listId, category, options);
+            return connector.enableNotifications(category, options);
         }
 
         @Override
-        protected boolean enableOperation(final AggregatorResourceConnector connector, final String operationID, final String operationName, final TimeSpan timeout, final CompositeData options) {
+        protected boolean enableOperation(final AggregatorResourceConnector connector, final String operationName, final TimeSpan timeout, final CompositeData options) {
             //not supported
             return false;
         }

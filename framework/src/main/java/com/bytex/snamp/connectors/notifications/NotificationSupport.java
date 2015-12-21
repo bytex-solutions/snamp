@@ -28,12 +28,6 @@ public interface NotificationSupport extends NotificationBroadcaster {
      */
     String SEVERITY_FIELD = "severity";
 
-    /**
-     * The name of the field in {@link javax.management.Descriptor}
-     * which contains the value of the notification subscription model as {@link com.bytex.snamp.connectors.notifications.NotificationSubscriptionModel} value.
-     */
-    String SUBSCRIPTION_MODEL_FIELD = "subscriptionModel";
-
 
     String DESCRIPTION_FIELD = EventConfiguration.DESCRIPTION_KEY;
 
@@ -44,15 +38,21 @@ public interface NotificationSupport extends NotificationBroadcaster {
     String USER_DATA_TYPE = "openType";
 
     /**
-     * Gets subscription model.
-     * @return The subscription model.
-     */
-    NotificationSubscriptionModel getSubscriptionModel();
-
-    /**
      * Gets notification metadata.
      * @param notificationType The type of the notification.
      * @return The notification metadata; or {@literal null}, if notification doesn't exist.
      */
     MBeanNotificationInfo getNotificationInfo(final String notificationType);
+
+    /**
+     * Determines whether raising of registered events is suspended.
+     * @return {@literal true}, if events are suspended; otherwise {@literal false}.
+     */
+    boolean isSuspended();
+
+    /**
+     * Suspends or activate raising of events.
+     * @param value {@literal true} to suspend events; {@literal false}, to activate events.
+     */
+    void setSuspended(final boolean value);
 }

@@ -1,17 +1,17 @@
 package com.bytex.snamp.core;
 
+import com.bytex.snamp.*;
+import com.bytex.snamp.io.IOUtils;
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
-import com.bytex.snamp.Attribute;
-import com.bytex.snamp.AttributeReader;
-import com.bytex.snamp.StringAppender;
-import com.bytex.snamp.TypeTokens;
-import com.bytex.snamp.internal.annotations.MethodStub;
+import com.bytex.snamp.MethodStub;
 import org.osgi.framework.*;
 
 import java.util.*;
+import java.util.logging.Logger;
 
-import static com.bytex.snamp.internal.Utils.getBundleContextByObject;
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 import static com.bytex.snamp.internal.Utils.isInstanceOf;
 
 /**
@@ -25,25 +25,24 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
     final static class BundleLogicalOperation extends RichLogicalOperation {
         static final String BUNDLE_NAME_PROPERTY = "bundleName";
 
-        private BundleLogicalOperation(final String operationName,
-                                       final String bundleName){
-            super(operationName, BUNDLE_NAME_PROPERTY, bundleName);
+        private BundleLogicalOperation(final Logger logger,
+                                       final String operationName,
+                                       final BundleContext context) {
+            super(logger,
+                    operationName,
+                    ImmutableMap.of(BUNDLE_NAME_PROPERTY, context.getBundle().getSymbolicName()));
         }
 
-        private String getBundleName(){
-            return getProperty(BUNDLE_NAME_PROPERTY, String.class, "");
+        private static BundleLogicalOperation startBundle(final Logger logger, final BundleContext context) {
+            return new BundleLogicalOperation(logger, "startBundle", context);
         }
 
-        private static BundleLogicalOperation startBundle(final BundleContext context){
-            return new BundleLogicalOperation("startBundle", context.getBundle().getSymbolicName());
+        private static BundleLogicalOperation stopBundle(final Logger logger, final BundleContext context) {
+            return new BundleLogicalOperation(logger, "stopBundle", context);
         }
 
-        private static BundleLogicalOperation stopBundle(final BundleContext context){
-            return new BundleLogicalOperation("stopBundle", context.getBundle().getSymbolicName());
-        }
-
-        private static BundleLogicalOperation processServiceChanged(final BundleContext context){
-            return new BundleLogicalOperation("bundleServiceChanged", context.getBundle().getSymbolicName());
+        private static BundleLogicalOperation processServiceChanged(final Logger logger, final BundleContext context) {
+            return new BundleLogicalOperation(logger, "bundleServiceChanged", context);
         }
     }
 
@@ -77,7 +76,6 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @since 1.0
      * @version 1.0
      */
-    @SuppressWarnings("UnusedDeclaration")
     protected interface NamedActivationProperty<T> extends ActivationProperty<T>{
         /**
          * Gets name of this property.
@@ -339,16 +337,16 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
             catch (final InvalidSyntaxException e) {
                 refs = null;
             }
-            return refs != null ? refs : new ServiceReference<?>[0];
+            return refs != null ? refs : ArrayUtils.emptyArray(ServiceReference[].class);
         }
     }
 
-    static final class DependencyListeningFilter extends StringAppender {
-        private static final long serialVersionUID = -7803401262064949694L;
+    static final class DependencyListeningFilter {
         private int appendCalledTimes = 0;
+        private final StringBuilder filter = new StringBuilder(64);
 
         void append(final RequiredService<?> dependency){
-            append(String.format("(%s=%s)", Constants.OBJECTCLASS, dependency.dependencyContract.getName()));
+            IOUtils.append(filter, "(%s=%s)", Constants.OBJECTCLASS, dependency.dependencyContract.getName());
             appendCalledTimes += 1;
         }
 
@@ -359,14 +357,13 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
             else context.addServiceListener(listener, filter);
         }
 
-        @SuppressWarnings("NullableProblems")
         @Override
         public String toString() {
             switch (appendCalledTimes){
                 case 0: return "";
-                case 1: return super.toString();
+                case 1: return filter.toString();
                 default:
-                    return String.format("(|%s)", super.toString());
+                    return String.format("(|%s)", filter);
             }
         }
     }
@@ -675,11 +672,6 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
         return found != null ? found.getService() : null;
     }
 
-    /**
-     * Represents an empty array of required services.
-     */
-    protected static final RequiredService<?>[] EMPTY_REQUIRED_SERVICES = new RequiredService<?>[0];
-
     private final List<RequiredService<?>> bundleLevelDependencies;
     private final ActivationProperties properties;
     private ActivationState state;
@@ -746,8 +738,8 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      */
     @Override
     public final void serviceChanged(final ServiceEvent event) {
-        final BundleContext context = getBundleContextByObject(this);
-        try(final LogicalOperation ignored = BundleLogicalOperation.processServiceChanged(context)) {
+        final BundleContext context = getBundleContextOfObject(this);
+        try(final LogicalOperation ignored = BundleLogicalOperation.processServiceChanged(getLogger(), context)) {
             serviceChanged(context, event);
         }
     }
@@ -759,10 +751,10 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      */
     @Override
     public final void start(final BundleContext context) throws Exception {
-        try (final LogicalOperation ignored = BundleLogicalOperation.startBundle(context)) {
+        try (final LogicalOperation ignored = BundleLogicalOperation.startBundle(getLogger(), context)) {
             start(context, bundleLevelDependencies);
-            //try to resolve bundle-level dependencies immediately
             final DependencyListeningFilter filter = new DependencyListeningFilter();
+            //try to resolve bundle-level dependencies immediately
             for (final RequiredService<?> dependency : bundleLevelDependencies) {
                 filter.append(dependency);
                 for (final ServiceReference<?> serviceRef : dependency.getCandidates(context))
@@ -784,13 +776,21 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
     }
 
     /**
+     * Gets logger associated with this activator.
+     * @return The logger associated with this activator.
+     */
+    protected Logger getLogger(){
+        return Logger.getLogger(getClass().getName());
+    }
+
+    /**
      * Stops the bundle.
      * @param context The execution context of the bundle being stopped.
      * @throws Exception An exception occurred during bundle stopping.
      */
     @Override
     public final void stop(final BundleContext context) throws Exception {
-        try (final LogicalOperation ignored = BundleLogicalOperation.stopBundle(context)) {
+        try (final LogicalOperation ignored = BundleLogicalOperation.stopBundle(getLogger(), context)) {
             context.removeServiceListener(this);
             if (state == ActivationState.ACTIVATED) {
                 state = ActivationState.DEACTIVATING;
@@ -884,7 +884,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      *         property is undefined.
      **/
     protected final String getFrameworkProperty(final String propertyName){
-        return getBundleContextByObject(this).getProperty(propertyName);
+        return getBundleContextOfObject(this).getProperty(propertyName);
     }
 
     /**

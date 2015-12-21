@@ -2,8 +2,8 @@ package com.bytex.snamp.connectors.rshell;
 
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
-import com.bytex.snamp.internal.annotations.MethodStub;
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.MethodStub;
+import com.bytex.snamp.SpecialUse;
 
 import javax.management.openmbean.CompositeData;
 import java.util.Map;
@@ -30,8 +30,8 @@ public final class RShellResourceConnectorActivator extends ManagedResourceActiv
         }
 
         @Override
-        protected boolean addAttribute(final RShellResourceConnector connector, final String attributeID, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
-            return connector.addAttribute(attributeID, attributeName, readWriteTimeout, options);
+        protected boolean addAttribute(final RShellResourceConnector connector, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+            return connector.addAttribute(attributeName, readWriteTimeout, options);
         }
         @Override
         protected void removeAttributesExcept(final RShellResourceConnector connector, final Set<String> attributes) {
@@ -40,7 +40,7 @@ public final class RShellResourceConnectorActivator extends ManagedResourceActiv
 
         @MethodStub
         @Override
-        protected boolean enableNotifications(final RShellResourceConnector connector, final String listId, final String category, final CompositeData options) {
+        protected boolean enableNotifications(final RShellResourceConnector connector, final String category, final CompositeData options) {
             //not supported
             return false;
         }
@@ -51,7 +51,7 @@ public final class RShellResourceConnectorActivator extends ManagedResourceActiv
         }
 
         @Override
-        protected boolean enableOperation(final RShellResourceConnector connector, final String operationID, final String operationName, final TimeSpan timeout, final CompositeData options) {
+        protected boolean enableOperation(final RShellResourceConnector connector, final String operationName, final TimeSpan timeout, final CompositeData options) {
             //not supported
             return false;
         }

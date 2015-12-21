@@ -30,26 +30,6 @@
                 <groupId>org.apache.karaf.tooling</groupId>
                 <artifactId>karaf-maven-plugin</artifactId>
                 <extensions>true</extensions>
-                <executions>
-                    <execution>
-                        <id>deploy-features</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>features-add-to-repository</goal>
-                        </goals>
-                        <configuration>
-                            <!-- This is the only way to pre-install cellar in Karaf due to bug in karaf-maven-plugin.
-                            For more info, see http://karaf.apache.org/manual/latest/developers-guide/karaf-maven-plugin-features-add-to-repository.html-->
-                            <descriptors>
-                                <descriptor>mvn:org.apache.karaf.cellar/apache-karaf-cellar/3.0.3/xml/features</descriptor>
-                            </descriptors>
-                            <features>
-                                <feature>cellar</feature>
-                            </features>
-                            <repository>${karaf.folder.repo}</repository>
-                        </configuration>
-                    </execution>
-                </executions>
                 <configuration>
                     <finalName>${project.parent.name}-{$project.version}</finalName>
                     <ignoreScopeProvided>true</ignoreScopeProvided>
@@ -61,6 +41,7 @@
                         <feature>region</feature>
                         <feature>eventadmin</feature>
                         <feature>jndi</feature>
+                        <feature>jms</feature>
                     </bootFeatures>
                     <installedFeatures>
                         <feature>platform-feature</feature>
@@ -68,6 +49,9 @@
                         <feature>http</feature>
                         <feature>war</feature>
                         <feature>http-whiteboard</feature>
+                        <feature>jolokia</feature>
+                        <feature>cellar</feature>
+                        <feature>hawtio-offline</feature>
                     </installedFeatures>
                 </configuration>
             </plugin>
@@ -157,6 +141,30 @@
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>com.bytex.snamp</groupId>
+                                    <artifactId>mda-connector-feature</artifactId>
+                                    <version>${snamp.connectors.mda.version}</version>
+                                    <type>kar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${karaf.folder.deploy}</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.bytex.snamp</groupId>
+                                    <artifactId>mq-connector-feature</artifactId>
+                                    <version>${snamp.connectors.mq.version}</version>
+                                    <type>kar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${karaf.folder.deploy}</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.bytex.snamp</groupId>
+                                    <artifactId>decanter-adapter-feature</artifactId>
+                                    <version>${snamp.adapters.decanter.version}</version>
+                                    <type>kar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${karaf.folder.deploy}</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.bytex.snamp</groupId>
                                     <artifactId>groovy-adapter-feature</artifactId>
                                     <version>${snamp.adapters.groovy.version}</version>
                                     <type>kar</type>
@@ -235,14 +243,6 @@
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${karaf.folder.deploy}</outputDirectory>
                                 </artifactItem>
-                                <artifactItem>
-                                    <groupId>org.jolokia</groupId>
-                                    <artifactId>jolokia-osgi</artifactId>
-                                    <version>${jolokia.version}</version>
-                                    <type>jar</type>
-                                    <overWrite>true</overWrite>
-                                    <outputDirectory>${karaf.folder.deploy}</outputDirectory>
-                                </artifactItem>
                             </artifactItems>
                         </configuration>
                     </execution>
@@ -258,6 +258,14 @@
             <version>${karaf.version}</version>
             <scope>compile</scope>
             <type>kar</type>
+        </dependency>
+        <dependency>
+            <groupId>io.hawt</groupId>
+            <artifactId>hawtio-karaf</artifactId>
+            <version>${hawtio.version}</version>
+            <type>xml</type>
+            <classifier>features</classifier>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.bytex.snamp</groupId>

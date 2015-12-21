@@ -39,7 +39,7 @@ public class CustomAttributeInfo extends MBeanAttributeInfo implements Attribute
                         final String description,
                         final AttributeSpecifier specifier,
                         final AttributeDescriptor descriptor) {
-        super(name, type, description, specifier.canRead(), specifier.canWrite(), specifier.isFlag(), descriptor);
+        super(name, type, descriptor.getDescription(description), specifier.canRead(), specifier.canWrite(), specifier.isFlag(), descriptor);
         this.descriptor = Objects.requireNonNull(descriptor);
     }
 

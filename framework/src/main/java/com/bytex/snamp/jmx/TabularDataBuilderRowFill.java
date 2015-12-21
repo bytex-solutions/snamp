@@ -123,4 +123,8 @@ public class TabularDataBuilderRowFill implements Supplier<TabularData> {
     public TabularData get() {
         return table;
     }
+
+    public TabularData build(){
+        return get();
+    }
 }

@@ -1,7 +1,6 @@
 package com.bytex.snamp.connectors.attributes;
 
 import com.bytex.snamp.connectors.FeatureRemovingEvent;
-import com.bytex.snamp.internal.Utils;
 
 import javax.management.MBeanAttributeInfo;
 
@@ -24,6 +23,7 @@ public class AttributeRemovingEvent extends FeatureRemovingEvent<MBeanAttributeI
      */
     @Override
     public final AttributeSupport getSource() {
-        return Utils.safeCast(source, AttributeSupport.class);
+        assert source instanceof AttributeSupport: source;
+        return (AttributeSupport) source;
     }
 }

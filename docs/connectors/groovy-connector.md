@@ -1,58 +1,63 @@
 Groovy Resource Connector
 ====
 
-This connector allows to monitor and manage your IT resources using Groovy scripts. It is very useful in the following cases:
-* SNAMP doesn't provide Resource Connector for the specific protocol out-of-the-box. The possible uses cases:
+Groovy connector allows to monitor and manage your IT resources using Groovy scripts. It can be useful in following cases:
+
+* SNAMP doesn't provide Resource Connector for the specific protocol out-of-the-box. Possible uses cases:
   * Parsing log data and exposing results as an attributes
-  * Extracting records from databases and exposing results as an attributes
+  * Extracting records from databases and exposing results as attributes
   * Processing Web resources (or REST services) via HTTP (JSON, AtomPub and etc)
   * Listening message queues (or topics) via JMS and exposing processed messages as SNAMP notifications
 * Customize existing Resource Connectors
   * Aggregate two or more attributes (sum, average, peak, percent) and expose result as an attribute
   * Aggregate notifications
 
-> Groovy connector built on top of Groovy 2.4.3
+> Groovy connector is based on Groovy 2.4
 
-The connector has the following architecture:
+The connector has following architecture:
+
 * Each attribute must be represented as a separated Groovy script. The attribute name will be interpreter as a script file name. For example, the logic for attribute `Memory` must be placed into `Memory.groovy` file
 * Each event must be represented as a separated Groovy script. The event category will be interpreted as a script file name. For example, the logic for event `Error` must be placed into `Error.groovy` file
 * Optionally, you may write initialization script that is used to initialize instance of the Managed Resource Connector
 * Each instance of the Groovy Connector provides a sandbox for Groovy scripts. So, initialization script will be executed for each instance of the connector. You can't share objects between instances of Groovy Connector
 
 ## Connection String
-Connection string specifies a set of paths with Groovy scripts. You may specify more than one path using OS-specific path separator symbol:
+Connection string specifies set of paths with Groovy scripts. You may specify more than one path using OS-specific path separator symbol:
+
 * `:` for Linux
 * `;` for Windows
 
 For example, `/usr/local/snamp/groovy:/usr/local/snamp/scripts`
 
-The path is used to find initialization, attribute and event scripts.
+Path is used to find initialization, attribute and event scripts.
 
 ## Configuration parameters
 JMX Resource Connector recognizes the following parameters:
 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
-initScript | String | No | The name of the initialization script file | `init.groovy`
+initScript | String | No | Name of the initialization script file | `init.groovy`
 groovy.warnings | String | No | Groovy warning level | `likely errors`
-groovy.source.encoding | String | No | The encoding to be used when reading Groovy source files
+groovy.source.encoding | String | No | Encoding to be used when reading Groovy source files
 groovy.classpath | String | No | Classpath using to find third-party JARs | `/usr/local/jars:/home/user/jars`
 groovy.output.verbose | Boolean (`true` or `false`) | No | Turns verbose operation on or off | `true`
 groovy.output.debug | Boolean | No | Turns debugging operation on or off | `false`
 groovy.errors.tolerance | Integer | No | Sets the error tolerance, which is the number of non-fatal errors (per unit) that should be tolerated before compilation is aborted
 
-All these parameters (including user-defined) will be visible as global variables in all scripts.
+All these parameters (including user-defined) will be visible as global variables within all the available scripts.
 
 ## Configuring attributes
-Each attribute configured in Groovy Resource Connector has the following configuration schema:
-* `Name` - the name of script file without `.groovy` file extension. The file must exists in the paths specified by connection string
-* There is no predefined configuration parameters. But all user-defined configuration parameters will be visible as global variables in attribute script only.
+Each attribute configured in Groovy Resource Connector has following configuration schema:
+
+* `Name` - name of script file without `.groovy` file extension. The file must exists in the paths specified by connection string. Also, you can use `name` configuration parameter for this purpose.
+* There is no predefined configuration parameters. But all user-defined configuration parameters will be visible as global variables in the attribute script only.
 
 For more information see **Programming attributes** section.
 
 ## Configuring events
-Each event configured in Groovy Resource Connector has the following configuration schema:
-* `Category` - the name of script file without `.groovy` file extension. The file must exists in the paths specified by connection string
+Each event configured in Groovy Resource Connector has following configuration schema:
+
+* `Category` - name of script file without `.groovy` file extension. The file must exists in the paths specified by connection string
 * Configuration parameters:
 
 Parameter | Type | Required | Meaning | Example
@@ -62,23 +67,26 @@ severity | String | No | Overrides severity level of the emitted notification | 
 All user-defined configuration parameters will be visible as global variables in event script only.
 
 ## Scripting
-Groovy Resource Connector provides the following features for Groovy scripting:
+Groovy Resource Connector provides following features for Groovy scripting:
+
 * Simple DSL extensions of Groovy language
 * Accessing to attributes and notifications of any other connected managed resources
 * Full [Grape](http://www.groovy-lang.org/Grape) support so you can use any Groovy module or Java library published in Maven repository
 
 Each instance of the Groovy Resource Connector has isolated sandbox with its own Java class loader used for Groovy scripts.
 
-All configuration parameters specified at resource-level will be visible to all scripts. For example, you have configured `initScript` and `customParam` parameters. The value of these parameters can be obtained as follows:
+All configuration parameters specified at the resource-level will be visible for all scripts. For example, you have configured `initScript` and `customParam` parameters. The value of these parameters can be obtained as follows:
 ```groovy
 println initScript
 println customParam
 ```
 
-Groovy connector provides the following DSL extensions accessible from any type of scripts:
+Groovy connector provides following DSL extensions accessible from any type of scripts:
+
 * Global variables:
-  * `resourceName` - contains the name of the managed resource as it specified in the SNAMP configuration. This variable is not available in discovery mode
-* Logging subrouties (these routines written on top of OSGi logging infrastructure)
+  * `resourceName` - contains the name of the managed resource as it specified in the SNAMP configuration. This variable is not available in the discovery mode
+  * `activeClusterNode` - boolean read-only variable indicating that the code is executed in active node of cluster
+* Logging subroutines (these routines written on top of OSGi logging infrastructure)
   * `void error(String message)` - report about error
   * `void warning(String message)` - report warning
   * `void info(String message)` - report information
@@ -97,17 +105,19 @@ Groovy connector provides the following DSL extensions accessible from any type 
   * `Communicator getCommunicator(String sessionName)` - get or create a new communication session
   * `MessageListener asListener(Closure listener)` - wraps Groovy closure into communication message listener
 * Other functions
-  * `Job createTimer(Closure task, long period)` - creates a new timer that execute the specified task periodically
+  * `Job createTimer(Closure task, long period)` - creates new timer that periodically executes specified task
   * `Job schedule(Closure task, long period)` - execute the specified task periodically in the background.
 
-The following example demonstrates how to read attribute of the connected managed resource:
+Following example demonstrates reading attribute of the connected managed resource:
+
 ```groovy
 println resourceName
 def value = getResourceAttribute 'app-server', 'freeMemory'
 if(value < 100) error 'Not enough memory'
 ```
 
-The following example demonstrates how to subscribe on the event in the connected managed resource:
+Following example demonstrates subscribing on the event within the connected managed resource:
+
 ```groovy
 import javax.management.NotificationListener
 
@@ -117,6 +127,7 @@ addNotificationListener 'app-server', listener
 ```
 
 Working with timers:
+
 ```groovy
 def timer = createTimer({ println 'Tick' }, 300)  //will print 'Tick' every 300 milliseconds
 timer.run() //start printing
@@ -127,6 +138,7 @@ timer.close()
 ```
 
 Get configuration of the connected resource:
+
 ```groovy
 def config = getResourceConfiguration 'app-server'
 
@@ -136,6 +148,7 @@ println config.parameters.socketTimeout //socketTimeout is the name of configura
 ```
 
 Simple messaging using communicator:
+
 ```groovy
 def communicator = getCommunicator 'test-communicator'
 communicator.register(asListener { msg -> println msg})
@@ -145,6 +158,7 @@ communicator.post 'Hello, world!'
 ```
 
 Synchronous messaging using communicator:
+
 ```groovy
 //script1.groovy
 communicator = getCommunicator 'test-communicator'
@@ -162,11 +176,12 @@ println response  //pong
 > Read **SNAMP Management Information Model** before you continue
 
 ### Initialization script
-Initialization script used to initialize instance of the connector. The name of the initialization script must be specified in the managed resource configuration explicitly. If it is not specified then Groovy Connector doesn't perform any extra initialization activities.
+Initialization script used to initialize instance of the connector. Name of the initialization script must be specified in the managed resource configuration explicitly. If it is not specified then Groovy Connector doesn't perform any extra initialization activities.
 
-As the best practice, initialization script can be used to declare references to third-party modules and libraries:
+As the best practice, initialization script can be used for declaring references to third-party modules and libraries:
+
 ```groovy
-@Grab(group = 'org.codehaus.groovy', module = 'groovy-json', version = '2.4.3')
+@Grab(group = 'org.codehaus.groovy', module = 'groovy-json', version = '2.4.5')
 @GrabConfig(initContextClassLoader = true)
 import groovy.json.JsonSlurper
 ```
@@ -174,18 +189,21 @@ import groovy.json.JsonSlurper
 > Note that `@GrabConfig(initContextClassLoader = true)` must be used in conjunction with every `@Grab` annotation
 
 Initialization script supports additional DSL extensions:
+
 * Global variables:
   * `discovery` - determines whether initialization script is in discovery mode
 * Discovery services
-  * `void attribute(String name, Map parameters)` - declares a new attribute with the specified name and default configuration parameters. This declaration will be displayed in the SNAMP Management Console when you discover the available attributes. The functionality of the attribute doesn't depend on this declaration
-  * `void event(String category, Map parameters)` - declares a new event with the specified category and default configuration parameters. This declaration will be displayed in the SNAMP Management Console when you discover the available events. The functionality of the event doesn't depend on this declaration
+  * `void attribute(String name, Map parameters)` - declares new attribute with the specified name and default configuration parameters. This declaration will be displayed in the SNAMP Management Console while discovering the available attributes. The functionality of the attribute doesn't depend on this declaration
+  * `void event(String category, Map parameters)` - declares new event with the specified category and default configuration parameters. This declaration will be displayed in the SNAMP Management Console while discovering the available events. The functionality of the event doesn't depend on this declaration
 
-Special functions that you can declare in your script:
-* `void close()` - called by SNAMP automatically when the resources acquired by instance of the connector should be released
+Special functions that can be declared in the script:
 
-The following example demonstrates a simple initialization script:
+* `void close()` - called by SNAMP automatically when the resources acquired by the instance of the connector should be released
+
+Following example demonstrates simple initialization script:
+
 ```groovy
-@Grab(group = 'org.codehaus.groovy', module = 'groovy-json', version = '2.4.3')
+@Grab(group = 'org.codehaus.groovy', module = 'groovy-json', version = '2.4.5')
 @GrabConfig(initContextClassLoader = true)
 import groovy.json.JsonSlurper
 
@@ -194,6 +212,7 @@ attribute 'MemoryAttrubute', [precision: 'MB']
 ```
 
 Example of initialization script with special functions:
+
 ```groovy
 connection = createConnection() //createConnection is not a part of DSL. It is just example
 
@@ -204,14 +223,16 @@ void close(){
 
 ### Programming attributes
 Attribute script consists of the following parts:
+
 * Attribute type specification
 * Attribute initialization
 * Attribute reader
 * Attribute writer
 
-All configuration parameters assigned to the attribute in SNAMP configuration will be visible as global variable in the attribute script.
+All configuration parameters assigned to the attribute in SNAMP configuration will be visible as global variables in the attribute script.
 
 Attribute script supports additional DSL extensions:
+
 * Global constants
   * `INT8` - represents `int8` type from SNAMP Management Information Model
   * `INT16`- represents `int16` type from SNAMP Management Information Model
@@ -240,12 +261,13 @@ Attribute script supports additional DSL extensions:
   * `Map[] asTable(TabularData table)` - convert JMX tabular data (table) to a collection of rows. This method can be used in `setValue` function to convert input value to rows
   * `TabularData asTable(Map[] rows)` - convert a collection of rows into JMX tabular data (table in SNAMP terminology). This method can be used in `getValue` function to convert input value to TabularData
 
-Special functions that you can declare in your script:
-* `Object getValue()` - called by SNAMP automatically to read attribute value. If this function is not specified then attribute is write-only
-* `Object setValue(Object value)` - called by SNAMP automatically to write attribute value. If this function is not specified then attribute is read-only
+Special functions that can be declared in the script:
+
+* `Object getValue()` - called by SNAMP automatically to read attribute value. If this function is not specified then the attribute is write-only
+* `Object setValue(Object value)` - called by SNAMP automatically to write attribute value. If this function is not specified then the attribute is read-only
 * `void close()` - called by SNAMP automatically when the resources acquired by instance of the attribute should be released
 
-The following code describes skeleton of the attribute script:
+Following code describes skeleton of the attribute script:
 ```groovy
 type INT64 //attribute type specification
 
@@ -298,20 +320,22 @@ def setValue(value){
 
 ### Programming events
 Event script consists of the following parts:
+
 * Event initialization
 * Event emitting
 
-All configuration parameters assigned to the event in SNAMP configuration will be visible as global variable in the event script.
+All configuration parameters assigned to the event in SNAMP configuration will be visible as global variables in the event script.
 
 Event script supports additional DSL extensions:
+
 * Functions:
   * `void emitNotification(String message)` - emit outgoing notification with the specified human-readable message
-  * `void emitNotification(String messagem, Object userData)` - emit outgoing notification with the specified human-readable message and additional payload
+  * `void emitNotification(String message, Object userData)` - emit outgoing notification with the specified human-readable message and additional payload
 
-Special functions that you can declare in your script:
+Special functions that can be declared in the script:
   * `void close()` - called by SNAMP automatically when the resources acquired by instance of the event should be released
 
-The following example demonstrates how to read attribute from another connected resource and send its value as notification payload in periodic manner:
+Following example demonstrates reading attribute from another connected resource and send its value as a notification payload in periodic manner:
 ```groovy
 def emitter = {
   def value = getResourceAttribute 'app-server', 'freeMemory'
@@ -348,3 +372,6 @@ Date | datetime | `new Date()`
 javax.management.ObjectName | objectname | `new ObjectName('type=Foo')`
 javax.management.openmbean.CompositeData | Dictionary | `asDictionary(key1: 67L, key2: true)`
 javax.management.openmbean.TabularData | Table | `asTable([[column1: 6, column2: false], [column1: 7, column2: true]])`
+
+## Clustering
+`emitNotification` can cause duplication of notifications and receiving side in clustered environment. SNAMP doesn't provide automatic resolution of this issue for Groovy Connector. Guard `emitNotification` call with `if(activeClusterNode)` condition.

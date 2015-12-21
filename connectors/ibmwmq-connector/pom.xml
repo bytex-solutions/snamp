@@ -12,6 +12,7 @@
   <version>${snamp.connectors.ibmwmq.version}</version>
   <packaging>bundle</packaging>
   <name>IBM MQ Connector</name>
+  <description>SNAMP resource connector for IBM WebSphere MQ message queues</description>
   <properties>
     <ibm.wmq.version>7.5.0.2</ibm.wmq.version>
   </properties>
@@ -48,22 +49,16 @@
       <version>${snamp.framework.version}</version>
     </dependency>
     <dependency>
-      <scope>provided</scope>
       <groupId>org.osgi</groupId>
       <artifactId>org.osgi.core</artifactId>
-      <version>${osgi.version}</version>
     </dependency>
     <dependency>
-      <scope>provided</scope>
       <groupId>org.osgi</groupId>
       <artifactId>org.osgi.compendium</artifactId>
-      <version>${osgi.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>${guava.version}</version>
-      <scope>provided</scope>
     </dependency>
 
     <dependency>
@@ -94,8 +89,6 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>${junit.version}</version>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>

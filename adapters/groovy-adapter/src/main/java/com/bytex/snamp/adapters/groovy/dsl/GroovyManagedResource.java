@@ -1,9 +1,8 @@
 package com.bytex.snamp.adapters.groovy.dsl;
 
+import com.bytex.snamp.SpecialUse;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.bytex.snamp.internal.CallableSupplier;
-import com.bytex.snamp.internal.annotations.SpecialUse;
 import groovy.lang.GroovyObjectSupport;
 
 import javax.management.MBeanNotificationInfo;
@@ -42,12 +41,12 @@ public final class GroovyManagedResource extends GroovyObjectSupport {
      * @return A collection of all attributes in this resource.
      */
     @SpecialUse
-    public final Set<String> getAttributes() {
+    public Set<String> getAttributes() {
         return attributes.getAttributes(resourceName);
     }
 
     @SpecialUse
-    public final Set<String> getEvents() {
+    public Set<String> getEvents() {
         return events.getEvents(resourceName);
     }
 
@@ -56,9 +55,9 @@ public final class GroovyManagedResource extends GroovyObjectSupport {
                                                              final String attributeName,
                                                              final AttributesView attributes) {
         try {
-            return cache.get(attributeName, new CallableSupplier<GroovyResourceAttribute>() {
+            return cache.get(attributeName, new Callable<GroovyResourceAttribute>() {
                 @Override
-                public GroovyResourceAttribute get() {
+                public GroovyResourceAttribute call() {
                     return new GroovyResourceAttribute(attributes, resourceName, attributeName);
                 }
             });

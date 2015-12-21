@@ -1,18 +1,17 @@
 package com.bytex.snamp.connectors.rshell;
 
-import com.google.common.base.Function;
 import com.bytex.jcommands.CommandExecutionChannel;
 import com.bytex.jcommands.impl.TypeTokens;
 import com.bytex.jcommands.impl.XmlCommandLineToolProfile;
 import com.bytex.jcommands.impl.XmlParserDefinition;
 import com.bytex.jcommands.impl.XmlParsingResultType;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.ExceptionPlaceholder;
-import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
 import com.bytex.snamp.connectors.attributes.*;
-import com.bytex.snamp.internal.RecordReader;
+import com.bytex.snamp.connectors.metrics.MetricsReader;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.CompositeTypeBuilder;
 import com.bytex.snamp.jmx.DescriptorUtils;
@@ -40,7 +39,7 @@ import static com.bytex.snamp.TypeTokens.safeCast;
  * @since 1.0
  */
 final class RShellResourceConnector extends AbstractManagedResourceConnector implements AttributeSupport {
-    private static abstract class RShellAttributeInfo extends OpenTypeAttributeInfo{
+    private static abstract class RShellAttributeInfo extends OpenMBeanAttributeInfoImpl {
         private static final long serialVersionUID = -403897890533078455L;
         protected final XmlCommandLineToolProfile commandProfile;
         private final Map<String, ?> parameters;
@@ -102,27 +101,28 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
         private static final String INDEX_COLUMN = "index";
         private static final long serialVersionUID = -3828510082280244717L;
 
-        private TableAttributeInfo(final String attributeID,
+        private TableAttributeInfo(final String attributeName,
                                    final XmlCommandLineToolProfile profile,
                                    final AttributeDescriptor descriptor) throws OpenDataException{
-            super(attributeID,
+            super(attributeName,
                     profile,
-                    getTabularType(descriptor, profile.getReaderTemplate().getCommandOutputParser()),
+                    getTabularType(attributeName, descriptor, profile.getReaderTemplate().getCommandOutputParser()),
                     descriptor);
         }
 
-        private static TabularType getTabularType(final AttributeDescriptor descriptor,
+        private static TabularType getTabularType(final String attributeName,
+                                                    final AttributeDescriptor descriptor,
                                                       final XmlParserDefinition definition) throws OpenDataException{
             final TabularTypeBuilder builder = new TabularTypeBuilder();
             builder.addColumn(INDEX_COLUMN, "The index of the row", SimpleType.INTEGER, true);
-            definition.exportTableOrDictionaryType(new RecordReader<String, XmlParsingResultType, ExceptionPlaceholder>() {
+            definition.exportTableOrDictionaryType(new EntryReader<String, XmlParsingResultType, ExceptionPlaceholder>() {
                 @Override
                 public boolean read(final String index, final XmlParsingResultType value) {
                     builder.addColumn(index, index, value.getOpenType(), false);
                     return true;
                 }
             });
-            builder.setTypeName(String.format("%sTabularType", descriptor.getAttributeName()), true);
+            builder.setTypeName(String.format("%sTabularType", descriptor.getName(attributeName)), true);
             builder.setDescription(RShellAttributeInfo.getDescription(descriptor), true);
             return builder.build();
         }
@@ -155,26 +155,27 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
 
         private static final long serialVersionUID = 7974143091272614419L;
 
-        private DictionaryAttributeInfo(final String attributeID,
+        private DictionaryAttributeInfo(final String attributeName,
                                         final XmlCommandLineToolProfile profile,
                                         final AttributeDescriptor descriptor) throws OpenDataException {
-            super(attributeID,
+            super(attributeName,
                     profile,
-                    getCompositeType(descriptor, profile.getReaderTemplate().getCommandOutputParser()),
+                    getCompositeType(attributeName, descriptor, profile.getReaderTemplate().getCommandOutputParser()),
                     descriptor);
         }
 
-        private static CompositeType getCompositeType(final AttributeDescriptor descriptor,
+        private static CompositeType getCompositeType(final String attributeName,
+                                                      final AttributeDescriptor descriptor,
                                                     final XmlParserDefinition definition) throws OpenDataException{
             final CompositeTypeBuilder builder = new CompositeTypeBuilder();
-            definition.exportTableOrDictionaryType(new RecordReader<String, XmlParsingResultType, ExceptionPlaceholder>() {
+            definition.exportTableOrDictionaryType(new EntryReader<String, XmlParsingResultType, ExceptionPlaceholder>() {
                 @Override
                 public boolean read(final String index, final XmlParsingResultType value) {
                     builder.addItem(index, index, value.getOpenType());
                     return true;
                 }
             });
-            builder.setTypeName(String.format("%sCompositeType", descriptor.getAttributeName()));
+            builder.setTypeName(String.format("%sCompositeType", descriptor.getName(attributeName)));
             builder.setDescription(RShellAttributeInfo.getDescription(descriptor));
             return builder.build();
         }
@@ -190,35 +191,31 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
         }
     }
 
-    private static final class RShellAttributes extends AbstractAttributeSupport<RShellAttributeInfo> {
-
+    private static final class RShellAttributes extends AbstractAttributeRepository<RShellAttributeInfo> {
         private final CommandExecutionChannel executionChannel;
         private final ScriptEngineManager scriptEngineManager;
+        private final Logger logger;
 
         private RShellAttributes(final String resourceName,
                                  final CommandExecutionChannel channel,
-                                 final ScriptEngineManager engineManager) {
+                                 final ScriptEngineManager engineManager,
+                                 final Logger logger) {
             super(resourceName, RShellAttributeInfo.class);
             this.executionChannel = Objects.requireNonNull(channel);
             this.scriptEngineManager = engineManager;
+            this.logger = Objects.requireNonNull(logger);
         }
 
         /**
          * Reports an error when connecting attribute.
          *
-         * @param attributeID   The attribute identifier.
          * @param attributeName The name of the attribute.
          * @param e             Internal connector error.
-         * @see #failedToConnectAttribute(java.util.logging.Logger, java.util.logging.Level, String, String, Exception)
+         * @see #failedToConnectAttribute(java.util.logging.Logger, java.util.logging.Level, String, Exception)
          */
         @Override
-        protected void failedToConnectAttribute(final String attributeID, final String attributeName, final Exception e) {
-            RShellConnectorHelpers.withLogger(new SafeConsumer<Logger>() {
-                @Override
-                public void accept(final Logger logger) {
-                    failedToConnectAttribute(logger, Level.SEVERE, attributeID, attributeName, e);
-                }
-            });
+        protected void failedToConnectAttribute(final String attributeName, final Exception e) {
+            failedToConnectAttribute(logger, Level.WARNING, attributeName, e);
         }
 
         /**
@@ -230,12 +227,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
          */
         @Override
         protected void failedToGetAttribute(final String attributeID, final Exception e) {
-            RShellConnectorHelpers.withLogger(new SafeConsumer<Logger>() {
-                @Override
-                public void accept(final Logger logger) {
-                    failedToGetAttribute(logger, Level.WARNING, attributeID, e);
-                }
-            });
+            failedToGetAttribute(logger, Level.WARNING, attributeID, e);
         }
 
         /**
@@ -248,36 +240,31 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
          */
         @Override
         protected void failedToSetAttribute(final String attributeID, final Object value, final Exception e) {
-            RShellConnectorHelpers.withLogger(new SafeConsumer<Logger>() {
-                @Override
-                public void accept(final Logger logger) {
-                    failedToSetAttribute(logger, Level.WARNING, attributeID, value, e);
-                }
-            });
+            failedToSetAttribute(logger, Level.WARNING, attributeID, value, e);
         }
 
         /**
          * Connects to the specified attribute.
          *
-         * @param attributeID The id of the attribute.
+         * @param attributeName The id of the attribute.
          * @param descriptor  Attribute descriptor.
          * @return The description of the attribute.
          * @throws Exception Internal connector error.
          */
         @Override
-        protected RShellAttributeInfo connectAttribute(final String attributeID,
+        protected RShellAttributeInfo connectAttribute(final String attributeName,
                                                        final AttributeDescriptor descriptor) throws Exception {
-            final String commandProfileFilePath = descriptor.getAttributeName();
+            final String commandProfileFilePath = descriptor.getName(attributeName);
             final XmlCommandLineToolProfile profile = XmlCommandLineToolProfile.loadFrom(new File(commandProfileFilePath));
             if (profile != null) {
                 profile.setScriptManager(scriptEngineManager);
                 switch (profile.getReaderTemplate().getCommandOutputParser().getParsingResultType()) {
                     case DICTIONARY:
-                        return new DictionaryAttributeInfo(attributeID, profile, descriptor);
+                        return new DictionaryAttributeInfo(attributeName, profile, descriptor);
                     case TABLE:
-                        return new TableAttributeInfo(attributeID, profile, descriptor);
+                        return new TableAttributeInfo(attributeName, profile, descriptor);
                     default:
-                        return new SimpleAttributeInfo(attributeID, profile, descriptor);
+                        return new SimpleAttributeInfo(attributeName, profile, descriptor);
                 }
             } else
                 throw new FileNotFoundException(commandProfileFilePath + " RShell command profile doesn't exist");
@@ -310,14 +297,17 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
     }
 
     private final CommandExecutionChannel executionChannel;
+    @Aggregation
     private final RShellAttributes attributes;
 
     RShellResourceConnector(final String resourceName,
                             final RShellConnectionOptions connectionOptions) throws Exception {
         executionChannel = connectionOptions.createExecutionChannel();
+        if(executionChannel == null)
+            throw new InstantiationException(String.format("Unknown channel: %s", connectionOptions));
         attributes = new RShellAttributes(resourceName,
                 executionChannel,
-                new OSGiScriptEngineManager(Utils.getBundleContextByObject(this)));
+                new OSGiScriptEngineManager(Utils.getBundleContextOfObject(this)), getLogger());
     }
 
     RShellResourceConnector(final String resourceName,
@@ -326,8 +316,13 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
         this(resourceName, new RShellConnectionOptions(connectionString, connectionOptions));
     }
 
-    boolean addAttribute(final String id, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
-        return attributes.addAttribute(id, attributeName, readWriteTimeout, options) != null;
+    @Override
+    protected MetricsReader createMetricsReader() {
+        return assembleMetricsReader(attributes);
+    }
+
+    boolean addAttribute(final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+        return attributes.addAttribute(attributeName, readWriteTimeout, options) != null;
     }
 
     /**
@@ -349,24 +344,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
      */
     @Override
     public void removeResourceEventListener(final ResourceEventListener listener) {
-        addResourceEventListener(listener, attributes);
-    }
-
-    /**
-     * Retrieves the aggregated object.
-     *
-     * @param objectType Type of the aggregated object.
-     * @return An instance of the requested object; or {@literal null} if object is not available.
-     */
-    @Override
-    public <T> T queryObject(final Class<T> objectType) {
-        return findObject(objectType,
-                new Function<Class<T>, T>() {
-                    @Override
-                    public T apply(final Class<T> objectType) {
-                        return RShellResourceConnector.super.queryObject(objectType);
-                    }
-                }, attributes);
+        removeResourceEventListener(listener, attributes);
     }
 
     void removeAttributesExcept(final Set<String> attributes) {

@@ -9,6 +9,8 @@ import com.ghgande.j2mod.modbus.util.BitVector;
 import com.bytex.snamp.io.Buffers;
 
 import java.nio.ShortBuffer;
+import static com.bytex.snamp.ArrayUtils.emptyArray;
+import static com.bytex.snamp.ArrayUtils.getFirst;
 
 /**
  * Represents an abstract class for all Modbus master apps.
@@ -110,7 +112,7 @@ abstract class AbstractModbusMaster implements ModbusMaster {
 
     @Override
     public final InputRegister readInputRegister(final int unitID, final int ref) throws ModbusException {
-        return readInputRegisters(unitID, ref, 1)[0];
+        return getFirst(readInputRegisters(unitID, ref, 1));
     }
 
     @Override
@@ -125,7 +127,7 @@ abstract class AbstractModbusMaster implements ModbusMaster {
 
     @Override
     public final Register readHoldingRegister(final int unitID, final int ref) throws ModbusException {
-        return readHoldingRegisters(unitID, ref, 1)[0];
+        return getFirst(readHoldingRegisters(unitID, ref, 1));
     }
 
     @Override
@@ -161,7 +163,7 @@ abstract class AbstractModbusMaster implements ModbusMaster {
                 final ReadFileRecordResponse.RecordResponse fileRecord = response.getRecord(0);
                 for (int i = 0; i < fileRecord.getWordCount(); i++)
                     buffer.put(fileRecord.getRegister(i).toShort());
-            } else return new short[0];
+            } else return emptyArray(short[].class);
         }
         return buffer.array();
     }

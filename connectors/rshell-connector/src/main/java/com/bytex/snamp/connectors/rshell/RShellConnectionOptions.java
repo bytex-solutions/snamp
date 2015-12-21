@@ -7,6 +7,7 @@ import com.bytex.jcommands.channels.CommandExecutionChannels;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 /**
  * Represents connection options for the RShell connector.
@@ -14,7 +15,7 @@ import java.util.Map;
  * @version 1.0
  * @since 1.0
  */
-final class RShellConnectionOptions {
+final class RShellConnectionOptions implements Callable<CommandExecutionChannel> {
     private final String connectionString;
     private final ImmutableMap<String, String> connectionParams;
 
@@ -29,11 +30,29 @@ final class RShellConnectionOptions {
      * @throws Exception Unable to instantiate the channel.
      */
     CommandExecutionChannel createExecutionChannel() throws Exception {
+        return call();
+    }
+
+    /**
+     * Computes a result, or throws an exception if unable to do so.
+     *
+     * @return computed result
+     * @throws Exception if unable to compute a result
+     */
+    @Override
+    public CommandExecutionChannel call() throws Exception {
         try {
-            final URI u = new URI(connectionString);
-            return CommandExecutionChannels.createChannel(u, connectionParams);
+            final URI parsedUrl = new URI(connectionString);
+            return parsedUrl.isAbsolute() ?
+                    CommandExecutionChannels.createChannel(parsedUrl, connectionParams) :
+                    CommandExecutionChannels.createChannel(parsedUrl.getPath(), connectionParams);
         } catch (final URISyntaxException e) {
             return CommandExecutionChannels.createChannel(connectionString, connectionParams);
         }
+    }
+
+    @Override
+    public String toString() {
+        return connectionString;
     }
 }

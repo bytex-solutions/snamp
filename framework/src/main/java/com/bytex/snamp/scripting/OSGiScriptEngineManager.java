@@ -9,8 +9,8 @@ import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.internal.annotations.Internal;
-import com.bytex.snamp.internal.annotations.ThreadSafe;
+import com.bytex.snamp.Internal;
+import com.bytex.snamp.ThreadSafe;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 

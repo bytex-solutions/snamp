@@ -2,7 +2,7 @@ package com.bytex.snamp.connectors.modbus;
 
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.attributes.AttributeSpecifier;
-import com.bytex.snamp.connectors.attributes.OpenAttributeAccessor;
+import com.bytex.snamp.connectors.attributes.OpenMBeanAttributeAccessor;
 import com.bytex.snamp.connectors.modbus.master.SlaveDeviceAccess;
 
 import javax.management.openmbean.OpenType;
@@ -13,7 +13,7 @@ import static com.bytex.snamp.connectors.modbus.ModbusResourceConnectorConfigura
 /**
  *
  */
-abstract class ModbusAttributeInfo<T, A extends SlaveDeviceAccess> extends OpenAttributeAccessor<T> {
+abstract class ModbusAttributeInfo<T, A extends SlaveDeviceAccess> extends OpenMBeanAttributeAccessor<T> {
     private final A slaveDeviceAccess;
 
     protected ModbusAttributeInfo(final String attributeID,

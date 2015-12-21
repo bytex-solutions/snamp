@@ -3,9 +3,8 @@ package com.bytex.snamp.configuration;
 import com.google.common.collect.ForwardingMap;
 import com.bytex.snamp.SerializableMap;
 import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.internal.RecordReader;
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.EntryReader;
+import com.bytex.snamp.SpecialUse;
 
 import java.io.*;
 import java.util.HashMap;
@@ -113,6 +112,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
         private static final long serialVersionUID = 6594540590402879949L;
         private final HashMap<String, String> parameters;
 
+        @SpecialUse
         public ModifiableParameters(){
             parameters = new HashMap<>(10);
         }
@@ -123,27 +123,27 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
         }
 
         @Override
-        protected final void writeKey(final String key, final ObjectOutput out) throws IOException {
+        protected void writeKey(final String key, final ObjectOutput out) throws IOException {
             out.writeUTF(key);
         }
 
         @Override
-        protected final void writeValue(final String value, final ObjectOutput out) throws IOException {
+        protected void writeValue(final String value, final ObjectOutput out) throws IOException {
             out.writeUTF(value);
         }
 
         @Override
-        protected final String readKey(final ObjectInput out) throws IOException {
+        protected String readKey(final ObjectInput out) throws IOException {
             return out.readUTF();
         }
 
         @Override
-        protected final String readValue(final ObjectInput out) throws IOException {
+        protected String readValue(final ObjectInput out) throws IOException {
             return out.readUTF();
         }
     }
 
-    private static abstract class ConfigurationEntityRegistry<E extends EntityConfiguration> extends ModifiableMap<String, E>{
+    private static abstract class ConfigurationEntityRegistry<E extends EntityConfiguration> extends ModifiableMap<String, E> implements EntityMap<E>{
         private static final long serialVersionUID = -3859844548619883398L;
         private final HashMap<String, E> entities;
 
@@ -151,13 +151,36 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
             entities = new HashMap<>(10);
         }
 
-        private <ERROR extends Exception> void modifiedEntries(final RecordReader<String, ? super E, ERROR> reader) throws ERROR{
+        private <ERROR extends Exception> void modifiedEntries(final EntryReader<String, ? super E, ERROR> reader) throws ERROR{
             for(final Entry<String, E> e: entrySet()){
                 final E entity = e.getValue();
                 final String name = e.getKey();
                 if(entity instanceof Modifiable && ((Modifiable)entity).isModified())
                     if(!reader.read(name, entity)) break;
             }
+        }
+
+        @Override
+        public final E getOrAdd(final String entityID) {
+            final E result;
+            if(containsKey(entityID))
+                result = get(entityID);
+            else {
+                result = createEntity();
+                put(entityID, result);
+            }
+            return result;
+        }
+
+        @Override
+        protected final void writeValue(final E value, final ObjectOutput out) throws IOException {
+            out.writeObject(value);
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        protected final E readValue(final ObjectInput out) throws IOException, ClassNotFoundException {
+            return (E) out.readObject();
         }
 
         @Override
@@ -190,95 +213,31 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
         protected final String readKey(final ObjectInput out) throws IOException {
             return out.readUTF();
         }
+
+        protected abstract E createEntity();
     }
 
-    private static final class AdapterRegistry extends ConfigurationEntityRegistry<ResourceAdapterConfiguration>{
-
+    private static final class AdapterRegistry extends ConfigurationEntityRegistry<SerializableResourceAdapterConfiguration>{
         private static final long serialVersionUID = 8142154170844526063L;
 
         public AdapterRegistry() {
         }
 
         @Override
-        protected void writeValue(final ResourceAdapterConfiguration value, final ObjectOutput out) throws IOException {
-            out.writeObject(value);
-        }
-
-        @Override
-        protected ResourceAdapterConfiguration readValue(final ObjectInput out) throws IOException, ClassNotFoundException {
-            return Utils.safeCast(out.readObject(), ResourceAdapterConfiguration.class);
+        protected SerializableResourceAdapterConfiguration createEntity() {
+            return new SerializableResourceAdapterConfiguration();
         }
     }
 
-    private static final class ResourceRegistry extends ConfigurationEntityRegistry<ManagedResourceConfiguration>{
+    private static final class ResourceRegistry extends ConfigurationEntityRegistry<SerializableManagedResourceConfiguration>{
         private static final long serialVersionUID = 8031527910928209252L;
 
         public ResourceRegistry() {
         }
 
         @Override
-        protected void writeValue(final ManagedResourceConfiguration value, final ObjectOutput out) throws IOException {
-            out.writeObject(value);
-        }
-
-        @Override
-        protected ManagedResourceConfiguration readValue(final ObjectInput out) throws IOException, ClassNotFoundException {
-            return Utils.safeCast(out.readObject(), ManagedResourceConfiguration.class);
-        }
-    }
-
-    private static final class OperationRegistry extends ConfigurationEntityRegistry<ManagedResourceConfiguration.OperationConfiguration>{
-        private static final long serialVersionUID = -6621970441951257198L;
-
-        @SpecialUse
-        public OperationRegistry(){
-
-        }
-
-        @Override
-        protected void writeValue(final ManagedResourceConfiguration.OperationConfiguration value, final ObjectOutput out) throws IOException {
-            out.writeObject(value);
-        }
-
-        @Override
-        protected ManagedResourceConfiguration.OperationConfiguration readValue(final ObjectInput out) throws IOException, ClassNotFoundException {
-            return Utils.safeCast(out.readObject(), ManagedResourceConfiguration.OperationConfiguration.class);
-        }
-    }
-
-    private static final class AttributeRegistry extends ConfigurationEntityRegistry<ManagedResourceConfiguration.AttributeConfiguration>{
-        private static final long serialVersionUID = -9035924377259475433L;
-
-        @SpecialUse
-        public AttributeRegistry() {
-        }
-
-        @Override
-        protected void writeValue(final ManagedResourceConfiguration.AttributeConfiguration value, final ObjectOutput out) throws IOException {
-            out.writeObject(value);
-        }
-
-        @Override
-        protected ManagedResourceConfiguration.AttributeConfiguration readValue(final ObjectInput out) throws IOException, ClassNotFoundException {
-            return Utils.safeCast(out.readObject(), ManagedResourceConfiguration.AttributeConfiguration.class);
-        }
-    }
-
-    private static final class EventRegistry extends ConfigurationEntityRegistry<ManagedResourceConfiguration.EventConfiguration>{
-        private static final long serialVersionUID = -4425614353529830020L;
-
-        @SpecialUse
-        public EventRegistry() {
-        }
-
-        @Override
-        protected void writeValue(final ManagedResourceConfiguration.EventConfiguration value, final ObjectOutput out) throws IOException {
-            out.writeObject(value);
-        }
-
-        @Override
-        protected ManagedResourceConfiguration.EventConfiguration readValue(final ObjectInput out) throws IOException, ClassNotFoundException {
-            return Utils.safeCast(out.readObject(), ManagedResourceConfiguration.EventConfiguration.class);
+        protected SerializableManagedResourceConfiguration createEntity() {
+            return new SerializableManagedResourceConfiguration();
         }
     }
 
@@ -352,6 +311,20 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
         public final void setParameter(final String name, final String value){
             parameters.put(name, value);
         }
+
+        public final String getParameter(final String parameter, final String defaultValue){
+            return parameters.containsKey(parameter) ?
+                    parameters.get(parameter) :
+                    defaultValue;
+        }
+
+        public final void setGroupName(final String value){
+            setParameter(GROUP_KEY, value);
+        }
+
+        public final String getGroupName(){
+            return getParameter(GROUP_KEY, null);
+        }
     }
 
     /**
@@ -378,7 +351,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
          * @return The name of the adapter.
          */
         @Override
-        public final String getAdapterName() {
+        public String getAdapterName() {
             return adapterName;
         }
 
@@ -388,7 +361,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
          * @param adapterName The adapter name.
          */
         @Override
-        public final void setAdapterName(final String adapterName) {
+        public void setAdapterName(final String adapterName) {
             markAsModified();
             this.adapterName = adapterName != null ? adapterName : "";
         }
@@ -460,9 +433,67 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
     public static final class SerializableManagedResourceConfiguration extends AbstractEntityConfiguration implements ManagedResourceConfiguration{
         private static final long serialVersionUID = 5044050385424748355L;
 
-        private static abstract class AbstractFeatureConfiguration extends AbstractEntityConfiguration implements FeatureConfiguration {
+        private static final class OperationRegistry extends ConfigurationEntityRegistry<SerializableManagedResourceConfiguration.SerializableOperationConfiguration>{
+            private static final long serialVersionUID = -6621970441951257198L;
 
+            @SpecialUse
+            public OperationRegistry(){
+
+            }
+
+            @Override
+            protected SerializableOperationConfiguration createEntity() {
+                return new SerializableOperationConfiguration();
+            }
+        }
+
+        private static final class AttributeRegistry extends ConfigurationEntityRegistry<SerializableManagedResourceConfiguration.SerializableAttributeConfiguration>{
+            private static final long serialVersionUID = -9035924377259475433L;
+
+            @SpecialUse
+            public AttributeRegistry() {
+            }
+
+            @Override
+            protected SerializableAttributeConfiguration createEntity() {
+                return new SerializableAttributeConfiguration();
+            }
+        }
+
+        private static final class EventRegistry extends ConfigurationEntityRegistry<SerializableManagedResourceConfiguration.SerializableEventConfiguration>{
+            private static final long serialVersionUID = -4425614353529830020L;
+
+            @SpecialUse
+            public EventRegistry() {
+            }
+
+            @Override
+            protected SerializableEventConfiguration createEntity() {
+                return new SerializableEventConfiguration();
+            }
+        }
+
+        private static abstract class AbstractFeatureConfiguration extends AbstractEntityConfiguration implements FeatureConfiguration {
             private static final long serialVersionUID = -1609210097027316240L;
+
+            public final void setAlternativeName(final String value){
+                setParameter(NAME_KEY, value);
+            }
+
+            public final String getAlternativeName(){
+                return getParameter(NAME_KEY, null);
+            }
+
+            public final void setAutomaticallyAdded(final boolean value){
+                if(value)
+                    setParameter(AUTOMATICALLY_ADDED_KEY, Boolean.TRUE.toString());
+                else
+                    getParameters().remove(AUTOMATICALLY_ADDED_KEY);
+            }
+
+            public final boolean isAutomaticallyAdded(){
+                return getParameters().containsKey(AUTOMATICALLY_ADDED_KEY);
+            }
         }
 
         /**
@@ -473,7 +504,6 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
          */
         public static final class SerializableOperationConfiguration extends AbstractFeatureConfiguration implements OperationConfiguration{
             private static final long serialVersionUID = 8267389949041604889L;
-            private String operationName = "";
             private TimeSpan timeout = TimeSpan.INFINITE;
 
             /**
@@ -492,7 +522,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
              */
             @Override
             public void writeExternal(final ObjectOutput out) throws IOException {
-                out.writeUTF(operationName != null ? operationName : "");
+                out.writeLong(timeout != null ? timeout.toMillis() : -1L);
                 writeParameters(out);
             }
 
@@ -510,28 +540,9 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
              */
             @Override
             public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
-                operationName = in.readUTF();
+                long timeout = in.readLong();
+                this.timeout = timeout < 0L ? TimeSpan.INFINITE : TimeSpan.ofMillis(timeout);
                 readParameters(in);
-            }
-
-            /**
-             * Gets name of the managed resource operation.
-             *
-             * @return The name of the managed resource operation.
-             */
-            @Override
-            public String getOperationName() {
-                return operationName;
-            }
-
-            /**
-             * Sets name of the managed resource operation.
-             *
-             * @param operationName Name of the managed resource operation.
-             */
-            @Override
-            public void setOperationName(final String operationName) {
-                this.operationName = operationName != null ? operationName : "";
             }
 
             @Override
@@ -542,9 +553,16 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
             @Override
             public void setInvocationTimeout(final TimeSpan value) {
                 markAsModified();
-                this.timeout = (value == TimeSpan.INFINITE || value.duration == Long.MAX_VALUE) ?
-                        TimeSpan.INFINITE :
-                        value;
+                this.timeout = value;
+            }
+
+            private boolean equals(final OperationConfiguration other){
+                return AbstractAgentConfiguration.equals(this, other);
+            }
+
+            @Override
+            public boolean equals(final Object other) {
+                return other instanceof OperationConfiguration && equals((OperationConfiguration)other);
             }
         }
 
@@ -554,17 +572,8 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
          * @since 1.0
          * @version 1.0
          */
-        public static final class SerializableEventConfiguration extends AbstractFeatureConfiguration implements EventConfiguration{
+        public static final class SerializableEventConfiguration extends AbstractFeatureConfiguration implements EventConfiguration {
             private static final long serialVersionUID = -6838585011981639479L;
-            private String eventCategory;
-
-            /**
-             * Initializes a event configuration with predefined category.
-             * @param category The event category.
-             */
-            public SerializableEventConfiguration(final String category){
-                this.eventCategory = category != null ? category : "";
-            }
 
             /**
              * The object implements the writeExternal method to save its contents
@@ -582,7 +591,6 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
              */
             @Override
             public void writeExternal(final ObjectOutput out) throws IOException {
-                out.writeUTF(eventCategory != null ? eventCategory : "");
                 writeParameters(out);
             }
 
@@ -600,50 +608,26 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
              */
             @Override
             public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
-                eventCategory = in.readUTF();
                 readParameters(in);
             }
 
-            /**
-             * Initializes a new empty configuration of the event.
-             */
-            public SerializableEventConfiguration(){
-                this("");
-            }
-
-            /**
-             * Gets the event category.
-             *
-             * @return The event category.
-             */
-            @Override
-            public final String getCategory() {
-                return eventCategory;
-            }
-
-            /**
-             * Sets the category of the event to listen.
-             *
-             * @param eventCategory The category of the event to listen.
-             */
-            @Override
-            public final void setCategory(final String eventCategory) {
-                markAsModified();
-                this.eventCategory = eventCategory != null ? eventCategory : "";
+            private boolean equals(final EventConfiguration other) {
+                return AbstractAgentConfiguration.equals(this, other);
             }
 
             @Override
-            public final boolean equals(final Object obj) {
-                return obj instanceof EventConfiguration && Objects.equals(((EventConfiguration) obj).getCategory(), getCategory());
+            public boolean equals(final Object other) {
+                return other instanceof EventConfiguration && equals((EventConfiguration) other);
             }
 
             /**
              * Computes hash code for this object.
+             *
              * @return The hash code of this object.
              */
             @Override
             public int hashCode() {
-                return eventCategory.hashCode() ^ getParameters().hashCode();
+                return getParameters().hashCode();
             }
         }
 
@@ -654,16 +638,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
          */
         public static final class SerializableAttributeConfiguration extends AbstractFeatureConfiguration implements AttributeConfiguration{
             private static final long serialVersionUID = -2134014000719123759L;
-            private TimeSpan readWriteTimeout;
-            private String attributeName;
-
-            /**
-             * Initializes a new configuration of the management attribute.
-             */
-            public SerializableAttributeConfiguration(){
-                readWriteTimeout = TimeSpan.INFINITE;
-                attributeName = "";
-            }
+            private TimeSpan readWriteTimeout = TimeSpan.INFINITE;
 
             /**
              * The object implements the writeExternal method to save its contents
@@ -681,7 +656,6 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
              */
             @Override
             public void writeExternal(final ObjectOutput out) throws IOException {
-                out.writeUTF(attributeName != null ? attributeName : "");
                 out.writeLong(readWriteTimeout != null ? readWriteTimeout.toMillis() : -1L);
                 writeParameters(out);
             }
@@ -700,19 +674,9 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
              */
             @Override
             public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
-                attributeName = in.readUTF();
                 final long timeout = in.readLong();
-                readWriteTimeout = timeout < 0L ? TimeSpan.INFINITE : new TimeSpan(timeout);
+                readWriteTimeout = timeout < 0L ? TimeSpan.INFINITE : TimeSpan.ofMillis(timeout);
                 readParameters(in);
-            }
-
-            /**
-             * Initializes a new configuration of the management attribute.
-             * @param attributeName The name of the management attribute.
-             */
-            public SerializableAttributeConfiguration(final String attributeName){
-                this();
-                this.attributeName = attributeName;
             }
 
             /**
@@ -721,7 +685,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
              * @return The attribute invoke/write operation timeout.
              */
             @Override
-            public final TimeSpan getReadWriteTimeout() {
+            public TimeSpan getReadWriteTimeout() {
                 return readWriteTimeout;
             }
 
@@ -730,41 +694,28 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
              * @param timeout A new value invoke/write operation timeout.
              */
             @Override
-            public final void setReadWriteTimeout(final TimeSpan timeout) {
+            public void setReadWriteTimeout(final TimeSpan timeout) {
                 markAsModified();
-                this.readWriteTimeout = (timeout == TimeSpan.INFINITE || timeout.duration == Long.MAX_VALUE) ?
-                        TimeSpan.INFINITE :
-                        timeout;
+                this.readWriteTimeout = timeout;
             }
 
-            /**
-             * Returns the attribute name.
-             *
-             * @return The attribute name,
-             */
-            @Override
-            public final String getAttributeName() {
-                return attributeName;
+            private boolean equals(final AttributeConfiguration other){
+                return AbstractAgentConfiguration.equals(this, other);
             }
 
-            /**
-             * Sets the attribute name.
-             *
-             * @param attributeName The attribute name.
-             */
             @Override
-            public final void setAttributeName(final String attributeName) {
-                markAsModified();
-                this.attributeName = attributeName != null ? attributeName : "";
+            public boolean equals(final Object other) {
+                return other instanceof AttributeConfiguration &&
+                        equals((AttributeConfiguration)other);
             }
         }
 
         private static final byte FORMAT_VERSION = 1;
         private String connectionString;
-        private final ConfigurationEntityRegistry<AttributeConfiguration> attributes;
+        private final ConfigurationEntityRegistry<SerializableAttributeConfiguration> attributes;
         private String connectionType;
-        private final ConfigurationEntityRegistry<EventConfiguration> events;
-        private final ConfigurationEntityRegistry<OperationConfiguration> operations;
+        private final ConfigurationEntityRegistry<SerializableEventConfiguration> events;
+        private final ConfigurationEntityRegistry<SerializableOperationConfiguration> operations;
 
         /**
          * Initializes a new empty configuration of the management information source.
@@ -828,7 +779,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
          * Overwrites a set of operations.
          * @param operations A new set of operations.
          */
-        public void setOperations(final Map<String, ? extends OperationConfiguration> operations){
+        public void setOperations(final Map<String, ? extends SerializableOperationConfiguration> operations){
             this.operations.clear();
             this.operations.putAll(operations);
         }
@@ -837,7 +788,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
          * Overwrites a set of attributes.
          * @param attributes A new set of attributes.
          */
-        public void setAttributes(final Map<String, ? extends AttributeConfiguration> attributes) {
+        public void setAttributes(final Map<String, ? extends SerializableAttributeConfiguration> attributes) {
             this.attributes.clear();
             this.attributes.putAll(attributes);
         }
@@ -846,7 +797,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
          * Overwrites a set of events.
          * @param events A new set of events.
          */
-        public void setEvents(final Map<String, ? extends EventConfiguration> events){
+        public void setEvents(final Map<String, ? extends SerializableEventConfiguration> events){
             this.events.clear();
             this.events.putAll(events);
         }
@@ -864,7 +815,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
          * @return The connection string that is used to connect to the management server.
          */
         @Override
-        public final String getConnectionString() {
+        public String getConnectionString() {
             return connectionString;
         }
 
@@ -874,7 +825,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
          * @param connectionString The connection string that is used to connect to the management server.
          */
         @Override
-        public final void setConnectionString(final String connectionString) {
+        public void setConnectionString(final String connectionString) {
             markAsModified();
             this.connectionString = connectionString != null ? connectionString : "";
         }
@@ -886,7 +837,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
          * @return The management connector type.
          */
         @Override
-        public final String getConnectionType() {
+        public String getConnectionType() {
             return connectionType;
         }
 
@@ -897,7 +848,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
          * @param connectorType The management connector type.
          */
         @Override
-        public final void setConnectionType(final String connectorType) {
+        public void setConnectionType(final String connectorType) {
             markAsModified();
             this.connectionType = connectionType != null ? connectorType : "";
         }
@@ -905,40 +856,21 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
         /**
          * Gets a collection of configured manageable elements for this target.
          *
-         * @param elementType The type of the manageable element.
+         * @param featureType The type of the manageable element.
          * @return A map of manageable elements; or {@literal null}, if element type is not supported.
          * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration
          * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration
          */
         @SuppressWarnings("unchecked")
         @Override
-        public <T extends FeatureConfiguration> SerializableMap<String, T> getElements(final Class<T> elementType) {
-            if(elementType == null) return null;
-            else if(Objects.equals(elementType, AttributeConfiguration.class))
-                return (SerializableMap<String, T>)getAttributes();
-            else if(Objects.equals(elementType, EventConfiguration.class))
-                return (SerializableMap<String, T>)getEvents();
-            else if(Objects.equals(elementType, OperationConfiguration.class))
-                return (SerializableMap<String, T>)getOperations();
-            else return null;
-        }
-
-        /**
-         * Creates a new instances of the specified manageable element.
-         *
-         * @param elementType Type of the required manageable element.
-         * @return A new empty manageable element; or {@literal null},
-         * if the specified element type is not supported.
-         */
-        @Override
-        public <T extends FeatureConfiguration> T newElement(final Class<T> elementType) {
-            if(elementType == null) return null;
-            else if(elementType.isAssignableFrom(SerializableAttributeConfiguration.class))
-                return elementType.cast(newAttributeConfiguration());
-            else if(elementType.isAssignableFrom(SerializableEventConfiguration.class))
-                return elementType.cast(newEventConfiguration());
-            else if(elementType.isAssignableFrom(SerializableOperationConfiguration.class))
-                return elementType.cast(newOperationConfiguration());
+        public <T extends FeatureConfiguration> EntityMap<? extends T> getFeatures(final Class<T> featureType) {
+            if(featureType == null) return null;
+            else if(Objects.equals(featureType, AttributeConfiguration.class))
+                return (EntityMap<? extends T>)getAttributes();
+            else if(Objects.equals(featureType, EventConfiguration.class))
+                return (EntityMap<? extends T>)getEvents();
+            else if(Objects.equals(featureType, OperationConfiguration.class))
+                return (EntityMap<? extends T>)getOperations();
             else return null;
         }
 
@@ -946,7 +878,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
          * Returns a set of configured operations.
          * @return A set of configured operations.
          */
-        public SerializableMap<String, OperationConfiguration> getOperations(){
+        public EntityMap<SerializableOperationConfiguration> getOperations(){
             return operations;
         }
 
@@ -955,7 +887,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
          *
          * @return The dictionary of management managementAttributes.
          */
-        public final SerializableMap<String, AttributeConfiguration> getAttributes() {
+        public EntityMap<SerializableAttributeConfiguration> getAttributes() {
             return attributes;
         }
 
@@ -964,38 +896,8 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
          *
          * @return A set of event sources.
          */
-        public final SerializableMap<String, EventConfiguration> getEvents() {
+        public EntityMap<SerializableEventConfiguration> getEvents() {
             return events;
-        }
-
-        /**
-         * Creates empty instance of the {@link OperationConfiguration} interface.
-         * @return Empty operation configuration.
-         */
-        public SerializableOperationConfiguration newOperationConfiguration(){
-            return new SerializableOperationConfiguration();
-        }
-
-        /**
-         * Empty implementation of AttributeConfiguration interface
-         *
-         * @return implementation of AttributeConfiguration interface
-         */
-        public final SerializableAttributeConfiguration newAttributeConfiguration() {
-            return new SerializableAttributeConfiguration();
-        }
-
-        /**
-         * Creates an empty event configuration.
-         * <p>
-         * Usually, this method is used for adding new events in the collection
-         * returned by {@link #getEvents()} method.
-         * </p>
-         *
-         * @return An empty event configuration.
-         */
-        public SerializableEventConfiguration newEventConfiguration() {
-            return new SerializableEventConfiguration();
         }
 
         /**
@@ -1027,8 +929,8 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
         }
     }
 
-    private final ConfigurationEntityRegistry<ManagedResourceConfiguration> resources;
-    private final ConfigurationEntityRegistry<ResourceAdapterConfiguration> adapters;
+    private final ConfigurationEntityRegistry<SerializableManagedResourceConfiguration> resources;
+    private final ConfigurationEntityRegistry<SerializableResourceAdapterConfiguration> adapters;
 
     /**
      * Initializes a new empty agent configuration.
@@ -1071,16 +973,16 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
      * @param <E> Type of the exception that may be produced by handler.
      * @throws E Unable to process modified configuration entity.
      */
-    public <E extends Exception> void modifiedEntities(final RecordReader<String, ? super EntityConfiguration, E> handler) throws E {
+    public <E extends Exception> void modifiedEntities(final EntryReader<String, ? super EntityConfiguration, E> handler) throws E {
         modifiedResources(handler);
         modifiedAdapters(handler);
     }
 
-    public <E extends Exception> void modifiedResources(final RecordReader<String, ? super ManagedResourceConfiguration, E> handler) throws E{
+    public <E extends Exception> void modifiedResources(final EntryReader<String, ? super ManagedResourceConfiguration, E> handler) throws E{
         resources.modifiedEntries(handler);
     }
 
-    public <E extends Exception> void modifiedAdapters(final RecordReader<String, ? super ResourceAdapterConfiguration, E> handler) throws E{
+    public <E extends Exception> void modifiedAdapters(final EntryReader<String, ? super ResourceAdapterConfiguration, E> handler) throws E{
         adapters.modifiedEntries(handler);
     }
 
@@ -1090,7 +992,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
      * @return The dictionary of management resources (management back-ends).
      */
     @Override
-    public final SerializableMap<String, ManagedResourceConfiguration> getManagedResources() {
+    public final EntityMap<SerializableManagedResourceConfiguration> getManagedResources() {
         return resources;
     }
 
@@ -1100,27 +1002,30 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
      * @return A collection of resource adapters.
      */
     @Override
-    public final SerializableMap<String, ResourceAdapterConfiguration> getResourceAdapters() {
+    public final EntityMap<SerializableResourceAdapterConfiguration> getResourceAdapters() {
         return adapters;
     }
 
-    /**
-     * Creates a new instance of the configuration entity.
-     *
-     * @param entityType Type of the entity to instantiate.
-     * @return A new instance of the configuration entity; or {@literal null}, if entity
-     * is not supported.
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration
-     */
-    @Override
-    public <T extends EntityConfiguration> T newConfigurationEntity(final Class<T> entityType) {
-        if(entityType == null) return null;
-        else if(entityType.isAssignableFrom(SerializableManagedResourceConfiguration.class))
-            return entityType.cast(new SerializableManagedResourceConfiguration());
-        else if(entityType.isAssignableFrom(SerializableResourceAdapterConfiguration.class))
-            return entityType.cast(new SerializableResourceAdapterConfiguration());
-        else return null;
+    public SerializableManagedResourceConfiguration getOrRegisterManagedResource(final String resourceName) {
+        final SerializableManagedResourceConfiguration result;
+        if (resources.containsKey(resourceName))
+            result = resources.get(resourceName);
+        else {
+            result = new SerializableManagedResourceConfiguration();
+            resources.put(resourceName, result);
+        }
+        return result;
+    }
+
+    public SerializableResourceAdapterConfiguration getOrRegisterResourceAdapter(final String adapterInstance) {
+        final SerializableResourceAdapterConfiguration result;
+        if (adapters.containsKey(adapterInstance))
+            result = adapters.get(adapterInstance);
+        else {
+            result = new SerializableResourceAdapterConfiguration();
+            adapters.put(adapterInstance, result);
+        }
+        return result;
     }
 
     /**
@@ -1177,4 +1082,5 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
     public final boolean isEmpty(){
         return adapters.isEmpty() && resources.isEmpty();
     }
+
 }

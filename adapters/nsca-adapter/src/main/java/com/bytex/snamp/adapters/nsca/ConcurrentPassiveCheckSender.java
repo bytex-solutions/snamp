@@ -1,5 +1,7 @@
 package com.bytex.snamp.adapters.nsca;
 
+import com.bytex.snamp.SafeCloseable;
+import com.google.common.base.Function;
 import com.google.common.base.Supplier;
 import com.googlecode.jsendnsca.core.MessagePayload;
 import com.googlecode.jsendnsca.core.NagiosException;
@@ -16,13 +18,25 @@ import java.util.concurrent.ExecutorService;
  * @version 1.0
  * @since 1.0
  */
-final class ConcurrentPassiveCheckSender extends NagiosPassiveCheckSender implements Closeable {
+final class ConcurrentPassiveCheckSender extends NagiosPassiveCheckSender implements Closeable, SafeCloseable {
    private final ExecutorService executor;
 
     ConcurrentPassiveCheckSender(final NagiosSettings settings,
                                  final Supplier<ExecutorService> threadPoolFactory) {
         super(settings);
         executor = threadPoolFactory.get();
+    }
+
+    <I> void send(final Function<? super I, MessagePayload> payload, final I input) {
+        executor.submit(new Callable<MessagePayload>() {
+            @Override
+            public MessagePayload call() throws IOException, NagiosException {
+                final MessagePayload result = payload.apply(input);
+                if (result != null)
+                    ConcurrentPassiveCheckSender.super.send(result);
+                return result;
+            }
+        });
     }
 
     @Override

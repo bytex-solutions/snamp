@@ -1,7 +1,7 @@
 package com.bytex.jcommands.impl;
 
 import com.bytex.jcommands.ChannelProcessor;
-import com.bytex.snamp.internal.annotations.ThreadSafe;
+import com.bytex.snamp.ThreadSafe;
 import org.stringtemplate.v4.ST;
 
 import javax.script.ScriptEngineManager;

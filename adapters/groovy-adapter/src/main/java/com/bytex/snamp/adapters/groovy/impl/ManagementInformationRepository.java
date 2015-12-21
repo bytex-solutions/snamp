@@ -10,7 +10,7 @@ import com.bytex.snamp.adapters.groovy.dsl.GroovyManagementModel;
 import com.bytex.snamp.adapters.modeling.*;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
-import com.bytex.snamp.internal.RecordReader;
+import com.bytex.snamp.EntryReader;
 import org.osgi.framework.BundleContext;
 
 import javax.management.*;
@@ -114,7 +114,7 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
          * @throws E
          */
         @Override
-        public <E extends Exception> void forEachNotification(final RecordReader<String, ? super ScriptNotificationAccessor, E> notificationReader) throws E {
+        public <E extends Exception> void forEachNotification(final EntryReader<String, ? super ScriptNotificationAccessor, E> notificationReader) throws E {
             try (final LockScope ignored = beginRead()) {
                 for (final ResourceNotificationList<ScriptNotificationAccessor> notifs : notifications.values())
                     for (final ScriptNotificationAccessor accessor : notifs.values())
@@ -135,7 +135,7 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
     public Map<String, ?> getResourceParameters(final String resourceName) {
         try {
             final ManagedResourceConfiguration config = ManagedResourceConnectorClient.getResourceConfiguration(context, resourceName);
-            return config != null ? ImmutableMap.<String, String>copyOf(config.getParameters()) : ImmutableMap.<String, String>of();
+            return config != null ? ImmutableMap.copyOf(config.getParameters()) : ImmutableMap.<String, String>of();
         } catch (final IOException ignored) {
             return ImmutableMap.of();
         }
@@ -172,7 +172,7 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
     }
 
     @Override
-    public <E extends Exception> void processAttributes(final RecordReader<String, AttributeAccessor, E> handler) throws E {
+    public <E extends Exception> void processAttributes(final EntryReader<String, AttributeAccessor, E> handler) throws E {
         forEachAttribute(handler);
     }
 
@@ -187,7 +187,7 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
     }
 
     @Override
-    public <E extends Exception> void processEvents(final RecordReader<String, NotificationAccessor, E> closure) throws E {
+    public <E extends Exception> void processEvents(final EntryReader<String, NotificationAccessor, E> closure) throws E {
         forEachNotification(closure);
     }
 
@@ -225,12 +225,12 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
     }
 
     @Override
-    public <E extends Exception> void forEachAttribute(final RecordReader<String, ? super ScriptAttributeAccessor, E> attributeReader) throws E {
+    public <E extends Exception> void forEachAttribute(final EntryReader<String, ? super ScriptAttributeAccessor, E> attributeReader) throws E {
         attributes.forEachAttribute(attributeReader);
     }
 
     @Override
-    public <E extends Exception> void forEachNotification(final RecordReader<String, ? super ScriptNotificationAccessor, E> notificationReader) throws E {
+    public <E extends Exception> void forEachNotification(final EntryReader<String, ? super ScriptNotificationAccessor, E> notificationReader) throws E {
         notifications.forEachNotification(notificationReader);
     }
 }

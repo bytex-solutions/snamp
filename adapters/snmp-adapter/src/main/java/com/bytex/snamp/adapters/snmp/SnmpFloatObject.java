@@ -1,6 +1,6 @@
 package com.bytex.snamp.adapters.snmp;
 
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.jmx.WellKnownType;
 import org.snmp4j.smi.AssignableFromByteArray;
 import org.snmp4j.smi.OctetString;
@@ -29,8 +29,8 @@ final class SnmpFloatObject extends SnmpScalarObject<OctetString>{
     @SpecialUse
     static Number fromSnmpObject(final AssignableFromByteArray value, final Type attributeTypeInfo) throws InvalidAttributeValueException {
         switch (WellKnownType.getType(attributeTypeInfo)){
-            case FLOAT: return Float.valueOf(SnmpHelpers.toString(value));
-            case DOUBLE: return Double.valueOf(SnmpHelpers.toString(value));
+            case FLOAT: return Float.parseFloat(SnmpHelpers.toString(value));
+            case DOUBLE: return Double.parseDouble(SnmpHelpers.toString(value));
             default: throw unexpectedAttributeType(attributeTypeInfo);
         }
     }

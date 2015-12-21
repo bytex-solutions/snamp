@@ -8,10 +8,7 @@ import com.bytex.snamp.security.auth.login.json.spi.JsonConfigurationSpi;
 import org.apache.karaf.jaas.config.JaasRealm;
 import org.osgi.service.cm.ConfigurationAdmin;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.Map;
@@ -40,7 +37,7 @@ public final class Activator extends AbstractServiceLibrary {
             //check for boot configuration
             final File bootConfig = new File(System.getProperty(BOOT_CONFIG_PROPERTY, DEFAULT_CONFIG_FILE));
             if (bootConfig.exists())
-                try (final InputStream config = new FileInputStream(bootConfig)) {
+                try (final Reader config = new FileReader(bootConfig)) {
                     result.loadConfiguration(config);
                 }
             identity.put(LoginConfigurationManager.CONFIGURATION_MIME_TYPE, "application/json");

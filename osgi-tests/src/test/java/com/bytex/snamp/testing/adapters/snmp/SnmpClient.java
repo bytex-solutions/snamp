@@ -1,12 +1,12 @@
 package com.bytex.snamp.testing.adapters.snmp;
 
-import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.testing.SnmpTable;
 import org.snmp4j.PDU;
 import org.snmp4j.smi.OID;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.concurrent.Future;
 
 /**
  * Represents SNMP client for flexible testing of snmp adapter
@@ -25,7 +25,7 @@ public interface SnmpClient extends Closeable {
      * @param notificationID
      * @return
      */
-    SynchronizationEvent.EventAwaitor<SnmpNotification> addNotificationListener(final OID notificationID);
+    Future<SnmpNotification> addNotificationListener(final OID notificationID);
 
     /**
      * Writes table object to certain OID prefix table

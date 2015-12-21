@@ -4,6 +4,7 @@ import com.bytex.snamp.jmx.OpenMBean;
 
 import javax.management.JMException;
 import javax.management.ObjectName;
+import java.lang.management.ManagementFactory;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.Map;
@@ -32,6 +33,14 @@ public abstract class OpenMBeanProvider<T extends OpenMBean & FrameworkMBean> ex
     }
 
     /**
+     * Returns {@literal true} to register MBean in platform-specific MBean Server.
+     * @return {@literal true} to register MBean in platform-specific MBean Server.
+     */
+    protected boolean usePlatformMBeanServer(){
+        return false;
+    }
+
+    /**
      * Creates a new instance of MBean.
      * @return A new instance of MBean.
      * @throws JMException Unable to instantiate MBean.
@@ -48,8 +57,12 @@ public abstract class OpenMBeanProvider<T extends OpenMBean & FrameworkMBean> ex
      */
     @Override
     protected T activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws JMException {
-        createIdentity(identity, new ObjectName(objectName));
-        return createMBean();
+        final ObjectName objectName = new ObjectName(this.objectName);
+        createIdentity(identity, objectName);
+        final T mbean = createMBean();
+        if (usePlatformMBeanServer())
+            ManagementFactory.getPlatformMBeanServer().registerMBean(mbean, objectName);
+        return mbean;
     }
 
     private static void createIdentity(final Map<String, Object> identity, final ObjectName name){
@@ -60,5 +73,23 @@ public abstract class OpenMBeanProvider<T extends OpenMBean & FrameworkMBean> ex
         final Hashtable<String, Object> identity = new Hashtable<>(1);
         createIdentity(identity, name);
         return identity;
+    }
+
+    /**
+     * Provides service cleanup operations.
+     * <p>
+     * In the default implementation this method does nothing.
+     * </p>
+     *
+     * @param serviceInstance An instance of the hosted service to cleanup.
+     * @param stopBundle      {@literal true}, if this method calls when the owner bundle is stopping;
+     *                        {@literal false}, if this method calls when loosing dependency.
+     */
+    @Override
+    protected void cleanupService(final T serviceInstance, final boolean stopBundle) throws Exception {
+        //if bundle started in Apache Karaf environment then MBean server automatically registers SNAMP MBeans
+        //if not, then register MBean manually
+        if(usePlatformMBeanServer())
+            ManagementFactory.getPlatformMBeanServer().unregisterMBean(new ObjectName(objectName));
     }
 }

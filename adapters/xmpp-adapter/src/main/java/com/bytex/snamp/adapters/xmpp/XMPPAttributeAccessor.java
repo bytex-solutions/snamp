@@ -1,12 +1,12 @@
 package com.bytex.snamp.adapters.xmpp;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.bytex.snamp.StringAppender;
 import com.bytex.snamp.adapters.modeling.AttributeAccessor;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
+import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.jmx.WellKnownType;
-import com.bytex.snamp.jmx.json.Formatters;
+import com.bytex.snamp.jmx.json.JsonUtils;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.jivesoftware.smack.packet.ExtensionElement;
 import org.jivesoftware.smackx.jiveproperties.packet.JivePropertiesExtension;
 
@@ -23,7 +23,7 @@ import java.util.Collection;
 abstract class XMPPAttributeAccessor extends AttributeAccessor {
     static final String GET_COMMAND_PATTERN = "get -n %s -r %s";
     static final String SET_COMMAND_PATTERN = "set -n %s -r %s -v %s";
-    protected static final Gson FORMATTER = Formatters.enableAll(new GsonBuilder())
+    protected static final Gson FORMATTER = JsonUtils.registerTypeAdapters(new GsonBuilder())
                         .serializeSpecialFloatingPointValues()
                         .serializeNulls()
             .create();
@@ -51,14 +51,14 @@ abstract class XMPPAttributeAccessor extends AttributeAccessor {
         return FORMATTER.toJson(getValue());
     }
 
-    final void printOptions(final StringAppender output) {
+    final void printOptions(final StringBuilder output) {
         final Descriptor descr = getMetadata().getDescriptor();
         for (final String fieldName : descr.getFieldNames())
-            output.appendln("%s = %s", fieldName, descr.getFieldValue(fieldName));
+            IOUtils.appendln(output, "%s = %s", fieldName, descr.getFieldValue(fieldName));
     }
 
     final String getOriginalName() {
-        return AttributeDescriptor.getAttributeName(getMetadata());
+        return AttributeDescriptor.getName(getMetadata());
     }
 
     final void createExtensions(final Collection<ExtensionElement> output) {

@@ -9,6 +9,7 @@ import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.bind.annotation.XmlType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.Set;
@@ -107,7 +108,9 @@ public enum XmlParsingResultType {
     BIG_INTEGER(SimpleType.BIGINTEGER) {
         @Override
         public BigInteger[] newArray(final int length) {
-            return new BigInteger[length];
+            final BigInteger[] result = new BigInteger[length];
+            Arrays.fill(result, BigInteger.ZERO);
+            return result;
         }
     },
 
@@ -115,7 +118,9 @@ public enum XmlParsingResultType {
     BIG_DECIMAL(SimpleType.BIGDECIMAL) {
         @Override
         public BigDecimal[] newArray(final int length) {
-            return new BigDecimal[length];
+            final BigDecimal[] result = new BigDecimal[length];
+            Arrays.fill(result, BigDecimal.ZERO);
+            return result;
         }
     },
 

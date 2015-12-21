@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -53,7 +54,7 @@ public final class FutureThreadTest extends Assert {
         }
     }
 
-    @Test
+    @Test(expected = CancellationException.class)
     public final void taskCancellationTest() throws InterruptedException, ExecutionException {
         final FutureThread<String> longRunning = new FutureThread<>(new Callable<String>() {
             @Override
@@ -67,8 +68,8 @@ public final class FutureThreadTest extends Assert {
         Thread.sleep(100);
         //cancel task
         assertTrue(longRunning.cancel(true));
-        assertEquals("interrupted", longRunning.get());
         assertTrue(longRunning.isCancelled());
         assertTrue(longRunning.isDone());
+        assertNotNull(longRunning.get());
     }
 }

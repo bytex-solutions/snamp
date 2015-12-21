@@ -1,9 +1,5 @@
 package com.bytex.snamp.testing.connectors.groovy;
 
-import com.google.common.collect.ImmutableSet;
-import com.bytex.snamp.ExceptionPlaceholder;
-import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.concurrent.Awaitor;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
@@ -11,6 +7,7 @@ import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.connectors.notifications.NotificationSupport;
 import com.bytex.snamp.connectors.notifications.SynchronizationListener;
 import com.bytex.snamp.jmx.CompositeDataUtils;
+import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
 
 import javax.management.Attribute;
@@ -19,7 +16,8 @@ import javax.management.Notification;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.TabularData;
 import java.util.Collection;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Roman Sakno
@@ -32,8 +30,8 @@ public final class GroovyConnectorTest extends AbstractGroovyConnectorTest {
     public void dummyAttributeTest() throws JMException{
         final ManagedResourceConnector groovyConnector = getManagementConnector();
         try {
-            groovyConnector.setAttribute(new Attribute("dummy", 42));
-            final Object value = groovyConnector.getAttribute("dummy");
+            groovyConnector.setAttribute(new Attribute("DummyAttribute", 42));
+            final Object value = groovyConnector.getAttribute("DummyAttribute");
             assertTrue(value instanceof Integer);
             assertEquals(42, value);
         }
@@ -46,7 +44,7 @@ public final class GroovyConnectorTest extends AbstractGroovyConnectorTest {
     public void jsonAttributeTest() throws JMException{
         final ManagedResourceConnector groovyConnector = getManagementConnector();
         try {
-            final Object value = groovyConnector.getAttribute("json");
+            final Object value = groovyConnector.getAttribute("JsonAttribute");
             assertTrue(value instanceof Integer);
             assertEquals(56, value);
         }
@@ -59,7 +57,7 @@ public final class GroovyConnectorTest extends AbstractGroovyConnectorTest {
     public void financeAttributeTest() throws JMException{
         final ManagedResourceConnector groovyConnector = getManagementConnector();
         try {
-            final Object value = groovyConnector.getAttribute("finance");
+            final Object value = groovyConnector.getAttribute("Yahoo");
             assertTrue(value instanceof Integer);
         }
         finally {
@@ -71,10 +69,10 @@ public final class GroovyConnectorTest extends AbstractGroovyConnectorTest {
     public void dictionaryTest() throws JMException{
         final ManagedResourceConnector groovyConnector = getManagementConnector();
         try {
-            final Object value = groovyConnector.getAttribute("dict");
+            final Object value = groovyConnector.getAttribute("DictionaryAttribute");
             assertTrue(value instanceof CompositeData);
             assertEquals(67L, CompositeDataUtils.getLong((CompositeData) value, "key1", 0L));
-            groovyConnector.setAttribute(new Attribute("dict", value));
+            groovyConnector.setAttribute(new Attribute("DictionaryAttribute", value));
         }
         finally {
             releaseManagementConnector();
@@ -85,10 +83,10 @@ public final class GroovyConnectorTest extends AbstractGroovyConnectorTest {
     public void tableTest() throws JMException{
         final ManagedResourceConnector groovyConnector = getManagementConnector();
         try {
-            final Object value = groovyConnector.getAttribute("table");
+            final Object value = groovyConnector.getAttribute("TableAttribute");
             assertTrue(value instanceof TabularData);
             assertEquals(2, ((TabularData)value).size());
-            groovyConnector.setAttribute(new Attribute("table", value));
+            groovyConnector.setAttribute(new Attribute("TableAttribute", value));
         }
         finally {
             releaseManagementConnector();
@@ -96,15 +94,15 @@ public final class GroovyConnectorTest extends AbstractGroovyConnectorTest {
     }
 
     @Test
-    public void notificationTest() throws JMException, TimeoutException, InterruptedException {
+    public void notificationTest() throws Exception {
         final ManagedResourceConnector groovyConnector = getManagementConnector();
         try{
             final NotificationSupport notificationSupport = groovyConnector.queryObject(NotificationSupport.class);
             assertNotNull(notificationSupport);
-            final SynchronizationListener listener = new SynchronizationListener("ev");
-            final Awaitor<Notification, ExceptionPlaceholder> awaitor = listener.getAwaitor();
+            final SynchronizationListener listener = new SynchronizationListener("Event");
+            final Future<Notification> awaitor = listener.getAwaitor();
             notificationSupport.addNotificationListener(listener, listener, null);
-            final Notification notif = awaitor.await(new TimeSpan(2000));
+            final Notification notif = awaitor.get(2, TimeUnit.SECONDS);
             assertNotNull(notif);
             assertEquals("Dummy event", notif.getMessage());
         }

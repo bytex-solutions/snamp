@@ -7,7 +7,7 @@ import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfigura
 import com.bytex.snamp.connectors.ManagedResourceActivator;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.management.AbstractMaintainable;
 import com.bytex.snamp.management.Maintainable;
 import org.osgi.framework.BundleContext;
@@ -24,7 +24,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
-import static com.bytex.snamp.internal.Utils.getBundleContextByObject;
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 
 /**
@@ -43,7 +43,7 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
         /**
          * Returns read-only map of maintenance actions.
          *
-         * @return Read-only map of maintenance action,
+         * @return Read-only map of maintenance actions.
          */
         @Override
         public Set<String> getActions() {
@@ -77,11 +77,11 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
         @SpecialUse
         public Future<String> doAction(final String actionName, final String arguments, final Locale loc) {
             if(Objects.equals(actionName, JmxMaintenanceActions.SIMULATE_CONNECTION_ABORT.getName())){
-                final BundleContext context = getBundleContextByObject(this);
+                final BundleContext context = getBundleContextOfObject(this);
                 final Map<String, ServiceReference<ManagedResourceConnector>> connectors = ManagedResourceConnectorClient.getConnectors(context);
                 final FutureThread<String> result = new FutureThread<>(new Callable<String>() {
                     @Override
-                    public final String call() throws IOException, InterruptedException{
+                    public String call() throws IOException, InterruptedException{
                         for(final ServiceReference<ManagedResourceConnector> ref: connectors.values())
                             if(Objects.equals(getConnectorType(ref), JmxConnector.getType()))
                                 try{
@@ -92,6 +92,11 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
                                     context.ungetService(ref);
                                 }
                         return "OK";
+                    }
+
+                    @Override
+                    public String toString() {
+                        return actionName + "-jmxConnectorActionThread";
                     }
                 });
                 result.start();
@@ -133,25 +138,25 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
 
         @Override
         protected boolean addAttribute(final JmxConnector connector,
-                                    final String attributeID,
                                     final String attributeName,
                                     final TimeSpan readWriteTimeout,
                                     final CompositeData options) {
-            return connector.addAttribute(attributeID, attributeName, readWriteTimeout, options);
+            return connector.addAttribute(attributeName, readWriteTimeout, options);
         }
 
         @Override
-        protected boolean enableNotifications(final JmxConnector connector, final String listId, final String category, final CompositeData options) {
-            return connector.enableNotifications(listId, category, options);
+        protected boolean enableNotifications(final JmxConnector connector,
+                                              final String category,
+                                              final CompositeData options) {
+            return connector.enableNotifications(category, options);
         }
 
         @Override
         protected boolean enableOperation(final JmxConnector connector,
-                                       final String operationID,
                                        final String operationName,
                                        final TimeSpan invocationTimeout,
                                        final CompositeData options) {
-            return connector.enableOperation(operationID, operationName, invocationTimeout, options);
+            return connector.enableOperation(operationName, invocationTimeout, options);
         }
 
         @Override

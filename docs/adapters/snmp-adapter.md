@@ -1,42 +1,45 @@
 SNMP Resource Adapter
 ====
-SNMP Resource Adapter exposes management information about connected resources through SNMP protocol. It supports SNMPv2 and SNMPv3 protocol versions. You may use many powerful tools such as `snmpwalk`, HP OpenView, OpenNMS, Microsoft System Center Operations Manager, Zabbix for monitoring components connected to SNAMP.
+SNMP Resource Adapter exposes management information about connected resources through SNMP protocol. It supports SNMPv2 and SNMPv3 protocol versions. You may use many powerful tools such as `snmpwalk`, Nagios (there is a separate adapter, but can work with SNMP adapter as well), HP OpenView, OpenNMS, Microsoft System Center Operations Manager, Zabbix for monitoring components connected to SNAMP.
 
-SNMP Resource Adapter supports the following features (if they are supported by managed resources too):
+![Communication Scheme](snmp-adapter.png)
+
+SNMP Resource Adapter supports following features (if these features are supported by managed resources as well):
 
 Feature | Description
 ---- | ----
-Attributes | Each attribute will be exposed as Managed Object with their own unique OID
-Notifications | Each notification will be asynchronously delivered to SNMP Trap Receiver as Traps
+Attributes | Each attribute is being exposed as Managed Object with their own unique OID
+Notifications | Each notification is being asynchronously delivered to SNMP Trap Receiver as Traps
 
 Additionally, SNMP Resource Adapter supports integration with LDAP. You can place authentication and authorization parameters into LDAP server for more centralized control. Also, this adapter utilizes **its own internal thread pool that can be configured explicitly**.
 
 ## Configuration Parameters
-SNMP Resource Adapters recognizes the following configuration parameters:
+SNMP Resource Adapters recognizes following configuration parameters:
 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
 context | OID | Yes | Prefix OID used to filter attributes and events during agent boot process | `1.1`
-engineID | HEX String | No | The engine ID is used with a hashing function to generate keys for authentication and encryption of SNMP v3 messages. If you do not specify an engine ID, one is generated when you enable the standalone SNMP agent. This parameter is for SNMPv3 protocol only | `80:00:13:70:01:7f:00:01:01:be:1e:8b:35`
-snmpv3-groups | Semicolon-separated list of groups | No | A list of groups with users that can be authenticated on SNMP Agent. The groups can be configured locally or supplied from LDAP. This parameter is for SNMPv3 protocol only | See **User groups** section for examples
-socketTimeout | Integer | No | Socket timeout (in millis) used for sending outgoing UDP packets. By default it is equal to `5000` | `2000`
-restartTimeout | Integer | No | Timeout value (in millis) used by instance of the adapter to reconfigure internal database of managed objects. This configuration parameter is for experts only. Change it when you want to expose more than 256 attributes in total. By default it is equal to `10000`  | `3000`
+engineID | HEX String | No | Engine ID is used with a hashing function to generate keys for authentication and encryption of SNMP v3 messages. If you do not specify engine ID, one is generated when you enable the standalone SNMP agent. This parameter works with SNMPv3 protocol only | `80:00:13:70:01:7f:00:01:01:be:1e:8b:35`
+snmpv3-groups | Semicolon-separated list of groups | No | List of groups with users that can be authenticated on SNMP Agent. Groups can be configured locally or supplied from LDAP. This parameter works with SNMPv3 protocol only | See **User groups** section for examples
+socketTimeout | Integer | No | Socket timeout (in millis) used for sending outgoing UDP packets. Default value is `5000` | `2000`
+restartTimeout | Integer | No | Timeout value (in millis) used by instance of the adapter to reconfigure internal database of managed objects. This configuration parameter is for experts only. Change it when you want to expose more than 256 attributes in total. Default value is `10000`  | `3000`
 port | Integer | Yes | Port number used to listen incoming UDP packets | `161`
 host | IP Address | Yes | Network interface used to listen incoming UDP packets | `0.0.0.0`
-ldap-uri | URI | No | Address of LDAP server. This parameter is for SNMPv3 protocol only | `ldap://127.0.0.1:389`
-ldap-groups | _RFC 1960_-based expression | No | An expression used to find SNMPv3 user groups in LDAP | `(&(objectclass=domain)(objectclass=top))`
+ldap-uri | URI | No | Address of LDAP server. This parameter work with SNMPv3 protocol only | `ldap://127.0.0.1:389`
+ldap-groups | _RFC 1960_-based expression | No | Expression used to find SNMPv3 user groups in LDAP | `(&(objectclass=domain)(objectclass=top))`
 ldap-user | Distinguished name (DN) | No |  DN of the user used for LDAP authentication | `uid=admin,ou=system`
-ldap-password | String | No | The password applied for LDAP authentication | `qwerty`
+ldap-password | String | No | Password applied for LDAP authentication | `qwerty`
 ldap-auth-protocol | Enum | No | LDAP authentication mechanism | `GSSAPI`
 ldap-base-dn | Distinguished name (DN) | No | Base DN of the LDAP database tree used in search operations | `dc=ad,dc=organization,dc=com`
-ldap-user-search-filter | _RFC 1960_-based expression | No | A filter used to search entries with user entries for SNMPv3 authentication | `(cn=User)``
-jndi-ldap-factory | String | No | Full name of Java class used for instantiating LDAP client. By default it is equal to `com.sun.jndi.ldap.LdapCtxFactory`. This value is valid for Oracle JDK and OpenJDK only. You must specify this parameter for another JVM | `com.sun.jndi.ldap.LdapCtxFactory`
-ldap-user-password-attribute-name | String | No | The name of the property in LDAP entry which holds password of the SNMPv3 user. By default it is equal to `userPassword` | `userPassword`
+ldap-user-search-filter | _RFC 1960_-based expression | No | Filter used to search entries with user entries for SNMPv3 authentication | `(cn=User)`
+jndi-ldap-factory | String | No | Full name of Java class used for instantiating LDAP client. Default value is `com.sun.jndi.ldap.LdapCtxFactory`. This value is valid for Oracle JDK and OpenJDK only. You must specify this parameter for any other JVM | `com.sun.jndi.ldap.LdapCtxFactory`
+ldap-user-password-attribute-name | String | No | Property name in the LDAP entry which holds password of the SNMPv3 user. Default value is `userPassword` | `userPassword`
 
 Note that parameters related to thread pool is omitted. See **SNAMP Configuration Guide** page for more information about thread pool configuration. All other parameters will be ignored.
 
 ### SNMPv2 setup
 For SNMPv2 setup you need to use the following parameters:
+
 * `context`
 * `host`
 * `port`
@@ -47,6 +50,7 @@ The adapter uses `public` community for all managed objects.
 
 ### SNMPv3 setup without LDAP
 For SNMPv3 setup you need to use the following parameters:
+
 * `context`
 * `host`
 * `port`
@@ -55,10 +59,11 @@ For SNMPv3 setup you need to use the following parameters:
 * `engineID`
 * `snmpv3-groups`
 
-`snmpv3-groups` contains a set of group names separated by semicolon symbol `;`. Each group should be described using configuration parameters with the following patterns:
+`snmpv3-groups` contains set of group names separated by semicolon symbol `;`. Each group should be described using configuration parameters with the following patterns:
+
 * `<groupName>-security-level` - security level for all users in the group. Possible values are:
   * `noAuthNoPriv` - no authentication and traffic encryption
-  * `authNoPriv` - authentication is enabled but without traffic encryption
+  * `authNoPriv` - authentication is enabled but no traffic encryption is being used
   * `authPriv` - authentication and traffic encryption are enabled
 * `<groupName>-access-rights` - semicolon-separated list of access rights. The possible elements of the set:
   * `read` - SNMPv3 client can read managed objects
@@ -67,6 +72,7 @@ For SNMPv3 setup you need to use the following parameters:
 * `<groupName>-users` - semicolon-separated list of users in the group
 
 Each user should be configured using configuration parameters with the following patterns:
+
 * `<userName>-password` - the password for the user
 * `<userName>-auth-protocol` - authentication protocol used to encrypt password. This parameter is not compatible with `noAuthNoPriv` security level. Possible values are:
   * `sha` - Secure Hash Authentication (SHA-1) used to protect password and user name
@@ -78,6 +84,8 @@ Each user should be configured using configuration parameters with the following
   * `aes256` - Advanced Encryption Standard with 256-bit block size
   * `des` - Data Encryption Algorithm
   * `3des` - Triple DES
+
+> Oracle JRE doesn't support AES encryption with 192/256 bit key strength. Use OpenJDK instead of Oracle JDK or decrease key strength.
 
 Example:
 ```
@@ -105,10 +113,11 @@ guest-password = simple
 guest-auth-protocol = des
 ```
 
-The name of the user should be used as security name by SNMPv3 clients.
+The name of the user should be used as a security name by SNMPv3 clients.
 
 ### SNMPv3 setup using LDAP
 For SNMPv3 setup you need to use the following parameters:
+
 * `context`
 * `host`
 * `port`
@@ -129,14 +138,14 @@ SNMP Resource Adapter uses LDAP for searching information about users, its passw
 Attribute | Type name | Description
 ---- | ---- | ----
 snamp-snmp-security-level | SNAMP_SNMP_SECLEVEL | Security level: `noAuthNoPriv`, `authNoPriv`, `authPriv`
-snamp-snmp-allowed-operation | SNAMP_SNMP_ACCRIGHTS | A set of access rights: `read`, `write`, `notify`
+snamp-snmp-allowed-operation | SNAMP_SNMP_ACCRIGHTS | Set of access rights: `read`, `write`, `notify`
 snamp-snmp-auth-protocol | SNAMP_SNMP_AUTHPROT | Password protection algorithm: `sha`, `md5`
 snamp-snmp-priv-protocol | SNAMP_SNMP_PRIVPROT | Data encryption algorithm: `aes128`, `aes192`, `aes256`, `des`, `3des`
 snamp-snmp-priv-key | SNAMP_SNMP_PRIVKEY | Secret for data encryption algorithm
 
 Class | Attributes | Description
 ---- | ---- | ----
-snampUser | snamp-snmp-auth-protocol, snamp-snmp-priv-protocol, snamp-snmp-priv-key | Class of records that holds information about SNMPv3 user. An attribute with password must be exists in this class. Usually, LDAP server uses `userPassword` attribute. If it not true then you should specify `ldap-user-password-attribute-name` configuration parameter with correct name of the attribute
+snampUser | snamp-snmp-auth-protocol, snamp-snmp-priv-protocol, snamp-snmp-priv-key | Class of records that holds information about SNMPv3 user. Attribute with password must be exists in this class. Usually, LDAP server uses `userPassword` attribute. Otherwise you should specify `ldap-user-password-attribute-name` configuration parameter with correct name of the attribute
 snampGroup | snamp-snmp-security-level, snamp-snmp-allowed-operation | Class of records that holds information about group of users.
 
 `ldap-user-search-filter` used to find users (objects with `snampUser` class) inside of the group. The name of the group can be included into the filter using `$GROUPNAME$` parameter. For example, `(groupName=$GROUPNAME$)`. `$GROUPNAME$` will be replaced with DN name of the entries selected from `ldap-groups` query.
@@ -193,8 +202,8 @@ Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
 oid | OID | Highly recommended (see _Compatibility with Smart mode_ section) | OID used to register attribute as managed object in MIB | `1.2.5.6`
 displayFormat | Enum or String | No | Display format used to convert `datetime` attributes into OCTET_STRING | `yyyy-MM-dd'T'HH:mm:ss.SSSXXX`
-tableCacheTime | Integer | No | Used for attributes with complex data type only. This parameter describes period (in millis) of rebuilding SNMP Table from the source attribute. By default it is equal to 5 seconds | `3000`
-useRowStatus | Boolean | No | Use advanced column in the table which contains status of the row. By default it is equal to `false` | `true`
+tableCacheTime | Integer | No | Used for attributes with complex data type only. This parameter describes period (in millis) of rebuilding SNMP Table from the source attribute. Default value is 5 seconds | `3000`
+useRowStatus | Boolean | No | Use advanced column in the table which contains status of the row. Default value is `false` | `true`
 
 > Note that attribute with `oid = 1.2.5.6` will not be visible if `context` of the adapter will be equal to `1.1`. All OIDs of attributes must starts with `context` prefix.
 
@@ -209,19 +218,19 @@ rfc1903-human-readable | OCTET_STRING in UTF-8 encoding in the following format:
 _Any other string_ | ... will be interpreted as formatting mask, such `yyyy-MM-dd'T'HH:mm:ss.SSSXXX`
 
 ## Configuring events
-The following configuration parameters of the events have influence on SNMP Resource Adapter behavior:
+The following configuration parameters of the events influence SNMP Resource Adapter behavior:
 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
-`oid` | OID | Yes | OID prefix of all managed objects inside of Trap | `1.1`
+`oid` | OID | Yes | Common OID prefix for managed objects inside of Trap | `1.1`
 displayFormat | Enum or String | No | Display format used to convert `datetime` attributes into OCTET_STRING | `rfc1903`
-receiverAddress | String | Yes | An address of SNMP Trap receiver in format `<ip-address>/<port>` | `127.0.0.1/10538`
+receiverAddress | String | Yes | Address of SNMP Trap receiver in format `<ip-address>/<port>` | `127.0.0.1/10538`
 receiverName | String | Yes | Unique name of the receiver | `remote-receiver-1`
-sendingTimeout | Integer | No | Trap sending timeout (in millis). By default it is equal to 2 seconds | `3000`
-retryCount | Integer | No | A number of attempts to send Trap after timeout. By default it is equal to 3 | `5`
+sendingTimeout | Integer | No | Trap sending timeout (in millis). Default value is 2 seconds | `3000`
+retryCount | Integer | No | Number of attempts to send Trap after timeout. Default value is 3 | `5`
 
 ## Data formats
-SNMP Resource Adapter uses ASN.1 as representation of management information. The following table describes mapping between types of **Management Information Model** and JSON:
+SNMP Resource Adapter uses ASN.1 as a management information representation. Following table describes mapping between types of **Management Information Model** and JSON:
 
 Management Information Model | JSON data type
 ---- | ----
@@ -241,16 +250,16 @@ float64 | OCTET_STRING (UTF-8 encoding)
 array(int8) | OCTET_STRING
 array(bool) | OCTET_STRING (little-endian)
 
-Table, dictionary and arrays (except array of int8) will be converted into SNMP Table. SNMP Table represents a set of managed objects. The behavior of these structures can be tuned with `useRowStatus` and `tableCacheTime` configuration parameters.
+Table, dictionary and arrays (except array of int8) are being converted into SNMP Table. SNMP Table represents set of managed objects. Behavior of these structures can be tuned with `useRowStatus` and `tableCacheTime` configuration parameters.
 
 ## System-level configuration parameters
-These parameters can be specified at JVM level and affects all instances of SNMP Resource Adapter:
+These parameters can be specified on JVM level and affects all instances of SNMP Resource Adapter:
 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
-com.bytex.snamp.adapters.snmp.oidPrefix | OID | No | OID prefix applied to attributes and notifications when `oid` configuration of such attributes and notifications are not specified. By default it is equal to `1.1.1`. Postfix will be generated automatically. So, the attribute without `oid` configuration parameter may have OID `1.1.1.X`.  | `3000`
+com.bytex.snamp.adapters.snmp.oidPrefix | OID | No | OID prefix applied to attributes and notifications when `oid` configuration of such attributes and notifications are not specified. Default value is `1.1.1`. Postfix will be generated automatically. Therefore, OID of the attribute without `oid` configuration parameter looks like `1.1.1.X`.  | `3000`
 
 ## Compatibility with Smart mode
-In the Smart mode of the connector each attribute or notification is registered automatically. Therefore you cannot specify `oid` configuration parameter directly in SNAMP configuration. SNMP Resource Adapter generates OID for each attribute automatically using prefix specified in `com.bytex.snamp.adapters.snmp.oidPrefix` system-level property. By default, each attribute will be registered in `1.1.1.X` context.
+In the Smart mode of the connector each attribute or notification is registered automatically - you cannot specify `oid` configuration parameter directly in SNAMP configuration. SNMP Resource Adapter generates OID for each attribute automatically using prefix specified in `com.bytex.snamp.adapters.snmp.oidPrefix` system-level property. By default, each attribute will be registered within `1.1.1.X` context.
 
 Notifications of the connector in Smart mode cannot be exposed via SNMP Resource Adapter.

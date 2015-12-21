@@ -4,7 +4,7 @@ import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
 import com.bytex.snamp.connectors.groovy.ManagedResourceInfo;
 import com.bytex.snamp.connectors.groovy.ManagedResourceScriptEngine;
-import com.bytex.snamp.internal.annotations.SpecialUse;
+import com.bytex.snamp.SpecialUse;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
 
@@ -27,20 +27,19 @@ public final class GroovyResourceActivator extends ManagedResourceActivator<Groo
 
         @Override
         protected boolean addAttribute(final GroovyResourceConnector connector,
-                                    final String attributeID,
                                     final String attributeName,
                                     final TimeSpan readWriteTimeout,
                                     final CompositeData options) {
-            return connector.addAttribute(attributeID, attributeName, readWriteTimeout, options);
+            return connector.addAttribute(attributeName, readWriteTimeout, options);
         }
 
         @Override
-        protected boolean enableNotifications(final GroovyResourceConnector connector, final String listId, final String category, final CompositeData options) {
-            return connector.enableNotifications(listId, category, options);
+        protected boolean enableNotifications(final GroovyResourceConnector connector, final String category, final CompositeData options) {
+            return connector.enableNotifications(category, options);
         }
 
         @Override
-        protected boolean enableOperation(final GroovyResourceConnector connector, final String operationID, final String operationName, final TimeSpan timeout, final CompositeData options) {
+        protected boolean enableOperation(final GroovyResourceConnector connector, final String operationName, final TimeSpan timeout, final CompositeData options) {
             //not supported
             return false;
         }

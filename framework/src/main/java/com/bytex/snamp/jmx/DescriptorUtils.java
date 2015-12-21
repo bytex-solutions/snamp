@@ -1,5 +1,6 @@
 package com.bytex.snamp.jmx;
 
+import com.bytex.snamp.internal.Utils;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.Maps;
@@ -66,7 +67,7 @@ public final class DescriptorUtils {
     public static <T> T getField(final Descriptor descr,
                                  final String fieldName,
                                  final Class<T> fieldType){
-        return getField(descr, fieldName, fieldType, Suppliers.<T>ofInstance(null));
+        return getField(descr, fieldName, fieldType, Utils.<T>nullSupplier());
     }
 
     public static Properties toProperties(final Descriptor descr) {
@@ -143,7 +144,7 @@ public final class DescriptorUtils {
      * @return {@literal true}, if {@link Descriptor} instance has the field; otherwise, {@literal false}.
      */
     public static boolean hasField(final Descriptor descr, final String fieldName){
-        return ArrayUtils.contains(descr.getFieldNames(), fieldName);
+        return ArrayUtils.containsAny(descr.getFieldNames(), fieldName);
     }
 
     public static boolean hasDefaultValue(final Descriptor descr){
