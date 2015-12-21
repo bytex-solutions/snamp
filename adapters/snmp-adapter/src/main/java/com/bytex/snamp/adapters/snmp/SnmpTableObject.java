@@ -327,7 +327,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
      * @return The metadata of the underlying attribute.
      */
     @Override
-    public final MBeanAttributeInfo getMetadata() {
+    public MBeanAttributeInfo getMetadata() {
         return _connector.getMetadata();
     }
 
@@ -335,7 +335,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
      * Determines whether this table is empty.
      * @return {@literal true}, if this table is empty; otherwise, {@literal false}.
      */
-    public final boolean isEmpty(){
+    public boolean isEmpty(){
         return getModel().getRowCount() == 0;
     }
 
@@ -439,7 +439,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
      * been called.
      */
     @Override
-    public final Date getLastUpdate() {
+    public Date getLastUpdate() {
         return cacheManager.getUpdateTimeStamp();
     }
 
@@ -453,7 +453,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
      * unknown/undefined.
      */
     @Override
-    public final Object getLastUpdateSource() {
+    public Object getLastUpdateSource() {
         return cacheManager.getUpdateSource();
     }
 
@@ -465,12 +465,12 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
      *                    If <code>null</code> the whole managed object has to be updated.
      */
     @Override
-    public final void update(final MOQuery updateScope) {
+    public void update(final MOQuery updateScope) {
         update((MOScope)updateScope);
     }
 
     @Override
-    public final void update(final MOScope updateScope){
+    public void update(final MOScope updateScope){
         try {
             fillTableIfNecessary();
         }
@@ -567,7 +567,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
     }
 
     @Override
-    public final void prepare(final SubRequest request) {
+    public void prepare(final SubRequest request) {
         try {
             TransactionInfo.pendingState(request, TransactionState.PREPARE);
         }
@@ -580,7 +580,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
     }
 
     @Override
-    public final void commit(final SubRequest request) {
+    public void commit(final SubRequest request) {
         try {
             TransactionInfo.pendingState(request, TransactionState.COMMIT);
         }
@@ -593,7 +593,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
     }
 
     @Override
-    public final void undo(final SubRequest request) {
+    public void undo(final SubRequest request) {
         try {
             TransactionInfo.pendingState(request, TransactionState.ROLLBACK);
         }
@@ -606,7 +606,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
     }
 
     @Override
-    public final void cleanup(final SubRequest request) {
+    public void cleanup(final SubRequest request) {
         try {
             final TransactionInfo info = TransactionInfo.pendingState(request, TransactionState.CLEANUP);
             switch (info.getCompletionState()) {
@@ -629,7 +629,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
     }
 
     @Override
-    public final AttributeAccessor disconnect(final MOServer server) {
+    public AttributeAccessor disconnect(final MOServer server) {
         if(server != null) {
             server.unregister(this, null);
         }
@@ -638,7 +638,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
     }
 
     @Override
-    public final boolean connect(final OID context, final MOServer server) throws DuplicateRegistrationException {
+    public boolean connect(final OID context, final MOServer server) throws DuplicateRegistrationException {
         if(getID().startsWith(context)) {
             server.register(this, null);
             return true;
@@ -647,7 +647,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
     }
 
     @Override
-    public final boolean equals(final MBeanAttributeInfo metadata) {
+    public boolean equals(final MBeanAttributeInfo metadata) {
         try {
             return Objects.equals(getID(), new OID(parseOID(metadata)));
         } catch (final ParseException ignored) {

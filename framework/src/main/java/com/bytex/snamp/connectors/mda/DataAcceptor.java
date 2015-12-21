@@ -3,7 +3,7 @@ package com.bytex.snamp.connectors.mda;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
-import com.google.common.base.Function;
+import com.bytex.snamp.connectors.metrics.MetricsReader;
 
 import javax.management.openmbean.CompositeData;
 import java.util.Objects;
@@ -36,28 +36,33 @@ public abstract class DataAcceptor extends AbstractManagedResourceConnector {
      * Gets repository of attributes provided by this connector.
      * @return Repository of attributes.
      */
+    @Aggregation
     protected abstract MDAAttributeRepository<?> getAttributes();
 
     /**
      * Gets repository of notifications metadata provided by this connector.
      * @return Repository of notifications metadata.
      */
+    @Aggregation
     protected abstract MDANotificationRepository getNotifications();
 
+    @Override
+    protected final MetricsReader createMetricsReader(){
+        return assembleMetricsReader(getAttributes(), getNotifications());
+    }
 
-    final boolean addAttribute(final String attributeID,
-                         final String attributeName,
+    final boolean addAttribute(final String attributeName,
                          final TimeSpan readWriteTimeout,
                          final CompositeData options){
-        return getAttributes().addAttribute(attributeID, attributeName, readWriteTimeout, options) != null;
+        return getAttributes().addAttribute(attributeName, readWriteTimeout, options) != null;
     }
 
     final void removeAttributesExcept(final Set<String> attributes){
         getAttributes().removeAllExcept(attributes);
     }
 
-    final boolean enableNotifications(final String listId, final String category, final CompositeData options){
-        return getNotifications().enableNotifications(listId, category, options) != null;
+    final boolean enableNotifications(final String category, final CompositeData options){
+        return getNotifications().enableNotifications(category, options) != null;
     }
 
     final void disableNotificationsExcept(final Set<String> notifications){
@@ -97,22 +102,6 @@ public abstract class DataAcceptor extends AbstractManagedResourceConnector {
     @Override
     public final void removeResourceEventListener(final ResourceEventListener listener) {
         removeResourceEventListener(listener, getAttributes(), getNotifications());
-    }
-
-    /**
-     * Retrieves the aggregated object.
-     *
-     * @param objectType Type of the aggregated object.
-     * @return An instance of the requested object; or {@literal null} if object is not available.
-     */
-    @Override
-    public <T> T queryObject(final Class<T> objectType) {
-        return findObject(objectType, new Function<Class<T>, T>() {
-            @Override
-            public T apply(final Class<T> objectType) {
-                return DataAcceptor.super.queryObject(objectType);
-            }
-        }, getAttributes(), getNotifications());
     }
 
     /**

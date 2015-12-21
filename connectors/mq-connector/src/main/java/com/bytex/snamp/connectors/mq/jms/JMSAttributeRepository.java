@@ -10,7 +10,6 @@ import com.bytex.snamp.internal.Utils;
 import com.google.common.base.Strings;
 
 import javax.jms.*;
-import javax.management.InvalidAttributeValueException;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
 import java.util.Objects;
@@ -66,17 +65,8 @@ final class JMSAttributeRepository extends MDAAttributeRepository<MDAAttributeIn
         resetAccessTime();
     }
 
-    /**
-     * Sets the value of a specific attribute of the managed resource.
-     *
-     * @param attribute The attribute of to set.
-     * @param value     The value of the attribute.
-     * @throws Exception                      Internal connector error.
-     * @throws InvalidAttributeValueException Incompatible attribute type.
-     */
     @Override
-    protected void setAttribute(final MDAAttributeInfo attribute, final Object value) throws Exception {
-        super.setAttribute(attribute, value);
+    protected void interceptSetAttribute(final MDAAttributeInfo attribute, final Object value) throws JMSException {
         if(publisher != null){
             final Message message = converter.serialize(value, session);
             converter.setMessageType(message, SnampMessageType.ATTRIBUTE_CHANGED);

@@ -1,18 +1,18 @@
 package com.bytex.snamp.testing.adapters.jmx;
 
-import com.google.common.base.Supplier;
-import com.google.common.collect.ImmutableMap;
 import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
+import com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
-import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.internal.OperatingSystem;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.bytex.snamp.scripting.OSGiScriptEngineManager;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connectors.rshell.AbstractRShellConnectorTest;
+import com.google.common.collect.ImmutableMap;
 import org.junit.Assume;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
@@ -31,7 +31,6 @@ import javax.script.ScriptEngineFactory;
 import javax.script.ScriptException;
 import java.io.IOException;
 import java.util.Hashtable;
-import java.util.Map;
 import java.util.Set;
 
 import static com.bytex.snamp.testing.connectors.jmx.AbstractJmxConnectorTest.*;
@@ -96,21 +95,19 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
     }
 
     @Override
-    protected void fillAdapters(final Map<String, ResourceAdapterConfiguration> adapters, final Supplier<ResourceAdapterConfiguration> adapterFactory) {
-        final ResourceAdapterConfiguration restAdapter = adapterFactory.get();
+    protected void fillAdapters(final EntityMap<? extends ResourceAdapterConfiguration> adapters) {
+        final ResourceAdapterConfiguration restAdapter = adapters.getOrAdd("test-jmx");
         restAdapter.setAdapterName(ADAPTER_NAME);
         restAdapter.getParameters().put("objectName", ROOT_OBJECT_NAME);
         restAdapter.getParameters().put("usePlatformMBean", Boolean.toString(isInTestContainer()));
         restAdapter.getParameters().put("dbgUsePureSerialization", "true");
-        adapters.put("test-jmx", restAdapter);
     }
 
     @Override
-    protected void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory) {
-        final AttributeConfiguration attr = attributeFactory.get();
-        attr.setAttributeName(getPathToFileInProjectRoot("freemem-tool-profile.xml"));
+    protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
+        final AttributeConfiguration attr = attributes.getOrAdd("ms");
+        setFeatureName(attr, getPathToFileInProjectRoot("freemem-tool-profile.xml"));
         attr.getParameters().put("format", "-m");
-        attributes.put("ms", attr);
     }
 
     private Object readAttribute(final String attributeName) throws IOException, JMException {
@@ -147,7 +144,7 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
 
     @Test
     public void readMemStatusTest() throws BundleException, IOException, JMException {
-        Assume.assumeTrue(Utils.IS_OS_LINUX);
+        Assume.assumeTrue(OperatingSystem.isLinux());
         final Object memStatus = readAttribute("ms");
         assertNotNull(memStatus);
         assertTrue(memStatus instanceof CompositeData);

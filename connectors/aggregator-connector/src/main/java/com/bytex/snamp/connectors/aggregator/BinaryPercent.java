@@ -34,7 +34,8 @@ final class BinaryPercent extends BinaryAttributeAggregation<Double> {
     }
 
     static SerializableAttributeConfiguration getConfiguration() {
-        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration(NAME);
+        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration();
+        result.setAlternativeName(NAME);
         fillParameters(result.getParameters());
         return result;
     }

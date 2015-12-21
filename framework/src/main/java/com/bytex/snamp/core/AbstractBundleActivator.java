@@ -76,7 +76,6 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @since 1.0
      * @version 1.0
      */
-    @SuppressWarnings("UnusedDeclaration")
     protected interface NamedActivationProperty<T> extends ActivationProperty<T>{
         /**
          * Gets name of this property.
@@ -672,11 +671,6 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
         final D found = findDependency(descriptor, serviceContract, dependencies);
         return found != null ? found.getService() : null;
     }
-
-    /**
-     * Represents an empty array of required services.
-     */
-    protected static final RequiredService<?>[] EMPTY_REQUIRED_SERVICES = ArrayUtils.emptyArray(RequiredService[].class);
 
     private final List<RequiredService<?>> bundleLevelDependencies;
     private final ActivationProperties properties;

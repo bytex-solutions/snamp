@@ -92,11 +92,13 @@ update-rc.d glassfish defaults
 ```
 
 Start Glassfish server
+
 ```bash
 service glassfish start
 ```
 
 Install demo Web Application:
+
 ```bash
 wget https://glassfish.java.net/downloads/quickstart/hello.war
 /opt/glassfish4/bin/asadmin deploy ./hello.war
@@ -112,6 +114,7 @@ Save settings and close Web Browser.
 
 ### Install command-line utilities
 Execute the following commands in bash shell:
+
 ```bash
 apt-get install snmp
 apt-get install curl
@@ -121,11 +124,13 @@ apt-get install curl
 Download and unzip (or untar) the latest SNAMP version.
 
 Execute SNAMP using the following command
+
 ```bash
 sh ./snamp/bin/karaf
 ```
 
 ...you will see the following welcome screen:
+
 ```
 _____ _   _          __  __ _____  
 / ____| \ | |   /\   |  \/  |  __ \
@@ -141,11 +146,6 @@ and '[cmd] --help' for help on a specific command.
 Hit '<ctrl-d>' or type 'system:shutdown' or 'logout' to shutdown SNAMP.
 
 snamp.root@karaf>
-```
-
-Install Apache Karaf Cellar from SNAMP console:
-```
-snamp.root@karaf> feature:install cellar
 ```
 
 ## Configuration
@@ -228,20 +228,18 @@ Go to the home directory and create file with name `config.json`and following co
       "operatingSystemInfo": {
       "UserDefinedName": "operatingSystemInfo",
       "Connector": {
-        "Parameters": {
-          "waitForHazelcast": {
-            "Key": "waitForHazelcast",
-            "Value": "30000"
-          }
-        },
+        "Parameters": {},
         "ConnectionString": "",
         "Attributes": {
           "testString": {
-            "UserDefinedName": "testString",
+            "Name": "testString",
             "Attribute": {
-              "Name": "str",
               "ReadWriteTimeout": 5000,
               "AdditionalProperties": {
+                "name": {
+                  "Key": "name",
+                  "Value": "str"
+                },
                 "expectedType": {
                   "Key": "expectedType",
                   "Value": "string"
@@ -256,10 +254,13 @@ Go to the home directory and create file with name `config.json`and following co
         },
         "Events": {
           "testEvent": {
-            "UserDefinedName": "testEvent",
+            "Category": "testEvent",
             "Event": {
-              "Category": "AsyncEvent",
               "AdditionalProperties": {
+                "name": {
+                    "Key": "name",
+                    "Value": "AsyncEvent"
+                },
                 "expectedType": {
                   "Key": "expectedType",
                   "Value": "int64"
@@ -273,13 +274,21 @@ Go to the home directory and create file with name `config.json`and following co
     },
 	"processes":{
 		"Connector": {
-                "Parameters": {},
+                "Parameters": {
+                    "format":{
+                        "Key": "format",
+                        "Value": "-m"
+                    }
+                },
                 "ConnectionString": "process",
                 "Attributes": {
                     "memoryUsage": {
                         "Attribute": {
-                            "Name": "~/freemem.xml",
                             "AdditionalProperties": {
+                                "name": {
+                                    "Key": "name",
+                                    "Value": "~/freemem.xml"
+                                },
                                 "oid": {
                                     "Value": "1.1.10.0",
                                     "Key": "oid"
@@ -287,7 +296,7 @@ Go to the home directory and create file with name `config.json`and following co
                             },
                             "ReadWriteTimeout": 10000
                         },
-                        "UserDefinedName": "memoryUsage"
+                        "Name": "memoryUsage"
                     }
                 },
                 "Events": { },
@@ -302,8 +311,11 @@ Go to the home directory and create file with name `config.json`and following co
                 "Attributes": {
                     "cpuLoad": {
                         "Attribute": {
-                            "Name": "ProcessCpuLoad",
                             "AdditionalProperties": {
+                                "name": {
+                                    "Key": "name",
+                                    "Value": "ProcessCpuLoad"
+                                },
                                 "objectName": {
                                     "Value": "java.lang:type=OperatingSystem",
                                     "Key": "objectName"
@@ -315,12 +327,15 @@ Go to the home directory and create file with name `config.json`and following co
                             },
                             "ReadWriteTimeout": 10000
                         },
-                        "UserDefinedName": "cpuLoad"
+                        "Name": "cpuLoad"
                     },
                     "context": {
                         "Attribute": {
-                            "Name": "ContextRoot",
                             "AdditionalProperties": {
+                                "name": {
+                                  "Key": "name",
+                                  "Value": "ContextRoot"
+                                },
                                 "objectName": {
                                     "Value": "amx:pp=/domain/applications,type=application,name=hello",
                                     "Key": "objectName"
@@ -332,12 +347,15 @@ Go to the home directory and create file with name `config.json`and following co
                             },
                             "ReadWriteTimeout": 10000
                         },
-                        "UserDefinedName": "context"
+                        "Name": "context"
                     },
                     "memoryUsage": {
                         "Attribute": {
-                            "Name": "HeapMemoryUsage",
                             "AdditionalProperties": {
+                                "name": {
+                                    "Key": "name",
+                                    "Value": "HeapMemoryUsage"
+                                },
                                 "objectName": {
                                     "Value": "java.lang:type=Memory",
                                     "Key": "objectName"
@@ -349,7 +367,7 @@ Go to the home directory and create file with name `config.json`and following co
                             },
                             "ReadWriteTimeout": 10000
                         },
-                        "UserDefinedName": "memoryUsage"
+                        "Name": "memoryUsage"
                     }
                 },
                 "Events": { },

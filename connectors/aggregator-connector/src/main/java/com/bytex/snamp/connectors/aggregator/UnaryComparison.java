@@ -36,7 +36,8 @@ final class UnaryComparison extends UnaryAttributeAggregation<Boolean> {
     }
 
     public static SerializableAttributeConfiguration getConfiguration() {
-        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration(NAME);
+        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration();
+        result.setAlternativeName(NAME);
         fillParameters(result.getParameters());
         result.getParameters().put(AggregatorConnectorConfiguration.COMPARER_PARAM, "=");
         result.getParameters().put(AggregatorConnectorConfiguration.VALUE_PARAM, "0");

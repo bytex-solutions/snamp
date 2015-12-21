@@ -49,7 +49,7 @@ All these parameters (including user-defined) will be visible as global variable
 ## Configuring attributes
 Each attribute configured in Groovy Resource Connector has following configuration schema:
 
-* `Name` - name of script file without `.groovy` file extension. The file must exists in the paths specified by connection string
+* `Name` - name of script file without `.groovy` file extension. The file must exists in the paths specified by connection string. Also, you can use `name` configuration parameter for this purpose.
 * There is no predefined configuration parameters. But all user-defined configuration parameters will be visible as global variables in the attribute script only.
 
 For more information see **Programming attributes** section.
@@ -85,6 +85,7 @@ Groovy connector provides following DSL extensions accessible from any type of s
 
 * Global variables:
   * `resourceName` - contains the name of the managed resource as it specified in the SNAMP configuration. This variable is not available in the discovery mode
+  * `activeClusterNode` - boolean read-only variable indicating that the code is executed in active node of cluster
 * Logging subroutines (these routines written on top of OSGi logging infrastructure)
   * `void error(String message)` - report about error
   * `void warning(String message)` - report warning
@@ -180,7 +181,7 @@ Initialization script used to initialize instance of the connector. Name of the 
 As the best practice, initialization script can be used for declaring references to third-party modules and libraries:
 
 ```groovy
-@Grab(group = 'org.codehaus.groovy', module = 'groovy-json', version = '2.4.3')
+@Grab(group = 'org.codehaus.groovy', module = 'groovy-json', version = '2.4.5')
 @GrabConfig(initContextClassLoader = true)
 import groovy.json.JsonSlurper
 ```
@@ -202,7 +203,7 @@ Special functions that can be declared in the script:
 Following example demonstrates simple initialization script:
 
 ```groovy
-@Grab(group = 'org.codehaus.groovy', module = 'groovy-json', version = '2.4.3')
+@Grab(group = 'org.codehaus.groovy', module = 'groovy-json', version = '2.4.5')
 @GrabConfig(initContextClassLoader = true)
 import groovy.json.JsonSlurper
 
@@ -373,4 +374,4 @@ javax.management.openmbean.CompositeData | Dictionary | `asDictionary(key1: 67L,
 javax.management.openmbean.TabularData | Table | `asTable([[column1: 6, column2: false], [column1: 7, column2: true]])`
 
 ## Clustering
-`emitNotification` calls on passive nodes in SNAMP cluster will be ignored. This is necessary to prevent duplicate notifications.
+`emitNotification` can cause duplication of notifications and receiving side in clustered environment. SNAMP doesn't provide automatic resolution of this issue for Groovy Connector. Guard `emitNotification` call with `if(activeClusterNode)` condition.

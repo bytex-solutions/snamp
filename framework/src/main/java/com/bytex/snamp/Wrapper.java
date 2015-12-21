@@ -20,6 +20,6 @@ public interface Wrapper<T> {
      * @param <R>     Type of the wrapped object handling result.
      * @return The wrapped object handling result.
      */
-    <R> R handle(final Function<T, R> handler);
+    <R> R apply(final Function<T, R> handler);
 
 }

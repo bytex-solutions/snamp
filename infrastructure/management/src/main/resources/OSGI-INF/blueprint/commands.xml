@@ -95,7 +95,22 @@
             <action class="com.bytex.snamp.management.shell.VersionCommand"/>
         </command>
         <command>
-            <action class="com.bytex.snamp.management.shell.ClusterNodeStatusCommand"/>
+            <action class="com.bytex.snamp.management.shell.ClusterMemberStatusCommand"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.ReadAttributesCommand"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.SuspendEventsCommand"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.ResumeEventsCommand"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.ListenEventsCommand"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.ResourceMetricsCommand"/>
         </command>
     </command-bundle>
 

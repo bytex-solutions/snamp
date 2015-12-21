@@ -4,6 +4,7 @@ import com.bytex.snamp.management.AbstractSnampManager;
 import com.bytex.snamp.management.SnampComponentDescriptor;
 
 import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.OpenDataException;
 import java.util.Locale;
 import java.util.Map;
 
@@ -25,9 +26,9 @@ final class GetConnectorInfoOperation extends AbstractComponentInfo{
     }
 
     @Override
-    public CompositeData invoke(final Map<String, ?> arguments) throws Exception {
-        final String connectorName = getArgument(CONNECTOR_NAME_PARAM.getName(), String.class, arguments);
-        final String locale = getArgument(LOCALE_PARAM.getName(), String.class, arguments);
+    public CompositeData invoke(final Map<String, ?> arguments) throws OpenDataException {
+        final String connectorName = CONNECTOR_NAME_PARAM.getArgument(arguments);
+        final String locale = LOCALE_PARAM.getArgument(arguments);
         final SnampComponentDescriptor connector = snampManager.getResourceConnector(connectorName);
         if (connector == null) throw new IllegalArgumentException(String.format("Connector %s doesn't exist", connectorName));
         else return getSnampComponentInfo(connector, locale == null || locale.isEmpty() ? Locale.getDefault() : Locale.forLanguageTag(locale));

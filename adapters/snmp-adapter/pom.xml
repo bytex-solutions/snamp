@@ -47,57 +47,16 @@
           <version>${snmp4j.version}</version>
       </dependency>
       <dependency>
-          <scope>provided</scope>
           <groupId>org.osgi</groupId>
           <artifactId>org.osgi.core</artifactId>
-          <version>${osgi.version}</version>
       </dependency>
       <dependency>
-          <scope>provided</scope>
           <groupId>org.osgi</groupId>
           <artifactId>org.osgi.compendium</artifactId>
-          <version>${osgi.version}</version>
-      </dependency>
-      <dependency>
-          <groupId>org.apache.aries.jndi</groupId>
-          <artifactId>org.apache.aries.jndi.core</artifactId>
-          <version>${aries.jndi.core.version}</version>
-      </dependency>
-      <dependency>
-          <groupId>org.apache.aries.jndi</groupId>
-          <artifactId>org.apache.aries.jndi.url</artifactId>
-          <version>${aries.jndi.url.version}</version>
-          <scope>provided</scope>
-      </dependency>
-      <dependency>
-          <groupId>org.apache.aries.jndi</groupId>
-          <artifactId>org.apache.aries.jndi.api</artifactId>
-          <version>${aries.jndi.api.version}</version>
-          <scope>provided</scope>
-      </dependency>
-      <dependency>
-          <groupId>org.apache.aries.jndi</groupId>
-          <artifactId>org.apache.aries.jndi.rmi</artifactId>
-          <version>${aries.jndi.version}</version>
-          <scope>provided</scope>
-      </dependency>
-      <dependency>
-          <groupId>org.apache.aries</groupId>
-          <artifactId>org.apache.aries.util</artifactId>
-          <version>${aries.util.version}</version>
-          <scope>provided</scope>
-      </dependency>
-      <dependency>
-          <groupId>org.apache.aries.proxy</groupId>
-          <artifactId>org.apache.aries.proxy.api</artifactId>
-          <version>${aries.proxy.api.version}</version>
-          <scope>provided</scope>
       </dependency>
       <dependency>
           <groupId>com.google.guava</groupId>
           <artifactId>guava</artifactId>
-          <version>${guava.version}</version>
-          <scope>provided</scope>
       </dependency>
   </dependencies>
 </project>

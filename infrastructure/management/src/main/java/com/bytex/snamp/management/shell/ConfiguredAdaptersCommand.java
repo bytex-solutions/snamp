@@ -20,7 +20,7 @@ import static com.bytex.snamp.io.IOUtils.appendln;
 public final class ConfiguredAdaptersCommand extends ConfigurationCommand {
     @Override
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
-        for(final Map.Entry<String, ResourceAdapterConfiguration> adapter: configuration.getResourceAdapters().entrySet())
+        for(final Map.Entry<String, ? extends ResourceAdapterConfiguration> adapter: configuration.getResourceAdapters().entrySet())
             appendln(output, "Instance: %s. Adapter: %s", adapter.getKey(), adapter.getValue().getAdapterName());
         return false;
     }

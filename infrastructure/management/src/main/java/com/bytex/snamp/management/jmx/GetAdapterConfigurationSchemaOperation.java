@@ -26,8 +26,8 @@ final class GetAdapterConfigurationSchemaOperation extends ConfigurationSchemaOp
     @Override
     public CompositeData invoke(final Map<String, ?> arguments) throws OpenDataException {
         return getAdapterConfigurationSchema(
-                getArgument(ADAPTER_NAME_PARAM.getName(), String.class, arguments),
-                getArgument(LOCALE_PARAM.getName(), String.class, arguments)
+                ADAPTER_NAME_PARAM.getArgument(arguments),
+                LOCALE_PARAM.getArgument(arguments)
         );
     }
 

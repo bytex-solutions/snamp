@@ -3,7 +3,7 @@ package com.bytex.snamp.management.jmx;
 
 import com.google.common.collect.Maps;
 import com.bytex.snamp.adapters.ResourceAdapterClient;
-import com.bytex.snamp.internal.EntryReader;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.KeyValueTypeBuilder;
 import com.bytex.snamp.jmx.TabularDataBuilderRowFill;
@@ -29,10 +29,11 @@ import static com.bytex.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
 abstract class AbstractBindingInfoOperation<F extends MBeanFeatureInfo> extends OpenOperation<TabularData, TabularType> {
     protected static final String RESOURCE_NAME_COLUMN = "resourceName";
     protected static final String DETAILS_COLUMN = "details";
-    protected static final OpenMBeanParameterInfoSupport INSTANCE_NAME_PARAM = new OpenMBeanParameterInfoSupport(
+    protected static final TypedParameterInfo<String> INSTANCE_NAME_PARAM = new TypedParameterInfo<>(
             "instanceName",
             "The name of the adapter instance",
-            SimpleType.STRING
+            SimpleType.STRING,
+            false
     );
     protected static final TabularType DETAILS_TYPE = Utils.interfaceStaticInitialize(new Callable<TabularType>() {
         @Override
@@ -94,6 +95,6 @@ abstract class AbstractBindingInfoOperation<F extends MBeanFeatureInfo> extends 
     @Override
     public final TabularData invoke(final Map<String, ?> arguments) throws JMException {
         return invoke(Utils.getBundleContextOfObject(this),
-                getArgument(INSTANCE_NAME_PARAM.getName(), String.class, arguments));
+                INSTANCE_NAME_PARAM.getArgument(arguments));
     }
 }

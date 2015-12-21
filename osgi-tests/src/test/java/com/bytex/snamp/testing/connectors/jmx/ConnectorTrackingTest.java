@@ -1,8 +1,5 @@
 package com.bytex.snamp.testing.connectors.jmx;
 
-import com.google.common.base.Supplier;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.adapters.AbstractResourceAdapter;
 import com.bytex.snamp.adapters.modeling.AttributeAccessor;
@@ -10,15 +7,21 @@ import com.bytex.snamp.adapters.modeling.FeatureAccessor;
 import com.bytex.snamp.adapters.modeling.NotificationAccessor;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 
 import javax.management.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
+import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
@@ -156,11 +159,11 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
                     final ManagedResourceConfiguration testResource =
                             config.getManagedResources().get(TEST_RESOURCE_NAME);
                     assertNotNull(testResource);
-                    assertNotNull(testResource.getElements(AttributeConfiguration.class).remove("1.0"));
-                    assertNotNull(testResource.getElements(AttributeConfiguration.class).remove("2.0"));
-                    assertNotNull(testResource.getElements(AttributeConfiguration.class).remove("3.0"));
-                    assertNotNull(testResource.getElements(AttributeConfiguration.class).remove("4.0"));
-                    assertNotNull(testResource.getElements(EventConfiguration.class).remove("19.1"));
+                    assertNotNull(testResource.getFeatures(AttributeConfiguration.class).remove("1.0"));
+                    assertNotNull(testResource.getFeatures(AttributeConfiguration.class).remove("2.0"));
+                    assertNotNull(testResource.getFeatures(AttributeConfiguration.class).remove("3.0"));
+                    assertNotNull(testResource.getFeatures(AttributeConfiguration.class).remove("4.0"));
+                    assertNotNull(testResource.getFeatures(EventConfiguration.class).remove("19.1"));
                 }
             }, true);
             Thread.sleep(2000);
@@ -180,65 +183,54 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
     }
 
     @Override
-    protected final void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory) {
-        AttributeConfiguration attribute = attributeFactory.get();
-        attribute.setAttributeName("string");
+    protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
+        AttributeConfiguration attribute = attributes.getOrAdd("1.0");
+        setFeatureName(attribute, "string");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        attributes.put("1.0", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("boolean");
+        attribute = attributes.getOrAdd("2.0");
+        setFeatureName(attribute, "boolean");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        attributes.put("2.0", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("int32");
+        attribute = attributes.getOrAdd("3.0");
+        setFeatureName(attribute, "int32");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        attributes.put("3.0", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("bigint");
+        attribute = attributes.getOrAdd("4.0");
+        setFeatureName(attribute, "bigint");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        attributes.put("4.0", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("array");
+        attribute = attributes.getOrAdd("5.1");
+        setFeatureName(attribute, "array");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        attributes.put("5.1", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("dictionary");
+        attribute = attributes.getOrAdd("6.1");
+        setFeatureName(attribute, "dictionary");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        attributes.put("6.1", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("table");
+        attribute = attributes.getOrAdd("7.1");
+        setFeatureName(attribute, "table");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        attributes.put("7.1", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("float");
+        attribute = attributes.getOrAdd("8.0");
+        setFeatureName(attribute, "float");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        attributes.put("8.0", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("date");
+        attribute = attributes.getOrAdd("9.0");
+        setFeatureName(attribute, "date");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        attributes.put("9.0", attribute);
     }
 
     @Override
-    protected void fillEvents(final Map<String, EventConfiguration> events, final Supplier<EventConfiguration> eventFactory) {
-        EventConfiguration event = eventFactory.get();
-        event.setCategory(AttributeChangeNotification.ATTRIBUTE_CHANGE);
+    protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
+        EventConfiguration event = events.getOrAdd("19.1");
+        setFeatureName(event, AttributeChangeNotification.ATTRIBUTE_CHANGE);
         event.getParameters().put("severity", "notice");
         event.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        events.put("19.1", event);
 
-        event = eventFactory.get();
-        event.setCategory("com.bytex.snamp.connectors.tests.impl.testnotif");
+        event = events.getOrAdd("20.1");
+        setFeatureName(event, "com.bytex.snamp.connectors.tests.impl.testnotif");
         event.getParameters().put("severity", "panic");
         event.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        events.put("20.1", event);
     }
 }

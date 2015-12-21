@@ -8,7 +8,7 @@ import javax.management.InvalidAttributeValueException;
  * @version 1.0
  * @since 1.0
  */
-public abstract class OpenAttributeRepository<T extends OpenAttributeAccessor> extends AbstractAttributeRepository<T> {
+public abstract class OpenAttributeRepository<T extends OpenMBeanAttributeAccessor> extends AbstractAttributeRepository<T> {
     /**
      * Initializes a new support of management attributes.
      *
@@ -23,13 +23,13 @@ public abstract class OpenAttributeRepository<T extends OpenAttributeAccessor> e
     /**
      * Connects to the specified attribute.
      *
-     * @param attributeID The id of the attribute.
+     * @param attributeName The id of the attribute.
      * @param descriptor  Attribute descriptor.
      * @return The description of the attribute; or {@literal null},
      * @throws Exception Internal connector error.
      */
     @Override
-    protected abstract T connectAttribute(final String attributeID,
+    protected abstract T connectAttribute(final String attributeName,
                                                                  final AttributeDescriptor descriptor) throws Exception;
 
     /**
@@ -40,8 +40,13 @@ public abstract class OpenAttributeRepository<T extends OpenAttributeAccessor> e
      * @throws Exception Internal connector error.
      */
     @Override
-    protected Object getAttribute(final T metadata) throws Exception {
+    protected final Object getAttribute(final T metadata) throws Exception {
+        interceptGetAttribute(metadata);
         return metadata.getValue();
+    }
+
+    protected void interceptGetAttribute(final T metadata) throws Exception{
+
     }
 
     /**
@@ -54,9 +59,12 @@ public abstract class OpenAttributeRepository<T extends OpenAttributeAccessor> e
      */
     @SuppressWarnings("unchecked")
     @Override
-    protected void setAttribute(final T attribute, final Object value) throws Exception {
+    protected final void setAttribute(final T attribute, final Object value) throws Exception {
+        interceptSetAttribute(attribute, value);
         attribute.setValue(value);
     }
 
+    protected void interceptSetAttribute(final T attribute, final Object value) throws Exception{
 
+    }
 }

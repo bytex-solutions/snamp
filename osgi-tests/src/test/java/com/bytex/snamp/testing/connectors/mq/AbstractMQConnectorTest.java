@@ -19,8 +19,6 @@ import java.util.Map;
  */
 @SnampDependencies(SnampFeature.MQ_CONNECTOR)
 public abstract class AbstractMQConnectorTest extends AbstractResourceConnectorTest {
-
-
     private Connection jmsConnection;
     private final QueueClient queue;
     private final String connectionString;

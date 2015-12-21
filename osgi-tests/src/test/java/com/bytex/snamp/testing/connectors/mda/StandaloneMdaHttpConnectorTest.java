@@ -6,7 +6,6 @@ import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.bytex.snamp.jmx.json.JsonUtils;
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
@@ -21,8 +20,8 @@ import javax.management.openmbean.CompositeData;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Date;
-import java.util.Map;
 
+import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
@@ -220,62 +219,51 @@ public final class StandaloneMdaHttpConnectorTest extends AbstractMdaConnectorTe
     }
 
     @Override
-    protected void fillEvents(final Map<String, EventConfiguration> events, final Supplier<EventConfiguration> eventFactory) {
-        EventConfiguration event = eventFactory.get();
-        event.setCategory("testEvent1");
+    protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
+        EventConfiguration event = events.getOrAdd("e1");
+        setFeatureName(event, "testEvent1");
         event.getParameters().put("expectedType", "int64");
-        events.put("e1", event);
     }
 
     @Override
-    protected void fillAttributes(final Map<String, AttributeConfiguration> attributes,
-                                  final Supplier<AttributeConfiguration> attributeFactory) {
-        AttributeConfiguration attr = attributeFactory.get();
-        attr.setAttributeName("short");
+    protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
+        AttributeConfiguration attr = attributes.getOrAdd("attr1");
+        setFeatureName(attr, "short");
         attr.getParameters().put("expectedType", "int16");
-        attributes.put("attr1", attr);
 
-        attr = attributeFactory.get();
-        attr.setAttributeName("short");
+        attr = attributes.getOrAdd("alias");
+        setFeatureName(attr, "short");
         attr.getParameters().put("expectedType", "int16");
-        attributes.put("alias", attr);
 
-        attr = attributeFactory.get();
-        attr.setAttributeName("date");
+        attr = attributes.getOrAdd("attr2");
+        setFeatureName(attr, "date");
         attr.getParameters().put("expectedType", "datetime");
-        attributes.put("attr2", attr);
 
-        attr = attributeFactory.get();
-        attr.setAttributeName("biginteger");
+        attr = attributes.getOrAdd("attr3");
+        setFeatureName(attr, "biginteger");
         attr.getParameters().put("expectedType", "bigint");
-        attributes.put("attr3", attr);
 
-        attr = attributeFactory.get();
-        attr.setAttributeName("str");
+        attr = attributes.getOrAdd("attr4");
+        setFeatureName(attr, "str");
         attr.getParameters().put("expectedType", "string");
-        attributes.put("attr4", attr);
 
-        attr = attributeFactory.get();
-        attr.setAttributeName("array");
+        attr = attributes.getOrAdd("attr5");
+        setFeatureName(attr, "array");
         attr.getParameters().put("expectedType", "array(int8)");
-        attributes.put("attr5", attr);
 
-        attr = attributeFactory.get();
-        attr.setAttributeName("boolean");
+        attr = attributes.getOrAdd("attr6");
+        setFeatureName(attr, "boolean");
         attr.getParameters().put("expectedType", "bool");
-        attributes.put("attr6", attr);
 
-        attr = attributeFactory.get();
-        attr.setAttributeName("long");
+        attr = attributes.getOrAdd("attr7");
+        setFeatureName(attr, "long");
         attr.getParameters().put("expectedType", "int64");
-        attributes.put("attr7", attr);
 
-        attr = attributeFactory.get();
-        attr.setAttributeName("dict");
+        attr = attributes.getOrAdd("attr8");
+        setFeatureName(attr, "dict");
         attr.getParameters().put("expectedType", "dictionary");
         attr.getParameters().put("dictionaryName", "MemoryStatus");
         attr.getParameters().put("dictionaryItemNames", "free, total");
         attr.getParameters().put("dictionaryItemTypes", "int32, int32");
-        attributes.put("attr8", attr);
     }
 }

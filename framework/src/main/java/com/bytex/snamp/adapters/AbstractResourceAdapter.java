@@ -1,9 +1,9 @@
 package com.bytex.snamp.adapters;
 
-import com.bytex.snamp.TimeSpan;
-import com.google.common.collect.*;
 import com.bytex.snamp.AbstractAggregator;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.ExceptionPlaceholder;
+import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.modeling.*;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
@@ -19,9 +19,8 @@ import com.bytex.snamp.connectors.operations.OperationAddedEvent;
 import com.bytex.snamp.connectors.operations.OperationRemovingEvent;
 import com.bytex.snamp.core.LogicalOperation;
 import com.bytex.snamp.core.RichLogicalOperation;
-import com.bytex.snamp.internal.EntryReader;
-import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.DescriptorUtils;
+import com.google.common.collect.*;
 import org.osgi.framework.*;
 
 import javax.management.MBeanAttributeInfo;
@@ -30,7 +29,10 @@ import javax.management.MBeanNotificationInfo;
 import javax.management.MBeanOperationInfo;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.util.*;
+import java.util.Collection;
+import java.util.Dictionary;
+import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -401,7 +403,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      */
     protected void update(final Map<String, String> current,
                           final Map<String, String> newParameters) throws Exception{
-        if(!Utils.mapsAreEqual(current, newParameters))
+        if(!current.equals(newParameters))
             restart(newParameters);
     }
 
@@ -608,6 +610,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
             throw new IOException(String.format("Unable to release resources associated with %s adapter instance", adapterInstanceName), e);
         } finally {
             mutableState = InternalState.finalState();
+            clearCache();
         }
     }
 

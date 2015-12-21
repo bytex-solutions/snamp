@@ -23,7 +23,7 @@ abstract class SshAttributeAccessor extends AttributeAccessor implements SshAttr
 
     @Override
     public final String getOriginalName() {
-        return AttributeDescriptor.getAttributeName(getMetadata());
+        return AttributeDescriptor.getName(getMetadata());
     }
 
     private void printValueAsJson(final Writer output) throws IOException, JMException {

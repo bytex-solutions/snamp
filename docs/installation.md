@@ -32,10 +32,10 @@ Hardware:
     * x64
     * ARMv6/ARMv7 (in paid subscription only)
 * 2 Cores (minimum)
-* 200 MB of free disk space
+* 250 MB of free disk space
 > Disk space requirement ignores growing of log files
 
-* 1 GB RAM (minimum), 2 GB RAM (recommended)
+* 512 MB RAM (minimum), 2 GB RAM (recommended)
 
 Running SNAMP on ARM-based hardware (such as RaspberryPi) is possible as well - contact us for more information.
 
@@ -128,7 +128,7 @@ START LEVEL 30 , List Threshold: 50
  87 | Installed |  80 | 1.0.0                      | Apache Aries Proxy API
  88 | Installed |  80 | 2.3.4                      | SNMP4J
  89 | Installed |  80 | 1.0.0                      | SNMP Resource Adapter
- 90 | Installed |  80 | 2.4.3                      | Groovy Runtime
+ 90 | Installed |  80 | 2.4.5                      | Groovy Runtime
  91 | Installed |  80 | 2.4.0.final_20141213170938 | Ivy
  92 | Installed |  80 | 1.0.0                      | Groovy Resource Adapter
  93 | Installed |  80 | 1.0.0                      | SNMP Connector

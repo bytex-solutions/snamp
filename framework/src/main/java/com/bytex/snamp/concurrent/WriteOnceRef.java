@@ -1,12 +1,13 @@
 package com.bytex.snamp.concurrent;
 
+import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.ThreadSafe;
+import com.bytex.snamp.Wrapper;
 import com.google.common.base.Function;
 import com.google.common.base.Supplier;
-import com.bytex.snamp.Wrapper;
-import com.bytex.snamp.ThreadSafe;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 /**
  * Represents a container that can be written once per its lifetime.
@@ -15,8 +16,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @since 1.0
  */
 public class WriteOnceRef<T> implements Wrapper<T>, Supplier<T> {
+    private static final AtomicIntegerFieldUpdater<WriteOnceRef> LOCKED_UPDATER =
+            AtomicIntegerFieldUpdater.newUpdater(WriteOnceRef.class, "locked");
     private T value;
-    private final AtomicBoolean locked;
+    @SpecialUse
+    private volatile int/*boolean*/ locked = 0;
 
     /**
      * Initializes a new write-once container.
@@ -24,7 +28,6 @@ public class WriteOnceRef<T> implements Wrapper<T>, Supplier<T> {
      */
     public WriteOnceRef(final T initValue){
         value = initValue;
-        locked = new AtomicBoolean(false);
     }
 
     /**
@@ -43,22 +46,20 @@ public class WriteOnceRef<T> implements Wrapper<T>, Supplier<T> {
      * @return {@literal true}, if container is changed successfully; otherwise, {@literal false}.
      */
     @ThreadSafe
-    public final boolean set(final T value){
-        if(locked.compareAndSet(false, true)) {
+    public final boolean set(final T value) {
+        if (LOCKED_UPDATER.compareAndSet(this, 0, 1)) {
             this.value = value;
             return true;
-        }
-        else return false;
+        } else return false;
     }
 
     /**
      * Determines whether the container is locked and value inside of it cannot be changed.
      * @return {@literal true}, if this container is locked; otherwise, {@literal false}.
      */
-    @SuppressWarnings("UnusedDeclaration")
     @ThreadSafe
     public final boolean isLocked(){
-        return locked.get();
+        return LOCKED_UPDATER.get(this) > 0;
     }
 
     /**
@@ -113,7 +114,7 @@ public class WriteOnceRef<T> implements Wrapper<T>, Supplier<T> {
      * @return The wrapped object handling result.
      */
     @Override
-    public final <R> R handle(final Function<T, R> handler) {
+    public final <R> R apply(final Function<T, R> handler) {
         return handler != null ? handler.apply(value) : null;
     }
 }

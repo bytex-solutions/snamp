@@ -59,7 +59,7 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
         @Override
         public void close() throws Exception {
             try {
-                agent.stop();
+                agent.close();
             }
             finally {
                 super.close();

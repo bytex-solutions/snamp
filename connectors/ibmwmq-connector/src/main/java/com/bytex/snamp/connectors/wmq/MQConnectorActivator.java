@@ -32,18 +32,18 @@ public final class MQConnectorActivator extends ManagedResourceActivator<MQConne
     private static final class MQConnectorFactory extends ManagedResourceConnectorModeler<MQConnector> {
 
         @Override
-        protected boolean addAttribute(final MQConnector connector, final String attributeID, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
-            return connector.addAttribute(attributeID, attributeName, readWriteTimeout, options) != null;
+        protected boolean addAttribute(final MQConnector connector, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+            return connector.addAttribute(attributeName, readWriteTimeout, options) != null;
         }
 
         @Override
-        protected boolean enableNotifications(final MQConnector connector, final String listId, final String category, final CompositeData options) {
+        protected boolean enableNotifications(final MQConnector connector, final String category, final CompositeData options) {
             //not supported
             return false;
         }
 
         @Override
-        protected boolean enableOperation(final MQConnector connector, final String operationID, final String operationName, final TimeSpan timeout, final CompositeData options) {
+        protected boolean enableOperation(final MQConnector connector, final String operationName, final TimeSpan timeout, final CompositeData options) {
             //not supported
             return false;
         }

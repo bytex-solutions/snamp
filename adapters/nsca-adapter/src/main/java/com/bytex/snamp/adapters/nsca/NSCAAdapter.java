@@ -12,7 +12,7 @@ import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.*;
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.adapters.modeling.*;
-import com.bytex.snamp.internal.EntryReader;
+import com.bytex.snamp.EntryReader;
 
 import javax.management.*;
 import java.util.HashMap;

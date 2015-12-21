@@ -41,7 +41,8 @@ final class PeriodicAttributeQuery extends AbstractAggregatorNotification {
     }
 
     static SerializableEventConfiguration getConfiguration() {
-        final SerializableEventConfiguration result = new SerializableEventConfiguration(CATEGORY);
+        final SerializableEventConfiguration result = new SerializableEventConfiguration();
+        result.setAlternativeName(CATEGORY);
         result.getParameters().put(AggregatorConnectorConfiguration.SOURCE_PARAM, "");
         result.getParameters().put(AggregatorConnectorConfiguration.FOREIGN_ATTRIBUTE_PARAM, "");
         return result;

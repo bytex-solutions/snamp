@@ -1,8 +1,7 @@
 package com.bytex.snamp.connectors;
 
-import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.ThreadSafe;
+import com.bytex.snamp.core.FrameworkService;
 
 import javax.management.DynamicMBean;
 import javax.management.MBeanFeatureInfo;
@@ -37,16 +36,6 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
      * </p>
      */
     String CONNECTOR_NAME_MANIFEST_HEADER = "SNAMP-Resource-Connector";
-
-    /**
-     * Represents name of the configuration parameter that can be used to enable Smart mode of the connector.
-     */
-    String SMART_MODE_PARAM = "smartMode";
-
-    /**
-     * Recommended timeout for invocation of operations and attributes in smart mode.
-     */
-    TimeSpan TIMEOUT_FOR_SMART_MODE = TimeSpan.ofSeconds(10);
 
     /**
      * Represents an exception indicating that the resource connector cannot be updated

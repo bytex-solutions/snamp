@@ -43,10 +43,28 @@ public interface AgentConfiguration extends Cloneable {
         String DESCRIPTION_KEY = "description";
 
         /**
+         * The name of the parameter which used for grouping entities.
+         */
+        String GROUP_KEY = "group";
+
+        /**
          * Gets configuration parameters of this entity.
          * @return A map of configuration parameters.
          */
         Map<String, String> getParameters();
+    }
+
+    /**
+     * Represents catalog of configuration entities.
+     * @param <E> Type of the configuration entities in the catalog.
+     */
+    interface EntityMap<E extends EntityConfiguration> extends Map<String, E>{
+        /**
+         * Gets existing configuration entity; or creates and registers a new entity.
+         * @param entityID Identifier of the configuration entity.
+         * @return Configuration entity from the catalog.
+         */
+        E getOrAdd(final String entityID);
     }
 
     /**
@@ -85,12 +103,26 @@ public interface AgentConfiguration extends Cloneable {
     interface ManagedResourceConfiguration extends EntityConfiguration {
 
         /**
+         * Represents name of the configuration parameter that can be used to enable Smart mode of the connector.
+         */
+        String SMART_MODE_KEY = "smartMode";
+
+        /**
          * Represents a feature of the managed resource.
          * @author Roman Sakno
          * @since 1.0
          * @version 1.0
          */
         interface FeatureConfiguration extends EntityConfiguration {
+            /**
+             * Represents configuration parameter containing alternative name of the feature.
+             */
+            String NAME_KEY = "name";
+
+            /**
+             * Represents configuration parameter indicating that this feature was created by machine, not by human.
+             */
+            String AUTOMATICALLY_ADDED_KEY = "automaticallyAdded";
         }
 
         /**
@@ -100,17 +132,6 @@ public interface AgentConfiguration extends Cloneable {
          * @version 1.0
          */
         interface EventConfiguration extends FeatureConfiguration {
-            /**
-             * Gets the event category.
-             * @return The event category.
-             */
-            String getCategory();
-
-            /**
-             * Sets the category of the event to listen.
-             * @param eventCategory The category of the event to listen.
-             */
-            void setCategory(final String eventCategory);
         }
 
         /**
@@ -120,6 +141,11 @@ public interface AgentConfiguration extends Cloneable {
          * @version 1.0
          */
         interface AttributeConfiguration extends FeatureConfiguration {
+            /**
+             * Recommended timeout for read/write of attribute in smart mode.
+             */
+            TimeSpan TIMEOUT_FOR_SMART_MODE = TimeSpan.ofSeconds(10);
+
             /**
              * Gets attribute value invoke/write operation timeout.
              * @return Gets attribute value invoke/write operation timeout.
@@ -131,18 +157,6 @@ public interface AgentConfiguration extends Cloneable {
              * @param value A new value of the timeout.
              */
             void setReadWriteTimeout(final TimeSpan value);
-
-            /**
-             * Returns the attribute name.
-             * @return The attribute name.
-             */
-            String getAttributeName();
-
-            /**
-             * Sets the attribute name.
-             * @param attributeName The attribute name.
-             */
-            void setAttributeName(final String attributeName);
         }
 
         /**
@@ -153,10 +167,9 @@ public interface AgentConfiguration extends Cloneable {
          */
         interface OperationConfiguration extends FeatureConfiguration{
             /**
-             * Gets name of the managed resource operation.
-             * @return The name of the managed resource operation.
+             * Recommended timeout for invocation of operation in smart mode.
              */
-            String getOperationName();
+            TimeSpan TIMEOUT_FOR_SMART_MODE = TimeSpan.ofSeconds(10);
 
             /**
              * Gets timeout of operation invocation.
@@ -169,12 +182,6 @@ public interface AgentConfiguration extends Cloneable {
              * @param value A new timeout value.
              */
             void setInvocationTimeout(final TimeSpan value);
-
-            /**
-             * Sets name of the managed resource operation.
-             * @param operationName Name of the managed resource operation.
-             */
-            void setOperationName(final String operationName);
         }
 
         /**
@@ -205,22 +212,13 @@ public interface AgentConfiguration extends Cloneable {
 
         /**
          * Gets a collection of configured manageable elements for this target.
-         * @param elementType The type of the manageable element.
+         * @param featureType The type of the manageable element.
          * @param <T> The type of the manageable element.
          * @return A map of manageable elements; or {@literal null}, if element type is not supported.
          * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration
          * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration
          */
-        <T extends FeatureConfiguration> Map<String, T> getElements(final Class<T> elementType);
-
-        /**
-         * Creates a new instances of the specified manageable element.
-         * @param elementType Type of the required manageable element.
-         * @param <T> Type of the required manageable element.
-         * @return A new empty manageable element; or {@literal null},
-         *      if the specified element type is not supported.
-         */
-        <T extends FeatureConfiguration> T newElement(final Class<T> elementType);
+        <T extends FeatureConfiguration> EntityMap<? extends T> getFeatures(final Class<T> featureType);
 
         /**
          * Returns the dictionary of additional configuration parameters.
@@ -236,7 +234,7 @@ public interface AgentConfiguration extends Cloneable {
      * </p>
      * @return A collection of resource adapters.
      */
-    Map<String, ResourceAdapterConfiguration> getResourceAdapters();
+    EntityMap<? extends ResourceAdapterConfiguration> getResourceAdapters();
 
     /**
      * Gets a collection of managed resources.
@@ -245,18 +243,7 @@ public interface AgentConfiguration extends Cloneable {
      * </p>
      * @return The dictionary of managed resources.
      */
-    Map<String, ManagedResourceConfiguration> getManagedResources();
-
-    /**
-     * Creates a new instance of the configuration entity.
-     * @param entityType Type of the entity to instantiate.
-     * @param <T> Type of the entity to instantiate.
-     * @return A new instance of the configuration entity; or {@literal null}, if entity
-     * is not supported.
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration
-     */
-    <T extends EntityConfiguration> T newConfigurationEntity(final Class<T> entityType);
+    EntityMap<? extends ManagedResourceConfiguration> getManagedResources();
 
     /**
      * Imports the state of specified object into this object.

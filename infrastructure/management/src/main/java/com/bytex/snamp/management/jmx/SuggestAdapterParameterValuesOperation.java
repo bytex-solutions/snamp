@@ -1,6 +1,7 @@
 package com.bytex.snamp.management.jmx;
 
 import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.management.AbstractSnampManager;
 import com.bytex.snamp.management.SnampComponentDescriptor;
 
@@ -27,12 +28,12 @@ final class SuggestAdapterParameterValuesOperation extends AbstractSnampComponen
     }
 
     @Override
-    public String[] invoke(Map<String, ?> arguments) throws Exception {
-        final String adapterName = getArgument(ADAPTER_NAME_PARAM.getName(), String.class, arguments);
-        final String parameterName = getArgument(PARAM_NAME_PARAM.getName(), String.class, arguments);
-        final String locale = getArgument(LOCALE_PARAM.getName(), String.class, arguments);
+    public String[] invoke(final Map<String, ?> arguments) throws Exception {
+        final String adapterName = ADAPTER_NAME_PARAM.getArgument(arguments);
+        final String parameterName = PARAM_NAME_PARAM.getArgument(arguments);
+        final String locale = LOCALE_PARAM.getArgument(arguments);
         final Map<String, String> tabularData =
-                MonitoringUtils.transformTabularDataToMap(getArgument(CONNECTION_STRING_PARAM.getName(), TabularData.class, arguments));
+                MonitoringUtils.transformTabularDataToMap(CONNECTION_STRING_PARAM.getArgument(arguments));
 
         final SnampComponentDescriptor adapter = snampManager.getResourceAdapter(adapterName);
         if (adapter == null) throw new IllegalArgumentException(String.format("Adapter %s doesn't exist", adapterName));

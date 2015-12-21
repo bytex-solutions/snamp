@@ -1,11 +1,15 @@
 package com.bytex.snamp.connectors;
 
-import com.google.common.base.Function;
-import com.google.common.collect.*;
+import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.WeakEventListenerList;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
-import com.bytex.snamp.ThreadSafe;
+import com.bytex.snamp.connectors.metrics.Metrics;
 import com.bytex.snamp.io.IOUtils;
+import com.google.common.base.Function;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
+import com.google.common.collect.ObjectArrays;
+import com.google.common.collect.Sets;
 
 import javax.management.MBeanFeatureInfo;
 import java.math.BigInteger;
@@ -21,8 +25,6 @@ import java.util.*;
 public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> extends ThreadSafeObject implements Iterable<F> {
 
     private static final class ResourceEventListenerList extends WeakEventListenerList<ResourceEventListener, ResourceEvent> {
-        private static final long serialVersionUID = -9139754747382955308L;
-
         private ResourceEventListenerList() {
 
         }
@@ -99,18 +101,20 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
      */
     protected final Class<F> metadataType;
     private final ResourceEventListenerList resourceEventListeners;
-    private final Enum<?> resourceEventListenerSyncGroup;
     private final String resourceName;
 
     protected <G extends Enum<G>> AbstractFeatureRepository(final String resourceName,
                                                             final Class<F> metadataType,
-                                                            final Class<G> resourceGroupDef,
-                                                            final G resourceEventListenerSyncGroup) {
+                                                            final Class<G> resourceGroupDef) {
         super(resourceGroupDef);
         this.metadataType = Objects.requireNonNull(metadataType);
         this.resourceEventListeners = new ResourceEventListenerList();
-        this.resourceEventListenerSyncGroup = Objects.requireNonNull(resourceEventListenerSyncGroup);
         this.resourceName = resourceName;
+    }
+
+    protected AbstractFeatureRepository(final String resourceName,
+                                        final Class<F> metadataType){
+        this(resourceName, metadataType, SingleResourceGroup.class);
     }
 
     /**
@@ -128,26 +132,21 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
      * @param listener Repository event listener to add.
      */
     public final void addModelEventListener(final ResourceEventListener listener) {
-        try (final LockScope ignored = beginWrite(resourceEventListenerSyncGroup)) {
-            resourceEventListeners.add(listener);
-        }
+        resourceEventListeners.add(listener);
     }
 
     /**
      * Removes the specified repository event listener.
      *
      * @param listener The listener to remove.
+     * @return {@literal true}, if listener is removed successfully; otherwise, {@literal false}.
      */
-    public final void removeModelEventListener(final ResourceEventListener listener) {
-        try (final LockScope ignored = beginWrite(resourceEventListenerSyncGroup)) {
-            resourceEventListeners.remove(listener);
-        }
+    public final boolean removeModelEventListener(final ResourceEventListener listener) {
+        return resourceEventListeners.remove(listener);
     }
 
     protected final void fireResourceEvent(final FeatureModifiedEvent<?> event) {
-        try (final LockScope ignored = beginWrite(resourceEventListenerSyncGroup)) {
-            resourceEventListeners.fire(event);
-        }
+        resourceEventListeners.fire(event);
     }
 
     protected final F[] toArray(final Collection<? extends FeatureHolder<F>> features) {
@@ -159,9 +158,7 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
     }
 
     protected final void removeAllResourceEventListeners() {
-        try (final LockScope ignored = beginWrite(resourceEventListenerSyncGroup)) {
-            resourceEventListeners.clear();
-        }
+        resourceEventListeners.clear();
     }
 
     /**
@@ -206,6 +203,12 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
         }
         return result;
     }
+
+    /**
+     * Gets metrics associated with activity of the features in this repository.
+     * @return Metrics associated with activity in this repository.
+     */
+    public abstract Metrics getMetrics();
 
     /**
      * Expands this repository.

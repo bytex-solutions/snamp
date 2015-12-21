@@ -1,4 +1,4 @@
-@Grab(group = 'org.codehaus.groovy', module = 'groovy-json', version = '2.4.3')
+@Grab(group = 'org.codehaus.groovy', module = 'groovy-json', version = '2.4.5')
 @GrabConfig(initContextClassLoader = true)
 import groovy.json.JsonSlurper
 
@@ -6,7 +6,7 @@ import groovy.json.JsonSlurper
 @GrabConfig(initContextClassLoader = true)
 import groovyx.net.http.RESTClient
 
-@Grab(group='org.codehaus.groovy', module='groovy-xml', version='2.4.3')
+@Grab(group='org.codehaus.groovy', module='groovy-xml', version='2.4.5')
 @GrabConfig(initContextClassLoader = true)
 import groovy.util.slurpersupport.GPathResult
 

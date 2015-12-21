@@ -14,7 +14,6 @@ import java.util.logging.Logger;
 @Internal
 public abstract class AbstractFrameworkService extends AbstractAggregator implements FrameworkService {
 
-
     /**
      * Initializes a new instance of the platform service.
      */

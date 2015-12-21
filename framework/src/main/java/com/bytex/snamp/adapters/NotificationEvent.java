@@ -1,7 +1,5 @@
 package com.bytex.snamp.adapters;
 
-import com.bytex.snamp.internal.Utils;
-
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
 import java.util.EventObject;
@@ -43,6 +41,7 @@ public class NotificationEvent extends EventObject {
      */
     @Override
     public final MBeanNotificationInfo getSource() {
-        return Utils.safeCast(source, MBeanNotificationInfo.class);
+        assert source instanceof MBeanNotificationInfo: source;
+        return (MBeanNotificationInfo) source;
     }
 }

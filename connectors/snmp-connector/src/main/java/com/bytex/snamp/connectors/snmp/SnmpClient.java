@@ -246,9 +246,8 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
 
     protected abstract Target createTarget(final TimeSpan timeout);
 
-    @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
     private static ResponseEvent waitForResponseEvent(final Future<ResponseEvent> awaitor, final TimeSpan timeout) throws TimeoutException, IOException, InterruptedException, ExecutionException {
-        final ResponseEvent response = awaitor.get(timeout.duration, timeout.unit);
+        final ResponseEvent response = timeout == TimeSpan.INFINITE ? awaitor.get() : awaitor.get(timeout.duration, timeout.unit);
         if(response == null || response.getResponse() == null) throw new TimeoutException("PDU sending timeout.");
         else if(response.getError() != null)
             if(response.getError() instanceof IOException)
@@ -257,7 +256,6 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
         else return response;
     }
 
-    @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
     public final ResponseEvent send(final PDU data, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException, ExecutionException {
         final SnmpResponseListener listener = new SnmpResponseListener();
         send(data, createTarget(timeout), null, listener);

@@ -1,5 +1,8 @@
 package com.bytex.snamp;
 
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
+
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -14,6 +17,39 @@ import java.util.NoSuchElementException;
  */
 @ThreadSafe(false)
 public abstract class ResettableIterator<T> implements Iterator<T>, Serializable, Enumeration<T> {
+    //iterator with zero elements
+    private static final class EmptyIterator extends ResettableIterator{
+        private static final EmptyIterator INSTANCE = new EmptyIterator();
+        private static final long serialVersionUID = -7846749919844312382L;
+
+        private EmptyIterator(){
+
+        }
+
+        @Override
+        public void reset() {
+        }
+
+        @Override
+        public boolean hasNext() {
+            return false;
+        }
+
+        @Override
+        public Object next() {
+            throw new NoSuchElementException();
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException("Not supported for empty iterator.");
+        }
+
+        @SuppressWarnings("unchecked")
+        private static <T> ResettableIterator<T> getInstance(){
+            return INSTANCE;
+        }
+    }
     //abstract class for all array-based iterators
     private static abstract class ArrayIterator<T> extends ResettableIterator<T>{
         private static final long serialVersionUID = -6510072048310473619L;
@@ -55,7 +91,6 @@ public abstract class ResettableIterator<T> implements Iterator<T>, Serializable
      * Initializes a new iterator with reset support.
      */
     protected ResettableIterator(){
-
     }
 
     /**
@@ -126,31 +161,83 @@ public abstract class ResettableIterator<T> implements Iterator<T>, Serializable
     }
 
     /**
+     * Obtains resettable iterator with single element.
+     * @param supplier Supplier for the single element.
+     * @param <T> Type of the element in the iterator.
+     * @return Iterator with single element.
+     */
+    public static <T> ResettableIterator<T> of(final Supplier<? extends T> supplier){
+        return new ResettableIterator<T>() {
+            private static final long serialVersionUID = -4470259466640767812L;
+            private boolean available = true;
+
+            @Override
+            public void reset() {
+                available = true;
+            }
+
+            @Override
+            public boolean hasNext() {
+                return available;
+            }
+
+            @Override
+            public T next() {
+                if(available){
+                    available = false;
+                    return supplier.get();
+                }
+                else throw new NoSuchElementException();
+            }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException("This collection is singleton");
+            }
+        };
+    }
+
+    /**
+     * Obtains resettable iterator with single element.
+     * @param value An element in the iterator.
+     * @param <T> Type of the element in the iterator.
+     * @return Iterator with single element.
+     */
+    public static <T> ResettableIterator<T> of(final T value) {
+        return of(Suppliers.ofInstance(value));
+    }
+
+    /**
      * Obtains resettable iterator for the specified array.
      * @param items An array to wrap. Cannot be {@literal null}.
      * @param <T> Type of the array component.
      * @return A new iterator for the specified array.
      */
     @SafeVarargs
-    public static <T> ResettableIterator<T> of(final T... items){
-        return new ArrayIterator<T>() {
-            private static final long serialVersionUID = -1849965276230507239L;
+    public static <T> ResettableIterator<T> of(final T... items) {
+        switch (items.length) {
+            case 0:
+                return EmptyIterator.getInstance();
+            default:
+                return new ArrayIterator<T>() {
+                    private static final long serialVersionUID = -1849965276230507239L;
 
-            @Override
-            protected int getLength() {
-                return items.length;
-            }
+                    @Override
+                    protected int getLength() {
+                        return items.length;
+                    }
 
-            @Override
-            protected T get(final int index) {
-                return items[index];
-            }
+                    @Override
+                    protected T get(final int index) {
+                        return items[index];
+                    }
 
-            @Override
-            public String toString() {
-                return Arrays.toString(items);
-            }
-        };
+                    @Override
+                    public String toString() {
+                        return Arrays.toString(items);
+                    }
+                };
+        }
     }
 
     /**
@@ -158,25 +245,30 @@ public abstract class ResettableIterator<T> implements Iterator<T>, Serializable
      * @param array An array to wrap. Cannot be {@literal null}.
      * @return A new iterator for the specified array.
      */
-    public static ResettableIterator<Byte> of(final byte[] array){
-        return new ArrayIterator<Byte>() {
-            private static final long serialVersionUID = 4477058913151343101L;
+    public static ResettableIterator<Byte> of(final byte[] array) {
+        switch (array.length) {
+            case 0:
+                return of();
+            default:
+                return new ArrayIterator<Byte>() {
+                    private static final long serialVersionUID = 4477058913151343101L;
 
-            @Override
-            protected int getLength() {
-                return array.length;
-            }
+                    @Override
+                    protected int getLength() {
+                        return array.length;
+                    }
 
-            @Override
-            protected Byte get(final int index) {
-                return array[index];
-            }
+                    @Override
+                    protected Byte get(final int index) {
+                        return array[index];
+                    }
 
-            @Override
-            public String toString() {
-                return Arrays.toString(array);
-            }
-        };
+                    @Override
+                    public String toString() {
+                        return Arrays.toString(array);
+                    }
+                };
+        }
     }
 
     /**
@@ -184,25 +276,30 @@ public abstract class ResettableIterator<T> implements Iterator<T>, Serializable
      * @param array An array to wrap. Cannot be {@literal null}.
      * @return A new iterator for the specified array.
      */
-    public static ResettableIterator<Short> of(final short[] array){
-        return new ArrayIterator<Short>() {
-            private static final long serialVersionUID = -2120797310172397170L;
+    public static ResettableIterator<Short> of(final short[] array) {
+        switch (array.length) {
+            case 0:
+                return of();
+            default:
+                return new ArrayIterator<Short>() {
+                    private static final long serialVersionUID = -2120797310172397170L;
 
-            @Override
-            protected int getLength() {
-                return array.length;
-            }
+                    @Override
+                    protected int getLength() {
+                        return array.length;
+                    }
 
-            @Override
-            protected Short get(final int index) {
-                return array[index];
-            }
+                    @Override
+                    protected Short get(final int index) {
+                        return array[index];
+                    }
 
-            @Override
-            public String toString() {
-                return Arrays.toString(array);
-            }
-        };
+                    @Override
+                    public String toString() {
+                        return Arrays.toString(array);
+                    }
+                };
+        }
     }
 
     /**
@@ -210,25 +307,30 @@ public abstract class ResettableIterator<T> implements Iterator<T>, Serializable
      * @param array An array to wrap. Cannot be {@literal null}.
      * @return A new iterator for the specified array.
      */
-    public static ResettableIterator<Integer> of(final int[] array){
-        return new ArrayIterator<Integer>() {
-            private static final long serialVersionUID = -2120797310172397170L;
+    public static ResettableIterator<Integer> of(final int[] array) {
+        switch (array.length) {
+            case 0:
+                return of();
+            default:
+                return new ArrayIterator<Integer>() {
+                    private static final long serialVersionUID = -2120797310172397170L;
 
-            @Override
-            protected int getLength() {
-                return array.length;
-            }
+                    @Override
+                    protected int getLength() {
+                        return array.length;
+                    }
 
-            @Override
-            protected Integer get(final int index) {
-                return array[index];
-            }
+                    @Override
+                    protected Integer get(final int index) {
+                        return array[index];
+                    }
 
-            @Override
-            public String toString() {
-                return Arrays.toString(array);
-            }
-        };
+                    @Override
+                    public String toString() {
+                        return Arrays.toString(array);
+                    }
+                };
+        }
     }
 
     /**
@@ -236,25 +338,30 @@ public abstract class ResettableIterator<T> implements Iterator<T>, Serializable
      * @param array An array to wrap. Cannot be {@literal null}.
      * @return A new iterator for the specified array.
      */
-    public static ResettableIterator<Long> of(final long[] array){
-        return new ArrayIterator<Long>() {
-            private static final long serialVersionUID = -2120797310172397170L;
+    public static ResettableIterator<Long> of(final long[] array) {
+        switch (array.length) {
+            case 0:
+                return of();
+            default:
+                return new ArrayIterator<Long>() {
+                    private static final long serialVersionUID = -2120797310172397170L;
 
-            @Override
-            protected int getLength() {
-                return array.length;
-            }
+                    @Override
+                    protected int getLength() {
+                        return array.length;
+                    }
 
-            @Override
-            protected Long get(final int index) {
-                return array[index];
-            }
+                    @Override
+                    protected Long get(final int index) {
+                        return array[index];
+                    }
 
-            @Override
-            public String toString() {
-                return Arrays.toString(array);
-            }
-        };
+                    @Override
+                    public String toString() {
+                        return Arrays.toString(array);
+                    }
+                };
+        }
     }
 
     /**
@@ -262,25 +369,30 @@ public abstract class ResettableIterator<T> implements Iterator<T>, Serializable
      * @param array An array to wrap. Cannot be {@literal null}.
      * @return A new iterator for the specified array.
      */
-    public static ResettableIterator<Boolean> of(final boolean[] array){
-        return new ArrayIterator<Boolean>() {
-            private static final long serialVersionUID = -2120797310172397170L;
+    public static ResettableIterator<Boolean> of(final boolean[] array) {
+        switch (array.length) {
+            case 0:
+                return of();
+            default:
+                return new ArrayIterator<Boolean>() {
+                    private static final long serialVersionUID = -2120797310172397170L;
 
-            @Override
-            protected int getLength() {
-                return array.length;
-            }
+                    @Override
+                    protected int getLength() {
+                        return array.length;
+                    }
 
-            @Override
-            protected Boolean get(final int index) {
-                return array[index];
-            }
+                    @Override
+                    protected Boolean get(final int index) {
+                        return array[index];
+                    }
 
-            @Override
-            public String toString() {
-                return Arrays.toString(array);
-            }
-        };
+                    @Override
+                    public String toString() {
+                        return Arrays.toString(array);
+                    }
+                };
+        }
     }
 
     /**
@@ -288,25 +400,30 @@ public abstract class ResettableIterator<T> implements Iterator<T>, Serializable
      * @param array An array to wrap. Cannot be {@literal null}.
      * @return A new iterator for the specified array.
      */
-    public static ResettableIterator<Float> of(final float[] array){
-        return new ArrayIterator<Float>() {
-            private static final long serialVersionUID = -2120797310172397170L;
+    public static ResettableIterator<Float> of(final float[] array) {
+        switch (array.length) {
+            case 0:
+                return of();
+            default:
+                return new ArrayIterator<Float>() {
+                    private static final long serialVersionUID = -2120797310172397170L;
 
-            @Override
-            protected int getLength() {
-                return array.length;
-            }
+                    @Override
+                    protected int getLength() {
+                        return array.length;
+                    }
 
-            @Override
-            protected Float get(final int index) {
-                return array[index];
-            }
+                    @Override
+                    protected Float get(final int index) {
+                        return array[index];
+                    }
 
-            @Override
-            public String toString() {
-                return Arrays.toString(array);
-            }
-        };
+                    @Override
+                    public String toString() {
+                        return Arrays.toString(array);
+                    }
+                };
+        }
     }
 
     /**
@@ -314,25 +431,30 @@ public abstract class ResettableIterator<T> implements Iterator<T>, Serializable
      * @param array An array to wrap. Cannot be {@literal null}.
      * @return A new iterator for the specified array.
      */
-    public static ResettableIterator<Double> of(final double[] array){
-        return new ArrayIterator<Double>() {
-            private static final long serialVersionUID = -2120797310172397170L;
+    public static ResettableIterator<Double> of(final double[] array) {
+        switch (array.length) {
+            case 0:
+                return of();
+            default:
+                return new ArrayIterator<Double>() {
+                    private static final long serialVersionUID = -2120797310172397170L;
 
-            @Override
-            protected int getLength() {
-                return array.length;
-            }
+                    @Override
+                    protected int getLength() {
+                        return array.length;
+                    }
 
-            @Override
-            protected Double get(final int index) {
-                return array[index];
-            }
+                    @Override
+                    protected Double get(final int index) {
+                        return array[index];
+                    }
 
-            @Override
-            public String toString() {
-                return Arrays.toString(array);
-            }
-        };
+                    @Override
+                    public String toString() {
+                        return Arrays.toString(array);
+                    }
+                };
+        }
     }
 
     /**
@@ -340,25 +462,30 @@ public abstract class ResettableIterator<T> implements Iterator<T>, Serializable
      * @param array An array to wrap. Cannot be {@literal null}.
      * @return A new iterator for the specified array.
      */
-    public static ResettableIterator<Character> of(final char[] array){
-        return new ArrayIterator<Character>() {
-            private static final long serialVersionUID = -2120797310172397170L;
+    public static ResettableIterator<Character> of(final char[] array) {
+        switch (array.length) {
+            case 0:
+                return of();
+            default:
+                return new ArrayIterator<Character>() {
+                    private static final long serialVersionUID = -2120797310172397170L;
 
-            @Override
-            protected int getLength() {
-                return array.length;
-            }
+                    @Override
+                    protected int getLength() {
+                        return array.length;
+                    }
 
-            @Override
-            protected Character get(final int index) {
-                return array[index];
-            }
+                    @Override
+                    protected Character get(final int index) {
+                        return array[index];
+                    }
 
-            @Override
-            public String toString() {
-                return Arrays.toString(array);
-            }
-        };
+                    @Override
+                    public String toString() {
+                        return Arrays.toString(array);
+                    }
+                };
+        }
     }
 
     /**
@@ -367,23 +494,28 @@ public abstract class ResettableIterator<T> implements Iterator<T>, Serializable
      * @return A new iterator for the specified sequence.
      */
     public static ResettableIterator<Character> of(final CharSequence value) {
-        return new ArrayIterator<Character>() {
-            private static final long serialVersionUID = 6565775008504686243L;
+        switch (value.length()) {
+            case 0:
+                return of();
+            default:
+                return new ArrayIterator<Character>() {
+                    private static final long serialVersionUID = 6565775008504686243L;
 
-            @Override
-            protected int getLength() {
-                return value.length();
-            }
+                    @Override
+                    protected int getLength() {
+                        return value.length();
+                    }
 
-            @Override
-            protected Character get(final int index) {
-                return value.charAt(index);
-            }
+                    @Override
+                    protected Character get(final int index) {
+                        return value.charAt(index);
+                    }
 
-            @Override
-            public String toString() {
-                return value.toString();
-            }
-        };
+                    @Override
+                    public String toString() {
+                        return value.toString();
+                    }
+                };
+        }
     }
 }

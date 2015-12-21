@@ -24,8 +24,8 @@ public abstract class MDAResourceActivator extends ManagedResourceActivator<Data
      */
     protected static abstract class MonitoringDataAcceptorFactory extends ManagedResourceConnectorModeler<DataAcceptor> implements Iterable<DataAcceptorFactory>{
         @Override
-        protected final boolean addAttribute(final DataAcceptor connector, final String attributeID, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
-            return connector.addAttribute(attributeID, attributeName, readWriteTimeout, options);
+        protected final boolean addAttribute(final DataAcceptor connector, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+            return connector.addAttribute(attributeName, readWriteTimeout, options);
         }
 
         @Override
@@ -34,8 +34,8 @@ public abstract class MDAResourceActivator extends ManagedResourceActivator<Data
         }
 
         @Override
-        protected final boolean enableNotifications(final DataAcceptor connector, final String listId, final String category, final CompositeData options) {
-            return connector.enableNotifications(listId, category, options);
+        protected final boolean enableNotifications(final DataAcceptor connector, final String category, final CompositeData options) {
+            return connector.enableNotifications(category, options);
         }
 
         @Override
@@ -44,7 +44,7 @@ public abstract class MDAResourceActivator extends ManagedResourceActivator<Data
         }
 
         @Override
-        protected final boolean enableOperation(final DataAcceptor connector, final String operationID, final String operationName, final TimeSpan invocationTimeout, final CompositeData options) {
+        protected final boolean enableOperation(final DataAcceptor connector, final String operationName, final TimeSpan invocationTimeout, final CompositeData options) {
             return false;
         }
 

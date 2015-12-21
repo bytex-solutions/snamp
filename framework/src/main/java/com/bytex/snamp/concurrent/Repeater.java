@@ -88,6 +88,14 @@ public abstract class Repeater implements AutoCloseable, Runnable {
     }
 
     /**
+     * Gets priority of the repeater thread.
+     * @return Priority of the repeater thread.
+     */
+    protected int getPriority(){
+        return Thread.NORM_PRIORITY;
+    }
+
+    /**
      * Returns time between successive task executions.
      * @return Time between successive task executions.
      */
@@ -184,15 +192,17 @@ public abstract class Repeater implements AutoCloseable, Runnable {
 
         private RepeaterThreadImpl(final RepeaterWorker worker,
                                    final String threadName,
+                                   final int priority,
                                    final TimeSpan period){
             super(worker, threadName);
             this.period = period.convert(TimeUnit.MILLISECONDS).duration;
             setDaemon(true);
+            setPriority(priority);
             setUncaughtExceptionHandler(worker);
         }
 
         @Override
-        public final void run() {
+        public void run() {
             while (!isInterrupted()){
                 //sleep for a specified time
                 try{
@@ -220,17 +230,17 @@ public abstract class Repeater implements AutoCloseable, Runnable {
                 //create thread worker
                 final RepeaterWorker worker = new RepeaterWorker() {
                     @Override
-                    public final void run() {
+                    public void run() {
                         doAction();
                     }
 
                     @Override
-                    public final void uncaughtException(final Thread t, final Throwable e) {
+                    public void uncaughtException(final Thread t, final Throwable e) {
                         fault(e);
                     }
                 };
-                repeatThread = new RepeaterThreadImpl(worker, generateThreadName(), period);
-                //executes periodic thread
+                repeatThread = new RepeaterThreadImpl(worker, generateThreadName(), getPriority(), period);
+                //execute periodic thread
                 repeatThread.start();
                 stateChanged(state = RepeaterState.STARTED);
                 return;
@@ -317,7 +327,7 @@ public abstract class Repeater implements AutoCloseable, Runnable {
     private void close(final long millis) throws InterruptedException, TimeoutException {
         long duration = System.currentTimeMillis();
         if (monitor.tryLock(millis, TimeUnit.MILLISECONDS)) {
-            duration -= System.currentTimeMillis();
+            duration = System.currentTimeMillis() - duration;
             try {
                 tryStop(millis - duration);
                 closeImpl();    //must be closed before lock will be released

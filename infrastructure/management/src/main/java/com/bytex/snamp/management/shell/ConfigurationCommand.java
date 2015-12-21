@@ -3,6 +3,7 @@ package com.bytex.snamp.management.shell;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.PersistentConfigurationManager;
 import com.bytex.snamp.core.ServiceHolder;
+import com.google.common.collect.ImmutableSet;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 import org.osgi.service.cm.ConfigurationAdmin;
 
@@ -25,8 +26,9 @@ abstract class ConfigurationCommand extends OsgiCommandSupport implements SnampS
      * @param configuration Configuration to process. Cannot be {@literal null}.
      * @param output Output writer.
      * @return {@literal true} to save changes; otherwise, {@literal false}.
+     * @throws Exception Unable to process configuration.
      */
-    abstract boolean doExecute(final AgentConfiguration configuration, final StringBuilder output);
+    abstract boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) throws Exception;
 
     @Override
     protected final CharSequence doExecute() throws Exception {
@@ -43,14 +45,13 @@ abstract class ConfigurationCommand extends OsgiCommandSupport implements SnampS
             adminRef.release(bundleContext);
         }
     }
-
-    protected static <T extends FeatureConfiguration> Set<Map.Entry<String, T>> getFeatures(final ManagedResourceConfiguration resource,
-                                                                                            final Class<T> featureType){
-        final Map<String, T> features = resource.getElements(featureType);
-        return features != null ? features.entrySet() : Collections.<Map.Entry<String, T>>emptySet();
+    protected static <T extends FeatureConfiguration> Set<? extends Map.Entry<String, ? extends T>> getFeatures(final ManagedResourceConfiguration resource,
+                                                                                            final Class<T> featureType) {
+        final Map<String, ? extends T> features = resource.getFeatures(featureType);
+        return features != null ? features.entrySet() : Collections.<Map.Entry<String, ? extends T>>emptySet();
     }
 
-    protected static <T extends FeatureConfiguration> Set<Map.Entry<String, T>> getFeatures(final AgentConfiguration config,
+    protected static <T extends FeatureConfiguration> Set<? extends Map.Entry<String, ? extends T>> getFeatures(final AgentConfiguration config,
                                                                                              final String resourceName,
                                                                                             final Class<T> featureType) {
         return getFeatures(config.getManagedResources().get(resourceName), featureType);

@@ -3,7 +3,7 @@ package com.bytex.snamp.connectors.mda;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.attributes.AttributeSpecifier;
-import com.bytex.snamp.connectors.attributes.OpenAttributeAccessor;
+import com.bytex.snamp.connectors.attributes.OpenMBeanAttributeAccessor;
 import com.bytex.snamp.internal.MapKeyRef;
 import com.bytex.snamp.jmx.OpenMBean;
 
@@ -19,18 +19,20 @@ import java.util.concurrent.ConcurrentMap;
  * @version 1.0
  * @since 1.0
  */
-public class MDAAttributeInfo<T> extends OpenAttributeAccessor<T> {
+public class MDAAttributeInfo<T> extends OpenMBeanAttributeAccessor<T> {
     private static final long serialVersionUID = -1853294450682902061L;
 
     private Map.Entry<String, Object> entryRef;
     private AccessTimer accessTimer;
     private TimeSpan expirationTime;
+    private final OpenType<T> attributeType;
 
     public MDAAttributeInfo(final String name,
                                final OpenType<T> type,
                                final AttributeSpecifier specifier,
                                final AttributeDescriptor descriptor) {
-        super(name, descriptor.getDescription(name), type, specifier, descriptor);
+        super(name, name, type, specifier, descriptor);
+        this.attributeType = type;
     }
 
     public MDAAttributeInfo(final String name,
@@ -43,8 +45,8 @@ public class MDAAttributeInfo<T> extends OpenAttributeAccessor<T> {
      * Gets storage key used by this attribute to read/write its own value.
      * @return The storage key.
      */
-    public final String getStorageKey(){
-        return getDescriptor().getAttributeName();
+    public final String getStorageKey() {
+        return getDescriptor().getName(getName());
     }
 
     final void init(final AccessTimer accessTimer, final TimeSpan expirationTime, final ConcurrentMap<String, Object> storage, final T initialValue){
@@ -59,7 +61,7 @@ public class MDAAttributeInfo<T> extends OpenAttributeAccessor<T> {
     protected final T getValue() throws OpenDataException {
         if(accessTimer.compareTo(expirationTime) > 0)
             throw new IllegalStateException(String.format("Attribute %s is not available because its value was expired", getName()));
-        return OpenMBean.cast(getOpenType(), entryRef.getValue());
+        return OpenMBean.cast(attributeType, entryRef.getValue());
     }
 
     @Override

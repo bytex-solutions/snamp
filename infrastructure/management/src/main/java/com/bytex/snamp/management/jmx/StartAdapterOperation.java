@@ -2,6 +2,7 @@ package com.bytex.snamp.management.jmx;
 
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.jmx.OpenMBean;
+import org.osgi.framework.BundleException;
 
 import javax.management.MBeanOperationInfo;
 import javax.management.openmbean.OpenDataException;
@@ -29,9 +30,8 @@ final class StartAdapterOperation extends OpenMBean.OpenOperation<Void, SimpleTy
     }
 
     @Override
-    public Void invoke(Map<String, ?> arguments) throws Exception {
-        final String adapterName = getArgument(ADAPTER_NAME_PARAM.getName(), String.class, arguments);
-        ResourceAdapterActivator.startResourceAdapter(getBundleContextOfObject(this), adapterName);
+    public Void invoke(Map<String, ?> arguments) throws BundleException {
+        ResourceAdapterActivator.startResourceAdapter(getBundleContextOfObject(this), ADAPTER_NAME_PARAM.getArgument(arguments));
         return null;
     }
 }

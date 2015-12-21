@@ -16,6 +16,7 @@ public final class JMSExceptionUtils {
     public static JMSException wrap(final String message, final Exception e){
         final JMSException jmsError = new JMSException(message);
         jmsError.setLinkedException(e);
+        jmsError.initCause(e);
         return jmsError;
     }
 

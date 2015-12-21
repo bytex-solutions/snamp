@@ -1,6 +1,5 @@
 package com.bytex.snamp.testing.adapters.nrdp;
 
-import com.google.common.base.Supplier;
 import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.TimeSpan;
@@ -10,7 +9,7 @@ import com.bytex.snamp.adapters.ResourceAdapterClient;
 import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
-import com.bytex.snamp.internal.EntryReader;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.testing.SnampDependencies;
@@ -25,16 +24,20 @@ import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 
-import javax.management.*;
+import javax.management.Attribute;
+import javax.management.MBeanAttributeInfo;
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
+import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import static com.bytex.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
 
@@ -116,14 +119,12 @@ public final class NrdpAdapterTest extends AbstractJmxConnectorTest<TestOpenMBea
     }
 
     @Override
-    protected void fillAdapters(final Map<String, ResourceAdapterConfiguration> adapters,
-                                final Supplier<ResourceAdapterConfiguration> adapterFactory) {
-        final ResourceAdapterConfiguration nrdpAdapter = adapterFactory.get();
+    protected void fillAdapters(final EntityMap<? extends ResourceAdapterConfiguration> adapters) {
+        final ResourceAdapterConfiguration nrdpAdapter = adapters.getOrAdd(INSTANCE_NAME);
         nrdpAdapter.setAdapterName(ADAPTER_NAME);
         nrdpAdapter.getParameters().put("serverURL", "http://localhost:" + PORT + "/context");
         nrdpAdapter.getParameters().put("token", "ri2yu2tfkfkhewfh");
         nrdpAdapter.getParameters().put("passiveCheckSendPeriod", "1000");
-        adapters.put(INSTANCE_NAME, nrdpAdapter);
     }
 
     @Override
@@ -164,14 +165,13 @@ public final class NrdpAdapterTest extends AbstractJmxConnectorTest<TestOpenMBea
     }
 
     @Override
-    protected void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory) {
-        AttributeConfiguration attribute = attributeFactory.get();
-        attribute.setAttributeName("int32");
+    protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
+        AttributeConfiguration attribute = attributes.getOrAdd("3.0");
+        setFeatureName(attribute, "int32");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("serviceName", "memory");
         attribute.getParameters().put(DescriptorUtils.MAX_VALUE_FIELD, "100");
         attribute.getParameters().put(DescriptorUtils.MIN_VALUE_FIELD, "0");
         attribute.getParameters().put(DescriptorUtils.UNIT_OF_MEASUREMENT_FIELD, "MB");
-        attributes.put("3.0", attribute);
     }
 }

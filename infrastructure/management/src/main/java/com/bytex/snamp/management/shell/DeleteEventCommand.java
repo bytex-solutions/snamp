@@ -27,7 +27,7 @@ public final class DeleteEventCommand extends ConfigurationCommand {
     @Override
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
         if (configuration.getManagedResources().containsKey(resourceName))
-            if (configuration.getManagedResources().get(resourceName).getElements(EventConfiguration.class).remove(userDefinedName) == null) {
+            if (configuration.getManagedResources().get(resourceName).getFeatures(EventConfiguration.class).remove(userDefinedName) == null) {
                 output.append("Event doesn't exist");
                 return false;
             } else {

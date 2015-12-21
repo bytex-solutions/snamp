@@ -1,7 +1,6 @@
 package com.bytex.snamp;
 
 import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.base.Suppliers;
 import org.junit.Assert;
 import org.junit.Test;
@@ -35,14 +34,9 @@ public final class SwitchTest extends Assert {
         final Integer result = new Switch<Object, Integer>()
                 .theSame(obj, 42)
                 .equalsToNull(56)
-                .addCase(new Predicate<Object>() {
+                .instanceOf(String.class, new Function<String, Integer>() {
                     @Override
-                    public boolean apply(final Object input) {
-                        return input == null;
-                    }
-                }, new Function<Object, Integer>() {
-                    @Override
-                    public Integer apply(final Object input) {
+                    public Integer apply(final String input) {
                         return input.hashCode();
                     }
                 })
@@ -68,7 +62,7 @@ public final class SwitchTest extends Assert {
                 .equals(51L, Boolean.FALSE)
                 .equals(52L, Boolean.FALSE)
                 .equals(53L, Boolean.TRUE)
-                .defaultCase(Boolean.FALSE)
+                .otherwise(Boolean.FALSE)
                 .apply(53L, exec);
         assertTrue(result);
     }

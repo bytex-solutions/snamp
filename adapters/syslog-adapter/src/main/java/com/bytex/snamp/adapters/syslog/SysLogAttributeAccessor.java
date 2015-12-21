@@ -39,7 +39,7 @@ final class SysLogAttributeAccessor extends AttributeAccessor implements Feature
     }
 
     private String getMessageID(){
-        return AttributeDescriptor.getAttributeName(getMetadata().getDescriptor());
+        return AttributeDescriptor.getName(getMetadata());
     }
 
     private Facility getLogFacility(){

@@ -27,7 +27,7 @@ public final class DeleteAttributeCommand extends ConfigurationCommand {
     @Override
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
         if(configuration.getManagedResources().containsKey(resourceName))
-            if(configuration.getManagedResources().get(resourceName).getElements(AttributeConfiguration.class).remove(userDefinedName) == null){
+            if(configuration.getManagedResources().get(resourceName).getFeatures(AttributeConfiguration.class).remove(userDefinedName) == null){
                 output.append("Attribute doesn't exist");
                 return false;
             }

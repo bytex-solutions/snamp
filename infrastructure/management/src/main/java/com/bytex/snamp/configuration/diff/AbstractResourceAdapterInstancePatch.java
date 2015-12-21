@@ -1,9 +1,8 @@
 package com.bytex.snamp.configuration.diff;
 
+import com.bytex.snamp.configuration.AbstractAgentConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration;
-import com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
-
-import java.util.Map;
+import com.bytex.snamp.configuration.AgentConfiguration.*;
 
 /**
  * @author Roman Sakno
@@ -15,7 +14,7 @@ abstract class AbstractResourceAdapterInstancePatch implements ResourceAdapterIn
     private final ResourceAdapterConfiguration adapterConfig;
 
     AbstractResourceAdapterInstancePatch(final String adapterInstanceName,
-                                         final ResourceAdapterConfiguration adapter){
+                                         final ResourceAdapterConfiguration adapter) {
         this.adapterInstance = adapterInstanceName;
         this.adapterConfig = adapter;
     }
@@ -30,7 +29,7 @@ abstract class AbstractResourceAdapterInstancePatch implements ResourceAdapterIn
         return adapterInstance;
     }
 
-    protected abstract void applyTo(final Map<String, ResourceAdapterConfiguration> adapters);
+    protected abstract void applyTo(final EntityMap<? extends ResourceAdapterConfiguration> adapters);
 
     /**
      * Applies this patch to the baseline configuration.

@@ -1,11 +1,13 @@
 package com.bytex.snamp.connectors.attributes;
 
 import com.bytex.snamp.SafeCloseable;
+import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.AbstractFeatureRepository;
+import com.bytex.snamp.connectors.metrics.AttributeMetrics;
+import com.bytex.snamp.connectors.metrics.AttributeMetricsWriter;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
-import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.jmx.CompositeTypeBuilder;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 import com.google.common.base.Predicate;
@@ -36,11 +38,6 @@ import java.util.logging.Logger;
  * @version 1.0
  */
 public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> extends AbstractFeatureRepository<M> implements AttributeSupport, SafeCloseable {
-    private enum AASResource {
-        ATTRIBUTES,
-        RESOURCE_EVENT_LISTENERS
-    }
-
     private static final class AttributeHolder<M extends MBeanAttributeInfo> extends FeatureHolder<M> {
         private AttributeHolder(final M metadata,
                                 final String attributeName,
@@ -70,6 +67,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     }
 
     private final KeyedObjects<String, AttributeHolder<M>> attributes;
+    private final AttributeMetricsWriter metrics;
 
     /**
      * Initializes a new support of management attributes.
@@ -79,11 +77,9 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     protected AbstractAttributeRepository(final String resourceName,
                                           final Class<M> attributeMetadataType) {
-        super(resourceName,
-                attributeMetadataType,
-                AASResource.class,
-                AASResource.RESOURCE_EVENT_LISTENERS);
+        super(resourceName, attributeMetadataType);
         attributes = createAttributes();
+        metrics = new AttributeMetricsWriter();
     }
 
     private static <M extends MBeanAttributeInfo> AbstractKeyedObjects<String, AttributeHolder<M>> createAttributes() {
@@ -115,7 +111,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     @ThreadSafe
     @Override
     public final int size() {
-        try (final LockScope ignored = beginRead(AASResource.ATTRIBUTES)) {
+        try (final LockScope ignored = beginRead()) {
             return attributes.size();
         }
     }
@@ -127,7 +123,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     @Override
     public final M[] getAttributeInfo() {
-        try (final LockScope ignored = beginRead(AASResource.ATTRIBUTES)) {
+        try (final LockScope ignored = beginRead()) {
             return toArray(attributes.values());
         }
     }
@@ -140,7 +136,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     @Override
     public final M getAttributeInfo(final String attributeName) {
-        try (final LockScope ignored = beginRead(AASResource.ATTRIBUTES)) {
+        try (final LockScope ignored = beginRead()) {
             final AttributeHolder<M> holder = attributes.get(attributeName);
             return holder != null ? holder.getMetadata() : null;
         }
@@ -154,11 +150,11 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     protected final AttributeList getAttributesSequential(final String[] attributes) {
         final List<Attribute> result = Lists.newArrayListWithExpectedSize(attributes.length);
-        for (final String attributeID : attributes)
+        for (final String attributeName : attributes)
             try {
-                result.add(new Attribute(attributeID, getAttribute(attributeID)));
+                result.add(new Attribute(attributeName, getAttribute(attributeName)));
             } catch (final JMException e) {
-                failedToGetAttribute(attributeID, e);
+                failedToGetAttribute(attributeName, e);
             }
         return new AttributeList(result);
     }
@@ -179,14 +175,14 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
         final List<Attribute> result = Collections.
                 synchronizedList(Lists.<Attribute>newArrayListWithExpectedSize(attributes.length));
         final CountDownLatch synchronizer = new CountDownLatch(attributes.length);
-        for (final String attributeID : attributes)
+        for (final String attributeName : attributes)
             executor.submit(new Callable<Object>() {
                 @Override
                 public Object call() throws JMException {
                     try {
-                        return result.add(new Attribute(attributeID, getAttribute(attributeID)));
+                        return result.add(new Attribute(attributeName, getAttribute(attributeName)));
                     } catch (final JMException e) {
-                        failedToGetAttribute(attributeID, e);
+                        failedToGetAttribute(attributeName, e);
                         return null;
                     } finally {
                         synchronizer.countDown();
@@ -290,30 +286,28 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     /**
      * Connects to the specified attribute.
      *
-     * @param attributeID The id of the attribute.
+     * @param attributeName The name of the attribute.
      * @param descriptor  Attribute descriptor.
      * @return The description of the attribute; or {@literal null},
      * @throws Exception Internal connector error.
      */
-    protected abstract M connectAttribute(final String attributeID,
+    protected abstract M connectAttribute(final String attributeName,
                                           final AttributeDescriptor descriptor) throws Exception;
 
     /**
      * Registers a new attribute in this manager.
      *
-     * @param attributeID      A key string that is used to invoke attribute from this connector.
      * @param attributeName    The name of the attribute.
      * @param readWriteTimeout A read/write timeout using for attribute read/write operation.
      * @param options          The attribute discovery options.
      * @return The description of the attribute.
      */
-    public final M addAttribute(final String attributeID,
-                                final String attributeName,
+    public final M addAttribute(final String attributeName,
                                 final TimeSpan readWriteTimeout,
                                 final CompositeData options) {
         AttributeHolder<M> holder;
-        try (final LockScope ignored = beginWrite(AASResource.ATTRIBUTES)) {
-            holder = attributes.get(attributeID);
+        try (final LockScope ignored = beginWrite()) {
+            holder = attributes.get(attributeName);
             //if attribute exists then we should check whether the input arguments
             //are equal to the existing attribute options
             if (holder != null) {
@@ -322,10 +316,10 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
                 else {
                     //remove attribute
                     attributeRemoved(holder.getMetadata());
-                    holder = attributes.remove(attributeID);
+                    holder = attributes.remove(attributeName);
                     //...and register again
                     disconnectAttribute(holder.getMetadata());
-                    final M metadata = connectAttribute(attributeID, new AttributeDescriptor(attributeName, readWriteTimeout, options));
+                    final M metadata = connectAttribute(attributeName, new AttributeDescriptor(readWriteTimeout, options));
                     if (metadata != null) {
                         attributes.put(holder = new AttributeHolder<>(metadata, attributeName, readWriteTimeout, options));
                         attributeAdded(holder.getMetadata());
@@ -334,14 +328,14 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
             }
             //this is a new attribute, just connect it
             else {
-                final M metadata = connectAttribute(attributeID, new AttributeDescriptor(attributeName, readWriteTimeout, options));
+                final M metadata = connectAttribute(attributeName, new AttributeDescriptor(readWriteTimeout, options));
                 if (metadata != null) {
                     attributes.put(holder = new AttributeHolder<>(metadata, attributeName, readWriteTimeout, options));
                     attributeAdded(holder.getMetadata());
                 } else throw JMExceptionUtils.attributeNotFound(attributeName);
             }
         } catch (final Exception e) {
-            failedToConnectAttribute(attributeID, attributeName, e);
+            failedToConnectAttribute(attributeName, e);
             holder = null;
         }
         return holder != null ? holder.getMetadata() : null;
@@ -352,29 +346,24 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      *
      * @param logger        The logger instance. Cannot be {@literal null}.
      * @param logLevel      Logging level.
-     * @param attributeID   The attribute identifier.
      * @param attributeName The name of the attribute.
      * @param e             Internal connector error.
      */
     protected static void failedToConnectAttribute(final Logger logger,
                                                    final Level logLevel,
-                                                   final String attributeID,
                                                    final String attributeName,
                                                    final Exception e) {
-        logger.log(logLevel, String.format("Failed to connect attribute %s with ID %s",
-                attributeName, attributeID), e);
+        logger.log(logLevel, String.format("Failed to connect attribute '%s'", attributeName), e);
     }
 
     /**
      * Reports an error when connecting attribute.
      *
-     * @param attributeID   The attribute identifier.
      * @param attributeName The name of the attribute.
      * @param e             Internal connector error.
-     * @see #failedToConnectAttribute(Logger, Level, String, String, Exception)
+     * @see #failedToConnectAttribute(Logger, Level, String, Exception)
      */
-    protected abstract void failedToConnectAttribute(final String attributeID,
-                                                     final String attributeName,
+    protected abstract void failedToConnectAttribute(final String attributeName,
                                                      final Exception e);
 
     /**
@@ -393,7 +382,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     /**
      * Obtains the value of a specific attribute of the managed resource.
      *
-     * @param attributeID The name of the attribute to be retrieved
+     * @param attributeName The name of the attribute to be retrieved
      * @return The value of the attribute retrieved.
      * @throws javax.management.AttributeNotFoundException
      * @throws javax.management.MBeanException             Wraps a {@link Exception} thrown by the MBean's getter.
@@ -401,19 +390,21 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      * @see #setAttribute
      */
     @Override
-    public final Object getAttribute(final String attributeID) throws AttributeNotFoundException, MBeanException, ReflectionException {
-        try (final LockScope ignored = beginRead(AASResource.ATTRIBUTES)) {
-            if (attributes.containsKey(attributeID))
-                return getAttribute(attributes.get(attributeID));
-            else throw JMExceptionUtils.attributeNotFound(attributeID);
+    public final Object getAttribute(final String attributeName) throws AttributeNotFoundException, MBeanException, ReflectionException {
+        try (final LockScope ignored = beginRead()) {
+            if (attributes.containsKey(attributeName))
+                return getAttribute(attributes.get(attributeName));
+            else throw JMExceptionUtils.attributeNotFound(attributeName);
         } catch (final AttributeNotFoundException e) {
             throw e;
         } catch (final MBeanException | ReflectionException e) {
-            failedToGetAttribute(attributeID, e);
+            failedToGetAttribute(attributeName, e);
             throw e;
         } catch (final Exception e) {
-            failedToGetAttribute(attributeID, e);
+            failedToGetAttribute(attributeName, e);
             throw new MBeanException(e);
+        }finally {
+            metrics.updateReads();
         }
     }
 
@@ -422,14 +413,14 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      *
      * @param logger      The logger instance. Cannot be {@literal null}.
      * @param logLevel    Logging level.
-     * @param attributeID The attribute identifier.
+     * @param attributeName The attribute identifier.
      * @param e           Internal connector error.
      */
     protected static void failedToGetAttribute(final Logger logger,
                                                final Level logLevel,
-                                               final String attributeID,
+                                               final String attributeName,
                                                final Exception e) {
-        logger.log(logLevel, String.format("Failed to get attribute %s", attributeID), e);
+        logger.log(logLevel, String.format("Failed to get attribute '%s'", attributeName), e);
     }
 
     /**
@@ -471,7 +462,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     @Override
     public final void setAttribute(final Attribute attribute) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
-        try (final LockScope ignored = beginRead(AASResource.ATTRIBUTES)) {
+        try (final LockScope ignored = beginRead()) {
             if (attributes.containsKey(attribute.getName()))
                 setAttribute(attributes.get(attribute.getName()), attribute.getValue());
             else throw JMExceptionUtils.attributeNotFound(attribute.getName());
@@ -483,6 +474,8 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
         } catch (final Exception e) {
             failedToSetAttribute(attribute.getName(), attribute.getValue(), e);
             throw new MBeanException(e);
+        } finally {
+            metrics.updateWrites();
         }
     }
 
@@ -541,7 +534,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     @Override
     public final M remove(final String attributeID) {
         final AttributeHolder<M> holder;
-        try (final LockScope ignored = beginWrite(AASResource.ATTRIBUTES)) {
+        try (final LockScope ignored = beginWrite()) {
             holder = removeImpl(attributeID);
         }
         if (holder != null) {
@@ -556,7 +549,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      * @param removeAttributeEventListeners {@literal true} to remove all attribute listeners; otherwise, {@literal false}.
      */
     public final void removeAll(final boolean removeAttributeEventListeners) {
-        try (final LockScope ignored = beginWrite(AASResource.ATTRIBUTES)) {
+        try (final LockScope ignored = beginWrite()) {
             for (final AttributeHolder<M> holder : attributes.values()) {
                 attributeRemoved(holder.getMetadata());
                 disconnectAttribute(holder.getMetadata());
@@ -574,9 +567,19 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     @Override
     public final ImmutableSet<String> getIDs() {
-        try(final LockScope ignored = beginRead(AASResource.ATTRIBUTES)){
+        try(final LockScope ignored = beginRead()){
             return ImmutableSet.copyOf(attributes.keySet());
         }
+    }
+
+    /**
+     * Gets metrics associated with activity of the features in this repository.
+     *
+     * @return Metrics associated with activity in this repository.
+     */
+    @Override
+    public final AttributeMetrics getMetrics() {
+        return metrics;
     }
 
     @Override

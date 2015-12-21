@@ -7,7 +7,7 @@ import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.core.SupportService;
-import com.bytex.snamp.internal.EntryReader;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.management.Maintainable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;

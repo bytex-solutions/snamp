@@ -1,19 +1,20 @@
 package com.bytex.snamp.connectors.groovy.impl;
 
 import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.MethodStub;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.GroupedThreadFactory;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
 import com.bytex.snamp.connectors.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
-import com.bytex.snamp.connectors.attributes.OpenTypeAttributeInfo;
+import com.bytex.snamp.connectors.attributes.OpenMBeanAttributeInfoImpl;
 import com.bytex.snamp.connectors.groovy.*;
+import com.bytex.snamp.connectors.metrics.MetricsReader;
 import com.bytex.snamp.connectors.notifications.*;
-import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
-import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import com.google.common.base.StandardSystemProperty;
 import com.google.common.base.Strings;
@@ -103,7 +104,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
                                              final BundleContext context){
             super(resourceName,
                     GroovyNotificationInfo.class,
-                    DistributedServices.getDistributedSequenceNumberGenerator(context, "notifications-".concat(resourceName)));
+                    DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName)));
             this.connector = Objects.requireNonNull(connector);
             final ExecutorService executor = Executors.newSingleThreadExecutor(new GroupedThreadFactory("notifications-".concat(resourceName)));
             this.listenerInvoker = createListenerInvoker(executor);
@@ -119,16 +120,6 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         }
 
         /**
-         * Determines whether raising of registered events is suspended.
-         *
-         * @return {@literal true}, if events are suspended; otherwise {@literal false}.
-         */
-        @Override
-        public boolean isSuspended() {
-            return super.isSuspended() && DistributedServices.isActiveNode(Utils.getBundleContextOfObject(this));
-        }
-
-        /**
          * Gets the invoker used to executed notification listeners.
          *
          * @return The notification listener invoker.
@@ -141,8 +132,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         @Override
         protected GroovyNotificationInfo enableNotifications(final String notifType,
                                                              final NotificationDescriptor metadata) throws ResourceException, ScriptException {
-            final NotificationEmitter emitter = connector.loadEvent(metadata,
-                    new NotificationEmitterSlim(metadata.getNotificationCategory()));
+            final NotificationEmitter emitter = connector.loadEvent(notifType, metadata, new NotificationEmitterSlim(metadata.getName(notifType)));
             return new GroovyNotificationInfo(notifType, metadata, emitter);
         }
 
@@ -157,27 +147,26 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         /**
          * Reports an error when enabling notifications.
          *
-         * @param listID   Subscription list identifier.
          * @param category An event category.
          * @param e        Internal connector error.
-         * @see #failedToEnableNotifications(Logger, Level, String, String, Exception)
+         * @see #failedToEnableNotifications(Logger, Level, String, Exception)
          */
         @Override
-        protected void failedToEnableNotifications(final String listID, final String category, final Exception e) {
-            failedToEnableNotifications(getLoggerImpl(), Level.SEVERE, listID, category, e);
+        protected void failedToEnableNotifications(final String category, final Exception e) {
+            failedToEnableNotifications(getLoggerImpl(), Level.SEVERE, category, e);
         }
     }
 
-    private static final class GroovyAttributeInfo extends OpenTypeAttributeInfo implements AutoCloseable{
+    private static final class GroovyAttributeInfo extends OpenMBeanAttributeInfoImpl implements AutoCloseable{
         private static final long serialVersionUID = 2519548731335827051L;
         private final AttributeAccessor accessor;
 
-        private GroovyAttributeInfo(final String attributeID,
+        private GroovyAttributeInfo(final String attributeName,
                                     final AttributeDescriptor descriptor,
                                     final AttributeAccessor accessor){
-            super(attributeID,
+            super(attributeName,
                     accessor.type(),
-                    getDescription(descriptor, attributeID),
+                    getDescription(descriptor, attributeName),
                     accessor.specifier(),
                     descriptor);
             this.accessor = accessor;
@@ -204,15 +193,15 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
             this.connector = Objects.requireNonNull(connector);
         }
         @Override
-        protected GroovyAttributeInfo connectAttribute(final String attributeID,
+        protected GroovyAttributeInfo connectAttribute(final String attributeName,
                                                        final AttributeDescriptor descriptor) throws ResourceException, ScriptException {
-            final AttributeAccessor accessor = connector.loadAttribute(descriptor);
+            final AttributeAccessor accessor = connector.loadAttribute(attributeName, descriptor);
             //create wrapper
-            return new GroovyAttributeInfo(attributeID, descriptor, accessor);
+            return new GroovyAttributeInfo(attributeName, descriptor, accessor);
         }
         @Override
-        protected void failedToConnectAttribute(final String attributeID, final String attributeName, final Exception e) {
-            failedToConnectAttribute(getLoggerImpl(), Level.SEVERE, attributeID, attributeName, e);
+        protected void failedToConnectAttribute(final String attributeName, final Exception e) {
+            failedToConnectAttribute(getLoggerImpl(), Level.SEVERE, attributeName, e);
         }
 
         private static Object getAttribute(final AttributeAccessor accessor) throws Exception {
@@ -234,8 +223,8 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         }
 
         @Override
-        protected void failedToGetAttribute(final String attributeID, final Exception e) {
-            failedToGetAttribute(getLoggerImpl(), Level.SEVERE, attributeID, e);
+        protected void failedToGetAttribute(final String attributeName, final Exception e) {
+            failedToGetAttribute(getLoggerImpl(), Level.SEVERE, attributeName, e);
         }
 
         private static void setAttribute(final AttributeAccessor accessor,
@@ -277,9 +266,11 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
     }
 
     private static final String RESOURCE_NAME_VAR = ManagedResourceScriptBase.RESOURCE_NAME_VAR;
+    @Aggregation
     private final GroovyAttributeRepository attributes;
     private static final Splitter PATH_SPLITTER;
     private final ManagedResourceInfo groovyConnector;
+    @Aggregation
     private final GroovyNotificationRepository events;
 
     static {
@@ -312,6 +303,12 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
                 engine.init(initScript, params);
         attributes = new GroovyAttributeRepository(resourceName, engine);
         events = new GroovyNotificationRepository(resourceName, engine, Utils.getBundleContextOfObject(this));
+    }
+
+    @Aggregation
+    @SpecialUse
+    protected MetricsReader createMetricsReader(){
+        return assembleMetricsReader(attributes, events);
     }
 
     static Logger getLoggerImpl(){
@@ -350,16 +347,15 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         removeResourceEventListener(listener, attributes);
     }
 
-    boolean addAttribute(final String attributeID, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
-        verifyInitialization();
-        return attributes.addAttribute(attributeID, attributeName, readWriteTimeout, options) != null;
+    boolean addAttribute(final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+        verifyClosedState();
+        return attributes.addAttribute(attributeName, readWriteTimeout, options) != null;
     }
 
-    boolean enableNotifications(final String listID,
-                             final String category,
+    boolean enableNotifications(final String category,
                              final CompositeData options){
-        verifyInitialization();
-        return events.enableNotifications(listID, category, options) != null;
+        verifyClosedState();
+        return events.enableNotifications(category, options) != null;
     }
 
     void removeAttributesExcept(final Set<String> attributes) {
@@ -368,23 +364,6 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
 
     void disableNotificationsExcept(final Set<String> events) {
         this.events.removeAllExcept(events);
-    }
-
-    /**
-     * Retrieves the aggregated object.
-     *
-     * @param objectType Type of the aggregated object.
-     * @return An instance of the requested object; or {@literal null} if object is not available.
-     */
-    @Override
-    public <T> T queryObject(final Class<T> objectType) {
-        return findObject(objectType,
-                new Function<Class<T>, T>() {
-                    @Override
-                    public T apply(final Class<T> objectType) {
-                        return GroovyResourceConnector.super.queryObject(objectType);
-                    }
-                }, attributes, events);
     }
 
     /**

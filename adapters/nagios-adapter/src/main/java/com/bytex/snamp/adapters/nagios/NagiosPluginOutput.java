@@ -3,12 +3,11 @@ package com.bytex.snamp.adapters.nagios;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 
 import javax.management.MBeanAttributeInfo;
-
 import java.util.Objects;
 
-import static com.google.common.base.Strings.nullToEmpty;
 import static com.bytex.snamp.adapters.nagios.NagiosAdapterConfigurationDescriptor.*;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.base.Strings.nullToEmpty;
 
 /**
  * Represents information about attribute in Nagios Plugins format.
@@ -106,8 +105,7 @@ final class NagiosPluginOutput {
     }
 
     void setMetadata(final MBeanAttributeInfo metadata){
-        setServiceName(getServiceName(metadata.getDescriptor(),
-                AttributeDescriptor.getAttributeName(metadata)));
+        setServiceName(getServiceName(metadata.getDescriptor(), AttributeDescriptor.getName(metadata)));
         setLabel(getLabel(metadata.getDescriptor(), metadata.getName()));
         setUnitOfMeasurement(getUnitOfMeasurement(metadata.getDescriptor()));
         setWarnThreshold(getWarnThreshold(metadata.getDescriptor()));

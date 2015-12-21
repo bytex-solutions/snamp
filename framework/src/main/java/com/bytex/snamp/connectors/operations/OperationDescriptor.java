@@ -1,12 +1,13 @@
 package com.bytex.snamp.connectors.operations;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import com.bytex.snamp.TimeSpan;
+import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigParameters;
 import com.bytex.snamp.connectors.ConfigurationEntityRuntimeMetadata;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.WellKnownType;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 
 import javax.management.Descriptor;
 import javax.management.ImmutableDescriptor;
@@ -17,9 +18,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.OperationConfiguration;
-import static com.bytex.snamp.connectors.operations.OperationSupport.ASYNC_FIELD;
-import static com.bytex.snamp.connectors.operations.OperationSupport.INVOCATION_TIMEOUT_FIELD;
-import static com.bytex.snamp.connectors.operations.OperationSupport.OPERATION_NAME_FIELD;
+import static com.bytex.snamp.connectors.operations.OperationSupport.*;
 import static com.bytex.snamp.jmx.CompositeDataUtils.fillMap;
 
 /**
@@ -37,20 +36,17 @@ public class OperationDescriptor extends ImmutableDescriptor implements Configur
     }
 
     public OperationDescriptor(final OperationConfiguration config){
-        this(config.getOperationName(), config.getInvocationTimeout(), new ConfigParameters(config));
+        this(config.getInvocationTimeout(), new ConfigParameters(config));
     }
 
-    public OperationDescriptor(final String operationName,
-                               final TimeSpan invocationTimeout,
+    public OperationDescriptor(final TimeSpan invocationTimeout,
                                final CompositeData options){
-        this(getFields(operationName, invocationTimeout, options));
+        this(getFields(invocationTimeout, options));
     }
 
-    private static Map<String, ?> getFields(final String operationName,
-                                            final TimeSpan invocationTimeout,
+    private static Map<String, ?> getFields(final TimeSpan invocationTimeout,
                                             final CompositeData options){
         final Map<String, Object> fields = Maps.newHashMapWithExpectedSize(options.values().size() + 1);
-        fields.put(OPERATION_NAME_FIELD, operationName);
         fields.put(INVOCATION_TIMEOUT_FIELD, invocationTimeout);
         fillMap(options, fields);
         return fields;
@@ -73,7 +69,6 @@ public class OperationDescriptor extends ImmutableDescriptor implements Configur
      */
     @Override
     public final void fill(final OperationConfiguration entity) {
-        entity.setOperationName(getOperationName());
         for (final String fieldName : getFieldNames())
             switch (fieldName) {
                 default:
@@ -117,18 +112,6 @@ public class OperationDescriptor extends ImmutableDescriptor implements Configur
         return isAsynchronous(this);
     }
 
-    public static String getOperationName(final Descriptor descriptor){
-        return DescriptorUtils.getField(descriptor, OPERATION_NAME_FIELD, String.class);
-    }
-
-    public static String getOperationName(final MBeanOperationInfo metadata){
-        return getOperationName(metadata.getDescriptor());
-    }
-
-    public final String getOperationName(){
-        return getOperationName(this);
-    }
-
     /**
      * Determines whether the field with the specified name is defined in this descriptor.
      * @param fieldName The name of the field to check.
@@ -160,8 +143,31 @@ public class OperationDescriptor extends ImmutableDescriptor implements Configur
      * This can be happened because connector is in Smart mode.
      * @return {@literal true}, if the operation with this descriptor will be added automatically by connector itself; otherwise, {@literal false}.
      */
+    @Override
     public final boolean isAutomaticallyAdded(){
-        return hasField(AUTOMATICALLY_ADDED_FIELD);
+        return hasField(AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration.AUTOMATICALLY_ADDED_KEY);
+    }
+
+    /**
+     * Gets alternative name of the feature.
+     *
+     * @return Alternative name of the feature.
+     * @see AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration#NAME_KEY
+     */
+    @Override
+    public final String getAlternativeName() {
+        return getField(OperationConfiguration.NAME_KEY, String.class);
+    }
+
+    public final String getName(final String defName){
+        return hasField(OperationConfiguration.NAME_KEY) ? getAlternativeName() : defName;
+    }
+
+    public static String getName(final MBeanOperationInfo metadata){
+        return DescriptorUtils.getField(metadata.getDescriptor(),
+                OperationConfiguration.NAME_KEY,
+                String.class,
+                metadata.getName());
     }
 
     public static WellKnownType getReturnType(final MBeanOperationInfo operationInfo) {

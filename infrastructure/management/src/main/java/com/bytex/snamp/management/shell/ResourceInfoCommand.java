@@ -45,26 +45,23 @@ public final class ResourceInfoCommand extends ConfigurationCommand {
 
     private static void printAttribute(final String userDefinedName, final AttributeConfiguration attr, final StringBuilder output){
         IOUtils.appendln(output, userDefinedName);
-        IOUtils.appendln(output, "System Name: %s", attr.getAttributeName());
         IOUtils.appendln(output, "Read/write Timeout: %s", attr.getReadWriteTimeout());
         printParameters(attr, output);
     }
 
     private static void printEvent(final String userDefinedName, final EventConfiguration ev, final StringBuilder output){
         IOUtils.appendln(output, userDefinedName);
-        IOUtils.appendln(output, "Category: %s", ev.getCategory());
         printParameters(ev, output);
     }
 
     private static void printOperation(final String userDefinedName, final OperationConfiguration op, final StringBuilder output){
         IOUtils.appendln(output, userDefinedName);
-        IOUtils.appendln(output, "Operation Name: %s", op.getOperationName());
         IOUtils.appendln(output, "Invocation Timeout: %s", op.getInvocationTimeout());
         printParameters(op, output);
     }
 
     @Override
-    boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
+    boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) throws InterruptedException {
         if (configuration.getManagedResources().containsKey(resourceName)) {
             final ManagedResourceConfiguration resource = configuration.getManagedResources().get(resourceName);
             IOUtils.appendln(output, "Resource Name: %s", resourceName);
@@ -73,21 +70,24 @@ public final class ResourceInfoCommand extends ConfigurationCommand {
             IOUtils.appendln(output, "Configuration parameters:");
             for (final Map.Entry<String, String> pair : resource.getParameters().entrySet())
                 IOUtils.appendln(output, "%s = %s", pair.getKey(), pair.getValue());
+            checkInterrupted();
             if(showAttributes) {
                 IOUtils.appendln(output, "==ATTRIBUTES==");
-                for (final Map.Entry<String, AttributeConfiguration> attr : getFeatures(resource, AttributeConfiguration.class))
+                for (final Map.Entry<String, ? extends AttributeConfiguration> attr : getFeatures(resource, AttributeConfiguration.class))
                     printAttribute(attr.getKey(), attr.getValue(), output);
                 IOUtils.newLine(output);
             }
+            checkInterrupted();
             if(showEvents){
                 IOUtils.appendln(output, "==EVENTS==");
-                for (final Map.Entry<String, EventConfiguration> attr : getFeatures(resource, EventConfiguration.class))
+                for (final Map.Entry<String, ? extends EventConfiguration> attr : getFeatures(resource, EventConfiguration.class))
                     printEvent(attr.getKey(), attr.getValue(), output);
                 IOUtils.newLine(output);
             }
+            checkInterrupted();
             if(showOperations){
                 IOUtils.appendln(output, "==OPERATIONS==");
-                for (final Map.Entry<String, OperationConfiguration> attr : getFeatures(resource, OperationConfiguration.class))
+                for (final Map.Entry<String, ? extends OperationConfiguration> attr : getFeatures(resource, OperationConfiguration.class))
                     printOperation(attr.getKey(), attr.getValue(), output);
                 IOUtils.newLine(output);
             }

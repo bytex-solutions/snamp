@@ -11,9 +11,9 @@ import org.junit.Test;
 public final class DistributedServicesTest extends Assert {
     @Test
     public void idGeneratorTest(){
-        assertEquals(0L, DistributedServices.getProcessLocalSequenceNumberGenerator("gen1").next());
-        assertEquals(1L, DistributedServices.getProcessLocalSequenceNumberGenerator("gen1").next());
-        assertEquals(0L, DistributedServices.getProcessLocalSequenceNumberGenerator("gen2").next());
+        assertEquals(0L, DistributedServices.getProcessLocalCounterGenerator("gen1").increment());
+        assertEquals(1L, DistributedServices.getProcessLocalCounterGenerator("gen1").increment());
+        assertEquals(0L, DistributedServices.getProcessLocalCounterGenerator("gen2").increment());
     }
 
     @Test

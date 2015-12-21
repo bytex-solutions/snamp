@@ -32,8 +32,8 @@ abstract class AvailableFeaturesOperation<F extends MBeanFeatureInfo> extends Op
         }
     });
 
-    private static final OpenMBeanParameterInfoSupport RESOURCE_NAME_PARAM =
-            new OpenMBeanParameterInfoSupport("resourceName", "Name of the resource", SimpleType.STRING);
+    private static final TypedParameterInfo<String> RESOURCE_NAME_PARAM =
+            new TypedParameterInfo<>("resourceName", "Name of the resource", SimpleType.STRING, false);
 
     protected AvailableFeaturesOperation(final String operationName,
                                          final TabularType returnType) {
@@ -70,6 +70,6 @@ abstract class AvailableFeaturesOperation<F extends MBeanFeatureInfo> extends Op
 
     @Override
     public final TabularData invoke(final Map<String, ?> arguments) throws InstanceNotFoundException, OpenDataException {
-        return invoke(getArgument(RESOURCE_NAME_PARAM.getName(), String.class, arguments));
+        return invoke(RESOURCE_NAME_PARAM.getArgument(arguments));
     }
 }

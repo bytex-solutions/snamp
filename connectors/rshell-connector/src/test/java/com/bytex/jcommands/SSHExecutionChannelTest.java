@@ -1,11 +1,11 @@
 package com.bytex.jcommands;
 
-import com.google.common.collect.ImmutableMap;
 import com.bytex.jcommands.channels.CommandExecutionChannels;
 import com.bytex.jcommands.impl.XmlCommandLineTemplate;
 import com.bytex.jcommands.impl.XmlParserDefinition;
 import com.bytex.jcommands.impl.XmlParsingResultType;
-import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.internal.OperatingSystem;
+import com.google.common.collect.ImmutableMap;
 import org.apache.sshd.SshServer;
 import org.apache.sshd.server.Command;
 import org.apache.sshd.server.CommandFactory;
@@ -63,7 +63,7 @@ public final class SSHExecutionChannelTest extends Assert {
 
     @Test
     public void executeFreeCommandWithParsingTest() throws Exception{
-        Assume.assumeTrue(Utils.IS_OS_LINUX);
+        Assume.assumeTrue(OperatingSystem.isLinux());
         final CommandExecutionChannel channel = CommandExecutionChannels.createChannel("ssh", ImmutableMap.of(
             "userName", USER_NAME,
             "password", PASSWORD,
@@ -94,7 +94,7 @@ public final class SSHExecutionChannelTest extends Assert {
 
     @Test
     public void executeFreeCommandWithoutParsingTest() throws Exception {
-        Assume.assumeTrue(Utils.IS_OS_LINUX);
+        Assume.assumeTrue(OperatingSystem.isLinux());
         final CommandExecutionChannel channel = CommandExecutionChannels.createChannel("ssh", ImmutableMap.of(
                 "userName", USER_NAME,
             "password", PASSWORD,

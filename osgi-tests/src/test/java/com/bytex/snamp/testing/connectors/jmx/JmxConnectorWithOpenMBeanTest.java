@@ -12,7 +12,6 @@ import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.bytex.snamp.jmx.TabularDataBuilder;
 import com.bytex.snamp.testing.connectors.AbstractResourceConnectorTest;
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
@@ -34,6 +33,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
 
 /**
@@ -48,75 +48,62 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
     }
 
     @Override
-    protected void fillOperations(final Map<String, OperationConfiguration> operations,
-                                  final Supplier<OperationConfiguration> operationFactory) {
-        OperationConfiguration operation = operationFactory.get();
-        operation.setOperationName("reverse");
+    protected void fillOperations(final EntityMap<? extends OperationConfiguration> operations) {
+        OperationConfiguration operation = operations.getOrAdd("res");
+        setFeatureName(operation, "reverse");
         operation.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        operations.put("res", operation);
     }
 
     @Override
-    protected void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory) {
-        AttributeConfiguration attribute = attributeFactory.get();
-        attribute.setAttributeName("string");
+    protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
+        AttributeConfiguration attribute = attributes.getOrAdd("1.0");
+        setFeatureName(attribute, "string");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        attributes.put("1.0", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("boolean");
+        attribute = attributes.getOrAdd("2.0");
+        setFeatureName(attribute, "boolean");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        attributes.put("2.0", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("int32");
+        attribute = attributes.getOrAdd("3.0");
+        setFeatureName(attribute, "int32");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        attributes.put("3.0", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("bigint");
+        attribute = attributes.getOrAdd("4.0");
+        setFeatureName(attribute, "bigint");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        attributes.put("4.0", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("array");
+        attribute = attributes.getOrAdd("5.1");
+        setFeatureName(attribute, "array");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        attributes.put("5.1", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("dictionary");
+        attribute = attributes.getOrAdd("6.1");
+        setFeatureName(attribute, "dictionary");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        attributes.put("6.1", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("table");
+        attribute = attributes.getOrAdd("7.1");
+        setFeatureName(attribute, "table");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        attributes.put("7.1", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("float");
+        attribute = attributes.getOrAdd("8.0");
+        setFeatureName(attribute, "float");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        attributes.put("8.0", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("date");
+        attribute = attributes.getOrAdd("9.0");
+        setFeatureName(attribute, "date");
         attribute.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        attributes.put("9.0", attribute);
     }
 
     @Override
-    protected void fillEvents(final Map<String, EventConfiguration> events, final Supplier<EventConfiguration> eventFactory) {
-        EventConfiguration event = eventFactory.get();
-        event.setCategory(AttributeChangeNotification.ATTRIBUTE_CHANGE);
+    protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
+        EventConfiguration event = events.getOrAdd("19.1");
+        setFeatureName(event, AttributeChangeNotification.ATTRIBUTE_CHANGE);
         event.getParameters().put("severity", "notice");
         event.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        events.put("19.1", event);
 
-        event = eventFactory.get();
-        event.setCategory("com.bytex.snamp.connectors.tests.impl.testnotif");
+        event = events.getOrAdd("20.1");
+        setFeatureName(event, "com.bytex.snamp.connectors.tests.impl.testnotif");
         event.getParameters().put("severity", "panic");
         event.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
-        events.put("20.1", event);
     }
 
     @Override
@@ -325,7 +312,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         assertTrue(discoveredAttributes.size() > 30);
         for(final AttributeConfiguration config: discoveredAttributes) {
             assertTrue(config.getParameters().containsKey("objectName"));
-            assertTrue(config.getAttributeName().length() > 0);
+            assertTrue(config.getParameters().containsKey(AttributeConfiguration.NAME_KEY));
         }
     }
 
@@ -339,7 +326,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         assertTrue(discoveredEvents.size() > 2);
         for(final EventConfiguration config: discoveredEvents) {
             assertTrue(config.getParameters().containsKey("objectName"));
-            assertTrue(config.getCategory().length() > 0);
+            assertTrue(config.getParameters().containsKey(EventConfiguration.NAME_KEY));
         }
     }
 

@@ -4,8 +4,7 @@ import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.Internal;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.GroupedThreadFactory;
-import com.bytex.snamp.internal.EntryReader;
-import com.bytex.snamp.internal.WeakMultimap;
+import com.bytex.snamp.EntryReader;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 

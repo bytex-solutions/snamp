@@ -148,7 +148,7 @@ final class ManagementShell implements Command, SessionAware {
      * @param value The input stream to be associated with this command.
      */
     @Override
-    public final void setInputStream(final InputStream value) {
+    public void setInputStream(final InputStream value) {
         inStream.set(value);
     }
 
@@ -158,7 +158,7 @@ final class ManagementShell implements Command, SessionAware {
      * @param value The output stream to be associated with this command.
      */
     @Override
-    public final void setOutputStream(final OutputStream value) {
+    public void setOutputStream(final OutputStream value) {
         outStream.set(value);
     }
 
@@ -168,7 +168,7 @@ final class ManagementShell implements Command, SessionAware {
      * @param value The error stream to be associated with this command.
      */
     @Override
-    public final void setErrorStream(final OutputStream value) {
+    public void setErrorStream(final OutputStream value) {
         errStream.set(value);
     }
 
@@ -178,7 +178,7 @@ final class ManagementShell implements Command, SessionAware {
      * @param value The callback to be associated with this command.
      */
     @Override
-    public final void setExitCallback(final ExitCallback value) {
+    public void setExitCallback(final ExitCallback value) {
         exitCallback.set(value);
     }
 

@@ -36,4 +36,14 @@ final class NumberUtils {
             return ((Boolean)value) ? 1L : 0L;
         else throw new NumberFormatException(String.format("Value %s is not a number", value));
     }
+
+    static double toDouble(final Object value) throws NumberFormatException{
+        if(value instanceof Number)
+            return ((Number)value).doubleValue();
+        else if(value instanceof String)
+            return Double.parseDouble((String)value);
+        else if(value instanceof Boolean)
+            return ((Boolean)value) ? 1L : 0L;
+        else throw new NumberFormatException(String.format("Value %s is not a number", value));
+    }
 }

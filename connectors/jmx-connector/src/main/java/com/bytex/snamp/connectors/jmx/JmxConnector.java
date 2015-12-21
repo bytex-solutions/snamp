@@ -1,20 +1,22 @@
 package com.bytex.snamp.connectors.jmx;
 
 import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.GroupedThreadFactory;
+import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
 import com.bytex.snamp.connectors.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptorRead;
 import com.bytex.snamp.connectors.attributes.AttributeSupport;
+import com.bytex.snamp.connectors.metrics.MetricsReader;
 import com.bytex.snamp.connectors.notifications.*;
 import com.bytex.snamp.connectors.operations.AbstractOperationRepository;
 import com.bytex.snamp.connectors.operations.OperationDescriptor;
 import com.bytex.snamp.connectors.operations.OperationDescriptorRead;
 import com.bytex.snamp.connectors.operations.OperationSupport;
-import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.base.Function;
@@ -41,12 +43,10 @@ import static com.bytex.snamp.connectors.jmx.JmxConnectorConfigurationDescriptor
  */
 final class JmxConnector extends AbstractManagedResourceConnector implements AttributeSupport, NotificationSupport, OperationSupport {
     private interface JmxFeatureMetadata extends Serializable, DescriptorRead {
-        @SpecialUse
         ObjectName getOwner();
-        @SpecialUse
         String getName();
-        @SpecialUse
         String getDescription();
+        String getAlias();
     }
 
     /**
@@ -101,15 +101,15 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
         }
 
         private static Object invoke(final JmxConnectionManager connectionManager,
+                                     final String operationName,
                                      final Object[] arguments,
                                      final String[] signature,
-                                     final ObjectName owner,
-                                     final OperationDescriptor descriptor) throws Exception{
+                                     final ObjectName owner) throws Exception{
             return connectionManager.handleConnection(new MBeanServerConnectionHandler<Object>() {
                 @Override
                 public Object handle(final MBeanServerConnection connection) throws IOException, JMException {
                     return connection.invoke(owner,
-                            OperationDescriptor.getOperationName(descriptor),
+                            operationName,
                             arguments,
                             signature);
                 }
@@ -123,13 +123,19 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
             return result;
         }
 
+        @Override
+        public String getAlias(){
+            return getDescriptor().getName(getName());
+        }
+
         private Object invoke(final JmxConnectionManager connectionManager,
                               final Object[] arguments) throws Exception{
             return invoke(connectionManager,
+                    getAlias(),
                     arguments,
                     constructSignature(getSignature()),
-                    operationOwner,
-                    getDescriptor());
+                    operationOwner
+            );
         }
     }
 
@@ -147,24 +153,24 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
         }
 
         private static JmxOperationInfo enableOperation(final JmxConnectionManager connectionManager,
-                                                        final String userDefinedName,
+                                                        final String operationName,
                                                         final OperationDescriptor descriptor,
                                                         final ObjectName owner,
                                                         final boolean useRegexp) throws Exception{
             if(useRegexp)
-                return enableOperation(connectionManager, userDefinedName, descriptor, connectionManager.resolveName(owner), false);
+                return enableOperation(connectionManager, operationName, descriptor, connectionManager.resolveName(owner), false);
             final MBeanOperationInfo metadata = connectionManager.handleConnection(new MBeanServerConnectionHandler<MBeanOperationInfo>() {
                 @Override
                 public MBeanOperationInfo handle(final MBeanServerConnection connection) throws IOException, JMException {
                     for(final MBeanOperationInfo candidate: connection.getMBeanInfo(owner).getOperations())
-                        if(Objects.equals(descriptor.getOperationName(), candidate.getName()) && checkSignature(descriptor, candidate.getSignature()))
+                        if(Objects.equals(descriptor.getName(operationName), candidate.getName()) && checkSignature(descriptor, candidate.getSignature()))
                             return candidate;
                     return null;
                 }
             });
             if(metadata != null)
-                return new JmxOperationInfo(userDefinedName, metadata, owner, descriptor);
-            else throw new MBeanException(new IllegalArgumentException(String.format("Operation '%s' doesn't exist in '%s' object", descriptor.getOperationName(), owner)));
+                return new JmxOperationInfo(operationName, metadata, owner, descriptor);
+            else throw new MBeanException(new IllegalArgumentException(String.format("Operation '%s' doesn't exist in '%s' object", descriptor.getName(operationName), owner)));
 
         }
 
@@ -196,14 +202,14 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
          */
         @Override
         protected Object invoke(final OperationCallInfo<JmxOperationInfo> callInfo) throws Exception {
-            return callInfo.getMetadata().invoke(connectionManager, callInfo.toArray());
+            return callInfo.getMetadata().invoke(connectionManager,
+                    callInfo.toArray());
         }
 
         @Override
-        protected void failedToEnableOperation(final String userDefinedName,
-                                               final String operationName,
+        protected void failedToEnableOperation(final String operationName,
                                                final Exception e) {
-            failedToEnableOperation(getLoggerImpl(), Level.WARNING, userDefinedName, operationName, e);
+            failedToEnableOperation(getLoggerImpl(), Level.WARNING, operationName, e);
         }
 
         @Override
@@ -214,16 +220,10 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
                 return connectionManager.handleConnection(new MBeanServerConnectionHandler<List<JmxOperationInfo>>() {
                     private void fillOperations(final MBeanServerConnection connection,
                                                 final ObjectName objectName,
-                                                final boolean generateName,
                                                 final Collection<JmxOperationInfo> output) throws JMException, IOException {
-                        int counter = 1;
                         for (final MBeanOperationInfo operationInfo : connection.getMBeanInfo(objectName).getOperations()) {
-                            final String operationID = generateName ?
-                                    operationInfo.getName() + counter++ :
-                                    operationInfo.getName();
-                            final JmxOperationInfo op = enableOperation(operationID,
-                                    operationInfo.getName(),
-                                    TIMEOUT_FOR_SMART_MODE,
+                            final JmxOperationInfo op = enableOperation(operationInfo.getName(),
+                                    AgentConfiguration.ManagedResourceConfiguration.OperationConfiguration.TIMEOUT_FOR_SMART_MODE,
                                     toConfigurationParameters(globalObjectName));
                             if (op != null) output.add(op);
                         }
@@ -232,7 +232,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
                     @Override
                     public LinkedList<JmxOperationInfo> handle(final MBeanServerConnection connection) throws IOException, JMException {
                         final LinkedList<JmxOperationInfo> result = new LinkedList<>();
-                        fillOperations(connection, globalObjectName, false, result);
+                        fillOperations(connection, globalObjectName, result);
                         return result;
                     }
                 });
@@ -266,6 +266,11 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
         }
 
         @Override
+        public String getAlias() {
+            return getDescriptor().getName(getName());
+        }
+
+        @Override
         public ObjectName getOwner(){
             return eventOwner;
         }
@@ -287,14 +292,13 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
         /**
          * Reports an error when connecting attribute.
          *
-         * @param attributeID   The attribute identifier.
          * @param attributeName The name of the attribute.
          * @param e             Internal connector error.
-         * @see #failedToConnectAttribute(java.util.logging.Logger, java.util.logging.Level, String, String, Exception)
+         * @see #failedToConnectAttribute(java.util.logging.Logger, java.util.logging.Level, String, Exception)
          */
         @Override
-        protected void failedToConnectAttribute(final String attributeID, final String attributeName, final Exception e) {
-            failedToConnectAttribute(getLoggerImpl(), Level.WARNING, attributeID, attributeName, e);
+        protected void failedToConnectAttribute(final String attributeName, final Exception e) {
+            failedToConnectAttribute(getLoggerImpl(), Level.WARNING, attributeName, e);
         }
 
         /**
@@ -331,7 +335,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
                 @Override
                 public MBeanAttributeInfo handle(final MBeanServerConnection connection) throws IOException, JMException {
                     for (final MBeanAttributeInfo attr : connection.getMBeanInfo(namespace).getAttributes())
-                        if (Objects.equals(attr.getName(), metadata.getAttributeName())) return attr;
+                        if (Objects.equals(attr.getName(), metadata.getName(attributeName))) return attr;
                     return null;
                 }
             });
@@ -366,15 +370,15 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
         /**
          * Connects to the specified attribute.
          *
-         * @param attributeID The id of the attribute.
+         * @param attributeName The id of the attribute.
          * @param descriptor  Attribute descriptor.
          * @return The description of the attribute.
          * @throws Exception Internal connector error.
          */
         @Override
-        protected JmxAttributeInfo connectAttribute(final String attributeID,
+        protected JmxAttributeInfo connectAttribute(final String attributeName,
                                                     final AttributeDescriptor descriptor) throws Exception {
-            return connectAttribute(attributeID, descriptor, globalObjectName == null ? getObjectName(descriptor) : globalObjectName);
+            return connectAttribute(attributeName, descriptor, globalObjectName == null ? getObjectName(descriptor) : globalObjectName);
         }
 
         @Override
@@ -387,10 +391,8 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
                                                 final ObjectName objectName,
                                                 final Collection<JmxAttributeInfo> output) throws JMException, IOException{
                         for(final MBeanAttributeInfo attributeInfo: connection.getMBeanInfo(objectName).getAttributes()){
-                            final String attributeID = attributeInfo.getName();
-                            final JmxAttributeInfo attr = addAttribute(attributeID,
-                                    attributeInfo.getName(),
-                                    TIMEOUT_FOR_SMART_MODE,
+                            final JmxAttributeInfo attr = addAttribute(attributeInfo.getName(),
+                                    AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.TIMEOUT_FOR_SMART_MODE,
                                     toConfigurationParameters(globalObjectName));
                             if(attr != null) output.add(attr);
                         }
@@ -449,7 +451,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
                                           final ObjectName globalName,
                                           final BundleContext context,
                                           final JmxConnectionManager connectionManager) {
-            super(resourceName, FEATURE_TYPE, DistributedServices.getDistributedSequenceNumberGenerator(context, "notifications-".concat(resourceName)));
+            super(resourceName, FEATURE_TYPE, DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName)));
             this.connectionManager = connectionManager;
             this.globalObjectName = globalName;
             this.connectionManager.addReconnectionHandler(this);
@@ -472,7 +474,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
          */
         @Override
         public boolean isSuspended() {
-            return super.isSuspended() && DistributedServices.isActiveNode(Utils.getBundleContextOfObject(this));
+            return super.isSuspended() && !DistributedServices.isActiveNode(Utils.getBundleContextOfObject(this));
         }
 
         /**
@@ -488,14 +490,13 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
         /**
          * Reports an error when enabling notifications.
          *
-         * @param listID   Subscription list identifier.
          * @param category An event category.
          * @param e        Internal connector error.
-         * @see #failedToEnableNotifications(java.util.logging.Logger, java.util.logging.Level, String, String, Exception)
+         * @see #failedToEnableNotifications(java.util.logging.Logger, java.util.logging.Level, String, Exception)
          */
         @Override
-        protected void failedToEnableNotifications(final String listID, final String category, final Exception e) {
-            failedToEnableNotifications(getLoggerImpl(), Level.WARNING, listID, category, e);
+        protected void failedToEnableNotifications(final String category, final Exception e) {
+            failedToEnableNotifications(getLoggerImpl(), Level.WARNING, category, e);
         }
 
         private Set<ObjectName> getNotificationTargets() {
@@ -541,19 +542,19 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
                 }
         }
 
-        private JmxNotificationInfo enableNotifications(final String listID,
+        private JmxNotificationInfo enableNotifications(final String category,
                                                         final NotificationDescriptor metadata,
                                                         final ObjectName owner,
                                                         final boolean useRegexp) throws Exception {
             if (useRegexp)
-                return enableNotifications(listID, metadata, connectionManager.resolveName(owner), false);
+                return enableNotifications(category, metadata, connectionManager.resolveName(owner), false);
             final JmxNotificationInfo eventData = connectionManager.handleConnection(new MBeanServerConnectionHandler<JmxNotificationInfo>() {
                 @Override
                 public JmxNotificationInfo handle(final MBeanServerConnection connection) throws IOException, JMException {
                     for (final MBeanNotificationInfo notificationInfo : connection.getMBeanInfo(owner).getNotifications())
                         for (final String notifType : notificationInfo.getNotifTypes())
-                            if (Objects.equals(notifType, metadata.getNotificationCategory()))
-                                return new JmxNotificationInfo(listID,
+                            if (Objects.equals(notifType, metadata.getName(category)))
+                                return new JmxNotificationInfo(category,
                                         notificationInfo,
                                         owner,
                                         metadata);
@@ -566,19 +567,19 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
                 if (!listeningContext.contains(eventData.eventOwner))
                     enableListening(eventData.eventOwner);
                 return eventData;
-            } else throw new IllegalArgumentException(String.format("%s notification is not supported", listID));
+            } else throw new IllegalArgumentException(String.format("%s notification is not supported", category));
         }
 
-        private JmxNotificationInfo enableNotifications(final String listID,
+        private JmxNotificationInfo enableNotifications(final String category,
                                                         final NotificationDescriptor metadata,
                                                         final ObjectName namespace) throws Exception {
-            return enableNotifications(listID, metadata, namespace, useRegexpOption(metadata));
+            return enableNotifications(category, metadata, namespace, useRegexpOption(metadata));
         }
 
         @Override
-        protected JmxNotificationInfo enableNotifications(final String listID,
+        protected JmxNotificationInfo enableNotifications(final String category,
                                                           final NotificationDescriptor metadata) throws Exception {
-            return enableNotifications(listID, metadata, globalObjectName == null ? getObjectName(metadata) : globalObjectName);
+            return enableNotifications(category, metadata, globalObjectName == null ? getObjectName(metadata) : globalObjectName);
         }
 
         @Override
@@ -592,9 +593,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
                                                    final Collection<JmxNotificationInfo> output) throws JMException, IOException {
                         for (final MBeanNotificationInfo notificationInfo : connection.getMBeanInfo(objectName).getNotifications()) {
                             if (notificationInfo.getNotifTypes().length < 1) continue;
-                            final String notificationId = ArrayUtils.getFirst(notificationInfo.getNotifTypes());
-                            final JmxNotificationInfo event = enableNotifications(notificationId,
-                                    ArrayUtils.getFirst(notificationInfo.getNotifTypes()),
+                            final JmxNotificationInfo event = enableNotifications(ArrayUtils.getFirst(notificationInfo.getNotifTypes()),
                                     toConfigurationParameters(globalObjectName));
                             if (event != null) output.add(event);
                         }
@@ -645,6 +644,12 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
 
         private static boolean canExpandWith(final Class<? extends MBeanFeatureInfo> featureType) {
             return featureType.isAssignableFrom(FEATURE_TYPE);
+        }
+
+        @Override
+        public void close() {
+            super.close();
+            connectionManager.removeReconnectionHandler(this);
         }
     }
 
@@ -720,43 +725,50 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
             return namespace;
         }
 
+        @Override
+        public final String getAlias(){
+            return getDescriptor().getName(getName());
+        }
+
         private static Object getValue(final JmxConnectionManager connectionManager,
-                                       final ObjectName owner,
-                                       final AttributeDescriptor descriptor) throws Exception{
+                                       final String attributeName,
+                                       final ObjectName owner) throws Exception{
             return connectionManager.handleConnection(new MBeanServerConnectionHandler<Object>() {
                 @Override
                 public Object handle(final MBeanServerConnection connection) throws IOException, JMException {
-                    return connection.getAttribute(owner,
-                            AttributeDescriptor.getAttributeName(descriptor));
+                    return connection.getAttribute(owner, attributeName);
                 }
             });
         }
 
         private Object getValue(final JmxConnectionManager connectionManager) throws Exception {
-            return getValue(connectionManager, namespace, getDescriptor());
+            return getValue(connectionManager, getAlias(), namespace);
         }
 
         private static void setValue(final JmxConnectionManager connectionManager,
+                                     final String attributeName,
                                      final ObjectName owner,
-                                     final AttributeDescriptor descriptor,
                                      final Object value) throws Exception{
             connectionManager.handleConnection(new MBeanServerConnectionHandler<Void>() {
                 @Override
                 public Void handle(final MBeanServerConnection connection) throws IOException, JMException {
-                    connection.setAttribute(owner,
-                            new Attribute(AttributeDescriptor.getAttributeName(descriptor), value));
+                    connection.setAttribute(owner, new Attribute(attributeName, value));
                     return null;
                 }
             });
         }
 
         private void setValue(final JmxConnectionManager connectionManager, final Object value) throws Exception {
-            setValue(connectionManager, namespace, getDescriptor(), value);
+            setValue(connectionManager, getAlias(), namespace, value);
         }
     }
+    @Aggregation
     private final JmxNotificationRepository notifications;
+    @Aggregation
     private final JmxAttributeRepository attributes;
+    @Aggregation
     private final JmxConnectionManager connectionManager;
+    @Aggregation
     private final JmxOperationRepository operations;
     private final boolean smartMode;
 
@@ -788,27 +800,29 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
         this(resourceName, new JmxConnectionOptions(connectionString, connectionOptions));
     }
 
-    boolean addAttribute(final String id,
-                                    final String attributeName,
+    @Override
+    protected MetricsReader createMetricsReader(){
+        return assembleMetricsReader(attributes, notifications, operations);
+    }
+
+    boolean addAttribute(final String attributeName,
                                     final TimeSpan readWriteTimeout,
                                     final CompositeData options) {
-        verifyInitialization();
-        return attributes.addAttribute(id, attributeName, readWriteTimeout, options) != null;
+        verifyClosedState();
+        return attributes.addAttribute(attributeName, readWriteTimeout, options) != null;
     }
 
-    boolean enableNotifications(final String listId,
-                                              final String category,
+    boolean enableNotifications(final String category,
                                               final CompositeData options) {
-        verifyInitialization();
-        return notifications.enableNotifications(listId, category, options) != null;
+        verifyClosedState();
+        return notifications.enableNotifications(category, options) != null;
     }
 
-    boolean enableOperation(final String operationID,
-                                       final String operationName,
+    boolean enableOperation(final String operationName,
                                        final TimeSpan invocationTimeout,
                                        final CompositeData options){
-        verifyInitialization();
-        return operations.enableOperation(operationID, operationName, invocationTimeout, options) != null;
+        verifyClosedState();
+        return operations.enableOperation(operationName, invocationTimeout, options) != null;
     }
 
     /**
@@ -827,7 +841,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
      */
     @Override
     public void addNotificationListener(final NotificationListener listener, final NotificationFilter filter, final Object handback) throws IllegalArgumentException {
-        verifyInitialization();
+        verifyClosedState();
         notifications.addNotificationListener(listener, filter, handback);
     }
 
@@ -846,7 +860,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
      */
     @Override
     public void removeNotificationListener(final NotificationListener listener) throws ListenerNotFoundException {
-        verifyInitialization();
+        verifyClosedState();
         notifications.removeNotificationListener(listener);
     }
 
@@ -869,24 +883,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
      */
     @Override
     public void removeResourceEventListener(final ResourceEventListener listener) {
-        addResourceEventListener(listener, attributes, notifications, operations);
-    }
-
-    /**
-     * Retrieves the aggregated object.
-     *
-     * @param objectType Type of the aggregated object.
-     * @return An instance of the requested object; or {@literal null} if object is not available.
-     */
-    @Override
-    public <T> T queryObject(final Class<T> objectType) {
-        return findObject(objectType,
-                new Function<Class<T>, T>() {
-                    @Override
-                    public T apply(final Class<T> objectType) {
-                        return JmxConnector.super.queryObject(objectType);
-                    }
-                }, connectionManager, attributes, notifications, operations);
+        removeResourceEventListener(listener, attributes, notifications, operations);
     }
 
     /**

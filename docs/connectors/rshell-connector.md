@@ -79,7 +79,7 @@ Behaviour of each configured attribute described in the XML file called Command-
 
 Use the following attribute configuration scheme:
 
-* `Name` - full path to the Command-Line Tool Profile
+* `Name` - full path to the Command-Line Tool Profile. You can use `name` configuration parameter to specify path to Profile.
 * Any configuration parameter will be visible to STDIN template specified in the Command-Line Tool Profile
 
 ## Command-line tool profile

@@ -39,7 +39,7 @@ final class SnmpDiscoveryService {
             @Override
             public AttributeConfiguration apply(final VariableBinding input) {
                 final SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration config = new SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration();
-                config.setAttributeName(input.getOid().toDottedString());
+                config.setAlternativeName(input.getOid().toDottedString());
                 setupAttributeOptions(input.getVariable(), config.getParameters());
                 return config;
             }

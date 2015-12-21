@@ -4,7 +4,7 @@ import com.google.common.base.Supplier;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.bytex.snamp.*;
-import com.bytex.snamp.internal.EntryReader;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.Internal;
 import com.bytex.snamp.SpecialUse;
 
@@ -323,7 +323,6 @@ public class XmlParserDefinition {
      * @author Roman Sakno
      * @since 1.0
      */
-    @SuppressWarnings("UnusedDeclaration")
     @Internal
     public static final class DataParser{
         private final Cache<String, NumberParser> cachedNumberParsers;
@@ -348,74 +347,92 @@ public class XmlParserDefinition {
             return parser;
         }
 
+        @SpecialUse
         public byte parseByte(final String value) throws NumberFormatException{
             return Byte.parseByte(value);
         }
 
+        @SpecialUse
         public byte parseByte(final String value, final String format) throws ParseException {
             return getNumberParser(format).parseAsByte(value);
         }
 
+        @SpecialUse
         public short parseShort(final String value) throws NumberFormatException{
             return Short.parseShort(value);
         }
 
+        @SpecialUse
         public short parseShort(final String value, final String format) throws ParseException{
             return getNumberParser(format).parseAsShort(value);
         }
 
+        @SpecialUse
         public int parseInt(final String value) throws NumberFormatException{
             return Integer.parseInt(value);
         }
 
+        @SpecialUse
         public int parseInt(final String value, final String format) throws ParseException{
             return getNumberParser(format).parseAsInt(value);
         }
 
+        @SpecialUse
         public long parseLong(final String value) throws NumberFormatException{
             return Long.parseLong(value);
         }
 
+        @SpecialUse
         public long parseLong(final String value, final String format) throws ParseException{
             return getNumberParser(format).parseAsLong(value);
         }
 
+        @SpecialUse
         public float parseFloat(final String value) throws NumberFormatException{
             return Float.parseFloat(value);
         }
 
+        @SpecialUse
         public float parseFloat(final String value, final String format) throws ParseException{
             return getNumberParser(format).parseAsFloat(value);
         }
 
+        @SpecialUse
         public double parseDouble(final String value) throws NumberFormatException{
             return Double.parseDouble(value);
         }
 
+        @SpecialUse
         public double parseDouble(final String value, final String format) throws ParseException{
             return getNumberParser(format).parseAsDouble(value);
         }
 
+        @SpecialUse
         public BigInteger parseBigInteger(final String value) throws NumberFormatException{
             return new BigInteger(value);
         }
 
+        @SpecialUse
         public BigInteger parseBigInteger(final String value, final String format) throws ParseException{
             return getNumberParser(format).parseAsBigInteger(value);
         }
 
+        @SpecialUse
         public BigDecimal parseBigDecimal(final String value) throws NumberFormatException{
             return new BigDecimal(value);
         }
 
+        @SpecialUse
         public BigDecimal parseBigDecimal(final String value, final String format) throws ParseException{
             return getNumberParser(format).parseAsBigDecimal(value);
         }
 
+        @SpecialUse
         public Date parseDate(final String value) throws ParseException {
             return DEFAULT_DATE_TIME_FORMAT.parse(value);
         }
 
+        @SpecialUse
         public Date parseDate(final String value, final String format) throws ParseException{
             return getDateParser(format).parse(value);
         }
@@ -533,7 +550,7 @@ public class XmlParserDefinition {
             @XmlElementRef(type = ConstantParsingRule.class)
     })
     List getParsingTemplate(){
-        if(parsingTemplate == null) parsingTemplate = new ArrayList(10);
+        if(parsingTemplate == null) parsingTemplate = new LinkedList();
         return parsingTemplate;
     }
 

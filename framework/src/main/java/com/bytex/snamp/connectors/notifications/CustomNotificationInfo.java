@@ -27,7 +27,7 @@ public class CustomNotificationInfo extends MBeanNotificationInfo implements Not
     public CustomNotificationInfo(final String notifType,
                                   final String description,
                                   final NotificationDescriptor descriptor) {
-        super(new String[]{notifType}, Notification.class.getName(), description, descriptor);
+        super(new String[]{notifType}, Notification.class.getName(), descriptor.getDescription(description), descriptor);
         this.descriptor = Objects.requireNonNull(descriptor);
     }
 

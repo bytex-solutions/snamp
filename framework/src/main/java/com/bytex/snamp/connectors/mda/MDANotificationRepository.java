@@ -6,7 +6,7 @@ import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 import com.bytex.snamp.connectors.notifications.NotificationListenerInvoker;
 import com.bytex.snamp.connectors.notifications.NotificationListenerInvokerFactory;
 import com.bytex.snamp.core.DistributedServices;
-import com.bytex.snamp.core.SequenceNumberGenerator;
+import com.bytex.snamp.core.LongCounter;
 
 import javax.management.openmbean.OpenType;
 import java.util.concurrent.ExecutorService;
@@ -29,13 +29,13 @@ public abstract class MDANotificationRepository<M extends MDANotificationInfo> e
     protected MDANotificationRepository(final String resourceName,
                                        final Class<M> featureType,
                                        final ExecutorService threadPool){
-        this(resourceName, featureType, threadPool, DistributedServices.getProcessLocalSequenceNumberGenerator("notifications-".concat(resourceName)));
+        this(resourceName, featureType, threadPool, DistributedServices.getProcessLocalCounterGenerator("notifications-".concat(resourceName)));
     }
 
     protected MDANotificationRepository(final String resourceName,
                                         final Class<M> featureType,
                                         final ExecutorService threadPool,
-                                        final SequenceNumberGenerator sequenceNumberGenerator){
+                                        final LongCounter sequenceNumberGenerator){
         super(resourceName, featureType, sequenceNumberGenerator);
         listenerInvoker = NotificationListenerInvokerFactory.createParallelInvoker(threadPool);
     }
@@ -48,7 +48,7 @@ public abstract class MDANotificationRepository<M extends MDANotificationInfo> e
      * Resets last access time.
      */
     @Override
-    protected final void afterFire() {
+    protected final void interceptFire() {
         lastWriteAccess.reset();
     }
 
@@ -76,8 +76,8 @@ public abstract class MDANotificationRepository<M extends MDANotificationInfo> e
     protected abstract Logger getLogger();
 
     @Override
-    protected final void failedToEnableNotifications(final String listID, final String category, final Exception e) {
-        failedToEnableNotifications(getLogger(), Level.WARNING, listID, category, e);
+    protected final void failedToEnableNotifications(final String category, final Exception e) {
+        failedToEnableNotifications(getLogger(), Level.WARNING, category, e);
     }
 
     /**

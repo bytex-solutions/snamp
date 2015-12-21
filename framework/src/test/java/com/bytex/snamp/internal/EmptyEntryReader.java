@@ -1,5 +1,6 @@
 package com.bytex.snamp.internal;
 
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.ExceptionPlaceholder;
 
 /**

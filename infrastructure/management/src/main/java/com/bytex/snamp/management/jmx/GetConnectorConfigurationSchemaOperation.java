@@ -27,8 +27,8 @@ final class GetConnectorConfigurationSchemaOperation extends ConfigurationSchema
     @Override
     public CompositeData invoke(final Map<String, ?> arguments) throws OpenDataException {
         return getConnectorConfigurationSchema(
-                getArgument(CONNECTOR_NAME_PARAM.getName(), String.class, arguments),
-                getArgument(LOCALE_PARAM.getName(), String.class, arguments)
+                CONNECTOR_NAME_PARAM.getArgument(arguments),
+                LOCALE_PARAM.getArgument(arguments)
         );
     }
 

@@ -5,6 +5,7 @@ import com.google.common.base.Predicate;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ObjectArrays;
 import com.google.common.primitives.*;
 
@@ -29,12 +30,21 @@ public final class ArrayUtils {
         byte[] convert(final T array, final int index);
     }
 
+    private static final ImmutableSet<SimpleType<?>> PRIMITIVE_TYPES = ImmutableSet.<SimpleType<?>>of(SimpleType.BOOLEAN,
+            SimpleType.CHARACTER,
+            SimpleType.BYTE,
+            SimpleType.SHORT,
+            SimpleType.INTEGER,
+            SimpleType.LONG,
+            SimpleType.FLOAT,
+            SimpleType.DOUBLE);
+
     private static final LoadingCache<Class<?>, Object> EMPTY_ARRAYS = CacheBuilder
             .newBuilder()
             .softValues()
             .build(new CacheLoader<Class<?>, Object>() {
                 @Override
-                public Object load(final Class<?> componentType) throws NegativeArraySizeException, IllegalArgumentException {
+                public Object load(final Class<?> componentType) throws IllegalArgumentException {
                     return Array.newInstance(componentType, 0);
                 }
             });
@@ -44,41 +54,28 @@ public final class ArrayUtils {
                     .maximumSize(20)
                     .softValues()
                     .build(new CacheLoader<OpenType<?>, Class<?>>() {
+                        private final Switch<OpenType<?>, Class<?>> mappings = new Switch<OpenType<?>, Class<?>>()
+                                .equals(SimpleType.BYTE, Byte.class)
+                                .equals(SimpleType.CHARACTER, Character.class)
+                                .equals(SimpleType.SHORT, Short.class)
+                                .equals(SimpleType.INTEGER, Integer.class)
+                                .equals(SimpleType.LONG, Long.class)
+                                .equals(SimpleType.BOOLEAN, Boolean.class)
+                                .equals(SimpleType.FLOAT, Float.class)
+                                .equals(SimpleType.DOUBLE, Double.class)
+                                .equals(SimpleType.VOID, Void.class)
+                                .equals(SimpleType.STRING, String.class)
+                                .equals(SimpleType.BIGDECIMAL, BigDecimal.class)
+                                .equals(SimpleType.BIGINTEGER, BigInteger.class)
+                                .equals(SimpleType.OBJECTNAME, ObjectName.class)
+                                .equals(SimpleType.DATE, Date.class)
+                                .instanceOf(CompositeType.class, CompositeData.class)
+                                .instanceOf(TabularType.class, TabularData.class);
+
                         @Override
                         public Class<?> load(final OpenType<?> elementType) throws ClassNotFoundException {
-                            if(Objects.equals(SimpleType.BYTE, elementType))
-                                return Byte.class;
-                            else if(SimpleType.CHARACTER.equals(elementType))
-                                return Character.class;
-                            else if(SimpleType.SHORT.equals(elementType))
-                                return Short.class;
-                            else if(SimpleType.INTEGER.equals(elementType))
-                                return Integer.class;
-                            else if(SimpleType.LONG.equals(elementType))
-                                return Long.class;
-                            else if(SimpleType.BOOLEAN.equals(elementType))
-                                return Boolean.class;
-                            else if(SimpleType.FLOAT.equals(elementType))
-                                return Float.class;
-                            else if(SimpleType.DOUBLE.equals(elementType))
-                                return Double.class;
-                            else if(SimpleType.VOID.equals(elementType))
-                                return Void.class;
-                            else if(SimpleType.STRING.equals(elementType))
-                                return String.class;
-                            else if(SimpleType.BIGDECIMAL.equals(elementType))
-                                return BigDecimal.class;
-                            else if(SimpleType.BIGINTEGER.equals(elementType))
-                                return BigInteger.class;
-                            else if(SimpleType.DATE.equals(elementType))
-                                return Date.class;
-                            else if(SimpleType.OBJECTNAME.equals(elementType))
-                                return ObjectName.class;
-                            else if(elementType instanceof CompositeType)
-                                return CompositeData.class;
-                            else if(elementType instanceof TabularType)
-                                return TabularData.class;
-                            else return Class.forName(elementType.getClassName());
+                            final Class<?> result = mappings.apply(elementType);
+                            return result == null ? Class.forName(elementType.getClassName()) : result;
                         }
                     });
 
@@ -88,7 +85,7 @@ public final class ArrayUtils {
     /**
      * Removes all empty arrays from the cache.
      */
-    public static void invalidateEmptyArrays(){
+    static void invalidateEmptyArrays(){
         EMPTY_ARRAYS.invalidateAll();
     }
 
@@ -267,10 +264,8 @@ public final class ArrayUtils {
     private static Object newArray(final OpenType<?> elementType,
                                    final int[] dimensions,
                                    final boolean isPrimitive) {
-        Class<?> itemType = OPEN_TYPE_MAPPING.getUnchecked(elementType);
-        if (itemType == null) return null;
-        else if (isPrimitive) itemType = Primitives.unwrap(itemType);
-        return Array.newInstance(itemType, dimensions);
+        final Class<?> itemType = OPEN_TYPE_MAPPING.getUnchecked(elementType);
+        return Array.newInstance(isPrimitive ? Primitives.unwrap(itemType) : itemType, dimensions);
     }
 
     /**
@@ -298,25 +293,8 @@ public final class ArrayUtils {
         else return false;
     }
 
-    @SafeVarargs
-    private static <T> boolean oneOf(final T first, final T... other){
-        for(final T item: other)
-            if(Objects.equals(first, item)) return true;
-        return false;
-    }
-
     private static <T> ArrayType<T[]> createArrayType(final SimpleType<T> elementType) throws OpenDataException{
-
-        final boolean primitive = oneOf(elementType,
-                SimpleType.BOOLEAN,
-                SimpleType.CHARACTER,
-                SimpleType.BYTE,
-                SimpleType.SHORT,
-                SimpleType.INTEGER,
-                SimpleType.LONG,
-                SimpleType.FLOAT,
-                SimpleType.DOUBLE);
-        return new ArrayType<>(elementType, primitive);
+        return new ArrayType<>(elementType, PRIMITIVE_TYPES.contains(elementType));
     }
 
     public static <T> ArrayType<T[]> createArrayType(final OpenType<T> elementType) throws OpenDataException {
@@ -519,7 +497,7 @@ public final class ArrayUtils {
                                           final int componentSize) {
         final byte[] result = new byte[Array.getLength(array) * componentSize];
         for (int sourcePosition = 0, destPosition = 0; sourcePosition < Array.getLength(array); sourcePosition++)
-            for (byte element : converter.convert(array, sourcePosition))
+            for (final byte element : converter.convert(array, sourcePosition))
                 result[destPosition++] = element;
         return result;
     }

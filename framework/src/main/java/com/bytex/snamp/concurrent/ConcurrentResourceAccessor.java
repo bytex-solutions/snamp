@@ -50,14 +50,14 @@ public class ConcurrentResourceAccessor<R> extends AbstractConcurrentResourceAcc
     /**
      * Represents coordinated resource.
      */
-    private volatile R resource;
+    private final VolatileBox<R> resource;
 
     /**
      * Initializes a new thread safe container for the specified resource.
      * @param resource The resource to hold. May be {@literal null}.
      */
     public ConcurrentResourceAccessor(final R resource){
-        this.resource = resource;
+        this.resource = new VolatileBox<>(resource);
     }
 
     /**
@@ -67,7 +67,7 @@ public class ConcurrentResourceAccessor<R> extends AbstractConcurrentResourceAcc
      */
     @Override
     protected final R getResource() {
-        return resource;
+        return resource.get();
     }
 
     /**
@@ -76,9 +76,7 @@ public class ConcurrentResourceAccessor<R> extends AbstractConcurrentResourceAcc
      * @return Existed resource.
      */
     protected final R getAndSetResource(final R newResource){
-        final R previous = resource;
-        this.resource = newResource;
-        return previous;
+        return resource.getAndSet(newResource);
     }
 
     /**
@@ -86,7 +84,7 @@ public class ConcurrentResourceAccessor<R> extends AbstractConcurrentResourceAcc
      * @param resource The resource to set.
      */
     protected final void setResource(final R resource){
-        this.resource = resource;
+        this.resource.set(resource);
     }
 
     /**
@@ -128,7 +126,6 @@ public class ConcurrentResourceAccessor<R> extends AbstractConcurrentResourceAcc
      * @param newResource The factory of the new resource. Cannot be {@literal null}.
      * @throws IllegalArgumentException newResource is {@literal null}.
      */
-    @SuppressWarnings("UnusedDeclaration")
     public final void changeResource(final ConsistentAction<R, R> newResource){
         if(newResource == null) throw new IllegalArgumentException("newResource is null.");
         final WriteLock wl = writeLock();

@@ -33,7 +33,6 @@
         "Attributes": {
           "cpuLoad": {
             "Attribute": {
-              "Name": "ProcessCpuLoad",
               "AdditionalProperties": {
                 "objectName": {
                   "Value": "java.lang:type=OperatingSystem",
@@ -46,11 +45,10 @@
               },
               "ReadWriteTimeout": 10000
             },
-            "UserDefinedName": "cpuLoad"
+            "Name": "cpuLoad"
           },
           "context": {
             "Attribute": {
-              "Name": "ContextRoot",
               "AdditionalProperties": {
                 "objectName": {
                   "Value": "amx:pp=/domain/applications,type=application,name=hello",
@@ -63,11 +61,10 @@
               },
               "ReadWriteTimeout": 10000
             },
-            "UserDefinedName": "context"
+            "Name": "context"
           },
           "memoryUsage": {
             "Attribute": {
-              "Name": "HeapMemoryUsage",
               "AdditionalProperties": {
                 "objectName": {
                   "Value": "java.lang:type=Memory",
@@ -80,7 +77,7 @@
               },
               "ReadWriteTimeout": 10000
             },
-            "UserDefinedName": "memoryUsage"
+            "Name": "memoryUsage"
           }
         },
         "Events": { },

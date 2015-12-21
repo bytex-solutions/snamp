@@ -1,6 +1,5 @@
 package com.bytex.snamp.testing.adapters.syslog;
 
-import com.google.common.base.Supplier;
 import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.TimeSpan;
@@ -9,7 +8,7 @@ import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.adapters.ResourceAdapterClient;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
-import com.bytex.snamp.internal.EntryReader;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
@@ -23,10 +22,10 @@ import javax.management.*;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
+import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
@@ -106,31 +105,27 @@ public final class SyslogAdapterTest extends AbstractJmxConnectorTest<TestOpenMB
     }
 
     @Override
-    protected void fillAdapters(final Map<String, ResourceAdapterConfiguration> adapters,
-                                final Supplier<ResourceAdapterConfiguration> adapterFactory) {
-        final ResourceAdapterConfiguration syslogAdapter = adapterFactory.get();
+    protected void fillAdapters(final EntityMap<? extends ResourceAdapterConfiguration> adapters) {
+        final ResourceAdapterConfiguration syslogAdapter = adapters.getOrAdd(INSTANCE_NAME);
         syslogAdapter.setAdapterName(ADAPTER_NAME);
         syslogAdapter.getParameters().put("port", Integer.toString(PORT));
         syslogAdapter.getParameters().put("address", "127.0.0.1");
         syslogAdapter.getParameters().put("protocol", "tcp");
-        adapters.put(INSTANCE_NAME, syslogAdapter);
     }
 
     @Override
-    protected void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory) {
-        AttributeConfiguration attribute = attributeFactory.get();
-        attribute.setAttributeName("int32");
+    protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
+        AttributeConfiguration attribute = attributes.getOrAdd("3.0");
+        setFeatureName(attribute, "int32");
         attribute.getParameters().put("objectName", BEAN_NAME);
-        attributes.put("3.0", attribute);
     }
 
     @Override
-    protected void fillEvents(final Map<String, EventConfiguration> events, final Supplier<EventConfiguration> eventFactory) {
-        EventConfiguration event = eventFactory.get();
-        event.setCategory(AttributeChangeNotification.ATTRIBUTE_CHANGE);
+    protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
+        EventConfiguration event = events.getOrAdd("19.1");
+        setFeatureName(event, AttributeChangeNotification.ATTRIBUTE_CHANGE);
         event.getParameters().put("severity", "notice");
         event.getParameters().put("objectName", BEAN_NAME);
-        events.put("19.1", event);
     }
 
     @Override

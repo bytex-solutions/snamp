@@ -7,7 +7,7 @@ import com.bytex.snamp.adapters.modeling.AttributeSet;
 import com.bytex.snamp.adapters.modeling.FeatureAccessor;
 import com.bytex.snamp.adapters.modeling.NotificationSet;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
-import com.bytex.snamp.internal.EntryReader;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.internal.Utils;
 import org.osgi.framework.BundleContext;
 

@@ -1,11 +1,11 @@
 package com.bytex.snamp.connectors.modbus;
 
-import com.google.common.base.Function;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.attributes.OpenAttributeRepository;
+import com.bytex.snamp.connectors.metrics.MetricsReader;
 import com.bytex.snamp.connectors.modbus.transport.ModbusMaster;
 import com.bytex.snamp.connectors.modbus.transport.ModbusTransportType;
 import com.bytex.snamp.jmx.JMExceptionUtils;
@@ -36,38 +36,38 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
         }
 
         @Override
-        protected ModbusAttributeInfo<?, ?> connectAttribute(final String attributeID, final AttributeDescriptor descriptor) throws AttributeNotFoundException, OpenDataException {
-            switch (descriptor.getAttributeName()) {
+        protected ModbusAttributeInfo<?, ?> connectAttribute(final String attributeName, final AttributeDescriptor descriptor) throws AttributeNotFoundException, OpenDataException {
+            switch (descriptor.getName(attributeName)) {
                 case CoilAttribute.NAME:
                     if (ModbusResourceConnectorConfigurationDescriptor.hasCount(descriptor))
-                        return new CoilSetAttribute(attributeID, descriptor, client);
+                        return new CoilSetAttribute(attributeName, descriptor, client);
                     else
-                        return new CoilAttribute(attributeID, descriptor, client);
+                        return new CoilAttribute(attributeName, descriptor, client);
                 case InputRegisterAttribute.NAME:
                     if (ModbusResourceConnectorConfigurationDescriptor.hasCount(descriptor))
-                        return new InputRegisterSetAttribute(attributeID, descriptor, client);
+                        return new InputRegisterSetAttribute(attributeName, descriptor, client);
                     else
-                        return new InputRegisterAttribute(attributeID, descriptor, client);
+                        return new InputRegisterAttribute(attributeName, descriptor, client);
                 case InputDiscreteAttribute.NAME:
                     if (ModbusResourceConnectorConfigurationDescriptor.hasCount(descriptor))
-                        return new InputDiscreteSetAttribute(attributeID, descriptor, client);
+                        return new InputDiscreteSetAttribute(attributeName, descriptor, client);
                     else
-                        return new InputDiscreteAttribute(attributeID, descriptor, client);
+                        return new InputDiscreteAttribute(attributeName, descriptor, client);
                 case HoldingRegisterAttribute.NAME:
                     if (ModbusResourceConnectorConfigurationDescriptor.hasCount(descriptor))
-                        return new HoldingRegisterSetAttribute(attributeID, descriptor, client);
+                        return new HoldingRegisterSetAttribute(attributeName, descriptor, client);
                     else
-                        return new HoldingRegisterAttribute(attributeID, descriptor, client);
+                        return new HoldingRegisterAttribute(attributeName, descriptor, client);
                 case FileAttribute.NAME:
-                    return new FileAttribute(attributeID, descriptor, client);
+                    return new FileAttribute(attributeName, descriptor, client);
                 default:
-                    throw JMExceptionUtils.attributeNotFound(descriptor.getAttributeName());
+                    throw JMExceptionUtils.attributeNotFound(descriptor.getName(attributeName));
             }
         }
 
         @Override
-        protected void failedToConnectAttribute(final String attributeID, final String attributeName, final Exception e) {
-            failedToConnectAttribute(logger, Level.WARNING, attributeID, attributeName, e);
+        protected void failedToConnectAttribute(final String attributeName, final Exception e) {
+            failedToConnectAttribute(logger, Level.WARNING, attributeName, e);
         }
 
         @Override
@@ -81,6 +81,7 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
         }
     }
     private final ModbusMaster client;
+    @Aggregation
     private final ModbusAttributeRepository attributes;
 
     ModbusResourceConnector(final String resourceName,
@@ -89,7 +90,6 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
                             final int port) throws IOException {
         client = transportType.createMaster(address, port);
         attributes = new ModbusAttributeRepository(resourceName, client, getLogger());
-
     }
 
     static ModbusTransportType getTransportType(final URI connectionString) throws MalformedURLException{
@@ -106,8 +106,13 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
         this(resourceName, getTransportType(connectionString), connectionString.getHost(), connectionString.getPort());
     }
 
-    boolean addAttribute(final String attributeID, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options){
-        return attributes.addAttribute(attributeID, attributeName, readWriteTimeout, options) != null;
+    @Override
+    protected MetricsReader createMetricsReader() {
+        return assembleMetricsReader(attributes);
+    }
+
+    boolean addAttribute(final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options){
+        return attributes.addAttribute(attributeName, readWriteTimeout, options) != null;
     }
 
     void removeAttributesExcept(final Set<String> attributes) {
@@ -127,16 +132,6 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
     @Override
     public void removeResourceEventListener(final ResourceEventListener listener) {
         removeResourceEventListener(listener, attributes);
-    }
-
-    @Override
-    public <T> T queryObject(final Class<T> objectType) {
-        return findObject(objectType, new Function<Class<T>, T>() {
-            @Override
-            public T apply(final Class<T> objectType) {
-                return ModbusResourceConnector.super.queryObject(objectType);
-            }
-        }, attributes);
     }
 
     @Override

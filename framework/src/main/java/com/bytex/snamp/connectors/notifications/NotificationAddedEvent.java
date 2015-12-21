@@ -1,7 +1,6 @@
 package com.bytex.snamp.connectors.notifications;
 
 import com.bytex.snamp.connectors.FeatureAddedEvent;
-import com.bytex.snamp.internal.Utils;
 
 import javax.management.MBeanNotificationInfo;
 
@@ -28,6 +27,7 @@ public class NotificationAddedEvent extends FeatureAddedEvent<MBeanNotificationI
      */
     @Override
     public final NotificationSupport getSource() {
-        return Utils.safeCast(source, NotificationSupport.class);
+        assert source instanceof NotificationSupport: source;
+        return (NotificationSupport) source;
     }
 }

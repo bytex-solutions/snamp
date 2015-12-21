@@ -1,8 +1,5 @@
 package com.bytex.snamp.testing.management;
 
-import com.bytex.snamp.io.IOUtils;
-import com.google.common.base.Supplier;
-import com.google.common.collect.ImmutableMap;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.SafeConsumer;
@@ -10,11 +7,13 @@ import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.jmx.TabularDataUtils;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connectors.jmx.TestOpenMBean;
+import com.google.common.collect.ImmutableMap;
 import org.junit.ComparisonFailure;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -36,11 +35,14 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import static com.bytex.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
+
 
 /**
  * The type Snamp manager test.
@@ -63,6 +65,16 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
      */
     public SnampManagerTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(), new ObjectName(TestOpenMBean.BEAN_NAME));
+    }
+
+    @Test
+    public void metricsTest() throws JMException, IOException {
+        try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
+            final MBeanServerConnection connection = connector.getMBeanServerConnection();
+            final ObjectName commonsObj = new ObjectName(SNAMP_MBEAN);
+            assertTrue(connection.getAttribute(commonsObj, "SummaryMetrics") instanceof CompositeData);
+            assertTrue(connection.getAttribute(commonsObj, "Metrics") instanceof TabularData);
+        }
     }
 
     @Test
@@ -101,7 +113,6 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             TabularDataUtils.forEachRow(attrs, new SafeConsumer<CompositeData>() {
                 @Override
                 public void accept(final CompositeData row) {
-                    assertTrue(row.get("userDefinedName") instanceof String);
                     assertTrue(row.get("description") instanceof String);
                     assertTrue(row.get("parameters") instanceof TabularData);
                     assertTrue(row.get("type") instanceof String);
@@ -125,7 +136,6 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
                 @Override
                 public void accept(final CompositeData row) {
                     assertTrue(row.get("resourceName") instanceof String);
-                    assertTrue(row.get("userDefinedName") instanceof String);
                     assertTrue(row.get("name") instanceof String);
                     assertTrue(row.get("mappedType") instanceof String);
                     assertTrue(row.get("details") instanceof TabularData);
@@ -191,7 +201,6 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             final CompositeData jmxConnectorInfo = table.get(new String[]{"JMX Connector"});
             assertEquals("JMX Connector", jmxConnectorInfo.get("Name"));
             assertEquals(Bundle.ACTIVE, jmxConnectorInfo.get("State"));
-            assertEquals(true, jmxConnectorInfo.get("IsManageable"));
             assertEquals(true, jmxConnectorInfo.get("IsConfigurationDescriptionAvailable"));
             getTestBundleContext().ungetService(loggerRef);
         }
@@ -289,8 +298,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             assertTrue(connectorAttributes.get(new Object[]{"1.0"}).get("Attribute") instanceof CompositeData);
 
             final CompositeData attribute10 = (CompositeData) connectorAttributes.get(new Object[]{"1.0"}).get("Attribute");
-            assertEquals(attribute10.get("Name"), "string");
-            assertEquals(attribute10.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertEquals(-1L, attribute10.get("ReadWriteTimeout"));
             assertTrue(attribute10.containsKey("AdditionalProperties"));
             assertTrue(attribute10.get("AdditionalProperties") instanceof TabularData);
             assertTrue(((TabularData) attribute10.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
@@ -298,8 +306,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             assertEquals(((TabularData) attribute10.get("AdditionalProperties")).get(new Object[]{"oid"}).get("Value"), "1.1.1.0");
 
             final CompositeData attribute20 = (CompositeData) connectorAttributes.get(new Object[]{"2.0"}).get("Attribute");
-            assertEquals(attribute20.get("Name"), "boolean");
-            assertEquals(attribute20.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertEquals(-1L, attribute20.get("ReadWriteTimeout"));
             assertTrue(attribute20.containsKey("AdditionalProperties"));
             assertTrue(attribute20.get("AdditionalProperties") instanceof TabularData);
             assertTrue(((TabularData) attribute20.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
@@ -307,8 +314,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             assertEquals(((TabularData) attribute20.get("AdditionalProperties")).get(new Object[]{"oid"}).get("Value"), "1.1.2.0");
 
             final CompositeData attribute30 = (CompositeData) connectorAttributes.get(new Object[]{"3.0"}).get("Attribute");
-            assertEquals(attribute30.get("Name"), "int32");
-            assertEquals(attribute30.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertEquals(-1L, attribute30.get("ReadWriteTimeout"));
             assertTrue(attribute30.containsKey("AdditionalProperties"));
             assertTrue(attribute30.get("AdditionalProperties") instanceof TabularData);
             assertTrue(((TabularData) attribute30.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
@@ -316,8 +322,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             assertEquals(((TabularData) attribute30.get("AdditionalProperties")).get(new Object[]{"oid"}).get("Value"), "1.1.3.0");
 
             final CompositeData attribute40 = (CompositeData) connectorAttributes.get(new Object[]{"4.0"}).get("Attribute");
-            assertEquals(attribute40.get("Name"), "bigint");
-            assertEquals(attribute40.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertEquals(-1L, attribute40.get("ReadWriteTimeout"));
             assertTrue(attribute40.containsKey("AdditionalProperties"));
             assertTrue(attribute40.get("AdditionalProperties") instanceof TabularData);
             assertTrue(((TabularData) attribute40.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
@@ -325,8 +330,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             assertEquals(((TabularData) attribute40.get("AdditionalProperties")).get(new Object[]{"oid"}).get("Value"), "1.1.4.0");
 
             final CompositeData attribute51 = (CompositeData) connectorAttributes.get(new Object[]{"5.1"}).get("Attribute");
-            assertEquals(attribute51.get("Name"), "array");
-            assertEquals(attribute51.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertEquals(-1L, attribute51.get("ReadWriteTimeout"));
             assertTrue(attribute51.containsKey("AdditionalProperties"));
             assertTrue(attribute51.get("AdditionalProperties") instanceof TabularData);
             assertTrue(((TabularData) attribute51.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
@@ -334,8 +338,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             assertEquals(((TabularData) attribute51.get("AdditionalProperties")).get(new Object[]{"oid"}).get("Value"), "1.1.5.1");
 
             final CompositeData attribute61 = (CompositeData) connectorAttributes.get(new Object[]{"6.1"}).get("Attribute");
-            assertEquals(attribute61.get("Name"), "dictionary");
-            assertEquals(attribute61.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertEquals(-1L, attribute61.get("ReadWriteTimeout"));
             assertTrue(attribute61.containsKey("AdditionalProperties"));
             assertTrue(attribute61.get("AdditionalProperties") instanceof TabularData);
             assertTrue(((TabularData) attribute61.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
@@ -343,8 +346,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             assertEquals(((TabularData) attribute61.get("AdditionalProperties")).get(new Object[]{"oid"}).get("Value"), "1.1.6.1");
 
             final CompositeData attribute71 = (CompositeData) connectorAttributes.get(new Object[]{"7.1"}).get("Attribute");
-            assertEquals(attribute71.get("Name"), "table");
-            assertEquals(attribute71.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertEquals(-1L, attribute71.get("ReadWriteTimeout"));
             assertTrue(attribute71.containsKey("AdditionalProperties"));
             assertTrue(attribute71.get("AdditionalProperties") instanceof TabularData);
             assertTrue(((TabularData) attribute71.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
@@ -352,8 +354,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             assertEquals(((TabularData) attribute71.get("AdditionalProperties")).get(new Object[]{"oid"}).get("Value"), "1.1.7.1");
 
             final CompositeData attribute80 = (CompositeData) connectorAttributes.get(new Object[]{"8.0"}).get("Attribute");
-            assertEquals(attribute80.get("Name"), "float");
-            assertEquals(attribute80.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertEquals(-1L, attribute80.get("ReadWriteTimeout"));
             assertTrue(attribute80.containsKey("AdditionalProperties"));
             assertTrue(attribute80.get("AdditionalProperties") instanceof TabularData);
             assertTrue(((TabularData) attribute80.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
@@ -361,8 +362,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             assertEquals(((TabularData) attribute80.get("AdditionalProperties")).get(new Object[]{"oid"}).get("Value"), "1.1.8.0");
 
             final CompositeData attribute90 = (CompositeData) connectorAttributes.get(new Object[]{"9.0"}).get("Attribute");
-            assertEquals(attribute90.get("Name"), "date");
-            assertEquals(attribute90.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertEquals(-1L, attribute90.get("ReadWriteTimeout"));
             assertTrue(attribute90.containsKey("AdditionalProperties"));
             assertTrue(attribute90.get("AdditionalProperties") instanceof TabularData);
             assertTrue(((TabularData) attribute90.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
@@ -371,8 +371,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             assertEquals(((TabularData) attribute90.get("AdditionalProperties")).get(new Object[]{"oid"}).get("Value"), "1.1.9.0");
 
             final CompositeData attribute100 = (CompositeData) connectorAttributes.get(new Object[]{"10.0"}).get("Attribute");
-            assertEquals(attribute100.get("Name"), "date");
-            assertEquals(attribute100.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertEquals(-1L, attribute100.get("ReadWriteTimeout"));
             assertTrue(attribute100.containsKey("AdditionalProperties"));
             assertTrue(attribute100.get("AdditionalProperties") instanceof TabularData);
             assertTrue(((TabularData) attribute100.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
@@ -381,8 +380,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             assertEquals(((TabularData) attribute100.get("AdditionalProperties")).get(new Object[]{"oid"}).get("Value"), "1.1.10.0");
 
             final CompositeData attribute110 = (CompositeData) connectorAttributes.get(new Object[]{"11.0"}).get("Attribute");
-            assertEquals(attribute110.get("Name"), "date");
-            assertEquals(attribute110.get("ReadWriteTimeout"), Long.MAX_VALUE);
+            assertEquals(-1L, attribute110.get("ReadWriteTimeout"));
             assertTrue(attribute110.containsKey("AdditionalProperties"));
             assertTrue(attribute110.get("AdditionalProperties") instanceof TabularData);
             assertTrue(((TabularData) attribute110.get("AdditionalProperties")).containsKey(new Object[]{"objectName"}));
@@ -716,85 +714,73 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
     }
 
     @Override
-    protected void fillAdapters(final Map<String, AgentConfiguration.ResourceAdapterConfiguration> adapters, final Supplier<AgentConfiguration.ResourceAdapterConfiguration> adapterFactory) {
-        final AgentConfiguration.ResourceAdapterConfiguration snmpAdapter = adapterFactory.get();
+    protected void fillAdapters(final EntityMap<? extends ResourceAdapterConfiguration> adapters) {
+        final AgentConfiguration.ResourceAdapterConfiguration snmpAdapter = adapters.getOrAdd(ADAPTER_INSTANCE_NAME);
         snmpAdapter.setAdapterName(ADAPTER_NAME);
         snmpAdapter.getParameters().put("port", SNMP_PORT);
         snmpAdapter.getParameters().put("host", SNMP_HOST);
         snmpAdapter.getParameters().put("socketTimeout", "5000");
         snmpAdapter.getParameters().put("context", "1.1");
-        adapters.put(ADAPTER_INSTANCE_NAME, snmpAdapter);
     }
 
     @Override
-    protected void fillAttributes(final Map<String, AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> attributes, final Supplier<AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> attributeFactory) {
-        AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration attribute = attributeFactory.get();
-        attribute.setAttributeName("string");
+    protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
+        AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration attribute = attributes.getOrAdd("1.0");
+        setFeatureName(attribute, "string");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.1.0");
-        attributes.put("1.0", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("boolean");
+        attribute = attributes.getOrAdd("2.0");
+        setFeatureName(attribute, "boolean");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.2.0");
-        attributes.put("2.0", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("int32");
+        attribute = attributes.getOrAdd("3.0");
+        setFeatureName(attribute, "int32");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.3.0");
-        attributes.put("3.0", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("bigint");
+        attribute = attributes.getOrAdd("4.0");
+        setFeatureName(attribute, "bigint");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.4.0");
-        attributes.put("4.0", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("array");
+        attribute = attributes.getOrAdd("5.1");
+        setFeatureName(attribute, "array");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.5.1");
-        attributes.put("5.1", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("dictionary");
+        attribute = attributes.getOrAdd("6.1");
+        setFeatureName(attribute, "dictionary");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.6.1");
-        attributes.put("6.1", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("table");
+        attribute = attributes.getOrAdd("7.1");
+        setFeatureName(attribute, "table");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.7.1");
-        attributes.put("7.1", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("float");
+        attribute = attributes.getOrAdd("8.0");
+        setFeatureName(attribute, "float");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.8.0");
-        attributes.put("8.0", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("date");
+        attribute = attributes.getOrAdd("9.0");
+        setFeatureName(attribute, "date");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("displayFormat", "yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
         attribute.getParameters().put("oid", "1.1.9.0");
-        attributes.put("9.0", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("date");
+        attribute = attributes.getOrAdd("10.0");
+        setFeatureName(attribute, "date");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("displayFormat", "rfc1903-human-readable");
         attribute.getParameters().put("oid", "1.1.10.0");
-        attributes.put("10.0", attribute);
 
-        attribute = attributeFactory.get();
-        attribute.setAttributeName("date");
+        attribute = attributes.getOrAdd("11.0");
+        setFeatureName(attribute, "date");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("displayFormat", "rfc1903");
         attribute.getParameters().put("oid", "1.1.11.0");
-        attributes.put("11.0", attribute);
     }
 }

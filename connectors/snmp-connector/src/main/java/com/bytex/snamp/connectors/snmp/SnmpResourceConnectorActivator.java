@@ -36,8 +36,8 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
             return result;
         }
         @Override
-        protected boolean addAttribute(final SnmpResourceConnector connector, final String attributeID, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
-            return connector.addAttribute(attributeID, attributeName, readWriteTimeout, options);
+        protected boolean addAttribute(final SnmpResourceConnector connector, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+            return connector.addAttribute(attributeName, readWriteTimeout, options);
         }
 
         @Override
@@ -46,8 +46,8 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
         }
 
         @Override
-        protected boolean enableNotifications(final SnmpResourceConnector connector, final String listId, final String category, final CompositeData options) {
-            return connector.enableNotifications(listId, category, options);
+        protected boolean enableNotifications(final SnmpResourceConnector connector, final String category, final CompositeData options) {
+            return connector.enableNotifications(category, options);
         }
 
         @Override
@@ -56,7 +56,7 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
         }
 
         @Override
-        protected boolean enableOperation(final SnmpResourceConnector connector, final String operationID, final String operationName, final TimeSpan timeout, final CompositeData options) {
+        protected boolean enableOperation(final SnmpResourceConnector connector, final String operationName, final TimeSpan timeout, final CompositeData options) {
             //not supported
             return false;
         }

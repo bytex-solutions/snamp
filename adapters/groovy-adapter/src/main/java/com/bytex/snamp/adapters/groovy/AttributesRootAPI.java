@@ -2,7 +2,7 @@ package com.bytex.snamp.adapters.groovy;
 
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.modeling.AttributeAccessor;
-import com.bytex.snamp.internal.EntryReader;
+import com.bytex.snamp.EntryReader;
 
 /**
  * Represents root-level DSL for working with attributes.

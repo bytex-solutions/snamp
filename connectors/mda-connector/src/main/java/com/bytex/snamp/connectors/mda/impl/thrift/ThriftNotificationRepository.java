@@ -1,5 +1,6 @@
 package com.bytex.snamp.connectors.mda.impl.thrift;
 
+import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.connectors.mda.MDANotificationRepository;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 import com.bytex.snamp.core.DistributedServices;
@@ -32,7 +33,7 @@ final class ThriftNotificationRepository extends MDANotificationRepository<Thrif
         super(resourceName,
                 FEATURE_TYPE,
                 threadPool,
-                DistributedServices.getDistributedSequenceNumberGenerator(context, "notifications-".concat(resourceName)));
+                DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName)));
         this.logger = Objects.requireNonNull(logger);
     }
 
@@ -93,7 +94,7 @@ final class ThriftNotificationRepository extends MDANotificationRepository<Thrif
 
             @Override
             protected void process(final ThriftNotificationAccessor metadata) {
-                if (category.equals(metadata.getDescriptor().getNotificationCategory())) {
+                if (category.equals(metadata.getDescriptor().getName(ArrayUtils.getFirst(metadata.getNotifTypes())))) {
                     if (!dataAvailable)
                         try {
                             dataAvailable = readNotificationData(metadata);

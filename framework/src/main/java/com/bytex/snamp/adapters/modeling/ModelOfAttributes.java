@@ -5,7 +5,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.bytex.snamp.Consumer;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
-import com.bytex.snamp.internal.EntryReader;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.ThreadSafe;
 
 import javax.management.*;

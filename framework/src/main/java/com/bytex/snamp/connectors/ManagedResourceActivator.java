@@ -25,6 +25,7 @@ import java.util.logging.Logger;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
 import static com.bytex.snamp.connectors.ManagedResourceConnector.CONNECTOR_NAME_MANIFEST_HEADER;
+import static com.bytex.snamp.ArrayUtils.emptyArray;
 
 /**
  * Represents a base class for management connector bundle.
@@ -115,7 +116,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          */
         <F extends FeatureConfiguration> void updateConnector(final TConnector connector,
                                                               final Class<F> featureType,
-                                                              final Map<String, F> features) throws Exception;
+                                                              final Map<String, ? extends F> features) throws Exception;
 
         /**
          * Releases all resources associated with the resource connector.
@@ -218,14 +219,12 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          *     If attribute exists in the managed resource connector then
          *     it should re-register an attribute.
          * @param connector The connector to modify.
-         * @param attributeID The attribute identifier.
          * @param attributeName The name of the attribute in the managed resource.
          * @param readWriteTimeout The attribute read/write timeout.
          * @param options The attribute configuration options.
          * @return {@literal true}, if attribute registered successfully; otherwise, {@literal false}.
          */
         protected abstract boolean addAttribute(final TConnector connector,
-                                             final String attributeID,
                                              final String attributeName,
                                              final TimeSpan readWriteTimeout,
                                              final CompositeData options);
@@ -238,17 +237,28 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         protected abstract void removeAttributesExcept(final TConnector connector,
                                                        final Set<String> attributes);
 
+        private static boolean setFeatureNameIfNecessary(final FeatureConfiguration feature,
+                                                         final String name){
+            if(feature.getParameters().containsKey(FeatureConfiguration.NAME_KEY))
+                return false;
+            else {
+                feature.getParameters().put(FeatureConfiguration.NAME_KEY, name);
+                return true;
+            }
+        }
+
         private void updateAttributes(final TConnector connector,
-                                      final Map<String, AttributeConfiguration> attributes){
+                                      final Map<String, ? extends AttributeConfiguration> attributes){
             final Set<String> addedAttributes = Sets.newHashSetWithExpectedSize(attributes.size());
-            for(final Map.Entry<String, AttributeConfiguration> attr: attributes.entrySet()) {
-                final String attributeID = attr.getKey();
+            for(final Map.Entry<String, ? extends AttributeConfiguration> attr: attributes.entrySet()) {
+                final String attributeName = attr.getKey();
                 final AttributeConfiguration config = attr.getValue();
-                if (addAttribute(connector, attributeID,
-                        config.getAttributeName(),
+                setFeatureNameIfNecessary(config, attributeName);
+                if (addAttribute(connector,
+                        attributeName,
                         config.getReadWriteTimeout(),
                         new ConfigParameters(config)))
-                    addedAttributes.add(attributeID);
+                    addedAttributes.add(attributeName);
             }
             removeAttributesExcept(connector, addedAttributes);
         }
@@ -261,13 +271,11 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          *     If notification is enabled in the managed resource connector then
          *     it should re-enable the notification (disable and then enable again).
          * @param connector The managed resource connector.
-         * @param listId The notification subscription identifier.
          * @param category The notification category.
          * @param options The notification configuration options.
          * @return {@literal true}, if the specified notification is enabled; otherwise, {@literal false}.
          */
         protected abstract boolean enableNotifications(final TConnector connector,
-                                                    final String listId,
                                                     final String category,
                                                     final CompositeData options);
 
@@ -280,22 +288,21 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                                            final Set<String> events);
 
         private void updateEvents(final TConnector connector,
-                                  final Map<String, EventConfiguration> events){
+                                  final Map<String, ? extends EventConfiguration> events){
             final Set<String> enabledEvents = Sets.newHashSetWithExpectedSize(events.size());
-            for(final Map.Entry<String, EventConfiguration> event: events.entrySet()){
-                final String listID = event.getKey();
+            for(final Map.Entry<String, ? extends EventConfiguration> event: events.entrySet()){
+                final String category = event.getKey();
                 final EventConfiguration config = event.getValue();
+                setFeatureNameIfNecessary(config, category);
                 if(enableNotifications(connector,
-                        listID,
-                        config.getCategory(),
+                        category,
                         new ConfigParameters(config)))
-                    enabledEvents.add(listID);
+                    enabledEvents.add(category);
             }
             disableNotificationsExcept(connector, enabledEvents);
         }
 
         protected abstract boolean enableOperation(final TConnector connector,
-                                                final String operationID,
                                                 final String operationName,
                                                 final TimeSpan invocationTimeout,
                                                 final CompositeData options);
@@ -309,13 +316,17 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                                         final Set<String> operations);
 
         private void updateOperations(final TConnector connector,
-                                      final Map<String, OperationConfiguration> operations){
+                                      final Map<String, ? extends OperationConfiguration> operations){
             final Set<String> enabledOperations = Sets.newHashSetWithExpectedSize(operations.size());
-            for(final Map.Entry<String, OperationConfiguration> op: operations.entrySet()){
-                final String operationID = op.getKey();
+            for(final Map.Entry<String, ? extends OperationConfiguration> op: operations.entrySet()){
+                final String operationName = op.getKey();
                 final OperationConfiguration config = op.getValue();
-                if(enableOperation(connector, operationID, config.getOperationName(), config.getInvocationTimeout(), new ConfigParameters(config)))
-                    enabledOperations.add(operationID);
+                setFeatureNameIfNecessary(config, operationName);
+                if(enableOperation(connector,
+                        operationName,
+                        config.getInvocationTimeout(),
+                        new ConfigParameters(config)))
+                    enabledOperations.add(operationName);
             }
             disableOperationsExcept(connector, enabledOperations);
         }
@@ -330,13 +341,13 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          */
         @SuppressWarnings("unchecked")
         @Override
-        public final <F extends FeatureConfiguration> void updateConnector(final TConnector connector, final Class<F> featureType, final Map<String, F> features) throws Exception {
+        public final <F extends FeatureConfiguration> void updateConnector(final TConnector connector, final Class<F> featureType, final Map<String, ? extends F> features) throws Exception {
             if(Objects.equals(featureType, AttributeConfiguration.class))
-                updateAttributes(connector, (Map<String, AttributeConfiguration>)features);
+                updateAttributes(connector, (Map<String, ? extends AttributeConfiguration>)features);
             else if(Objects.equals(featureType, EventConfiguration.class))
-                updateEvents(connector, (Map<String, EventConfiguration>)features);
+                updateEvents(connector, (Map<String, ? extends EventConfiguration>)features);
             else if(Objects.equals(featureType, OperationConfiguration.class))
-                updateOperations(connector, (Map<String, OperationConfiguration>)features);
+                updateOperations(connector, (Map<String, ? extends OperationConfiguration>)features);
         }
     }
 
@@ -781,7 +792,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     protected ManagedResourceActivator(final ManagedResourceConnectorLifecycleController<TConnector> controller,
                                        final SupportConnectorServiceManager<?, ?>... optionalServices) {
         this(controller,
-                EMPTY_REQUIRED_SERVICES,
+                emptyArray(RequiredService[].class),
                 optionalServices);
     }
 

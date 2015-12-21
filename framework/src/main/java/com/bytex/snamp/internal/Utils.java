@@ -4,7 +4,6 @@ import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.Internal;
 import com.google.common.base.Joiner;
-import com.google.common.base.StandardSystemProperty;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import org.osgi.framework.Bundle;
@@ -12,14 +11,13 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 
-import java.beans.BeanInfo;
-import java.beans.IntrospectionException;
-import java.beans.PropertyDescriptor;
-import java.lang.annotation.Annotation;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandleProxies;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Dictionary;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.Callable;
 
@@ -36,22 +34,6 @@ import static org.osgi.framework.Constants.OBJECTCLASS;
  */
 @Internal
 public final class Utils {
-
-    /**
-     * Determines whether the underlying OS is Linux.
-     */
-    public static final boolean IS_OS_LINUX = getOS().startsWith("LINUX") || getOS().startsWith("Linux");
-
-    /**
-     * Determines whether the underlying OS is MacOS X.
-     */
-    public static final boolean IS_OS_MAC_OSX = getOS().startsWith("Mac OS X");
-
-    /**
-     * Determines whether the underlying OS is Windows.
-     */
-    public static final boolean IS_OS_WINDOWS = getOS().startsWith("Windows");
-
     private static final Supplier NULL_SUPPLIER = Suppliers.ofInstance(null);
 
     private Utils(){
@@ -61,10 +43,6 @@ public final class Utils {
     @SuppressWarnings("unchecked")
     public static <T> Supplier<T> nullSupplier(){
         return NULL_SUPPLIER;
-    }
-
-    private static String getOS(){
-        return StandardSystemProperty.OS_NAME.value();
     }
 
     public static String getFullyQualifiedResourceName(final Class<?> locator, String name){
@@ -80,20 +58,9 @@ public final class Utils {
         return name;
     }
 
-    /**
-     * Provides safe typecast.
-     * @param obj An object to cast.
-     * @param resultType Type of the cast operation. Cannot be {@literal null}.
-     * @param <T> Type of the cast operation.
-     * @return Cast result; or {@literal null}, if the specified object is not instance
-     * of the specified type.
-     */
-    public static <T> T safeCast(final Object obj, final Class<T> resultType) {
-        try {
-            return resultType.cast(obj);
-        } catch (final ClassCastException e) {
-            return null;
-        }
+    public static BundleContext getBundleContext(final Class<?> classFromBundle){
+        final Bundle bnd = FrameworkUtil.getBundle(classFromBundle);
+        return bnd != null ? bnd.getBundleContext() : null;
     }
 
     /**
@@ -103,9 +70,7 @@ public final class Utils {
      * if bundle context cannot be resolved.
      */
     public static BundleContext getBundleContextOfObject(final Object obj) {
-        if (obj == null) return null;
-        final Bundle bundle = FrameworkUtil.getBundle(obj.getClass());
-        return bundle != null ? bundle.getBundleContext() : null;
+        return obj != null ? getBundleContext(obj.getClass()) : null;
     }
 
     private static boolean isInstanceOf(final ServiceReference<?> serviceRef, final String serviceType) {
@@ -239,28 +204,6 @@ public final class Utils {
         return getProperty(dict, propertyKey, propertyType, Suppliers.ofInstance(defaultValue));
     }
 
-    /**
-     * Gets value of the Java Bean property.
-     * @param obj An object that contains a property.
-     * @param descriptor Descriptor of the object that contains a property.
-     * @param propertyName The name of the property to get.
-     * @return The value of the property.
-     * @throws IntrospectionException Unable to get property value.
-     */
-    public static Object getProperty(final Object obj,
-                                     final BeanInfo descriptor,
-                                     final String propertyName) throws IntrospectionException, ReflectiveOperationException{
-        if(obj == null) throw new IllegalArgumentException("obj is null.");
-        else if(descriptor == null) throw new IllegalArgumentException("descriptor is null.");
-        else for(final PropertyDescriptor pd: descriptor.getPropertyDescriptors())
-                if(Objects.equals(propertyName, pd.getName())){
-                    final Method getter = pd.getReadMethod();
-                    if(getter == null) throw new IntrospectionException(String.format("Property %s has no getter", propertyName));
-                    else return getter.invoke(obj);
-                }
-        throw new IntrospectionException(String.format("Property %s not found", propertyName));
-    }
-
     public static <V, E extends Exception> V withContextClassLoader(final ClassLoader loader, final ExceptionalCallable<V, E> action) throws E{
         final Thread currentThread = Thread.currentThread();
         final ClassLoader previous = currentThread.getContextClassLoader();
@@ -271,13 +214,6 @@ public final class Utils {
         finally {
             currentThread.setContextClassLoader(previous);
         }
-    }
-
-    public static <K, V> boolean mapsAreEqual(final Map<K, V> map1,
-                                              final Map<K, V> map2){
-        if(map1 == null) return map2 == null;
-        else
-            return map2 != null && map1.size() == map2.size() && map1.entrySet().containsAll(map2.entrySet());
     }
 
     private static String getStackTrace(StackTraceElement[] stackTrace) {
@@ -326,15 +262,27 @@ public final class Utils {
         return props;
     }
 
-    public static <A extends Annotation> A getParameterAnnotation(final Method method,
-                                                                  final int parameterIndex,
-                                                                  final Class<A> annotationType) {
-        final Annotation[][] annotations = method.getParameterAnnotations();
-        if(annotations.length >= parameterIndex)
-            return null;
-        for(final Annotation candidate: annotations[parameterIndex])
-            if(annotationType.isInstance(candidate))
-                return annotationType.cast(candidate);
-        return null;
+    private static boolean isPublicAbstract(final int modifiers){
+        return Modifier.isPublic(modifiers) && Modifier.isAbstract(modifiers);
+    }
+
+    public static <I, O> O changeFunctionalInterfaceType(final I fi,
+                                                         final Class<I> inputInterface,
+                                                         final Class<O> outputInterface) {
+        if (outputInterface.isInstance(fi))
+            return outputInterface.cast(fi);
+        else if (MethodHandleProxies.isWrapperInstance(fi))
+            return MethodHandleProxies.asInterfaceInstance(outputInterface, MethodHandleProxies.wrapperInstanceTarget(fi));
+        else for (final Method candidate : inputInterface.getDeclaredMethods())
+                if (isPublicAbstract(candidate.getModifiers())) {
+                    final MethodHandle handle;
+                    try {
+                        handle = MethodHandles.publicLookup().unreflect(candidate);
+                    } catch (final IllegalAccessException e) {
+                        throw new IllegalArgumentException("Invalid interface method " + candidate);
+                    }
+                    return MethodHandleProxies.asInterfaceInstance(outputInterface, handle.bindTo(fi));
+                }
+        throw new IllegalArgumentException("Incorrect interface " + inputInterface);
     }
 }

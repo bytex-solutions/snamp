@@ -119,9 +119,9 @@ public final class ManagedResourceScriptEngine extends GroovyScriptEngine implem
     }
 
     @Override
-    public AttributeAccessor loadAttribute(final AttributeDescriptor descriptor) throws ResourceException, ScriptException {
+    public AttributeAccessor loadAttribute(final String attributeName, final AttributeDescriptor descriptor) throws ResourceException, ScriptException {
         final Map<String, ?> environment = DescriptorUtils.toMap(descriptor);
-        final String scriptFile = descriptor.getAttributeName() + GROOVY_FILE_EXT;
+        final String scriptFile = descriptor.getName(attributeName).concat(GROOVY_FILE_EXT);
         return loadAttribute(scriptFile, environment);
     }
 
@@ -132,10 +132,11 @@ public final class ManagedResourceScriptEngine extends GroovyScriptEngine implem
     }
 
     @Override
-    public NotificationEmitter loadEvent(final NotificationDescriptor descriptor,
+    public NotificationEmitter loadEvent(final String notifType,
+                                         final NotificationDescriptor descriptor,
                                          final NotificationEmitter realEmitter) throws ResourceException, ScriptException {
         final Map<String, ?> environment = DescriptorUtils.toMap(descriptor);
-        final String scriptFile = descriptor.getNotificationCategory() + GROOVY_FILE_EXT;
+        final String scriptFile = descriptor.getName(notifType).concat(GROOVY_FILE_EXT);
         return loadEvent(scriptFile, realEmitter, environment);
     }
 

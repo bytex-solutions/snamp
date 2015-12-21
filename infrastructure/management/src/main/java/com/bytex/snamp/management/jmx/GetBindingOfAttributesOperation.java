@@ -1,13 +1,13 @@
 package com.bytex.snamp.management.jmx;
 
-import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.TabularDataBuilderRowFill;
 import com.bytex.snamp.jmx.TabularTypeBuilder;
 
 import javax.management.MBeanAttributeInfo;
-import javax.management.openmbean.*;
-
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.SimpleType;
+import javax.management.openmbean.TabularType;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 
@@ -21,7 +21,6 @@ import static com.bytex.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
 final class GetBindingOfAttributesOperation extends AbstractBindingInfoOperation<MBeanAttributeInfo> {
     private static final String NAME = "getBindingOfAttributes";
 
-    private static final String USER_DEFINED_NAME_COLUMN = "userDefinedName";
     private static final String NAME_COLUMN = "name";
     private static final String MAPPED_TYPE_COLUMN = "mappedType";
 
@@ -32,8 +31,7 @@ final class GetBindingOfAttributesOperation extends AbstractBindingInfoOperation
                     .setTypeName("BindingOfAttributes", true)
                     .setDescription("A set of exposed attributes", true)
                     .addColumn(RESOURCE_NAME_COLUMN, "The name of the connected resource", SimpleType.STRING, true)
-                    .addColumn(USER_DEFINED_NAME_COLUMN, "The name of the attribute specified by administrator", SimpleType.STRING, true)
-                    .addColumn(NAME_COLUMN, "The name of the attribute declared by the connected resource", SimpleType.STRING, false)
+                    .addColumn(NAME_COLUMN, "The name of the attribute declared by the connected resource", SimpleType.STRING, true)
                     .addColumn(MAPPED_TYPE_COLUMN, "Adapter-specific type of the attribute", SimpleType.STRING, false)
                     .addColumn(DETAILS_COLUMN, "Binding details", DETAILS_TYPE, false)
                     .build();
@@ -49,8 +47,7 @@ final class GetBindingOfAttributesOperation extends AbstractBindingInfoOperation
                            final FeatureBindingInfo<MBeanAttributeInfo> bindingInfo) throws OpenDataException {
         final String mappedType = Objects.toString(bindingInfo.getProperty(FeatureBindingInfo.MAPPED_TYPE), "");
         row
-                .cell(USER_DEFINED_NAME_COLUMN, bindingInfo.getMetadata().getName())
-                .cell(NAME_COLUMN, AttributeDescriptor.getAttributeName(bindingInfo.getMetadata()))
+                .cell(NAME_COLUMN, bindingInfo.getMetadata().getName())
                 .cell(MAPPED_TYPE_COLUMN, mappedType);
     }
 }

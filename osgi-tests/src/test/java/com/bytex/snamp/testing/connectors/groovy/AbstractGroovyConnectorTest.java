@@ -1,15 +1,16 @@
 package com.bytex.snamp.testing.connectors.groovy;
 
-import com.google.common.base.Supplier;
-import com.google.common.collect.ImmutableMap;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connectors.AbstractResourceConnectorTest;
+import com.google.common.collect.ImmutableMap;
 
 import java.io.File;
 import java.util.Map;
+
+import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
 
 /**
  * @author Roman Sakno
@@ -39,33 +40,20 @@ public abstract class AbstractGroovyConnectorTest extends AbstractResourceConnec
     }
 
     @Override
-    protected void fillAttributes(final Map<String, AttributeConfiguration> attributes, final Supplier<AttributeConfiguration> attributeFactory) {
-        AttributeConfiguration attr = attributeFactory.get();
-        attr.setAttributeName("DummyAttribute");
-        attr.getParameters().put("configParam", "value");
-        attributes.put("dummy", attr);
+    protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
+        attributes.getOrAdd("DummyAttribute").getParameters().put("configParam", "value");
 
-        attr = attributeFactory.get();
-        attr.setAttributeName("JsonAttribute");
-        attributes.put("json", attr);
+        attributes.getOrAdd("JsonAttribute");
 
-        attr = attributeFactory.get();
-        attr.setAttributeName("Yahoo");
-        attributes.put("finance", attr);
+        attributes.getOrAdd("Yahoo");
 
-        attr = attributeFactory.get();
-        attr.setAttributeName("DictionaryAttribute");
-        attributes.put("dict", attr);
+        attributes.getOrAdd("DictionaryAttribute");
 
-        attr = attributeFactory.get();
-        attr.setAttributeName("TableAttribute");
-        attributes.put("table", attr);
+        attributes.getOrAdd("TableAttribute");
     }
 
     @Override
-    protected void fillEvents(final Map<String, EventConfiguration> events, final Supplier<EventConfiguration> eventFactory) {
-        EventConfiguration ev = eventFactory.get();
-        ev.setCategory("Event");
-        events.put("ev", ev);
+    protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
+        events.getOrAdd("Event");
     }
 }

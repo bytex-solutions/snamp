@@ -26,11 +26,11 @@ final class SuggestConnectorAttributeParameterValuesOperation extends AbstractSn
 
     @Override
     public String[] invoke(final Map<String, ?> arguments) throws Exception {
-        final String connectorName = getArgument(CONNECTOR_NAME_PARAM.getName(), String.class, arguments);
-        final String parameterName = getArgument(PARAM_NAME_PARAM.getName(), String.class, arguments);
-        final String locale = getArgument(LOCALE_PARAM.getName(), String.class, arguments);
+        final String connectorName = CONNECTOR_NAME_PARAM.getArgument(arguments);
+        final String parameterName = PARAM_NAME_PARAM.getArgument(arguments);
+        final String locale = LOCALE_PARAM.getArgument(arguments);
         final Map<String, String> tabularData =
-                MonitoringUtils.transformTabularDataToMap(getArgument(CONNECTION_STRING_PARAM.getName(), TabularData.class, arguments));
+                MonitoringUtils.transformTabularDataToMap(CONNECTION_STRING_PARAM.getArgument(arguments));
 
         final SnampComponentDescriptor connector = snampManager.getResourceConnector(connectorName);
         if (connector == null) throw new IllegalArgumentException(String.format("Connector %s doesn't exist", connectorName));

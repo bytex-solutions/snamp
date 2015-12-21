@@ -2,6 +2,7 @@ package com.bytex.snamp.management.jmx;
 
 import com.bytex.snamp.connectors.ManagedResourceActivator;
 import com.bytex.snamp.jmx.OpenMBean;
+import org.osgi.framework.BundleException;
 
 import javax.management.MBeanOperationInfo;
 import javax.management.openmbean.OpenDataException;
@@ -29,9 +30,8 @@ final class StartConnectorOperation extends OpenMBean.OpenOperation<Void, Simple
     }
 
     @Override
-    public Void invoke(Map<String, ?> arguments) throws Exception {
-        final String connectorName = getArgument(CONNECTOR_NAME_PARAM.getName(), String.class, arguments);
-        ManagedResourceActivator.startResourceConnector(getBundleContextOfObject(this), connectorName);
+    public Void invoke(Map<String, ?> arguments) throws BundleException {
+        ManagedResourceActivator.startResourceConnector(getBundleContextOfObject(this), CONNECTOR_NAME_PARAM.getArgument(arguments));
         return null;
     }
 }
