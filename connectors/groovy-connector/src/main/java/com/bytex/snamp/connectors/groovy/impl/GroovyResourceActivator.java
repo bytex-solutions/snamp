@@ -45,17 +45,17 @@ public final class GroovyResourceActivator extends ManagedResourceActivator<Groo
         }
 
         @Override
-        protected void removeAttributesExcept(final GroovyResourceConnector connector, final Set<String> attributes) {
+        protected void retainAttributes(final GroovyResourceConnector connector, final Set<String> attributes) {
             connector.removeAttributesExcept(attributes);
         }
 
         @Override
-        protected void disableNotificationsExcept(final GroovyResourceConnector connector, final Set<String> events) {
+        protected void retainNotifications(final GroovyResourceConnector connector, final Set<String> events) {
             connector.disableNotificationsExcept(events);
         }
 
         @Override
-        protected void disableOperationsExcept(final GroovyResourceConnector connector, final Set<String> operations) {
+        protected void retainOperations(final GroovyResourceConnector connector, final Set<String> operations) {
             //not supported
         }
 

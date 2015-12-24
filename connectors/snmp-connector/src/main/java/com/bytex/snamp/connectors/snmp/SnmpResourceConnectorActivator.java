@@ -41,7 +41,7 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
         }
 
         @Override
-        protected void removeAttributesExcept(final SnmpResourceConnector connector, final Set<String> attributes) {
+        protected void retainAttributes(final SnmpResourceConnector connector, final Set<String> attributes) {
             connector.removeAttributesExcept(attributes);
         }
 
@@ -51,7 +51,7 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
         }
 
         @Override
-        protected void disableNotificationsExcept(final SnmpResourceConnector connector, final Set<String> events) {
+        protected void retainNotifications(final SnmpResourceConnector connector, final Set<String> events) {
             connector.disableNotificationsExcept(events);
         }
 
@@ -62,7 +62,7 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
         }
 
         @Override
-        protected void disableOperationsExcept(final SnmpResourceConnector connector, final Set<String> operations) {
+        protected void retainOperations(final SnmpResourceConnector connector, final Set<String> operations) {
             //not supported
         }
     }

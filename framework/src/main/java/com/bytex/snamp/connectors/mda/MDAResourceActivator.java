@@ -29,7 +29,7 @@ public abstract class MDAResourceActivator extends ManagedResourceActivator<Data
         }
 
         @Override
-        protected final void removeAttributesExcept(final DataAcceptor connector, final Set<String> attributes) {
+        protected final void retainAttributes(final DataAcceptor connector, final Set<String> attributes) {
             connector.removeAttributesExcept(attributes);
         }
 
@@ -39,7 +39,7 @@ public abstract class MDAResourceActivator extends ManagedResourceActivator<Data
         }
 
         @Override
-        protected final void disableNotificationsExcept(final DataAcceptor connector, final Set<String> events) {
+        protected final void retainNotifications(final DataAcceptor connector, final Set<String> events) {
             connector.disableNotificationsExcept(events);
         }
 
@@ -49,7 +49,7 @@ public abstract class MDAResourceActivator extends ManagedResourceActivator<Data
         }
 
         @Override
-        protected final void disableOperationsExcept(final DataAcceptor connector, final Set<String> operations) {
+        protected final void retainOperations(final DataAcceptor connector, final Set<String> operations) {
 
         }
 
