@@ -34,7 +34,7 @@ public final class RShellResourceConnectorActivator extends ManagedResourceActiv
             return connector.addAttribute(attributeName, readWriteTimeout, options);
         }
         @Override
-        protected void removeAttributesExcept(final RShellResourceConnector connector, final Set<String> attributes) {
+        protected void retainAttributes(final RShellResourceConnector connector, final Set<String> attributes) {
             connector.removeAttributesExcept(attributes);
         }
 
@@ -46,7 +46,7 @@ public final class RShellResourceConnectorActivator extends ManagedResourceActiv
         }
 
         @Override
-        protected void disableNotificationsExcept(final RShellResourceConnector connector, final Set<String> events) {
+        protected void retainNotifications(final RShellResourceConnector connector, final Set<String> events) {
             //not supported
         }
 
@@ -57,7 +57,7 @@ public final class RShellResourceConnectorActivator extends ManagedResourceActiv
         }
 
         @Override
-        protected void disableOperationsExcept(final RShellResourceConnector connector, final Set<String> operations) {
+        protected void retainOperations(final RShellResourceConnector connector, final Set<String> operations) {
             //not supported
         }
     }

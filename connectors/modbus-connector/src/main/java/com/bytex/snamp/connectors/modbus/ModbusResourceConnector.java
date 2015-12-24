@@ -116,7 +116,7 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
     }
 
     void removeAttributesExcept(final Set<String> attributes) {
-        this.attributes.removeAllExcept(attributes);
+        this.attributes.retainAll(attributes);
     }
 
     void connect(final int socketTimeout, final int retryCount) throws IOException {

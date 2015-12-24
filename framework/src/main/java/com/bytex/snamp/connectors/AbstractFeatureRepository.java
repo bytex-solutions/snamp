@@ -193,7 +193,7 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
      * @param featureIDs A set of features which cannot be deleted.
      * @return Collection of removes features.
      */
-    public Collection<F> removeAllExcept(final Set<String> featureIDs) {
+    public Collection<F> retainAll(final Set<String> featureIDs) {
         final Set<String> featuresToRemove = Sets.difference(getIDs(), featureIDs);
         final List<F> result = Lists.newArrayListWithCapacity(featuresToRemove.size());
         for (final String removingFeatureID : featuresToRemove) {

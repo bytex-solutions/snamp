@@ -359,11 +359,11 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
     }
 
     void removeAttributesExcept(final Set<String> attributes) {
-        this.attributes.removeAllExcept(attributes);
+        this.attributes.retainAll(attributes);
     }
 
     void disableNotificationsExcept(final Set<String> events) {
-        this.events.removeAllExcept(events);
+        this.events.retainAll(events);
     }
 
     /**

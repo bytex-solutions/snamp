@@ -95,8 +95,8 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
 
     @Override
     public final boolean contains(final Object listener) {
-        if (listeners == null) return false;
         final WeakEventListener<L>[] snapshot = listeners;
+        if(snapshot == null) return false;
         for(final WeakEventListener<L> listenerRef: snapshot)
             if(Objects.equals(listener, listenerRef.get()))
                 return true;

@@ -26,7 +26,7 @@ public final class ModbusResourceConnectorActivator extends ManagedResourceActiv
         }
 
         @Override
-        protected void removeAttributesExcept(final ModbusResourceConnector connector, final Set<String> attributes) {
+        protected void retainAttributes(final ModbusResourceConnector connector, final Set<String> attributes) {
             connector.removeAttributesExcept(attributes);
         }
 
@@ -37,7 +37,7 @@ public final class ModbusResourceConnectorActivator extends ManagedResourceActiv
         }
 
         @Override
-        protected void disableNotificationsExcept(final ModbusResourceConnector connector, final Set<String> events) {
+        protected void retainNotifications(final ModbusResourceConnector connector, final Set<String> events) {
             //not supported
         }
 
@@ -48,7 +48,7 @@ public final class ModbusResourceConnectorActivator extends ManagedResourceActiv
         }
 
         @Override
-        protected void disableOperationsExcept(final ModbusResourceConnector connector, final Set<String> operations) {
+        protected void retainOperations(final ModbusResourceConnector connector, final Set<String> operations) {
             //not supported
         }
 
