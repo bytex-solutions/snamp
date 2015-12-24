@@ -348,7 +348,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
     }
 
     void removeAttributesExcept(final Set<String> attributes) {
-        this.attributes.removeAllExcept(attributes);
+        this.attributes.retainAll(attributes);
     }
 
     /**

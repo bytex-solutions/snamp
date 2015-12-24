@@ -980,7 +980,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
 
     public final Collection<? extends MBeanOperationInfo> disableOperationsExcept(final Set<String> operations){
         verifyClosedState();
-        return this.operations.removeAllExcept(operations);
+        return this.operations.retainAll(operations);
     }
 
     /**
@@ -993,7 +993,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
 
     public final Collection<? extends MBeanAttributeInfo> removeAttributesExcept(final Set<String> attributes){
         verifyClosedState();
-        return this.attributes.removeAllExcept(attributes);
+        return this.attributes.retainAll(attributes);
     }
 
     /**
@@ -1006,7 +1006,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
 
     public final Collection<? extends MBeanNotificationInfo> disableNotificationsExcept(final Set<String> events){
         verifyClosedState();
-        return this.notifications.removeAllExcept(events);
+        return this.notifications.retainAll(events);
     }
 
     private boolean emitNotificationImpl(final ManagementNotificationType<?> category,

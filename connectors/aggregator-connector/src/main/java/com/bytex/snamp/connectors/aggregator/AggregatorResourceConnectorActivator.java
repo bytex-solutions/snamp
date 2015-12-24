@@ -40,20 +40,20 @@ public final class AggregatorResourceConnectorActivator extends ManagedResourceA
         }
 
         @Override
-        protected void removeAttributesExcept(final AggregatorResourceConnector connector,
-                                              final Set<String> attributes) {
+        protected void retainAttributes(final AggregatorResourceConnector connector,
+                                        final Set<String> attributes) {
             connector.removeAttributesExcept(attributes);
         }
 
         @Override
-        protected void disableNotificationsExcept(final AggregatorResourceConnector connector,
-                                                  final Set<String> events) {
+        protected void retainNotifications(final AggregatorResourceConnector connector,
+                                           final Set<String> events) {
             connector.disableNotificationsExcept(events);
         }
 
         @Override
-        protected void disableOperationsExcept(final AggregatorResourceConnector connector,
-                                               final Set<String> operations) {
+        protected void retainOperations(final AggregatorResourceConnector connector,
+                                        final Set<String> operations) {
             //not supported
         }
 

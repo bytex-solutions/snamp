@@ -160,17 +160,17 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
         }
 
         @Override
-        protected void removeAttributesExcept(final JmxConnector connector, final Set<String> attributes) {
+        protected void retainAttributes(final JmxConnector connector, final Set<String> attributes) {
             connector.removeAttributesExcept(attributes);
         }
 
         @Override
-        protected void disableNotificationsExcept(final JmxConnector connector, final Set<String> events) {
+        protected void retainNotifications(final JmxConnector connector, final Set<String> events) {
             connector.disableNotificationsExcept(events);
         }
 
         @Override
-        protected void disableOperationsExcept(final JmxConnector connector, final Set<String> operations) {
+        protected void retainOperations(final JmxConnector connector, final Set<String> operations) {
             connector.disableOperationsExcept(operations);
         }
 

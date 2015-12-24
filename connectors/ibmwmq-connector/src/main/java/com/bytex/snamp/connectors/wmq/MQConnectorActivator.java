@@ -49,17 +49,17 @@ public final class MQConnectorActivator extends ManagedResourceActivator<MQConne
         }
 
         @Override
-        protected void removeAttributesExcept(final MQConnector connector, final Set<String> attributes) {
+        protected void retainAttributes(final MQConnector connector, final Set<String> attributes) {
             connector.removeAttributesExcept(attributes);
         }
 
         @Override
-        protected void disableNotificationsExcept(final MQConnector connector, final Set<String> events) {
+        protected void retainNotifications(final MQConnector connector, final Set<String> events) {
             //not supported
         }
 
         @Override
-        protected void disableOperationsExcept(final MQConnector connector, final Set<String> operations) {
+        protected void retainOperations(final MQConnector connector, final Set<String> operations) {
             //not supported
         }
 

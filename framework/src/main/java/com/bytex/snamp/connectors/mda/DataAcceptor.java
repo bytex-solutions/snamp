@@ -58,7 +58,7 @@ public abstract class DataAcceptor extends AbstractManagedResourceConnector {
     }
 
     final void removeAttributesExcept(final Set<String> attributes){
-        getAttributes().removeAllExcept(attributes);
+        getAttributes().retainAll(attributes);
     }
 
     final boolean enableNotifications(final String category, final CompositeData options){
@@ -66,7 +66,7 @@ public abstract class DataAcceptor extends AbstractManagedResourceConnector {
     }
 
     final void disableNotificationsExcept(final Set<String> notifications){
-        getNotifications().removeAllExcept(notifications);
+        getNotifications().retainAll(notifications);
     }
 
     final void beginListening(final TimeSpan expirationTime, final Object... dependencies) throws Exception {

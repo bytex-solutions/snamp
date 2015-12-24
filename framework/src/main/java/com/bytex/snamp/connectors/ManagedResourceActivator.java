@@ -234,8 +234,8 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          * @param connector The connector to modify.
          * @param attributes A set of attributes which should not be deleted.
          */
-        protected abstract void removeAttributesExcept(final TConnector connector,
-                                                       final Set<String> attributes);
+        protected abstract void retainAttributes(final TConnector connector,
+                                                 final Set<String> attributes);
 
         private static boolean setFeatureNameIfNecessary(final FeatureConfiguration feature,
                                                          final String name){
@@ -260,7 +260,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                         new ConfigParameters(config)))
                     addedAttributes.add(attributeName);
             }
-            removeAttributesExcept(connector, addedAttributes);
+            retainAttributes(connector, addedAttributes);
         }
 
         /**
@@ -284,8 +284,8 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          * @param connector The connector to modify.
          * @param events A set of subscription lists which should not be disabled.
          */
-        protected abstract void disableNotificationsExcept(final TConnector connector,
-                                                           final Set<String> events);
+        protected abstract void retainNotifications(final TConnector connector,
+                                                    final Set<String> events);
 
         private void updateEvents(final TConnector connector,
                                   final Map<String, ? extends EventConfiguration> events){
@@ -299,7 +299,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                         new ConfigParameters(config)))
                     enabledEvents.add(category);
             }
-            disableNotificationsExcept(connector, enabledEvents);
+            retainNotifications(connector, enabledEvents);
         }
 
         protected abstract boolean enableOperation(final TConnector connector,
@@ -312,8 +312,8 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          * @param connector The connector to modify.
          * @param operations A set of operations which should not be disabled.
          */
-        protected abstract void disableOperationsExcept(final TConnector connector,
-                                                        final Set<String> operations);
+        protected abstract void retainOperations(final TConnector connector,
+                                                 final Set<String> operations);
 
         private void updateOperations(final TConnector connector,
                                       final Map<String, ? extends OperationConfiguration> operations){
@@ -328,7 +328,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                         new ConfigParameters(config)))
                     enabledOperations.add(operationName);
             }
-            disableOperationsExcept(connector, enabledOperations);
+            retainOperations(connector, enabledOperations);
         }
 
         /**
