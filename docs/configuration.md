@@ -152,7 +152,7 @@ snamp:adapter | Display configuration of the specified adapter instance
 snamp:configure-adapter | Configure new or existing instance of adapter
 snamp:configure-attribute | Configure new or existing attribute assigned to the managed resource
 snamp:configure-event | Configure new or existing event (notification) assigned to the managed resource
-snamp:config-operation | Configure new or existing operation (notification) assigned to the managed resource
+snamp:configure-operation | Configure new or existing operation (notification) assigned to the managed resource
 snamp:configure-resource | Configure new or existing managed resource using the specified connector and connection string
 snamp:adapter-instances | List of configured adapter instances
 snamp:resources | List of configured managed resources
