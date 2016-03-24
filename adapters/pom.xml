@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.bytex.snamp</groupId>
     <artifactId>snamp</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
   </parent>
   <artifactId>adapters</artifactId>
   <packaging>pom</packaging>
@@ -25,13 +25,6 @@
           </plugin>
       </plugins>
   </build>
-  <dependencies>
-    <dependency>
-      <groupId>com.bytex.snamp</groupId>
-      <artifactId>framework</artifactId>
-      <version>1.0.0</version>
-    </dependency>
-  </dependencies>
   <modules>
       <module>snmp-adapter</module>
       <module>jmx-adapter</module>

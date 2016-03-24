@@ -5,7 +5,7 @@
     <parent>
         <artifactId>snamp</artifactId>
         <groupId>com.bytex.snamp</groupId>
-        <version>1.0.0</version>
+        <version>1.1.0</version>
         <relativePath>../../../pom.xml</relativePath>
     </parent>
     <packaging>bundle</packaging>
@@ -76,11 +76,4 @@
             <version>${osgi.version}</version>
         </dependency>
     </dependencies>
-    <repositories>
-        <repository>
-            <id>oosnmpRepo</id>
-            <name>OOSNMP.COM Repository</name>
-            <url>https://server.oosnmp.net/dist/release</url>
-        </repository>
-    </repositories>
 </project>

@@ -1,5 +1,18 @@
-SNAMP 1.0.0
-====
+# SNAMP 1.1.0
+Maintenance release with important updates of third-party libraries. No additional product functions were modified or added.
+
+Updated components:
+
+* Apache Karaf
+* Groovy
+* Google Guava
+* Google GSON
+* Apache Thrift
+* SNMP4J
+
+All SNAMP components are affected so you need to backup your configuration, install new SNAMP version and reload the configuration. 
+
+# SNAMP 1.0.0
 Read-to-use in production environment version of SNAMP.
 
 ## Components
