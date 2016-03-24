@@ -1,5 +1,9 @@
 # SNAMP 1.1.0
-Maintenance release with important updates of third-party libraries. No additional product functions were modified or added.
+Maintenance release with important updates of third-party libraries and minor product fixes.
+
+Change list:
+
+* Shell command `snamp:config-operation` renamed to `snamp:configure-operation`
 
 Updated components:
 
