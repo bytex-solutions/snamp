@@ -18,7 +18,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
-    name = "config-operation",
+    name = "configure-operation",
     description = "Configure new or existing operation")
 public final class ConfigOperationCommand extends ConfigurationCommand {
     private static final long INFINITE_TIMEOUT = -1;
