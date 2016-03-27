@@ -4,10 +4,9 @@
     <parent>
         <groupId>com.bytex.snamp</groupId>
         <artifactId>snamp</artifactId>
-        <version>1.0.0</version>
+        <version>1.1.0</version>
     </parent>
     <artifactId>features</artifactId>
-    <version>1.0.0</version>
     <packaging>pom</packaging>
     <name>SNAMP Features</name>
     <description>A base classes for building karaf features for existing SNAMP OSGi-ready bundles</description>

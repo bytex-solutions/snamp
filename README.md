@@ -25,6 +25,7 @@ it is necessary to prepare your local Maven repository as follows.
 SNAMP uses the following third-party repositories:
 
 * [OOSNMP Maven Repository](https://server.oosnmp.net/dist/release). Artifacts: snmp4j-agent, snmp4j
+* [ServiceMix Repository](http://svn.apache.org/repos/asf/servicemix/m2-repo/).
 
 You can do this automatically using `maven` utility or IDE.
 Generally, you need to pass
@@ -33,7 +34,7 @@ Generally, you need to pass
 ```
 to the `maven` process when first importing the project.
 
-If you use IntelliJ IDEA 12/13/14 as IDE - follow the instructions:
+If you use IntelliJ IDEA 13/14/15 as IDE - follow the instructions:
 
 1. Open _File_ -> _Settings_ menu
 1. Find _Build, Execution, Deployment_ -> _Build Tools_ -> _Maven_ -> _Runner_

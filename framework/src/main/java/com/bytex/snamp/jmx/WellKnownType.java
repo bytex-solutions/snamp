@@ -273,7 +273,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
             if(javaType.isPrimitive())
                 return load(javaType.wrap());
             else for(final WellKnownType type: values())
-                if(javaType.isAssignableFrom(type.getJavaType()))
+                if(javaType.isSupertypeOf(type.getJavaType()))
                     return type;
             throw cacheMissing(javaType);
         }
