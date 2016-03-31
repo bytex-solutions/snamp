@@ -21,7 +21,7 @@ import javax.management.NotificationListener;
  * </p>
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  */
 public final class SynchronizationListener extends SynchronizationEvent<Notification> implements NotificationListener, NotificationFilter {
     private static final String ANY_SUBSCRIPTION_LIST = "*";

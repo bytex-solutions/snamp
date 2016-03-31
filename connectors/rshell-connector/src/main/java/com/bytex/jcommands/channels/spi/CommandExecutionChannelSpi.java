@@ -7,7 +7,7 @@ import java.util.Map;
 /**
  * Represents producer of {@link com.bytex.jcommands.CommandExecutionChannel} implementation.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public interface CommandExecutionChannelSpi {

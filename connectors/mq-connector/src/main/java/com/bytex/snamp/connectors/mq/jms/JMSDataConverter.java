@@ -30,7 +30,7 @@ import java.util.*;
 /**
  * Represents JMS data converted used to serialize/deserialize JMS messages into SNAMP type system.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public abstract class JMSDataConverter extends Script implements JMSMessageConverter, JMSAttributeConverter, JMSNotificationConverter {

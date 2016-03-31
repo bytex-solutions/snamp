@@ -19,7 +19,7 @@ import javax.naming.NamingException;
 /**
  * Represents connection factory for different types of queues.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public enum QueueClient {

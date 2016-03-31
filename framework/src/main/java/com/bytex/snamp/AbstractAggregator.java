@@ -35,7 +35,7 @@ import java.util.concurrent.ExecutionException;
  * </p>
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  */
 public abstract class AbstractAggregator implements Aggregator {
     private interface AggregationSupplier {
@@ -173,7 +173,7 @@ public abstract class AbstractAggregator implements Aggregator {
      * Identifies that the parameterless method or field holds the aggregated object.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.METHOD, ElementType.FIELD})

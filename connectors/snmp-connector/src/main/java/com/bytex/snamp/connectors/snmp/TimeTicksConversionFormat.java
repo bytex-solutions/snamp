@@ -16,7 +16,7 @@ import static com.bytex.snamp.connectors.snmp.SnmpConnectorConfigurationProvider
 /**
  * Represents {@link org.snmp4j.smi.TimeTicks} conversion format.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 enum TimeTicksConversionFormat implements SnmpObjectConverter<TimeTicks> {

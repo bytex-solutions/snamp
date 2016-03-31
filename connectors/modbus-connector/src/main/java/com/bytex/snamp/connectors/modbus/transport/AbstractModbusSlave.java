@@ -13,7 +13,7 @@ import java.util.Objects;
 /**
  * Represents an abstract class for building virtual Slave device.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 abstract class AbstractModbusSlave<L extends ModbusListener> implements ModbusSlave {

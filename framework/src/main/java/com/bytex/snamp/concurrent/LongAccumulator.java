@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 /**
  * Represents abstract time-based accumulator.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public abstract class LongAccumulator extends AbstractAccumulator {

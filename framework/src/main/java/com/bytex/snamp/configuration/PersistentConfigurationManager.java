@@ -29,7 +29,7 @@ import static com.bytex.snamp.configuration.SerializableAgentConfiguration.Seria
  * to store and read SNAMP configuration.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @ThreadSafe
@@ -63,7 +63,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
      * This class cannot be inherited.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     public static final class PersistentConfigurationException extends IOException{
         private static final long serialVersionUID = -518115699501252969L;

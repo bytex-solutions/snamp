@@ -1,4 +1,4 @@
-package com.bytex.snamp.core.cluster;
+package com.bytex.snamp.cluster;
 
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentMap;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class HazelcastStorage implements ConcurrentMap<String, Object> {

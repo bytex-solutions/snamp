@@ -22,7 +22,7 @@ import static com.bytex.snamp.connectors.jmx.JmxConnectorConfigurationDescriptor
  * Represents JMX connector initialization options.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionFactory {

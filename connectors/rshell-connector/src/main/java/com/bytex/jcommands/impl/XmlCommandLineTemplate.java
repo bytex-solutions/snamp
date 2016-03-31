@@ -14,7 +14,7 @@ import java.util.Map;
 /**
  * Represents XML-serializable template of the command-line tool.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @XmlRootElement(name = "template", namespace = XmlConstants.NAMESPACE)

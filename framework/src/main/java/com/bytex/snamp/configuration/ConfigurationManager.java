@@ -5,7 +5,7 @@ import com.bytex.snamp.core.FrameworkService;
 /**
  * Represents SNAMP configuration manager that is accessible as OSGi service.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public interface ConfigurationManager extends FrameworkService {

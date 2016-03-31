@@ -19,7 +19,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
  * Represents SNMP connector configuration descriptor.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class SnmpConnectorConfigurationProvider extends ConfigurationEntityDescriptionProviderImpl {

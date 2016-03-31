@@ -19,7 +19,7 @@ import java.util.Objects;
  * This class cannot be inherited or instantiated directly from your code.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  */
 public final class SummaryMetrics extends AbstractAggregator implements MetricsReader {
     private interface MetricFunction<M extends Metrics>{

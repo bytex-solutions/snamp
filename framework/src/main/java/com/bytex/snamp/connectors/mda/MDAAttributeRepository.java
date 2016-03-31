@@ -24,7 +24,7 @@ import static com.bytex.snamp.connectors.mda.MDAResourceConfigurationDescriptorP
  * @param <M> Type of attributes in the repository.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  */
 public abstract class MDAAttributeRepository<M extends MDAAttributeInfo> extends OpenAttributeRepository<M> implements SafeCloseable {
     private TimeSpan expirationTime;

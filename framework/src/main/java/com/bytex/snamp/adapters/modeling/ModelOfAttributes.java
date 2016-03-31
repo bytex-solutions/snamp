@@ -15,7 +15,7 @@ import java.util.*;
  * Represents an abstract object that helps you to organize storage
  * of all attributes inside of your resource adapter.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @ThreadSafe

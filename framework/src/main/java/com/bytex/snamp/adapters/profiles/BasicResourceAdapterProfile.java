@@ -9,7 +9,7 @@ import java.util.*;
  * Represents basic profile of the resource adapter. You can use this profile as an abstract
  * class for your custom profiles.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class BasicResourceAdapterProfile extends AbstractAggregator implements ResourceAdapterProfile {

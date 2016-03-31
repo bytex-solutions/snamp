@@ -14,7 +14,7 @@ import static com.bytex.snamp.management.shell.Utils.getStateString;
 /**
  * Command that prints list of installed adapters.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,

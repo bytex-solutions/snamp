@@ -20,7 +20,7 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 /**
  * Represents an activator for SNAMP-specific bundle which exposes a set of services.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
@@ -100,7 +100,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      * Represents state of the service publication.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     public enum ProvidedServiceState{
         /**
@@ -730,7 +730,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      * Represents a holder of a collection of provided services.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     protected interface ProvidedServices{
         /**

@@ -16,7 +16,7 @@ import java.util.logging.*;
 /**
  * Logical operation represented as logging scope in which all log messages are correlated.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class LogicalOperation extends Logger implements SafeCloseable {
@@ -27,7 +27,7 @@ public class LogicalOperation extends Logger implements SafeCloseable {
      * Represents correlation identifier generator.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     public interface CorrelationIdentifierGenerator{
         /**

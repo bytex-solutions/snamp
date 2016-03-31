@@ -7,7 +7,7 @@ import java.util.concurrent.Callable;
  * @param <V> The computation result type.
  * @param <E> Type of the exception that may be produced by {@code call} method.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public interface ExceptionalCallable<V, E extends Exception> extends Callable<V> {

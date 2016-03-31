@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public abstract class IntAccumulator extends AbstractAccumulator {

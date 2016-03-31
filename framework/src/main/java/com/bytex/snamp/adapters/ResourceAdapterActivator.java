@@ -27,7 +27,7 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
  * </p>
  * @param <TAdapter> Type of the resource adapter.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> extends AbstractServiceLibrary {
@@ -40,7 +40,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
      * @param <TAdapter> Type of the adapter implementation.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     protected interface ResourceAdapterFactory<TAdapter extends ResourceAdapter>{
         TAdapter createAdapter(final String adapterInstance,
@@ -135,7 +135,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
      * @param <T> Type of the adapter-related service implementation.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      * @see ResourceAdapterActivator.ConfigurationEntityDescriptionManager
      */
     protected abstract static class SupportAdapterServiceManager<S extends FrameworkService, T extends S> extends ProvidedService<S, T>{
@@ -158,7 +158,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
      * @param <T> Type of the maintenance service implementation.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     protected static abstract class MaintenanceServiceManager<T extends Maintainable> extends SupportAdapterServiceManager<Maintainable,T> {
 

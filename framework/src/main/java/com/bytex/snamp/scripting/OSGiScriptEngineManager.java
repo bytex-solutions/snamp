@@ -56,7 +56,7 @@ import java.util.*;
  * issue, but for the moment it is not needed.
  * </li>
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  * @author Apache Foundation, Roman Sakno
  */
 @ThreadSafe(false)

@@ -10,7 +10,7 @@ import static com.bytex.snamp.internal.Utils.changeFunctionalInterfaceType;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class ChangeFunctionalInterfaceTypeTest extends Assert {

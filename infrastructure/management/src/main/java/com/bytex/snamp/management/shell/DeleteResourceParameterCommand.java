@@ -8,7 +8,7 @@ import org.apache.karaf.shell.commands.Command;
 /**
  * Deletes configuration parameter from managed resource.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,

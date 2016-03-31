@@ -7,7 +7,7 @@ import org.osgi.service.log.LogService;
 /**
  * The type Log event notification.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class LogEventNotification extends OpenMBean.OpenNotification<LogEntry> {

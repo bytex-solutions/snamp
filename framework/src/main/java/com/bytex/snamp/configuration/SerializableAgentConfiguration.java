@@ -15,7 +15,7 @@ import java.util.Objects;
  * Represents in-memory agent configuration that can be stored as serialized Java object.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  */
 public class SerializableAgentConfiguration extends AbstractAgentConfiguration implements Externalizable {
     private final static byte FORMAT_VERSION = 1;
@@ -29,7 +29,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
      * Represents serializable configuration entity.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     public interface SerializableEntityConfiguration extends EntityConfiguration, Modifiable, Externalizable{
         /**
@@ -331,7 +331,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
      * Represents adapter settings. This class cannot be inherited.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     public static final class SerializableResourceAdapterConfiguration extends AbstractEntityConfiguration implements ResourceAdapterConfiguration{
         private static final byte FORMAT_VERSION = 1;
@@ -428,7 +428,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
      * Represents configuration of the management information provider. This class cannot be inherited.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     public static final class SerializableManagedResourceConfiguration extends AbstractEntityConfiguration implements ManagedResourceConfiguration{
         private static final long serialVersionUID = 5044050385424748355L;
@@ -500,7 +500,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
          * Represents configuration of the managed resource operation. This class cannot be inherited.
          * @author Roman Sakno
          * @since 1.0
-         * @version 1.0
+         * @version 1.2
          */
         public static final class SerializableOperationConfiguration extends AbstractFeatureConfiguration implements OperationConfiguration{
             private static final long serialVersionUID = 8267389949041604889L;
@@ -570,7 +570,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
          * Represents configuration of the event source. This class cannot be inherited.
          * @author Roman Sakno
          * @since 1.0
-         * @version 1.0
+         * @version 1.2
          */
         public static final class SerializableEventConfiguration extends AbstractFeatureConfiguration implements EventConfiguration {
             private static final long serialVersionUID = -6838585011981639479L;
@@ -634,7 +634,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
         /**
          * Represents configuration of the management attribute. This class cannot be inherited.
          * @since 1.0
-         * @version 1.0
+         * @version 1.2
          */
         public static final class SerializableAttributeConfiguration extends AbstractFeatureConfiguration implements AttributeConfiguration{
             private static final long serialVersionUID = -2134014000719123759L;

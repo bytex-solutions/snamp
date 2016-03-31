@@ -7,7 +7,7 @@ import com.bytex.snamp.SpecialUse;
  * Represents OSGi activator for {@link com.bytex.snamp.adapters.ssh.SshAdapter} resource adapter.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class SshAdapterActivator extends ResourceAdapterActivator<SshAdapter> {

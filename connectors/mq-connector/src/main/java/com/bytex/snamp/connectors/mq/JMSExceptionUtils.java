@@ -5,7 +5,7 @@ import java.util.concurrent.Callable;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class JMSExceptionUtils {

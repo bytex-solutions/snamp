@@ -32,7 +32,7 @@ import java.util.concurrent.Future;
  *     Derived class should not be inner private.
  * @param <T> Type of the enum that describes all maintenance actions supported by this class.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  * @see MaintenanceActionInfo
  */
@@ -42,7 +42,7 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
      * Indicates that the annotated method is used for action invocation.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
@@ -67,7 +67,7 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
      * from your code.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     protected static final class ActionHandle{
         private final MethodHandle handle;

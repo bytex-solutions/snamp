@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * Represents simple thread-safe timer.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @ThreadSafe

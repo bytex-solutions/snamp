@@ -3,7 +3,7 @@ package com.bytex.snamp;
 /**
  * Represents attribute reader.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  * @see Attribute
  */

@@ -12,7 +12,7 @@ import static com.bytex.snamp.connectors.modbus.ModbusResourceConnectorConfigura
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class FileAttribute extends ModbusArrayAttributeInfo<short[], FileAccess> {

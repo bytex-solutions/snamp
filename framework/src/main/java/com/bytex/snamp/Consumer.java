@@ -5,7 +5,7 @@ package com.bytex.snamp;
  * @param <T> Type of the value to process.
  * @param <E> Type of the exception that occurred in the operation.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public interface Consumer<T, E extends Throwable> {

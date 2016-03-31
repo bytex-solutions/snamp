@@ -15,7 +15,7 @@ import java.util.BitSet;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class IOUtils {
@@ -66,12 +66,15 @@ public final class IOUtils {
 
     public static <T extends Serializable> T deserialize(final byte[] serializedForm,
                                                          final TypeToken<T> expectedType) throws IOException {
-        try (final ByteArrayInputStream stream = new ByteArrayInputStream(serializedForm);
-             final ObjectInputStream deserializer = new ObjectInputStream(stream)) {
-            return TypeTokens.cast(deserializer.readObject(), expectedType);
-        } catch (final ClassNotFoundException | ClassCastException e) {
-            throw new IOException(e);
-        }
+        if (serializedForm == null || serializedForm.length == 0)
+            return null;
+        else
+            try (final ByteArrayInputStream stream = new ByteArrayInputStream(serializedForm);
+                 final ObjectInputStream deserializer = new ObjectInputStream(stream)) {
+                return TypeTokens.cast(deserializer.readObject(), expectedType);
+            } catch (final ClassNotFoundException | ClassCastException e) {
+                throw new IOException(e);
+            }
     }
 
     public static <T extends Serializable> T deserialize(final byte[] serializedForm,

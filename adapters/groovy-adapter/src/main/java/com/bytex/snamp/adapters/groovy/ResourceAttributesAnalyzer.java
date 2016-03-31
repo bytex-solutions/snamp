@@ -21,7 +21,7 @@ import java.util.*;
  * Represents advanced attribute analyzer based on periodic attribute query.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  */
 public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> extends PeriodicPassiveChecker<TAccessor> implements ResourceFeaturesAnalyzer {
     private interface AttributeStatement extends FeatureStatement{
@@ -40,7 +40,7 @@ public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> ext
      * Represents attribute value handler.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     public static class FilterAndProcessAttributeStatement implements Predicate, AttributeStatement{
         private final Predicate checker;
@@ -107,7 +107,7 @@ public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> ext
      * Represents attribute selector statement.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     public static class AttributeSelectStatement extends AbstractSelectStatement implements AttributeStatement {
         private final List<FilterAndProcessAttributeStatement> handlers;

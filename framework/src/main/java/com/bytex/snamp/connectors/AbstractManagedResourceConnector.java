@@ -35,7 +35,7 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
  *     </ul>
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  */
 public abstract class AbstractManagedResourceConnector extends AbstractFrameworkService implements ManagedResourceConnector, Descriptive {
     private final IllegalStateFlag closed = createConnectorStateFlag();

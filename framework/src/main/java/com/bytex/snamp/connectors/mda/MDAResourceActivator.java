@@ -14,7 +14,7 @@ import static com.bytex.snamp.connectors.mda.MDAResourceConfigurationDescriptorP
 /**
  * Represents basic activator for MDA connectors.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public abstract class MDAResourceActivator extends ManagedResourceActivator<DataAcceptor> {

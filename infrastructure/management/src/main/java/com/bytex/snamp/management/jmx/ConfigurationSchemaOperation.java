@@ -24,7 +24,7 @@ import java.util.*;
  * The type Configuration schema operation.
  * @author Roman Sakno
  * @author Evgeniy Kirichenko
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 abstract class ConfigurationSchemaOperation extends OpenMBean.OpenOperation<CompositeData, CompositeType> implements CommonOpenTypesSupport<MBeanOperationInfo> {

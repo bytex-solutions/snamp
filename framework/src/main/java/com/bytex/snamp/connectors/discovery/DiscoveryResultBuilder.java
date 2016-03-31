@@ -17,7 +17,7 @@ import static com.bytex.snamp.connectors.discovery.DiscoveryService.DiscoveryRes
  * Represents builder of {@link DiscoveryResult} object.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class DiscoveryResultBuilder implements Supplier<DiscoveryResult> {

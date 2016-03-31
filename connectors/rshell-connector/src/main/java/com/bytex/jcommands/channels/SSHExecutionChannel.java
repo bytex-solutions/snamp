@@ -21,7 +21,7 @@ import java.util.*;
  * Represents command execution channel that uses SSH connection for executing
  * commands on the remote machine.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class SSHExecutionChannel extends SSHClient implements CommandExecutionChannel {

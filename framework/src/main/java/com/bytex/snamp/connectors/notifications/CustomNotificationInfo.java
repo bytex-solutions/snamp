@@ -9,7 +9,7 @@ import java.util.Objects;
 /**
  * Represents simplified version of {@link javax.management.MBeanNotificationInfo}.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class CustomNotificationInfo extends MBeanNotificationInfo implements NotificationDescriptorRead {

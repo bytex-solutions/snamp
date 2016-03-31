@@ -11,7 +11,7 @@ import static com.google.common.base.MoreObjects.firstNonNull;
  * which cannot modify its internal structure on-the-fly
  * when managed resource connector raises {@link com.bytex.snamp.connectors.ResourceEvent}.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class ResourceAdapterUpdateManager implements AutoCloseable {

@@ -10,7 +10,7 @@ import java.util.concurrent.*;
  * the custom condition.
  * @param <T> Type of the spinning result.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public abstract class SpinWait<T> implements Future<T> {

@@ -5,7 +5,7 @@ import java.util.concurrent.*;
 /**
  * Represents standalone future which computation can be executed in the separated thread.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class FutureThread<V> extends Thread implements Future<V>{
@@ -13,7 +13,7 @@ public class FutureThread<V> extends Thread implements Future<V>{
      * Represents state of this thread.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     private enum ThreadState {
         /**

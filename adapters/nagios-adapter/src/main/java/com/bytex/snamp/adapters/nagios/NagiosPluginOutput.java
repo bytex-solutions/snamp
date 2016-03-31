@@ -13,7 +13,7 @@ import static com.google.common.base.Strings.nullToEmpty;
  * Represents information about attribute in Nagios Plugins format.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class NagiosPluginOutput {

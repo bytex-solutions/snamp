@@ -14,7 +14,7 @@ import java.util.ServiceLoader;
  * Represents consolidated factory of
  * {@link com.bytex.jcommands.CommandExecutionChannel} implementations.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class CommandExecutionChannels {

@@ -10,7 +10,7 @@ import java.io.InputStream;
  * Represents version of SNAMP platform.
  * This class cannot be inherited or instantiated directly from your code.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class PlatformVersion extends Version {

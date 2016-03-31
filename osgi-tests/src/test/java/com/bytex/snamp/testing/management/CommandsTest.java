@@ -23,7 +23,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
 /**
  * Shell commands test.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @SnampDependencies({SnampFeature.JMX_CONNECTOR, SnampFeature.GROOVY_ADAPTER})

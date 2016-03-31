@@ -21,7 +21,7 @@ import java.util.*;
  * Represents JAAS realm descriptor in the form of the OSGi service.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class JaasRealmImpl implements JaasRealm {

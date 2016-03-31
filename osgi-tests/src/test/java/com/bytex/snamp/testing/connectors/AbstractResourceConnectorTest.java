@@ -44,7 +44,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.*;
 /**
  * Represents an abstract class for all integration tests that checks management connectors.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegrationTest {

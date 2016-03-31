@@ -10,7 +10,7 @@ import static com.bytex.snamp.configuration.SerializableAgentConfiguration.Seria
 /**
  * Computes percent.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class BinaryPercent extends BinaryAttributeAggregation<Double> {

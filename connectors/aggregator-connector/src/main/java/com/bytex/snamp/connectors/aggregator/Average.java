@@ -7,7 +7,7 @@ import static com.bytex.snamp.configuration.SerializableAgentConfiguration.Seria
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class Average extends UnaryAttributeAggregation<Double> {

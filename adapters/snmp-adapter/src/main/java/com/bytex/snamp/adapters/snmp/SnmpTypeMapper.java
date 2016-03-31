@@ -6,7 +6,7 @@ import com.bytex.snamp.jmx.WellKnownType;
 /**
  * Provides mapping between type system of SNAMP Managemement Information Model and SNMP type system.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 interface SnmpTypeMapper extends Function<WellKnownType, SnmpType> {

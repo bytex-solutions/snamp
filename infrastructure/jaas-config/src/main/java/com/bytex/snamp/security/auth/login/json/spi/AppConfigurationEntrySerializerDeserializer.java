@@ -12,7 +12,7 @@ import static javax.security.auth.login.AppConfigurationEntry.LoginModuleControl
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class AppConfigurationEntrySerializerDeserializer implements JsonSerializer<AppConfigurationEntry>, JsonDeserializer<AppConfigurationEntry> {

@@ -32,7 +32,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
 /**
  * Represents JMX connector configuration descriptor.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl {
@@ -77,7 +77,7 @@ final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescr
 
     /**
      * @author Roman Sakno
-     * @version 1.0
+     * @version 1.2
      * @since 1.0
      */
     private static final class AttributeConfigurationInfo extends ResourceBasedConfigurationEntityDescription<AttributeConfiguration> {

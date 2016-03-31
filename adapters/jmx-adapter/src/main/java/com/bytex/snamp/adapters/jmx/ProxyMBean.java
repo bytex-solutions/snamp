@@ -29,7 +29,7 @@ import java.util.logging.Logger;
  * Represents proxy MBean that is used to expose attributes and notifications
  * via JMX.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, NotificationBroadcaster, NotificationListener, Closeable {

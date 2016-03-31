@@ -10,7 +10,7 @@ import java.util.Objects;
  * Represents a servlet for Nagios REST service.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class NagiosServlet extends ServletContainer {

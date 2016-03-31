@@ -1,4 +1,4 @@
-package com.bytex.snamp.core.cluster;
+package com.bytex.snamp.cluster;
 
 import com.bytex.snamp.TypeTokens;
 import com.bytex.snamp.core.AbstractFrameworkService;
@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2.0
  * @since 1.0
  */
 public final class GridMember extends AbstractFrameworkService implements ClusterMember, AutoCloseable {
@@ -45,7 +45,7 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
                 }
         }
     }
-    private final Logger logger = Logger.getLogger("com.bytex.snamp.core.cluster");
+    private final Logger logger = Logger.getLogger("com.bytex.snamp.cluster");
 
     private final HazelcastInstance hazelcast;
     private LeaderElectionThread electionThread;

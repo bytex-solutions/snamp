@@ -10,7 +10,7 @@ import javax.management.openmbean.OpenType;
 /**
  * Represents attribute value reader.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 interface AttributeValueReader extends ExceptionalCallable<Object, JMException> {

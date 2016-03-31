@@ -12,7 +12,7 @@ import java.util.LinkedHashMap;
 /**
  * Represents builder of {@link javax.management.openmbean.CompositeData} instance.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  * @see javax.management.openmbean.CompositeData
  * @see javax.management.openmbean.CompositeDataSupport

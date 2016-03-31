@@ -11,7 +11,7 @@ import java.math.BigDecimal;
  * This class cannot be inherited.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  */
 final class UnaryComparison extends UnaryAttributeAggregation<Boolean> {
     private static final long serialVersionUID = -1172592787419948019L;

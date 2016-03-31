@@ -7,7 +7,7 @@
  * </p>
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  * @see com.bytex.snamp.scripting.OSGiScriptEngineManager
  */
 package com.bytex.snamp.scripting;

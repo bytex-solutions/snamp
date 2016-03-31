@@ -10,7 +10,7 @@ import java.util.logging.Logger;
  * Represents a rich version of logical operation that have
  * associated immutable map of parameters and uses pass-through lookup of requested parameter.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class RichLogicalOperation extends LogicalOperation {

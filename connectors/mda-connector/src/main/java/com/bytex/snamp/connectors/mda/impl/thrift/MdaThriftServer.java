@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * Represents Thrift server in which {@link TServer#serve()} method is non-blocking.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class MdaThriftServer extends TThreadPoolServer implements Runnable {

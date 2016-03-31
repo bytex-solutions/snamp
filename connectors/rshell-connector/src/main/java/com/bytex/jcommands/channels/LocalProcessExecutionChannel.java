@@ -21,7 +21,7 @@ import java.util.Set;
  * Represents channel that executes commands as processes in
  * the local OS. This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class LocalProcessExecutionChannel extends HashMap<String, String> implements CommandExecutionChannel, SafeCloseable {

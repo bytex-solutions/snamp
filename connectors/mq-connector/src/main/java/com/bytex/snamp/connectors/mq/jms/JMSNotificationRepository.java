@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class JMSNotificationRepository extends MDANotificationRepository<MDANotificationInfo> {

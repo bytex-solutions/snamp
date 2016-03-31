@@ -10,7 +10,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfigurati
  *     This interface should be supplied from the SNAMP component bundle as a OSGi service.
  * </p>
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public interface ConfigurationEntityDescriptionProvider extends SupportService {

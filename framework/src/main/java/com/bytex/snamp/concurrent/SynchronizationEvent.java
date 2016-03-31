@@ -7,7 +7,7 @@ import com.google.common.util.concurrent.ListenableFuture;
  * Represents synchronization event that is used to synchronize with some
  * asynchronous event.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class SynchronizationEvent<T> {

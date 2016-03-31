@@ -43,7 +43,7 @@ import static com.bytex.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @SnampDependencies(SnampFeature.NRDP_ADAPTER)

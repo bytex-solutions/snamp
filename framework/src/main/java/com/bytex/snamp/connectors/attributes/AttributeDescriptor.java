@@ -27,7 +27,7 @@ import static com.bytex.snamp.jmx.CompositeDataUtils.fillMap;
  * Represents attribute descriptor.
  * with attribute metadata.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class AttributeDescriptor extends ImmutableDescriptor implements ConfigurationEntityRuntimeMetadata<AttributeConfiguration> {

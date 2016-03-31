@@ -13,7 +13,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterCo
 /**
  * Displays configuration of adapter instance.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,

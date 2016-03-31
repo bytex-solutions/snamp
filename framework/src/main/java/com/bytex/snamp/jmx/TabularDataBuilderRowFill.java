@@ -15,7 +15,7 @@ import java.util.Map;
  *     {@link com.bytex.snamp.jmx.TabularDataBuilder} cannot be used with prepared
  *     {@link javax.management.openmbean.TabularType}.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class TabularDataBuilderRowFill implements Supplier<TabularData> {
@@ -24,7 +24,7 @@ public class TabularDataBuilderRowFill implements Supplier<TabularData> {
      * This class cannot be inherited or instantiated directly from your code.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     public final class RowBuilder{
         private final ImmutableMap.Builder<String, Object> cells;

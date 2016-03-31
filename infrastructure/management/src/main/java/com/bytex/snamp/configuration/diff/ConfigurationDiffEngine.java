@@ -13,7 +13,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.*;
  * Provides a methods for computing diffs between target and baseline configuration,
  * patching and merging.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class ConfigurationDiffEngine {

@@ -28,7 +28,7 @@ import java.util.Map;
  *     </ul>
  * </p>
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @XmlRootElement(name = "profile", namespace = XmlConstants.NAMESPACE)

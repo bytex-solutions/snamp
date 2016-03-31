@@ -11,7 +11,7 @@ import java.lang.ref.WeakReference;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class WeakMultimapTest extends Assert {

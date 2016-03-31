@@ -17,7 +17,7 @@ import static com.bytex.snamp.management.shell.InstalledConnectorsCommand.writeC
  * Prints list of installed SNAMP components.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,

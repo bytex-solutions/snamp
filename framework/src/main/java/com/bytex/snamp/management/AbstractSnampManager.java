@@ -21,7 +21,7 @@ import static com.bytex.snamp.internal.Utils.isInstanceOf;
 /**
  * Represents partial implementation of {@link com.bytex.snamp.management.SnampManager} service.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public abstract class AbstractSnampManager extends AbstractFrameworkService implements SnampManager {
@@ -136,7 +136,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
      * Represents superclass for resource adapter descriptor.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     protected static abstract class ResourceAdapterDescriptor extends HashMap<String, String> implements SnampComponentDescriptor{
         private static final long serialVersionUID = 5641114150847940779L;
@@ -239,7 +239,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
      * Represents superclass for managed resource connector descriptor.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     protected static abstract class ResourceConnectorDescriptor extends HashMap<String, String> implements SnampComponentDescriptor {
         private static final long serialVersionUID = -5406342058157943559L;

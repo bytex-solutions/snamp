@@ -7,7 +7,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 /**
  * Represents fixed-size mailbox for the notifications.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class NotificationBox extends ArrayBlockingQueue<Notification> implements NotificationListener {

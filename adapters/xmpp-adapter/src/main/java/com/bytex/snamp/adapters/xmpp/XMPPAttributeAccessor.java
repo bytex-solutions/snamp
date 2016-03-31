@@ -17,7 +17,7 @@ import java.util.Collection;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 abstract class XMPPAttributeAccessor extends AttributeAccessor {

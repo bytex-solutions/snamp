@@ -12,9 +12,11 @@ import static com.bytex.snamp.configuration.ThreadPoolConfigurationDescriptor.*;
 /**
  * Represents configuration of the thread pool.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2.0
  * @since 1.0
+ * @deprecated Use {@link com.bytex.snamp.concurrent.ThreadPoolConfig} instead. This class will be removed in the next version.
  */
+@Deprecated
 public class ThreadPoolConfig implements Supplier<ExecutorService> {
     /**
      * Represents infinite queue size.

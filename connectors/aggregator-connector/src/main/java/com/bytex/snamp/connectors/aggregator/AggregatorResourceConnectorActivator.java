@@ -12,7 +12,7 @@ import java.util.Set;
  * Represents activator of {@link AggregatorResourceConnector} resource connector.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class AggregatorResourceConnectorActivator extends ManagedResourceActivator<AggregatorResourceConnector> {

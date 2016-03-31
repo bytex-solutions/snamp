@@ -37,7 +37,7 @@ import static com.bytex.snamp.testing.connectors.jmx.AbstractJmxConnectorTest.*;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @SnampDependencies(SnampFeature.JMX_ADAPTER)

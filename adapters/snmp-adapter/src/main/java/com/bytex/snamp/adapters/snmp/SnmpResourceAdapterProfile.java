@@ -16,7 +16,7 @@ import static com.bytex.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.*
  * Represents default profile for SNMP Resource Adapter.
  * Other profiles should derive from the default profile.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 class SnmpResourceAdapterProfile extends BasicResourceAdapterProfile implements SnmpTypeMapper {

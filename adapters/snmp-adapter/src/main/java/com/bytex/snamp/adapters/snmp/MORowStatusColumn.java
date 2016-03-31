@@ -13,7 +13,7 @@ import javax.management.DescriptorRead;
  * Represents RowStatus column as described in SMIv2 (RFC 1903).
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  * @see <a href="http://www.ietf.org/rfc/rfc1903.txt">RFC 1903</a>
  */

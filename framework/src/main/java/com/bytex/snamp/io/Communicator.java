@@ -23,7 +23,7 @@ import java.util.concurrent.TimeoutException;
  * <p>
  *     This class cannot be used for inter-process communication.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class Communicator extends EventBus {

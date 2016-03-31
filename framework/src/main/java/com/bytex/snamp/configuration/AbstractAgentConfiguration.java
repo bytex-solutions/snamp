@@ -7,7 +7,7 @@ import java.util.Objects;
  * Represents a base class for custom agent configuration holders.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  */
 public abstract class AbstractAgentConfiguration implements AgentConfiguration {
     private interface ConfigurationEntityCopier<T extends EntityConfiguration>{

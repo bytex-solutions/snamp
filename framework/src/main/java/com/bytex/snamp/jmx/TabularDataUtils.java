@@ -18,7 +18,7 @@ import java.util.Objects;
  * Provides helper methods that allows to create and
  * manipulate of {@link javax.management.openmbean.TabularData} instances.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class TabularDataUtils {

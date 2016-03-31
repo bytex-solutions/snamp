@@ -3,7 +3,7 @@ package com.bytex.snamp.concurrent;
 /**
  * Represents abstract time-based accumulator.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 abstract class AbstractAccumulator extends Number {

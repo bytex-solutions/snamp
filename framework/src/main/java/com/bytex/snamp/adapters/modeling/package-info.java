@@ -15,6 +15,6 @@
  * as {@link com.bytex.snamp.adapters.modeling.AttributeAccessor} or {@link com.bytex.snamp.adapters.modeling.NotificationAccessor}.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  */
 package com.bytex.snamp.adapters.modeling;

@@ -12,7 +12,7 @@ import java.util.Map;
 /**
  * Represents an abstract class for constructing homogeneous composite data.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public abstract class AbstractCompositeData<V> extends HashMap<String, V> implements CompositeData {

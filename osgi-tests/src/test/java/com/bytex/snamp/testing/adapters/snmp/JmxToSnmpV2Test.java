@@ -50,7 +50,7 @@ import static com.bytex.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
 /**
  * Represents integration tests for JMX resource connector and SNMP resource adapter.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @SnampDependencies(SnampFeature.SNMP_ADAPTER)

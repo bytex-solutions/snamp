@@ -11,7 +11,7 @@ import java.util.Set;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class JsonConfigurationSerializerDeserializer implements JsonSerializer<JsonConfiguration>, JsonDeserializer<JsonConfiguration> {

@@ -7,7 +7,7 @@ import java.util.Map;
 /**
  * Represents configuration of thread pool for Monitoring Data Acceptors.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class MDAThreadPoolConfig extends ThreadPoolConfig {

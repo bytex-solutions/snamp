@@ -11,7 +11,7 @@ import java.util.Objects;
  * Represents simple container that holds mutable typed value.
  * @param <T> Type of the value in the container.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class Box<T> implements Wrapper<T>, Supplier<T>, SafeConsumer<T>, Cloneable, Serializable{

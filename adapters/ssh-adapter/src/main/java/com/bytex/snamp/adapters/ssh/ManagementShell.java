@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 /**
  * Represents management shell.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class ManagementShell implements Command, SessionAware {

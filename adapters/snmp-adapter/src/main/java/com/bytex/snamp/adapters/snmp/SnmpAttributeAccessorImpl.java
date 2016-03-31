@@ -11,7 +11,7 @@ import static com.bytex.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.p
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class SnmpAttributeAccessorImpl extends SnmpAttributeAccessor {

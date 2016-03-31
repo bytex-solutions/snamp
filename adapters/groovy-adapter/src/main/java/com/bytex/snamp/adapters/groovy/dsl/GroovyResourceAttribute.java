@@ -11,7 +11,7 @@ import java.util.Objects;
  * This class cannot be inherited directly from your code.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  */
 public final class GroovyResourceAttribute extends GroovyObjectSupport {
     private final AttributesView attributes;

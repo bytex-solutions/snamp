@@ -22,7 +22,7 @@ import java.util.concurrent.ExecutionException;
  * Describes a well-known type that should be supported by
  * resource connector and understood by resource adapter.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Class<?>> {

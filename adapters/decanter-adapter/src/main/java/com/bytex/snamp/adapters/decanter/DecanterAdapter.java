@@ -19,7 +19,7 @@ import java.util.Map;
  * Represents Decanter Collector in the form of SNAMP Resource Adapter.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  */
 final class DecanterAdapter extends AbstractResourceAdapter {
     private final EventDrivenCollector eventCollector;

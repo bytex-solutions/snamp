@@ -10,7 +10,7 @@ import java.util.Set;
 /**
  * Represents attribute of JMX open type that provides read/write methods.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public abstract class OpenMBeanAttributeAccessor<T> extends OpenMBeanAttributeInfoImpl implements OpenMBeanAttributeInfo, AttributeDescriptorRead {

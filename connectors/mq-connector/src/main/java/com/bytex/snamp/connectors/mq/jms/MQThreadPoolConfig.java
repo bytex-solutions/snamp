@@ -7,7 +7,7 @@ import java.util.Map;
 /**
  * Represents configuration of thread pool used by MQ Connector.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class MQThreadPoolConfig extends ThreadPoolConfig {

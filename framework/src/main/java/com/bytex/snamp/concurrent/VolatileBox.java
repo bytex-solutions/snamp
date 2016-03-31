@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * Represents thread-safe version of {@link com.bytex.snamp.Box}.
  * @param <T> Type of the value in container.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class VolatileBox<T> extends AtomicReference<T> implements Wrapper<T>, Supplier<T>, SafeConsumer<T> {

@@ -8,7 +8,7 @@ import com.google.common.base.Suppliers;
 /**
  * Represents spin wait based on the periodic condition check.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public abstract class ConditionWait extends SpinWait<Object> {

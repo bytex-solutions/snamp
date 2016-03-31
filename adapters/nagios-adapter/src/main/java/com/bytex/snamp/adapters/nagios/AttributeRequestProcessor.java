@@ -5,7 +5,7 @@ import com.bytex.snamp.SafeConsumer;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class AttributeRequestProcessor implements SafeConsumer<NagiosAttributeAccessor>, Supplier<NagiosPluginOutput> {

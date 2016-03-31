@@ -27,14 +27,14 @@ import java.util.Map;
  * </p>
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  */
 public interface AgentConfiguration extends Cloneable {
     /**
      * Represents a root interface for all agent configuration entities.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     interface EntityConfiguration {
         /**
@@ -71,7 +71,7 @@ public interface AgentConfiguration extends Cloneable {
      * Represents hosting configuration (front-end configuration).
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     interface ResourceAdapterConfiguration extends EntityConfiguration {
         /**
@@ -98,7 +98,7 @@ public interface AgentConfiguration extends Cloneable {
      * Represents management target configuration (back-end management information providers).
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     interface ManagedResourceConfiguration extends EntityConfiguration {
 
@@ -111,7 +111,7 @@ public interface AgentConfiguration extends Cloneable {
          * Represents a feature of the managed resource.
          * @author Roman Sakno
          * @since 1.0
-         * @version 1.0
+         * @version 1.2
          */
         interface FeatureConfiguration extends EntityConfiguration {
             /**
@@ -129,7 +129,7 @@ public interface AgentConfiguration extends Cloneable {
          * Represents event configuration.
          * @author Roman Sakno
          * @since 1.0
-         * @version 1.0
+         * @version 1.2
          */
         interface EventConfiguration extends FeatureConfiguration {
         }
@@ -138,7 +138,7 @@ public interface AgentConfiguration extends Cloneable {
          * Represents attribute configuration.
          * @author Roman Sakno
          * @since 1.0
-         * @version 1.0
+         * @version 1.2
          */
         interface AttributeConfiguration extends FeatureConfiguration {
             /**
@@ -163,7 +163,7 @@ public interface AgentConfiguration extends Cloneable {
          * Represents configuration of the managed resource operation.
          * @author Roman Sakno
          * @since 1.0
-         * @version 1.0
+         * @version 1.2
          */
         interface OperationConfiguration extends FeatureConfiguration{
             /**

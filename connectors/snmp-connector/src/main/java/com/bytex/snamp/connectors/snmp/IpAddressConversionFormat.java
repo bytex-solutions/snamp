@@ -14,7 +14,7 @@ import static com.bytex.snamp.jmx.DescriptorUtils.hasField;
 /**
  * Represents {@link org.snmp4j.smi.IpAddress} conversion format.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 enum IpAddressConversionFormat implements SnmpObjectConverter<IpAddress> {

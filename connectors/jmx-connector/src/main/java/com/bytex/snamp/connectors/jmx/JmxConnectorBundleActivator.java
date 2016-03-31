@@ -30,7 +30,7 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 /**
  * Represents bundle activator for JMX connector.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class JmxConnectorBundleActivator extends ManagedResourceActivator<JmxConnector> {

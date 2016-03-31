@@ -13,7 +13,7 @@ import java.util.Objects;
  * This class cannot be inherited.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  */
 public final class OpenTypeFormatter implements JsonSerializer<OpenType<?>>, JsonDeserializer<OpenType<?>> {
     private static final String VOID_TYPE = "void";

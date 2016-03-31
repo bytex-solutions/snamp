@@ -8,7 +8,7 @@ import java.util.*;
 /**
  * Represents builder of {@link javax.management.openmbean.CompositeType} instances.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  * @see javax.management.openmbean.CompositeType
  */

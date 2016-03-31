@@ -29,7 +29,7 @@ import static org.osgi.framework.Constants.OBJECTCLASS;
  *     You should not use this class directly in your code.
  * </p>
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @Internal

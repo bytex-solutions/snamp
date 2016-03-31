@@ -10,7 +10,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfigurati
 /**
  * Represents resource-based configuration entity descriptor.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class ResourceBasedConfigurationEntityDescription<T extends EntityConfiguration> extends ResourceReader implements ConfigurationEntityDescription<T> {
@@ -139,7 +139,7 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
      * Represents parameter descriptor.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     protected class ParameterDescriptionImpl implements ParameterDescription{
         private final String parameterName;

@@ -15,7 +15,7 @@ import java.util.*;
 /**
  * Represents analyzer of input stream of notifications received from managed resources.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class ResourceNotificationsAnalyzer implements ResourceFeaturesAnalyzer, NotificationListener {

@@ -6,7 +6,7 @@ import com.google.common.base.Function;
  * Represents a wrapper for the specified type of object.
  * @param <T> Type of the object that is wrapped.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public interface Wrapper<T> {

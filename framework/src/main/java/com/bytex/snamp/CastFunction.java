@@ -11,7 +11,7 @@ import java.util.Objects;
  * @param <O> Type of the conversion result.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  */
 final class CastFunction<O> implements Function<Object, O>, Serializable {
     private static final long serialVersionUID = -4293792455315486544L;

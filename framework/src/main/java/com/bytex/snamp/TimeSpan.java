@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
  *     Note that the precision of this time interval is 1 nanosecond.
  * </p>
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  * @see <a href="http://openjdk.java.net/jeps/169">Java Value Object</a>
  * @see <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/doc-files/ValueBased.html">Value-based class</a>

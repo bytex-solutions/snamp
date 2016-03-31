@@ -26,7 +26,7 @@ import static com.bytex.snamp.adapters.nsca.NSCAAdapterConfigurationDescriptor.*
  * Represents NSCA adapter.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class NSCAAdapter extends AbstractResourceAdapter {

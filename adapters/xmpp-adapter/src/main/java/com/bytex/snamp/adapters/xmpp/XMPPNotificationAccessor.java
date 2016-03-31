@@ -19,7 +19,7 @@ import java.util.Map;
  * Bridge between notifications and XMPP protocol.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class XMPPNotificationAccessor extends NotificationRouter {

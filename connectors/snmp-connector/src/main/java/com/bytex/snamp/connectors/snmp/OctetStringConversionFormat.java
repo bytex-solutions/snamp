@@ -15,7 +15,7 @@ import static com.bytex.snamp.jmx.DescriptorUtils.hasField;
 /**
  * Represents {@link org.snmp4j.smi.OctetString} format type.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 enum OctetStringConversionFormat implements SnmpObjectConverter<OctetString> {

@@ -9,7 +9,7 @@ import java.util.Objects;
 /**
  * Represents parameter/value pair.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class StringKeyValue implements Map.Entry<String, String>, Serializable {

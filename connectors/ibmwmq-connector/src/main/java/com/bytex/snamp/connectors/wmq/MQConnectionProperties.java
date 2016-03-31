@@ -15,7 +15,7 @@ import java.util.Objects;
 /**
  * Represents MQ connection properties. This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class MQConnectionProperties extends HashMap<String, String> {

@@ -24,7 +24,7 @@ import static com.bytex.snamp.jmx.CompositeDataUtils.fillMap;
 /**
  * Represents notification descriptor.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class NotificationDescriptor extends ImmutableDescriptor implements ConfigurationEntityRuntimeMetadata<EventConfiguration> {

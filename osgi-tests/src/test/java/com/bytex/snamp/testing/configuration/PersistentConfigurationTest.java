@@ -9,7 +9,7 @@ import org.osgi.service.cm.ConfigurationAdmin;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class PersistentConfigurationTest extends AbstractSnampIntegrationTest {

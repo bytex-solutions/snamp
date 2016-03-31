@@ -3,7 +3,7 @@ package com.bytex.snamp.adapters;
 /**
  * The callback invoked when updating of resource adapter is completed.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public interface ResourceAdapterUpdatedCallback {

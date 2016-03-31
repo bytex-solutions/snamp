@@ -43,7 +43,7 @@ import static com.bytex.snamp.adapters.ssh.SshAdapterConfigurationDescriptor.*;
 /**
  * Represents SSH resource adapter.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class SshAdapter extends AbstractResourceAdapter implements AdapterController {

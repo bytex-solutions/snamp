@@ -10,7 +10,7 @@ import java.util.Objects;
  * Represents a permanent reference to the OSGi service. You should release this service manually
  * when you no longer need it.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class ServiceHolder<S> implements ServiceProvider<S> {

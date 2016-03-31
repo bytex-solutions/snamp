@@ -18,7 +18,7 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
 /**
  * Represents a collection of default values for each possible OpenType.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class DefaultValues {

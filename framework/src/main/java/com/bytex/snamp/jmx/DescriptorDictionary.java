@@ -12,7 +12,7 @@ import java.util.Objects;
  * Represents bridge between {@link javax.management.Descriptor} and {@link Dictionary}.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @ThreadSafe(false)

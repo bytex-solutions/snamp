@@ -1,4 +1,4 @@
-package com.bytex.snamp.core.cluster;
+package com.bytex.snamp.cluster;
 
 import com.bytex.snamp.core.LongCounter;
 import com.hazelcast.core.HazelcastInstance;
@@ -6,7 +6,7 @@ import com.hazelcast.core.IAtomicLong;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class HazelcastLongCounter implements LongCounter {

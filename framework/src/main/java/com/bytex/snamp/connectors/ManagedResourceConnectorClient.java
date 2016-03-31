@@ -28,7 +28,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfigurati
  * Represents a client of resource connector that can be used by resource consumers.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedResourceConnector> implements Aggregator, DynamicMBean {

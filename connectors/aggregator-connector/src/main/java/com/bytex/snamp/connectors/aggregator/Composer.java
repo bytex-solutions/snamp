@@ -22,7 +22,7 @@ import java.util.Map;
  * This class cannot be inherited.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  */
 final class Composer extends AbstractAttributeAggregation<CompositeData> {
     static final String NAME = "composer";

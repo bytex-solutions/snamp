@@ -10,7 +10,7 @@ import java.util.*;
  * <p>
  *    This class works like {@link java.util.concurrent.CopyOnWriteArrayList}.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @ThreadSafe
