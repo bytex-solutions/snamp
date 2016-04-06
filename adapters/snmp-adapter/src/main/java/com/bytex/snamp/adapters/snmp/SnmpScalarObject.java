@@ -22,8 +22,8 @@ import java.text.ParseException;
 import java.util.Objects;
 import java.util.logging.Level;
 
-import static com.bytex.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.parseOID;
 import static com.bytex.snamp.adapters.snmp.SnmpHelpers.getAccessRestrictions;
+import static com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterConfigurationParser.parseOID;
 
 /**
  * Represents a base class for scalar SNMP managed objects.
@@ -167,7 +167,7 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
     @Override
     public final boolean equals(final MBeanAttributeInfo metadata) {
         try {
-            return Objects.equals(getID(), parseOID(metadata));
+            return Objects.equals(getID(), parseOID(metadata, SnmpHelpers.OID_GENERATOR));
         } catch (final ParseException ignored) {
             return false;
         }

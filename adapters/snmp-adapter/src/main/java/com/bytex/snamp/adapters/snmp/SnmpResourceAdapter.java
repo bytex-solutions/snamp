@@ -1,13 +1,16 @@
 package com.bytex.snamp.adapters.snmp;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Multimap;
-import com.bytex.snamp.adapters.*;
+import com.bytex.snamp.adapters.ResourceAdapterUpdateManager;
+import com.bytex.snamp.adapters.ResourceAdapterUpdatedCallback;
 import com.bytex.snamp.adapters.modeling.AttributeAccessor;
 import com.bytex.snamp.adapters.modeling.FeatureAccessor;
 import com.bytex.snamp.adapters.modeling.NotificationAccessor;
 import com.bytex.snamp.adapters.profiles.PolymorphicResourceAdapter;
+import com.bytex.snamp.adapters.snmp.configuration.DirContextFactory;
+import com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterAbsentParameterException;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Multimap;
 import org.osgi.service.jndi.JNDIContextManager;
 import org.snmp4j.agent.DuplicateRegistrationException;
 
@@ -18,11 +21,12 @@ import javax.naming.NamingException;
 import javax.naming.directory.DirContext;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.*;
-import java.util.concurrent.ExecutorService;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Logger;
-
-import static com.bytex.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.*;
+import static com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterConfigurationParser.isValidNotification;
 
 /**
  * @author Roman Sakno
@@ -36,11 +40,10 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
 
         private SnmpAdapterUpdateManager(final String adapterInstanceName,
                                          final SnmpResourceAdapterProfile profile,
-                                         final DirContextFactory contextFactory,
-                                         final ExecutorService threadPool) throws IOException, SnmpAdapterAbsentParameterException{
+                                         final DirContextFactory contextFactory) throws IOException, SnmpAdapterAbsentParameterException, NamingException {
             super(adapterInstanceName, profile.getRestartTimeout());
             this.profile = Objects.requireNonNull(profile);
-            agent = profile.createSnmpAgent(contextFactory, threadPool);
+            agent = profile.createSnmpAgent(contextFactory);
         }
 
         private void startAgent(final Iterable<? extends SnmpAttributeAccessor> attributes,
@@ -124,12 +127,11 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
     }
 
     @Override
-    protected synchronized void start(final SnmpResourceAdapterProfile profile) throws IOException, DuplicateRegistrationException, SnmpAdapterAbsentParameterException {
+    protected synchronized void start(final SnmpResourceAdapterProfile profile) throws IOException, DuplicateRegistrationException, SnmpAdapterAbsentParameterException, NamingException {
         //initialize restart manager and start SNMP agent
         updateManager = new SnmpAdapterUpdateManager(getInstanceName(),
                 profile,
-                contextFactory,
-                extractThreadPool(profile));
+                contextFactory);
         updateManager.startAgent(attributes.values(), notifications.values());
     }
 

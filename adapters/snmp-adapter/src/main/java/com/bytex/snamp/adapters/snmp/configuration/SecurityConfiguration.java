@@ -1,7 +1,6 @@
 package com.bytex.snamp.adapters.snmp.configuration;
 
-import com.bytex.snamp.adapters.snmp.DirContextFactory;
-import com.bytex.snamp.adapters.snmp.SnmpHelpers;
+import com.bytex.snamp.adapters.snmp.configuration.DirContextFactory;
 import com.google.common.base.Splitter;
 import org.snmp4j.agent.mo.snmp.StorageType;
 import org.snmp4j.agent.mo.snmp.VacmMIB;
@@ -16,6 +15,7 @@ import javax.naming.NamingException;
 import javax.naming.directory.*;
 import java.util.*;
 import java.util.logging.Level;
+import static com.bytex.snamp.adapters.snmp.helpers.OctetStringHelper.*;
 
 /**
  * Represents security configuration of the SNMP adapter that is used
@@ -160,7 +160,7 @@ public final class SecurityConfiguration {
         }
 
         public void setPassword(final byte[] password){
-            setPassword(new String(password, SnmpHelpers.SNMP_ENCODING));
+            setPassword(new String(password, SNMP_ENCODING));
         }
 
         public boolean setPassword(final Object password){
@@ -212,7 +212,7 @@ public final class SecurityConfiguration {
         }
 
         public void setPrivacyKey(final byte[] passphrase){
-            setPrivacyKey(new String(passphrase, SnmpHelpers.SNMP_ENCODING));
+            setPrivacyKey(new String(passphrase, SNMP_ENCODING));
         }
 
         public boolean setPrivacyKey(final Object passphrase){
@@ -230,13 +230,13 @@ public final class SecurityConfiguration {
         public OctetString getPasswordAsOctetString() {
             return password == null || password.isEmpty() ?
                     null :
-                    SnmpHelpers.toOctetString(password);
+                    toOctetString(password);
         }
 
         public OctetString getPrivacyKeyAsOctetString(){
             return encryptionKey == null || encryptionKey.isEmpty() ?
                     null :
-                    SnmpHelpers.toOctetString(encryptionKey);
+                    toOctetString(encryptionKey);
         }
 
         public void defineUser(final USM userHive, final OctetString userName, final OctetString engineID) {
@@ -374,7 +374,7 @@ public final class SecurityConfiguration {
         }
     }
 
-    public boolean read(final Map<String, String> adapterSettings){
+    boolean read(final Map<String, String> adapterSettings) throws NamingException{
         if(adapterSettings.containsKey(LDAP_URI_PARAM)) //import groups and users from LDAP
             return fillGroupsFromLdap(contextFactory, adapterSettings, adapterSettings.get(LDAP_URI_PARAM), groups);
         else if(adapterSettings.containsKey(SNMPv3_GROUPS_PARAM)){ //import groups and users from local configuration file
@@ -387,11 +387,11 @@ public final class SecurityConfiguration {
     private static boolean fillGroupsFromLdap(final DirContextFactory contextFactory,
                                               final Map<String, String> adapterSettings,
                                               final String ldapUri,
-                                              final Map<String, UserGroup> groups) {
+                                              final Map<String, UserGroup> groups) throws NamingException {
         final String ldapUserName = adapterSettings.get(LDAP_ADMINDN_PARAM);
         final String ldapUserPassword = adapterSettings.get(LDAP_ADMIN_PASSWORD_PARAM);
         String jndiLdapFactory = adapterSettings.get(JNDI_LDAP_FACTORY_PARAM);
-        if(jndiLdapFactory == null || jndiLdapFactory.isEmpty())
+        if (jndiLdapFactory == null || jndiLdapFactory.isEmpty())
             jndiLdapFactory = "com.sun.jndi.ldap.LdapCtxFactory";
         final LdapAuthenticationType authenticationType = LdapAuthenticationType.parse(adapterSettings.get(LDAP_ADMIN_AUTH_TYPE_PARAM));
         final Hashtable<String, Object> env = new Hashtable<>(7);
@@ -409,28 +409,14 @@ public final class SecurityConfiguration {
 
         // the following is helpful in debugging errors
         //env.put("com.sun.jndi.ldap.trace.ber", System.err);
-        try {
-            final DirContext ctx = contextFactory.create(env);
-            SnmpHelpers.log(Level.FINE, "User %s is authenticated successfully on LDAP %s", ldapUserName, ldapUri, null);
-            final String ldapGroups = adapterSettings.get(LDAP_GROUPS_PARAM);
-            final String userSearchFilter = adapterSettings.get(LDAP_USER_SEARCH_FILTER_PARAM);
-            final String baseDn = adapterSettings.get(LDAP_BASE_DN_PARAM);
-            final String userPasswordHolder = adapterSettings.get(LDAP_PASSWORD_HOLDER_PARAM);
-            fillGroupsFromLdap(ctx, SEMICOLON_SPLITTER.splitToList(ldapGroups), baseDn, userSearchFilter, groups, userPasswordHolder);
-            ctx.close();
-            return true;
-        }
-        catch (final AuthenticationException e){
-            SnmpHelpers.log(Level.SEVERE,
-                    "Failed to authenticate %s user on LDAP %s", ldapUserName, ldapUri,
-                    e);
-            return false;
-        }
-        catch (final NamingException e) {
-            SnmpHelpers.log(Level.SEVERE, "Failed to process LDAP response",
-                    e);
-            return false;
-        }
+        final DirContext ctx = contextFactory.create(env);
+        final String ldapGroups = adapterSettings.get(LDAP_GROUPS_PARAM);
+        final String userSearchFilter = adapterSettings.get(LDAP_USER_SEARCH_FILTER_PARAM);
+        final String baseDn = adapterSettings.get(LDAP_BASE_DN_PARAM);
+        final String userPasswordHolder = adapterSettings.get(LDAP_PASSWORD_HOLDER_PARAM);
+        fillGroupsFromLdap(ctx, SEMICOLON_SPLITTER.splitToList(ldapGroups), baseDn, userSearchFilter, groups, userPasswordHolder);
+        ctx.close();
+        return true;
     }
 
     private static void fillGroupsFromLdap(final DirContext directory,
@@ -525,7 +511,7 @@ public final class SecurityConfiguration {
         userGroup.put(userInfo.getName(), u);
     }
 
-    public interface UserSelector{
+    private interface UserSelector{
         boolean match(final String userName, final User user, final UserGroup owner);
     }
 
@@ -556,7 +542,7 @@ public final class SecurityConfiguration {
     public void setupUserBasedSecurity(final USM security){
         for(final UserGroup group: groups.values())
             for(final Map.Entry<String, User> user: group.entrySet()){
-                final OctetString userName = SnmpHelpers.toOctetString(user.getKey());
+                final OctetString userName = toOctetString(user.getKey());
                 final User userDef = user.getValue();
                 userDef.defineUser(security, userName, securityEngineID);
             }
@@ -566,16 +552,16 @@ public final class SecurityConfiguration {
         for(final Map.Entry<String, UserGroup> group: groups.entrySet()){
             final UserGroup groupDef = group.getValue();
             for(final Map.Entry<String, User> user: groupDef.entrySet()){
-                vacm.addGroup(SecurityModel.SECURITY_MODEL_USM, SnmpHelpers.toOctetString(user.getKey()),
-                        SnmpHelpers.toOctetString(group.getKey()),
+                vacm.addGroup(SecurityModel.SECURITY_MODEL_USM, toOctetString(user.getKey()),
+                        toOctetString(group.getKey()),
                         StorageType.nonVolatile);
             }
-            vacm.addAccess(SnmpHelpers.toOctetString(group.getKey()), new OctetString(),
+            vacm.addAccess(toOctetString(group.getKey()), new OctetString(),
                     SecurityModel.SECURITY_MODEL_USM, groupDef.getSecurityLevel().getSnmpValue(),
                     MutableVACM.VACM_MATCH_EXACT,
-                    groupDef.hasAccessRights(AccessRights.READ) ? SnmpHelpers.toOctetString("fullReadView") : null,
-                    groupDef.hasAccessRights(AccessRights.WRITE) ? SnmpHelpers.toOctetString("fullWriteView") : null,
-                    groupDef.hasAccessRights(AccessRights.NOTIFY) ? SnmpHelpers.toOctetString("fullNotifyView") : null,
+                    groupDef.hasAccessRights(AccessRights.READ) ? toOctetString("fullReadView") : null,
+                    groupDef.hasAccessRights(AccessRights.WRITE) ? toOctetString("fullWriteView") : null,
+                    groupDef.hasAccessRights(AccessRights.NOTIFY) ? toOctetString("fullNotifyView") : null,
                     StorageType.nonVolatile);
         }
     }

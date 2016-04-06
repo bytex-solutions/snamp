@@ -42,6 +42,5 @@ public final class ConcurrentMessageDispatcher extends MessageDispatcherImpl imp
      */
     @Override
     public void close() {
-        executor.shutdownNow();
     }
 }

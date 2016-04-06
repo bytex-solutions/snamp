@@ -30,7 +30,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 
-import static com.bytex.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.parseOID;
+import static com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterConfigurationParser.parseOID;
 import static com.bytex.snamp.adapters.snmp.SnmpHelpers.getAccessRestrictions;
 import static com.bytex.snamp.adapters.snmp.SnmpResourceAdapterProfile.createDefaultTypeMapper;
 import static com.bytex.snamp.jmx.DescriptorUtils.getField;
@@ -649,7 +649,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
     @Override
     public boolean equals(final MBeanAttributeInfo metadata) {
         try {
-            return Objects.equals(getID(), new OID(parseOID(metadata)));
+            return Objects.equals(getID(), new OID(parseOID(metadata, SnmpHelpers.OID_GENERATOR)));
         } catch (final ParseException ignored) {
             return false;
         }

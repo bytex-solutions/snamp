@@ -1,4 +1,4 @@
-package com.bytex.snamp.adapters.snmp;
+package com.bytex.snamp.adapters.snmp.configuration;
 
 import com.bytex.snamp.configuration.AbsentConfigurationParameterException;
 
@@ -7,7 +7,7 @@ import com.bytex.snamp.configuration.AbsentConfigurationParameterException;
  * @version 1.2
  * @since 1.0
  */
-final class SnmpAdapterAbsentParameterException extends AbsentConfigurationParameterException {
+public final class SnmpAdapterAbsentParameterException extends AbsentConfigurationParameterException {
     private static final long serialVersionUID = -9140257085258997415L;
 
     SnmpAdapterAbsentParameterException(final String parameterName) {

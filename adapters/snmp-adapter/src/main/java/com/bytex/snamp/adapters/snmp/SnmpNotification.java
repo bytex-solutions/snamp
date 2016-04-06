@@ -3,6 +3,7 @@ package com.bytex.snamp.adapters.snmp;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.Consumer;
 import com.bytex.snamp.SafeConsumer;
+import com.bytex.snamp.adapters.snmp.helpers.OctetStringHelper;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 import com.bytex.snamp.connectors.notifications.Severity;
 import com.bytex.snamp.jmx.TabularDataUtils;
@@ -21,7 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.bytex.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.parseDateTimeDisplayFormat;
+import static com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterConfigurationParser.parseDateTimeDisplayFormat;
 
 /**
  * Represents SNMP notification with attachments.
@@ -68,15 +69,15 @@ final class SnmpNotification extends HashMap<OID, Variable> {
                      final MBeanNotificationInfo options,
                      final SnmpTypeMapper mapper) {
         this(notificationID);
-        put(messageId, SnmpHelpers.toOctetString(n.getMessage()));
+        put(messageId, OctetStringHelper.toOctetString(n.getMessage()));
         put(severityId, new Integer32(NotificationDescriptor.getSeverity(options).getLevel()));
         put(sequenceNumberId, new Counter64(n.getSequenceNumber()));
-        put(categoryId, SnmpHelpers.toOctetString(NotificationDescriptor.getName(options)));
+        put(categoryId, OctetStringHelper.toOctetString(NotificationDescriptor.getName(options)));
         final DateTimeFormatter formatter = SnmpHelpers.createDateTimeFormatter(parseDateTimeDisplayFormat(options));
         put(timeStampId, new OctetString(formatter.convert(new Date(n.getTimeStamp()))));
         putAttachment(notificationID, n.getUserData(), options, this, mapper);
-        put(eventNameId, SnmpHelpers.toOctetString(n.getType()));
-        put(sourceId, SnmpHelpers.toOctetString(Objects.toString(n.getSource(), "")));
+        put(eventNameId, OctetStringHelper.toOctetString(n.getType()));
+        put(sourceId, OctetStringHelper.toOctetString(Objects.toString(n.getSource(), "")));
     }
 
     private static void putAttachment(final OID notificationID,

@@ -1,4 +1,4 @@
-package com.bytex.snamp.adapters.snmp;
+package com.bytex.snamp.adapters.snmp.configuration;
 
 import javax.naming.NamingException;
 import javax.naming.directory.DirContext;
@@ -10,7 +10,7 @@ import java.util.Hashtable;
  * @version 1.2
  * @since 1.0
  */
-interface DirContextFactory {
+public interface DirContextFactory {
     /**
      * Creates a new JNDI context.
      * @param env Environment parameters used to create JNDI context.

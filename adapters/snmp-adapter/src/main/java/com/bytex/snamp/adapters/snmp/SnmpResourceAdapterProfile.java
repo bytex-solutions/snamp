@@ -1,16 +1,19 @@
 package com.bytex.snamp.adapters.snmp;
 
 import com.bytex.snamp.adapters.profiles.BasicResourceAdapterProfile;
+import com.bytex.snamp.adapters.snmp.configuration.DirContextFactory;
 import com.bytex.snamp.adapters.snmp.configuration.SecurityConfiguration;
+import com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterAbsentParameterException;
+import com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterConfigurationParser;
 import com.bytex.snamp.jmx.WellKnownType;
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
 
+import javax.naming.NamingException;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
-
-import static com.bytex.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.*;
 
 /**
  * Represents default profile for SNMP Resource Adapter.
@@ -21,10 +24,18 @@ import static com.bytex.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.*
  */
 class SnmpResourceAdapterProfile extends BasicResourceAdapterProfile implements SnmpTypeMapper {
     static final String PROFILE_NAME = DEFAULT_PROFILE_NAME;
+    private final SnmpAdapterConfigurationParser configurationParser;
 
     SnmpResourceAdapterProfile(final Map<String, String> parameters,
                                          final boolean defaultProfile) {
+        this(parameters, defaultProfile, new SnmpAdapterConfigurationParser());
+    }
+
+    SnmpResourceAdapterProfile(final Map<String, String> parameters,
+                               final boolean defaultProfile,
+                               final SnmpAdapterConfigurationParser parser) {
         super(parameters, defaultProfile);
+        this.configurationParser = Objects.requireNonNull(parser);
     }
 
     /**
@@ -97,48 +108,47 @@ class SnmpResourceAdapterProfile extends BasicResourceAdapterProfile implements 
     /**
      * Creates a new instance of SNMP Agent.
      * @param contextFactory JNDI context factory. Cannot be {@literal null}.
-     * @param threadPool Thread pool. Cannot be {@literal null}.
      * @return A new instance of SNMP Agent.
      * @throws IOException Unable to create an instance of SNMP Agent.
      * @throws SnmpAdapterAbsentParameterException One of the required parameters is missing.
+     * @throws NamingException Unable to import security settings from LDAP server.
      */
-    SnmpAgent createSnmpAgent(final DirContextFactory contextFactory,
-                                     final ExecutorService threadPool) throws IOException, SnmpAdapterAbsentParameterException {
+    SnmpAgent createSnmpAgent(final DirContextFactory contextFactory) throws IOException, SnmpAdapterAbsentParameterException, NamingException {
         return new SnmpAgent(getContext(),
                 getEngineID(),
                 getPort(),
                 getAddress(),
                 getSecurityConfiguration(contextFactory),
                 getSocketTimeout(),
-                threadPool);
+                configurationParser.getThreadPool(this));
     }
 
-    final int getSocketTimeout(){
-        return parseSocketTimeout(this);
+    private int getSocketTimeout(){
+        return configurationParser.parseSocketTimeout(this);
     }
 
-    final SecurityConfiguration getSecurityConfiguration(final DirContextFactory contextFactory){
-        return parseSecurityConfiguration(this, contextFactory);
+    private SecurityConfiguration getSecurityConfiguration(final DirContextFactory contextFactory) throws NamingException{
+        return configurationParser.parseSecurityConfiguration(this, contextFactory);
     }
 
-    final String getAddress(){
-        return parseAddress(this);
+    private String getAddress(){
+        return configurationParser.parseAddress(this);
     }
 
     final OID getContext() throws SnmpAdapterAbsentParameterException {
-        return new OID(parseContext(this));
+        return new OID(configurationParser.parseContext(this));
     }
 
-    final OctetString getEngineID(){
-        return parseEngineID(this);
+    private OctetString getEngineID(){
+        return configurationParser.parseEngineID(this);
     }
 
-    final int getPort(){
-        return parsePort(this);
+    private int getPort(){
+        return configurationParser.parsePort(this);
     }
 
     final long getRestartTimeout(){
-        return parseRestartTimeout(this);
+        return configurationParser.parseRestartTimeout(this);
     }
 
     static SnmpResourceAdapterProfile createDefault(final Map<String, String> parameters){
