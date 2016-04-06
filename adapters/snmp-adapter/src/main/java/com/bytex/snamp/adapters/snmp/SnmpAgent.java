@@ -1,6 +1,7 @@
 package com.bytex.snamp.adapters.snmp;
 
 import com.bytex.snamp.adapters.ResourceAdapterUpdatedCallback;
+import com.bytex.snamp.adapters.snmp.configuration.SecurityConfiguration;
 import org.snmp4j.TransportMapping;
 import org.snmp4j.agent.*;
 import org.snmp4j.agent.mo.snmp.*;
@@ -323,7 +324,6 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, Res
     public synchronized void stop() {
         switch (agentState) {
             case STATE_CREATED:
-                threadPool.shutdownNow();
             case STATE_RUNNING:
                 suspend();
             case STATE_STOPPED:

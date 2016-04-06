@@ -76,20 +76,22 @@ final class JaasRealmImpl implements JaasRealm {
     }
 
     static Collection<JaasRealm> getRealms(final Gson formatter, final BundleContext context) throws InvalidSyntaxException, IOException {
-        final ServiceHolder<ConfigurationAdmin> adminRef = new ServiceHolder<>(context, ConfigurationAdmin.class);
-        try {
-            final Configuration[] configs = adminRef.getService().listConfigurations(getConfigFilter());
-            if (configs == null || configs.length == 0) return Collections.emptyList();
-            final List<JaasRealm> result = Lists.newArrayListWithExpectedSize(configs.length);
-            for (final Configuration cfg : configs) {
-                final Dictionary<String, ?> properties = cfg.getProperties();
-                if (properties != null)
-                    result.add(new JaasRealmImpl(formatter, properties));
+        final ServiceHolder<ConfigurationAdmin> adminRef = ServiceHolder.tryCreate(context, ConfigurationAdmin.class);
+        if (adminRef != null)
+            try {
+                final Configuration[] configs = adminRef.getService().listConfigurations(getConfigFilter());
+                if (configs == null || configs.length == 0) return Collections.emptyList();
+                final List<JaasRealm> result = Lists.newArrayListWithExpectedSize(configs.length);
+                for (final Configuration cfg : configs) {
+                    final Dictionary<String, ?> properties = cfg.getProperties();
+                    if (properties != null)
+                        result.add(new JaasRealmImpl(formatter, properties));
+                }
+                return result;
+            } finally {
+                adminRef.release(context);
             }
-            return result;
-        } finally {
-            adminRef.release(context);
-        }
+        else return ImmutableList.of();
     }
 
     static void deleteAll(final ConfigurationAdmin adminRef) throws InvalidSyntaxException, IOException {

@@ -13,6 +13,7 @@ import java.util.Map;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration.THREAD_POOL_KEY;
 import static com.bytex.snamp.jmx.DescriptorUtils.*;
 
 /**
@@ -61,6 +62,7 @@ final class NRDPAdapterConfigurationDescriptor extends ConfigurationEntityDescri
                     ResourceAdapterConfiguration.class,
                     NRDP_SERVER_URL_PARAM,
                     CONNECTION_TIMEOUT_PARAM,
+                    THREAD_POOL_KEY,
                     TOKEN_PARAM,
                     PASSIVE_CHECK_SEND_PERIOD_PARAM);
         }

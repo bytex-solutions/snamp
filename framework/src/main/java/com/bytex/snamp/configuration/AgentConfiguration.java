@@ -75,6 +75,13 @@ public interface AgentConfiguration extends Cloneable {
      */
     interface ResourceAdapterConfiguration extends EntityConfiguration {
         /**
+         * Represents name of configuration parameter that points to thread pool in {@link com.bytex.snamp.concurrent.ThreadPoolRepository}
+         * service used by adapter.
+         * @since 1.2
+         */
+        String THREAD_POOL_KEY = "threadPool";
+
+        /**
          * Gets the hosting adapter name.
          * @return The hosting adapter name.
          */
@@ -103,9 +110,16 @@ public interface AgentConfiguration extends Cloneable {
     interface ManagedResourceConfiguration extends EntityConfiguration {
 
         /**
-         * Represents name of the configuration parameter that can be used to enable Smart mode of the connector.
+         * Represents name of configuration parameter that can be used to enable Smart mode of the connector.
          */
         String SMART_MODE_KEY = "smartMode";
+
+        /**
+         * Represents name of configuration parameter that points to thread pool in {@link com.bytex.snamp.concurrent.ThreadPoolRepository}
+         * service used by connector.
+         * @since 1.2
+         */
+        String THREAD_POOL_KEY = "threadPool";
 
         /**
          * Represents a feature of the managed resource.

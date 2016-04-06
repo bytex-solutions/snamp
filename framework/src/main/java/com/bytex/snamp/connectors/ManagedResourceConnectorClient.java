@@ -369,13 +369,15 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
 
     public static ManagedResourceConfiguration getResourceConfiguration(final BundleContext context,
                                                                         final String resourceName) throws IOException {
-        final ServiceHolder<ConfigurationAdmin> admin = new ServiceHolder<>(context,
+        final ServiceHolder<ConfigurationAdmin> admin = ServiceHolder.tryCreate(context,
                 ConfigurationAdmin.class);
-        try {
-            return PersistentConfigurationManager.readResourceConfiguration(admin.getService(), resourceName);
-        } finally {
-            admin.release(context);
-        }
+        if (admin != null)
+            try {
+                return PersistentConfigurationManager.readResourceConfiguration(admin.getService(), resourceName);
+            } finally {
+                admin.release(context);
+            }
+        else return null;
     }
 
     public ManagedResourceConfiguration getResourceConfiguration(final BundleContext context) throws IOException {

@@ -52,7 +52,7 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
          * @param message A human-readable explanation.
          * @param args Formatting arguments.
          */
-        public UnsupportedUpdateOperationException(final String message, final Object... args){
+        UnsupportedUpdateOperationException(final String message, final Object... args){
             super(String.format(message, args));
         }
     }

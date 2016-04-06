@@ -19,6 +19,7 @@ import javax.naming.directory.DirContext;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
 
 import static com.bytex.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.*;
@@ -35,11 +36,11 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
 
         private SnmpAdapterUpdateManager(final String adapterInstanceName,
                                          final SnmpResourceAdapterProfile profile,
-                                         final DirContextFactory contextFactory) throws IOException, SnmpAdapterAbsentParameterException{
+                                         final DirContextFactory contextFactory,
+                                         final ExecutorService threadPool) throws IOException, SnmpAdapterAbsentParameterException{
             super(adapterInstanceName, profile.getRestartTimeout());
             this.profile = Objects.requireNonNull(profile);
-            agent = profile.createSnmpAgent(contextFactory,
-                    profile.createThreadPoolFactory(adapterInstanceName));
+            agent = profile.createSnmpAgent(contextFactory, threadPool);
         }
 
         private void startAgent(final Iterable<? extends SnmpAttributeAccessor> attributes,
@@ -127,7 +128,8 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
         //initialize restart manager and start SNMP agent
         updateManager = new SnmpAdapterUpdateManager(getInstanceName(),
                 profile,
-                contextFactory);
+                contextFactory,
+                extractThreadPool(profile));
         updateManager.startAgent(attributes.values(), notifications.values());
     }
 

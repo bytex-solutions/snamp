@@ -23,7 +23,7 @@ public interface ThreadPoolRepository extends SupportService, ManagedService, It
      * Obtains thread pool by its name.
      * @param name The name of thread pool.
      * @param useDefaultIfNotExists {@literal true} to return default thread pool if requested thread pool doesn't exist; {@literal false} to return null if requested thread pool doesn't exist.
-     * @return Registered thread pool.
+     * @return Private copy of thread pool configuration.
      */
     ExecutorService getThreadPool(final String name, final boolean useDefaultIfNotExists);
 

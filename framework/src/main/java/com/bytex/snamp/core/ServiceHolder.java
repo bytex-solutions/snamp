@@ -33,9 +33,25 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
      * Initializes a new service reference holder.
      * @param context The context of the bundle which holds this reference. Cannot be {@literal null}.
      * @param serviceType The requested service type. Cannot be {@literal null}.
+     * @throws IllegalArgumentException Service with specified interface is not available in OSGi environment.
+     * @deprecated Use {@link #tryCreate(BundleContext, Class)} instead.
      */
+    @Deprecated
     public ServiceHolder(final BundleContext context, final Class<S> serviceType) throws IllegalArgumentException{
         this(context, context.getServiceReference(serviceType));
+    }
+
+    /**
+     * Attempts to create a reference to OSGi service without throwing exception if service was not registered.
+     * @param context The context of the bundle which holds this reference. Cannot be {@literal null}.
+     * @param serviceType The requested service type. Cannot be {@literal null}.
+     * @param <S> Type of service interface.
+     * @return A reference to OSGi service; or {@literal null}, if service was not registered.
+     * @since 1.2
+     */
+    public static <S> ServiceHolder<S> tryCreate(final BundleContext context, final Class<S> serviceType){
+        final ServiceReference<S> serviceRef = context.getServiceReference(serviceType);
+        return serviceRef != null ? new ServiceHolder<>(context, serviceRef) : null;
     }
 
     /**

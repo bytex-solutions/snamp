@@ -1,7 +1,6 @@
 package com.bytex.snamp.concurrent;
 
 import com.google.common.base.Function;
-import com.google.common.primitives.Ints;
 
 import java.io.Serializable;
 import java.util.concurrent.*;
@@ -13,11 +12,33 @@ import java.util.concurrent.*;
  * @version 1.2
  */
 public final class ThreadPoolConfig implements Serializable, Function<String, ExecutorService> {
+    private static final long serialVersionUID = -3096911128997326858L;
+    /**
+     * Default number of threads to keep in the pool.
+     */
     public static final int DEFAULT_MIN_POOL_SIZE = 1;
-    public static final int DEFAULT_MAX_POOL_SIZE = Runtime.getRuntime().availableProcessors();
+
+    /**
+     * Default maximum number of threads to allow in the pool
+     */
+    public static final int DEFAULT_MAX_POOL_SIZE = Runtime.getRuntime().availableProcessors() + 1;
+
+    /**
+     * Default priority of threads in the pool.
+     */
     public static final int DEFAULT_PRIORITY = Thread.NORM_PRIORITY;
+
+    /**
+     * When the number of threads is greater than the minimum, this is the maximum time that excess idle threads
+     *        will wait for new tasks before terminating
+     */
     public static final int DEFAULT_KEEP_ALIVE_TIME = 1000;
+
+    /**
+     * Infinite size of the queue used to enqueue scheduled tasks.
+     */
     public static final int INFINITE_QUEUE_SIZE = Integer.MAX_VALUE;
+
 
     private int minPoolSize = DEFAULT_MIN_POOL_SIZE;
     private int maxPoolSize = DEFAULT_MAX_POOL_SIZE;
@@ -69,17 +90,30 @@ public final class ThreadPoolConfig implements Serializable, Function<String, Ex
         return queueSize == INFINITE_QUEUE_SIZE;
     }
 
+    /**
+     * Setup infinite queue size used to store scheduled tasks.
+     */
     public void useInifiniteQueue(){
         queueSize = INFINITE_QUEUE_SIZE;
     }
 
+    /**
+     * Creates a new thread pool using settings defined in this instance.
+     * @param threadGroup Name of thread group.
+     * @return A new instance of thread pool.
+     */
     @Override
-    public ExecutorService apply(final String serviceName) {
-        return createExecutorService(serviceName);
+    public ExecutorService apply(final String threadGroup) {
+        return createExecutorService(threadGroup);
     }
 
-    public ExecutorService createExecutorService(final String serviceName){
-        final GroupedThreadFactory threadFactory = new GroupedThreadFactory(serviceName, threadPriority);
+    /**
+     * Creates a new thread pool using settings defined in this instance.
+     * @param threadGroup Name of thread group.
+     * @return A new instance of thread pool.
+     */
+    public ExecutorService createExecutorService(final String threadGroup){
+        final GroupedThreadFactory threadFactory = new GroupedThreadFactory(threadGroup, threadPriority);
         final BlockingQueue<Runnable> taskQueue;
         final int corePoolSize;
         switch (queueSize) {
@@ -133,5 +167,20 @@ public final class ThreadPoolConfig implements Serializable, Function<String, Ex
     @Override
     public int hashCode() {
         return queueSize ^ (minPoolSize << 1) ^ (maxPoolSize << 2) ^ (threadPriority << 3) ^ (keepAliveTime << 4);
+    }
+
+    /**
+     * Provides string representation of the thread pool configuration.
+     * @return String representation of the thread pool configuration.
+     */
+    @Override
+    public String toString() {
+        return "{" +
+                "minPoolSize=" + minPoolSize + ',' +
+                "maxPoolSize=" + maxPoolSize + ',' +
+                "threadPriority=" + threadPriority + ',' +
+                "queueSize=" + (queueSize == INFINITE_QUEUE_SIZE ? "INFINITE" : queueSize) + ',' +
+                "keepAliveTime" + keepAliveTime +
+                '}';
     }
 }

@@ -3,25 +3,28 @@ package com.bytex.snamp.adapters.nrdp;
 import ch.shamu.jsendnrdp.NRDPServerConnectionSettings;
 import ch.shamu.jsendnrdp.domain.NagiosCheckResult;
 import ch.shamu.jsendnrdp.domain.State;
+import com.bytex.snamp.EntryReader;
+import com.bytex.snamp.TimeSpan;
+import com.bytex.snamp.adapters.AbstractResourceAdapter;
+import com.bytex.snamp.adapters.NotificationEvent;
+import com.bytex.snamp.adapters.NotificationListener;
+import com.bytex.snamp.adapters.modeling.*;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
-import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.adapters.*;
-import com.bytex.snamp.adapters.NotificationListener;
-import com.bytex.snamp.adapters.modeling.*;
-import com.bytex.snamp.EntryReader;
 
-import javax.management.*;
+import javax.management.MBeanAttributeInfo;
+import javax.management.MBeanFeatureInfo;
+import javax.management.MBeanNotificationInfo;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 
-import static com.bytex.snamp.adapters.nrdp.NRDPAdapterConfigurationDescriptor.*;
+import static com.bytex.snamp.adapters.nrdp.NRDPAdapterConfigurationDescriptor.getPassiveCheckSendPeriod;
+import static com.bytex.snamp.adapters.nrdp.NRDPAdapterConfigurationDescriptor.parseSettings;
 
 /**
  * @author Roman Sakno
@@ -112,9 +115,6 @@ final class NRDPAdapter extends AbstractResourceAdapter {
                     for (final NotificationAccessor accessor : list.values())
                         accessor.close();
             }
-            final ConcurrentPassiveCheckSender sender = checkSender;
-            if (sender != null)
-                sender.close();
             checkSender = null;
         }
     }
@@ -176,8 +176,8 @@ final class NRDPAdapter extends AbstractResourceAdapter {
 
     private synchronized void start(final TimeSpan checkPeriod,
                        final NRDPServerConnectionSettings settings,
-                       final Supplier<ExecutorService> threadPoolFactory) {
-        final ConcurrentPassiveCheckSender checkSender = new ConcurrentPassiveCheckSender(settings, threadPoolFactory);
+                       final ExecutorService threadPool) {
+        final ConcurrentPassiveCheckSender checkSender = new ConcurrentPassiveCheckSender(settings, threadPool);
         notifications.setCheckSender(checkSender);
         attributeChecker = new NSCAPeriodPassiveCheckSender(checkPeriod, checkSender, attributes);
         attributeChecker.run();
@@ -187,7 +187,7 @@ final class NRDPAdapter extends AbstractResourceAdapter {
     protected void start(final Map<String, String> parameters) throws AbsentNRDPConfigurationParameterException {
         start(getPassiveCheckSendPeriod(parameters),
                 parseSettings(parameters),
-                new SenderThreadPoolConfig(parameters, getAdapterName(), getInstanceName()));
+                extractThreadPool(parameters));
     }
 
     @Override

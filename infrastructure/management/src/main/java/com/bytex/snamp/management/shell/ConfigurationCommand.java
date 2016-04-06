@@ -3,10 +3,10 @@ package com.bytex.snamp.management.shell;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.PersistentConfigurationManager;
 import com.bytex.snamp.core.ServiceHolder;
-import com.google.common.collect.ImmutableSet;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 import org.osgi.service.cm.ConfigurationAdmin;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -32,19 +32,21 @@ abstract class ConfigurationCommand extends OsgiCommandSupport implements SnampS
 
     @Override
     protected final CharSequence doExecute() throws Exception {
-        final ServiceHolder<ConfigurationAdmin> adminRef = new ServiceHolder<>(bundleContext, ConfigurationAdmin.class);
-        try {
-            final PersistentConfigurationManager configurationManager = new PersistentConfigurationManager(adminRef);
-            configurationManager.load();
-            final StringBuilder output = new StringBuilder(64);
-            if(doExecute(configurationManager.getCurrentConfiguration(), output))
-                configurationManager.save();
-            return output;
-        }
-        finally {
-            adminRef.release(bundleContext);
-        }
+        final ServiceHolder<ConfigurationAdmin> adminRef = ServiceHolder.tryCreate(bundleContext, ConfigurationAdmin.class);
+        if (adminRef != null)
+            try {
+                final PersistentConfigurationManager configurationManager = new PersistentConfigurationManager(adminRef);
+                configurationManager.load();
+                final StringBuilder output = new StringBuilder(64);
+                if (doExecute(configurationManager.getCurrentConfiguration(), output))
+                    configurationManager.save();
+                return output;
+            } finally {
+                adminRef.release(bundleContext);
+            }
+        else throw new IOException("Configuration storage is not available");
     }
+
     protected static <T extends FeatureConfiguration> Set<? extends Map.Entry<String, ? extends T>> getFeatures(final ManagedResourceConfiguration resource,
                                                                                             final Class<T> featureType) {
         final Map<String, ? extends T> features = resource.getFeatures(featureType);

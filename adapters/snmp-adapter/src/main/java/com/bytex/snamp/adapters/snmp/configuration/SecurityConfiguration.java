@@ -1,5 +1,7 @@
-package com.bytex.snamp.adapters.snmp;
+package com.bytex.snamp.adapters.snmp.configuration;
 
+import com.bytex.snamp.adapters.snmp.DirContextFactory;
+import com.bytex.snamp.adapters.snmp.SnmpHelpers;
 import com.google.common.base.Splitter;
 import org.snmp4j.agent.mo.snmp.StorageType;
 import org.snmp4j.agent.mo.snmp.VacmMIB;
@@ -22,7 +24,7 @@ import java.util.logging.Level;
  * @version 1.2
  * @since 1.0
  */
-final class SecurityConfiguration {
+public final class SecurityConfiguration {
     private static final Splitter SEMICOLON_SPLITTER = Splitter.on(';').trimResults().omitEmptyStrings();
 
     /**
@@ -81,7 +83,7 @@ final class SecurityConfiguration {
      */
     private static final String LDAP_PASSWORD_HOLDER_PARAM = "ldap-user-password-attribute-name";
 
-    private static final class DefaultDirContextFactory implements DirContextFactory{
+    private static final class DefaultDirContextFactory implements DirContextFactory {
         @Override
         public DirContext create(final Hashtable<String, ?> env) throws NamingException {
             return new InitialDirContext(env);

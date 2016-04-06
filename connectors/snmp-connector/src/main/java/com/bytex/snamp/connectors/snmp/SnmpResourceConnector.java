@@ -946,7 +946,4 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         return Collections.emptyList();
     }
 
-    static String getConnectorType(){
-        return getConnectorType(SnmpResourceConnector.class);
-    }
 }

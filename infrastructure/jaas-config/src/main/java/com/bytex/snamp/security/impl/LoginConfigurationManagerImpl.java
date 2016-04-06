@@ -81,15 +81,17 @@ final class LoginConfigurationManagerImpl extends AbstractAggregator implements 
     @Override
     public void resetConfiguration() throws IOException {
         final BundleContext context = getContext();
-        final ServiceHolder<ConfigurationAdmin> adminRef = new ServiceHolder<>(context,
+        final ServiceHolder<ConfigurationAdmin> adminRef = ServiceHolder.tryCreate(context,
                 ConfigurationAdmin.class);
-        try{
-            JaasRealmImpl.deleteAll(adminRef.getService());
-        } catch (final InvalidSyntaxException e) {
-            throw new IOException(e);
-        } finally {
-            adminRef.release(context);
-        }
+        if (adminRef != null)
+            try {
+                JaasRealmImpl.deleteAll(adminRef.getService());
+            } catch (final InvalidSyntaxException e) {
+                throw new IOException(e);
+            } finally {
+                adminRef.release(context);
+            }
+        else throw configStorageNotAvail();
     }
 
     /**
@@ -102,22 +104,28 @@ final class LoginConfigurationManagerImpl extends AbstractAggregator implements 
     public void loadConfiguration(final Reader in) throws IOException {
         final JsonConfiguration config = JsonConfiguration.deserialize(formatter, in);
         final BundleContext context = getContext();
-        final ServiceHolder<ConfigurationAdmin> adminRef = new ServiceHolder<>(context,
+        final ServiceHolder<ConfigurationAdmin> adminRef = ServiceHolder.tryCreate(context,
                 ConfigurationAdmin.class);
-        try {
-            //delete existing realms
-            JaasRealmImpl.deleteAll(adminRef.getService());
-            //register a new realms
-            for (final String realmName : config.keySet()) {
-                final AppConfigurationEntry[] entries = config.getAppConfigurationEntry(realmName);
-                final JaasRealmImpl realm = new JaasRealmImpl(realmName, entries, JaasRealmImpl.DEFAULT_RANK);
-                realm.persist(formatter, adminRef.getService());
+        if (adminRef != null)
+            try {
+                //delete existing realms
+                JaasRealmImpl.deleteAll(adminRef.getService());
+                //register a new realms
+                for (final String realmName : config.keySet()) {
+                    final AppConfigurationEntry[] entries = config.getAppConfigurationEntry(realmName);
+                    final JaasRealmImpl realm = new JaasRealmImpl(realmName, entries, JaasRealmImpl.DEFAULT_RANK);
+                    realm.persist(formatter, adminRef.getService());
+                }
+            } catch (final InvalidSyntaxException e) {
+                throw new IOException(e);
+            } finally {
+                adminRef.release(context);
             }
-        } catch (final InvalidSyntaxException e) {
-            throw new IOException(e);
-        } finally {
-            adminRef.release(context);
-        }
+        else throw configStorageNotAvail();
+    }
+
+    private static IOException configStorageNotAvail(){
+        return new IOException("ConfigurationAdmin is not available");
     }
 
     /**

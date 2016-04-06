@@ -46,16 +46,16 @@
     <snmp4j.version>2.4.3</snmp4j.version>
     <snmp4j.agent.version>2.4.2</snmp4j.agent.version>
     <sshj.version>0.10.0</sshj.version>
-    <snamp.framework.version>1.1.0</snamp.framework.version>
+    <snamp.framework.version>1.2.0</snamp.framework.version>
     <snamp.framework.maxVersion>2</snamp.framework.maxVersion>
 
-    <snamp.adapters.http.version>1.1.0</snamp.adapters.http.version>
+    <snamp.adapters.http.version>1.2.0</snamp.adapters.http.version>
     <snamp.adapters.jmx.version>1.1.0</snamp.adapters.jmx.version>
     <snamp.adapters.nagios.version>1.1.0</snamp.adapters.nagios.version>
-    <snamp.adapters.nrdp.version>1.1.0</snamp.adapters.nrdp.version>
-    <snamp.adapters.nsca.version>1.1.0</snamp.adapters.nsca.version>
-    <snamp.adapters.snmp.version>1.1.0</snamp.adapters.snmp.version>
-    <snamp.adapters.ssh.version>1.1.0</snamp.adapters.ssh.version>
+    <snamp.adapters.nrdp.version>1.2.0</snamp.adapters.nrdp.version>
+    <snamp.adapters.nsca.version>1.2.0</snamp.adapters.nsca.version>
+    <snamp.adapters.snmp.version>1.2.0</snamp.adapters.snmp.version>
+    <snamp.adapters.ssh.version>1.2.0</snamp.adapters.ssh.version>
     <snamp.adapters.syslog.version>1.1.0</snamp.adapters.syslog.version>
     <snamp.adapters.xmpp.version>1.1.0</snamp.adapters.xmpp.version>
     <snamp.adapters.groovy.version>1.1.0</snamp.adapters.groovy.version>
@@ -63,19 +63,20 @@
 
     <snamp.jmxhelper.version>1.1.0</snamp.jmxhelper.version>
     <snamp.jaasconfig.version>1.1.0</snamp.jaasconfig.version>
-    <snamp.management.version>1.1.0</snamp.management.version>
+    <snamp.management.version>1.2.0</snamp.management.version>
+    <snamp.services.version>1.2.0</snamp.services.version>
 
     <snamp.connectors.rshell.version>1.1.0</snamp.connectors.rshell.version>
     <snamp.connectors.aggregator.version>1.1.0</snamp.connectors.aggregator.version>
     <snamp.connectors.groovy.version>1.1.0</snamp.connectors.groovy.version>
     <snamp.connectors.ibmwmq.version>1.1.0</snamp.connectors.ibmwmq.version>
     <snamp.connectors.jmx.version>1.1.0</snamp.connectors.jmx.version>
-    <snamp.connectors.mda.version>1.1.0</snamp.connectors.mda.version>
-    <snamp.connectors.snmp.version>1.1.0</snamp.connectors.snmp.version>
+    <snamp.connectors.mda.version>1.2.0</snamp.connectors.mda.version>
+    <snamp.connectors.snmp.version>1.2.0</snamp.connectors.snmp.version>
     <snamp.connectors.modbus.version>1.1.0</snamp.connectors.modbus.version>
-    <snamp.connectors.mq.version>1.1.0</snamp.connectors.mq.version>
+    <snamp.connectors.mq.version>1.2.0</snamp.connectors.mq.version>
   </properties>
-  <version>1.1.0</version>
+  <version>1.2.0</version>
   <organization>
         <name>Bytex</name>
         <url>http://snamp.bytex.solutions/</url>
@@ -131,6 +132,32 @@
                 </plugin>
             </plugins>
         </pluginManagement>
+      <plugins>
+          <plugin>
+              <groupId>org.codehaus.mojo</groupId>
+              <artifactId>flatten-maven-plugin</artifactId>
+              <version>1.0.0</version>
+              <configuration/>
+              <executions>
+                  <!-- enable flattening -->
+                  <execution>
+                      <id>flatten</id>
+                      <phase>process-resources</phase>
+                      <goals>
+                          <goal>flatten</goal>
+                      </goals>
+                  </execution>
+                  <!-- ensure proper cleanup -->
+                  <execution>
+                      <id>flatten.clean</id>
+                      <phase>clean</phase>
+                      <goals>
+                          <goal>clean</goal>
+                      </goals>
+                  </execution>
+              </executions>
+          </plugin>
+      </plugins>
   </build>
   <dependencyManagement>
     <dependencies>
@@ -272,12 +299,16 @@
     <module>framework</module>
     <module>connectors</module>
     <module>adapters</module>
-    <module>infrastructure/jmx-helpers</module>
     <module>third-party-libs/bundlized/snmp4j</module>
     <module>third-party-libs/bundlized/sshj</module>
+    <module>infrastructure/jmx-helpers</module>
     <module>infrastructure/management</module>
     <module>infrastructure/jaas-config</module>
-    <module>features</module>
+    <module>infrastructure/internal-services</module>
+    <module>features/platform-feature</module>
+    <module>features/adapters-features</module>
+    <module>features/connectors-features</module>
+    <module>features/wrapped-libs-for-tests</module>
     <module>osgi-tests</module>
 
   </modules>

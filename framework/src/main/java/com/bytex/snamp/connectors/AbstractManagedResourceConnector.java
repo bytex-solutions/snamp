@@ -435,6 +435,13 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
         return isSmartModeSupported(this);
     }
 
+    /**
+     * Determines whether SmartMode should be enabled for configured connector.
+     * @param parameters Configuration parameters of the managed resource. Cannot be {@literal null}.
+     * @return {@literal true} if SmartMode={@literal true} in the specified configuration parameters.
+     * @deprecated Use {@link ManagedResourceConfigurationParser#isSmartModeEnabled(Map)}
+     */
+    @Deprecated
     public static boolean isSmartModeEnabled(final Map<String, ?> parameters) {
         if(parameters.containsKey(AgentConfiguration.ManagedResourceConfiguration.SMART_MODE_KEY)){
             final Object smartMode = parameters.get(AgentConfiguration.ManagedResourceConfiguration.SMART_MODE_KEY);

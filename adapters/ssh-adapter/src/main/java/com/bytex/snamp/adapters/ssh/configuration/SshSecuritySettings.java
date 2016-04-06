@@ -1,7 +1,8 @@
-package com.bytex.snamp.adapters.ssh;
+package com.bytex.snamp.adapters.ssh.configuration;
 
 import net.schmizz.sshj.userauth.keyprovider.KeyFormat;
 
+import java.security.InvalidKeyException;
 import java.security.PublicKey;
 
 /**
@@ -10,7 +11,7 @@ import java.security.PublicKey;
  * @version 1.2
  * @since 1.0
  */
-interface SshSecuritySettings {
+public interface SshSecuritySettings {
 
     String getUserName();
     String getPassword();
@@ -20,6 +21,6 @@ interface SshSecuritySettings {
     boolean hasJaasDomain();
 
     boolean hasClientPublicKey();
-    PublicKey getClientPublicKey();
+    PublicKey getClientPublicKey() throws InvalidKeyException;
     KeyFormat getClientPublicKeyFormat();
 }

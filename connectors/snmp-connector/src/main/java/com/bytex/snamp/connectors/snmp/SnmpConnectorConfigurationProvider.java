@@ -4,16 +4,13 @@ import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
-import com.bytex.snamp.configuration.ThreadPoolConfigurationDescriptor;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import org.snmp4j.mp.MPv3;
 import org.snmp4j.smi.OctetString;
 
 import java.util.Map;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.SMART_MODE_KEY;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
 
 /**
  * Represents SNMP connector configuration descriptor.
@@ -35,19 +32,19 @@ final class SnmpConnectorConfigurationProvider extends ConfigurationEntityDescri
     static final String SECURITY_CONTEXT_PARAM = "securityContext";
     static final String SOCKET_TIMEOUT_PARAM = "socketTimeout";
     static final int DEFAULT_SOCKET_TIMEOUT = 3000;
-    static final String RESPONSE_TIMEOUT_PARAM = "responseTimeout";
+    private static final String RESPONSE_TIMEOUT_PARAM = "responseTimeout";
     private static final TimeSpan DEFAULT_RESPONSE_TIMEOUT = TimeSpan.ofSeconds(6);
     //attribute related parameters
     static final String SNMP_CONVERSION_FORMAT_PARAM = "snmpConversionFormat";
     //event related parameters
-    static final String SEVERITY_PARAM = "severity";
+    private static final String SEVERITY_PARAM = "severity";
     static final String MESSAGE_TEMPLATE_PARAM = "messageTemplate";
     static final String MESSAGE_OID_PARAM = "messageOID";
 
     private static final class EventConfigurationDescriptor extends ResourceBasedConfigurationEntityDescription<EventConfiguration>{
         private static final String RESOURCE_NAME = "EventOptions";
 
-        public EventConfigurationDescriptor(){
+        private EventConfigurationDescriptor(){
             super(RESOURCE_NAME, EventConfiguration.class, SEVERITY_PARAM, MESSAGE_TEMPLATE_PARAM);
         }
     }
@@ -55,7 +52,7 @@ final class SnmpConnectorConfigurationProvider extends ConfigurationEntityDescri
     private static final class AttributeConfigurationDescriptor extends ResourceBasedConfigurationEntityDescription<AttributeConfiguration>{
         private static final String RESOURCE_NAME = "AttributeOptions";
 
-        public AttributeConfigurationDescriptor(){
+        private AttributeConfigurationDescriptor(){
             super(RESOURCE_NAME,
                     AttributeConfiguration.class,
                     SNMP_CONVERSION_FORMAT_PARAM,
@@ -63,10 +60,10 @@ final class SnmpConnectorConfigurationProvider extends ConfigurationEntityDescri
         }
     }
 
-    private static final class ConnectorConfigurationDescriptor extends ResourceBasedConfigurationEntityDescription<ManagedResourceConfiguration> implements ThreadPoolConfigurationDescriptor<ManagedResourceConfiguration>{
+    private static final class ConnectorConfigurationDescriptor extends ResourceBasedConfigurationEntityDescription<ManagedResourceConfiguration>{
         private static final String RESOURCE_NAME = "ConnectorOptions";
 
-        public ConnectorConfigurationDescriptor(){
+        private ConnectorConfigurationDescriptor(){
             super(RESOURCE_NAME,
                     ManagedResourceConfiguration.class,
                     COMMUNITY_PARAM,
@@ -78,16 +75,12 @@ final class SnmpConnectorConfigurationProvider extends ConfigurationEntityDescri
                     PASSWORD_PARAM,
                     LOCAL_ADDRESS_PARAM,
                     SECURITY_CONTEXT_PARAM,
-                    QUEUE_SIZE_PROPERTY,
-                    PRIORITY_PROPERTY,
-                    KEEP_ALIVE_TIME_PROPERTY,
-                    MIN_POOL_SIZE_PROPERTY,
-                    MAX_POOL_SIZE_PROPERTY,
+                    THREAD_POOL_KEY,
                     SMART_MODE_KEY);
         }
     }
 
-    public SnmpConnectorConfigurationProvider(){
+    SnmpConnectorConfigurationProvider(){
         super(new ConnectorConfigurationDescriptor(),
                 new AttributeConfigurationDescriptor(),
                 new EventConfigurationDescriptor());

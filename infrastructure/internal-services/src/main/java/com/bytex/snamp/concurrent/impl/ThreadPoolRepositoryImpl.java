@@ -4,7 +4,6 @@ import com.bytex.snamp.concurrent.ConcurrentResourceAccessor;
 import com.bytex.snamp.concurrent.ThreadPoolConfig;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.core.AbstractFrameworkService;
-import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
 import com.google.common.collect.ImmutableSet;
@@ -37,6 +36,11 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
 
     private final Logger logger = Logger.getLogger("SnampThreadPoolRepository");
     private final ExecutorService defaultPool = createDefaultConfig().createExecutorService(DEFAULT_POOL);
+    private final ConfigurationAdmin configAdmin;
+
+    public ThreadPoolRepositoryImpl(final ConfigurationAdmin configAdmin){
+        this.configAdmin = Objects.requireNonNull(configAdmin);
+    }
 
     private static ThreadPoolConfig createDefaultConfig(){
         return new ThreadPoolConfig();
@@ -78,18 +82,14 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
             }
         });
         //persist configuration
-        final BundleContext context = getBundleContext();
-        final ServiceHolder<ConfigurationAdmin> configAdmin = new ServiceHolder<>(context, ConfigurationAdmin.class);
         try {
-            final Configuration persistentConfig = configAdmin.getService().getConfiguration(PID);
+            final Configuration persistentConfig = configAdmin.getConfiguration(PID);
             Dictionary<String, Object> configuredServices = persistentConfig.getProperties();
             if (configuredServices == null) configuredServices = new Hashtable<>();
             configuredServices.put(name, IOUtils.serialize(config));
             persistentConfig.update(configuredServices);
         } catch (final IOException e) {
             logger.log(Level.SEVERE, "Unable to persist thread pool configuration", e);
-        } finally {
-            configAdmin.release(context);
         }
         return executor;
     }
@@ -98,10 +98,8 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
     public ThreadPoolConfig getConfiguration(final String name) {
         if (DEFAULT_POOL.equals(name))
             return createDefaultConfig();
-        final BundleContext context = getBundleContext();
-        final ServiceHolder<ConfigurationAdmin> configAdmin = new ServiceHolder<>(context, ConfigurationAdmin.class);
         try {
-            final Configuration persistentConfig = configAdmin.getService().getConfiguration(PID);
+            final Configuration persistentConfig = configAdmin.getConfiguration(PID);
             final Dictionary<String, Object> configuredServices = persistentConfig.getProperties();
             if (configuredServices == null) return null;
             final byte[] serializedConfig = Utils.getProperty(configuredServices, name, byte[].class, (byte[]) null);
@@ -109,30 +107,25 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
         } catch (final IOException e) {
             logger.log(Level.SEVERE, String.format("Unable to read '%s' thread pool configuration", name), e);
             return null;
-        } finally {
-            configAdmin.release(context);
         }
     }
 
     @Override
     public boolean unregisterThreadPool(final String name, final boolean shutdown) {
-        if(DEFAULT_POOL.equals(name)) return false;
+        if (DEFAULT_POOL.equals(name)) return false;
         final boolean success = services.write(new ConsistentAction<Map<String, ExecutorService>, Boolean>() {
             @Override
             public Boolean invoke(final Map<String, ExecutorService> services) {
                 final ExecutorService executor = services.remove(name);
-                if(executor != null){
-                    if(shutdown) executor.shutdown();
+                if (executor != null) {
+                    if (shutdown) executor.shutdown();
                     return true;
-                }
-                else return false;
+                } else return false;
             }
         });
         if (success) {
-            final BundleContext context = getBundleContext();
-            final ServiceHolder<ConfigurationAdmin> configAdmin = new ServiceHolder<>(context, ConfigurationAdmin.class);
             try {
-                final Configuration persistentConfig = configAdmin.getService().getConfiguration(PID);
+                final Configuration persistentConfig = configAdmin.getConfiguration(PID);
                 final Dictionary<String, Object> configuredServices = persistentConfig.getProperties();
                 if (configuredServices != null) {
                     configuredServices.remove(name);
@@ -141,8 +134,6 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
             } catch (final IOException e) {
                 logger.log(Level.SEVERE, String.format("Unable to persist '%s' thread pool configuration", name), e);
                 return false;
-            } finally {
-                configAdmin.release(context);
             }
         }
         return success;

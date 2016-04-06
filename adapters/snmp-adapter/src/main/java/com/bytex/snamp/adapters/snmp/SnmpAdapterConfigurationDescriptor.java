@@ -1,10 +1,10 @@
 package com.bytex.snamp.adapters.snmp;
 
 
+import com.bytex.snamp.adapters.snmp.configuration.SecurityConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
-import com.bytex.snamp.configuration.ThreadPoolConfigurationDescriptor;
 import org.snmp4j.SNMP4JSettings;
 import org.snmp4j.mp.MPv3;
 import org.snmp4j.smi.OID;
@@ -18,6 +18,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.bytex.snamp.jmx.DescriptorUtils.getField;
 import static com.bytex.snamp.jmx.DescriptorUtils.hasField;
+import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration.THREAD_POOL_KEY;
 
 /**
  * Represents descriptor of SnmpAgent-specific configuration elements.
@@ -78,7 +79,7 @@ public final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntit
     private static final String TARGET_NAME_PARAM = "receiverName";
     private static final String TARGET_ADDRESS_PARAM = "receiverAddress";
 
-    private static final class ResourceAdapterConfigurationInfo extends ResourceBasedConfigurationEntityDescription<ResourceAdapterConfiguration> implements ThreadPoolConfigurationDescriptor<ResourceAdapterConfiguration> {
+    private static final class ResourceAdapterConfigurationInfo extends ResourceBasedConfigurationEntityDescription<ResourceAdapterConfiguration> {
         private static final String RESOURCE_NAME = "SnmpAdapterConfig";
         private ResourceAdapterConfigurationInfo(){
             super(RESOURCE_NAME,
@@ -90,11 +91,7 @@ public final class SnmpAdapterConfigurationDescriptor extends ConfigurationEntit
                     PORT_PARAM_NAME,
                     HOST_PARAM_NAME,
                     LDAP_URI_PARAM,
-                    MIN_POOL_SIZE_PROPERTY,
-                    MAX_POOL_SIZE_PROPERTY,
-                    QUEUE_SIZE_PROPERTY,
-                    KEEP_ALIVE_TIME_PROPERTY,
-                    PRIORITY_PROPERTY,
+                    THREAD_POOL_KEY,
                     RESTART_TIMEOUT_PARAM,
                     LDAP_ADMINDN_PARAM,
                     LDAP_ADMIN_PASSWORD_PARAM,

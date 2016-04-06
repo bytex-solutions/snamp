@@ -16,7 +16,8 @@ public class PersistentConfigurationTest extends AbstractSnampIntegrationTest {
 
     @Test
     public void configurationTest() throws Exception {
-        final ServiceHolder<ConfigurationAdmin> admin = new ServiceHolder<>(getTestBundleContext(), ConfigurationAdmin.class);
+        final ServiceHolder<ConfigurationAdmin> admin = ServiceHolder.tryCreate(getTestBundleContext(), ConfigurationAdmin.class);
+        assertNotNull(admin);
         try{
             final PersistentConfigurationManager manager = new PersistentConfigurationManager(admin);
             manager.load();

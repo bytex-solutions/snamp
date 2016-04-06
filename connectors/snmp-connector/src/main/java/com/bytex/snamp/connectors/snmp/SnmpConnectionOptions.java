@@ -1,7 +1,6 @@
 package com.bytex.snamp.connectors.snmp;
 
-import com.google.common.base.Supplier;
-import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
+import com.bytex.snamp.connectors.ManagedResourceConfigurationParser;
 import org.snmp4j.security.*;
 import org.snmp4j.smi.Address;
 import org.snmp4j.smi.GenericAddress;
@@ -20,7 +19,7 @@ import static com.bytex.snamp.connectors.snmp.SnmpConnectorConfigurationProvider
  * @version 1.2
  * @since 1.0
  */
-final class SnmpConnectionOptions {
+final class SnmpConnectionOptions extends ManagedResourceConfigurationParser {
     private final Address connectionAddress;
     private final OctetString engineID;
     private final OctetString community;
@@ -32,16 +31,16 @@ final class SnmpConnectionOptions {
     private final OctetString encryptionKey;
     private final OctetString securityContext;
     private final int socketTimeout;
-    private final Supplier<ExecutorService> threadPoolConfig;
     private final boolean smartMode;
+    private final ExecutorService threadPool;
 
     SnmpConnectionOptions(final String connectionString,
                                  final Map<String, String> parameters) {
         connectionAddress = GenericAddress.parse(connectionString);
-        threadPoolConfig = new SnmpThreadPoolConfig(parameters, connectionString);
         engineID = parseEngineID(parameters);
         community = parseCommunity(parameters);
-        this.smartMode = AbstractManagedResourceConnector.isSmartModeEnabled(parameters);
+        this.threadPool = getThreadPool(parameters);
+        this.smartMode = isSmartModeEnabled(parameters);
         userName = parameters.containsKey(USER_NAME_PARAM) ?
                 new OctetString(parameters.get(USER_NAME_PARAM)) :
                 null;
@@ -105,8 +104,8 @@ final class SnmpConnectionOptions {
     SnmpClient createSnmpClient() throws IOException{
 
         return userName == null ?
-                SnmpClient.create(connectionAddress, community, localAddress, socketTimeout, threadPoolConfig):
-                SnmpClient.create(connectionAddress, engineID, userName, authProtocol, password, encryptionProtocol, encryptionKey, securityContext, localAddress, socketTimeout, threadPoolConfig);
+                SnmpClient.create(connectionAddress, community, localAddress, socketTimeout, threadPool):
+                SnmpClient.create(connectionAddress, engineID, userName, authProtocol, password, encryptionProtocol, encryptionKey, securityContext, localAddress, socketTimeout, threadPool);
     }
 
     boolean isSmartModeEnabled(){

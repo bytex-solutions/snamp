@@ -29,7 +29,8 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
 @SnampDependencies({SnampFeature.JMX_CONNECTOR, SnampFeature.GROOVY_ADAPTER})
 public final class CommandsTest extends AbstractSnampIntegrationTest {
     private CharSequence runCommand(String command) throws Exception{
-        final ServiceHolder<CommandProcessor> processorRef = new ServiceHolder<>(getTestBundleContext(), CommandProcessor.class);
+        final ServiceHolder<CommandProcessor> processorRef = ServiceHolder.tryCreate(getTestBundleContext(), CommandProcessor.class);
+        assertNotNull(processorRef);
         // On windows we have path separator that conflicts with escape symbols
         if (OperatingSystem.isWindows()) {
             command = command.replace("\\", "\\\\");

@@ -108,17 +108,15 @@ public final class DistributedServices {
 
     private static <S> S processClusterNode(final BundleContext context,
                                             final Function<? super ClusterMember, S> processor,
-                                            final Supplier<S> def){
-        ServiceHolder<ClusterMember> holder = null;
-        try{
-            holder = new ServiceHolder<>(context, ClusterMember.class);
-            return processor.apply(holder.getService());
-        } catch (final IllegalArgumentException ignored){ //service not found
-            return def.get();
-        }finally {
-            if(holder != null)
+                                            final Supplier<S> def) {
+        final ServiceHolder<ClusterMember> holder = ServiceHolder.tryCreate(context, ClusterMember.class);
+        if (holder != null)
+            try {
+                return processor.apply(holder.getService());
+            } finally {
                 holder.release(context);
-        }
+            }
+        else return def.get();
     }
 
     private static <S> S getService(final BundleContext context,

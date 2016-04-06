@@ -1,20 +1,21 @@
 package com.bytex.snamp.adapters.ssh;
 
 import com.bytex.snamp.Consumer;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.adapters.AbstractResourceAdapter;
 import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationEventBox;
 import com.bytex.snamp.adapters.modeling.*;
+import com.bytex.snamp.adapters.ssh.configuration.SshAdapterConfigurationParser;
+import com.bytex.snamp.adapters.ssh.configuration.SshSecuritySettings;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
-import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.jmx.ExpressionBasedDescriptorFilter;
 import com.bytex.snamp.jmx.TabularDataUtils;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.jmx.json.JsonSerializerFunction;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.base.Supplier;
 import com.google.common.collect.*;
 import org.apache.sshd.SshServer;
 import org.apache.sshd.common.KeyPairProvider;
@@ -33,12 +34,11 @@ import java.io.IOException;
 import java.io.Writer;
 import java.lang.ref.WeakReference;
 import java.nio.*;
+import java.security.InvalidKeyException;
 import java.security.PublicKey;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
-
-import static com.bytex.snamp.adapters.ssh.SshAdapterConfigurationDescriptor.*;
 
 /**
  * Represents SSH resource adapter.
@@ -157,7 +157,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
     }
 
     private static abstract class AbstractBufferAttributeMapping<B extends Buffer> extends SshAttributeAccessor {
-        protected static final char WHITESPACE = ' ';
+        static final char WHITESPACE = ' ';
         private final Class<B> bufferType;
 
         private AbstractBufferAttributeMapping(final MBeanAttributeInfo metadata,
@@ -359,7 +359,6 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
     }
 
     private SshServer server;
-    private ExecutorService threadPool;
     private final SshModelOfAttributes attributes;
     private final SshModelOfNotifications notifications;
 
@@ -369,7 +368,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         notifications = new SshModelOfNotifications();
     }
 
-    private static void setupSecurity(final SshServer server, final SshSecuritySettings security) {
+    private static void setupSecurity(final SshServer server, final SshSecuritySettings security) throws InvalidKeyException {
         if (security.hasJaasDomain()) {
             final JaasPasswordAuthenticator auth = new JaasPasswordAuthenticator();
             auth.setDomain(security.getJaasDomain());
@@ -400,33 +399,26 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
                        final int port,
                        final KeyPairProvider hostKeyFile,
                        final SshSecuritySettings security,
-                       final Supplier<ExecutorService> threadPoolFactory) throws Exception{
+                       final ExecutorService threadPool) throws Exception{
         final SshServer server = SshServer.setUpDefaultServer();
-        final ExecutorService commandExecutors = threadPoolFactory.get();
         server.setHost(host);
         server.setPort(port);
         server.setKeyPairProvider(hostKeyFile);
         setupSecurity(server, security);
-        server.setShellFactory(ManagementShell.createFactory(this, commandExecutors));
-        server.setCommandFactory(new SshCommandFactory(this, commandExecutors));
+        server.setShellFactory(ManagementShell.createFactory(this, threadPool));
+        server.setCommandFactory(new SshCommandFactory(this, threadPool));
         server.start();
         this.server = server;
-        this.threadPool = commandExecutors;
     }
 
     @Override
     protected void start(final Map<String, String> parameters) throws Exception {
-        final String host = parameters.containsKey(HOST_PARAM) ?
-                parameters.get(HOST_PARAM) :
-                DEFAULT_HOST;
-        final int port = parameters.containsKey(PORT_PARAM) ?
-                Integer.parseInt(parameters.get(PORT_PARAM)) :
-                DEFAULT_PORT;
-        start(host,
-                port,
-                createKeyPairProvider(parameters),
-                createSecuritySettings(parameters),
-                new SshThreadPoolConfig(getInstanceName(), parameters));
+        final SshAdapterConfigurationParser parser = new SshAdapterConfigurationParser();
+        start(parser.getHost(parameters),
+                parser.getPort(parameters),
+                parser.getKeyPairProvider(parameters),
+                parser.getSecuritySettings(parameters),
+                parser.getThreadPool(parameters));
     }
 
     /**
@@ -439,13 +431,11 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
     protected void stop() throws Exception{
         try {
             server.stop();
-            threadPool.shutdownNow();
         }
         finally {
             attributes.clear();
             notifications.clear();
             server = null;
-            threadPool = null;
         }
     }
 

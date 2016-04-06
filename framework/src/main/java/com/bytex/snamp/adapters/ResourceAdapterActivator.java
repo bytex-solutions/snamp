@@ -15,8 +15,8 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.bytex.snamp.adapters.ResourceAdapter.ADAPTER_NAME_MANIFEST_HEADER;
 import static com.bytex.snamp.ArrayUtils.emptyArray;
+import static com.bytex.snamp.adapters.ResourceAdapter.ADAPTER_NAME_MANIFEST_HEADER;
 
 /**
  * Represents lifetime manager for managed resource adapter.

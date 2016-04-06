@@ -1,7 +1,7 @@
 package com.bytex.snamp.adapters.snmp;
 
-import com.google.common.base.Supplier;
 import com.bytex.snamp.adapters.profiles.BasicResourceAdapterProfile;
+import com.bytex.snamp.adapters.snmp.configuration.SecurityConfiguration;
 import com.bytex.snamp.jmx.WellKnownType;
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
@@ -97,29 +97,20 @@ class SnmpResourceAdapterProfile extends BasicResourceAdapterProfile implements 
     /**
      * Creates a new instance of SNMP Agent.
      * @param contextFactory JNDI context factory. Cannot be {@literal null}.
-     * @param threadPoolFactory Thread pool factory. Cannot be {@literal null}.
+     * @param threadPool Thread pool. Cannot be {@literal null}.
      * @return A new instance of SNMP Agent.
      * @throws IOException Unable to create an instance of SNMP Agent.
      * @throws SnmpAdapterAbsentParameterException One of the required parameters is missing.
      */
     SnmpAgent createSnmpAgent(final DirContextFactory contextFactory,
-                                     final Supplier<ExecutorService> threadPoolFactory) throws IOException, SnmpAdapterAbsentParameterException {
+                                     final ExecutorService threadPool) throws IOException, SnmpAdapterAbsentParameterException {
         return new SnmpAgent(getContext(),
                 getEngineID(),
                 getPort(),
                 getAddress(),
                 getSecurityConfiguration(contextFactory),
                 getSocketTimeout(),
-                threadPoolFactory.get());
-    }
-
-    /**
-     * Creates a new instance of thread pool factory.
-     * @param adapterInstanceName The name of resource adapter instance.
-     * @return A new instance of thread pool factory.
-     */
-    Supplier<ExecutorService> createThreadPoolFactory(final String adapterInstanceName){
-        return new SnmpThreadPoolConfig(this, adapterInstanceName);
+                threadPool);
     }
 
     final int getSocketTimeout(){

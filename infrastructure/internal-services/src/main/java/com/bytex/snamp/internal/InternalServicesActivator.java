@@ -8,6 +8,7 @@ import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.ClusterMember;
 import com.hazelcast.core.HazelcastInstance;
 import org.osgi.framework.Constants;
+import org.osgi.service.cm.ConfigurationAdmin;
 
 import java.util.Collection;
 import java.util.Map;
@@ -42,13 +43,13 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
     private static final class ThreadPoolRepositoryProvider extends ProvidedService<ThreadPoolRepository, ThreadPoolRepositoryImpl> {
 
         private ThreadPoolRepositoryProvider() {
-            super(ThreadPoolRepository.class);
+            super(ThreadPoolRepository.class, new SimpleDependency<>(ConfigurationAdmin.class));
         }
 
         @Override
         protected ThreadPoolRepositoryImpl activateService(final Map<String, Object> identity, RequiredService<?>... dependencies) throws Exception {
             identity.put(Constants.SERVICE_PID, ThreadPoolRepositoryImpl.PID);
-            return new ThreadPoolRepositoryImpl();
+            return new ThreadPoolRepositoryImpl(getDependency(RequiredServiceAccessor.class, ConfigurationAdmin.class, dependencies));
         }
 
         @Override

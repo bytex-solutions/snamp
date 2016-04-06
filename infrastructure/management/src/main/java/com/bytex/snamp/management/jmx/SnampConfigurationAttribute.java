@@ -312,35 +312,38 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
     public CompositeData getValue() throws IOException, ConfigurationException, OpenDataException {
         final BundleContext bundleContext = getBundleContextOfObject(this);
         final ServiceHolder<ConfigurationAdmin> adminRef =
-                new ServiceHolder<>(bundleContext,ConfigurationAdmin.class);
-        try{
-            final PersistentConfigurationManager manager = new PersistentConfigurationManager(adminRef);
-            manager.load();
-            final AgentConfiguration configuration = manager.getCurrentConfiguration();
-            if (configuration == null) throw new ConfigurationException("configuration admin",
-                    "Configuration admin does not contain appropriate SNAMP configuration");
-            else return snampConfigurationToJMX(configuration);
-        }
-        finally {
-            adminRef.release(bundleContext);
-        }
+                ServiceHolder.tryCreate(bundleContext,ConfigurationAdmin.class);
+        if(adminRef != null)
+            try{
+                final PersistentConfigurationManager manager = new PersistentConfigurationManager(adminRef);
+                manager.load();
+                final AgentConfiguration configuration = manager.getCurrentConfiguration();
+                if (configuration == null) throw new IOException("Configuration admin does not contain appropriate SNAMP configuration");
+                else return snampConfigurationToJMX(configuration);
+            }
+            finally {
+                adminRef.release(bundleContext);
+            }
+        else throw new IOException("Configuration storage is not available");
     }
 
     @Override
     public void setValue(final CompositeData data) throws IOException {
-        if(data == null || data.values().size() == 0) throw new IllegalArgumentException("No valid input data received");
+        if (data == null || data.values().size() == 0)
+            throw new IllegalArgumentException("No valid input data received");
 
         final BundleContext bundleContext = getBundleContextOfObject(this);
-        final ServiceHolder<ConfigurationAdmin> adminRef = new ServiceHolder<>(bundleContext, ConfigurationAdmin.class);
-        try{
-            final PersistentConfigurationManager manager = new PersistentConfigurationManager(adminRef);
-            manager.load();
-            ConfigurationDiffEngine.merge(JMXtoSnampConfiguration(data), manager.getCurrentConfiguration());
-            manager.save();
-        }
-        finally {
-            adminRef.release(bundleContext);
-        }
+        final ServiceHolder<ConfigurationAdmin> adminRef = ServiceHolder.tryCreate(bundleContext, ConfigurationAdmin.class);
+        if (adminRef != null)
+            try {
+                final PersistentConfigurationManager manager = new PersistentConfigurationManager(adminRef);
+                manager.load();
+                ConfigurationDiffEngine.merge(JMXtoSnampConfiguration(data), manager.getCurrentConfiguration());
+                manager.save();
+            } finally {
+                adminRef.release(bundleContext);
+            }
+        else throw new IOException("Configuration storage is not available");
     }
 
     @Override

@@ -2,7 +2,6 @@ package com.bytex.snamp.adapters.http;
 
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
-import com.bytex.snamp.configuration.ThreadPoolConfigurationDescriptor;
 
 import javax.management.Descriptor;
 
@@ -21,7 +20,7 @@ final class HttpAdapterConfigurationDescriptor extends ConfigurationEntityDescri
 
     private static final String DATE_FORMAT_PARAM = "dateFormat";
 
-    private static final class AdapterConfigurationInfo extends ResourceBasedConfigurationEntityDescription<ResourceAdapterConfiguration> implements ThreadPoolConfigurationDescriptor<ResourceAdapterConfiguration> {
+    private static final class AdapterConfigurationInfo extends ResourceBasedConfigurationEntityDescription<ResourceAdapterConfiguration> {
         private static final String RESOURCE_NAME = "RestAdapterConfig";
 
         private AdapterConfigurationInfo(){

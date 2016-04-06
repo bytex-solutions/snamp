@@ -2,6 +2,7 @@ package com.bytex.snamp.adapters.ssh;
 
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.adapters.ssh.configuration.SshAdapterConfigurationDescriptor;
 
 /**
  * Represents OSGi activator for {@link com.bytex.snamp.adapters.ssh.SshAdapter} resource adapter.

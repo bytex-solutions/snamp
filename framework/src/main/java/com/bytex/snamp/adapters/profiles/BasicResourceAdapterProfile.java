@@ -1,7 +1,7 @@
 package com.bytex.snamp.adapters.profiles;
 
-import com.google.common.collect.ImmutableMap;
 import com.bytex.snamp.AbstractAggregator;
+import com.google.common.collect.ImmutableMap;
 
 import java.util.*;
 

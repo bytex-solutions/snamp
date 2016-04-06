@@ -2,6 +2,7 @@ package com.bytex.snamp.adapters.snmp;
 
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import org.osgi.service.jndi.JNDIContextManager;
 import org.snmp4j.log.OSGiLogFactory;
 
@@ -45,7 +46,7 @@ public final class SnmpResourceAdapterActivator extends ResourceAdapterActivator
     @SpecialUse
     public SnmpResourceAdapterActivator() {
         super(new SnmpAdapterFactory(),
-                new RequiredService<?>[]{ new SimpleDependency<>(JNDIContextManager.class) },
+                new RequiredService<?>[]{ new SimpleDependency<>(JNDIContextManager.class), new SimpleDependency<>(ThreadPoolRepository.class) },
                 new SupportAdapterServiceManager<?, ?>[]{
                         new SnmpAdapterConfigurationEntityDescriptionManager()
                 });

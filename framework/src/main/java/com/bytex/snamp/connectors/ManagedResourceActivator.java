@@ -1,6 +1,7 @@
 package com.bytex.snamp.connectors;
 
 import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connectors.discovery.AbstractDiscoveryService;
@@ -8,7 +9,6 @@ import com.bytex.snamp.connectors.discovery.DiscoveryService;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.management.Maintainable;
 import com.google.common.collect.Maps;
@@ -23,9 +23,9 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static com.bytex.snamp.ArrayUtils.emptyArray;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
 import static com.bytex.snamp.connectors.ManagedResourceConnector.CONNECTOR_NAME_MANIFEST_HEADER;
-import static com.bytex.snamp.ArrayUtils.emptyArray;
 
 /**
  * Represents a base class for management connector bundle.

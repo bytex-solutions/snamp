@@ -14,6 +14,7 @@ import java.util.Map;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration.THREAD_POOL_KEY;
 import static com.bytex.snamp.jmx.DescriptorUtils.*;
 
 /**
@@ -65,6 +66,7 @@ final class NSCAAdapterConfigurationDescriptor extends ConfigurationEntityDescri
                     CONNECTION_TIMEOUT_PARAM,
                     PASSWORD_PARAM,
                     ENCRYPTION_PARAM,
+                    THREAD_POOL_KEY,
                     PASSIVE_CHECK_SEND_PERIOD_PARAM);
         }
     }

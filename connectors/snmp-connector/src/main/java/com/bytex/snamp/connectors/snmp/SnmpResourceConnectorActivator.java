@@ -1,9 +1,10 @@
 package com.bytex.snamp.connectors.snmp;
 
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.TimeSpan;
+import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
-import com.bytex.snamp.SpecialUse;
 import org.snmp4j.log.OSGiLogFactory;
 
 import javax.management.openmbean.CompositeData;
@@ -31,7 +32,9 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
                                                      final Map<String, String> connectionOptions,
                                                      final RequiredService<?>... dependencies) throws IOException {
             final SnmpResourceConnector result =
-                    new SnmpResourceConnector(resourceName, connectionString, connectionOptions);
+                    new SnmpResourceConnector(resourceName,
+                            connectionString,
+                            connectionOptions);
             result.listen();
             return result;
         }
@@ -68,27 +71,27 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
     }
 
     @SpecialUse
-    public SnmpResourceConnectorActivator(){
-        super( new SnmpConnectorFactory(),
-                new ConfigurationEntityDescriptionManager<SnmpConnectorConfigurationProvider>() {
+    public SnmpResourceConnectorActivator() {
+        super(new SnmpConnectorFactory(),
+                new RequiredService<?>[]{new SimpleDependency<>(ThreadPoolRepository.class)},
+                new SupportConnectorServiceManager<?, ?>[]{new ConfigurationEntityDescriptionManager<SnmpConnectorConfigurationProvider>() {
                     @Override
                     protected SnmpConnectorConfigurationProvider createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) throws Exception {
                         return new SnmpConnectorConfigurationProvider();
                     }
                 },
-                new SimpleDiscoveryServiceManager<SnmpClient>() {
+                        new SimpleDiscoveryServiceManager<SnmpClient>(new SimpleDependency<>(ThreadPoolRepository.class)) {
+                            @Override
+                            protected SnmpClient createManagementInformationProvider(final String connectionString, final Map<String, String> connectionOptions, final RequiredService<?>... dependencies) throws Exception {
+                                final SnmpClient client = new SnmpConnectionOptions(connectionString, connectionOptions).createSnmpClient();
+                                client.listen();
+                                return client;
+                            }
 
-                    @Override
-                    protected SnmpClient createManagementInformationProvider(final String connectionString, final Map<String, String> connectionOptions, final RequiredService<?>... dependencies) throws Exception {
-                        final SnmpClient client = new SnmpConnectionOptions(connectionString, connectionOptions).createSnmpClient();
-                        client.listen();
-                        return client;
-                    }
-
-                    @Override
-                    protected <T extends FeatureConfiguration> Collection<T> getManagementInformation(final Class<T> entityType, final SnmpClient client, final RequiredService<?>... dependencies) throws Exception {
-                        return SnmpDiscoveryService.discover(entityType, client);
-                    }
-                });
+                            @Override
+                            protected <T extends FeatureConfiguration> Collection<T> getManagementInformation(final Class<T> entityType, final SnmpClient client, final RequiredService<?>... dependencies) throws Exception {
+                                return SnmpDiscoveryService.discover(entityType, client);
+                            }
+                        }});
     }
 }
