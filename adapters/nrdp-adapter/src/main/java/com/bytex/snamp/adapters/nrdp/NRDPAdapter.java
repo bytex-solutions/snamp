@@ -9,6 +9,8 @@ import com.bytex.snamp.adapters.AbstractResourceAdapter;
 import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.adapters.modeling.*;
+import com.bytex.snamp.adapters.nrdp.configuration.AbsentNRDPConfigurationParameterException;
+import com.bytex.snamp.adapters.nrdp.configuration.NRDPAdapterConfigurationParser;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.ImmutableList;
@@ -22,9 +24,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
-
-import static com.bytex.snamp.adapters.nrdp.NRDPAdapterConfigurationDescriptor.getPassiveCheckSendPeriod;
-import static com.bytex.snamp.adapters.nrdp.NRDPAdapterConfigurationDescriptor.parseSettings;
 
 /**
  * @author Roman Sakno
@@ -185,9 +184,10 @@ final class NRDPAdapter extends AbstractResourceAdapter {
 
     @Override
     protected void start(final Map<String, String> parameters) throws AbsentNRDPConfigurationParameterException {
-        start(getPassiveCheckSendPeriod(parameters),
-                parseSettings(parameters),
-                extractThreadPool(parameters));
+        final NRDPAdapterConfigurationParser parser = new NRDPAdapterConfigurationParser();
+        start(parser.getPassiveCheckSendPeriod(parameters),
+                parser.parseSettings(parameters),
+                parser.getThreadPool(parameters));
     }
 
     @Override

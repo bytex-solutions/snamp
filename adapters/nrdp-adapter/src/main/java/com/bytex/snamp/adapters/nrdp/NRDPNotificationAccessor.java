@@ -3,6 +3,8 @@ package com.bytex.snamp.adapters.nrdp;
 import ch.shamu.jsendnrdp.domain.State;
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.adapters.modeling.NotificationRouter;
+import com.bytex.snamp.adapters.nrdp.configuration.NRDPAdapterConfigurationDescriptor;
+import com.bytex.snamp.adapters.nrdp.configuration.NRDPAdapterConfigurationParser;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 import com.google.common.collect.ImmutableSet;
@@ -51,7 +53,7 @@ final class NRDPNotificationAccessor extends NotificationRouter implements Featu
     }
 
     static String getServiceName(final MBeanNotificationInfo metadata) {
-        return NRDPAdapterConfigurationDescriptor.getServiceName(metadata.getDescriptor(),
+        return NRDPAdapterConfigurationParser.getServiceName(metadata.getDescriptor(),
                 NotificationDescriptor.getName(metadata));
     }
 

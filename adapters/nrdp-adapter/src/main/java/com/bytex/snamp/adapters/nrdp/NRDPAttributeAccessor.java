@@ -16,8 +16,8 @@ import java.util.Objects;
 import java.util.Set;
 
 import static com.bytex.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
-import static com.bytex.snamp.adapters.nrdp.NRDPAdapterConfigurationDescriptor.getServiceName;
-import static com.bytex.snamp.adapters.nrdp.NRDPAdapterConfigurationDescriptor.getUnitOfMeasurement;
+import static com.bytex.snamp.adapters.nrdp.configuration.NRDPAdapterConfigurationParser.getServiceName;
+import static com.bytex.snamp.adapters.nrdp.configuration.NRDPAdapterConfigurationParser.getUnitOfMeasurement;
 
 /**
  * Provides transformation between attribute of the connected resource and NRDP protocol.
@@ -29,7 +29,7 @@ final class NRDPAttributeAccessor extends AttributeAccessor implements FeatureBi
         super(metadata);
     }
 
-    NagiosCheckResult getCheckResult(final String host) {
+    private NagiosCheckResult getCheckResult(final String host) {
         State state;
         String message;
         final String service = getServiceName(getMetadata().getDescriptor(),

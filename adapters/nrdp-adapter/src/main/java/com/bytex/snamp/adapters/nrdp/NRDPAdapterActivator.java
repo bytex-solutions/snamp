@@ -2,6 +2,7 @@ package com.bytex.snamp.adapters.nrdp;
 
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.adapters.nrdp.configuration.NRDPAdapterConfigurationDescriptor;
 
 /**
  * @author Roman Sakno

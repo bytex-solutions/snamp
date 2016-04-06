@@ -15,8 +15,8 @@ import java.util.Objects;
 import java.util.Set;
 
 import static com.bytex.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
-import static com.bytex.snamp.adapters.nsca.NSCAAdapterConfigurationDescriptor.getServiceName;
-import static com.bytex.snamp.adapters.nsca.NSCAAdapterConfigurationDescriptor.getUnitOfMeasurement;
+import static com.bytex.snamp.adapters.nsca.configuration.NSCAAdapterConfigurationParser.getServiceName;
+import static com.bytex.snamp.adapters.nsca.configuration.NSCAAdapterConfigurationParser.getUnitOfMeasurement;
 
 /**
  * Provides transformation between attribute of the resource and NSCA protocol.
