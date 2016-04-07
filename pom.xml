@@ -62,7 +62,6 @@
     <snamp.adapters.decanter.version>1.1.0</snamp.adapters.decanter.version>
 
     <snamp.jmxhelper.version>1.1.0</snamp.jmxhelper.version>
-    <snamp.jaasconfig.version>1.1.0</snamp.jaasconfig.version>
     <snamp.management.version>1.2.0</snamp.management.version>
     <snamp.services.version>1.2.0</snamp.services.version>
 
@@ -303,7 +302,6 @@
     <module>third-party-libs/bundlized/sshj</module>
     <module>infrastructure/jmx-helpers</module>
     <module>infrastructure/management</module>
-    <module>infrastructure/jaas-config</module>
     <module>infrastructure/internal-services</module>
     <module>features/platform-feature</module>
     <module>features/adapters-features</module>

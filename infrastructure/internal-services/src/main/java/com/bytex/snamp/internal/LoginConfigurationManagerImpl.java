@@ -1,4 +1,4 @@
-package com.bytex.snamp.security.impl;
+package com.bytex.snamp.internal;
 
 import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.core.ServiceHolder;

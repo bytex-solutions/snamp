@@ -1,4 +1,4 @@
-package com.bytex.snamp.security.impl;
+package com.bytex.snamp.internal;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
