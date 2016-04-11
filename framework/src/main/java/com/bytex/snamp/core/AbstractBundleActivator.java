@@ -346,7 +346,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
         private final StringBuilder filter = new StringBuilder(64);
 
         void append(final RequiredService<?> dependency){
-            IOUtils.append(filter, "(%s=%s)", Constants.OBJECTCLASS, dependency.dependencyContract.getName());
+            filter.append(String.format("(%s=%s)", Constants.OBJECTCLASS, dependency.dependencyContract.getName()));
             appendCalledTimes += 1;
         }
 

@@ -7,6 +7,7 @@ import com.bytex.snamp.management.jmx.ResignOperation;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
+import static com.bytex.snamp.management.shell.Utils.*;
 
 /**
  * @author Roman Sakno
@@ -26,13 +27,13 @@ public class ClusterMemberStatusCommand extends OsgiCommandSupport implements Sn
         final StringBuilder result = new StringBuilder();
         if (startElection) {
             if (ResignOperation.resign(bundleContext))
-                IOUtils.appendln(result, "Resigned");
+                appendln(result, "Resigned");
             else
-                IOUtils.appendln(result, "This node is not in a cluster member");
+                appendln(result, "This node is not in a cluster member");
         }
-        IOUtils.appendln(result, "Is cluster member: %s", DistributedServices.isInCluster(bundleContext));
-        IOUtils.appendln(result, "Active Member: %s", DistributedServices.isActiveNode(bundleContext));
-        IOUtils.append(result, "Member Name: %s", DistributedServices.getLocalMemberName(bundleContext));
+        appendln(result, "Is cluster member: %s", DistributedServices.isInCluster(bundleContext));
+        appendln(result, "Active Member: %s", DistributedServices.isActiveNode(bundleContext));
+        append(result, "Member Name: %s", DistributedServices.getLocalMemberName(bundleContext));
         return result;
     }
 }
