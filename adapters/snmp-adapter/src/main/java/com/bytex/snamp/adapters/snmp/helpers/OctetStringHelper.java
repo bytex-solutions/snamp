@@ -1,5 +1,6 @@
 package com.bytex.snamp.adapters.snmp.helpers;
 
+import com.bytex.snamp.io.IOUtils;
 import org.snmp4j.smi.AssignableFromByteArray;
 import org.snmp4j.smi.OctetString;
 
@@ -13,7 +14,7 @@ public final class OctetStringHelper {
     /**
      * Default charset used to encode strings into SNMP-specific octet strings
      */
-    public static final Charset SNMP_ENCODING = StandardCharsets.UTF_8;
+    public static final Charset SNMP_ENCODING = IOUtils.DEFAULT_CHARSET;
 
     private OctetStringHelper(){
         throw new InstantiationError();
