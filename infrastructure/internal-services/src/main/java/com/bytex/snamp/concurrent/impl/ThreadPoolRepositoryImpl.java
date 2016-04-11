@@ -35,15 +35,11 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
             new ConcurrentResourceAccessor<Map<String, ExecutorService>>(new HashMap<String, ExecutorService>());
 
     private final Logger logger = Logger.getLogger("SnampThreadPoolRepository");
-    private final ExecutorService defaultPool = createDefaultConfig().createExecutorService(DEFAULT_POOL);
+    private final DefaultThreadPool defaultPool = new DefaultThreadPool();
     private final ConfigurationAdmin configAdmin;
 
     public ThreadPoolRepositoryImpl(final ConfigurationAdmin configAdmin){
         this.configAdmin = Objects.requireNonNull(configAdmin);
-    }
-
-    private static ThreadPoolConfig createDefaultConfig(){
-        return new ThreadPoolConfig();
     }
 
     @Override
@@ -61,10 +57,6 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
                     }
                 });
         }
-    }
-
-    private BundleContext getBundleContext(){
-        return Utils.getBundleContextOfObject(this);
     }
 
     @Override
@@ -97,7 +89,7 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
     @Override
     public ThreadPoolConfig getConfiguration(final String name) {
         if (DEFAULT_POOL.equals(name))
-            return createDefaultConfig();
+            return DefaultThreadPool.getConfig();
         try {
             final Configuration persistentConfig = configAdmin.getConfiguration(PID);
             final Dictionary<String, Object> configuredServices = persistentConfig.getProperties();
@@ -203,6 +195,7 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
 
     @Override
     public void close() {
+        defaultPool.terminate();
         services.write(new ConsistentAction<Map<String,ExecutorService>, Void>() {
             @Override
             public Void invoke(final Map<String, ExecutorService> services) {
