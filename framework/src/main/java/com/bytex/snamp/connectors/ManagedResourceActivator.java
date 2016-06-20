@@ -4,6 +4,7 @@ import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.configuration.*;
+import com.bytex.snamp.configuration.internal.CMManagedResourceParser;
 import com.bytex.snamp.connectors.discovery.AbstractDiscoveryService;
 import com.bytex.snamp.connectors.discovery.DiscoveryService;
 import com.bytex.snamp.core.AbstractServiceLibrary;
@@ -359,16 +360,25 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          * Represents name of the managed resource connector.
          */
         protected final String connectorType;
+        private final BundleContext resourceContext;
 
         private ManagedResourceConnectorRegistry(final String connectorType,
                                                  final ManagedResourceConnectorLifecycleController<TConnector> controller,
+                                                 final BundleContext context,
                                                  final RequiredService<?>... dependencies) {
             super(ManagedResourceConnector.class,
-                    PersistentConfigurationManager.getConnectorFactoryPersistentID(connectorType),
+                    CMManagedResourceParser.getConnectorFactoryPersistentID(context, connectorType),
                     dependencies);
             this.controller = Objects.requireNonNull(controller, "controller is null.");
             this.connectorType = connectorType;
             this.configurationHashes = Maps.newHashMapWithExpectedSize(10);
+            this.resourceContext = context;
+        }
+
+        private ManagedResourceConnectorRegistry(final String connectorType,
+                                                 final ManagedResourceConnectorLifecycleController<TConnector> controller,
+                                                 final RequiredService<?>... dependencies) {
+            this(connectorType, controller, Utils.getBundleContextOfObject(controller), dependencies);
         }
 
         private ManagedResourceConnectorRegistry(final ManagedResourceConnectorLifecycleController<TConnector> controller,
@@ -385,13 +395,13 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                             final Dictionary<String, ?> configuration) throws Exception {
             controller.updateConnector(connector,
                     AttributeConfiguration.class,
-                    PersistentConfigurationManager.getAttributes(configuration));
+                    CMManagedResourceParser.getAttributes(resourceContext, configuration));
             controller.updateConnector(connector,
                     EventConfiguration.class,
-                    PersistentConfigurationManager.getEvents(configuration));
+                    CMManagedResourceParser.getEvents(resourceContext, configuration));
             controller.updateConnector(connector,
                     OperationConfiguration.class,
-                    PersistentConfigurationManager.getOperations(configuration));
+                    CMManagedResourceParser.getOperations(resourceContext, configuration));
             //expansion should be the last instruction in this method because updating procedure
             //may remove all automatically added attributes
             AbstractManagedResourceConnector.expandAll(connector);
@@ -412,10 +422,10 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         protected TConnector update(TConnector connector,
                                     final Dictionary<String, ?> configuration,
                                     final RequiredService<?>... dependencies) throws Exception {
-            final String resourceName = PersistentConfigurationManager.getResourceName(configuration);
+            final String resourceName = CMManagedResourceParser.getResourceName(resourceContext, configuration);
             final BigInteger oldHash = configurationHashes.get(resourceName);
-            final String connectionString = PersistentConfigurationManager.getConnectionString(configuration);
-            final Map<String, String> connectorParameters = PersistentConfigurationManager.getResourceConnectorParameters(configuration);
+            final String connectionString = CMManagedResourceParser.getConnectionString(resourceContext, configuration);
+            final Map<String, String> connectorParameters = CMManagedResourceParser.getResourceConnectorParameters(resourceContext, configuration);
             //we should not update resource connector if connection parameters was not changed
             final BigInteger newHash = computeConnectionParamsHashCode(connectionString, connectorParameters);
             if(!newHash.equals(oldHash)){
@@ -444,8 +454,8 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                              final Dictionary<String, ?> configuration,
                                              final Exception e) {
             logger.log(Level.SEVERE, String.format("Unable to update connector. Connection string: %s, connection parameters: %s",
-                            PersistentConfigurationManager.getConnectionString(configuration),
-                            PersistentConfigurationManager.getResourceConnectorParameters(configuration)),
+                    CMManagedResourceParser.getConnectionString(resourceContext, configuration),
+                    CMManagedResourceParser.getResourceConnectorParameters(resourceContext, configuration)),
                     e);
         }
 
@@ -477,9 +487,9 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         protected TConnector createService(final Map<String, Object> identity,
                                            final Dictionary<String, ?> configuration,
                                            final RequiredService<?>... dependencies) throws Exception {
-            final String resourceName = PersistentConfigurationManager.getResourceName(configuration);
-            final Map<String, String> options = PersistentConfigurationManager.getResourceConnectorParameters(configuration);
-            final String connectionString = PersistentConfigurationManager.getConnectionString(configuration);
+            final String resourceName = CMManagedResourceParser.getResourceName(resourceContext, configuration);
+            final Map<String, String> options = CMManagedResourceParser.getResourceConnectorParameters(resourceContext, configuration);
+            final String connectionString = CMManagedResourceParser.getConnectionString(resourceContext, configuration);
             configurationHashes.put(resourceName, computeConnectionParamsHashCode(connectionString, options));
             createIdentity(resourceName,
                     connectorType,

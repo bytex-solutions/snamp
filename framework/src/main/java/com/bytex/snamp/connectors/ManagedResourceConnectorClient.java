@@ -1,11 +1,14 @@
 package com.bytex.snamp.connectors;
 
 import com.bytex.snamp.Aggregator;
+import com.bytex.snamp.Box;
+import com.bytex.snamp.SafeConsumer;
+import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
-import com.bytex.snamp.configuration.PersistentConfigurationManager;
+import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.connectors.discovery.DiscoveryService;
 import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.core.ServiceHolder;
@@ -14,7 +17,6 @@ import com.bytex.snamp.management.Maintainable;
 import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.Futures;
 import org.osgi.framework.*;
-import org.osgi.service.cm.ConfigurationAdmin;
 
 import javax.management.*;
 import java.io.IOException;
@@ -369,15 +371,18 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
 
     public static ManagedResourceConfiguration getResourceConfiguration(final BundleContext context,
                                                                         final String resourceName) throws IOException {
-        final ServiceHolder<ConfigurationAdmin> admin = ServiceHolder.tryCreate(context,
-                ConfigurationAdmin.class);
-        if (admin != null)
+        final ServiceHolder<ConfigurationManager> manager = ServiceHolder.tryCreate(context,
+                ConfigurationManager.class);
+        final Box<ManagedResourceConfiguration> result = new Box<>();
+        if (manager != null)
             try {
-                return PersistentConfigurationManager.readResourceConfiguration(admin.getService(), resourceName);
+                manager.get().processConfiguration(
+                        (SafeConsumer<AgentConfiguration>) config -> result.set(config.getEntities(ManagedResourceConfiguration.class).get(resourceName)),
+                        false);
             } finally {
-                admin.release(context);
+                manager.release(context);
             }
-        else return null;
+        return result.get();
     }
 
     public ManagedResourceConfiguration getResourceConfiguration(final BundleContext context) throws IOException {

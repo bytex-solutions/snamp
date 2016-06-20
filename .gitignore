@@ -1,6 +1,4 @@
-repo/
 target/
-*.agent
 *.pid
 *~
 .idea/

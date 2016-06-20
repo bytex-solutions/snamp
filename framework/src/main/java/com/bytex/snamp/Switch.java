@@ -32,12 +32,7 @@ public class Switch<I, O> implements Function<I, O> {
         }
 
         private Callable<O> createTask(final I value) {
-            return new ExceptionalCallable<O, ExceptionPlaceholder>() {
-                @Override
-                public O call() {
-                    return match(value) ? apply(value) : null;
-                }
-            };
+            return () -> match(value) ? apply(value) : null;
         }
 
         /**

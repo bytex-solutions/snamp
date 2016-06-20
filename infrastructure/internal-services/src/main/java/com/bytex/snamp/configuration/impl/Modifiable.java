@@ -1,4 +1,4 @@
-package com.bytex.snamp.configuration;
+package com.bytex.snamp.configuration.impl;
 
 /**
  * Represents modifiable configuration element.
@@ -6,7 +6,6 @@ package com.bytex.snamp.configuration;
  * @version 1.2
  * @since 1.0
 */
-@Deprecated
 interface Modifiable {
     boolean isModified();
 }

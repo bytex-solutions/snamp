@@ -1,6 +1,10 @@
-package com.bytex.snamp.configuration;
+package com.bytex.snamp.configuration.impl;
 
-import com.bytex.snamp.*;
+import com.bytex.snamp.EntryReader;
+import com.bytex.snamp.SerializableMap;
+import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.TimeSpan;
+import com.bytex.snamp.configuration.AbstractAgentConfiguration;
 import com.google.common.collect.ForwardingMap;
 
 import java.io.*;
@@ -13,10 +17,8 @@ import java.util.Objects;
  * @author Roman Sakno
  * @since 1.0
  * @version 1.2
- * @deprecated Use {@link ConfigurationManager} service instead. You can obtain this service from OSGi Service Registry.
  */
-@Deprecated
-public class SerializableAgentConfiguration extends AbstractAgentConfiguration implements Externalizable {
+final class SerializableAgentConfiguration extends AbstractAgentConfiguration implements Externalizable {
     private final static byte FORMAT_VERSION = 1;
     private static final long serialVersionUID = 8461144056430141155L;
 
@@ -30,7 +32,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
      * @since 1.0
      * @version 1.2
      */
-    public interface SerializableEntityConfiguration extends EntityConfiguration, Modifiable, Externalizable{
+    interface SerializableEntityConfiguration extends EntityConfiguration, Modifiable, Externalizable{
         /**
          * Determines whether this configuration entity is modified after deserialization.
          * @return {@literal true}, if this configuration entity is modified; otherwise, {@literal false}.
@@ -198,9 +200,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
         @Override
         public final void reset() {
             super.reset();
-            for(final EntityConfiguration entity: values())
-                if(entity instanceof Resettable)
-                    ((Resettable)entity).reset();
+            values().stream().filter(entity -> entity instanceof Resettable).forEach(entity -> ((Resettable) entity).reset());
         }
 
         @Override
@@ -219,6 +219,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
     private static final class AdapterRegistry extends ConfigurationEntityRegistry<SerializableResourceAdapterConfiguration>{
         private static final long serialVersionUID = 8142154170844526063L;
 
+        @SpecialUse
         public AdapterRegistry() {
         }
 
@@ -231,6 +232,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
     private static final class ResourceRegistry extends ConfigurationEntityRegistry<SerializableManagedResourceConfiguration>{
         private static final long serialVersionUID = 8031527910928209252L;
 
+        @SpecialUse
         public ResourceRegistry() {
         }
 
@@ -245,16 +247,16 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
         private transient boolean modified;
         private final ModifiableParameters parameters;
 
-        protected AbstractEntityConfiguration(){
+        AbstractEntityConfiguration(){
             parameters = new ModifiableParameters();
             modified = false;
         }
 
-        protected final void writeParameters(final ObjectOutput out) throws IOException {
+        final void writeParameters(final ObjectOutput out) throws IOException {
             parameters.writeExternal(out);
         }
 
-        protected final void readParameters(final ObjectInput in) throws IOException, ClassNotFoundException {
+        final void readParameters(final ObjectInput in) throws IOException, ClassNotFoundException {
             parameters.readExternal(in);
         }
 
@@ -269,7 +271,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
 
         }
 
-        protected final void markAsModified(){
+        final void markAsModified(){
             modified = true;
         }
 
@@ -293,37 +295,6 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
             return parameters;
         }
 
-        /**
-         * Overwrites a set of parameters.
-         * @param parameters A new set of parameters
-         */
-        public final void setParameters(final Map<String, String> parameters){
-            this.parameters.clear();
-            this.parameters.putAll(parameters);
-        }
-
-        /**
-         * Puts the parameter value.
-         * @param name The name of the parameter.
-         * @param value The value of the parameter.
-         */
-        public final void setParameter(final String name, final String value){
-            parameters.put(name, value);
-        }
-
-        public final String getParameter(final String parameter, final String defaultValue){
-            return parameters.containsKey(parameter) ?
-                    parameters.get(parameter) :
-                    defaultValue;
-        }
-
-        public final void setGroupName(final String value){
-            setParameter(GROUP_KEY, value);
-        }
-
-        public final String getGroupName(){
-            return getParameter(GROUP_KEY, null);
-        }
     }
 
     /**
@@ -332,7 +303,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
      * @since 1.0
      * @version 1.2
      */
-    public static final class SerializableResourceAdapterConfiguration extends AbstractEntityConfiguration implements ResourceAdapterConfiguration{
+    static final class SerializableResourceAdapterConfiguration extends AbstractEntityConfiguration implements ResourceAdapterConfiguration{
         private static final byte FORMAT_VERSION = 1;
         private static final long serialVersionUID = 7926704115151740217L;
         private String adapterName;
@@ -340,6 +311,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
         /**
          * Initializes a new empty adapter settings.
          */
+        @SpecialUse
         public SerializableResourceAdapterConfiguration(){
             adapterName = "";
         }
@@ -365,7 +337,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
             this.adapterName = adapterName != null ? adapterName : "";
         }
 
-        public boolean equals(final ResourceAdapterConfiguration other){
+        boolean equals(final ResourceAdapterConfiguration other){
             return AbstractAgentConfiguration.equals(this, other);
         }
 
@@ -387,7 +359,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
          * and arrays.
          *
          * @param out the stream to write the object to
-         * @throws java.io.IOException Includes any I/O exceptions that may occur
+         * @throws IOException Includes any I/O exceptions that may occur
          * @serialData Overriding methods should use this tag to describe
          * the data layout of this Externalizable object.
          * List the sequence of element types and, if possible,
@@ -409,7 +381,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
          * and with the same types as were written by writeExternal.
          *
          * @param in the stream to read data from in order to restore the object
-         * @throws java.io.IOException    if I/O errors occur
+         * @throws IOException    if I/O errors occur
          * @throws ClassNotFoundException If the class for an object being
          *                                restored cannot be found.
          */
@@ -474,25 +446,6 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
 
         private static abstract class AbstractFeatureConfiguration extends AbstractEntityConfiguration implements FeatureConfiguration {
             private static final long serialVersionUID = -1609210097027316240L;
-
-            public final void setAlternativeName(final String value){
-                setParameter(NAME_KEY, value);
-            }
-
-            public final String getAlternativeName(){
-                return getParameter(NAME_KEY, null);
-            }
-
-            public final void setAutomaticallyAdded(final boolean value){
-                if(value)
-                    setParameter(AUTOMATICALLY_ADDED_KEY, Boolean.TRUE.toString());
-                else
-                    getParameters().remove(AUTOMATICALLY_ADDED_KEY);
-            }
-
-            public final boolean isAutomaticallyAdded(){
-                return getParameters().containsKey(AUTOMATICALLY_ADDED_KEY);
-            }
         }
 
         /**
@@ -501,9 +454,14 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
          * @since 1.0
          * @version 1.2
          */
-        public static final class SerializableOperationConfiguration extends AbstractFeatureConfiguration implements OperationConfiguration{
+        static final class SerializableOperationConfiguration extends AbstractFeatureConfiguration implements OperationConfiguration{
             private static final long serialVersionUID = 8267389949041604889L;
             private TimeSpan timeout = TimeSpan.INFINITE;
+
+            @SpecialUse
+            public SerializableOperationConfiguration(){
+
+            }
 
             /**
              * The object implements the writeExternal method to save its contents
@@ -581,7 +539,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
              * and arrays.
              *
              * @param out the stream to write the object to
-             * @throws java.io.IOException Includes any I/O exceptions that may occur
+             * @throws IOException Includes any I/O exceptions that may occur
              * @serialData Overriding methods should use this tag to describe
              * the data layout of this Externalizable object.
              * List the sequence of element types and, if possible,
@@ -601,7 +559,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
              * and with the same types as were written by writeExternal.
              *
              * @param in the stream to read data from in order to restore the object
-             * @throws java.io.IOException    if I/O errors occur
+             * @throws IOException    if I/O errors occur
              * @throws ClassNotFoundException If the class for an object being
              *                                restored cannot be found.
              */
@@ -646,7 +604,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
              * and arrays.
              *
              * @param out the stream to write the object to
-             * @throws java.io.IOException Includes any I/O exceptions that may occur
+             * @throws IOException Includes any I/O exceptions that may occur
              * @serialData Overriding methods should use this tag to describe
              * the data layout of this Externalizable object.
              * List the sequence of element types and, if possible,
@@ -667,7 +625,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
              * and with the same types as were written by writeExternal.
              *
              * @param in the stream to read data from in order to restore the object
-             * @throws java.io.IOException    if I/O errors occur
+             * @throws IOException    if I/O errors occur
              * @throws ClassNotFoundException If the class for an object being
              *                                restored cannot be found.
              */
@@ -719,6 +677,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
         /**
          * Initializes a new empty configuration of the management information source.
          */
+        @SpecialUse
         public SerializableManagedResourceConfiguration(){
             connectionString = connectionType = "";
             this.attributes = new AttributeRegistry();
@@ -733,7 +692,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
          * and arrays.
          *
          * @param out the stream to write the object to
-         * @throws java.io.IOException Includes any I/O exceptions that may occur
+         * @throws IOException Includes any I/O exceptions that may occur
          * @serialData Overriding methods should use this tag to describe
          * the data layout of this Externalizable object.
          * List the sequence of element types and, if possible,
@@ -758,7 +717,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
          * and with the same types as were written by writeExternal.
          *
          * @param in the stream to read data from in order to restore the object
-         * @throws java.io.IOException    if I/O errors occur
+         * @throws IOException    if I/O errors occur
          * @throws ClassNotFoundException If the class for an object being
          *                                restored cannot be found.
          */
@@ -778,7 +737,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
          * Overwrites a set of operations.
          * @param operations A new set of operations.
          */
-        public void setOperations(final Map<String, ? extends SerializableOperationConfiguration> operations){
+        void setOperations(final Map<String, ? extends SerializableOperationConfiguration> operations){
             this.operations.clear();
             this.operations.putAll(operations);
         }
@@ -787,7 +746,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
          * Overwrites a set of attributes.
          * @param attributes A new set of attributes.
          */
-        public void setAttributes(final Map<String, ? extends SerializableAttributeConfiguration> attributes) {
+        void setAttributes(final Map<String, ? extends SerializableAttributeConfiguration> attributes) {
             this.attributes.clear();
             this.attributes.putAll(attributes);
         }
@@ -796,7 +755,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
          * Overwrites a set of events.
          * @param events A new set of events.
          */
-        public void setEvents(final Map<String, ? extends SerializableEventConfiguration> events){
+        void setEvents(final Map<String, ? extends SerializableEventConfiguration> events){
             this.events.clear();
             this.events.putAll(events);
         }
@@ -877,7 +836,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
          * Returns a set of configured operations.
          * @return A set of configured operations.
          */
-        public EntityMap<SerializableOperationConfiguration> getOperations(){
+        EntityMap<SerializableOperationConfiguration> getOperations(){
             return operations;
         }
 
@@ -886,7 +845,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
          *
          * @return The dictionary of management managementAttributes.
          */
-        public EntityMap<SerializableAttributeConfiguration> getAttributes() {
+        EntityMap<SerializableAttributeConfiguration> getAttributes() {
             return attributes;
         }
 
@@ -895,7 +854,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
          *
          * @return A set of event sources.
          */
-        public EntityMap<SerializableEventConfiguration> getEvents() {
+        EntityMap<SerializableEventConfiguration> getEvents() {
             return events;
         }
 
@@ -934,6 +893,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
     /**
      * Initializes a new empty agent configuration.
      */
+    @SpecialUse
     public SerializableAgentConfiguration(){
         adapters = new AdapterRegistry();
         resources = new ResourceRegistry();
@@ -953,78 +913,17 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
         return clonedConfig;
     }
 
-    void reset(){
+    private void reset(){
         adapters.reset();
         resources.reset();
     }
 
-    /**
-     * Determines whether this configuration is modified.
-     * @return {@literal true}, if some part of this configuration is modified; otherwise, {@literal false}.
-     */
-    public boolean isModified(){
-        return adapters.isModified() || resources.isModified();
-    }
-
-    /**
-     * Enumerates all modified configuration entities.
-     * @param handler A handle which will be called for each modified entity.
-     * @param <E> Type of the exception that may be produced by handler.
-     * @throws E Unable to process modified configuration entity.
-     */
-    public <E extends Exception> void modifiedEntities(final EntryReader<String, ? super EntityConfiguration, E> handler) throws E {
-        modifiedResources(handler);
-        modifiedAdapters(handler);
-    }
-
-    public <E extends Exception> void modifiedResources(final EntryReader<String, ? super ManagedResourceConfiguration, E> handler) throws E{
+    <E extends Exception> void modifiedResources(final EntryReader<String, ? super ManagedResourceConfiguration, E> handler) throws E{
         resources.modifiedEntries(handler);
     }
 
-    public <E extends Exception> void modifiedAdapters(final EntryReader<String, ? super ResourceAdapterConfiguration, E> handler) throws E{
+    <E extends Exception> void modifiedAdapters(final EntryReader<String, ? super ResourceAdapterConfiguration, E> handler) throws E{
         adapters.modifiedEntries(handler);
-    }
-
-    /**
-     * Represents management resources.
-     *
-     * @return The dictionary of management resources (management back-ends).
-     */
-    @Override
-    public final EntityMap<SerializableManagedResourceConfiguration> getManagedResources() {
-        return resources;
-    }
-
-    /**
-     * Gets a collection of resource adapters.
-     *
-     * @return A collection of resource adapters.
-     */
-    @Override
-    public final EntityMap<SerializableResourceAdapterConfiguration> getResourceAdapters() {
-        return adapters;
-    }
-
-    public SerializableManagedResourceConfiguration getOrRegisterManagedResource(final String resourceName) {
-        final SerializableManagedResourceConfiguration result;
-        if (resources.containsKey(resourceName))
-            result = resources.get(resourceName);
-        else {
-            result = new SerializableManagedResourceConfiguration();
-            resources.put(resourceName, result);
-        }
-        return result;
-    }
-
-    public SerializableResourceAdapterConfiguration getOrRegisterResourceAdapter(final String adapterInstance) {
-        final SerializableResourceAdapterConfiguration result;
-        if (adapters.containsKey(adapterInstance))
-            result = adapters.get(adapterInstance);
-        else {
-            result = new SerializableResourceAdapterConfiguration();
-            adapters.put(adapterInstance, result);
-        }
-        return result;
     }
 
     /**
@@ -1034,7 +933,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
      * and arrays.
      *
      * @param out the stream to write the object to
-     * @throws java.io.IOException Includes any I/O exceptions that may occur
+     * @throws IOException Includes any I/O exceptions that may occur
      * @serialData Overriding methods should use this tag to describe
      * the data layout of this Externalizable object.
      * List the sequence of element types and, if possible,
@@ -1042,7 +941,7 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
      * method of this Externalizable class.
      */
     @Override
-    public final void writeExternal(final ObjectOutput out) throws IOException {
+    public void writeExternal(final ObjectOutput out) throws IOException {
         out.writeByte(FORMAT_VERSION);
         //write adapters
         adapters.writeExternal(out);
@@ -1058,12 +957,12 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
      * and with the same types as were written by writeExternal.
      *
      * @param in the stream to read data from in order to restore the object
-     * @throws java.io.IOException    if I/O errors occur
+     * @throws IOException    if I/O errors occur
      * @throws ClassNotFoundException If the class for an object being
      *                                restored cannot be found.
      */
     @Override
-    public final void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
+    public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
         final byte version = in.readByte();
         //check version
         if(version != FORMAT_VERSION)
@@ -1078,7 +977,20 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
      * Determines whether this configuration is empty.
      * @return {@literal true}, if this configuration is empty; otherwise, {@literal false}.
      */
-    public final boolean isEmpty(){
+    boolean isEmpty(){
         return adapters.isEmpty() && resources.isEmpty();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <E extends EntityConfiguration> ConfigurationEntityRegistry<? extends E> getEntities(final Class<E> entityType) {
+        final ConfigurationEntityRegistry result;
+        if (ManagedResourceConfiguration.class.equals(entityType))
+            result = resources;
+        else if (ResourceAdapterConfiguration.class.equals(entityType))
+            result = adapters;
+        else
+            result = null;
+        return result;
     }
 }

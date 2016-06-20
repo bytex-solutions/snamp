@@ -7,7 +7,7 @@ package com.bytex.snamp;
  * @version 1.2
  * @since 1.0
  */
-public interface SafeConsumer<T> extends Consumer<T, ExceptionPlaceholder> {
+public interface SafeConsumer<T> extends Consumer<T, ExceptionPlaceholder>, java.util.function.Consumer<T> {
     /**
      * Performs this operation on the given argument.
      *

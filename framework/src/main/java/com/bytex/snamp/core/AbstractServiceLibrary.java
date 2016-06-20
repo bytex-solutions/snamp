@@ -747,7 +747,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
     private static final class ListOfProvidedServices extends ArrayList<ProvidedService<?, ?>> implements ProvidedServices{
         private static final long serialVersionUID = 341418339520679799L;
 
-        public ListOfProvidedServices(final ProvidedService<?, ?>... services){
+        private ListOfProvidedServices(final ProvidedService<?, ?>... services){
             super(Arrays.asList(services));
         }
 

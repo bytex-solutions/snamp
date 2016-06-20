@@ -1,21 +1,22 @@
 package com.bytex.snamp.configuration;
 
+import com.bytex.snamp.*;
 import com.bytex.snamp.core.ServiceHolder;
+import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.io.IOUtils;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
-import com.bytex.snamp.*;
-import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.ThreadSafe;
-import com.bytex.snamp.EntryReader;
-import com.bytex.snamp.io.IOUtils;
 import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -31,8 +32,10 @@ import static com.bytex.snamp.configuration.SerializableAgentConfiguration.Seria
  * @author Roman Sakno
  * @version 1.2
  * @since 1.0
+ * @deprecated Use {@link ConfigurationManager} service instead. You can obtain this service from OSGi Service Registry.
  */
 @ThreadSafe
+@Deprecated
 public final class PersistentConfigurationManager extends AbstractAggregator implements ConfigurationManager {
     private static final TypeToken<SerializableMap<String, SerializableManagedResourceConfiguration.SerializableAttributeConfiguration>> ATTRS_MAP_TYPE = new TypeToken<SerializableMap<String, SerializableManagedResourceConfiguration.SerializableAttributeConfiguration>>() {};
     private static final TypeToken<SerializableMap<String, SerializableManagedResourceConfiguration.SerializableEventConfiguration>> EVENTS_MAP_TYPE = new TypeToken<SerializableMap<String, SerializableManagedResourceConfiguration.SerializableEventConfiguration>>() {};
@@ -49,13 +52,6 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     private static final String ATTRIBUTES_PROPERTY = "$attributes$";
     private static final String EVENTS_PROPERTY = "$events$";
     private static final String OPERATIONS_PROPERTY = "$operations";
-
-    private static final Consumer<Configuration, IOException> CLEAR_CONFIG_CONSUMER = new Consumer<Configuration, IOException>() {
-        @Override
-        public void accept(final Configuration config) throws IOException {
-            config.delete();
-        }
-    };
 
     /**
      * Represents an exception happens when persistent configuration manager cannot
@@ -115,6 +111,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     private final ConfigurationAdmin admin;
     private volatile SerializableAgentConfiguration configuration;
     private final Logger logger;
+    private final ReadWriteLock configSynchronizer;
 
     /**
      * Initializes a new configuration manager.
@@ -123,6 +120,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     public PersistentConfigurationManager(final ConfigurationAdmin configAdmin){
         admin = Objects.requireNonNull(configAdmin, "configAdmin is null.");
         logger = Logger.getLogger(getClass().getName());
+        configSynchronizer = new ReentrantReadWriteLock();
     }
 
     /**
@@ -524,8 +522,8 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
 
     public static void save(final SerializableAgentConfiguration config, final ConfigurationAdmin output) throws IOException{
         if(config.isEmpty())try{
-            forEachResource(output, CLEAR_CONFIG_CONSUMER);
-            forEachAdapter(output, CLEAR_CONFIG_CONSUMER);
+            forEachResource(output, Configuration::delete);
+            forEachAdapter(output, Configuration::delete);
         }
         catch (final InvalidSyntaxException e){
             throw new IOException(e);
@@ -593,13 +591,6 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
                     result = configuration = new SerializableAgentConfiguration();
             }
         return result;
-    }
-
-    public synchronized <E extends Throwable> void processConfiguration(final Consumer<? super SerializableAgentConfiguration, E> handler,
-                                                                        final boolean saveChanges) throws E, IOException {
-        handler.accept(getCurrentConfiguration());
-        if (saveChanges)
-            save();
     }
 
     /**

@@ -4,6 +4,8 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.cluster.GridMember;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.concurrent.impl.ThreadPoolRepositoryImpl;
+import com.bytex.snamp.configuration.ConfigurationManager;
+import com.bytex.snamp.configuration.impl.PersistentConfigurationManager;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.security.LoginConfigurationManager;
@@ -33,6 +35,19 @@ import java.util.Objects;
 public final class InternalServicesActivator extends AbstractServiceLibrary {
     private static final String BOOT_CONFIG_PROPERTY = "com.bytex.snamp.login.config.boot";
     private static final String DEFAULT_CONFIG_FILE = "jaas.json";
+
+    private static final class ConfigurationServiceManager extends ProvidedService<ConfigurationManager, PersistentConfigurationManager>{
+
+        private ConfigurationServiceManager() {
+            super(ConfigurationManager.class, new SimpleDependency<>(ConfigurationAdmin.class));
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        protected PersistentConfigurationManager activateService(final Map<String, Object> identity, final RequiredService<?>... requiredServices) {
+            return new PersistentConfigurationManager(getDependency(RequiredServiceAccessor.class, ConfigurationAdmin.class));
+        }
+    }
 
     private static final class LoginConfigurationManagerServiceManager extends ProvidedService<LoginConfigurationManager, LoginConfigurationManagerImpl> {
         private final Gson formatter;
@@ -121,11 +136,12 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
         }
     }
 
-    private InternalServicesActivator(final Gson formatter){
+    private InternalServicesActivator(final Gson formatter) {
         super(new LoginConfigurationManagerServiceManager(formatter),
                 new RealmsManager(formatter),
                 new ClusterMemberProvider(),
-                new ThreadPoolRepositoryProvider());
+                new ThreadPoolRepositoryProvider(),
+                new ConfigurationServiceManager());
     }
 
     @SpecialUse

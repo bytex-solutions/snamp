@@ -52,6 +52,27 @@ public interface AgentConfiguration extends Cloneable {
          * @return A map of configuration parameters.
          */
         Map<String, String> getParameters();
+
+        default void setGroupName(final String value){
+            getParameters().put(GROUP_KEY, value);
+        }
+
+        default String getGroupName(){
+            return getParameters().get(GROUP_KEY);
+        }
+
+        default void setDescription(final String value){
+            getParameters().put(DESCRIPTION_KEY, value);
+        }
+
+        default String getDescription(){
+            return getParameters().get(DESCRIPTION_KEY);
+        }
+
+        default void setParameters(final Map<String, String> parameters){
+            getParameters().clear();
+            getParameters().putAll(parameters);
+        }
     }
 
     /**
@@ -137,6 +158,25 @@ public interface AgentConfiguration extends Cloneable {
              * Represents configuration parameter indicating that this feature was created by machine, not by human.
              */
             String AUTOMATICALLY_ADDED_KEY = "automaticallyAdded";
+
+            default void setAlternativeName(final String value){
+                getParameters().put(NAME_KEY, value);
+            }
+
+            default String getAlternativeName(){
+                return getParameters().get(NAME_KEY);
+            }
+
+            default boolean isAutomaticallyAdded(){
+                return getParameters().containsKey(AUTOMATICALLY_ADDED_KEY);
+            }
+
+            default void setAutomaticallyAddedKey(final boolean value){
+                if(value)
+                    getParameters().put(AUTOMATICALLY_ADDED_KEY, Boolean.TRUE.toString());
+                else
+                    getParameters().remove(AUTOMATICALLY_ADDED_KEY);
+            }
         }
 
         /**
@@ -247,7 +287,9 @@ public interface AgentConfiguration extends Cloneable {
      *     The key represents user-defined unique name of the adapter.
      * </p>
      * @return A collection of resource adapters.
+     * @deprecated Use {@link #getEntities(Class)} instead.
      */
+    @Deprecated
     EntityMap<? extends ResourceAdapterConfiguration> getResourceAdapters();
 
     /**
@@ -256,8 +298,42 @@ public interface AgentConfiguration extends Cloneable {
      *     The key represents user-defined name of the managed resource.
      * </p>
      * @return The dictionary of managed resources.
+     * @deprecated Use {@link #getEntities(Class)} instead.
      */
+    @Deprecated
     EntityMap<? extends ManagedResourceConfiguration> getManagedResources();
+
+    /**
+     * Obtains a repository of configuration entities.
+     * @param entityType Type of entity. You can use {@link ManagedResourceConfiguration} or {@link ResourceAdapterConfiguration} as entities.
+     * @param <E> Type of entity.
+     * @return A repository of configuration entities; or {@literal null}, if entity type is not supported by SNAMP configuration subsystem.
+     * @since 1.2
+     */
+    @SuppressWarnings("unchecked")
+    default <E extends EntityConfiguration> EntityMap<? extends E> getEntities(final Class<E> entityType){
+        final EntityMap result;
+        if (ManagedResourceConfiguration.class.equals(entityType))
+            result = getManagedResources();
+        else if (ResourceAdapterConfiguration.class.equals(entityType))
+            result = getResourceAdapters();
+        else
+            result = null;
+        return result;
+    }
+
+    /**
+     * Obtain configuration of SNAMP entity or register new.
+     * @param entityType Type of entity. You can use {@link ManagedResourceConfiguration} or {@link ResourceAdapterConfiguration} as entities.
+     * @param entityID Entity ID.
+     * @param <E> Type of entity.
+     * @return An instance of existing entity or newly created entity. {@literal null}, if entity type is not supported by SNAMP configuration subsystem.
+     * @since 1.2
+     */
+    default <E extends EntityConfiguration> E getOrRegisterEntity(final Class<E> entityType, final String entityID){
+        final EntityMap<? extends E> entities = getEntities(entityType);
+        return entities == null ? null : entities.getOrAdd(entityID);
+    }
 
     /**
      * Imports the state of specified object into this object.

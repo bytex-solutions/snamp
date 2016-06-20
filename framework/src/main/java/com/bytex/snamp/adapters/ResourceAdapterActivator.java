@@ -2,9 +2,10 @@ package com.bytex.snamp.adapters;
 
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
-import com.bytex.snamp.configuration.PersistentConfigurationManager;
+import com.bytex.snamp.configuration.internal.CMResourceAdapterParser;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.FrameworkService;
+import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.management.Maintainable;
 import com.google.common.collect.ObjectArrays;
 import org.osgi.framework.*;
@@ -53,15 +54,24 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
          * Represents name of the resource adapter.
          */
         protected final String adapterName;
+        private final BundleContext adapterContext;
 
         private ResourceAdapterRegistry(final String adapterName,
                                         final ResourceAdapterFactory<TAdapter> factory,
-                                        final RequiredService<?>... dependencies){
+                                        final BundleContext adapterContext,
+                                        final RequiredService<?>... dependencies) {
             super(ResourceAdapter.class,
-                    PersistentConfigurationManager.getAdapterFactoryPersistentID(adapterName),
+                    CMResourceAdapterParser.getAdapterFactoryPersistentID(adapterContext, adapterName),
                     dependencies);
             this.adapterFactory = Objects.requireNonNull(factory, "factory is null.");
             this.adapterName = adapterName;
+            this.adapterContext = adapterContext;
+        }
+
+        private ResourceAdapterRegistry(final String adapterName,
+                                        final ResourceAdapterFactory<TAdapter> factory,
+                                        final RequiredService<?>... dependencies) {
+            this(adapterName, factory, Utils.getBundleContextOfObject(factory), dependencies);
         }
 
         private ResourceAdapterRegistry(final ResourceAdapterFactory<TAdapter> factory,
@@ -73,7 +83,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
         protected TAdapter update(final TAdapter adapter,
                                   final Dictionary<String, ?> configuration,
                                   final RequiredService<?>... dependencies) throws Exception {
-            adapter.tryUpdate(PersistentConfigurationManager.getAdapterParameters(configuration));
+            adapter.tryUpdate(CMResourceAdapterParser.getAdapterParameters(adapterContext, configuration));
             return adapter;
         }
 
@@ -81,14 +91,13 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
         protected TAdapter createService(final Map<String, Object> identity,
                                          final Dictionary<String, ?> configuration,
                                          final RequiredService<?>... dependencies) throws Exception {
-            final String instanceName = PersistentConfigurationManager.getAdapterInstanceName(configuration);
+            final String instanceName = CMResourceAdapterParser.getAdapterInstanceName(adapterContext, configuration);
             createIdentity(adapterName, instanceName, identity);
             final TAdapter resourceAdapter = adapterFactory.createAdapter(instanceName, dependencies);
             if (resourceAdapter != null)
-                if(resourceAdapter.tryStart(PersistentConfigurationManager.getAdapterParameters(configuration))) {
+                if (resourceAdapter.tryStart(CMResourceAdapterParser.getAdapterParameters(adapterContext, configuration))) {
                     return resourceAdapter;
-                }
-                else {
+                } else {
                     resourceAdapter.close();
                     throw new IllegalStateException(String.format("Unable to start '%s' instance", instanceName));
                 }
@@ -108,7 +117,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
             logger.log(Level.SEVERE,
                     String.format("Unable to update adapter. Name: %s, instance: %s",
                             adapterName,
-                            PersistentConfigurationManager.getAdapterInstanceName(configuration)),
+                            CMResourceAdapterParser.getAdapterInstanceName(adapterContext, configuration)),
                     e);
         }
 
