@@ -1,8 +1,6 @@
 package com.bytex.snamp.adapters;
 
 import com.bytex.snamp.AbstractAggregator;
-import com.bytex.snamp.EntryReader;
-import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.modeling.*;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
@@ -677,23 +675,13 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
 
     protected static <TAccessor extends AttributeAccessor & FeatureBindingInfo<MBeanAttributeInfo>> Multimap<String, ? extends FeatureBindingInfo<MBeanAttributeInfo>> getBindings(final AttributeSet<TAccessor> model){
         final Multimap<String, TAccessor> result = HashMultimap.create();
-        model.forEachAttribute(new EntryReader<String, TAccessor, ExceptionPlaceholder>() {
-            @Override
-            public boolean read(final String resourceName, final TAccessor accessor) {
-                return result.put(resourceName, accessor);
-            }
-        });
+        model.forEachAttribute(result::put);
         return result;
     }
 
     protected static <TAccessor extends NotificationAccessor & FeatureBindingInfo<MBeanNotificationInfo>> Multimap<String, ? extends FeatureBindingInfo<MBeanNotificationInfo>> getBindings(final NotificationSet<TAccessor> model){
         final Multimap<String, TAccessor> result = HashMultimap.create();
-        model.forEachNotification(new EntryReader<String, TAccessor, ExceptionPlaceholder>() {
-            @Override
-            public boolean read(final String resourceName, final TAccessor accessor) {
-                return result.put(resourceName, accessor);
-            }
-        });
+        model.forEachNotification(result::put);
         return result;
     }
 

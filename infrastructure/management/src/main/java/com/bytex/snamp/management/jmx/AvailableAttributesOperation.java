@@ -1,11 +1,11 @@
 package com.bytex.snamp.management.jmx;
 
-import com.google.common.base.MoreObjects;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.TabularDataBuilderRowFill;
 import com.bytex.snamp.jmx.TabularTypeBuilder;
 import com.bytex.snamp.jmx.WellKnownType;
+import com.google.common.base.MoreObjects;
 
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanInfo;
@@ -13,7 +13,6 @@ import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.SimpleType;
 import javax.management.openmbean.TabularData;
 import javax.management.openmbean.TabularType;
-import java.util.concurrent.Callable;
 
 /**
  * @author Roman Sakno
@@ -30,21 +29,16 @@ final class AvailableAttributesOperation extends AvailableFeaturesOperation<MBea
     private static final String WRITABLE_COLUMN = "writable";
     private static final String NAME_COLUMN = "name";
 
-    private static final TabularType RETURN_TYPE = Utils.interfaceStaticInitialize(new Callable<TabularType>() {
-        @Override
-        public TabularType call() throws OpenDataException {
-            return new TabularTypeBuilder()
-                    .setTypeName("AvailableAttributes", true)
-                    .setDescription("A set of available attributes", true)
-                    .addColumn(DESCRIPTION_COLUMN, "Description of the attribute", SimpleType.STRING, false)
-                    .addColumn(PARAMETERS_COLUMN, "Configuration parameters", PARAMETERS_TYPE, false)
-                    .addColumn(TYPE_COLUMN, "Type of the attribute", SimpleType.STRING, false)
-                    .addColumn(READABLE_COLUMN, "Is attribute readable?", SimpleType.BOOLEAN, false)
-                    .addColumn(WRITABLE_COLUMN, "Is attribute writable?", SimpleType.BOOLEAN, false)
-                    .addColumn(NAME_COLUMN, "The name of the attribute", SimpleType.STRING, true)
-                    .build();
-        }
-    });
+    private static final TabularType RETURN_TYPE = Utils.interfaceStaticInitialize(() -> new TabularTypeBuilder()
+            .setTypeName("AvailableAttributes", true)
+            .setDescription("A set of available attributes", true)
+            .addColumn(DESCRIPTION_COLUMN, "Description of the attribute", SimpleType.STRING, false)
+            .addColumn(PARAMETERS_COLUMN, "Configuration parameters", PARAMETERS_TYPE, false)
+            .addColumn(TYPE_COLUMN, "Type of the attribute", SimpleType.STRING, false)
+            .addColumn(READABLE_COLUMN, "Is attribute readable?", SimpleType.BOOLEAN, false)
+            .addColumn(WRITABLE_COLUMN, "Is attribute writable?", SimpleType.BOOLEAN, false)
+            .addColumn(NAME_COLUMN, "The name of the attribute", SimpleType.STRING, true)
+            .build());
 
     AvailableAttributesOperation() {
         super(NAME, RETURN_TYPE);

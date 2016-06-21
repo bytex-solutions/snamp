@@ -23,7 +23,6 @@ import groovy.util.ScriptException;
 import org.osgi.framework.BundleContext;
 
 import javax.management.InvalidAttributeValueException;
-import javax.management.NotificationListener;
 import javax.management.ReflectionException;
 import javax.management.openmbean.CompositeData;
 import java.io.IOException;
@@ -111,12 +110,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         }
 
         private static NotificationListenerInvoker createListenerInvoker(final Executor executor) {
-            return NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker(executor, new NotificationListenerInvokerFactory.ExceptionHandler() {
-                @Override
-                public void handle(final Throwable e, final NotificationListener source) {
-                    getLoggerImpl().log(Level.SEVERE, "Unable to process JMX notification.", e);
-                }
-            });
+            return NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker(executor, (e, source) -> getLoggerImpl().log(Level.SEVERE, "Unable to process JMX notification.", e));
         }
 
         /**

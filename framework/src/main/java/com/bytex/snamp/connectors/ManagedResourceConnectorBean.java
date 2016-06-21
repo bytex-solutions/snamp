@@ -35,6 +35,7 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -697,12 +698,10 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         protected CustomNotificationInfo enableNotifications(final String category,
                                                              final NotificationDescriptor metadata) throws IllegalArgumentException {
             //find the suitable notification type
-            final ManagementNotificationType<?> type = Iterables.find(notifTypes, new Predicate<ManagementNotificationType<?>>() {
-                @Override
-                public boolean apply(final ManagementNotificationType<?> type) {
-                    return Objects.equals(type.getCategory(), metadata.getName(category));
-                }
-            });
+            final ManagementNotificationType<?> type = notifTypes.stream()
+                    .filter(type1 -> Objects.equals(type1.getCategory(), metadata.getName(category)))
+                    .findFirst()
+                    .orElseGet(() -> null);
             if (type != null) {
                 String description = type.getDescription(Locale.getDefault());
                 if (description == null || description.isEmpty()) {

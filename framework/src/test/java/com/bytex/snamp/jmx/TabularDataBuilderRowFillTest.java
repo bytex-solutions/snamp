@@ -31,13 +31,10 @@ public final class TabularDataBuilderRowFillTest extends Assert {
                 .flush()
                 .get();
         assertEquals(2, data.size());
-        TabularDataUtils.forEachRow(data, new SafeConsumer<CompositeData>() {
-            @Override
-            public void accept(final CompositeData value) {
-                assertEquals(2, value.getCompositeType().keySet().size());
-                assertTrue(value.get("column1") instanceof String);
-                assertNotNull(value.get("column2") instanceof Boolean);
-            }
+        TabularDataUtils.forEachRow(data, (SafeConsumer<CompositeData>) value -> {
+            assertEquals(2, value.getCompositeType().keySet().size());
+            assertTrue(value.get("column1") instanceof String);
+            assertNotNull(value.get("column2") instanceof Boolean);
         });
     }
 }

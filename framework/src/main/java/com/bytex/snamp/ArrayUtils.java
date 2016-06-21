@@ -373,12 +373,7 @@ public final class ArrayUtils {
     }
 
     private static Object toShortArray(final byte[] array, final boolean primitive){
-        return toArray(array, Short.class, new Function<byte[], Short>() {
-            @Override
-            public Short apply(final byte[] input) {
-                return Shorts.fromByteArray(input);
-            }
-        }, Shorts.BYTES, primitive);
+        return toArray(array, Short.class, Shorts::fromByteArray, Shorts.BYTES, primitive);
     }
 
     public static short[] toShortArray(final byte[] array){
@@ -390,12 +385,7 @@ public final class ArrayUtils {
     }
 
     private static Object toIntArray(final byte[] array, final boolean primitive){
-        return toArray(array, Integer.class, new Function<byte[], Integer>() {
-            @Override
-            public Integer apply(final byte[] input) {
-                return Ints.fromByteArray(input);
-            }
-        }, Ints.BYTES, primitive);
+        return toArray(array, Integer.class, Ints::fromByteArray, Ints.BYTES, primitive);
     }
 
     public static int[] toIntArray(final byte[] array){
@@ -407,12 +397,7 @@ public final class ArrayUtils {
     }
 
     private static Object toLongArray(final byte[] array, final boolean primitive){
-        return toArray(array, Long.class, new Function<byte[], Long>() {
-            @Override
-            public Long apply(final byte[] input) {
-                return Longs.fromByteArray(input);
-            }
-        }, Longs.BYTES, primitive);
+        return toArray(array, Long.class, Longs::fromByteArray, Longs.BYTES, primitive);
     }
 
     public static long[] toLongArray(final byte[] array){
@@ -424,12 +409,9 @@ public final class ArrayUtils {
     }
 
     private static Object toFloatArray(final byte[] array, final boolean primitive){
-        return toArray(array, Float.class, new Function<byte[], Float>() {
-            @Override
-            public Float apply(final byte[] input) {
-                final int bits = Ints.fromByteArray(input);
-                return Float.intBitsToFloat(bits);
-            }
+        return toArray(array, Float.class, input -> {
+            final int bits = Ints.fromByteArray(input);
+            return Float.intBitsToFloat(bits);
         }, Floats.BYTES, primitive);
     }
 
@@ -442,12 +424,9 @@ public final class ArrayUtils {
     }
 
     private static Object toDoubleArray(final byte[] array, final boolean primitive){
-        return toArray(array, Double.class, new Function<byte[], Double>() {
-            @Override
-            public Double apply(final byte[] input) {
-                final long bits = Longs.fromByteArray(input);
-                return Double.longBitsToDouble(bits);
-            }
+        return toArray(array, Double.class, input -> {
+            final long bits = Longs.fromByteArray(input);
+            return Double.longBitsToDouble(bits);
         }, Doubles.BYTES, primitive);
     }
 
@@ -460,12 +439,7 @@ public final class ArrayUtils {
     }
 
     private static Object toCharArray(final byte[] array, final boolean primitive){
-        return toArray(array, Character.class, new Function<byte[], Character>() {
-            @Override
-            public Character apply(final byte[] input) {
-                return Chars.fromByteArray(input);
-            }
-        }, Chars.BYTES, primitive);
+        return toArray(array, Character.class, Chars::fromByteArray, Chars.BYTES, primitive);
     }
 
     public static char[] toCharArray(final byte[] array){
@@ -503,111 +477,51 @@ public final class ArrayUtils {
     }
 
     public static byte[] toByteArray(final short[] value) {
-        return toByteArray(value, new ByteArrayConverter<short[]>() {
-            @Override
-            public byte[] convert(final short[] value, final int index) {
-                return Shorts.toByteArray(value[index]);
-            }
-        }, Shorts.BYTES);
+        return toByteArray(value, (value1, index) -> Shorts.toByteArray(value1[index]), Shorts.BYTES);
     }
 
     public static byte[] toByteArray(final Short[] value) {
-        return toByteArray(value, new ByteArrayConverter<Short[]>() {
-            @Override
-            public byte[] convert(final Short[] value, final int index) {
-                return Shorts.toByteArray(value[index]);
-            }
-        }, Shorts.BYTES);
+        return toByteArray(value, (value1, index) -> Shorts.toByteArray(value1[index]), Shorts.BYTES);
     }
 
     public static byte[] toByteArray(final int[] value) {
-        return toByteArray(value, new ByteArrayConverter<int[]>() {
-            @Override
-            public byte[] convert(final int[] value, final int index) {
-                return Ints.toByteArray(value[index]);
-            }
-        }, Ints.BYTES);
+        return toByteArray(value, (value1, index) -> Ints.toByteArray(value1[index]), Ints.BYTES);
     }
 
     public static byte[] toByteArray(final Integer[] value) {
-        return toByteArray(value, new ByteArrayConverter<Integer[]>() {
-            @Override
-            public byte[] convert(final Integer[] value, final int index) {
-                return Ints.toByteArray(value[index]);
-            }
-        }, Ints.BYTES);
+        return toByteArray(value, (value1, index) -> Ints.toByteArray(value1[index]), Ints.BYTES);
     }
 
     public static byte[] toByteArray(final long[] value) {
-        return toByteArray(value, new ByteArrayConverter<long[]>() {
-            @Override
-            public byte[] convert(final long[] value, final int index) {
-                return Longs.toByteArray(value[index]);
-            }
-        }, Longs.BYTES);
+        return toByteArray(value, (value1, index) -> Longs.toByteArray(value1[index]), Longs.BYTES);
     }
 
     public static byte[] toByteArray(final Long[] value) {
-        return toByteArray(value, new ByteArrayConverter<Long[]>() {
-            @Override
-            public byte[] convert(final Long[] value, final int index) {
-                return Longs.toByteArray(value[index]);
-            }
-        }, Longs.BYTES);
+        return toByteArray(value, (value1, index) -> Longs.toByteArray(value1[index]), Longs.BYTES);
     }
 
     public static byte[] toByteArray(final float[] value) {
-        return toByteArray(value, new ByteArrayConverter<float[]>() {
-            @Override
-            public byte[] convert(final float[] value, final int index) {
-                return Ints.toByteArray(Float.floatToIntBits(value[index]));
-            }
-        }, Floats.BYTES);
+        return toByteArray(value, (value1, index) -> Ints.toByteArray(Float.floatToIntBits(value1[index])), Floats.BYTES);
     }
 
     public static byte[] toByteArray(final Float[] value) {
-        return toByteArray(value, new ByteArrayConverter<Float[]>() {
-            @Override
-            public byte[] convert(final Float[] value, final int index) {
-                return Ints.toByteArray(Float.floatToIntBits(value[index]));
-            }
-        }, Floats.BYTES);
+        return toByteArray(value, (value1, index) -> Ints.toByteArray(Float.floatToIntBits(value1[index])), Floats.BYTES);
     }
 
     public static byte[] toByteArray(final double[] value) {
-        return toByteArray(value, new ByteArrayConverter<double[]>() {
-            @Override
-            public byte[] convert(final double[] value, final int index) {
-                return Longs.toByteArray(Double.doubleToLongBits(value[index]));
-            }
-        }, Doubles.BYTES);
+        return toByteArray(value, (value1, index) -> Longs.toByteArray(Double.doubleToLongBits(value1[index])), Doubles.BYTES);
     }
 
     public static byte[] toByteArray(final Double[] value) {
-        return toByteArray(value, new ByteArrayConverter<Double[]>() {
-            @Override
-            public byte[] convert(final Double[] value, final int index) {
-                return Longs.toByteArray(Double.doubleToLongBits(value[index]));
-            }
-        }, Doubles.BYTES);
+        return toByteArray(value, (value1, index) -> Longs.toByteArray(Double.doubleToLongBits(value1[index])), Doubles.BYTES);
     }
 
     public static byte[] toByteArray(final char[] value) {
-        return toByteArray(value, new ByteArrayConverter<char[]>() {
-            @Override
-            public byte[] convert(final char[] value, final int index) {
-                return Chars.toByteArray(value[index]);
-            }
-        }, Chars.BYTES);
+        return toByteArray(value, (value1, index) -> Chars.toByteArray(value1[index]), Chars.BYTES);
     }
 
     public static byte[] toByteArray(final Character[] value) {
-        return toByteArray(value, new ByteArrayConverter<Character[]>() {
-            @Override
-            public byte[] convert(final Character[] value, final int index) {
-                return Chars.toByteArray(value[index]);
-            }
-        }, Chars.BYTES);
+        return toByteArray(value, (value1, index) -> Chars.toByteArray(value1[index]), Chars.BYTES);
     }
 
     public static byte[] toByteArray(final boolean[] value) {

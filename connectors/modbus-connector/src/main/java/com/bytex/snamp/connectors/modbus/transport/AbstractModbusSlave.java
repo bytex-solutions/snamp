@@ -31,15 +31,6 @@ abstract class AbstractModbusSlave<L extends ModbusListener> implements ModbusSl
         ModbusCoupler.getReference().setProcessImage(processImage);
     }
 
-    private static DigitalIn cast(final DigitalInputAccessor di){
-        return new DigitalIn() {
-            @Override
-            public boolean isSet() {
-                return di.getValue();
-            }
-        };
-    }
-
     private static DigitalOut cast(final DigitalOutputAccessor out){
         return new DigitalOut() {
             @Override
@@ -182,9 +173,9 @@ abstract class AbstractModbusSlave<L extends ModbusListener> implements ModbusSl
     @Override
     public final AbstractModbusSlave<L> register(final int ref, final DigitalInputAccessor input) {
         if(processImage.getDigitalInCount() <= ref)
-            processImage.addDigitalIn(cast(input));
+            processImage.addDigitalIn(input::getValue);
         else
-            processImage.setDigitalIn(ref, cast(input));
+            processImage.setDigitalIn(ref, input::getValue);
         return this;
     }
 

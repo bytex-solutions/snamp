@@ -1,7 +1,5 @@
 package com.bytex.snamp.scripting;
 
-import com.bytex.snamp.ExceptionPlaceholder;
-import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.internal.Utils;
 
 import javax.script.ScriptEngine;
@@ -81,12 +79,7 @@ final class OSGiScriptEngineFactory implements ScriptEngineFactory{
     @Override
     public ScriptEngine getScriptEngine() {
         return contextClassLoader != null ?
-                Utils.withContextClassLoader(contextClassLoader, new ExceptionalCallable<ScriptEngine, ExceptionPlaceholder>() {
-                    @Override
-                    public ScriptEngine call() {
-                        return factory.getScriptEngine();
-                    }
-                }) :
+                Utils.withContextClassLoader(contextClassLoader, factory::getScriptEngine) :
                 factory.getScriptEngine();
     }
 }

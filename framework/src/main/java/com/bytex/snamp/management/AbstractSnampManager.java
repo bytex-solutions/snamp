@@ -8,11 +8,10 @@ import com.bytex.snamp.connectors.ManagedResourceActivator;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.core.AbstractFrameworkService;
 import com.bytex.snamp.core.SupportService;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import org.osgi.framework.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
@@ -353,10 +352,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
     @Override
     public final Collection<? extends ResourceConnectorDescriptor> getInstalledResourceConnectors() {
         final Collection<String> systemNames = ManagedResourceActivator.getInstalledResourceConnectors(getBundleContextOfObject(this));
-        final Collection<ResourceConnectorDescriptor> result = new LinkedList<>();
-        for(final String systemName: systemNames)
-            result.add(createResourceConnectorDescriptor(systemName));
-        return result;
+        return systemNames.stream().map(this::createResourceConnectorDescriptor).collect(Collectors.toCollection(LinkedList::new));
     }
 
     /**
@@ -410,20 +406,16 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
     }
 
     public final ResourceConnectorDescriptor getResourceConnector(final String connectorName) {
-        return Iterables.find(getInstalledResourceConnectors(), new Predicate<SnampComponentDescriptor>() {
-            @Override
-            public boolean apply(final SnampComponentDescriptor connector) {
-                return Objects.equals(connectorName, connector.get(SnampComponentDescriptor.CONNECTOR_SYSTEM_NAME_PROPERTY));
-            }
-        });
+        return getInstalledResourceConnectors().stream()
+                .filter(connector -> Objects.equals(connectorName, connector.get(SnampComponentDescriptor.CONNECTOR_SYSTEM_NAME_PROPERTY)))
+                .findFirst()
+                .orElseGet(() -> null);
     }
 
     public final ResourceAdapterDescriptor getResourceAdapter(final String adapterName) {
-        return Iterables.find(getInstalledResourceAdapters(), new Predicate<SnampComponentDescriptor>() {
-            @Override
-            public boolean apply(final SnampComponentDescriptor connector) {
-                return Objects.equals(adapterName, connector.get(SnampComponentDescriptor.ADAPTER_SYSTEM_NAME_PROPERTY));
-            }
-        });
+        return getInstalledResourceAdapters().stream()
+                .filter(adapter -> Objects.equals(adapterName, adapter.get(SnampComponentDescriptor.ADAPTER_SYSTEM_NAME_PROPERTY)))
+                .findFirst()
+                .orElseGet(() -> null);
     }
 }

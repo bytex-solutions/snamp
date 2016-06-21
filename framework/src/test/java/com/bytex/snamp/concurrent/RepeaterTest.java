@@ -44,7 +44,7 @@ public class RepeaterTest extends Assert {
          * Provides some periodical action.
          */
         @Override
-        protected final void doAction() {
+        protected void doAction() {
             c.incrementAndGet();
         }
     }
@@ -67,7 +67,7 @@ public class RepeaterTest extends Assert {
             private final AtomicLong counter = new AtomicLong(0);
 
             @Override
-            protected final void doAction() {
+            protected void doAction() {
                 if(counter.incrementAndGet() == 3) try {
                     throw new Exception(exceptionMessage);
                 } catch (final Exception e) {

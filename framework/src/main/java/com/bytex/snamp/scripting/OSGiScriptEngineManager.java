@@ -21,6 +21,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.stream.Collectors;
 
 //https://svn.apache.org/repos/asf/felix/trunk/mishell/src/main/java/org/apache/felix/mishell/OSGiScriptEngineManager.java
 /**
@@ -158,52 +159,22 @@ public final class OSGiScriptEngineManager extends ScriptEngineManager{
 
     @Override
     public ScriptEngine getEngineByExtension(final String extension) {
-        return getEngine(new Predicate<ScriptEngineFactory>() {
-                             @Override
-                             public boolean apply(final ScriptEngineFactory factory) {
-                                 return factory.getExtensions().contains(extension);
-                             }
-                         },
-                new Function<ScriptEngineManager, ScriptEngine>() {
-                    @Override
-                    public ScriptEngine apply(final ScriptEngineManager manager) {
-                        return manager.getEngineByExtension(extension);
-                    }
-                }
+        return getEngine(factory -> factory.getExtensions().contains(extension),
+                manager -> manager.getEngineByExtension(extension)
         );
     }
 
     @Override
     public ScriptEngine getEngineByMimeType(final String mimeType) {
-        return getEngine(new Predicate<ScriptEngineFactory>() {
-                             @Override
-                             public boolean apply(final ScriptEngineFactory factory) {
-                                 return factory.getMimeTypes().contains(mimeType);
-                             }
-                         },
-                new Function<ScriptEngineManager, ScriptEngine>() {
-                    @Override
-                    public ScriptEngine apply(final ScriptEngineManager manager) {
-                        return manager.getEngineByMimeType(mimeType);
-                    }
-                }
+        return getEngine(factory -> factory.getMimeTypes().contains(mimeType),
+                manager -> manager.getEngineByMimeType(mimeType)
         );
     }
 
     @Override
     public ScriptEngine getEngineByName(final String shortName) {
-        return getEngine(new Predicate<ScriptEngineFactory>() {
-                             @Override
-                             public boolean apply(final ScriptEngineFactory factory) {
-                                 return factory.getNames().contains(shortName);
-                             }
-                         },
-                new Function<ScriptEngineManager, ScriptEngine>() {
-                    @Override
-                    public ScriptEngine apply(final ScriptEngineManager manager) {
-                        return manager.getEngineByName(shortName);
-                    }
-                }
+        return getEngine(factory -> factory.getNames().contains(shortName),
+                manager -> manager.getEngineByName(shortName)
         );
     }
 
@@ -211,8 +182,9 @@ public final class OSGiScriptEngineManager extends ScriptEngineManager{
     public List<ScriptEngineFactory> getEngineFactories() {
         final List<ScriptEngineFactory> osgiFactories = new ArrayList<>(classLoaders.size() * 2);
         for (final Map.Entry<ClassLoader, ScriptEngineManager> entry : classLoaders.entrySet())
-            for (final ScriptEngineFactory factory : entry.getValue().getEngineFactories())
-                osgiFactories.add(new OSGiScriptEngineFactory(factory, entry.getKey()));
+            osgiFactories.addAll(entry.getValue().getEngineFactories()
+                    .stream()
+                    .map(factory -> new OSGiScriptEngineFactory(factory, entry.getKey())).collect(Collectors.toList()));
         osgiFactories.addAll(systemFactories);
         return osgiFactories;
     }
@@ -272,16 +244,13 @@ public final class OSGiScriptEngineManager extends ScriptEngineManager{
         final WeakHashMap<ClassLoader, ScriptEngineManager> managers = new WeakHashMap<>();
         //load bundlized engines
         findFactoryCandidates(context,
-                new SafeConsumer<Class<? extends ScriptEngineFactory>>() {
-                    @Override
-                    public void accept(final Class<? extends ScriptEngineFactory> factoryClass) {
-                        //We do not really need the class, but we need the classloader
-                        final ClassLoader factoryLoader = factoryClass.getClassLoader();
-                        if(managers.containsKey(factoryLoader)) return;
-                        final ScriptEngineManager manager = new ScriptEngineManager(factoryLoader);
-                        manager.setBindings(bindings);
-                        managers.put(factoryLoader, manager);
-                    }
+                (SafeConsumer<Class<? extends ScriptEngineFactory>>) factoryClass -> {
+                    //We do not really need the class, but we need the classloader
+                    final ClassLoader factoryLoader = factoryClass.getClassLoader();
+                    if(managers.containsKey(factoryLoader)) return;
+                    final ScriptEngineManager manager = new ScriptEngineManager(factoryLoader);
+                    manager.setBindings(bindings);
+                    managers.put(factoryLoader, manager);
                 });
         return managers;
     }

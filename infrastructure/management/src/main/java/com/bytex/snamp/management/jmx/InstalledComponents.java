@@ -1,6 +1,5 @@
 package com.bytex.snamp.management.jmx;
 
-import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.jmx.CompositeTypeBuilder;
 import com.bytex.snamp.jmx.OpenMBean;
@@ -74,18 +73,8 @@ final class InstalledComponents extends OpenMBean.OpenAttribute<TabularData, Tab
         row.put(IS_MANAGEABLE_COLUMN, false);
         row.put(IS_CONFIG_DESCR_AVAIL_COLUMN, false);
         try {
-            component.invokeSupportService(Maintainable.class, new SafeConsumer<Maintainable>() {
-                @Override
-                public void accept(final Maintainable input) {
-                    row.put(IS_MANAGEABLE_COLUMN, input != null);
-                }
-            });
-            component.invokeSupportService(ConfigurationEntityDescriptionProvider.class, new SafeConsumer<ConfigurationEntityDescriptionProvider>() {
-                @Override
-                public void accept(final ConfigurationEntityDescriptionProvider input) {
-                    row.put(IS_CONFIG_DESCR_AVAIL_COLUMN, input != null);
-                }
-            });
+            component.invokeSupportService(Maintainable.class, input -> row.put(IS_MANAGEABLE_COLUMN, input != null));
+            component.invokeSupportService(ConfigurationEntityDescriptionProvider.class, input -> row.put(IS_CONFIG_DESCR_AVAIL_COLUMN, input != null));
         } catch (final Exception e) {
             MonitoringUtils.getLogger().log(Level.SEVERE, e.getLocalizedMessage(), e);
         }

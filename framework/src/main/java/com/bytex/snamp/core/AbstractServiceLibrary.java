@@ -500,17 +500,14 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          */
         @Override
         protected final void cleanupService(final ManagedServiceFactoryImpl<TService> serviceInstance, final boolean stopBundle) throws Exception {
-            serviceInstance.synchronizedInvoke(new ExceptionalCallable<Void, Exception>() {
-                @Override
-                public Void call() throws Exception {
-                    try {
-                        for (final TService service : serviceInstance.values())
-                            dispose(service, stopBundle);
-                    } finally {
-                        serviceInstance.clear();
-                    }
-                    return null;
+            serviceInstance.synchronizedInvoke(() -> {
+                try {
+                    for (final TService service : serviceInstance.values())
+                        dispose(service, stopBundle);
+                } finally {
+                    serviceInstance.clear();
                 }
+                return null;
             });
             destroyManager();
         }

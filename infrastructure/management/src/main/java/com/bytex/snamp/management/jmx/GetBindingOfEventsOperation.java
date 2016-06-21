@@ -10,7 +10,6 @@ import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.SimpleType;
 import javax.management.openmbean.TabularType;
 import java.util.Objects;
-import java.util.concurrent.Callable;
 
 import static com.bytex.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
 
@@ -25,19 +24,14 @@ final class GetBindingOfEventsOperation extends AbstractBindingInfoOperation<MBe
     private static final String CATEGORY_COLUMN = "category";
     private static final String ATTACHMENT_TYPE_COLUMN = "mappedAttachmentType";
 
-    private static final TabularType RETURN_TYPE = Utils.interfaceStaticInitialize(new Callable<TabularType>() {
-        @Override
-        public TabularType call() throws OpenDataException {
-            return new TabularTypeBuilder()
-                    .setTypeName("BindingOfEvents", true)
-                    .setDescription("A set of exposed events", true)
-                    .addColumn(RESOURCE_NAME_COLUMN, "The name of the connected resource", SimpleType.STRING, true)
-                    .addColumn(CATEGORY_COLUMN, "The category of the event as it is provided by the connected resource", SimpleType.STRING, true)
-                    .addColumn(ATTACHMENT_TYPE_COLUMN, "The mapped type of the notification attachments", SimpleType.STRING, false)
-                    .addColumn(DETAILS_COLUMN, "Binding details", DETAILS_TYPE, false)
-                    .build();
-        }
-    });
+    private static final TabularType RETURN_TYPE = Utils.interfaceStaticInitialize(() -> new TabularTypeBuilder()
+            .setTypeName("BindingOfEvents", true)
+            .setDescription("A set of exposed events", true)
+            .addColumn(RESOURCE_NAME_COLUMN, "The name of the connected resource", SimpleType.STRING, true)
+            .addColumn(CATEGORY_COLUMN, "The category of the event as it is provided by the connected resource", SimpleType.STRING, true)
+            .addColumn(ATTACHMENT_TYPE_COLUMN, "The mapped type of the notification attachments", SimpleType.STRING, false)
+            .addColumn(DETAILS_COLUMN, "Binding details", DETAILS_TYPE, false)
+            .build());
 
     GetBindingOfEventsOperation(){
         super(NAME, RETURN_TYPE, MBeanNotificationInfo.class);

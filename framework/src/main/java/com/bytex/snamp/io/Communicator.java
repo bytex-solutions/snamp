@@ -1,5 +1,8 @@
 package com.bytex.snamp.io;
 
+import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.TimeSpan;
+import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.cache.Cache;
@@ -7,12 +10,8 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.eventbus.AllowConcurrentEvents;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.concurrent.SynchronizationEvent;
-import com.bytex.snamp.SpecialUse;
 
 import java.util.EventListener;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
@@ -60,22 +59,12 @@ public final class Communicator extends EventBus {
     }
 
     public static Communicator getSession(final String name) throws ExecutionException {
-        return communicators.get(name, new Callable<Communicator>() {
-            @Override
-            public Communicator call() {
-                return new Communicator();
-            }
-        });
+        return communicators.get(name, Communicator::new);
     }
 
     private static Predicate<Object> exceptIncoming(final Object incomingMessage) {
         final int incomingIdentity = System.identityHashCode(incomingMessage);
-        return new Predicate<Object>() {
-            @Override
-            public boolean apply(final Object actualMessage) {
-                return incomingIdentity != System.identityHashCode(actualMessage);
-            }
-        };
+        return actualMessage -> incomingIdentity != System.identityHashCode(actualMessage);
     }
 
     public Object post(final Object message, final TimeSpan timeout) throws TimeoutException, InterruptedException, ExecutionException {

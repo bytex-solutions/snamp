@@ -7,16 +7,12 @@ import com.google.gson.GsonBuilder;
 
 import javax.security.auth.login.AppConfigurationEntry;
 import javax.security.auth.login.ConfigurationSpi;
-import java.io.IOException;
 import java.net.URL;
 import java.security.AccessController;
 import java.security.PrivilegedExceptionAction;
-import java.security.URIParameter;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import static javax.security.auth.login.Configuration.Parameters;
 
 /**
  * @author Roman Sakno
@@ -41,12 +37,7 @@ public final class JsonConfigurationSpi extends ConfigurationSpi {
     }
 
     private static JsonConfiguration deserializePrivileged(final Gson formatter, final URL configFile) throws Exception {
-        return AccessController.doPrivileged(new PrivilegedExceptionAction<JsonConfiguration>() {
-            @Override
-            public JsonConfiguration run() throws IOException {
-                return JsonConfiguration.deserialize(formatter, configFile);
-            }
-        });
+        return AccessController.doPrivileged((PrivilegedExceptionAction<JsonConfiguration>) () -> JsonConfiguration.deserialize(formatter, configFile));
     }
 
     private final URL configFile;
@@ -57,16 +48,6 @@ public final class JsonConfigurationSpi extends ConfigurationSpi {
         this.configFile = Objects.requireNonNull(configFile, "configFile is null.");
         formatter = init(new GsonBuilder()).create();
         configuration = deserializePrivileged(formatter, configFile);
-    }
-
-    private static URL toURL(final Parameters params) throws Exception{
-        if (params instanceof URIParameter)
-            return  ((URIParameter) params).getURI().toURL();
-        else throw new IllegalArgumentException("Unrecognized param " + params);
-    }
-
-    public JsonConfigurationSpi(final Parameters params) throws Exception {
-        this(toURL(params));
     }
 
     /**

@@ -234,12 +234,9 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     @SpecialUse
     public static void forEachAdapter(final ConfigurationAdmin admin,
                                       final EntryReader<String, ResourceAdapterConfiguration, ? extends Exception> reader) throws Exception {
-        forEachAdapter(admin, new Consumer<Configuration, Exception>() {
-            @Override
-            public void accept(final Configuration config) throws Exception {
-                final ConfigurationEntry<SerializableResourceAdapterConfiguration> entry = readAdapterConfiguration(config);
-                reader.read(entry.getKey(), entry.getValue());
-            }
+        forEachAdapter(admin, config -> {
+            final ConfigurationEntry<SerializableResourceAdapterConfiguration> entry = readAdapterConfiguration(config);
+            reader.read(entry.getKey(), entry.getValue());
         });
     }
 
@@ -250,12 +247,9 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
 
     private static void readAdapters(final ConfigurationAdmin admin,
                                      final Map<String, SerializableResourceAdapterConfiguration> output) throws IOException, InvalidSyntaxException {
-        forEachAdapter(admin, new Consumer<Configuration, IOException>() {
-            @Override
-            public void accept(final Configuration config) throws IOException {
-                final ConfigurationEntry<SerializableResourceAdapterConfiguration> entry = readAdapterConfiguration(config);
-                output.put(entry.getKey(), entry.getValue());
-            }
+        forEachAdapter(admin, (Consumer<Configuration, IOException>) config -> {
+            final ConfigurationEntry<SerializableResourceAdapterConfiguration> entry = readAdapterConfiguration(config);
+            output.put(entry.getKey(), entry.getValue());
         });
     }
 
@@ -369,12 +363,9 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
                                                                          final String resourceName) throws IOException {
         final Box<ManagedResourceConfiguration> result = new Box<>();
         try {
-            forEachResource(admin, String.format("(%s=%s)", RESOURCE_NAME_PROPERTY, resourceName), new Consumer<Configuration, PersistentConfigurationException>() {
-                @Override
-                public void accept(final Configuration config) throws PersistentConfigurationException {
-                    final ConfigurationEntry<SerializableManagedResourceConfiguration> entry = readResourceConfiguration(config);
-                    result.set(entry.getValue());
-                }
+            forEachResource(admin, String.format("(%s=%s)", RESOURCE_NAME_PROPERTY, resourceName), config -> {
+                final ConfigurationEntry<SerializableManagedResourceConfiguration> entry = readResourceConfiguration(config);
+                result.set(entry.getValue());
             });
         } catch (final InvalidSyntaxException ignored) {
             result.set(null);
@@ -389,23 +380,17 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
 
     public static void forEachResource(final ConfigurationAdmin admin,
                                      final EntryReader<String, SerializableManagedResourceConfiguration, ? extends Exception> reader) throws Exception{
-        forEachResource(admin, new Consumer<Configuration, Exception>() {
-            @Override
-            public void accept(final Configuration config) throws Exception {
-                final ConfigurationEntry<SerializableManagedResourceConfiguration> entry = readResourceConfiguration(config);
-                reader.read(entry.getKey(), entry.getValue());
-            }
+        forEachResource(admin, config -> {
+            final ConfigurationEntry<SerializableManagedResourceConfiguration> entry = readResourceConfiguration(config);
+            reader.read(entry.getKey(), entry.getValue());
         });
     }
 
     private static void readResources(final ConfigurationAdmin admin,
                                       final Map<String, SerializableManagedResourceConfiguration> output) throws Exception {
-        forEachResource(admin, new EntryReader<String, SerializableManagedResourceConfiguration, ExceptionPlaceholder>() {
-            @Override
-            public boolean read(final String resourceName, final SerializableManagedResourceConfiguration config) {
-                output.put(resourceName, config);
-                return true;
-            }
+        forEachResource(admin, (resourceName, config) -> {
+            output.put(resourceName, config);
+            return true;
         });
     }
 
@@ -452,12 +437,9 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         try {
             //find existing configuration of adapters
             final Box<Boolean> updated = new Box<>(Boolean.FALSE);
-            forEachAdapter(admin, String.format("(%s=%s)", ADAPTER_INSTANCE_NAME_PROPERTY, adapterInstance), new Consumer<Configuration, IOException>() {
-                @Override
-                public void accept(final Configuration config) throws IOException {
-                    save(adapterInstance, adapter, config);
-                    updated.set(Boolean.TRUE);
-                }
+            forEachAdapter(admin, String.format("(%s=%s)", ADAPTER_INSTANCE_NAME_PROPERTY, adapterInstance), config -> {
+                save(adapterInstance, adapter, config);
+                updated.set(Boolean.TRUE);
             });
             //no existing configuration, creates a new configuration
             if(!updated.get())
@@ -505,12 +487,9 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         try {
             final Box<Boolean> updated = new Box<>(Boolean.FALSE);
             //find existing configuration of resources
-            forEachResource(admin, String.format("(%s=%s)", RESOURCE_NAME_PROPERTY, resourceName), new Consumer<Configuration, IOException>() {
-                @Override
-                public void accept(final Configuration config) throws IOException {
-                    save(resourceName, resource, config);
-                    updated.set(Boolean.TRUE);
-                }
+            forEachResource(admin, String.format("(%s=%s)", RESOURCE_NAME_PROPERTY, resourceName), config -> {
+                save(resourceName, resource, config);
+                updated.set(Boolean.TRUE);
             });
             //no existing configuration, creates a new configuration
             if(!updated.get())
@@ -556,21 +535,15 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
                 throw new IOException(e);
             }
             //save each modified resource or adapter
-            config.modifiedAdapters(new EntryReader<String, ResourceAdapterConfiguration, IOException>() {
-                @Override
-                public boolean read(final String adapterInstance, final ResourceAdapterConfiguration config) throws IOException {
-                    if (config instanceof Modifiable && ((Modifiable) config).isModified())
-                        save(adapterInstance, config, output);
-                    return true;
-                }
+            config.modifiedAdapters((adapterInstance, config1) -> {
+                if (config1 instanceof Modifiable && ((Modifiable) config1).isModified())
+                    save(adapterInstance, config1, output);
+                return true;
             });
-            config.modifiedResources(new EntryReader<String, ManagedResourceConfiguration, IOException>() {
-                @Override
-                public boolean read(final String resourceName, final ManagedResourceConfiguration config) throws IOException {
-                    if (config instanceof Modifiable && ((Modifiable) config).isModified())
-                        save(resourceName, config, output);
-                    return true;
-                }
+            config.modifiedResources((resourceName, config12) -> {
+                if (config12 instanceof Modifiable && ((Modifiable) config12).isModified())
+                    save(resourceName, config12, output);
+                return true;
             });
         }
     }

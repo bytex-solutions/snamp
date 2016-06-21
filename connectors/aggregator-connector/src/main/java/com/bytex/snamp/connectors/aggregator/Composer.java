@@ -5,7 +5,6 @@ import com.bytex.snamp.configuration.SerializableAgentConfiguration.Serializable
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.connectors.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
-import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
 import org.osgi.framework.BundleContext;
 
@@ -27,12 +26,6 @@ import java.util.Map;
 final class Composer extends AbstractAttributeAggregation<CompositeData> {
     static final String NAME = "composer";
     private static final String DESCRIPTION = "Composes all scalar attributes";
-    private static final Predicate<OpenType<?>> TYPE_FILTER = new Predicate<OpenType<?>>() {
-        @Override
-        public boolean apply(final OpenType<?> attributeType) {
-            return attributeType instanceof SimpleType<?>;
-        }
-    };
 
 
     private static CompositeType detectAttributeType(final AttributeDescriptor descriptor,
@@ -41,7 +34,7 @@ final class Composer extends AbstractAttributeAggregation<CompositeData> {
         try {
             return AbstractAttributeRepository.compose("ComposedAttributes",
                     "A set of composed attributes",
-                    TYPE_FILTER,
+                    attributeType -> attributeType instanceof SimpleType<?>,
                     client.getMBeanInfo().getAttributes());
         }
         finally {

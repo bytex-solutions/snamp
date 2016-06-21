@@ -1,6 +1,5 @@
 package com.bytex.snamp;
 
-import com.google.common.base.Function;
 import com.google.common.base.Suppliers;
 import org.junit.Assert;
 import org.junit.Test;
@@ -34,12 +33,7 @@ public final class SwitchTest extends Assert {
         final Integer result = new Switch<Object, Integer>()
                 .theSame(obj, 42)
                 .equalsToNull(56)
-                .instanceOf(String.class, new Function<String, Integer>() {
-                    @Override
-                    public Integer apply(final String input) {
-                        return input.hashCode();
-                    }
-                })
+                .instanceOf(String.class, String::hashCode)
                 .apply(obj, 72);
 
         assertNotNull(result);

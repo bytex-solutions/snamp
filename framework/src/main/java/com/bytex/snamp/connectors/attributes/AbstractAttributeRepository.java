@@ -23,7 +23,6 @@ import java.math.BigInteger;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
@@ -176,17 +175,14 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
                 synchronizedList(Lists.<Attribute>newArrayListWithExpectedSize(attributes.length));
         final CountDownLatch synchronizer = new CountDownLatch(attributes.length);
         for (final String attributeName : attributes)
-            executor.submit(new Callable<Object>() {
-                @Override
-                public Object call() throws JMException {
-                    try {
-                        return result.add(new Attribute(attributeName, getAttribute(attributeName)));
-                    } catch (final JMException e) {
-                        failedToGetAttribute(attributeName, e);
-                        return null;
-                    } finally {
-                        synchronizer.countDown();
-                    }
+            executor.submit(() -> {
+                try {
+                    return result.add(new Attribute(attributeName, getAttribute(attributeName)));
+                } catch (final JMException e) {
+                    failedToGetAttribute(attributeName, e);
+                    return null;
+                } finally {
+                    synchronizer.countDown();
                 }
             });
         if (timeout == null)
@@ -248,18 +244,15 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
                 Collections.synchronizedList(Lists.<Attribute>newArrayListWithExpectedSize(attributes.size()));
         final CountDownLatch synchronizer = new CountDownLatch(attributes.size());
         for (final Attribute attr : attributes.asList())
-            executor.submit(new Callable<Object>() {
-                @Override
-                public Object call() throws Exception {
-                    try {
-                        setAttribute(attr);
-                        return result.add(new Attribute(attr.getName(), attr.getValue()));
-                    } catch (final JMException e) {
-                        failedToSetAttribute(attr.getName(), attr.getValue(), e);
-                        return null;
-                    } finally {
-                        synchronizer.countDown();
-                    }
+            executor.submit(() -> {
+                try {
+                    setAttribute(attr);
+                    return result.add(new Attribute(attr.getName(), attr.getValue()));
+                } catch (final JMException e) {
+                    failedToSetAttribute(attr.getName(), attr.getValue(), e);
+                    return null;
+                } finally {
+                    synchronizer.countDown();
                 }
             });
         if (timeout == null)

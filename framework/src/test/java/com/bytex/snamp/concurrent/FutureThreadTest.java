@@ -3,7 +3,6 @@ package com.bytex.snamp.concurrent;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 
@@ -17,24 +16,13 @@ public final class FutureThreadTest extends Assert {
 
     @Test
     public final void multipleTasksTest() throws ExecutionException, InterruptedException {
-        final FutureThread<Boolean> bThread = new FutureThread<>(new Callable<Boolean>() {
-            @Override
-            public final Boolean call() {
-                return true;
-            }
+        final FutureThread<Boolean> bThread = new FutureThread<>(() -> true);
+        final FutureThread<Integer> nThread = new FutureThread<>(() -> {
+            Thread.sleep(300);
+            return 42;
         });
-        final FutureThread<Integer> nThread = new FutureThread<>(new Callable<Integer>() {
-            @Override
-            public Integer call() throws Exception{
-                Thread.sleep(300);
-                return 42;
-            }
-        });
-        final FutureThread<Object> eThread = new FutureThread<>(new Callable<Object>() {
-            @Override
-            public Object call() throws Exception {
-                throw new Exception("Some exception occured.");
-            }
+        final FutureThread<Object> eThread = new FutureThread<>(() -> {
+            throw new Exception("Some exception occured.");
         });
         bThread.start();
         nThread.start();
@@ -56,13 +44,10 @@ public final class FutureThreadTest extends Assert {
 
     @Test(expected = CancellationException.class)
     public final void taskCancellationTest() throws InterruptedException, ExecutionException {
-        final FutureThread<String> longRunning = new FutureThread<>(new Callable<String>() {
-            @Override
-            public String call() {
-                while (!Thread.currentThread().isInterrupted())
-                    Thread.yield();
-                return "interrupted";
-            }
+        final FutureThread<String> longRunning = new FutureThread<>(() -> {
+            while (!Thread.currentThread().isInterrupted())
+                Thread.yield();
+            return "interrupted";
         });
         longRunning.start();
         Thread.sleep(100);

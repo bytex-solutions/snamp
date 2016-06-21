@@ -27,7 +27,8 @@ public class ResourceAdapterUpdateManager implements AutoCloseable {
             setDaemon(true);
             setPriority(3);
             this.timeout = new AtomicLong(restartTimeout);
-            this.callback = firstNonNull(callback, ResourceAdapterUpdatedCallback.STUB);
+            this.callback = firstNonNull(callback, () -> {
+            });
         }
 
         @Override
@@ -153,13 +154,10 @@ public class ResourceAdapterUpdateManager implements AutoCloseable {
      */
     public static ResourceAdapterUpdatedCallback combineCallbacks(final ResourceAdapterUpdatedCallback callback,
                                                          final ResourceAdapterUpdatedCallback... callbacks){
-        return new ResourceAdapterUpdatedCallback() {
-            @Override
-            public void updated() {
-                callback.updated();
-                for(final ResourceAdapterUpdatedCallback other: callbacks)
-                    other.updated();
-            }
+        return () -> {
+            callback.updated();
+            for(final ResourceAdapterUpdatedCallback other: callbacks)
+                other.updated();
         };
     }
 }

@@ -58,12 +58,9 @@ public final class SummaryMetrics extends AbstractAggregator implements MetricsR
 
         @Override
         public final void reset() {
-            aggregateMetrics(new MetricFunction<Metrics>() {
-                @Override
-                public long getMetric(final Metrics metrics) {
-                    metrics.reset();
-                    return 0L;
-                }
+            aggregateMetrics(metrics -> {
+                metrics.reset();
+                return 0L;
             });
         }
     }
@@ -76,42 +73,22 @@ public final class SummaryMetrics extends AbstractAggregator implements MetricsR
 
         @Override
         public long getNumberOfReads() {
-            return aggregateMetrics(new MetricFunction<AttributeMetrics>() {
-                @Override
-                public long getMetric(final AttributeMetrics metrics) {
-                    return metrics.getNumberOfReads();
-                }
-            });
+            return aggregateMetrics(AttributeMetrics::getNumberOfReads);
         }
 
         @Override
         public long getNumberOfReads(final MetricsInterval interval) {
-            return aggregateMetrics(new MetricFunction<AttributeMetrics>() {
-                @Override
-                public long getMetric(final AttributeMetrics metrics) {
-                    return metrics.getNumberOfReads(interval);
-                }
-            });
+            return aggregateMetrics(metrics -> metrics.getNumberOfReads(interval));
         }
 
         @Override
         public long getNumberOfWrites() {
-            return aggregateMetrics(new MetricFunction<AttributeMetrics>() {
-                @Override
-                public long getMetric(final AttributeMetrics metrics) {
-                    return metrics.getNumberOfWrites();
-                }
-            });
+            return aggregateMetrics(AttributeMetrics::getNumberOfWrites);
         }
 
         @Override
         public long getNumberOfWrites(final MetricsInterval interval) {
-            return aggregateMetrics(new MetricFunction<AttributeMetrics>() {
-                @Override
-                public long getMetric(final AttributeMetrics metrics) {
-                    return metrics.getNumberOfWrites(interval);
-                }
-            });
+            return aggregateMetrics(metrics -> metrics.getNumberOfWrites(interval));
         }
     }
 
@@ -122,22 +99,12 @@ public final class SummaryMetrics extends AbstractAggregator implements MetricsR
 
         @Override
         public long getNumberOfEmitted() {
-            return aggregateMetrics(new MetricFunction<NotificationMetrics>() {
-                @Override
-                public long getMetric(final NotificationMetrics metrics) {
-                    return metrics.getNumberOfEmitted();
-                }
-            });
+            return aggregateMetrics(NotificationMetrics::getNumberOfEmitted);
         }
 
         @Override
         public long getNumberOfEmitted(final MetricsInterval interval) {
-            return aggregateMetrics(new MetricFunction<NotificationMetrics>() {
-                @Override
-                public long getMetric(final NotificationMetrics metrics) {
-                    return metrics.getNumberOfEmitted(interval);
-                }
-            });
+            return aggregateMetrics(metrics -> metrics.getNumberOfEmitted(interval));
         }
     }
 
@@ -148,22 +115,12 @@ public final class SummaryMetrics extends AbstractAggregator implements MetricsR
 
         @Override
         public long getNumberOfInvocations() {
-            return aggregateMetrics(new MetricFunction<OperationMetrics>() {
-                @Override
-                public long getMetric(final OperationMetrics metrics) {
-                    return metrics.getNumberOfInvocations();
-                }
-            });
+            return aggregateMetrics(OperationMetrics::getNumberOfInvocations);
         }
 
         @Override
         public long getNumberOfInvocations(final MetricsInterval interval) {
-            return aggregateMetrics(new MetricFunction<OperationMetrics>() {
-                @Override
-                public long getMetric(final OperationMetrics metrics) {
-                    return metrics.getNumberOfInvocations(interval);
-                }
-            });
+            return aggregateMetrics(metrics -> metrics.getNumberOfInvocations(interval));
         }
     }
 

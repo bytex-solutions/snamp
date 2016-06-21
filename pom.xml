@@ -50,29 +50,29 @@
     <snamp.framework.maxVersion>2</snamp.framework.maxVersion>
 
     <snamp.adapters.http.version>1.2.0</snamp.adapters.http.version>
-    <snamp.adapters.jmx.version>1.1.0</snamp.adapters.jmx.version>
-    <snamp.adapters.nagios.version>1.1.0</snamp.adapters.nagios.version>
+    <snamp.adapters.jmx.version>1.2.0</snamp.adapters.jmx.version>
+    <snamp.adapters.nagios.version>1.2.0</snamp.adapters.nagios.version>
     <snamp.adapters.nrdp.version>1.2.0</snamp.adapters.nrdp.version>
     <snamp.adapters.nsca.version>1.2.0</snamp.adapters.nsca.version>
     <snamp.adapters.snmp.version>1.2.0</snamp.adapters.snmp.version>
     <snamp.adapters.ssh.version>1.2.0</snamp.adapters.ssh.version>
-    <snamp.adapters.syslog.version>1.1.0</snamp.adapters.syslog.version>
-    <snamp.adapters.xmpp.version>1.1.0</snamp.adapters.xmpp.version>
-    <snamp.adapters.groovy.version>1.1.0</snamp.adapters.groovy.version>
-    <snamp.adapters.decanter.version>1.1.0</snamp.adapters.decanter.version>
+    <snamp.adapters.syslog.version>1.2.0</snamp.adapters.syslog.version>
+    <snamp.adapters.xmpp.version>1.2.0</snamp.adapters.xmpp.version>
+    <snamp.adapters.groovy.version>1.2.0</snamp.adapters.groovy.version>
+    <snamp.adapters.decanter.version>1.2.0</snamp.adapters.decanter.version>
 
-    <snamp.jmxhelper.version>1.1.0</snamp.jmxhelper.version>
+    <snamp.jmxhelper.version>1.2.0</snamp.jmxhelper.version>
     <snamp.management.version>1.2.0</snamp.management.version>
     <snamp.services.version>1.2.0</snamp.services.version>
 
-    <snamp.connectors.rshell.version>1.1.0</snamp.connectors.rshell.version>
-    <snamp.connectors.aggregator.version>1.1.0</snamp.connectors.aggregator.version>
-    <snamp.connectors.groovy.version>1.1.0</snamp.connectors.groovy.version>
-    <snamp.connectors.ibmwmq.version>1.1.0</snamp.connectors.ibmwmq.version>
-    <snamp.connectors.jmx.version>1.1.0</snamp.connectors.jmx.version>
+    <snamp.connectors.rshell.version>1.2.0</snamp.connectors.rshell.version>
+    <snamp.connectors.aggregator.version>1.2.0</snamp.connectors.aggregator.version>
+    <snamp.connectors.groovy.version>1.2.0</snamp.connectors.groovy.version>
+    <snamp.connectors.ibmwmq.version>1.2.0</snamp.connectors.ibmwmq.version>
+    <snamp.connectors.jmx.version>1.2.0</snamp.connectors.jmx.version>
     <snamp.connectors.mda.version>1.2.0</snamp.connectors.mda.version>
     <snamp.connectors.snmp.version>1.2.0</snamp.connectors.snmp.version>
-    <snamp.connectors.modbus.version>1.1.0</snamp.connectors.modbus.version>
+    <snamp.connectors.modbus.version>1.2.0</snamp.connectors.modbus.version>
     <snamp.connectors.mq.version>1.2.0</snamp.connectors.mq.version>
   </properties>
   <version>1.2.0</version>
@@ -83,6 +83,16 @@
   <build>
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.5.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.0.1</version>
+                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
@@ -132,6 +142,14 @@
             </plugins>
         </pluginManagement>
       <plugins>
+          <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-compiler-plugin</artifactId>
+              <configuration>
+                  <source>${maven.compiler.source}</source>
+                  <target>${maven.compiler.target}</target>
+              </configuration>
+          </plugin>
           <plugin>
               <groupId>org.codehaus.mojo</groupId>
               <artifactId>flatten-maven-plugin</artifactId>

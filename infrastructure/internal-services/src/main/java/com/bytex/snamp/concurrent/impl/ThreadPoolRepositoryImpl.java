@@ -7,7 +7,6 @@ import com.bytex.snamp.core.AbstractFrameworkService;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
 import com.google.common.collect.ImmutableSet;
-import org.osgi.framework.BundleContext;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.cm.ConfigurationException;
@@ -19,7 +18,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor.Action;
 import static com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor.ConsistentAction;
 
 /**
@@ -52,34 +50,20 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
             case DEFAULT_POOL:
                 return defaultPool;
             default:
-                return services.read(new ConsistentAction<Map<String, ExecutorService>, ExecutorService>() {
-                    @Override
-                    public ExecutorService invoke(final Map<String, ExecutorService> services) {
-                        if (services.containsKey(name))
-                            return services.get(name);
-                        else return defaultPool;
-                    }
-                });
+                return services.read(svcs -> svcs.containsKey(name) ? svcs.get(name): defaultPool);
         }
-    }
-
-    private BundleContext getBundleContext(){
-        return Utils.getBundleContextOfObject(this);
     }
 
     @Override
     public ExecutorService registerThreadPool(final String name, final ThreadPoolConfig config) {
         if (DEFAULT_POOL.equals(name))
             throw new IllegalArgumentException("Default thread pool is already registered");
-        final ExecutorService executor = services.write(new Action<Map<String, ExecutorService>, ExecutorService, IllegalArgumentException>() {
-            @Override
-            public ExecutorService invoke(final Map<String, ExecutorService> services) {
-                if (services.containsKey(name))
-                    throw new IllegalArgumentException(String.format("Thread pool '%s' is already registered", name));
-                final ExecutorService executor = config.createExecutorService(name);
-                services.put(name, executor);
-                return executor;
-            }
+        final ExecutorService executor = services.write( svcs -> {
+            if (svcs.containsKey(name))
+                throw new IllegalArgumentException(String.format("Thread pool '%s' is already registered", name));
+            final ExecutorService executor1 = config.createExecutorService(name);
+            svcs.put(name, executor1);
+            return executor1;
         });
         //persist configuration
         try {
@@ -113,15 +97,12 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
     @Override
     public boolean unregisterThreadPool(final String name, final boolean shutdown) {
         if (DEFAULT_POOL.equals(name)) return false;
-        final boolean success = services.write(new ConsistentAction<Map<String, ExecutorService>, Boolean>() {
-            @Override
-            public Boolean invoke(final Map<String, ExecutorService> services) {
-                final ExecutorService executor = services.remove(name);
-                if (executor != null) {
-                    if (shutdown) executor.shutdown();
-                    return true;
-                } else return false;
-            }
+        final boolean success = services.write(svcs -> {
+            final ExecutorService executor = svcs.remove(name);
+            if (executor != null) {
+                if (shutdown) executor.shutdown();
+                return true;
+            } else return false;
         });
         if (success) {
             try {
@@ -147,13 +128,7 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
 
     @Override
     public Iterator<String> iterator() {
-        return services.read(new ConsistentAction<Map<String,ExecutorService>, Iterator<String>>() {
-            @Override
-            public Iterator<String> invoke(final Map<String, ExecutorService> services) {
-                final ImmutableSet<String> snapshot = ImmutableSet.copyOf(services.keySet());
-                return snapshot.iterator();
-            }
-        });
+        return services.read(svcs -> ImmutableSet.copyOf(svcs.keySet()).iterator());
     }
 
     @Override
@@ -203,14 +178,10 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
 
     @Override
     public void close() {
-        services.write(new ConsistentAction<Map<String,ExecutorService>, Void>() {
-            @Override
-            public Void invoke(final Map<String, ExecutorService> services) {
-                for(final ExecutorService executor: services.values())
-                    executor.shutdown();
-                services.clear();
-                return null;
-            }
+        services.write(obj -> {
+            obj.values().forEach(ExecutorService::shutdown);
+            obj.clear();
+            return null;
         });
     }
 }

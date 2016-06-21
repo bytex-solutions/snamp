@@ -127,12 +127,7 @@ public final class CompositeDataUtils {
                                        final Map<String, ?> map,
                                        final Map<String, ? extends OpenType<?>> types,
                                        final Function<String, String> descriptionProvider) throws OpenDataException {
-        return create(typeName, description, map, new Function<String, OpenType<?>>() {
-            @Override
-            public OpenType<?> apply(final String input) {
-                return types.get(input);
-            }
-        }, descriptionProvider);
+        return create(typeName, description, map, types::get, descriptionProvider);
     }
 
     public static <V> CompositeData create(final String typeName,

@@ -5,10 +5,7 @@ import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.adapters.groovy.dsl.GroovyManagementModel;
-import com.bytex.snamp.adapters.modeling.AttributeAccessor;
-import com.bytex.snamp.adapters.modeling.NotificationAccessor;
 import com.bytex.snamp.concurrent.Repeater;
-import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.io.Communicator;
 import com.google.common.eventbus.Subscribe;
 import groovy.lang.Closure;
@@ -109,22 +106,19 @@ public abstract class ResourceAdapterScript extends Script implements AutoClosea
     }
 
     private static void processAttributes(final AttributesRootAPI model, final Closure<?> closure) throws JMException {
-        model.processAttributes(new EntryReader<String, AttributeAccessor, JMException>() {
-            @Override
-            public boolean read(final String resourceName, final AttributeAccessor accessor) throws JMException {
-                switch (closure.getMaximumNumberOfParameters()) {
-                    case 0:
-                        closure.call();
-                        return true;
-                    case 1:
-                        closure.call(accessor.getMetadata());
-                        return true;
-                    case 2:
-                        closure.call(resourceName, accessor.getMetadata());
-                        return true;
-                    default:
-                        return false;
-                }
+        model.processAttributes((resourceName, accessor) -> {
+            switch (closure.getMaximumNumberOfParameters()) {
+                case 0:
+                    closure.call();
+                    return true;
+                case 1:
+                    closure.call(accessor.getMetadata());
+                    return true;
+                case 2:
+                    closure.call(resourceName, accessor.getMetadata());
+                    return true;
+                default:
+                    return false;
             }
         });
     }
@@ -137,22 +131,19 @@ public abstract class ResourceAdapterScript extends Script implements AutoClosea
     }
 
     private static void processEvents(final EventsRootAPI model, final Closure<?> closure) throws JMException {
-        model.processEvents(new EntryReader<String, NotificationAccessor, JMException>() {
-            @Override
-            public boolean read(final String resourceName, final NotificationAccessor accessor) throws JMException {
-                switch (closure.getMaximumNumberOfParameters()) {
-                    case 0:
-                        closure.call();
-                        return true;
-                    case 1:
-                        closure.call(accessor.getMetadata());
-                        return true;
-                    case 2:
-                        closure.call(resourceName, accessor.getMetadata());
-                        return true;
-                    default:
-                        return false;
-                }
+        model.processEvents((resourceName, accessor) -> {
+            switch (closure.getMaximumNumberOfParameters()) {
+                case 0:
+                    closure.call();
+                    return true;
+                case 1:
+                    closure.call(accessor.getMetadata());
+                    return true;
+                case 2:
+                    closure.call(resourceName, accessor.getMetadata());
+                    return true;
+                default:
+                    return false;
             }
         });
     }

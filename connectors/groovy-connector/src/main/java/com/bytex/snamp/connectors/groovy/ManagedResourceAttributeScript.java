@@ -1,14 +1,13 @@
 package com.bytex.snamp.connectors.groovy;
 
-import com.google.common.collect.Maps;
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.SafeConsumer;
-import com.bytex.snamp.connectors.attributes.AttributeSpecifier;
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.connectors.attributes.AttributeSpecifier;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.bytex.snamp.jmx.CompositeTypeBuilder;
 import com.bytex.snamp.jmx.TabularDataUtils;
 import com.bytex.snamp.jmx.TabularTypeBuilder;
+import com.google.common.collect.Maps;
 
 import javax.management.ObjectName;
 import javax.management.openmbean.*;
@@ -157,12 +156,7 @@ public abstract class ManagedResourceAttributeScript extends ManagedResourceFeat
     @SpecialUse
     protected static Collection<? extends Map<String, ?>> asTable(final TabularData table){
         final List<HashMap<String, ?>> result = new LinkedList<>();
-        TabularDataUtils.forEachRow(table, new SafeConsumer<CompositeData>() {
-            @Override
-            public void accept(final CompositeData row) {
-                result.add(asDictionary(row));
-            }
-        });
+        TabularDataUtils.forEachRow(table, row -> result.add(asDictionary(row)));
         return result;
     }
 

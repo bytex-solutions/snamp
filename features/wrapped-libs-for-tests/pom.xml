@@ -6,6 +6,7 @@
         <artifactId>snamp</artifactId>
         <groupId>com.bytex.snamp</groupId>
         <version>1.2.0</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <name>Wrapped Libraries</name>

@@ -327,15 +327,10 @@ final class HttpAdapter extends AbstractResourceAdapter {
                                                                                                     final AttributeSet<HttpAttributeAccessor> attributes){
         final Multimap<String, ReadOnlyFeatureBindingInfo<MBeanAttributeInfo>> result =
                 HashMultimap.create();
-        attributes.forEachAttribute(new EntryReader<String, HttpAttributeAccessor, ExceptionPlaceholder>() {
-            @Override
-            public boolean read(final String resourceName, final HttpAttributeAccessor accessor) {
-                return result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor,
-                        "path", accessor.getPath(servletContext, resourceName),
-                        FeatureBindingInfo.MAPPED_TYPE, accessor.getJsonType()
-                ));
-            }
-        });
+        attributes.forEachAttribute((resourceName, accessor) -> result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor,
+                "path", accessor.getPath(servletContext, resourceName),
+                FeatureBindingInfo.MAPPED_TYPE, accessor.getJsonType()
+        )));
         return result;
     }
 
@@ -343,14 +338,9 @@ final class HttpAdapter extends AbstractResourceAdapter {
                                                                                                           final NotificationSet<HttpNotificationAccessor> notifs){
         final Multimap<String, ReadOnlyFeatureBindingInfo<MBeanNotificationInfo>> result =
                 HashMultimap.create();
-        notifs.forEachNotification(new EntryReader<String, HttpNotificationAccessor, ExceptionPlaceholder>() {
-            @Override
-            public boolean read(final String resourceName, final HttpNotificationAccessor accessor) {
-                return result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor,
-                        "path", accessor.getPath(servletContext, resourceName)
-                ));
-            }
-        });
+        notifs.forEachNotification( (resourceName, accessor) -> result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor,
+                "path", accessor.getPath(servletContext, resourceName)
+        )));
         return result;
     }
 

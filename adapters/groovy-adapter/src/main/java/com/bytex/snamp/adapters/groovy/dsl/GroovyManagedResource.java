@@ -10,7 +10,6 @@ import java.security.InvalidKeyException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -55,12 +54,7 @@ public final class GroovyManagedResource extends GroovyObjectSupport {
                                                              final String attributeName,
                                                              final AttributesView attributes) {
         try {
-            return cache.get(attributeName, new Callable<GroovyResourceAttribute>() {
-                @Override
-                public GroovyResourceAttribute call() {
-                    return new GroovyResourceAttribute(attributes, resourceName, attributeName);
-                }
-            });
+            return cache.get(attributeName, () -> new GroovyResourceAttribute(attributes, resourceName, attributeName));
         } catch (final ExecutionException ignored) {
             return null;
         }
@@ -71,15 +65,12 @@ public final class GroovyManagedResource extends GroovyObjectSupport {
                                                      final String eventName,
                                                      final EventsView events) {
         try {
-            return cache.get(eventName, new Callable<GroovyResourceEvent>() {
-                @Override
-                public GroovyResourceEvent call() throws InvalidKeyException {
-                    for (final MBeanNotificationInfo metadata : events.getEventsMetadata(resourceName))
-                        for (final String notifType : metadata.getNotifTypes())
-                            if (Objects.equals(notifType, eventName))
-                                return new GroovyResourceEvent(metadata);
-                    throw new InvalidKeyException();
-                }
+            return cache.get(eventName, () -> {
+                for (final MBeanNotificationInfo metadata : events.getEventsMetadata(resourceName))
+                    for (final String notifType : metadata.getNotifTypes())
+                        if (Objects.equals(notifType, eventName))
+                            return new GroovyResourceEvent(metadata);
+                throw new InvalidKeyException();
             });
         } catch (final ExecutionException ignored) {
             return null;

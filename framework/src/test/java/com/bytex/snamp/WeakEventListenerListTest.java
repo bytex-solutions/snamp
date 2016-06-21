@@ -28,11 +28,7 @@ public final class WeakEventListenerListTest extends Assert {
     @Test
     public void toArrayTest(){
         final DummyEventListenerList listeners = new DummyEventListenerList();
-        final DummyListener listener = new DummyListener() {
-            @Override
-            public void invoke() {
-
-            }
+        final DummyListener listener = () -> {
         };
         listeners.addAll(ImmutableList.of(listener, listener));
         assertEquals(2, listeners.size());
@@ -43,11 +39,7 @@ public final class WeakEventListenerListTest extends Assert {
     @Test
     public void toArray2Test(){
         final DummyEventListenerList listeners = new DummyEventListenerList();
-        final DummyListener listener = new DummyListener() {
-            @Override
-            public void invoke() {
-
-            }
+        final DummyListener listener = () -> {
         };
         listeners.addAll(ImmutableList.of(listener, listener));
         assertEquals(2, listeners.size());
@@ -60,12 +52,7 @@ public final class WeakEventListenerListTest extends Assert {
     @Test
     public void addRemoveTest() {
         final DummyEventListenerList listeners = new DummyEventListenerList();
-        final DummyListener listener = new DummyListener() {
-            @Override
-            public void invoke() {
-
-            }
-        };
+        final DummyListener listener = () -> {};
         listeners.add(listener);
         listeners.add(listener);
         assertEquals(2, listeners.size());
@@ -83,12 +70,7 @@ public final class WeakEventListenerListTest extends Assert {
     public void fireTest(){
         final DummyEventListenerList listeners = new DummyEventListenerList();
         final Box<Boolean> fired = new Box<>(Boolean.FALSE);
-        final DummyListener listener = new DummyListener() {
-            @Override
-            public void invoke() {
-                fired.set(Boolean.TRUE);
-            }
-        };
+        final DummyListener listener = () -> fired.set(Boolean.TRUE);
         listeners.add(listener);
         assertTrue(listeners.containsAll(ImmutableList.of(listener)));
         listeners.fire(new EventObject(this));

@@ -1,6 +1,5 @@
 package com.bytex.snamp.adapters.decanter;
 
-import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.adapters.modeling.ModelOfAttributes;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
@@ -35,12 +34,9 @@ final class PolledCollector extends ModelOfAttributes<DecanterAttributeAccessor>
         //do not send events in the passive node
         if (DistributedServices.isActiveNode(Utils.getBundleContextOfObject(this)))
             try {
-                forEachAttribute(new EntryReader<String, DecanterAttributeAccessor, JMException>() {
-                    @Override
-                    public boolean read(final String resourceName, final DecanterAttributeAccessor accessor) throws JMException {
-                        accessor.collectData(eventAdmin, TOPIC_PREFIX + resourceName + '/');
-                        return true;
-                    }
+                forEachAttribute((resourceName, accessor) -> {
+                    accessor.collectData(eventAdmin, TOPIC_PREFIX + resourceName + '/');
+                    return true;
                 });
             } catch (final JMException e) {
                 logger.log(Level.SEVERE, "Unable to collect attributes", e);

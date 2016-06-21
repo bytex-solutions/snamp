@@ -27,15 +27,6 @@ public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> ext
     private interface AttributeStatement extends FeatureStatement{
     }
 
-    private static <I, E extends Throwable> AttributeValueHandler<I, E> handlerStub(){
-        return new AttributeValueHandler<I, E>() {
-            @Override
-            public void handle(final String resourceName, final MBeanAttributeInfo metadata, final I attributeValue) {
-
-            }
-        };
-    }
-
     /**
      * Represents attribute value handler.
      * @author Roman Sakno
@@ -47,10 +38,12 @@ public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> ext
         private final WriteOnceRef<AttributeValueHandler<Object, ?>> successHandler;
         private final WriteOnceRef<AttributeValueHandler<? super Throwable, ? extends RuntimeException>> errorHandler;
 
-        protected FilterAndProcessAttributeStatement(final Predicate checker){
+        protected FilterAndProcessAttributeStatement(final Predicate checker) {
             this.checker = Objects.requireNonNull(checker);
-            this.successHandler = new WriteOnceRef<AttributeValueHandler<Object, ?>>(handlerStub());
-            this.errorHandler = new WriteOnceRef<AttributeValueHandler<? super Throwable, ? extends RuntimeException>>(ResourceAttributesAnalyzer.<Throwable, RuntimeException>handlerStub());
+            this.successHandler = new WriteOnceRef<>((resourceName, metadata, attributeValue) -> {
+            });
+            this.errorHandler = new WriteOnceRef<>((resourceName, metadata, attributeValue) -> {
+            });
         }
 
         /**
@@ -71,7 +64,7 @@ public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> ext
 
         @SpecialUse
         public final FilterAndProcessAttributeStatement failure(final Closure<?> handler){
-            return failure(Closures.<Throwable, RuntimeException>toAttributeHandler(handler));
+            return failure(Closures.toAttributeHandler(handler));
         }
 
         public final FilterAndProcessAttributeStatement then(final AttributeValueHandler<Object, ?> handler){

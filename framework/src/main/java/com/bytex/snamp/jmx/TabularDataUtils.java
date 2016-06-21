@@ -84,12 +84,7 @@ public final class TabularDataUtils {
 
     public static List<CompositeData> getRows(final TabularData table){
         final ArrayList<CompositeData> rows = Lists.newArrayListWithExpectedSize(table.size());
-        forEachRow(table, new SafeConsumer<CompositeData>() {
-            @Override
-            public void accept(final CompositeData row) {
-                rows.add(row);
-            }
-        });
+        forEachRow(table, rows::add);
         return rows;
     }
 

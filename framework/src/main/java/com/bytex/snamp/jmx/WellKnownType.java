@@ -592,48 +592,23 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
     }
 
     public static EnumSet<WellKnownType> getPrimitiveTypes(){
-        return filterTypes(new Predicate<WellKnownType>() {
-            @Override
-            public boolean apply(final WellKnownType input) {
-                return input.isPrimitive();
-            }
-        });
+        return filterTypes(WellKnownType::isPrimitive);
     }
 
     public static EnumSet<WellKnownType> getOpenTypes(){
-        return filterTypes(new Predicate<WellKnownType>() {
-            @Override
-            public boolean apply(final WellKnownType input) {
-                return input.isOpenType();
-            }
-        });
+        return filterTypes(WellKnownType::isOpenType);
     }
 
     public static EnumSet<WellKnownType> getArrayTypes(){
-        return filterTypes(new Predicate<WellKnownType>() {
-            @Override
-            public boolean apply(final WellKnownType input) {
-                return input.isArray();
-            }
-        });
+        return filterTypes(WellKnownType::isArray);
     }
 
     public static EnumSet<WellKnownType> getArrayOpenTypes(){
-        return filterTypes(new Predicate<WellKnownType>() {
-            @Override
-            public boolean apply(final WellKnownType input) {
-                return input.isOpenType() && input.isArray();
-            }
-        });
+        return filterTypes(input -> input.isOpenType() && input.isArray());
     }
 
     public static EnumSet<WellKnownType> getBufferTypes(){
-        return filterTypes(new Predicate<WellKnownType>() {
-            @Override
-            public boolean apply(final WellKnownType input) {
-                return input.isBuffer();
-            }
-        });
+        return filterTypes(WellKnownType::isBuffer);
     }
 
     public static WellKnownType getType(final Type t){

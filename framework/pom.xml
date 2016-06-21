@@ -5,6 +5,7 @@
     <groupId>com.bytex.snamp</groupId>
     <artifactId>snamp</artifactId>
     <version>1.2.0</version>
+    <relativePath>../pom.xml</relativePath>
   </parent>
   <artifactId>framework</artifactId>
   <packaging>bundle</packaging>

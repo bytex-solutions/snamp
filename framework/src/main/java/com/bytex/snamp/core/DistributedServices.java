@@ -2,9 +2,7 @@ package com.bytex.snamp.core;
 
 import com.bytex.snamp.TypeTokens;
 import com.google.common.base.Function;
-import com.google.common.base.Functions;
 import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -122,17 +120,7 @@ public final class DistributedServices {
     private static <S> S getService(final BundleContext context,
                                     final String serviceName,
                                     final TypeToken<S> serviceType) {
-        return processClusterNode(context, new Function<ClusterMember, S>() {
-            @Override
-            public S apply(final ClusterMember node) {
-                return node.getService(serviceName, serviceType);
-            }
-        }, new Supplier<S>() {
-            @Override
-            public S get() {
-                return getProcessLocalService(serviceName, serviceType);
-            }
-        });
+        return processClusterNode(context, node -> node.getService(serviceName, serviceType), () -> getProcessLocalService(serviceName, serviceType));
     }
 
     /**
@@ -163,12 +151,7 @@ public final class DistributedServices {
      * @return {@literal true}, the caller code hosted in active cluster node; otherwise, {@literal false}.
      */
     public static boolean isActiveNode(final BundleContext context) {
-        return processClusterNode(context, new Function<ClusterMember, Boolean>() {
-            @Override
-            public Boolean apply(final ClusterMember node) {
-                return node.isActive();
-            }
-        }, Suppliers.ofInstance(Boolean.TRUE));
+        return processClusterNode(context, ClusterMember::isActive, () -> true);
     }
 
     /**
@@ -177,7 +160,7 @@ public final class DistributedServices {
      * @return {@literal true}, if this method is called in clustered environment; otherwise, {@literal false}.
      */
     public static boolean isInCluster(final BundleContext context) {
-        return processClusterNode(context, Functions.constant(Boolean.TRUE), Suppliers.ofInstance(Boolean.FALSE));
+        return processClusterNode(context, member -> true, () -> false);
     }
 
     /**
@@ -186,16 +169,6 @@ public final class DistributedServices {
      * @return Name of the cluster node.
      */
     public static String getLocalMemberName(final BundleContext context){
-        return processClusterNode(context, new Function<ClusterMember, String>() {
-            @Override
-            public String apply(final ClusterMember node) {
-                return node.getName();
-            }
-        }, new Supplier<String>() {
-            @Override
-            public String get() {
-                return ManagementFactory.getRuntimeMXBean().getName();
-            }
-        });
+        return processClusterNode(context, ClusterMember::getName, () -> ManagementFactory.getRuntimeMXBean().getName());
     }
 }

@@ -6,7 +6,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import groovy.lang.GroovyObjectSupport;
 
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -24,12 +23,7 @@ public abstract class GroovyManagementModel extends GroovyObjectSupport implemen
 
     private GroovyManagedResource getOrPutResource(final String resourceName) {
         try {
-            return cache.get(resourceName, new Callable<GroovyManagedResource>() {
-                @Override
-                public GroovyManagedResource call() {
-                    return new GroovyManagedResource(GroovyManagementModel.this, resourceName);
-                }
-            });
+            return cache.get(resourceName, () -> new GroovyManagedResource(GroovyManagementModel.this, resourceName));
         } catch (final ExecutionException ignored) {
             return null;
         }

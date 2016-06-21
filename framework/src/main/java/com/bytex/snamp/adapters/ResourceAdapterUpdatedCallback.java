@@ -9,13 +9,10 @@ package com.bytex.snamp.adapters;
 public interface ResourceAdapterUpdatedCallback {
     /**
      * Represents the callback that does nothing.
+     * @deprecated Use empty lambda instead.
      */
-    ResourceAdapterUpdatedCallback STUB = new ResourceAdapterUpdatedCallback() {
-        @Override
-        public void updated() {
-
-        }
-    };
+    @Deprecated
+    ResourceAdapterUpdatedCallback STUB = () -> {};
 
     /**
      * Updating of the resource adapter is completed.

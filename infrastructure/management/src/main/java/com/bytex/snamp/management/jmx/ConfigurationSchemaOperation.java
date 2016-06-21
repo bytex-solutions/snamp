@@ -1,20 +1,19 @@
 package com.bytex.snamp.management.jmx;
 
-import com.google.common.collect.ImmutableMap;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.Box;
-import com.bytex.snamp.Consumer;
 import com.bytex.snamp.adapters.SelectableAdapterParameterDescriptor;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.connectors.SelectableConnectorParameterDescriptor;
 import com.bytex.snamp.jmx.CompositeTypeBuilder;
+import com.bytex.snamp.jmx.OpenMBean;
 import com.bytex.snamp.jmx.TabularDataBuilderRowFill;
 import com.bytex.snamp.jmx.TabularTypeBuilder;
 import com.bytex.snamp.management.AbstractSnampManager;
 import com.bytex.snamp.management.SnampComponentDescriptor;
-import com.bytex.snamp.jmx.OpenMBean;
+import com.google.common.collect.ImmutableMap;
 
 import javax.management.MBeanOperationInfo;
 import javax.management.openmbean.*;
@@ -167,12 +166,7 @@ abstract class ConfigurationSchemaOperation extends OpenMBean.OpenOperation<Comp
     protected static CompositeData getConfigurationSchema(final SnampComponentDescriptor component,
                                                         final String locale) throws OpenDataException {
         final Box<CompositeData> result = new Box<>();
-        component.invokeSupportService(ConfigurationEntityDescriptionProvider.class, new Consumer<ConfigurationEntityDescriptionProvider, OpenDataException>() {
-            @Override
-            public void accept(final ConfigurationEntityDescriptionProvider input) throws OpenDataException {
-                result.set(getConfigurationSchema(input, locale == null || locale.isEmpty() ? Locale.getDefault() : Locale.forLanguageTag(locale)));
-            }
-        });
+        component.invokeSupportService(ConfigurationEntityDescriptionProvider.class, input -> result.set(getConfigurationSchema(input, locale == null || locale.isEmpty() ? Locale.getDefault() : Locale.forLanguageTag(locale))));
         return result.get();
     }
 

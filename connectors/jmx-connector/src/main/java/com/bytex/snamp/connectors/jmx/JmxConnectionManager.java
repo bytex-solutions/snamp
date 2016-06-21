@@ -115,18 +115,6 @@ final class JmxConnectionManager implements AutoCloseable {
                 }
         }
 
-        private static NotificationListener createConnectionTracker(final AtomicReference<IOException> problemHolder) {
-            return new NotificationListener() {
-                @Override
-                public void handleNotification(final Notification notification, final Object handback) {
-                    if (notification instanceof JMXConnectionNotification &&
-                            (Objects.equals(notification.getType(), JMXConnectionNotification.NOTIFS_LOST) ||
-                                    Objects.equals(notification.getType(), JMXConnectionNotification.FAILED)))
-                        reportProblem(problemHolder, new IOException(notification.getMessage()));
-                }
-            };
-        }
-
         /**
          * Provides some periodical action.
          */
@@ -140,7 +128,12 @@ final class JmxConnectionManager implements AutoCloseable {
                 if (problem != null) { //we have a network problem, force reconnection
                     final JMXConnector connector = connectionHolder.createConnection();
                     server = connector.getMBeanServerConnection();
-                    connector.addConnectionNotificationListener(createConnectionTracker(this.problem), null, null);
+                    connector.addConnectionNotificationListener((notification, handback) -> {
+                        if (notification instanceof JMXConnectionNotification &&
+                                (Objects.equals(notification.getType(), JMXConnectionNotification.NOTIFS_LOST) ||
+                                        Objects.equals(notification.getType(), JMXConnectionNotification.FAILED)))
+                            reportProblem(this.problem, new IOException(notification.getMessage()));
+                    }, null, null);
                 } else return;//no problem, return from method
                 //notify about new connection
                 onReconnection(server);

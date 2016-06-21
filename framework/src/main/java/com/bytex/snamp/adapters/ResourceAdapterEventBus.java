@@ -32,21 +32,12 @@ final class ResourceAdapterEventBus {
             this.event = event;
         }
 
-        private static Runnable eventWithListener(final ResourceAdapterEvent event, final ResourceAdapterEventListener listener) {
-            return new Runnable() {
-                @Override
-                public void run() {
-                    listener.handle(event);
-                }
-            };
-        }
-
         @Override
         public boolean read(final String adapterName, final ResourceAdapterEventListener listener) {
             if (Objects.equals(this.adapterName, adapterName))
                 if (EVENT_EXECUTOR.isTerminated())
                     listener.handle(event);
-                else EVENT_EXECUTOR.execute(eventWithListener(event, listener));
+                else EVENT_EXECUTOR.execute(() -> listener.handle(event));
             return true;
         }
     }
