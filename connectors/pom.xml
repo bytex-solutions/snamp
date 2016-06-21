@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.bytex.snamp</groupId>
+    <artifactId>snamp</artifactId>
+    <version>1.2.0</version>
+  </parent>
+  <artifactId>connectors</artifactId>
+  <packaging>pom</packaging>
+  <name>SNAMP Connectors</name>
+  <description>A base classes for building SNAMP management connectors</description>
+  <modules>
+    <module>jmx-connector</module>
+    <module>snmp-connector</module>
+    <module>rshell-connector</module>
+    <module>aggregator-connector</module>
+    <module>ibmwmq-connector</module>
+    <module>groovy-connector</module>
+    <module>modbus-connector</module>
+    <module>mda-connector</module>
+    <module>mq-connector</module>
+  </modules>
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <systemPropertyVariables>
+            <ssh-cert-file>../../hostkey.ser</ssh-cert-file>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

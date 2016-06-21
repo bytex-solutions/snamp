@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.bytex.snamp</groupId>
+    <artifactId>snamp</artifactId>
+    <version>1.2.0</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+  <artifactId>adapters-features</artifactId>
+  <packaging>pom</packaging>
+  <name>SNAMP Adapters Collection</name>
+  <modules>
+    <module>jmx-adapter-feature</module>
+    <module>snmp-adapter-feature</module>
+    <module>ssh-adapter-feature</module>
+    <module>http-adapter-feature</module>
+    <module>nsca-adapter-feature</module>
+    <module>nrdp-adapter-feature</module>
+    <module>nagios-adapter-feature</module>
+    <module>syslog-adapter-feature</module>
+    <module>xmpp-adapter-feature</module>
+    <module>groovy-adapter-feature</module>
+    <module>decanter-adapter-feature</module>
+  </modules>
+</project>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.bytex.snamp</groupId>
+    <artifactId>snamp</artifactId>
+    <version>1.2.0</version>
+  </parent>
+  <artifactId>adapters</artifactId>
+  <packaging>pom</packaging>
+  <name>SNAMP Adapters</name>
+  <description>A base classes for building SNAMP adapters</description>
+  <modules>
+    <module>snmp-adapter</module>
+    <module>jmx-adapter</module>
+    <module>ssh-adapter</module>
+    <module>http-adapter</module>
+    <module>nsca-adapter</module>
+    <module>nrdp-adapter</module>
+    <module>nagios-adapter</module>
+    <module>syslog-adapter</module>
+    <module>xmpp-adapter</module>
+    <module>groovy-adapter</module>
+    <module>decanter-adapter</module>
+  </modules>
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

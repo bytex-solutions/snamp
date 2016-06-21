@@ -17,10 +17,8 @@ import com.bytex.snamp.core.LongCounter;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 import com.bytex.snamp.jmx.WellKnownType;
-import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.osgi.framework.BundleContext;
 
@@ -35,11 +33,12 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.*;
-import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.bytex.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.*;
+import static com.bytex.snamp.configuration.AgentConfiguration.createEntityConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
+
 
 /**
  * Represents SNAMP in-process management connector that exposes
@@ -359,16 +358,20 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         @Override
         public Collection<JavaBeanOperationInfo> expand() {
             final List<JavaBeanOperationInfo> result = new LinkedList<>();
-            for(final MethodDescriptor method: operations)
-                if(method.getMethod().isAnnotationPresent(ManagementOperation.class)){
-                    final SerializableOperationConfiguration config = new SerializableOperationConfiguration();
-                    config.setAlternativeName(method.getName());
-                    config.setAutomaticallyAdded(true);
-                    final JavaBeanOperationInfo operation = enableOperation(method.getName(),
-                            OperationConfiguration.TIMEOUT_FOR_SMART_MODE,
-                            new ConfigParameters(config));
-                    if(operation != null) result.add(operation);
-                }
+            operations.stream()
+                    .filter(method -> method.getMethod().isAnnotationPresent(ManagementOperation.class))
+                    .forEach(method -> {
+                        final OperationConfiguration config =
+                                createEntityConfiguration(Utils.getBundleContextOfObject(connectorRef.get()), OperationConfiguration.class);
+                        if(config != null) {
+                            config.setAlternativeName(method.getName());
+                            config.setAutomaticallyAdded(true);
+                            final JavaBeanOperationInfo operation = enableOperation(method.getName(),
+                                    OperationConfiguration.TIMEOUT_FOR_SMART_MODE,
+                                    new ConfigParameters(config));
+                            if (operation != null) result.add(operation);
+                        }
+            });
             return result;
         }
 
@@ -623,15 +626,19 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         @Override
         public Collection<JavaBeanAttributeInfo> expand() {
             final List<JavaBeanAttributeInfo> result = new LinkedList<>();
-            for (final PropertyDescriptor property : properties)
-                if (!isReservedProperty(property)) {
-                    final SerializableAttributeConfiguration config = new SerializableAttributeConfiguration();
-                    config.setAlternativeName(property.getName());
-                    config.setAutomaticallyAdded(true);
-                    final JavaBeanAttributeInfo attr =
-                            addAttribute(property.getName(), AttributeConfiguration.TIMEOUT_FOR_SMART_MODE, new ConfigParameters(config));
-                    if (attr != null) result.add(attr);
-                }
+            properties.stream()
+                    .filter(property -> !isReservedProperty(property))
+                    .forEach(property -> {
+                        final AttributeConfiguration config =
+                                createEntityConfiguration(Utils.getBundleContextOfObject(connectorRef.get()), AttributeConfiguration.class);
+                        if(config != null) {
+                            config.setAlternativeName(property.getName());
+                            config.setAutomaticallyAdded(true);
+                            final JavaBeanAttributeInfo attr =
+                                    addAttribute(property.getName(), AttributeConfiguration.TIMEOUT_FOR_SMART_MODE, new ConfigParameters(config));
+                            if (attr != null) result.add(attr);
+                        }
+            });
             return result;
         }
 
@@ -741,6 +748,10 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             this.notifications = Objects.requireNonNull(notifications);
         }
 
+        private BundleContext getConnectorContext(){
+            return Utils.getBundleContext(beanMetadata.getBeanDescriptor().getBeanClass());
+        }
+
         protected BeanDiscoveryService(final Class<? extends ManagedResourceConnectorBean> connectorType) throws IntrospectionException {
             this(connectorType, EnumSet.noneOf(EmptyManagementNotificationType.class));
         }
@@ -750,23 +761,27 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             this(getBeanInfo(connectorType), notifications);
         }
 
-        private static Collection<AttributeConfiguration> discoverAttributes(final PropertyDescriptor[] properties) {
+        private Collection<AttributeConfiguration> discoverAttributes(final PropertyDescriptor[] properties) {
             final Collection<AttributeConfiguration> result = Lists.newArrayListWithExpectedSize(properties.length);
             for (final PropertyDescriptor descriptor : properties)
                 if (!isReservedProperty(descriptor)) {
-                    final SerializableAttributeConfiguration attribute = new SerializableAttributeConfiguration();
-                    attribute.setAlternativeName(descriptor.getName());
-                    result.add(attribute);
+                    final AttributeConfiguration attribute = createEntityConfiguration(getConnectorContext(), AttributeConfiguration.class);
+                    if(attribute != null) {
+                        attribute.setAlternativeName(descriptor.getName());
+                        result.add(attribute);
+                    }
                 }
             return result;
         }
 
-        private static Collection<EventConfiguration> discoverNotifications(final Collection<? extends ManagementNotificationType<?>> notifications){
+        private Collection<EventConfiguration> discoverNotifications(final Collection<? extends ManagementNotificationType<?>> notifications){
             final Collection<EventConfiguration> result = Lists.newArrayListWithExpectedSize(notifications.size());
             for(final ManagementNotificationType<?> notifType: notifications) {
-                final SerializableEventConfiguration event = new SerializableEventConfiguration();
-                event.setAlternativeName(notifType.getCategory());
-                result.add(event);
+                final EventConfiguration event = createEntityConfiguration(getConnectorContext(), EventConfiguration.class);
+                if(event != null) {
+                    event.setAlternativeName(notifType.getCategory());
+                    result.add(event);
+                }
             }
             return result;
         }

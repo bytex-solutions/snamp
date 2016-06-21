@@ -1081,4 +1081,26 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
     public final boolean isEmpty(){
         return adapters.isEmpty() && resources.isEmpty();
     }
+
+    /**
+     * Creates a new instance of entity configuration.
+     *
+     * @param entityType Type of entity. Can be {@link ManagedResourceConfiguration},
+     *                   {@link ResourceAdapterConfiguration}. {@link ManagedResourceConfiguration.AttributeConfiguration}, {@link ManagedResourceConfiguration.EventConfiguration}, {@link ManagedResourceConfiguration.OperationConfiguration}.
+     * @return A new instance of entity configuration; or {@literal null}, if entity is not supported.
+     */
+    @Override
+    public <E extends EntityConfiguration> E createEntityConfiguration(final Class<E> entityType) {
+        if(entityType.isAssignableFrom(SerializableManagedResourceConfiguration.class))
+            return entityType.cast(new SerializableManagedResourceConfiguration());
+        else if(entityType.isAssignableFrom(SerializableResourceAdapterConfiguration.class))
+            return entityType.cast(new SerializableResourceAdapterConfiguration());
+        else if(entityType.isAssignableFrom(SerializableManagedResourceConfiguration.SerializableAttributeConfiguration.class))
+            return entityType.cast(new SerializableManagedResourceConfiguration.SerializableAttributeConfiguration());
+        else if(entityType.isAssignableFrom(SerializableManagedResourceConfiguration.SerializableEventConfiguration.class))
+            return entityType.cast(new SerializableManagedResourceConfiguration.SerializableEventConfiguration());
+        else if(entityType.isAssignableFrom(SerializableManagedResourceConfiguration.SerializableOperationConfiguration.class))
+            return entityType.cast(new SerializableManagedResourceConfiguration.SerializableOperationConfiguration());
+        else return null;
+    }
 }

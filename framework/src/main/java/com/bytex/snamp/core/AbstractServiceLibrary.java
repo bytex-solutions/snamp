@@ -500,7 +500,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          */
         @Override
         protected final void cleanupService(final ManagedServiceFactoryImpl<TService> serviceInstance, final boolean stopBundle) throws Exception {
-            serviceInstance.synchronizedInvoke(() -> {
+            serviceInstance.synchronizedInvoke((ExceptionalCallable<Void, Exception>) () -> {
                 try {
                     for (final TService service : serviceInstance.values())
                         dispose(service, stopBundle);

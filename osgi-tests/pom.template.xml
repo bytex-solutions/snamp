@@ -306,13 +306,6 @@
             <version>1</version>
             <scope>test</scope>
         </dependency>
-
-        <dependency>
-            <groupId>com.bytex.snamp</groupId>
-            <artifactId>jaas-config</artifactId>
-            <version>${snamp.jaasconfig.version}</version>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>com.bytex.snamp</groupId>
             <artifactId>jmx-helpers</artifactId>

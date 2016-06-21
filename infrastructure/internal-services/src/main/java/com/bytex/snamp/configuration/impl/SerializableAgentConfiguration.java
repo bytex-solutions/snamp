@@ -985,12 +985,81 @@ final class SerializableAgentConfiguration extends AbstractAgentConfiguration im
     @Override
     public <E extends EntityConfiguration> ConfigurationEntityRegistry<? extends E> getEntities(final Class<E> entityType) {
         final ConfigurationEntityRegistry result;
-        if (ManagedResourceConfiguration.class.equals(entityType))
+        if (entityType.isAssignableFrom(SerializableManagedResourceConfiguration.class))
             result = resources;
-        else if (ResourceAdapterConfiguration.class.equals(entityType))
+        else if (entityType.isAssignableFrom(SerializableResourceAdapterConfiguration.class))
             result = adapters;
         else
             result = null;
         return result;
+    }
+
+    /**
+     * Gets a collection of resource adapters.
+     * <p>
+     * The key represents user-defined unique name of the adapter.
+     * </p>
+     *
+     * @return A collection of resource adapters.
+     * @deprecated Use {@link #getEntities(Class)} instead.
+     */
+    @Override
+    public ConfigurationEntityRegistry<SerializableResourceAdapterConfiguration> getResourceAdapters() {
+        return adapters;
+    }
+
+    /**
+     * Gets a collection of managed resources.
+     * <p>
+     * The key represents user-defined name of the managed resource.
+     * </p>
+     *
+     * @return The dictionary of managed resources.
+     * @deprecated Use {@link #getEntities(Class)} instead.
+     */
+    @Override
+    @Deprecated
+    public ConfigurationEntityRegistry<SerializableManagedResourceConfiguration> getManagedResources() {
+        return resources;
+    }
+
+    /**
+     * Obtain configuration of SNAMP entity or register new.
+     *
+     * @param entityType Type of entity. You can use {@link ManagedResourceConfiguration} or {@link ResourceAdapterConfiguration} as entities.
+     * @param entityID   Entity ID.
+     * @return An instance of existing entity or newly created entity. {@literal null}, if entity type is not supported by SNAMP configuration subsystem.
+     * @since 1.2
+     */
+    @Override
+    public <E extends EntityConfiguration> E getOrRegisterEntity(final Class<E> entityType, final String entityID) {
+        if (entityType.isAssignableFrom(SerializableManagedResourceConfiguration.class))
+            return entityType.cast(resources.getOrAdd(entityID));
+        else if (entityType.isAssignableFrom(SerializableResourceAdapterConfiguration.class))
+            return entityType.cast(adapters.getOrAdd(entityID));
+        else
+            return null;
+    }
+
+    /**
+     * Creates a new instance of entity configuration.
+     *
+     * @param entityType Type of entity. Can be {@link ManagedResourceConfiguration},
+     *                   {@link ResourceAdapterConfiguration}. {@link ManagedResourceConfiguration.AttributeConfiguration}, {@link ManagedResourceConfiguration.EventConfiguration}, {@link ManagedResourceConfiguration.OperationConfiguration}.
+     * @return A new instance of entity configuration; or {@literal null}, if entity is not supported.
+     */
+    @Override
+    public <E extends EntityConfiguration> E createEntityConfiguration(final Class<E> entityType) {
+        if(entityType.isAssignableFrom(SerializableManagedResourceConfiguration.class))
+            return entityType.cast(new SerializableManagedResourceConfiguration());
+        else if(entityType.isAssignableFrom(SerializableResourceAdapterConfiguration.class))
+            return entityType.cast(new SerializableResourceAdapterConfiguration());
+        else if(entityType.isAssignableFrom(SerializableManagedResourceConfiguration.SerializableAttributeConfiguration.class))
+            return entityType.cast(new SerializableManagedResourceConfiguration.SerializableAttributeConfiguration());
+        else if(entityType.isAssignableFrom(SerializableManagedResourceConfiguration.SerializableEventConfiguration.class))
+            return entityType.cast(new SerializableManagedResourceConfiguration.SerializableEventConfiguration());
+        else if(entityType.isAssignableFrom(SerializableManagedResourceConfiguration.SerializableOperationConfiguration.class))
+            return entityType.cast(new SerializableManagedResourceConfiguration.SerializableOperationConfiguration());
+        else return null;
     }
 }

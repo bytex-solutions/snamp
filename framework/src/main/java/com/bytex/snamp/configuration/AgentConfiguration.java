@@ -1,7 +1,11 @@
 package com.bytex.snamp.configuration;
 
+import com.bytex.snamp.Box;
 import com.bytex.snamp.TimeSpan;
+import com.bytex.snamp.core.ServiceHolder;
+import org.osgi.framework.BundleContext;
 
+import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -171,7 +175,7 @@ public interface AgentConfiguration extends Cloneable {
                 return getParameters().containsKey(AUTOMATICALLY_ADDED_KEY);
             }
 
-            default void setAutomaticallyAddedKey(final boolean value){
+            default void setAutomaticallyAdded(final boolean value){
                 if(value)
                     getParameters().put(AUTOMATICALLY_ADDED_KEY, Boolean.TRUE.toString());
                 else
@@ -336,6 +340,17 @@ public interface AgentConfiguration extends Cloneable {
     }
 
     /**
+     * Creates a new instance of entity configuration.
+     * @param entityType Type of entity. Can be {@link ManagedResourceConfiguration},
+     *                  {@link ResourceAdapterConfiguration}. {@link ManagedResourceConfiguration.AttributeConfiguration}, {@link ManagedResourceConfiguration.EventConfiguration}, {@link ManagedResourceConfiguration.OperationConfiguration}.
+     * @param <E> Type of requested entity.
+     * @return A new instance of entity configuration; or {@literal null}, if entity is not supported.
+     */
+    default <E extends EntityConfiguration> E createEntityConfiguration(final Class<E> entityType){
+        return null;
+    }
+
+    /**
      * Imports the state of specified object into this object.
      * @param input The import source.
      */
@@ -345,4 +360,31 @@ public interface AgentConfiguration extends Cloneable {
      * Clears this configuration.
      */
     void clear();
+
+    /**
+     * Creates a new instance of entity configuration.
+     * @param context Context of caller bundle. Cannot be {@literal null}.
+     * @param entityType Type of entity. Can be {@link ManagedResourceConfiguration},
+     *                  {@link ResourceAdapterConfiguration}. {@link ManagedResourceConfiguration.AttributeConfiguration}, {@link ManagedResourceConfiguration.EventConfiguration}, {@link ManagedResourceConfiguration.OperationConfiguration}.
+     * @param <E> Type of requested entity.
+     * @return A new instance of entity configuration; or {@literal null}, if entity is not supported.
+     * @since 1.2
+     */
+    static <E extends EntityConfiguration> E createEntityConfiguration(final BundleContext context, final Class<E> entityType){
+        final ServiceHolder<ConfigurationManager> manager = ServiceHolder.tryCreate(context, ConfigurationManager.class);
+        if(manager != null)
+            try{
+                final Box<E> result = new Box<>();
+                manager.get().processConfiguration(config -> result.set(config.createEntityConfiguration(entityType)), false);
+                return result.get();
+            }
+            catch (final IOException ignored){
+                return null;
+            }
+            finally {
+                manager.release(context);
+            }
+        else return null;
+    }
+
 }
