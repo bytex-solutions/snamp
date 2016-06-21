@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-groovy flatpom.groovy -f pom.xml -d . -o pom.xml.flatten
+groovy flatpom.groovy -i pom.template.xml -d . -o pom.xml
