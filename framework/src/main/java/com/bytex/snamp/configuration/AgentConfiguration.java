@@ -1,6 +1,5 @@
 package com.bytex.snamp.configuration;
 
-import com.bytex.snamp.Box;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.core.ServiceHolder;
 import org.osgi.framework.BundleContext;
@@ -374,9 +373,7 @@ public interface AgentConfiguration extends Cloneable {
         final ServiceHolder<ConfigurationManager> manager = ServiceHolder.tryCreate(context, ConfigurationManager.class);
         if(manager != null)
             try{
-                final Box<E> result = new Box<>();
-                manager.get().processConfiguration(config -> result.set(config.createEntityConfiguration(entityType)), false);
-                return result.get();
+                return manager.get().transformConfiguration(config -> config.createEntityConfiguration(entityType));
             }
             catch (final IOException ignored){
                 return null;

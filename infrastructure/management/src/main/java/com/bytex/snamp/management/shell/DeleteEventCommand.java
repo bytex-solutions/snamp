@@ -25,20 +25,19 @@ public final class DeleteEventCommand extends ConfigurationCommand {
     @Argument(index = 1, name = "userDefinedName", required = true, description = "User-defined name of the event to remove")
     private String userDefinedName = "";
 
-    public DeleteEventCommand(){
-        super(true);
-    }
-
     @Override
-    void doExecute(final AgentConfiguration configuration, final StringBuilder output) {
+    boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
         if (configuration.getEntities(ManagedResourceConfiguration.class).containsKey(resourceName))
             if (configuration.getEntities(ManagedResourceConfiguration.class).get(resourceName).getFeatures(EventConfiguration.class).remove(userDefinedName) == null) {
                 output.append("Event doesn't exist");
+                return false;
             } else {
                 output.append("Event deleted successfully");
+                return true;
             }
         else {
             output.append("Resource doesn't exist");
+            return false;
         }
     }
 }

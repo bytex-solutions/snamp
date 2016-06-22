@@ -19,11 +19,6 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
  * @since 1.0
  */
 abstract class ConfigurationCommand extends OsgiCommandSupport implements SnampShellCommand {
-    private final boolean saveChanges;
-
-    protected ConfigurationCommand(final boolean configurationModifier){
-        saveChanges = configurationModifier;
-    }
 
     /**
      * Processes configuration.
@@ -32,7 +27,7 @@ abstract class ConfigurationCommand extends OsgiCommandSupport implements SnampS
      * @return {@literal true} to save changes; otherwise, {@literal false}.
      * @throws Exception Unable to process configuration.
      */
-    abstract void doExecute(final AgentConfiguration configuration, final StringBuilder output) throws Exception;
+    abstract boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) throws Exception;
 
     @Override
     protected final CharSequence doExecute() throws Exception {
@@ -40,7 +35,7 @@ abstract class ConfigurationCommand extends OsgiCommandSupport implements SnampS
         if (adminRef != null)
             try {
                 final StringBuilder output = new StringBuilder(64);
-                adminRef.get().processConfiguration(config -> doExecute(config, output), saveChanges);
+                adminRef.get().processConfiguration(config -> doExecute(config, output));
                 return output;
             } finally {
                 adminRef.release(bundleContext);

@@ -1,22 +1,17 @@
 package com.bytex.snamp.configuration.impl;
 
-import com.bytex.snamp.AbstractAggregator;
-import com.bytex.snamp.Box;
+import com.bytex.snamp.*;
 import com.bytex.snamp.Consumer;
-import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
-import com.bytex.snamp.core.ServiceHolder;
-import com.bytex.snamp.internal.Utils;
-import org.osgi.framework.BundleContext;
 import org.osgi.service.cm.ConfigurationAdmin;
 
 import java.io.IOException;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -32,7 +27,7 @@ import java.util.logging.Logger;
 public final class PersistentConfigurationManager extends AbstractAggregator implements ConfigurationManager {
     private final ConfigurationAdmin admin;
     private final Logger logger;
-    private final ReadWriteLock configSynchronizer;
+    private final ReadWriteLock configurationSynchronizer;
     @Aggregation
     private final CMManagedResourceParserImpl resourceParser;
     @Aggregation
@@ -45,7 +40,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     public PersistentConfigurationManager(final ConfigurationAdmin configAdmin){
         admin = Objects.requireNonNull(configAdmin, "configAdmin is null.");
         logger = Logger.getLogger(getClass().getName());
-        configSynchronizer = new ReentrantReadWriteLock();
+        configurationSynchronizer = new ReentrantReadWriteLock();
         resourceParser = new CMManagedResourceParserImpl();
         adapterParser = new CMResourceAdapterParserImpl();
     }
@@ -69,49 +64,76 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     @Aggregation
     @Deprecated
     public AgentConfiguration getCurrentConfiguration() {
-        final Box<AgentConfiguration> result = new Box<>();
         try {
-            processConfiguration(result::set, false);
+            return transformConfiguration(Function.identity());
         } catch (final IOException e) {
             logger.log(Level.SEVERE, "Unable to read configuration", e);
-            result.set(new SerializableAgentConfiguration());
+            return new SerializableAgentConfiguration();
         }
-        return result.get();
     }
 
-    private <E extends Throwable> void processConfigurationImpl(final ConfigurationProcessor<E> handler) throws E, IOException {
-        final Lock lock = saveChanges ? configSynchronizer.writeLock() : configSynchronizer.readLock();
+    private <E extends Throwable> void processConfiguration(final ConfigurationProcessor<E> handler, final Lock synchronizer) throws E, IOException {
+        //obtain lock on configuration
         try {
-            lock.lockInterruptibly();
+            synchronizer.lockInterruptibly();
         } catch (final InterruptedException e) {
             throw new IOException(e);
         }
-        //lock is obtained. Let's process the configuration
+        //Process configuration protected by lock.
         try {
             final SerializableAgentConfiguration config = new SerializableAgentConfiguration();
             adapterParser.readAdapters(admin, config.getResourceAdaptersImpl());
             resourceParser.readResources(admin, config.getManagedResourcesImpl());
-
-            handler.accept(config);
-            if (saveChanges)
+            if(handler.process(config))
                 save(config);
         } finally {
-            lock.unlock();
+            synchronizer.unlock();
         }
     }
 
+    /**
+     * Process SNAMP configuration.
+     * @param handler A handler used to process configuration. Cannot be {@literal null}.
+     * @param <E> Type of user-defined exception that can be thrown by handler.
+     * @throws E An exception thrown by handler.
+     * @throws IOException Unrecoverable exception thrown by configuration infrastructure.
+     * @since 1.2
+     */
     @Override
     public <E extends Throwable> void processConfiguration(final ConfigurationProcessor<E> handler) throws E, IOException {
-        final BundleContext context = Utils.getBundleContextOfObject(this);
-        final ServiceHolder<ConfigurationAdmin> configAdmin = ServiceHolder.tryCreate(context, ConfigurationAdmin.class);
-        if (configAdmin == null)
-            throw new IOException("ConfigurationAdmin is not available.");
-        else
-            try {
-                processConfigurationImpl(handler);
-            } finally {
-                configAdmin.release(context);
-            }
+        //configuration may be changed by handler so we protect it with exclusive lock.
+        processConfiguration(handler, configurationSynchronizer.writeLock());
+    }
+
+    /**
+     * Read SNAMP configuration.
+     *
+     * @param handler A handler used to read configuration. Cannot be {@literal null}.
+     * @throws E           An exception thrown by handler.
+     * @throws IOException Unrecoverable exception thrown by configuration infrastructure.
+     * @since 1.2
+     */
+    @Override
+    public <E extends Throwable> void readConfiguration(final Consumer<? super AgentConfiguration, E> handler) throws E, IOException {
+        //reading configuration doesn't require exclusive lock
+        processConfiguration(config -> {
+            handler.accept(config);
+            return false;
+        }, configurationSynchronizer.readLock());
+    }
+
+    /**
+     * Read SNAMP configuration and transform it into custom object.
+     *
+     * @param handler A handler used to read configuration. Cannot be {@literal null}.
+     * @throws IOException Unrecoverable exception thrown by configuration infrastructure.
+     * @since 1.2
+     */
+    @Override
+    public <O> O transformConfiguration(final Function<? super AgentConfiguration, O> handler) throws IOException {
+        final Box<O> result = new Box<>();
+        readConfiguration(result.changeConsumingType(handler));
+        return result.get();
     }
 
     @Override

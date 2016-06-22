@@ -1,9 +1,6 @@
 package com.bytex.snamp.connectors;
 
 import com.bytex.snamp.Aggregator;
-import com.bytex.snamp.Box;
-import com.bytex.snamp.SafeConsumer;
-import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
@@ -373,16 +370,13 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
                                                                         final String resourceName) throws IOException {
         final ServiceHolder<ConfigurationManager> manager = ServiceHolder.tryCreate(context,
                 ConfigurationManager.class);
-        final Box<ManagedResourceConfiguration> result = new Box<>();
         if (manager != null)
             try {
-                manager.get().processConfiguration(
-                        (SafeConsumer<AgentConfiguration>) config -> result.set(config.getEntities(ManagedResourceConfiguration.class).get(resourceName)),
-                        false);
+                return manager.get().transformConfiguration(config -> config.getEntities(ManagedResourceConfiguration.class).get(resourceName));
             } finally {
                 manager.release(context);
             }
-        return result.get();
+        else return null;
     }
 
     public ManagedResourceConfiguration getResourceConfiguration(final BundleContext context) throws IOException {

@@ -39,12 +39,8 @@ public final class ConfigAttributeCommand extends ConfigurationCommand {
     @Option(name = "-p", aliases = {"-param", "--parameter"}, multiValued = true, description = "Configuration parameters in the form of key=value")
     private String[] parameters = ArrayUtils.emptyArray(String[].class);
 
-    public ConfigAttributeCommand(){
-        super(true);
-    }
-
     @Override
-    void doExecute(final AgentConfiguration configuration, final StringBuilder output) {
+    boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
         if (configuration.getEntities(ManagedResourceConfiguration.class).containsKey(resourceName)) {
             final ManagedResourceConfiguration resource = configuration.getEntities(ManagedResourceConfiguration.class).get(resourceName);
             final AttributeConfiguration attribute = resource.getFeatures(AttributeConfiguration.class).getOrAdd(name);
@@ -57,8 +53,10 @@ public final class ConfigAttributeCommand extends ConfigurationCommand {
                         attribute.getParameters().put(pair.getKey(), pair.getValue());
                 }
             output.append("Attribute configured successfully");
+            return true;
         } else {
             output.append("Resource doesn't exist");
+            return false;
         }
     }
 }

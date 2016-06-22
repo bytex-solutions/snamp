@@ -66,7 +66,18 @@ public class FutureThread<V> extends Thread implements Future<V>{
      * @param impl Implementation of the thread. Cannot be {@literal null}.
      */
     public FutureThread(final ThreadGroup group, final Callable<V> impl){
-        super(group, impl.toString());
+        this(group, impl, impl.toString());
+    }
+
+    /**
+     * Initializes a new standalone future.
+     * @param group Thread group for this future.
+     * @param impl Implementation of the thread. Cannot be {@literal null}.
+     * @param name The name of the thread.
+     * @since 1.2
+     */
+    public FutureThread(final ThreadGroup group, final Callable<V> impl, final String name){
+        super(group, name);
         implementation = impl;
         state = new VolatileBox<>(ThreadState.CREATED);
         setDaemon(true);

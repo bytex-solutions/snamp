@@ -1,8 +1,11 @@
 package com.bytex.snamp.configuration;
 
+import com.bytex.snamp.Box;
+import com.bytex.snamp.Consumer;
 import com.bytex.snamp.core.FrameworkService;
 
 import java.io.IOException;
+import java.util.function.Function;
 
 /**
  * Represents SNAMP configuration manager that is accessible as OSGi service.
@@ -37,6 +40,7 @@ public interface ConfigurationManager extends FrameworkService {
      * @param <E> Type of user-defined exception that can be thrown by handler.
      * @throws E An exception thrown by handler.
      * @throws IOException Unrecoverable exception thrown by configuration infrastructure.
+     * @since 1.2
      */
     default <E extends Throwable> void processConfiguration(final ConfigurationProcessor<E> handler) throws E, IOException {
         synchronized (this) {
@@ -50,6 +54,34 @@ public interface ConfigurationManager extends FrameworkService {
             else if(handler.process(config))
                 sync();
         }
+    }
+
+    /**
+     * Read SNAMP configuration.
+     * @param handler A handler used to read configuration. Cannot be {@literal null}.
+     * @param <E> Type of user-defined exception that can be thrown by handler.
+     * @throws E An exception thrown by handler.
+     * @throws IOException Unrecoverable exception thrown by configuration infrastructure.
+     * @since 1.2
+     */
+    default <E extends Throwable> void readConfiguration(final Consumer<? super AgentConfiguration, E> handler) throws E, IOException{
+        processConfiguration(config -> {
+            handler.accept(config);
+            return false;
+        });
+    }
+
+    /**
+     * Read SNAMP configuration and transform it into custom object.
+     * @param handler A handler used to read configuration. Cannot be {@literal null}.
+     * @param <O> Type of transformation result.
+     * @throws IOException Unrecoverable exception thrown by configuration infrastructure.
+     * @since 1.2
+     */
+    default <O> O transformConfiguration(final Function<? super AgentConfiguration, O> handler) throws IOException {
+        final Box<O> result = new Box<>();
+        readConfiguration(result.changeConsumingType(handler));
+        return result.get();
     }
 
     /**

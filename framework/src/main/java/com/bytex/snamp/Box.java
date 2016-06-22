@@ -14,7 +14,7 @@ import java.util.Objects;
  * @version 1.2
  * @since 1.0
  */
-public class Box<T> implements Wrapper<T>, Supplier<T>, SafeConsumer<T>, Cloneable, Serializable{
+public class Box<T> implements Wrapper<T>, Supplier<T>, java.util.function.Supplier<T>, SafeConsumer<T>, Cloneable, Serializable{
     private static final long serialVersionUID = -3932725773035687013L;
     private T value;
 
@@ -42,7 +42,6 @@ public class Box<T> implements Wrapper<T>, Supplier<T>, SafeConsumer<T>, Cloneab
     public Box(){
         this(null);
     }
-
 
     /**
      * Performs this operation on the given argument.

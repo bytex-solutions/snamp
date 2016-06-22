@@ -32,12 +32,8 @@ public final class ConfigEventCommand extends ConfigurationCommand {
     @Option(name = "-p", aliases = {"-param", "--parameter"}, multiValued = true, description = "Event configuration parameters in the form of key=value")
     private String[] parameters = ArrayUtils.emptyArray(String[].class);
 
-    public ConfigEventCommand(){
-        super(true);
-    }
-
     @Override
-    void doExecute(final AgentConfiguration configuration, final StringBuilder output) {
+    boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
         if(configuration.getEntities(ManagedResourceConfiguration.class).containsKey(resourceName)){
             final AgentConfiguration.ManagedResourceConfiguration resource = configuration.getEntities(ManagedResourceConfiguration.class).get(resourceName);
             final EventConfiguration event = resource.getFeatures(EventConfiguration.class).getOrAdd(category);
@@ -48,9 +44,11 @@ public final class ConfigEventCommand extends ConfigurationCommand {
                         event.getParameters().put(pair.getKey(), pair.getValue());
                 }
             output.append("Attribute configured successfully");
+            return true;
         }
         else {
             output.append("Resource doesn't exist");
+            return false;
         }
     }
 }

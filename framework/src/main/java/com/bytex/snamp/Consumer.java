@@ -1,5 +1,7 @@
 package com.bytex.snamp;
 
+import java.util.function.Function;
+
 /**
  * Represents an operation that accepts a single input argument and returns no result.
  * @param <T> Type of the value to process.
@@ -15,4 +17,8 @@ public interface Consumer<T, E extends Throwable> {
      * @throws E An exception thrown by the operation.
      */
     void accept(final T value) throws E;
+
+    default <I> Consumer<I, E> changeConsumingType(final Function<I, T> transformation) throws E{
+        return inp -> accept(transformation.apply(inp));
+    }
 }

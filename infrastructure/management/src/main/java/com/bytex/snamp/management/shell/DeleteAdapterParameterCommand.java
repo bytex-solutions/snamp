@@ -24,18 +24,16 @@ public final class DeleteAdapterParameterCommand extends ConfigurationCommand {
     @SpecialUse
     private String paramName = "";
 
-    public DeleteAdapterParameterCommand(){
-        super(true);
-    }
-
     @Override
-    void doExecute(final AgentConfiguration configuration, final StringBuilder output) {
+    boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
         if(configuration.getEntities(ResourceAdapterConfiguration.class).containsKey(instanceName)){
             configuration.getEntities(ResourceAdapterConfiguration.class).get(instanceName).getParameters().remove(paramName);
             output.append("Instance modified successfully");
+            return true;
         }
         else {
             output.append("Instance doesn't exist");
+            return false;
         }
     }
 }
