@@ -66,6 +66,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
      */
     @Override
     @Aggregation
+    @Deprecated
     public AgentConfiguration getCurrentConfiguration() {
         final Box<AgentConfiguration> result = new Box<>();
         try {
@@ -88,8 +89,8 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         //lock is obtained. Let's process the configuration
         try {
             final SerializableAgentConfiguration config = new SerializableAgentConfiguration();
-            adapterParser.readAdapters(admin, config.getResourceAdapters());
-            resourceParser.readResources(admin, config.getManagedResources());
+            adapterParser.readAdapters(admin, config.adapters);
+            resourceParser.readResources(admin, config.resources);
 
             handler.accept(config);
             if (saveChanges)

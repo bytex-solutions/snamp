@@ -3,6 +3,9 @@ package com.bytex.snamp;
 import com.google.common.primitives.Longs;
 
 import java.io.Serializable;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
@@ -25,7 +28,9 @@ import java.util.concurrent.TimeUnit;
  * @since 1.0
  * @see <a href="http://openjdk.java.net/jeps/169">Java Value Object</a>
  * @see <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/doc-files/ValueBased.html">Value-based class</a>
+ * @deprecated Use {@link java.time.Duration} instead.
  */
+@Deprecated
 public final class TimeSpan implements Serializable, Comparable<TimeSpan> {
     /**
      * Represents infinite time interval.
@@ -322,5 +327,26 @@ public final class TimeSpan implements Serializable, Comparable<TimeSpan> {
             return -1;
         else if(unit.equals(other.unit)) return Long.compare(duration, other.duration);
         else return Long.compare(toNanos(), other.toNanos());
+    }
+
+    private TemporalUnit getTemporalUnit(){
+        switch (unit){
+            case DAYS: return ChronoUnit.DAYS;
+            case HOURS: return ChronoUnit.HOURS;
+            case MICROSECONDS: return ChronoUnit.MICROS;
+            case MILLISECONDS: return ChronoUnit.MILLIS;
+            case MINUTES: return ChronoUnit.MINUTES;
+            case NANOSECONDS: return ChronoUnit.NANOS;
+            case SECONDS: return ChronoUnit.SECONDS;
+            default: throw new IllegalStateException(String.format("Cannot convert %s to TemporalUnit", unit));
+        }
+    }
+
+    /**
+     * Converts this time span to {@link Duration}.
+     * @return Time span as {@link Duration}.
+     */
+    public Duration toDuration(){
+        return Duration.of(duration, getTemporalUnit());
     }
 }

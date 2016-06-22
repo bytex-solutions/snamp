@@ -887,8 +887,8 @@ final class SerializableAgentConfiguration extends AbstractAgentConfiguration im
         }
     }
 
-    private final ConfigurationEntityRegistry<SerializableManagedResourceConfiguration> resources;
-    private final ConfigurationEntityRegistry<SerializableResourceAdapterConfiguration> adapters;
+    final ConfigurationEntityRegistry<SerializableManagedResourceConfiguration> resources;
+    final ConfigurationEntityRegistry<SerializableResourceAdapterConfiguration> adapters;
 
     /**
      * Initializes a new empty agent configuration.
