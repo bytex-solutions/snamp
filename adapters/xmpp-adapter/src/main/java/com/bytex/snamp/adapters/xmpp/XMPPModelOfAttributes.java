@@ -1,16 +1,14 @@
 package com.bytex.snamp.adapters.xmpp;
 
-import com.bytex.snamp.io.IOUtils;
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Collections2;
 import com.bytex.snamp.Consumer;
 import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.adapters.modeling.ModelOfAttributes;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.jmx.TabularDataUtils;
 import com.bytex.snamp.jmx.WellKnownType;
-import com.bytex.snamp.jmx.json.JsonSerializerFunction;
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Collections2;
 import org.jivesoftware.smack.packet.ExtensionElement;
 
 import javax.management.JMException;
@@ -65,12 +63,14 @@ final class XMPPModelOfAttributes extends ModelOfAttributes<XMPPAttributeAccesso
         @Override
         public void accept(final XMPPAttributeAccessor accessor) {
             if (withNames)
-                IOUtils.appendln(result, "ID: %s NAME: %s CAN_READ: %s CAN_WRITE %s",
-                        accessor.getName(),
-                        accessor.getOriginalName(),
-                        accessor.canRead(),
-                        accessor.canWrite());
-            else IOUtils.appendln(result, accessor.getName());
+                result.append(String.format("ID: %s NAME: %s CAN_READ: %s CAN_WRITE %s",
+                            accessor.getName(),
+                            accessor.getOriginalName(),
+                            accessor.canRead(),
+                            accessor.canWrite()));
+            else
+                result.append(accessor.getName());
+            result.append(System.lineSeparator());
             if (details) accessor.printOptions(result);
         }
 
@@ -128,7 +128,7 @@ final class XMPPModelOfAttributes extends ModelOfAttributes<XMPPAttributeAccesso
     }
 
     private static abstract class AbstractBufferAttribute<B extends Buffer> extends XMPPAttributeAccessor {
-        protected static final char WHITESPACE = ' ';
+        static final char WHITESPACE = ' ';
         private final Class<B> bufferType;
 
         private AbstractBufferAttribute(final MBeanAttributeInfo metadata,
@@ -241,7 +241,9 @@ final class XMPPModelOfAttributes extends ModelOfAttributes<XMPPAttributeAccesso
             final CompositeData value = getValue(CompositeData.class);
             final StringBuilder result = new StringBuilder(64);
             for (final String key : value.getCompositeType().keySet())
-                IOUtils.appendln(result, "%s = %s", key, FORMATTER.toJson(value.get(key)));
+                result
+                        .append(String.format("%s = %s", key, FORMATTER.toJson(value.get(key))))
+                        .append(System.lineSeparator());
             return result.toString();
         }
     }
@@ -271,13 +273,9 @@ final class XMPPModelOfAttributes extends ModelOfAttributes<XMPPAttributeAccesso
             //print column first
             result.append(joinString(data.getTabularType().getRowType().keySet(), ITEM_FORMAT, COLUMN_SEPARATOR));
             //print rows
-            TabularDataUtils.forEachRow(data, new SafeConsumer<CompositeData>() {
-                @SuppressWarnings("unchecked")
-                @Override
-                public void accept(final CompositeData row) {
-                    final Collection<?> values = Collections2.transform(row.values(), new JsonSerializerFunction(FORMATTER));
-                    result.append(joinString(values, ITEM_FORMAT, COLUMN_SEPARATOR));
-                }
+            TabularDataUtils.forEachRow(data, row -> {
+                final Collection<?> values = Collections2.transform(row.values(), FORMATTER::toJson);
+                result.append(joinString(values, ITEM_FORMAT, COLUMN_SEPARATOR));
             });
             return result.toString();
         }

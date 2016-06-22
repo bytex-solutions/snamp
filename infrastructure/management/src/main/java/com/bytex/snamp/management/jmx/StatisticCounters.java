@@ -25,7 +25,7 @@ final class StatisticCounters {
      * @param frequency The initial timer value.
      * @throws IllegalArgumentException initial is null.
      */
-    public StatisticCounters(final TimeSpan frequency) {
+    StatisticCounters(final TimeSpan frequency) {
         this.frequency = frequency.toMillis();
         numberOfFaults = new AtomicLong(0L);
         numberOfDebugMessages = new AtomicLong(0L);
@@ -39,7 +39,7 @@ final class StatisticCounters {
      *
      * @param value Renewal time, in millis.
      */
-    public synchronized void setRenewalTime(final long value){
+    synchronized void setRenewalTime(final long value){
         timer = System.currentTimeMillis();
         frequency = value;
     }
@@ -49,11 +49,11 @@ final class StatisticCounters {
      *
      * @return Renewal time, in millis.
      */
-    public synchronized long getRenewalTime(){
+    synchronized long getRenewalTime(){
         return frequency;
     }
 
-    public long getValue(final int level){
+    long getValue(final int level){
         resetCountersIfNecessary();
         switch (level){
             case LogService.LOG_ERROR: return numberOfFaults.get();
@@ -78,7 +78,7 @@ final class StatisticCounters {
      *
      * @param eventType the event type
      */
-    public void increment(final int eventType){
+    void increment(final int eventType){
         resetCountersIfNecessary();
         final AtomicLong counter;
         switch (eventType){

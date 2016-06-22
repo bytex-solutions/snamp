@@ -11,7 +11,9 @@ import java.util.Objects;
  * This class cannot be inherited.
  * @param <I> Type of the object to be converted into JSON string.
  * @author Roman Sakno
+ * @deprecated Use {@code Gson::toJson} method reference instead of this class.
  */
+@Deprecated
 public final class JsonSerializerFunction<I> implements Function<I, String> {
     private final Gson formatter;
 

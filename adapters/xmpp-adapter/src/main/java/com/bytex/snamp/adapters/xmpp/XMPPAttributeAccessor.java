@@ -2,7 +2,6 @@ package com.bytex.snamp.adapters.xmpp;
 
 import com.bytex.snamp.adapters.modeling.AttributeAccessor;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
-import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.jmx.json.JsonUtils;
 import com.google.gson.Gson;
@@ -54,7 +53,9 @@ abstract class XMPPAttributeAccessor extends AttributeAccessor {
     final void printOptions(final StringBuilder output) {
         final Descriptor descr = getMetadata().getDescriptor();
         for (final String fieldName : descr.getFieldNames())
-            IOUtils.appendln(output, "%s = %s", fieldName, descr.getFieldValue(fieldName));
+            output
+                    .append(String.format("%s = %s", fieldName, descr.getFieldValue(fieldName)))
+                    .append(System.lineSeparator());
     }
 
     final String getOriginalName() {
@@ -70,6 +71,7 @@ abstract class XMPPAttributeAccessor extends AttributeAccessor {
             if (attributeType != null)
                 result.setProperty("type", attributeType.getDisplayName());
             XMPPUtils.copyDescriptorFields(getMetadata().getDescriptor(), result);
+            output.add(result);
         }
     }
 

@@ -13,7 +13,6 @@ import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.jmx.ExpressionBasedDescriptorFilter;
 import com.bytex.snamp.jmx.TabularDataUtils;
 import com.bytex.snamp.jmx.WellKnownType;
-import com.bytex.snamp.jmx.json.JsonSerializerFunction;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.*;
@@ -297,13 +296,9 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
             //print column first
             output.append(joinString(data.getTabularType().getRowType().keySet(), ITEM_FORMAT, COLUMN_SEPARATOR));
             //print rows
-            TabularDataUtils.forEachRow(data, new Consumer<CompositeData, IOException>() {
-                @SuppressWarnings("unchecked")
-                @Override
-                public void accept(final CompositeData row) throws IOException{
-                    final Collection<?> values = Collections2.transform(row.values(), new JsonSerializerFunction(SshHelpers.FORMATTER));
-                    output.append(joinString(values, ITEM_FORMAT, COLUMN_SEPARATOR));
-                }
+            TabularDataUtils.forEachRow(data, row -> {
+                final Collection<?> values = Collections2.transform(row.values(), SshHelpers.FORMATTER::toJson);
+                output.append(joinString(values, ITEM_FORMAT, COLUMN_SEPARATOR));
             });
         }
     }

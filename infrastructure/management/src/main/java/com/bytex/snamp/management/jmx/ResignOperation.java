@@ -6,7 +6,6 @@ import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.OpenMBean;
 import org.osgi.framework.BundleContext;
 
-import javax.management.openmbean.OpenMBeanParameterInfoSupport;
 import javax.management.openmbean.SimpleType;
 import java.util.Map;
 
@@ -17,7 +16,7 @@ import java.util.Map;
  */
 public final class ResignOperation extends OpenMBean.OpenOperation<Boolean, SimpleType<Boolean>> {
     ResignOperation() {
-        super("resign", SimpleType.BOOLEAN, new OpenMBeanParameterInfoSupport[0]);
+        super("resign", SimpleType.BOOLEAN);
     }
 
     @Override

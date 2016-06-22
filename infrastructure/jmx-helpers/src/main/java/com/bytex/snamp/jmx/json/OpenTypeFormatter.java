@@ -150,7 +150,7 @@ public final class OpenTypeFormatter implements JsonSerializer<OpenType<?>>, Jso
                     if(elementType instanceof SimpleType<?>)
                         return new ArrayType<>((SimpleType<?>)elementType, isPrimitive);
                 default:
-                    return new ArrayType<Object>(dimensions, elementType);
+                    return new ArrayType<>(dimensions, elementType);
             }
         }
         catch (final OpenDataException e){

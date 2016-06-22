@@ -1,6 +1,5 @@
 package com.bytex.snamp.adapters.xmpp;
 
-import com.bytex.snamp.io.IOUtils;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -38,7 +37,7 @@ final class ListOfAttributesCommand extends AbstractCommand {
                                  final boolean details,
                                  final StringBuilder output) {
         for (final String attributeName : reader.getResourceAttributes(resourceName))
-            IOUtils.appendln(output, reader.printOptions(resourceName, attributeName, withNames, details));
+            output.append(reader.printOptions(resourceName, attributeName, withNames, details)).append(System.lineSeparator());
     }
 
     @Override
