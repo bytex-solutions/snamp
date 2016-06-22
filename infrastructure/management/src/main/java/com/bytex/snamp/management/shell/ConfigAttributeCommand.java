@@ -39,23 +39,26 @@ public final class ConfigAttributeCommand extends ConfigurationCommand {
     @Option(name = "-p", aliases = {"-param", "--parameter"}, multiValued = true, description = "Configuration parameters in the form of key=value")
     private String[] parameters = ArrayUtils.emptyArray(String[].class);
 
+    public ConfigAttributeCommand(){
+        super(true);
+    }
+
     @Override
-    boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
-        if (configuration.getManagedResources().containsKey(resourceName)) {
-            final ManagedResourceConfiguration resource = configuration.getManagedResources().get(resourceName);
+    void doExecute(final AgentConfiguration configuration, final StringBuilder output) {
+        if (configuration.getEntities(ManagedResourceConfiguration.class).containsKey(resourceName)) {
+            final ManagedResourceConfiguration resource = configuration.getEntities(ManagedResourceConfiguration.class).get(resourceName);
             final AttributeConfiguration attribute = resource.getFeatures(AttributeConfiguration.class).getOrAdd(name);
             if (readWriteTimeout > INFINITE_TIMEOUT)
                 attribute.setReadWriteTimeout(TimeSpan.ofMillis(readWriteTimeout));
             if (!ArrayUtils.isNullOrEmpty(parameters))
                 for (final String param : parameters) {
                     final StringKeyValue pair = StringKeyValue.parse(param);
-                    attribute.getParameters().put(pair.getKey(), pair.getValue());
+                    if(pair != null)
+                        attribute.getParameters().put(pair.getKey(), pair.getValue());
                 }
             output.append("Attribute configured successfully");
-            return true;
         } else {
             output.append("Resource doesn't exist");
-            return false;
         }
     }
 }

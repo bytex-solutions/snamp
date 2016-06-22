@@ -2,6 +2,7 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.AgentConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 
@@ -19,15 +20,17 @@ public final class DeleteResourceCommand extends ConfigurationCommand {
     @Argument(index = 0, name = "resourceName", required = true, description = "Name of resource to remove")
     private String resourceName = "";
 
+    public DeleteResourceCommand(){
+        super(true);
+    }
+
     @Override
-    boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
-        if(configuration.getManagedResources().remove(resourceName) == null){
+    void doExecute(final AgentConfiguration configuration, final StringBuilder output) {
+        if(configuration.getEntities(ManagedResourceConfiguration.class).remove(resourceName) == null){
             output.append("Resource doesn't exist");
-            return false;
         }
         else {
             output.append("Removed successfully");
-            return true;
         }
     }
 }

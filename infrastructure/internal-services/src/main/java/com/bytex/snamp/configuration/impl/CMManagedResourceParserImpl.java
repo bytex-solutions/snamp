@@ -117,7 +117,7 @@ final class CMManagedResourceParserImpl implements CMManagedResourceParser {
                 ArrayUtils.emptyArray(byte[].class));
         return serializedForm != null && serializedForm.length > 0 ?
                 IOUtils.deserialize(serializedForm, featureType):
-                ImmutableMap.<String, F>of();
+                ImmutableMap.of();
     }
 
     @Override
@@ -243,7 +243,7 @@ final class CMManagedResourceParserImpl implements CMManagedResourceParser {
     void saveChanges(final SerializableAgentConfiguration config,
                      final ConfigurationAdmin admin) throws IOException {
         //remove all unnecessary resources
-        final Map<String, SerializableManagedResourceConfiguration> resources = config.getManagedResources();
+        final Map<String, ? extends SerializableManagedResourceConfiguration> resources = config.getEntities(SerializableManagedResourceConfiguration.class);
         try {
             forEachResource(admin, ALL_CONNECTORS_QUERY, output -> {
                 final String resourceName = getResourceName(output.getProperties());
@@ -255,8 +255,8 @@ final class CMManagedResourceParserImpl implements CMManagedResourceParser {
         }
         //save each modified resource
         config.modifiedResources((resourceName, resource) -> {
-            if (resource instanceof SerializableManagedResourceConfiguration && ((SerializableManagedResourceConfiguration) resource).isModified())
-                serialize(resourceName, (SerializableManagedResourceConfiguration) resource, admin);
+            if (resource.isModified())
+                serialize(resourceName, resource, admin);
             return true;
         });
     }

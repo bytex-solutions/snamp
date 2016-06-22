@@ -887,8 +887,8 @@ final class SerializableAgentConfiguration extends AbstractAgentConfiguration im
         }
     }
 
-    final ConfigurationEntityRegistry<SerializableManagedResourceConfiguration> resources;
-    final ConfigurationEntityRegistry<SerializableResourceAdapterConfiguration> adapters;
+    private final ConfigurationEntityRegistry<SerializableManagedResourceConfiguration> resources;
+    private final ConfigurationEntityRegistry<SerializableResourceAdapterConfiguration> adapters;
 
     /**
      * Initializes a new empty agent configuration.
@@ -918,11 +918,11 @@ final class SerializableAgentConfiguration extends AbstractAgentConfiguration im
         resources.reset();
     }
 
-    <E extends Exception> void modifiedResources(final EntryReader<String, ? super ManagedResourceConfiguration, E> handler) throws E{
+    <E extends Exception> void modifiedResources(final EntryReader<String, ? super SerializableManagedResourceConfiguration, E> handler) throws E{
         resources.modifiedEntries(handler);
     }
 
-    <E extends Exception> void modifiedAdapters(final EntryReader<String, ? super ResourceAdapterConfiguration, E> handler) throws E{
+    <E extends Exception> void modifiedAdapters(final EntryReader<String, ? super SerializableResourceAdapterConfiguration, E> handler) throws E{
         adapters.modifiedEntries(handler);
     }
 
@@ -1004,7 +1004,12 @@ final class SerializableAgentConfiguration extends AbstractAgentConfiguration im
      * @deprecated Use {@link #getEntities(Class)} instead.
      */
     @Override
+    @Deprecated
     public ConfigurationEntityRegistry<SerializableResourceAdapterConfiguration> getResourceAdapters() {
+        return getResourceAdaptersImpl();
+    }
+
+    ConfigurationEntityRegistry<SerializableResourceAdapterConfiguration> getResourceAdaptersImpl() {
         return adapters;
     }
 
@@ -1020,6 +1025,10 @@ final class SerializableAgentConfiguration extends AbstractAgentConfiguration im
     @Override
     @Deprecated
     public ConfigurationEntityRegistry<SerializableManagedResourceConfiguration> getManagedResources() {
+        return getManagedResourcesImpl();
+    }
+
+    ConfigurationEntityRegistry<SerializableManagedResourceConfiguration> getManagedResourcesImpl() {
         return resources;
     }
 

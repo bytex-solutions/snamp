@@ -1,6 +1,5 @@
 package com.bytex.snamp.configuration;
 
-import com.bytex.snamp.Consumer;
 import com.bytex.snamp.core.FrameworkService;
 
 import java.io.IOException;
@@ -16,16 +15,30 @@ import java.io.IOException;
  * @since 1.0
  */
 public interface ConfigurationManager extends FrameworkService {
+    /**
+     * A functional interface used to process SNAMP configuration.
+     * @param <E> Type of exception that can be thrown by custom processor.
+     * @since 1.2
+     */
+    @FunctionalInterface
+    interface ConfigurationProcessor<E extends Throwable>{
+        /**
+         * Process SNAMP configuration.
+         * @param config A configuration to process.
+         * @return {@literal true} to save changes; otherwise, {@literal false}.
+         * @throws E An exception thrown by custom processor.
+         */
+        boolean process(final AgentConfiguration config) throws E;
+    }
 
     /**
      * Process SNAMP configuration.
      * @param handler A handler used to process configuration. Cannot be {@literal null}.
-     * @param saveChanges {@literal true} to save configuration changes after processing; otherwise, {@literal false}.
      * @param <E> Type of user-defined exception that can be thrown by handler.
      * @throws E An exception thrown by handler.
      * @throws IOException Unrecoverable exception thrown by configuration infrastructure.
      */
-    default <E extends Throwable> void processConfiguration(final Consumer<? super AgentConfiguration, E> handler, final boolean saveChanges) throws E, IOException {
+    default <E extends Throwable> void processConfiguration(final ConfigurationProcessor<E> handler) throws E, IOException {
         synchronized (this) {
             AgentConfiguration config = getCurrentConfiguration();
             if (config == null) {
@@ -34,8 +47,7 @@ public interface ConfigurationManager extends FrameworkService {
             }
             if (config == null)
                 throw new IOException("Configuration is not available");
-            handler.accept(config);
-            if (saveChanges)
+            else if(handler.process(config))
                 sync();
         }
     }
@@ -43,21 +55,21 @@ public interface ConfigurationManager extends FrameworkService {
     /**
      * Returns the currently loaded configuration.
      * @return The currently loaded configuration.
-     * @deprecated Use {@link #processConfiguration(Consumer, boolean)} instead. Deprecated since 1.2
+     * @deprecated Use {@link #processConfiguration(ConfigurationProcessor)} instead. Deprecated since 1.2
      */
     @Deprecated
     AgentConfiguration getCurrentConfiguration();
 
     /**
      * Reload agent configuration from the persistent storage.
-     * @deprecated Use {@link #processConfiguration(Consumer, boolean)} instead. Deprecated since 1.2
+     * @deprecated Use {@link #processConfiguration(ConfigurationProcessor)} instead. Deprecated since 1.2
      */
     @Deprecated
     void reload();
 
     /**
      * Dumps the agent configuration into the persistent storage.
-     * Use {@link #processConfiguration(Consumer, boolean)} instead. Deprecated since 1.2
+     * Use {@link #processConfiguration(ConfigurationProcessor)} instead. Deprecated since 1.2
      */
     @Deprecated
     void sync();

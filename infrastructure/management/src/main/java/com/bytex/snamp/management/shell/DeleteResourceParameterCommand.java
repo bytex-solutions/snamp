@@ -2,6 +2,7 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.AgentConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 
@@ -23,16 +24,18 @@ public final class DeleteResourceParameterCommand extends ConfigurationCommand {
     @Argument(index = 1, name = "parameter", required = true, description = "Configuration parameter to remove")
     private String paramName = "";
 
+    public DeleteResourceParameterCommand(){
+        super(true);
+    }
+
     @Override
-    boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
-        if(configuration.getManagedResources().containsKey(resourceName)){
-            configuration.getManagedResources().get(resourceName).getParameters().remove(paramName);
+    void doExecute(final AgentConfiguration configuration, final StringBuilder output) {
+        if(configuration.getEntities(ManagedResourceConfiguration.class).containsKey(resourceName)){
+            configuration.getEntities(ManagedResourceConfiguration.class).get(resourceName).getParameters().remove(paramName);
             output.append("Resource modified successfully");
-            return true;
         }
         else {
             output.append("Resource doesn't exist");
-            return false;
         }
     }
 }

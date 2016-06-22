@@ -28,9 +28,7 @@ import java.util.concurrent.TimeUnit;
  * @since 1.0
  * @see <a href="http://openjdk.java.net/jeps/169">Java Value Object</a>
  * @see <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/doc-files/ValueBased.html">Value-based class</a>
- * @deprecated Use {@link java.time.Duration} instead.
  */
-@Deprecated
 public final class TimeSpan implements Serializable, Comparable<TimeSpan> {
     /**
      * Represents infinite time interval.
@@ -63,6 +61,17 @@ public final class TimeSpan implements Serializable, Comparable<TimeSpan> {
       this.duration = time;
       this.unit = unit == null ? TimeUnit.MILLISECONDS : unit;
     }
+
+    /**
+     * Creates a new time span from {@link Duration}.
+     * @param value {@link Duration} to convert.
+     * @return A new time span.
+     * @since 1.2
+     */
+    public static TimeSpan of(final Duration value){
+        return new TimeSpan(value.toNanos(), TimeUnit.NANOSECONDS);
+    }
+
 
     public static TimeSpan of(final long time, final TimeUnit unit){
         return new TimeSpan(time, unit);
@@ -345,6 +354,7 @@ public final class TimeSpan implements Serializable, Comparable<TimeSpan> {
     /**
      * Converts this time span to {@link Duration}.
      * @return Time span as {@link Duration}.
+     * @since 1.2
      */
     public Duration toDuration(){
         return Duration.of(duration, getTemporalUnit());

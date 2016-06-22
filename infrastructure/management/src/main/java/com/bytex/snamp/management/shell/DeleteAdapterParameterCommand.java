@@ -4,6 +4,7 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
+import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 
 /**
  * Deletes configuration parameter of the adapter instance.
@@ -23,16 +24,18 @@ public final class DeleteAdapterParameterCommand extends ConfigurationCommand {
     @SpecialUse
     private String paramName = "";
 
+    public DeleteAdapterParameterCommand(){
+        super(true);
+    }
+
     @Override
-    boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
-        if(configuration.getResourceAdapters().containsKey(instanceName)){
-            configuration.getResourceAdapters().get(instanceName).getParameters().remove(paramName);
+    void doExecute(final AgentConfiguration configuration, final StringBuilder output) {
+        if(configuration.getEntities(ResourceAdapterConfiguration.class).containsKey(instanceName)){
+            configuration.getEntities(ResourceAdapterConfiguration.class).get(instanceName).getParameters().remove(paramName);
             output.append("Instance modified successfully");
-            return true;
         }
         else {
             output.append("Instance doesn't exist");
-            return false;
         }
     }
 }

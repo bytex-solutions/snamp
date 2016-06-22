@@ -173,7 +173,7 @@ final class CMResourceAdapterParserImpl implements CMResourceAdapterParser {
               final ConfigurationAdmin admin) throws IOException {
         //remove all unnecessary adapters
         try {
-            final Map<String, SerializableResourceAdapterConfiguration> adapters = config.adapters;
+            final Map<String, ? extends SerializableResourceAdapterConfiguration> adapters = config.getEntities(SerializableResourceAdapterConfiguration.class);
             forEachAdapter(admin, ALL_ADAPTERS_QUERY, output -> {
                 final String adapterInstance = getAdapterInstanceName(output.getProperties());
                 if (!adapters.containsKey(adapterInstance))
@@ -184,8 +184,8 @@ final class CMResourceAdapterParserImpl implements CMResourceAdapterParser {
         }
         //save each modified adapter
         config.modifiedAdapters((adapterInstance, adapter) -> {
-            if (adapter instanceof SerializableResourceAdapterConfiguration && ((SerializableResourceAdapterConfiguration) adapter).isModified())
-                serialize(adapterInstance, (SerializableResourceAdapterConfiguration)adapter, admin);
+            if ( adapter.isModified())
+                serialize(adapterInstance, adapter, admin);
             return true;
         });
     }

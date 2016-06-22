@@ -1,10 +1,9 @@
 package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.configuration.AgentConfiguration;
-import com.bytex.snamp.configuration.PersistentConfigurationManager;
+import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.core.ServiceHolder;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
-import org.osgi.service.cm.ConfigurationAdmin;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -20,6 +19,11 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
  * @since 1.0
  */
 abstract class ConfigurationCommand extends OsgiCommandSupport implements SnampShellCommand {
+    private final boolean saveChanges;
+
+    protected ConfigurationCommand(final boolean configurationModifier){
+        saveChanges = configurationModifier;
+    }
 
     /**
      * Processes configuration.
@@ -28,18 +32,15 @@ abstract class ConfigurationCommand extends OsgiCommandSupport implements SnampS
      * @return {@literal true} to save changes; otherwise, {@literal false}.
      * @throws Exception Unable to process configuration.
      */
-    abstract boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) throws Exception;
+    abstract void doExecute(final AgentConfiguration configuration, final StringBuilder output) throws Exception;
 
     @Override
     protected final CharSequence doExecute() throws Exception {
-        final ServiceHolder<ConfigurationAdmin> adminRef = ServiceHolder.tryCreate(bundleContext, ConfigurationAdmin.class);
+        final ServiceHolder<ConfigurationManager> adminRef = ServiceHolder.tryCreate(bundleContext, ConfigurationManager.class);
         if (adminRef != null)
             try {
-                final PersistentConfigurationManager configurationManager = new PersistentConfigurationManager(adminRef);
-                configurationManager.load();
                 final StringBuilder output = new StringBuilder(64);
-                if (doExecute(configurationManager.getCurrentConfiguration(), output))
-                    configurationManager.save();
+                adminRef.get().processConfiguration(config -> doExecute(config, output), saveChanges);
                 return output;
             } finally {
                 adminRef.release(bundleContext);
@@ -50,12 +51,12 @@ abstract class ConfigurationCommand extends OsgiCommandSupport implements SnampS
     protected static <T extends FeatureConfiguration> Set<? extends Map.Entry<String, ? extends T>> getFeatures(final ManagedResourceConfiguration resource,
                                                                                             final Class<T> featureType) {
         final Map<String, ? extends T> features = resource.getFeatures(featureType);
-        return features != null ? features.entrySet() : Collections.<Map.Entry<String, ? extends T>>emptySet();
+        return features != null ? features.entrySet() : Collections.emptySet();
     }
 
     protected static <T extends FeatureConfiguration> Set<? extends Map.Entry<String, ? extends T>> getFeatures(final AgentConfiguration config,
                                                                                              final String resourceName,
                                                                                             final Class<T> featureType) {
-        return getFeatures(config.getManagedResources().get(resourceName), featureType);
+        return getFeatures(config.getEntities(ManagedResourceConfiguration.class).get(resourceName), featureType);
     }
 }

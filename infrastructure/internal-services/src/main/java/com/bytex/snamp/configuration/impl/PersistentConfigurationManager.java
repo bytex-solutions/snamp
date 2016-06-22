@@ -13,6 +13,7 @@ import org.osgi.service.cm.ConfigurationAdmin;
 
 import java.io.IOException;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -78,8 +79,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         return result.get();
     }
 
-    private <E extends Throwable> void processConfigurationImpl(final Consumer<? super SerializableAgentConfiguration, E> handler,
-                                                           final boolean saveChanges) throws E, IOException {
+    private <E extends Throwable> void processConfigurationImpl(final ConfigurationProcessor<E> handler) throws E, IOException {
         final Lock lock = saveChanges ? configSynchronizer.writeLock() : configSynchronizer.readLock();
         try {
             lock.lockInterruptibly();
@@ -89,8 +89,8 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         //lock is obtained. Let's process the configuration
         try {
             final SerializableAgentConfiguration config = new SerializableAgentConfiguration();
-            adapterParser.readAdapters(admin, config.adapters);
-            resourceParser.readResources(admin, config.resources);
+            adapterParser.readAdapters(admin, config.getResourceAdaptersImpl());
+            resourceParser.readResources(admin, config.getManagedResourcesImpl());
 
             handler.accept(config);
             if (saveChanges)
@@ -100,24 +100,15 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         }
     }
 
-    /**
-     * Process SNAMP configuration.
-     *
-     * @param handler     A handler used to process configuration. Cannot be {@literal null}.
-     * @param saveChanges {@literal true} to save configuration changes after processing; otherwise, {@literal false}.
-     * @throws E           An exception thrown by handler.
-     * @throws IOException Unrecoverable exception thrown by configuration infrastructure.
-     */
     @Override
-    public <E extends Throwable> void processConfiguration(final Consumer<? super AgentConfiguration, E> handler,
-                                                                        final boolean saveChanges) throws E, IOException {
+    public <E extends Throwable> void processConfiguration(final ConfigurationProcessor<E> handler) throws E, IOException {
         final BundleContext context = Utils.getBundleContextOfObject(this);
         final ServiceHolder<ConfigurationAdmin> configAdmin = ServiceHolder.tryCreate(context, ConfigurationAdmin.class);
         if (configAdmin == null)
             throw new IOException("ConfigurationAdmin is not available.");
         else
             try {
-                processConfigurationImpl(handler, saveChanges);
+                processConfigurationImpl(handler);
             } finally {
                 configAdmin.release(context);
             }
