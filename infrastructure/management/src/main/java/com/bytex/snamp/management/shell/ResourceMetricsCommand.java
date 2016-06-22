@@ -10,6 +10,7 @@ import org.apache.karaf.shell.commands.Option;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 import javax.management.InstanceNotFoundException;
+import static com.bytex.snamp.management.shell.Utils.*;
 
 /**
  * Provides access to metrics.
@@ -40,27 +41,27 @@ public final class ResourceMetricsCommand extends OsgiCommandSupport implements 
 
     private static void collectMetrics(final AttributeMetrics metrics, final StringBuilder output) {
         if(metrics == null) return;
-        IOUtils.appendln(output, "Total number of writes: %s", metrics.getNumberOfWrites());
+        appendln(output, "Total number of writes: %s", metrics.getNumberOfWrites());
         for (final MetricsInterval interval : MetricsInterval.values())
-            IOUtils.appendln(output, "Number of writes(%s): %s", interval, metrics.getNumberOfWrites(interval));
+            appendln(output, "Number of writes(%s): %s", interval, metrics.getNumberOfWrites(interval));
 
-        IOUtils.appendln(output, "Total number of reads: %s", metrics.getNumberOfReads());
+        appendln(output, "Total number of reads: %s", metrics.getNumberOfReads());
         for (final MetricsInterval interval : MetricsInterval.values())
-            IOUtils.appendln(output, "Number of reads(%s): %s", interval, metrics.getNumberOfReads(interval));
+            appendln(output, "Number of reads(%s): %s", interval, metrics.getNumberOfReads(interval));
     }
 
     private static void collectMetrics(final NotificationMetrics metrics, final StringBuilder output) {
         if(metrics == null) return;
-        IOUtils.appendln(output, "Total number of emitted notifications: %s", metrics.getNumberOfEmitted());
+        appendln(output, "Total number of emitted notifications: %s", metrics.getNumberOfEmitted());
         for (final MetricsInterval interval : MetricsInterval.values())
-            IOUtils.appendln(output, "Number of emitted notifications(%s %s): %s", "last", interval.name().toLowerCase(), metrics.getNumberOfEmitted(interval));
+            appendln(output, "Number of emitted notifications(%s %s): %s", "last", interval.name().toLowerCase(), metrics.getNumberOfEmitted(interval));
     }
 
     private static void collectMetrics(final OperationMetrics metrics, final StringBuilder output) {
         if(metrics == null) return;
-        IOUtils.appendln(output, "Total number of invocations: %s", metrics.getNumberOfInvocations());
+        appendln(output, "Total number of invocations: %s", metrics.getNumberOfInvocations());
         for (final MetricsInterval interval : MetricsInterval.values())
-            IOUtils.appendln(output, "Number of invocations(%s %s): %s", "last", interval.name().toLowerCase(), metrics.getNumberOfInvocations(interval));
+            appendln(output, "Number of invocations(%s %s): %s", "last", interval.name().toLowerCase(), metrics.getNumberOfInvocations(interval));
     }
 
     private  CharSequence collectMetrics(final MetricsReader metrics) {

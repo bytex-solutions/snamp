@@ -28,4 +28,25 @@ final class Utils {
     static String getStateString(final SnampComponentDescriptor component){
         return getStateString(component.getState());
     }
+
+    static StringBuilder appendln(final StringBuilder builder,
+                                         final String value){
+        return newLine(builder.append(value));
+    }
+
+    static StringBuilder appendln(final StringBuilder builder,
+                                         final String format,
+                                         final Object... args){
+        return newLine(append(builder, format, args));
+    }
+
+    static StringBuilder append(final StringBuilder builder,
+                                       final String format,
+                                       final Object... args){
+        return builder.append(String.format(format, args));
+    }
+
+    static StringBuilder newLine(final StringBuilder output) {
+        return output.append(System.lineSeparator());
+    }
 }

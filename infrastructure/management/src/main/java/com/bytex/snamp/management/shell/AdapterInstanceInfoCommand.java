@@ -9,8 +9,9 @@ import org.apache.karaf.shell.commands.Command;
 import java.util.Map;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
+import static com.bytex.snamp.management.shell.Utils.appendln;
 
-/**
+/*
  * Displays configuration of adapter instance.
  * @author Roman Sakno
  * @version 1.2
@@ -28,11 +29,11 @@ public final class AdapterInstanceInfoCommand extends ConfigurationCommand {
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
         if (configuration.getResourceAdapters().containsKey(resourceName)) {
             final ResourceAdapterConfiguration adapter = configuration.getResourceAdapters().get(resourceName);
-            IOUtils.appendln(output, "Instance Name: %s", resourceName);
-            IOUtils.appendln(output, "System Name: %s", adapter.getAdapterName());
-            IOUtils.appendln(output, "Configuration parameters:");
+            appendln(output, "Instance Name: %s", resourceName);
+            appendln(output, "System Name: %s", adapter.getAdapterName());
+            appendln(output, "Configuration parameters:");
             for (final Map.Entry<String, String> pair : adapter.getParameters().entrySet())
-                IOUtils.appendln(output, "%s = %s", pair.getKey(), pair.getValue());
+                appendln(output, "%s = %s", pair.getKey(), pair.getValue());
         } else
             output.append("Adapter instance doesn't exist");
         return false;

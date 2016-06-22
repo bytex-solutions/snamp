@@ -1,12 +1,12 @@
 package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.configuration.AgentConfiguration;
-import com.bytex.snamp.io.IOUtils;
 import org.apache.karaf.shell.commands.Command;
 
 import java.util.Map;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
+import static com.bytex.snamp.management.shell.Utils.appendln;
 
 /**
  * Shows list of configured managed resources.
@@ -21,7 +21,7 @@ public final class ConfiguredResourcesCommand extends ConfigurationCommand {
     @Override
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
         for(final Map.Entry<String, ? extends ManagedResourceConfiguration> resource: configuration.getManagedResources().entrySet())
-            IOUtils.appendln(output, "Resource: %s. Type: %s. Connection string: %s", resource.getKey(),
+            appendln(output, "Resource: %s. Type: %s. Connection string: %s", resource.getKey(),
                     resource.getValue().getConnectionType(),
                     resource.getValue().getConnectionString());
         return false;

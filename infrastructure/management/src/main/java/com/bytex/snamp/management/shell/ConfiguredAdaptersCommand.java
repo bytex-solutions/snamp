@@ -6,7 +6,7 @@ import org.apache.karaf.shell.commands.Command;
 import java.util.Map;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
-import static com.bytex.snamp.io.IOUtils.appendln;
+import static com.bytex.snamp.management.shell.Utils.appendln;
 
 /**
  * Prints list of configured adapter instances.

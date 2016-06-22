@@ -30,18 +30,14 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
     public static final String PID = "com.bytex.snamp.concurrency.threadPools";
 
     private final ConcurrentResourceAccessor<Map<String, ExecutorService>> services =
-            new ConcurrentResourceAccessor<Map<String, ExecutorService>>(new HashMap<String, ExecutorService>());
+            new ConcurrentResourceAccessor<>(new HashMap<>());
 
     private final Logger logger = Logger.getLogger("SnampThreadPoolRepository");
-    private final ExecutorService defaultPool = createDefaultConfig().createExecutorService(DEFAULT_POOL);
+    private final DefaultThreadPool defaultPool = new DefaultThreadPool();
     private final ConfigurationAdmin configAdmin;
 
     public ThreadPoolRepositoryImpl(final ConfigurationAdmin configAdmin){
         this.configAdmin = Objects.requireNonNull(configAdmin);
-    }
-
-    private static ThreadPoolConfig createDefaultConfig(){
-        return new ThreadPoolConfig();
     }
 
     @Override
@@ -81,7 +77,7 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
     @Override
     public ThreadPoolConfig getConfiguration(final String name) {
         if (DEFAULT_POOL.equals(name))
-            return createDefaultConfig();
+            return DefaultThreadPool.getConfig();
         try {
             final Configuration persistentConfig = configAdmin.getConfiguration(PID);
             final Dictionary<String, Object> configuredServices = persistentConfig.getProperties();
@@ -144,9 +140,7 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
         else    //merge with runtime collection of thread pools
             services.write(new ConsistentAction<Map<String, ExecutorService>, Void>() {
                 private void removeThreadPools(final Map<String, ExecutorService> services) {
-                    for (final String poolName : ImmutableSet.copyOf(services.keySet()))
-                        if (properties.get(poolName) == null)
-                            services.remove(poolName);
+                    ImmutableSet.copyOf(services.keySet()).stream().filter(poolName -> properties.get(poolName) == null).forEach(services::remove);
                 }
 
                 private void addThreadPools(final Map<String, ExecutorService> services) {
@@ -178,9 +172,10 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
 
     @Override
     public void close() {
-        services.write(obj -> {
-            obj.values().forEach(ExecutorService::shutdown);
-            obj.clear();
+        defaultPool.terminate();
+        services.write(svcs -> {
+            svcs.values().forEach(ExecutorService::shutdown);
+            svcs.clear();
             return null;
         });
     }

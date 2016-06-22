@@ -1,5 +1,6 @@
 package com.bytex.snamp.concurrent;
 
+import com.bytex.snamp.TimeSpan;
 import com.google.common.base.Function;
 
 import java.io.Serializable;
@@ -32,7 +33,7 @@ public final class ThreadPoolConfig implements Serializable, Function<String, Ex
      * When the number of threads is greater than the minimum, this is the maximum time that excess idle threads
      *        will wait for new tasks before terminating
      */
-    public static final int DEFAULT_KEEP_ALIVE_TIME = 1000;
+    public static final TimeSpan DEFAULT_KEEP_ALIVE_TIME = TimeSpan.ofMillis(1000);
 
     /**
      * Infinite size of the queue used to enqueue scheduled tasks.
@@ -43,7 +44,7 @@ public final class ThreadPoolConfig implements Serializable, Function<String, Ex
     private int minPoolSize = DEFAULT_MIN_POOL_SIZE;
     private int maxPoolSize = DEFAULT_MAX_POOL_SIZE;
     private int threadPriority = DEFAULT_PRIORITY;
-    private int keepAliveTime = DEFAULT_KEEP_ALIVE_TIME;
+    private TimeSpan keepAliveTime = DEFAULT_KEEP_ALIVE_TIME;
     private int queueSize = INFINITE_QUEUE_SIZE;
 
     public int getMinPoolSize() {
@@ -70,11 +71,15 @@ public final class ThreadPoolConfig implements Serializable, Function<String, Ex
         threadPriority = value;
     }
 
-    public int getKeepAliveTime() {
+    public TimeSpan getKeepAliveTime() {
         return keepAliveTime;
     }
 
-    public void setKeepAliveTime(final int value) {
+    public void setKeepAliveTime(final long millis) {
+        keepAliveTime = TimeSpan.ofMillis(millis);
+    }
+
+    public void setKeepAliveTime(final TimeSpan value){
         keepAliveTime = value;
     }
 
@@ -132,19 +137,15 @@ public final class ThreadPoolConfig implements Serializable, Function<String, Ex
                 }
                 break;
             default:
-                if(maxPoolSize == Integer.MAX_VALUE){
-                    taskQueue = new SynchronousQueue<>();
-                    corePoolSize = minPoolSize;
-                }
-                else {
-                    taskQueue = new ArrayBlockingQueue<>(queueSize);
-                    corePoolSize = minPoolSize;
-                }
+                taskQueue = maxPoolSize == Integer.MAX_VALUE ?
+                        new SynchronousQueue<Runnable>() :
+                        new ArrayBlockingQueue<Runnable>(queueSize);
+                corePoolSize = minPoolSize;
                 break;
         }
         return new ThreadPoolExecutor(corePoolSize,
                 maxPoolSize,
-                keepAliveTime,
+                keepAliveTime.toMillis(),
                 TimeUnit.MILLISECONDS,
                 taskQueue,
                 threadFactory);
@@ -166,7 +167,7 @@ public final class ThreadPoolConfig implements Serializable, Function<String, Ex
 
     @Override
     public int hashCode() {
-        return queueSize ^ (minPoolSize << 1) ^ (maxPoolSize << 2) ^ (threadPriority << 3) ^ (keepAliveTime << 4);
+        return queueSize ^ (minPoolSize << 1) ^ (maxPoolSize << 2) ^ (threadPriority << 3) ^ (keepAliveTime.hashCode() << 4);
     }
 
     /**

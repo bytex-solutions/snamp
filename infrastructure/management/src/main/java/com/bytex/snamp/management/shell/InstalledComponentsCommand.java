@@ -8,7 +8,7 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 import java.io.IOException;
 
-import static com.bytex.snamp.io.IOUtils.appendln;
+import static com.bytex.snamp.management.shell.Utils.appendln;
 import static com.bytex.snamp.management.shell.Utils.getStateString;
 import static com.bytex.snamp.management.shell.InstalledAdaptersCommand.writeAdapter;
 import static com.bytex.snamp.management.shell.InstalledConnectorsCommand.writeConnector;

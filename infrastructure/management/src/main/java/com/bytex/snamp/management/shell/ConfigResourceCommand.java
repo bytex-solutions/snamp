@@ -10,6 +10,7 @@ import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
+import static com.bytex.snamp.management.shell.Utils.appendln;
 
 /**
  * Configures managed resource.
@@ -43,11 +44,11 @@ public final class ConfigResourceCommand extends ConfigurationCommand {
         final ManagedResourceConfiguration resource;
         if(configuration.getManagedResources().containsKey(resourceName)){//modify existing resource
             resource = configuration.getManagedResources().get(resourceName);
-            IOUtils.appendln(output, "Updated");
+            appendln(output, "Updated");
         }
         else {  //create new adapter instance
             resource = configuration.getManagedResources().getOrAdd(resourceName);
-            IOUtils.appendln(output, "Created");
+            appendln(output, "Created");
         }
         //setup connection type
         if(!Strings.isNullOrEmpty(connectionType))

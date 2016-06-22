@@ -143,25 +143,4 @@ public final class IOUtils {
             result[position] = bits.get(position);
         return result;
     }
-
-    public static StringBuilder appendln(final StringBuilder builder,
-                                         final String value){
-        return newLine(builder.append(value));
-    }
-
-    public static StringBuilder appendln(final StringBuilder builder,
-                                         final String format,
-                                         final Object... args){
-        return newLine(append(builder, format, args));
-    }
-
-    public static StringBuilder append(final StringBuilder builder,
-                                       final String format,
-                                       final Object... args){
-        return builder.append(String.format(format, args));
-    }
-
-    public static StringBuilder newLine(final StringBuilder output) {
-        return output.append(System.lineSeparator());
-    }
 }
