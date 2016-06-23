@@ -1,7 +1,6 @@
 package com.bytex.snamp.adapters.snmp;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.modeling.AttributeAccessor;
@@ -30,9 +29,9 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 
-import static com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterConfigurationParser.parseOID;
 import static com.bytex.snamp.adapters.snmp.SnmpHelpers.getAccessRestrictions;
 import static com.bytex.snamp.adapters.snmp.SnmpResourceAdapterProfile.createDefaultTypeMapper;
+import static com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterConfigurationParser.parseOID;
 import static com.bytex.snamp.jmx.DescriptorUtils.getField;
 import static com.bytex.snamp.jmx.DescriptorUtils.hasField;
 
@@ -362,21 +361,18 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
                              final MOTable<DefaultMOMutableRow2PC, MONamedColumn, MOTableModel<DefaultMOMutableRow2PC>> table,
                              final DescriptorRead conversionOptions){
         final MutableInteger rowIndex = new MutableInteger(0);
-        TabularDataUtils.forEachRow(data, new SafeConsumer<CompositeData>() {
-            @Override
-            public void accept(final CompositeData row) {
-                final List<Variable> cells = Lists.newArrayListWithExpectedSize(table.getColumnCount());
-                for (int columnIndex = 0; columnIndex < table.getColumnCount(); columnIndex++) {
-                    final MONamedColumn columnDef = table.getColumn(columnIndex);
-                    if (MORowStatusColumn.isInstance(columnDef))
-                        cells.add(columnIndex, TableRowStatus.ACTIVE.toManagedScalarValue());
-                    else {
-                        final Variable cell = columnDef.createCellValue(row.get(columnDef.name), conversionOptions);
-                        cells.add(columnIndex, cell);
-                    }
+        TabularDataUtils.forEachRow(data, row -> {
+            final List<Variable> cells = Lists.newArrayListWithExpectedSize(table.getColumnCount());
+            for (int columnIndex = 0; columnIndex < table.getColumnCount(); columnIndex++) {
+                final MONamedColumn columnDef = table.getColumn(columnIndex);
+                if (MORowStatusColumn.isInstance(columnDef))
+                    cells.add(columnIndex, TableRowStatus.ACTIVE.toManagedScalarValue());
+                else {
+                    final Variable cell = columnDef.createCellValue(row.get(columnDef.name), conversionOptions);
+                    cells.add(columnIndex, cell);
                 }
-                table.addRow(table.createRow(makeRowID(rowIndex.getAndIncrement()), ArrayUtils.toArray(cells, Variable.class)));
             }
+            table.addRow(table.createRow(makeRowID(rowIndex.getAndIncrement()), ArrayUtils.toArray(cells, Variable.class)));
         });
     }
 
@@ -562,8 +558,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
         else if(attributeType instanceof TabularType)
             rowsToDelete = dump((TabularType)attributeType);
         //remove rows
-        for(final OID row: rowsToDelete)
-            removeRow(row);
+        rowsToDelete.forEach(this::removeRow);
     }
 
     @Override

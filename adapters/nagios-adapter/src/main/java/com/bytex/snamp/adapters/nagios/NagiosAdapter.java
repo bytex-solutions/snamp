@@ -1,12 +1,10 @@
 package com.bytex.snamp.adapters.nagios;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.adapters.AbstractResourceAdapter;
 import com.bytex.snamp.adapters.modeling.AttributeSet;
 import com.bytex.snamp.adapters.modeling.FeatureAccessor;
-import com.bytex.snamp.EntryReader;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 
@@ -74,15 +72,10 @@ final class NagiosAdapter extends AbstractResourceAdapter {
                                                                                                     final AttributeSet<NagiosAttributeAccessor> attributes){
         final Multimap<String, ReadOnlyFeatureBindingInfo<MBeanAttributeInfo>> result =
                 HashMultimap.create();
-        attributes.forEachAttribute(new EntryReader<String, NagiosAttributeAccessor, ExceptionPlaceholder>() {
-            @Override
-            public boolean read(final String resourceName, final NagiosAttributeAccessor accessor)  {
-                return result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor,
-                        "path", accessor.getPath(servletContext, resourceName),
-                        FeatureBindingInfo.MAPPED_TYPE, "Text"
-                ));
-            }
-        });
+        attributes.forEachAttribute( (resourceName, accessor) -> result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor,
+                "path", accessor.getPath(servletContext, resourceName),
+                FeatureBindingInfo.MAPPED_TYPE, "Text"
+        )));
         return result;
     }
 

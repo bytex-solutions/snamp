@@ -108,9 +108,10 @@ public class XmlCommandLineTemplate implements Serializable, ChannelProcessor<Ma
             template.add(pair.getKey(), pair.getValue());
         //fill template attributes from custom input
         if (input != null)
-            for (final Map.Entry<String, ?> pair : input.entrySet())
-                if(pair.getKey().indexOf('.') < 0)   //attribute name cannot be null or contain '.'
-                    template.add(pair.getKey(), pair.getValue());
+            //attribute name cannot be null or contain '.'
+            input.entrySet().stream()
+                    .filter(pair -> pair.getKey().indexOf('.') < 0)
+                    .forEach(pair -> template.add(pair.getKey(), pair.getValue()));
         return template.render();
     }
 

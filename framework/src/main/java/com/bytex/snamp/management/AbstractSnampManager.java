@@ -370,10 +370,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
     @Override
     public final Collection<? extends ResourceAdapterDescriptor> getInstalledResourceAdapters() {
         final Collection<String> systemNames = ResourceAdapterActivator.getInstalledResourceAdapters(getBundleContextOfObject(this));
-        final Collection<ResourceAdapterDescriptor> result = new LinkedList<>();
-        for(final String systemName: systemNames)
-            result.add(createResourceAdapterDescriptor(systemName));
-        return result;
+        return systemNames.stream().map(this::createResourceAdapterDescriptor).collect(Collectors.toCollection(LinkedList::new));
     }
 
     /**

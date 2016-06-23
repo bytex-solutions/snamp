@@ -20,7 +20,7 @@ final class InputDiscreteSetAttribute extends ModbusArrayAttributeInfo<boolean[]
     InputDiscreteSetAttribute(final String attributeID,
                               final AttributeDescriptor descriptor,
                               final InputDiscreteAccess deviceAccess) throws OpenDataException {
-        super(attributeID, DESCRIPTION, new ArrayType<boolean[]>(SimpleType.BOOLEAN, true), AttributeSpecifier.READ_ONLY, descriptor, deviceAccess);
+        super(attributeID, DESCRIPTION, new ArrayType<>(SimpleType.BOOLEAN, true), AttributeSpecifier.READ_ONLY, descriptor, deviceAccess);
     }
 
 

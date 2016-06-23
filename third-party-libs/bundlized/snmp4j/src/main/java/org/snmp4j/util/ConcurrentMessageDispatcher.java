@@ -26,15 +26,10 @@ public final class ConcurrentMessageDispatcher extends MessageDispatcherImpl imp
 
     @Override
     public void processMessage(final TransportMapping sourceTransport, final Address incomingAddress, final ByteBuffer wholeMessage, final TransportStateReference tmStateReference) {
-        executor.submit(new Runnable() {
-            @Override
-            public void run() {
-                ConcurrentMessageDispatcher.super.processMessage(sourceTransport,
-                        incomingAddress,
-                        wholeMessage,
-                        tmStateReference);
-            }
-        });
+        executor.submit(() -> ConcurrentMessageDispatcher.super.processMessage(sourceTransport,
+                incomingAddress,
+                wholeMessage,
+                tmStateReference));
     }
 
     /**

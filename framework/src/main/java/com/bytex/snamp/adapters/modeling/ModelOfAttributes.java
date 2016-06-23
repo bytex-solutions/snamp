@@ -6,7 +6,6 @@ import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 
 import javax.management.*;
 import java.util.*;
@@ -139,9 +138,9 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
         try(final LockScope ignored = beginRead()){
             final ResourceAttributeList<?> resource = attributes.get(resourceName);
             if(resource != null){
-                final List<MBeanAttributeInfo> result = Lists.newArrayListWithExpectedSize(resource.size());
-                result.addAll(resource.values().stream().map(FeatureAccessor::getMetadata).collect(Collectors.toList()));
-                return result;
+                return resource.values().stream()
+                        .map(FeatureAccessor::getMetadata)
+                        .collect(Collectors.toCollection(LinkedList::new));
             }
             else return ImmutableList.of();
         }

@@ -363,11 +363,8 @@ final class SnmpHelpers {
         return new OID(prefix).append(POSTFIX_COUNTER.getAndIncrement()).append(0);
     }
 
-    static final Supplier<OID> OID_GENERATOR = new Supplier<OID>() {
-        @Override
-        public OID get() {
-            final OID prefix = new OID(new OID(System.getProperty(AUTO_PREFIX_PROPERTY, "1.1")));
-            return generateOID(prefix);
-        }
+    static final Supplier<OID> OID_GENERATOR = () -> {
+        final OID prefix = new OID(new OID(System.getProperty(AUTO_PREFIX_PROPERTY, "1.1")));
+        return generateOID(prefix);
     };
 }

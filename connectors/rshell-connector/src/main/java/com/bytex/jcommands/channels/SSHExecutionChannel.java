@@ -76,31 +76,16 @@ public final class SSHExecutionChannel extends SSHClient implements CommandExecu
 
     private static Authenticator fromCredentials(final String userName,
                                                  final String password) {
-        return new Authenticator() {
-            @Override
-            public void authenticate(final SSHClient client) throws UserAuthException, TransportException {
-                client.authPassword(userName, password);
-            }
-        };
+        return client -> client.authPassword(userName, password);
     }
 
     private static Authenticator fromKeyFile(final String userName,
                                              final String keyFile) {
-        return new Authenticator() {
-            @Override
-            public void authenticate(final SSHClient client) throws UserAuthException, TransportException {
-                client.authPublickey(userName, keyFile);
-            }
-        };
+        return client -> client.authPublickey(userName, keyFile);
     }
 
     private static Authenticator fromUserName(final String userName) {
-        return new Authenticator() {
-            @Override
-            public void authenticate(final SSHClient client) throws UserAuthException, TransportException {
-                client.authPublickey(userName);
-            }
-        };
+        return client -> client.authPublickey(userName);
     }
 
     private SSHExecutionChannel(final Map<String, String> params,

@@ -1,17 +1,16 @@
 package com.bytex.snamp.adapters.jmx;
 
 import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.adapters.modeling.*;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.notifications.NotificationListenerList;
-import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.io.Buffers;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.management.OpenMBeanProvider;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
@@ -21,9 +20,11 @@ import java.io.Closeable;
 import java.lang.management.ManagementFactory;
 import java.nio.*;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Represents proxy MBean that is used to expose attributes and notifications
@@ -323,18 +324,19 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     @Override
     public AttributeList setAttributes(final AttributeList attributes) {
         final AttributeList result = new AttributeList();
-        for(final Object entry: attributes)
-            if(entry instanceof Attribute)
-                try {
-                    setAttribute((Attribute)entry);
-                    result.add(entry);
-                }
-                catch (final JMException e) {
+        attributes.stream()
+                .filter(entry -> entry instanceof Attribute)
+                .forEach(entry -> {
+                    try {
+                        setAttribute((Attribute) entry);
+                        result.add(entry);
+                    } catch (final JMException e) {
                         logger.log(Level.WARNING,
                                 String.format("Unable to set attribute %s",
-                                entry),
+                                        entry),
                                 e);
-                }
+                    }
+        });
         return result;
     }
 
@@ -358,9 +360,10 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
 
     private OpenMBeanAttributeInfo[] getAttributeInfo() {
         try(final LockScope ignored = beginRead(MBeanResources.ATTRIBUTES)){
-            final Collection<OpenMBeanAttributeInfo> result = Lists.newArrayListWithExpectedSize(attributes.size());
-            for(final JmxAttributeAccessor accessor: attributes.values())
-                result.add(accessor.cloneMetadata());
+            final Collection<OpenMBeanAttributeInfo> result =
+                    attributes.values().stream()
+                            .map(JmxAttributeAccessor::cloneMetadata)
+                            .collect(Collectors.toCollection(LinkedList::new));
             return ArrayUtils.toArray(result, OpenMBeanAttributeInfo.class);
         }
     }
@@ -368,9 +371,9 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     @Override
     public MBeanNotificationInfo[] getNotificationInfo() {
         try(final LockScope ignored = beginRead(MBeanResources.NOTIFICATIONS)){
-            final Collection<MBeanNotificationInfo> result = Lists.newArrayListWithExpectedSize(notifications.size());
-            for(final JmxNotificationAccessor accessor: notifications.values())
-                result.add(accessor.cloneMetadata());
+            final Collection<MBeanNotificationInfo> result = notifications.values().stream()
+                    .map(JmxNotificationAccessor::cloneMetadata)
+                    .collect(Collectors.toCollection(LinkedList::new));
             return ArrayUtils.toArray(result, MBeanNotificationInfo.class);
         }
     }

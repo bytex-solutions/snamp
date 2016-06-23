@@ -4,15 +4,13 @@ import com.bytex.snamp.configuration.AbsentConfigurationParameterException;
 import com.bytex.snamp.connectors.mda.DataAcceptor;
 import com.bytex.snamp.connectors.mda.MDAAttributeRepository;
 import com.bytex.snamp.connectors.mda.MDANotificationRepository;
-import com.bytex.snamp.connectors.mq.MQResourceConnectorConfigurationDescriptor;
+import com.bytex.snamp.connectors.mq.MQConnectorConfigurationParser;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.base.Strings;
-import com.google.common.base.Supplier;
 
 import javax.jms.*;
 import java.io.IOException;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 
 /**
@@ -36,18 +34,18 @@ final class JMSDataAcceptor extends DataAcceptor implements ExceptionListener {
     JMSDataAcceptor(final String resourceName,
                     final Map<String, String> parameters,
                     final JMSDataConverter converter,
-                    final Supplier<ExecutorService> threadPoolFactory,
+                    final MQConnectorConfigurationParser configurationParser,
                     final ConnectionFactory factory) throws JMSException, AbsentConfigurationParameterException {
         dataConverter = converter;
-        jmsConnection = MQResourceConnectorConfigurationDescriptor.createConnection(factory, parameters);
-        queueName = MQResourceConnectorConfigurationDescriptor.getInputQueueName(parameters);
-        isTopic = MQResourceConnectorConfigurationDescriptor.isInputTopic(parameters);
-        messageSelector = MQResourceConnectorConfigurationDescriptor.getMessageSelector(parameters);
-        outputQueueName = MQResourceConnectorConfigurationDescriptor.getOutputQueueName(parameters);
-        isTopicOutput = MQResourceConnectorConfigurationDescriptor.isOutputTopic(parameters);
+        jmsConnection = configurationParser.createConnection(factory, parameters);
+        queueName = configurationParser.getInputQueueName(parameters);
+        isTopic = configurationParser.isInputTopic(parameters);
+        messageSelector = configurationParser.getMessageSelector(parameters);
+        outputQueueName = configurationParser.getOutputQueueName(parameters);
+        isTopicOutput = configurationParser.isOutputTopic(parameters);
         attributes = new JMSAttributeRepository(resourceName, converter, getLogger());
         notifications = new JMSNotificationRepository(resourceName,
-                threadPoolFactory.get(),
+                configurationParser.getThreadPool(parameters),
                 converter,
                 Utils.getBundleContextOfObject(this),
                 getLogger());

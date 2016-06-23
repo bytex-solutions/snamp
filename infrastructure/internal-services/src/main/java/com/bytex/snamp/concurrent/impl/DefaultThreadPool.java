@@ -24,7 +24,7 @@ final class DefaultThreadPool extends ThreadPoolExecutor {
                 config.getMaxPoolSize(),
                 config.getKeepAliveTime().toMillis(),
                 TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<Runnable>(),
+                new LinkedBlockingQueue<>(),
                 THREAD_FACTORY);
     }
 

@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * Represents SNMP client.
@@ -308,9 +309,9 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
     }
 
     final void set(final Map<OID, Variable> variables, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException, ExecutionException {
-        final Collection<VariableBinding> bindings = new ArrayList<>(variables.size());
-        for(final Map.Entry<OID, Variable> entry: variables.entrySet())
-            bindings.add(new VariableBinding(entry.getKey(), entry.getValue()));
+        final Collection<VariableBinding> bindings = variables.entrySet().stream()
+                .map(entry -> new VariableBinding(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toCollection(LinkedList::new));
         set(ArrayUtils.toArray(bindings, VariableBinding.class), timeout);
     }
 }

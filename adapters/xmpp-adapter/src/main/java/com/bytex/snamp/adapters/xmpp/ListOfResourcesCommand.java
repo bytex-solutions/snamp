@@ -27,8 +27,7 @@ final class ListOfResourcesCommand extends AbstractCommand {
     @Override
     protected Message doCommand(final CommandLine command) {
         final StringBuilder resources = new StringBuilder(64);
-        for(final String resourceName: reader.getHostedResources())
-            resources.append(resourceName);
+        reader.getHostedResources().forEach(resources::append);
         final Message msg = new Message();
         msg.setSubject("List of managed resources");
         msg.setBody(resources.toString());

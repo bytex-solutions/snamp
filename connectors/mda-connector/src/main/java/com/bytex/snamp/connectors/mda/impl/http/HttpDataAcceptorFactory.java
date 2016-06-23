@@ -1,7 +1,7 @@
 package com.bytex.snamp.connectors.mda.impl.http;
 
 import com.bytex.snamp.connectors.mda.DataAcceptorFactory;
-import com.bytex.snamp.connectors.mda.impl.MDAThreadPoolConfig;
+import com.bytex.snamp.connectors.mda.impl.MDAConnectorConfigurationParser;
 
 import java.util.Map;
 
@@ -20,15 +20,22 @@ public final class HttpDataAcceptorFactory implements DataAcceptorFactory {
         return SERVLET_CONTEXT.concat(resourceName);
     }
 
-    @Override
-    public HttpDataAcceptor create(final String resourceName,
-                                   String servletContext,
-                                   final Map<String, String> parameters) throws Exception {
+    private static HttpDataAcceptor create(final String resourceName,
+                                           String servletContext,
+                                           final Map<String, String> parameters,
+                                           final MDAConnectorConfigurationParser configurationParser) {
         if (isNullOrEmpty(servletContext))
             servletContext = getServletContext(resourceName);
         return new HttpDataAcceptor(resourceName,
                 servletContext,
-                new MDAThreadPoolConfig(resourceName, parameters));
+                () -> configurationParser.getThreadPool(parameters));
+    }
+
+    @Override
+    public HttpDataAcceptor create(final String resourceName,
+                                   final String servletContext,
+                                   final Map<String, String> parameters) throws Exception {
+        return create(resourceName, servletContext, parameters, new MDAConnectorConfigurationParser());
     }
 
     @Override

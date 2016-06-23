@@ -1,16 +1,8 @@
 package com.bytex.snamp.scripting;
 
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.bytex.snamp.Consumer;
-import com.bytex.snamp.ExceptionPlaceholder;
-import com.bytex.snamp.ExceptionalCallable;
-import com.bytex.snamp.SafeConsumer;
+import com.bytex.snamp.*;
 import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.Internal;
-import com.bytex.snamp.ThreadSafe;
+import com.google.common.collect.Lists;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
@@ -126,7 +118,7 @@ public final class OSGiScriptEngineManager extends ScriptEngineManager{
         };
     }
 
-    private ForwardingScriptEngine getProxyEngine(final Function<ScriptEngineManager, ScriptEngine> provider) {
+    private ForwardingScriptEngine getProxyEngine(final java.util.function.Function<ScriptEngineManager, ScriptEngine> provider) {
         for (final ClassLoader loader : classLoaders.keySet()) {
             final ScriptEngine engine = Utils.withContextClassLoader(loader, new ExceptionalCallable<ScriptEngine, ExceptionPlaceholder>() {
                 private final ScriptEngineManager manager = classLoaders.get(loader);
@@ -141,14 +133,16 @@ public final class OSGiScriptEngineManager extends ScriptEngineManager{
         return null;
     }
 
-    private ScriptEngine getSystemEngine(final Predicate<ScriptEngineFactory> factoryFilter) {
-        final ScriptEngineFactory factory = Iterables.getFirst(Iterables.filter(systemFactories, factoryFilter),
-                null);
+    private ScriptEngine getSystemEngine(final java.util.function.Predicate<ScriptEngineFactory> factoryFilter) {
+        final ScriptEngineFactory factory = systemFactories.stream()
+                .filter(factoryFilter)
+                .findFirst()
+                .orElseGet(() -> null);
         return factory != null ? factory.getScriptEngine() : null;
     }
 
-    private ScriptEngine getEngine(final Predicate<ScriptEngineFactory> systemFactoryFilter,
-                                   final Function<ScriptEngineManager, ScriptEngine> proxyEngineResolver){
+    private ScriptEngine getEngine(final java.util.function.Predicate<ScriptEngineFactory> systemFactoryFilter,
+                                   final java.util.function.Function<ScriptEngineManager, ScriptEngine> proxyEngineResolver){
         ScriptEngine result = getSystemEngine(systemFactoryFilter);
         if(result == null)
             result = getProxyEngine(proxyEngineResolver);

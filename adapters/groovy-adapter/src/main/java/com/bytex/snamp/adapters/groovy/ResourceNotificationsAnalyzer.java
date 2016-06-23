@@ -79,9 +79,9 @@ public class ResourceNotificationsAnalyzer implements ResourceFeaturesAnalyzer, 
 
         private void process(final MBeanNotificationInfo metadata,
                              final Notification notif){
-            for(final FilterAndProcessNotificationStatement statement: handlers)
-                if(statement.apply(notif))
-                    statement.onSuccess(metadata, notif);
+            handlers.stream()
+                    .filter(statement -> statement.apply(notif))
+                    .forEach(statement -> statement.onSuccess(metadata, notif));
         }
     }
 
@@ -117,8 +117,8 @@ public class ResourceNotificationsAnalyzer implements ResourceFeaturesAnalyzer, 
 
     public final void handleNotification(final MBeanNotificationInfo metadata,
                                          final Notification notif){
-        for(final NotificationSelectStatement stmt: selectionStatements)
-            if(stmt.match(metadata))
-                stmt.process(metadata, notif);
+        selectionStatements.stream()
+                .filter(stmt -> stmt.match(metadata))
+                .forEach(stmt -> stmt.process(metadata, notif));
     }
 }

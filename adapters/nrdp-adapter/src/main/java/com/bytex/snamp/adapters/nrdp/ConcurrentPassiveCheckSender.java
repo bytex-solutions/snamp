@@ -31,14 +31,11 @@ final class ConcurrentPassiveCheckSender extends NagiosCheckSenderImpl {
     }
 
     <I> void send(final Function<? super I, NagiosCheckResult> checkResult, final I input) {
-        threadPool.submit(new Callable<NagiosCheckResult>() {
-            @Override
-            public NagiosCheckResult call() throws IOException, NRDPException {
-                final NagiosCheckResult result = checkResult.apply(input);
-                if (result != null)
-                    ConcurrentPassiveCheckSender.super.send(ImmutableList.of(result));
-                return result;
-            }
+        threadPool.submit(() -> {
+            final NagiosCheckResult result = checkResult.apply(input);
+            if (result != null)
+                ConcurrentPassiveCheckSender.super.send(ImmutableList.of(result));
+            return result;
         });
     }
 

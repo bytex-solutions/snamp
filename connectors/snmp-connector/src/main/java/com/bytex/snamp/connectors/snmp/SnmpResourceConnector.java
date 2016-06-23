@@ -17,7 +17,6 @@ import com.bytex.snamp.io.Buffers;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 import com.google.common.base.Joiner;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.osgi.framework.BundleContext;
@@ -85,22 +84,12 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
                     DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName)));
             this.logger = Objects.requireNonNull(logger);
             this.client = client;
-            final Executor executor = client.read(new ConsistentAction<SnmpClient, Executor>() {
-                @Override
-                public Executor invoke(final SnmpClient client) {
-                    return client.queryObject(Executor.class);
-                }
-            });
+            final Executor executor = client.read(cl -> cl.queryObject(Executor.class));
             listenerInvoker = createListenerInvoker(executor, logger);
         }
 
         private static NotificationListenerInvoker createListenerInvoker(final Executor executor, final Logger logger) {
-            return NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker(executor, new NotificationListenerInvokerFactory.ExceptionHandler() {
-                @Override
-                public void handle(final Throwable e, final NotificationListener source) {
-                    logger.log(Level.SEVERE, "Unable to process SNMP notification", e);
-                }
-            });
+            return NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker(executor, (e, source) -> logger.log(Level.SEVERE, "Unable to process SNMP notification", e));
         }
 
         /**
@@ -172,14 +161,11 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
             final List<VariableBinding> bindings = new ArrayList<>(event.getVariableBindings());
             if(bindings.size() == 0) return;
             //tries to detect event category
-            final SnmpNotificationInfo notificationInfo = ArrayUtils.find(getNotificationInfo(), new Predicate<SnmpNotificationInfo>() {
-                @Override
-                public boolean apply(final SnmpNotificationInfo input) {
-                    for (final VariableBinding bnd : bindings)
-                        if (bnd.getOid().startsWith(input.getNotificationID()))
-                            return true;
-                    return false;
-                }
+            final SnmpNotificationInfo notificationInfo = ArrayUtils.find(getNotificationInfo(), input -> {
+                for (final VariableBinding bnd : bindings)
+                    if (bnd.getOid().startsWith(input.getNotificationID()))
+                        return true;
+                return false;
             });
             //unknown notification
             if(notificationInfo == null) return;
@@ -541,12 +527,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
             super(resourceName, FEATURE_TYPE);
             this.client = client;
             this.logger = Objects.requireNonNull(logger);
-            this.executor = client.read(new ConsistentAction<SnmpClient, ExecutorService>() {
-                @Override
-                public ExecutorService invoke(final SnmpClient client) {
-                    return client.queryObject(ExecutorService.class);
-                }
-            });
+            this.executor = client.read(cl -> cl.queryObject(ExecutorService.class));
         }
 
         /**
@@ -587,12 +568,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         }
 
         private Address[] getClientAddresses(){
-            return client.read(new ConsistentAction<SnmpClient, Address[]>() {
-                @Override
-                public Address[] invoke(final SnmpClient client) {
-                    return client.getClientAddresses();
-                }
-            });
+            return client.read(SnmpClient::getClientAddresses);
         }
 
         /**
@@ -647,22 +623,19 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
          * @return The value of the attribute retrieved.
          * @throws Exception Internal connector error.
          */
+        @SuppressWarnings("unchecked")
         @Override
         protected Object getAttribute(final SnmpAttributeInfo metadata) throws Exception {
-            return client.read(new Action<SnmpClient, Object, Exception>() {
-                @SuppressWarnings("unchecked")
-                @Override
-                public Object invoke(final SnmpClient client) throws Exception {
-                    final Variable attribute = client.get(metadata.getAttributeID(), metadata.getDescriptor().getReadWriteTimeout());
-                    switch (attribute.getSyntax()){
-                        case SMIConstants.EXCEPTION_END_OF_MIB_VIEW:
-                        case SMIConstants.EXCEPTION_NO_SUCH_INSTANCE:
-                        case SMIConstants.EXCEPTION_NO_SUCH_OBJECT:
-                            throw new AttributeNotFoundException(String.format("SNMP Object %s doesn't exist. Error info: %s",
-                                    metadata.getAttributeID(),
-                                    attribute.getSyntax()));
-                        default: return metadata.convert(attribute);
-                    }
+            return client.read((Action<SnmpClient, Object, Exception>) client1 -> {
+                final Variable attribute = client1.get(metadata.getAttributeID(), metadata.getDescriptor().getReadWriteTimeout());
+                switch (attribute.getSyntax()){
+                    case SMIConstants.EXCEPTION_END_OF_MIB_VIEW:
+                    case SMIConstants.EXCEPTION_NO_SUCH_INSTANCE:
+                    case SMIConstants.EXCEPTION_NO_SUCH_OBJECT:
+                        throw new AttributeNotFoundException(String.format("SNMP Object %s doesn't exist. Error info: %s",
+                                metadata.getAttributeID(),
+                                attribute.getSyntax()));
+                    default: return metadata.convert(attribute);
                 }
             });
         }

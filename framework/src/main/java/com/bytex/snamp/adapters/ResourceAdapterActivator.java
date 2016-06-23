@@ -7,6 +7,7 @@ import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.management.Maintainable;
+import com.google.common.base.Strings;
 import com.google.common.collect.ObjectArrays;
 import org.osgi.framework.*;
 import org.osgi.service.cm.ConfigurationAdmin;
@@ -15,6 +16,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
 import static com.bytex.snamp.adapters.ResourceAdapter.ADAPTER_NAME_MANIFEST_HEADER;
@@ -467,12 +469,12 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
      * @param context The context of the caller bundle. Cannot be {@literal null}.
      * @return A collection of installed adapter (system names).
      */
-    public static Collection<String> getInstalledResourceAdapters(final BundleContext context){
+    public static Collection<String> getInstalledResourceAdapters(final BundleContext context) {
         final Collection<Bundle> candidates = getResourceAdapterBundles(context);
-        final Collection<String> systemNames = new ArrayList<>(candidates.size());
-        for(final Bundle bnd: candidates)
-            systemNames.add(getAdapterName(bnd));
-        return systemNames;
+        return candidates.stream()
+                .map(ResourceAdapterActivator::getAdapterName)
+                .filter(name -> !Strings.isNullOrEmpty(name))
+                .collect(Collectors.toCollection(HashSet::new));
     }
 
     static String createFilter(final String adapterName, final String filter){

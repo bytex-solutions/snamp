@@ -96,7 +96,7 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
         return Utils.withContextClassLoader(getClass().getClassLoader(), new ExceptionalCallable<JMXConnector, IOException>() {
             @Override
             public JMXConnector call() throws IOException {
-                return JMXConnectorFactory.connect(JmxConnectionOptions.this, getJmxOptions());
+                return JMXConnectorFactory.connect(JmxConnectionOptions.this, getJmxOptions()); //do not replace this anonymous class with lambda
             }
         });
     }

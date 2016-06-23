@@ -25,7 +25,7 @@ final class FileAttribute extends ModbusArrayAttributeInfo<short[], FileAccess> 
                   final FileAccess deviceAccess) throws OpenDataException {
         super(attributeID,
                 DESCRIPTION,
-                new ArrayType<short[]>(SimpleType.SHORT, true),
+                new ArrayType<>(SimpleType.SHORT, true),
                 AttributeSpecifier.READ_WRITE,
                 descriptor,
                 deviceAccess);

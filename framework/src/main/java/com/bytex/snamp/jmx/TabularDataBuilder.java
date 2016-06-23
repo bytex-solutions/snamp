@@ -100,8 +100,7 @@ public class TabularDataBuilder extends LinkedList<CompositeData> implements Sup
      */
     public final TabularData build() throws OpenDataException{
         final TabularDataSupport result = new TabularDataSupport(this.columns.build());
-        for(final CompositeData row: this)
-            result.put(row);
+        forEach(result::put);
         return result;
     }
 

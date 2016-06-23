@@ -15,12 +15,7 @@ import java.security.cert.X509Certificate;
  * @since 1.0
  */
 final class FakeTrustManagerFactory extends TrustManagerFactorySpi {
-    static final HostnameVerifier FAKE_HOST_VERIFIER = new HostnameVerifier() {
-        @Override
-        public boolean verify(final String hostname, final SSLSession session) {
-            return true;
-        }
-    };
+    static final HostnameVerifier FAKE_HOST_VERIFIER = (hostname, session) -> true;
 
     private static final X509TrustManager X509 = new X509TrustManager() {
         public void checkClientTrusted(X509Certificate[] x509Certificates, String s) {
