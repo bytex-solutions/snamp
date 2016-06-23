@@ -34,15 +34,9 @@ import static org.osgi.framework.Constants.OBJECTCLASS;
  */
 @Internal
 public final class Utils {
-    private static final Supplier NULL_SUPPLIER = Suppliers.ofInstance(null);
 
     private Utils(){
-
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <T> Supplier<T> nullSupplier(){
-        return NULL_SUPPLIER;
+        throw new InstantiationError();
     }
 
     public static String getFullyQualifiedResourceName(final Class<?> locator, String name){
@@ -148,7 +142,7 @@ public final class Utils {
                                        final K propertyKey,
                                        final Class<V> propertyType,
                                        final Supplier<V> defaultValue){
-        if(defaultValue == null) return getProperty(map, propertyKey, propertyType, Utils.<V>nullSupplier());
+        if(defaultValue == null) return getProperty(map, propertyKey, propertyType, (Supplier<V>) () -> null);
         else if(map == null) return defaultValue.get();
         else if(map.containsKey(propertyKey)){
             final Object value = map.get(propertyKey);
@@ -172,7 +166,7 @@ public final class Utils {
                                        final K propertyKey,
                                        final Class<V> propertyType,
                                        final Supplier<V> defaultValue){
-        if(defaultValue == null) return getProperty(dict, propertyKey, propertyType, Utils.<V>nullSupplier());
+        if(defaultValue == null) return getProperty(dict, propertyKey, propertyType, (Supplier<V>) () -> null);
         else if(dict == null) return defaultValue.get();
         final Object value = dict.get(propertyKey);
         return value != null && propertyType.isInstance(value) ? propertyType.cast(value) : defaultValue.get();

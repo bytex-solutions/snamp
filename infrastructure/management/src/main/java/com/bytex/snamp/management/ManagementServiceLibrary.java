@@ -53,7 +53,7 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
     private static final class LogReaderServiceDependency extends RequiredServiceAccessor<LogReaderService>{
         private final LogListener listener;
 
-        protected LogReaderServiceDependency(final LogListener listener) {
+        private LogReaderServiceDependency(final LogListener listener) {
             super(LogReaderService.class);
             this.listener = listener;
         }

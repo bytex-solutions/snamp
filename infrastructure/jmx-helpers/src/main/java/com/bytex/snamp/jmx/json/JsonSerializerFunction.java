@@ -12,6 +12,8 @@ import java.util.Objects;
  * @param <I> Type of the object to be converted into JSON string.
  * @author Roman Sakno
  * @deprecated Use {@code Gson::toJson} method reference instead of this class.
+ * @version 1.0
+ * @since 1.0
  */
 @Deprecated
 public final class JsonSerializerFunction<I> implements Function<I, String> {

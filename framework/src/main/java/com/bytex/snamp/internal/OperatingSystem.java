@@ -10,7 +10,7 @@ import com.google.common.base.StandardSystemProperty;
 public final class OperatingSystem {
 
     private OperatingSystem(){
-
+        throw new InstantiationError();
     }
 
     private static String getOS(){
