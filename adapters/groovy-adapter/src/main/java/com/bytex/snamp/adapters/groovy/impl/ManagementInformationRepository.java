@@ -46,14 +46,13 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
         private Iterable<ScriptNotificationAccessor> clear(final String resourceName) {
             try (final LockScope ignored = beginWrite()) {
                 final ResourceNotificationList<ScriptNotificationAccessor> list = notifications.remove(resourceName);
-                return list != null ? list.values() : ImmutableList.<ScriptNotificationAccessor>of();
+                return list != null ? list.values() : ImmutableList.of();
             }
         }
 
         private void clear() {
             try (final LockScope ignored = beginWrite()) {
-                for (final ResourceNotificationList<?> list : notifications.values())
-                    list.clear();
+                notifications.values().forEach(ResourceFeatureList::clear);
                 notifications.clear();
             }
         }

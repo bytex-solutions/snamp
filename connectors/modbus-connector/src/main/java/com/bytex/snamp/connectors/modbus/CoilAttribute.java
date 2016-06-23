@@ -14,8 +14,9 @@ import javax.management.openmbean.SimpleType;
 final class CoilAttribute extends ModbusAttributeInfo<Boolean, CoilAccess> {
     static final String NAME = "coil";
     private static final String DESCRIPTION = "Represents single coil";
+    private static final long serialVersionUID = 8791041633626442808L;
 
-    protected CoilAttribute(final String attributeID, final AttributeDescriptor descriptor, final CoilAccess deviceAccess) {
+    CoilAttribute(final String attributeID, final AttributeDescriptor descriptor, final CoilAccess deviceAccess) {
         super(attributeID, DESCRIPTION, SimpleType.BOOLEAN, AttributeSpecifier.READ_WRITE, descriptor, deviceAccess);
     }
 

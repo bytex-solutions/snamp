@@ -169,7 +169,7 @@ public class Switch<I, O> implements Function<I, O> {
 
     @ThreadSafe(false)
     public final Switch<I, O> equalsToNull(final Supplier<? extends O> action){
-        return addCase(Switch.<I, O>equalsToNullStatement(action));
+        return addCase(Switch.equalsToNullStatement(action));
     }
 
     @ThreadSafe(false)

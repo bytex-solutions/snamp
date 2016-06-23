@@ -29,7 +29,7 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
                                                         final ImmutableSet<String> parameters){
         super(baseName);
         this.entityType = Objects.requireNonNull(entityType);
-        this.parameters = parameters == null ? ImmutableSet.<String>of() : parameters;
+        this.parameters = parameters == null ? ImmutableSet.of() : parameters;
     }
 
     /**

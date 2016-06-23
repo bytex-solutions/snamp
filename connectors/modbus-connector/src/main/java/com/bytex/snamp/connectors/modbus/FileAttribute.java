@@ -18,10 +18,11 @@ import static com.bytex.snamp.connectors.modbus.ModbusResourceConnectorConfigura
 final class FileAttribute extends ModbusArrayAttributeInfo<short[], FileAccess> {
     static final String NAME = "file";
     private static final String DESCRIPTION = "Read or write file records";
+    private static final long serialVersionUID = 94068295080475933L;
 
-    protected FileAttribute(final String attributeID,
-                            final AttributeDescriptor descriptor,
-                            final FileAccess deviceAccess) throws OpenDataException {
+    FileAttribute(final String attributeID,
+                  final AttributeDescriptor descriptor,
+                  final FileAccess deviceAccess) throws OpenDataException {
         super(attributeID,
                 DESCRIPTION,
                 new ArrayType<short[]>(SimpleType.SHORT, true),

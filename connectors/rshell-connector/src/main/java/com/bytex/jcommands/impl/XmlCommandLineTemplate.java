@@ -123,7 +123,7 @@ public class XmlCommandLineTemplate implements Serializable, ChannelProcessor<Ma
      */
     @ThreadSafe(true)
     public final String renderCommand(final Map<String, ?> channelParameters) throws IllegalStateException {
-        return renderCommand(channelParameters, Collections.<String, Object>emptyMap());
+        return renderCommand(channelParameters, Collections.emptyMap());
     }
 
     @XmlTransient

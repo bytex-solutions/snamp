@@ -4,9 +4,6 @@ import com.google.common.base.Supplier;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.bytex.snamp.*;
-import com.bytex.snamp.EntryReader;
-import com.bytex.snamp.Internal;
-import com.bytex.snamp.SpecialUse;
 
 import javax.script.*;
 import javax.xml.bind.DatatypeConverter;

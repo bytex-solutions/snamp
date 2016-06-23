@@ -74,7 +74,7 @@ public class ResourceNotificationsAnalyzer implements ResourceFeaturesAnalyzer, 
 
         @SpecialUse
         public final FilterAndProcessNotificationStatement when(final Closure<Boolean> condition){
-            return when(Closures.<Notification>toPredicate(condition));
+            return when(Closures.toPredicate(condition));
         }
 
         private void process(final MBeanNotificationInfo metadata,

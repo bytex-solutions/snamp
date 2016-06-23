@@ -20,7 +20,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
 final class AggregatorDiscoveryService extends AbstractAggregator implements DiscoveryService {
 
     private static Collection<AttributeConfiguration> discoverAttributes(){
-        return ImmutableList.<AttributeConfiguration>of(
+        return ImmutableList.of(
             PatternMatcher.getConfiguration(),
                 UnaryComparison.getConfiguration(),
                 BinaryComparison.getConfiguration(),
@@ -36,7 +36,7 @@ final class AggregatorDiscoveryService extends AbstractAggregator implements Dis
     }
 
     private static Collection<EventConfiguration> discoverEvents(){
-        return ImmutableList.<EventConfiguration>of(
+        return ImmutableList.of(
             PeriodicAttributeQuery.getConfiguration(),
             HealthCheckNotification.getConfiguration()
         );
@@ -49,7 +49,6 @@ final class AggregatorDiscoveryService extends AbstractAggregator implements Dis
      * Do not add elements from the returned collection directly in {@link AgentConfiguration.ManagedResourceConfiguration#getFeatures(Class)}
      * result set, use the following algorithm:
      * <ul>
-     * <li>Create a new managed entity with {@link AgentConfiguration.ManagedResourceConfiguration#registerFeature(Class)} method.</li>
      * <li>Use {@link AbstractAgentConfiguration#copy(AttributeConfiguration, AttributeConfiguration)}
      * or {@link AbstractAgentConfiguration#copy(EventConfiguration, EventConfiguration)} method
      * to copy managed entity returned by this method into the newly created entity.</li>

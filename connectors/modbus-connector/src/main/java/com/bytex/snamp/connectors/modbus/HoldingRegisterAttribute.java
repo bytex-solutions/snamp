@@ -15,8 +15,9 @@ import javax.management.openmbean.SimpleType;
 final class HoldingRegisterAttribute extends ModbusAttributeInfo<Short, HoldingRegisterAccess> {
     static final String NAME = "holdingRegister";
     private static final String DESCRIPTION = "Represents holding register";
+    private static final long serialVersionUID = 4476436987210604936L;
 
-    protected HoldingRegisterAttribute(final String attributeID, final AttributeDescriptor descriptor, final HoldingRegisterAccess deviceAccess) {
+    HoldingRegisterAttribute(final String attributeID, final AttributeDescriptor descriptor, final HoldingRegisterAccess deviceAccess) {
         super(attributeID, DESCRIPTION, SimpleType.SHORT, AttributeSpecifier.READ_ONLY, descriptor, deviceAccess);
     }
 

@@ -37,7 +37,7 @@ public final class JsonConfiguration extends AdvancedConfiguration {
     }
 
     public JsonConfiguration(final int expectedSize){
-        this(LinkedListMultimap.<String, AppConfigurationEntry>create(expectedSize));
+        this(LinkedListMultimap.create(expectedSize));
     }
 
     /**

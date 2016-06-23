@@ -40,7 +40,7 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
      * @throws MalformedURLException The specified URL is not JMX-compliant.
      */
     JmxConnectionOptions(final String connectionString) throws MalformedURLException, MalformedObjectNameException {
-        this(connectionString, Collections.<String, String>emptyMap());
+        this(connectionString, Collections.emptyMap());
     }
 
     JmxConnectionOptions(final String connectionString, final Map<String, String> options) throws MalformedURLException, MalformedObjectNameException {

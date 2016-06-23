@@ -1,5 +1,6 @@
 package com.bytex.snamp.adapters.xmpp;
 
+import com.bytex.snamp.adapters.modeling.ResourceFeatureList;
 import com.google.common.collect.ImmutableList;
 import com.bytex.snamp.adapters.modeling.MulticastNotificationListener;
 import com.bytex.snamp.adapters.modeling.NotificationSet;
@@ -69,7 +70,7 @@ final class XMPPModelOfNotifications extends MulticastNotificationListener imple
         try{
             final ResourceNotificationList<XMPPNotificationAccessor> resource =
                     notifications.remove(resourceName);
-            return resource != null ? resource.values() : ImmutableList.<XMPPNotificationAccessor>of();
+            return resource != null ? resource.values() : ImmutableList.of();
         } finally {
             writeLock.unlock();
         }
@@ -80,8 +81,7 @@ final class XMPPModelOfNotifications extends MulticastNotificationListener imple
         final Lock writeLock = lock.writeLock();
         writeLock.lock();
         try{
-            for(final ResourceNotificationList<?> list: notifications.values())
-                list.clear();
+            notifications.values().forEach(ResourceFeatureList::clear);
             notifications.clear();
         }finally {
             writeLock.unlock();

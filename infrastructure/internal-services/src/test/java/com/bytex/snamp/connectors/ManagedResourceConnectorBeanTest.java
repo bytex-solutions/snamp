@@ -25,7 +25,8 @@ import java.util.Locale;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
-import static com.bytex.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.*;
+
+import static com.bytex.snamp.configuration.impl.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.*;
 
 /**
  * Represents tests for {@link ManagedResourceConnectorBean} class.

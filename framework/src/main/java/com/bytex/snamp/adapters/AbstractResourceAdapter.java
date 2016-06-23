@@ -88,7 +88,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         }
 
         private static InternalState initialState(){
-            return new InternalState(AdapterState.CREATED, ImmutableMap.<String, String>of());
+            return new InternalState(AdapterState.CREATED, ImmutableMap.of());
         }
 
         private InternalState setParameters(final Map<String, String> value){
@@ -100,7 +100,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         }
 
         private static InternalState finalState(){
-            return new InternalState(AdapterState.CLOSED, ImmutableMap.<String, String>of());
+            return new InternalState(AdapterState.CLOSED, ImmutableMap.of());
         }
 
         private boolean parametersAreEqual(final Map<String, String> newParameters) {

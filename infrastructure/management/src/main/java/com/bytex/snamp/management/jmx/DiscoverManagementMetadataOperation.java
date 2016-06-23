@@ -137,7 +137,6 @@ final class DiscoverManagementMetadataOperation extends OpenMBean.OpenOperation<
     public CompositeData invoke(final Map<String, ?> arguments) throws Exception {
         final String connectorName = CONNECTOR_NAME_PARAM.getArgument(arguments);
         final String connectionString = CONNECTION_STRING.getArgument(arguments);
-        final String locale = LOCALE_PARAM.getArgument(arguments);
         final Map<String, String> connectionStringParam =
                 MonitoringUtils.transformTabularDataToMap(CONNECTION_STRING_PARAM.getArgument(arguments));
         final SnampComponentDescriptor connector = snampManager.getResourceConnector(connectorName);

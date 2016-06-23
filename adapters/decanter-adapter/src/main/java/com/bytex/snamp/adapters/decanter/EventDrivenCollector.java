@@ -3,6 +3,7 @@ package com.bytex.snamp.adapters.decanter;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.adapters.modeling.ModelOfNotifications;
 import com.bytex.snamp.EntryReader;
+import com.bytex.snamp.adapters.modeling.ResourceFeatureList;
 import com.bytex.snamp.adapters.modeling.ResourceNotificationList;
 import com.google.common.collect.ImmutableList;
 import org.osgi.service.event.EventAdmin;
@@ -70,7 +71,7 @@ final class EventDrivenCollector extends ModelOfNotifications<DecanterNotificati
         try {
             return resources.containsKey(resourceName) ?
                     resources.remove(resourceName).values():
-                    ImmutableList.<DecanterNotificationAccessor>of();
+                    ImmutableList.of();
         } finally {
             writeLock.unlock();
         }
@@ -81,8 +82,7 @@ final class EventDrivenCollector extends ModelOfNotifications<DecanterNotificati
         final Lock writeLock = resourcesLock.writeLock();
         writeLock.lock();
         try {
-            for(final ResourceNotificationList<?> list: resources.values())
-                list.clear();
+            resources.values().forEach(ResourceFeatureList::clear);
             resources.clear();
         } finally {
             writeLock.unlock();

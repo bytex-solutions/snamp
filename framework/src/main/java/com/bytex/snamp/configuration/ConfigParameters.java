@@ -52,7 +52,7 @@ public final class ConfigParameters extends AbstractCompositeData<String> {
      * @return An empty set of configuration parameters.
      */
     public static ConfigParameters empty(){
-        return new ConfigParameters(ImmutableMap.<String, String>of());
+        return new ConfigParameters(ImmutableMap.of());
     }
 
     /**

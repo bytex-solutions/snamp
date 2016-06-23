@@ -98,7 +98,7 @@ public final class ThreadPoolConfig implements Serializable, Function<String, Ex
     /**
      * Setup infinite queue size used to store scheduled tasks.
      */
-    public void useInifiniteQueue(){
+    public void useInfiniteQueue(){
         queueSize = INFINITE_QUEUE_SIZE;
     }
 
