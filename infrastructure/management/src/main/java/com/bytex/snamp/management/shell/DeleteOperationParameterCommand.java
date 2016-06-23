@@ -6,6 +6,7 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.OperationConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 
 /**
  * @author Roman Sakno
@@ -30,9 +31,9 @@ public class DeleteOperationParameterCommand extends ConfigurationCommand {
 
     @Override
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
-        if(configuration.getManagedResources().containsKey(resourceName))
-            if(configuration.getManagedResources().get(resourceName).getFeatures(OperationConfiguration.class).containsKey(userDefinedName)){
-                configuration.getManagedResources()
+        if(configuration.getEntities(ManagedResourceConfiguration.class).containsKey(resourceName))
+            if(configuration.getEntities(ManagedResourceConfiguration.class).get(resourceName).getFeatures(OperationConfiguration.class).containsKey(userDefinedName)){
+                configuration.getEntities(ManagedResourceConfiguration.class)
                         .get(resourceName)
                         .getFeatures(OperationConfiguration.class)
                         .get(userDefinedName)

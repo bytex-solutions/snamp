@@ -1,9 +1,8 @@
 package com.bytex.snamp.configuration.diff;
 
 import com.bytex.snamp.configuration.AgentConfiguration;
-import com.bytex.snamp.configuration.AgentConfiguration.*;
-
-import java.util.Map;
+import com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
+import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 
 /**
  * @author Roman Sakno
@@ -39,6 +38,6 @@ abstract class AbstractManagedResourcePatch implements ManagedResourcePatch {
      */
     @Override
     public final void applyTo(final AgentConfiguration baseline) {
-        applyTo(baseline.getManagedResources());
+        applyTo(baseline.getEntities(ManagedResourceConfiguration.class));
     }
 }

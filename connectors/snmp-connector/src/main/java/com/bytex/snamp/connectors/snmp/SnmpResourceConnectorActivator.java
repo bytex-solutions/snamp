@@ -5,6 +5,7 @@ import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
+import com.bytex.snamp.internal.Utils;
 import org.snmp4j.log.OSGiLogFactory;
 
 import javax.management.openmbean.CompositeData;
@@ -90,7 +91,7 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
 
                             @Override
                             protected <T extends FeatureConfiguration> Collection<T> getManagementInformation(final Class<T> entityType, final SnmpClient client, final RequiredService<?>... dependencies) throws Exception {
-                                return SnmpDiscoveryService.discover(entityType, client);
+                                return SnmpDiscoveryService.discover(Utils.getBundleContextOfObject(this), entityType, client);
                             }
                         }});
     }

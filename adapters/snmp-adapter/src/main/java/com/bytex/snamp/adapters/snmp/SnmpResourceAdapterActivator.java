@@ -36,6 +36,7 @@ public final class SnmpResourceAdapterActivator extends ResourceAdapterActivator
 
         @Override
         public SnmpResourceAdapter createAdapter(final String adapterInstance, final RequiredService<?>... dependencies) throws Exception {
+            @SuppressWarnings("unchecked")
             final JNDIContextManager contextManager = getDependency(RequiredServiceAccessor.class, JNDIContextManager.class, dependencies);
             return new SnmpResourceAdapter(adapterInstance, contextManager);
         }

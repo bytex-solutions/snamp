@@ -5,7 +5,6 @@ import org.snmp4j.smi.AssignableFromByteArray;
 import org.snmp4j.smi.OctetString;
 
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
 /**
  * Provides helpers for {@link org.snmp4j.smi.OctetString} data type.

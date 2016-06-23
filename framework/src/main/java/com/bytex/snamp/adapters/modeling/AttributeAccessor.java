@@ -326,11 +326,7 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
         final BigDecimal maxValue = toBigDecimal(DescriptorUtils.getRawMaxValue(getMetadata().getDescriptor()),
                 format);
         final BigDecimal actualValue = toBigDecimal(value, format);
-        if(minValue != null && actualValue.compareTo(minValue) <= 0)
-            return false;
-        else if(maxValue != null && actualValue.compareTo(maxValue) >= 0)
-            return false;
-        else return true;
+        return !(minValue != null && actualValue.compareTo(minValue) <= 0) && !(maxValue != null && actualValue.compareTo(maxValue) >= 0);
     }
 
     public static int removeAll(final Iterable<? extends AttributeAccessor> attributes,

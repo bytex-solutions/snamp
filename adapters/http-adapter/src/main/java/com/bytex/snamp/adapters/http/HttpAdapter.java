@@ -1,7 +1,6 @@
 package com.bytex.snamp.adapters.http;
 
 import com.bytex.snamp.EntryReader;
-import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.adapters.AbstractResourceAdapter;
 import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationListener;
@@ -145,8 +144,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
         }
 
         private void clear() {
-            for(final NotificationAccessor accessor: notifications.values())
-                accessor.close();
+            notifications.values().forEach(NotificationAccessor::close);
             notifications.clear();
         }
     }

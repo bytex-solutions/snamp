@@ -1,6 +1,5 @@
 package com.bytex.snamp.management;
 
-import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.core.SupportService;
 
 import javax.management.DynamicMBean;

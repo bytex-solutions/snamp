@@ -81,6 +81,7 @@ final class DiscoverManagementMetadataOperation extends OpenMBean.OpenOperation<
 
         final Map<String, Object> schema = Maps.newHashMapWithExpectedSize(CONNECTOR_METADATA.keySet().size());
         connector.invokeSupportService(DiscoveryService.class, input -> {
+            @SuppressWarnings("unchecked")
             final DiscoveryService.DiscoveryResult metadata = input.discover(connectionString, connectionOptions,
                     AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class,
                     AgentConfiguration.ManagedResourceConfiguration.EventConfiguration.class);

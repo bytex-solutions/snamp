@@ -1,6 +1,5 @@
 package com.bytex.snamp.adapters.snmp.configuration;
 
-import com.bytex.snamp.adapters.snmp.configuration.DirContextFactory;
 import com.google.common.base.Splitter;
 import org.snmp4j.agent.mo.snmp.StorageType;
 import org.snmp4j.agent.mo.snmp.VacmMIB;
@@ -9,13 +8,13 @@ import org.snmp4j.security.*;
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
 
-import javax.naming.AuthenticationException;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.naming.directory.*;
 import java.util.*;
-import java.util.logging.Level;
-import static com.bytex.snamp.adapters.snmp.helpers.OctetStringHelper.*;
+
+import static com.bytex.snamp.adapters.snmp.helpers.OctetStringHelper.SNMP_ENCODING;
+import static com.bytex.snamp.adapters.snmp.helpers.OctetStringHelper.toOctetString;
 
 /**
  * Represents security configuration of the SNMP adapter that is used
@@ -516,12 +515,7 @@ public final class SecurityConfiguration {
     }
 
     public static UserSelector createUserSelector(final AccessRights... rights){
-        return new UserSelector() {
-            @Override
-            public boolean match(final String userName, final User user, final UserGroup owner) {
-                return owner.hasAccessRights(rights);
-            }
-        };
+        return (userName, user, owner) -> owner.hasAccessRights(rights);
     }
 
     public String findFirstUser(final UserSelector selector){

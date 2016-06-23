@@ -2,9 +2,8 @@ package com.bytex.snamp.configuration.diff;
 
 import com.bytex.snamp.configuration.AbstractAgentConfiguration;
 
-import java.util.Map;
-
-import static com.bytex.snamp.configuration.AgentConfiguration.*;
+import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
+import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 
 /**
  * @author Roman Sakno

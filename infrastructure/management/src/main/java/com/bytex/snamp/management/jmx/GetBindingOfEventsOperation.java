@@ -6,7 +6,6 @@ import com.bytex.snamp.jmx.TabularDataBuilderRowFill;
 import com.bytex.snamp.jmx.TabularTypeBuilder;
 
 import javax.management.MBeanNotificationInfo;
-import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.SimpleType;
 import javax.management.openmbean.TabularType;
 import java.util.Objects;
@@ -38,7 +37,7 @@ final class GetBindingOfEventsOperation extends AbstractBindingInfoOperation<MBe
     }
 
     @Override
-    protected void fillRow(final TabularDataBuilderRowFill.RowBuilder row, final FeatureBindingInfo<MBeanNotificationInfo> bindingInfo) throws OpenDataException {
+    protected void fillRow(final TabularDataBuilderRowFill.RowBuilder row, final FeatureBindingInfo<MBeanNotificationInfo> bindingInfo) {
         final String attachmentType = Objects.toString(bindingInfo.getProperty(FeatureBindingInfo.MAPPED_TYPE), "");
         row
                 .cell(CATEGORY_COLUMN, ArrayUtils.getFirst(bindingInfo.getMetadata().getNotifTypes(), ""))

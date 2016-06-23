@@ -104,6 +104,7 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
             super(ClusterMember.class, new SimpleDependency<>(HazelcastInstance.class));
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         protected GridMember activateService(final Map<String, Object> identity,
                                              final RequiredService<?>... dependencies) {
@@ -124,6 +125,7 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
             super(ThreadPoolRepository.class, new SimpleDependency<>(ConfigurationAdmin.class));
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         protected ThreadPoolRepositoryImpl activateService(final Map<String, Object> identity, RequiredService<?>... dependencies) throws Exception {
             identity.put(Constants.SERVICE_PID, ThreadPoolRepositoryImpl.PID);

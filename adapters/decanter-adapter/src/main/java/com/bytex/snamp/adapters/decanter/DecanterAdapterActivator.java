@@ -14,6 +14,7 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
 public final class DecanterAdapterActivator extends ResourceAdapterActivator<DecanterAdapter> {
     private static final class DecanterAdapterFactory implements ResourceAdapterFactory<DecanterAdapter> {
 
+        @SuppressWarnings("unchecked")
         @Override
         public DecanterAdapter createAdapter(final String adapterInstance,
                                              final RequiredService<?>... dependencies) {

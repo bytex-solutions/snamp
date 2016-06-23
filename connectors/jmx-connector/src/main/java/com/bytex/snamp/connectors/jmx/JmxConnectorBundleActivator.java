@@ -204,7 +204,7 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
                     protected <T extends FeatureConfiguration> Collection<T> getManagementInformation(final Class<T> entityType,
                                                                                                final JMXConnector connection,
                                                                                                final RequiredService<?>... dependencies) throws JMException, IOException {
-                        return JmxDiscoveryService.discover(connection, entityType);
+                        return JmxDiscoveryService.discover(getBundleContextOfObject(this), connection, entityType);
                     }
                 });
     }

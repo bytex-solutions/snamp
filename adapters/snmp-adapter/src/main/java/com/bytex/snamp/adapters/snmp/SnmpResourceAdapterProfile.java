@@ -13,7 +13,6 @@ import javax.naming.NamingException;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
 
 /**
  * Represents default profile for SNMP Resource Adapter.
@@ -92,12 +91,7 @@ class SnmpResourceAdapterProfile extends BasicResourceAdapterProfile implements 
     }
 
     static SnmpTypeMapper createDefaultTypeMapper(){
-        return new SnmpTypeMapper() {
-            @Override
-            public SnmpType apply(final WellKnownType type) {
-                return map(type);
-            }
-        };
+        return SnmpResourceAdapterProfile::map;
     }
 
     @Override

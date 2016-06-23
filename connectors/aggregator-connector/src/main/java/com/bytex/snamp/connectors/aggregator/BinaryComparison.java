@@ -26,7 +26,7 @@ final class BinaryComparison extends BinaryAttributeAggregation<Boolean> {
 
     @Override
     protected Boolean compute(final Object left,
-                              final Object right) throws Exception {
+                              final Object right) {
         return comparison.compute(NumberUtils.toBigDecimal(left),
                 NumberUtils.toBigDecimal(right));
     }

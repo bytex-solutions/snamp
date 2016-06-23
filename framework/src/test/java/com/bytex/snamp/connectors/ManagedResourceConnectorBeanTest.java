@@ -140,10 +140,10 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         final TestManagementConnectorBean connector = new TestManagementConnectorBean();
         final DiscoveryService discovery = connector.createDiscoveryService();
         final Collection<AttributeConfiguration> attributes =
-                discovery.discover("", ImmutableMap.<String, String>of(), AttributeConfiguration.class);
+                discovery.discover("", ImmutableMap.of(), AttributeConfiguration.class);
         assertEquals(3, attributes.size());
         final Collection<EventConfiguration> events =
-                discovery.discover("", ImmutableMap.<String, String>of(), EventConfiguration.class);
+                discovery.discover("", ImmutableMap.of(), EventConfiguration.class);
         assertEquals(1, events.size());
     }
 

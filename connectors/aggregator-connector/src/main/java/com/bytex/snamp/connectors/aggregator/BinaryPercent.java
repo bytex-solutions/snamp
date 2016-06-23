@@ -29,7 +29,7 @@ final class BinaryPercent extends BinaryAttributeAggregation<Double> {
     }
 
     @Override
-    protected Double compute(final Object left, final Object right) throws Exception {
+    protected Double compute(final Object left, final Object right) {
         return compute(NumberUtils.toBigDecimal(left), NumberUtils.toBigDecimal(right));
     }
 

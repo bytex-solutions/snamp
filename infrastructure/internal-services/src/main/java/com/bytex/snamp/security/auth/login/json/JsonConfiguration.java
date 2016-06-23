@@ -314,7 +314,7 @@ public final class JsonConfiguration extends AdvancedConfiguration {
         return entries.toString();
     }
 
-    public static JsonConfiguration deserialize(final Gson formatter, final Reader stream) throws IOException {
+    public static JsonConfiguration deserialize(final Gson formatter, final Reader stream) {
         return formatter.fromJson(stream, JsonConfiguration.class);
     }
 
@@ -329,7 +329,7 @@ public final class JsonConfiguration extends AdvancedConfiguration {
         return deserialize(formatter, configFile.toURI().toURL());
     }
 
-    public void serialize(final Gson formatter, final Writer out) throws IOException {
+    public void serialize(final Gson formatter, final Writer out) {
         formatter.toJson(this, out);
     }
 

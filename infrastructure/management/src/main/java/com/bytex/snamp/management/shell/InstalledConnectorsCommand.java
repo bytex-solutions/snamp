@@ -24,7 +24,7 @@ import static com.bytex.snamp.management.shell.Utils.getStateString;
 public final class InstalledConnectorsCommand extends OsgiCommandSupport implements SnampShellCommand {
     private final SnampManager manager = new SnampManagerImpl();
 
-    static void writeConnector(final SnampComponentDescriptor component, final StringBuilder output) throws IOException {
+    static void writeConnector(final SnampComponentDescriptor component, final StringBuilder output) {
         appendln(output, "%s. Type: %s. Description: %s. Version: %s. State: %s",
                 component.getName(null),
                 component.get(SnampComponentDescriptor.CONNECTOR_SYSTEM_NAME_PROPERTY),

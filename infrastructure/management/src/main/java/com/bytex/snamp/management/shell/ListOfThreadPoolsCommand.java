@@ -2,7 +2,6 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.concurrent.ThreadPoolConfig;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
-import com.bytex.snamp.io.IOUtils;
 import org.apache.karaf.shell.commands.Command;
 
 /**

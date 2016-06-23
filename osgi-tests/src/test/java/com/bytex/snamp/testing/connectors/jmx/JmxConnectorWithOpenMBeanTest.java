@@ -11,14 +11,12 @@ import com.bytex.snamp.connectors.operations.OperationSupport;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.bytex.snamp.jmx.TabularDataBuilder;
-import com.bytex.snamp.testing.connectors.AbstractResourceConnectorTest;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceEvent;
-import org.osgi.framework.ServiceListener;
 
 import javax.management.*;
 import javax.management.openmbean.CompositeData;
@@ -28,6 +26,7 @@ import java.math.BigInteger;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -220,7 +219,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
                 .put("col2", "descr", 42)
                 .put("col3", "descr", "Frank Underwood")
                 .build();
-        testAttribute("6.1", TypeToken.of(CompositeData.class), dict, AbstractResourceConnectorTest.<CompositeData>valueEquator());
+        testAttribute("6.1", TypeToken.of(CompositeData.class), dict, Objects::equals);
     }
 
     @Test
@@ -264,16 +263,13 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         final BundleContext context = getTestBundleContext();
         final SynchronizationEvent<Boolean> unregistered = new SynchronizationEvent<>(false);
         final SynchronizationEvent<Boolean> registered = new SynchronizationEvent<>(false);
-        ManagedResourceConnectorClient.addResourceListener(context, new ServiceListener() {
-            @Override
-            public void serviceChanged(final ServiceEvent event) {
-                switch (event.getType()){
-                    case ServiceEvent.UNREGISTERING:
-                        unregistered.fire(Utils.isInstanceOf(event.getServiceReference(), ManagedResourceConnector.class));
-                        return;
-                    case ServiceEvent.REGISTERED:
-                        registered.fire(Utils.isInstanceOf(event.getServiceReference(), ManagedResourceConnector.class));
-                }
+        ManagedResourceConnectorClient.addResourceListener(context, event -> {
+            switch (event.getType()){
+                case ServiceEvent.UNREGISTERING:
+                    unregistered.fire(Utils.isInstanceOf(event.getServiceReference(), ManagedResourceConnector.class));
+                    return;
+                case ServiceEvent.REGISTERED:
+                    registered.fire(Utils.isInstanceOf(event.getServiceReference(), ManagedResourceConnector.class));
             }
         });
         stopResourceConnector(context);

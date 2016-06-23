@@ -2,7 +2,6 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connectors.metrics.*;
-import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.management.jmx.MetricsAttribute;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
@@ -10,7 +9,8 @@ import org.apache.karaf.shell.commands.Option;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 import javax.management.InstanceNotFoundException;
-import static com.bytex.snamp.management.shell.Utils.*;
+
+import static com.bytex.snamp.management.shell.Utils.appendln;
 
 /**
  * Provides access to metrics.

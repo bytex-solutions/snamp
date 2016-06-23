@@ -1,7 +1,6 @@
 package com.bytex.snamp.core;
 
 import com.bytex.snamp.*;
-import com.bytex.snamp.io.IOUtils;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
@@ -21,7 +20,7 @@ import static com.bytex.snamp.internal.Utils.isInstanceOf;
  */
 public abstract class AbstractBundleActivator implements BundleActivator, ServiceListener {
 
-    final static class BundleLogicalOperation extends RichLogicalOperation {
+    private final static class BundleLogicalOperation extends RichLogicalOperation {
         static final String BUNDLE_NAME_PROPERTY = "bundleName";
 
         private BundleLogicalOperation(final Logger logger,

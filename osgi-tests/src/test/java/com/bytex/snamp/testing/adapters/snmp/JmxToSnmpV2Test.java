@@ -107,20 +107,20 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
         processConfiguration(new SafeConsumer<AgentConfiguration>() {
             @Override
             public void accept(final AgentConfiguration config) {
-                final ManagedResourceConfiguration resource = config.getManagedResources().remove(TEST_RESOURCE_NAME);
+                final ManagedResourceConfiguration resource = config.getEntities(ManagedResourceConfiguration.class).remove(TEST_RESOURCE_NAME);
                 assertNotNull(resource);
                 AbstractAgentConfiguration.copy(resource,
-                        config.getManagedResources().getOrAdd(NEW_RESOURCE_NAME));
+                        config.getEntities(ManagedResourceConfiguration.class).getOrAdd(NEW_RESOURCE_NAME));
             }
         }, true);
         Thread.sleep(1000);
         processConfiguration(new SafeConsumer<AgentConfiguration>() {
             @Override
             public void accept(final AgentConfiguration config) {
-                final ManagedResourceConfiguration resource = config.getManagedResources().remove(NEW_RESOURCE_NAME);
+                final ManagedResourceConfiguration resource = config.getEntities(ManagedResourceConfiguration.class).remove(NEW_RESOURCE_NAME);
                 assertNotNull(resource);
                 AbstractAgentConfiguration.copy(resource,
-                        config.getManagedResources().getOrAdd(TEST_RESOURCE_NAME));
+                        config.getEntities(ManagedResourceConfiguration.class).getOrAdd(TEST_RESOURCE_NAME));
             }
         }, true);
     }

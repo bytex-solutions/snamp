@@ -3,6 +3,7 @@ package com.bytex.snamp.connectors.aggregator;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 
 import javax.management.DynamicMBean;
+import javax.management.JMException;
 import javax.management.openmbean.OpenType;
 import java.util.Map;
 
@@ -39,10 +40,10 @@ abstract class BinaryAttributeAggregation<T> extends AbstractAttributeAggregatio
         return rightOperand;
     }
 
-    protected abstract T compute(final Object left, final Object right) throws Exception;
+    protected abstract T compute(final Object left, final Object right);
 
     @Override
-    protected final T compute(final DynamicMBean attributeSupport) throws Exception {
+    protected final T compute(final DynamicMBean attributeSupport) throws JMException {
         return compute(attributeSupport.getAttribute(getFirstOperandAttribute()),
                 attributeSupport.getAttribute(getSecondOperandAttribute()));
     }

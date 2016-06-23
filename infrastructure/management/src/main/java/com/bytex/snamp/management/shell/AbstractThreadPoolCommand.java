@@ -11,10 +11,10 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
  * @version 1.2
  */
 abstract class AbstractThreadPoolCommand extends OsgiCommandSupport implements SnampShellCommand {
-    abstract void doExecute(final ThreadPoolRepository repository, final StringBuilder output) throws Exception;
+    abstract void doExecute(final ThreadPoolRepository repository, final StringBuilder output);
 
     @Override
-    protected final Object doExecute() throws Exception {
+    protected final Object doExecute() {
         final ServiceHolder<ThreadPoolRepository> repository = ServiceHolder.tryCreate(bundleContext, ThreadPoolRepository.class);
         if(repository != null)
             try{

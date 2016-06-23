@@ -57,9 +57,8 @@ final class InstalledComponents extends OpenMBean.OpenAttribute<TabularData, Tab
      * Instantiates a new Installed components.
      *
      * @param manager the manager
-     * @throws OpenDataException the open data exception
      */
-    InstalledComponents(final SnampManager manager) throws OpenDataException{
+    InstalledComponents(final SnampManager manager) {
         super("InstalledComponents", INSTALLED_COMPONENTS_MAP);
         this.manager = Objects.requireNonNull(manager);
     }

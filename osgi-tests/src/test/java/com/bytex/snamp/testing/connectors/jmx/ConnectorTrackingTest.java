@@ -103,6 +103,7 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
             return NotificationAccessor.remove(notifications, metadata);
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         protected <M extends MBeanFeatureInfo> FeatureAccessor<M> removeFeature(final String resourceName, final M feature) throws Exception {
             if(feature instanceof MBeanAttributeInfo)
@@ -139,7 +140,7 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
         final TestAdapter adapter = new TestAdapter();
         ManagedResourceConnectorClient.addResourceListener(getTestBundleContext(), adapter);
         try{
-            tryStart(adapter, Collections.<String, String>emptyMap());
+            tryStart(adapter, Collections.emptyMap());
             assertEquals(9, adapter.getAttributes().size());
             assertEquals(2, adapter.getNotifications().size());
             //now deactivate the resource connector. This action causes restarting the adapter
@@ -157,7 +158,7 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
                 @Override
                 public void accept(final AgentConfiguration config) {
                     final ManagedResourceConfiguration testResource =
-                            config.getManagedResources().get(TEST_RESOURCE_NAME);
+                            config.getEntities(ManagedResourceConfiguration.class).get(TEST_RESOURCE_NAME);
                     assertNotNull(testResource);
                     assertNotNull(testResource.getFeatures(AttributeConfiguration.class).remove("1.0"));
                     assertNotNull(testResource.getFeatures(AttributeConfiguration.class).remove("2.0"));

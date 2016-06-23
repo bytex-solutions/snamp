@@ -1,22 +1,13 @@
 package com.bytex.snamp.adapters.nsca.configuration;
 
-import com.bytex.snamp.adapters.nsca.configuration.AbsentNSCAConfigurationParameterException;
-import com.google.common.base.Strings;
-import com.googlecode.jsendnsca.core.Encryption;
-import com.googlecode.jsendnsca.core.NagiosSettings;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import com.bytex.snamp.jmx.DescriptorUtils;
 
-import javax.management.Descriptor;
-import java.util.Map;
-
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration.THREAD_POOL_KEY;
-import static com.bytex.snamp.jmx.DescriptorUtils.*;
 
 /**
  * @author Roman Sakno

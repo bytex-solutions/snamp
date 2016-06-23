@@ -74,32 +74,14 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         boolean equate(final V value1, final V value2);
     }
 
-    protected static <V> Equator<V> valueEquator(){
-        return new Equator<V>() {
-            @Override
-            public boolean equate(final V value1, final V value2) {
-                return Objects.equals(value1, value2);
-            }
-        };
-    }
 
     protected static Equator arrayEquator(){
-        return new Equator() {
-            @Override
-            public boolean equate(final Object value1, final Object value2) {
-                return Objects.equals(value1.getClass().getComponentType(), value2.getClass().getComponentType()) &&
-                        ArrayUtils.equals(value1, value2);
-            }
-        };
+        return (value1, value2) -> Objects.equals(value1.getClass().getComponentType(), value2.getClass().getComponentType()) &&
+                ArrayUtils.equals(value1, value2);
     }
 
     protected static <V> Equator<V> successEquator(){
-        return new Equator<V>() {
-            @Override
-            public boolean equate(final V value1, final V value2) {
-                return true;
-            }
-        };
+        return (value1, value2) -> true;
     }
 
     private final String connectorType;
@@ -231,9 +213,9 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
     @Override
     protected final void setupTestConfiguration(final AgentConfiguration config) {
         final ManagedResourceConfiguration targetConfig =
-                config.getManagedResources().getOrAdd(TEST_RESOURCE_NAME);
+                config.getEntities(ManagedResourceConfiguration.class).getOrAdd(TEST_RESOURCE_NAME);
         targetConfig.getParameters().putAll(connectorParameters);
-        fillAdapters(config.getResourceAdapters());
+        fillAdapters(config.getEntities(ResourceAdapterConfiguration.class));
         targetConfig.setConnectionString(connectionString);
         targetConfig.setConnectionType(connectorType);
         fillAttributes(targetConfig.getFeatures(AttributeConfiguration.class));
@@ -270,7 +252,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
                                        final TypeToken<T> attributeType,
                                        final T attributeValue) throws JMException {
         testAttribute(attributeName, attributeType, attributeValue,
-                AbstractResourceConnectorTest.<T>valueEquator(),
+                Objects::equals,
                 false);
     }
 
@@ -278,7 +260,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
                                            final TypeToken<T> attributeType,
                                            final T attributeValue,
                                            final boolean readOnlyTest) throws JMException {
-        testAttribute(attributeName, attributeType, attributeValue, AbstractResourceConnectorTest.<T>valueEquator(), readOnlyTest);
+        testAttribute(attributeName, attributeType, attributeValue, Objects::equals, readOnlyTest);
     }
 
     private static void testConfigurationDescriptor(final ConfigurationEntityDescription<?> description,

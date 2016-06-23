@@ -5,6 +5,7 @@ import com.bytex.snamp.configuration.AgentConfiguration;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 
 /**
  * Deletes configuration parameter from event.
@@ -30,9 +31,9 @@ public final class DeleteEventParameterCommand extends ConfigurationCommand {
 
     @Override
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
-        if(configuration.getManagedResources().containsKey(resourceName))
-            if(configuration.getManagedResources().get(resourceName).getFeatures(EventConfiguration.class).containsKey(userDefinedName)){
-                configuration.getManagedResources()
+        if(configuration.getEntities(ManagedResourceConfiguration.class).containsKey(resourceName))
+            if(configuration.getEntities(ManagedResourceConfiguration.class).get(resourceName).getFeatures(EventConfiguration.class).containsKey(userDefinedName)){
+                configuration.getEntities(ManagedResourceConfiguration.class)
                         .get(resourceName)
                         .getFeatures(EventConfiguration.class)
                         .get(userDefinedName)

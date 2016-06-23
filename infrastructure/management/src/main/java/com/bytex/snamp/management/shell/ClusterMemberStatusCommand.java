@@ -2,12 +2,13 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.core.DistributedServices;
-import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.management.jmx.ResignOperation;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
-import static com.bytex.snamp.management.shell.Utils.*;
+
+import static com.bytex.snamp.management.shell.Utils.append;
+import static com.bytex.snamp.management.shell.Utils.appendln;
 
 /**
  * @author Roman Sakno

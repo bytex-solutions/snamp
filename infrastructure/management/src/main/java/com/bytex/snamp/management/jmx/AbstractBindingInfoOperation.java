@@ -62,7 +62,7 @@ abstract class AbstractBindingInfoOperation<F extends MBeanFeatureInfo> extends 
     }
 
     protected abstract void fillRow(final TabularDataBuilderRowFill.RowBuilder row,
-                                    final FeatureBindingInfo<F> bindingInfo) throws OpenDataException;
+                                    final FeatureBindingInfo<F> bindingInfo);
 
     private TabularData invoke(final BundleContext context,
                                      final String instanceName) throws JMException {

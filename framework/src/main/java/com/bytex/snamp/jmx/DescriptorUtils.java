@@ -1,10 +1,9 @@
 package com.bytex.snamp.jmx;
 
-import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.ArrayUtils;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.Maps;
-import com.bytex.snamp.ArrayUtils;
 
 import javax.management.Descriptor;
 import javax.management.DescriptorRead;
@@ -67,7 +66,7 @@ public final class DescriptorUtils {
     public static <T> T getField(final Descriptor descr,
                                  final String fieldName,
                                  final Class<T> fieldType){
-        return getField(descr, fieldName, fieldType, Utils.<T>nullSupplier());
+        return getField(descr, fieldName, fieldType, (Supplier<T>) () -> null);
     }
 
     public static Properties toProperties(final Descriptor descr) {

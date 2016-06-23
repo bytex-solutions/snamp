@@ -2,11 +2,9 @@ package com.bytex.snamp.adapters.decanter;
 
 import com.bytex.snamp.Switch;
 import com.bytex.snamp.jmx.CompositeDataUtils;
-import com.google.common.base.Function;
 
 import javax.management.ObjectName;
 import javax.management.openmbean.CompositeData;
-import java.util.Map;
 
 /**
  * @author Roman Sakno

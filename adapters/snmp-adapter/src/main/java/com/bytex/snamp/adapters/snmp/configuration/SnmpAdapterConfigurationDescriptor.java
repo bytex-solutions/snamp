@@ -7,7 +7,6 @@ import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
-import static com.bytex.snamp.jmx.DescriptorUtils.getField;
 import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration.THREAD_POOL_KEY;
 
 /**

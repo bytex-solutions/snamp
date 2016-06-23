@@ -80,9 +80,9 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
         processConfiguration(new SafeConsumer<AgentConfiguration>() {
             @Override
             public void accept(final AgentConfiguration config) {
-                assertTrue(config.getResourceAdapters().containsKey("instance2"));
-                assertEquals("dummy", config.getResourceAdapters().get("instance2").getAdapterName());
-                assertEquals("v", config.getResourceAdapters().get("instance2").getParameters().get("k"));
+                assertTrue(config.getEntities(ResourceAdapterConfiguration.class).containsKey("instance2"));
+                assertEquals("dummy", config.getEntities(ResourceAdapterConfiguration.class).get("instance2").getAdapterName());
+                assertEquals("v", config.getEntities(ResourceAdapterConfiguration.class).get("instance2").getParameters().get("k"));
             }
         }, true, false);
         runCommand("snamp:delete-adapter-param instance2 k");
@@ -90,8 +90,8 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
         processConfiguration(new SafeConsumer<AgentConfiguration>() {
             @Override
             public void accept(final AgentConfiguration config) {
-                assertTrue(config.getResourceAdapters().containsKey("instance2"));
-                assertFalse(config.getResourceAdapters().get("instance2").getParameters().containsKey("k"));
+                assertTrue(config.getEntities(ResourceAdapterConfiguration.class).containsKey("instance2"));
+                assertFalse(config.getEntities(ResourceAdapterConfiguration.class).get("instance2").getParameters().containsKey("k"));
             }
         }, true, false);
         runCommand("snamp:delete-adapter instance2");
@@ -99,7 +99,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
         processConfiguration(new SafeConsumer<AgentConfiguration>() {
             @Override
             public void accept(final AgentConfiguration config) {
-                assertFalse(config.getResourceAdapters().containsKey("instance2"));
+                assertFalse(config.getEntities(ResourceAdapterConfiguration.class).containsKey("instance2"));
             }
         }, true, false);
     }
@@ -142,10 +142,10 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
         processConfiguration(new SafeConsumer<AgentConfiguration>() {
             @Override
             public void accept(final AgentConfiguration config) {
-                assertTrue(config.getManagedResources().containsKey("resource2"));
-                assertEquals("dummy", config.getManagedResources().get("resource2").getConnectionType());
-                assertEquals("http://acme.com", config.getManagedResources().get("resource2").getConnectionString());
-                assertEquals("v", config.getManagedResources().get("resource2").getParameters().get("k"));
+                assertTrue(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource2"));
+                assertEquals("dummy", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getConnectionType());
+                assertEquals("http://acme.com", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getConnectionString());
+                assertEquals("v", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getParameters().get("k"));
             }
         }, true, false);
 
@@ -155,8 +155,8 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
         processConfiguration(new SafeConsumer<AgentConfiguration>() {
             @Override
             public void accept(final AgentConfiguration config) {
-                assertTrue(config.getManagedResources().containsKey("resource2"));
-                assertFalse(config.getManagedResources().get("resource2").getParameters().containsKey("k"));
+                assertTrue(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource2"));
+                assertFalse(config.getEntities(ManagedResourceConfiguration.class).get("resource2").getParameters().containsKey("k"));
             }
         }, true, false);
         //remove resource
@@ -165,7 +165,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
         processConfiguration(new SafeConsumer<AgentConfiguration>() {
             @Override
             public void accept(final AgentConfiguration config) {
-                assertFalse(config.getManagedResources().containsKey("resource2"));
+                assertFalse(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource2"));
             }
         }, true, false);
     }
@@ -178,10 +178,10 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
         processConfiguration(new SafeConsumer<AgentConfiguration>() {
             @Override
             public void accept(final AgentConfiguration config) {
-                assertTrue(config.getManagedResources().containsKey("resource2"));
-                assertEquals("dummy", config.getManagedResources().get("resource2").getConnectionType());
-                assertEquals("http://acme.com", config.getManagedResources().get("resource2").getConnectionString());
-                assertEquals("v", config.getManagedResources().get("resource2").getParameters().get("k"));
+                assertTrue(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource2"));
+                assertEquals("dummy", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getConnectionType());
+                assertEquals("http://acme.com", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getConnectionString());
+                assertEquals("v", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getParameters().get("k"));
             }
         }, true, false);
         //register attribute
@@ -190,8 +190,8 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
         processConfiguration(new SafeConsumer<AgentConfiguration>() {
             @Override
             public void accept(final AgentConfiguration config) {
-                assertTrue(config.getManagedResources().containsKey("resource2"));
-                final AttributeConfiguration attribute = config.getManagedResources()
+                assertTrue(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource2"));
+                final AttributeConfiguration attribute = config.getEntities(ManagedResourceConfiguration.class)
                         .get("resource2")
                         .getFeatures(AttributeConfiguration.class)
                         .get("attr");
@@ -205,8 +205,8 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
         processConfiguration(new SafeConsumer<AgentConfiguration>() {
             @Override
             public void accept(final AgentConfiguration config) {
-                assertTrue(config.getManagedResources().containsKey("resource2"));
-                final AttributeConfiguration attribute = config.getManagedResources()
+                assertTrue(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource2"));
+                final AttributeConfiguration attribute = config.getEntities(ManagedResourceConfiguration.class)
                         .get("resource2")
                         .getFeatures(AttributeConfiguration.class)
                         .get("attr");
@@ -220,7 +220,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
         processConfiguration(new SafeConsumer<AgentConfiguration>() {
             @Override
             public void accept(final AgentConfiguration config) {
-                assertFalse(config.getManagedResources().containsKey("resource2"));
+                assertFalse(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource2"));
             }
         }, true, false);
     }
@@ -233,10 +233,10 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
         processConfiguration(new SafeConsumer<AgentConfiguration>() {
             @Override
             public void accept(final AgentConfiguration config) {
-                assertTrue(config.getManagedResources().containsKey("resource2"));
-                assertEquals("dummy", config.getManagedResources().get("resource2").getConnectionType());
-                assertEquals("http://acme.com", config.getManagedResources().get("resource2").getConnectionString());
-                assertEquals("v", config.getManagedResources().get("resource2").getParameters().get("k"));
+                assertTrue(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource2"));
+                assertEquals("dummy", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getConnectionType());
+                assertEquals("http://acme.com", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getConnectionString());
+                assertEquals("v", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getParameters().get("k"));
             }
         }, true, false);
         //register event
@@ -245,8 +245,8 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
         processConfiguration(new SafeConsumer<AgentConfiguration>() {
             @Override
             public void accept(final AgentConfiguration config) {
-                assertTrue(config.getManagedResources().containsKey("resource2"));
-                final EventConfiguration attribute = config.getManagedResources()
+                assertTrue(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource2"));
+                final EventConfiguration attribute = config.getEntities(ManagedResourceConfiguration.class)
                         .get("resource2")
                         .getFeatures(EventConfiguration.class)
                         .get("ev1");
@@ -259,8 +259,8 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
         processConfiguration(new SafeConsumer<AgentConfiguration>() {
             @Override
             public void accept(final AgentConfiguration config) {
-                assertTrue(config.getManagedResources().containsKey("resource2"));
-                final EventConfiguration attribute = config.getManagedResources()
+                assertTrue(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource2"));
+                final EventConfiguration attribute = config.getEntities(ManagedResourceConfiguration.class)
                         .get("resource2")
                         .getFeatures(EventConfiguration.class)
                         .get("ev1");
@@ -274,7 +274,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
         processConfiguration(new SafeConsumer<AgentConfiguration>() {
             @Override
             public void accept(final AgentConfiguration config) {
-                assertFalse(config.getManagedResources().containsKey("resource2"));
+                assertFalse(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource2"));
             }
         }, true, false);
     }
@@ -293,8 +293,8 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
         processConfiguration(new SafeConsumer<AgentConfiguration>() {
             @Override
             public void accept(final AgentConfiguration config) {
-                assertTrue(config.getManagedResources().containsKey("resource1"));
-                final EventConfiguration attribute = config.getManagedResources()
+                assertTrue(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource1"));
+                final EventConfiguration attribute = config.getEntities(ManagedResourceConfiguration.class)
                         .get("resource1")
                         .getFeatures(EventConfiguration.class)
                         .get("ev1");
@@ -309,8 +309,8 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
         processConfiguration(new SafeConsumer<AgentConfiguration>() {
             @Override
             public void accept(final AgentConfiguration config) {
-                assertTrue(config.getManagedResources().containsKey("resource1"));
-                final AttributeConfiguration attribute = config.getManagedResources()
+                assertTrue(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource1"));
+                final AttributeConfiguration attribute = config.getEntities(ManagedResourceConfiguration.class)
                         .get("resource1")
                         .getFeatures(AttributeConfiguration.class)
                         .get("attr");
@@ -338,10 +338,10 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
     @Override
     protected void setupTestConfiguration(final AgentConfiguration config) {
         final ResourceAdapterConfiguration adapter =
-                config.getResourceAdapters().getOrAdd("adapterInst");
+                config.getEntities(ResourceAdapterConfiguration.class).getOrAdd("adapterInst");
         adapter.setAdapterName("dummyAdapter");
         final ManagedResourceConfiguration resource =
-                config.getManagedResources().getOrAdd("resource1");
+                config.getEntities(ManagedResourceConfiguration.class).getOrAdd("resource1");
         resource.setConnectionType("dummyConnector");
         resource.setConnectionString("http://acme.com");
     }

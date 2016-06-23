@@ -2,7 +2,6 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.AgentConfiguration;
-import com.bytex.snamp.io.IOUtils;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 
@@ -21,15 +20,15 @@ import static com.bytex.snamp.management.shell.Utils.appendln;
     name = "adapter",
     description = "Display configuration of adapter instance")
 public final class AdapterInstanceInfoCommand extends ConfigurationCommand {
-    @Argument(index = 0, name = "resourceName", required = true, description = "Name of adapter instance to display")
+    @Argument(index = 0, name = "adapterInstance", required = true, description = "Name of adapter instance to display")
     @SpecialUse
-    private String resourceName = "";
+    private String adapterInstance = "";
 
     @Override
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
-        if (configuration.getResourceAdapters().containsKey(resourceName)) {
-            final ResourceAdapterConfiguration adapter = configuration.getResourceAdapters().get(resourceName);
-            appendln(output, "Instance Name: %s", resourceName);
+        if (configuration.getEntities(ResourceAdapterConfiguration.class).containsKey(adapterInstance)) {
+            final ResourceAdapterConfiguration adapter = configuration.getEntities(ResourceAdapterConfiguration.class).get(adapterInstance);
+            appendln(output, "Instance Name: %s", adapterInstance);
             appendln(output, "System Name: %s", adapter.getAdapterName());
             appendln(output, "Configuration parameters:");
             for (final Map.Entry<String, String> pair : adapter.getParameters().entrySet())

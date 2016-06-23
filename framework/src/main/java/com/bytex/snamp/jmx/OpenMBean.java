@@ -121,7 +121,6 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
          * @param eventObject The native notification to parse.
          * @return The additional notification payload.
          */
-        @SuppressWarnings("UnusedParameters")
         @MethodStub
         protected Object getUserData(final N eventObject){
             return null;

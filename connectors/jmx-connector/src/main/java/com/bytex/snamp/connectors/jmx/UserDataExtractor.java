@@ -23,6 +23,7 @@ final class UserDataExtractor {
 
     }
 
+    @SuppressWarnings("unchecked")
     private static CompositeData getUserData(final AttributeChangeNotification n) throws OpenDataException {
         final String TYPE_NAME = "AttributeChangeNotificationData";
         final String DESCRIPTION = "Advanced data associated with AttributeChangeNotification event";

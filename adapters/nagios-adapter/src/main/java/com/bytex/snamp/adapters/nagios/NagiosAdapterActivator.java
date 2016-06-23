@@ -12,6 +12,7 @@ import org.osgi.service.http.HttpService;
 public final class NagiosAdapterActivator extends ResourceAdapterActivator<NagiosAdapter> {
     private static final class NagiosAdapterFactory implements ResourceAdapterFactory<NagiosAdapter>{
 
+        @SuppressWarnings("unchecked")
         @Override
         public NagiosAdapter createAdapter(final String adapterInstance,
                                            final RequiredService<?>... dependencies) {

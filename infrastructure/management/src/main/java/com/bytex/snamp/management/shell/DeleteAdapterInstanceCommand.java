@@ -21,7 +21,7 @@ public final class DeleteAdapterInstanceCommand extends ConfigurationCommand {
 
     @Override
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
-        if(configuration.getResourceAdapters().remove(instanceName) == null){
+        if(configuration.getEntities(AgentConfiguration.ResourceAdapterConfiguration.class).remove(instanceName) == null){
             output.append("Instance doesn't exist");
             return false;
         }

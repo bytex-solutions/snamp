@@ -8241,7 +8241,6 @@ public class MonitoringDataAcceptor {
     public get_array_result(get_array_result other) {
       if (other.isSetSuccess()) {
         this.success = org.apache.thrift.TBaseHelper.copyBinary(other.success);
-;
       }
     }
 

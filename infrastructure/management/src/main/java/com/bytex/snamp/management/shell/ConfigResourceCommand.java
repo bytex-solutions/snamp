@@ -3,7 +3,6 @@ package com.bytex.snamp.management.shell;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.AgentConfiguration;
-import com.bytex.snamp.io.IOUtils;
 import com.google.common.base.Strings;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
@@ -42,12 +41,12 @@ public final class ConfigResourceCommand extends ConfigurationCommand {
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
         if(Strings.isNullOrEmpty(resourceName)) return false;
         final ManagedResourceConfiguration resource;
-        if(configuration.getManagedResources().containsKey(resourceName)){//modify existing resource
-            resource = configuration.getManagedResources().get(resourceName);
+        if(configuration.getEntities(ManagedResourceConfiguration.class).containsKey(resourceName)){//modify existing resource
+            resource = configuration.getEntities(ManagedResourceConfiguration.class).get(resourceName);
             appendln(output, "Updated");
         }
         else {  //create new adapter instance
-            resource = configuration.getManagedResources().getOrAdd(resourceName);
+            resource = configuration.getEntities(ManagedResourceConfiguration.class).getOrAdd(resourceName);
             appendln(output, "Created");
         }
         //setup connection type
@@ -58,9 +57,10 @@ public final class ConfigResourceCommand extends ConfigurationCommand {
             resource.setConnectionString(connectionString);
         //setup parameters
         if(!ArrayUtils.isNullOrEmpty(parameters))
-            for(final String pair: parameters){
+            for(final String pair: parameters) {
                 final StringKeyValue keyValue = StringKeyValue.parse(pair);
-                resource.getParameters().put(keyValue.getKey(), keyValue.getValue());
+                if (keyValue != null)
+                    resource.getParameters().put(keyValue.getKey(), keyValue.getValue());
             }
         return true;
     }

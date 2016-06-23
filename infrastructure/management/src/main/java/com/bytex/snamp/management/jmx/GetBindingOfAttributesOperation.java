@@ -5,7 +5,6 @@ import com.bytex.snamp.jmx.TabularDataBuilderRowFill;
 import com.bytex.snamp.jmx.TabularTypeBuilder;
 
 import javax.management.MBeanAttributeInfo;
-import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.SimpleType;
 import javax.management.openmbean.TabularType;
 import java.util.Objects;
@@ -38,7 +37,7 @@ final class GetBindingOfAttributesOperation extends AbstractBindingInfoOperation
 
     @Override
     protected void fillRow(final TabularDataBuilderRowFill.RowBuilder row,
-                           final FeatureBindingInfo<MBeanAttributeInfo> bindingInfo) throws OpenDataException {
+                           final FeatureBindingInfo<MBeanAttributeInfo> bindingInfo) {
         final String mappedType = Objects.toString(bindingInfo.getProperty(FeatureBindingInfo.MAPPED_TYPE), "");
         row
                 .cell(NAME_COLUMN, bindingInfo.getMetadata().getName())

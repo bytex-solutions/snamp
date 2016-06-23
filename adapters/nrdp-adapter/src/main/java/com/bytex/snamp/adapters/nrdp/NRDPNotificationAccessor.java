@@ -3,7 +3,6 @@ package com.bytex.snamp.adapters.nrdp;
 import ch.shamu.jsendnrdp.domain.State;
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.adapters.modeling.NotificationRouter;
-import com.bytex.snamp.adapters.nrdp.configuration.NRDPAdapterConfigurationDescriptor;
 import com.bytex.snamp.adapters.nrdp.configuration.NRDPAdapterConfigurationParser;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;

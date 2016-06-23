@@ -26,7 +26,7 @@ import static com.bytex.snamp.management.shell.InstalledConnectorsCommand.writeC
 public final class InstalledComponentsCommand extends OsgiCommandSupport implements SnampShellCommand {
     private final SnampManager manager = new SnampManagerImpl();
 
-    private static void writeComponent(final SnampComponentDescriptor component, final StringBuilder output) throws IOException {
+    private static void writeComponent(final SnampComponentDescriptor component, final StringBuilder output) {
         appendln(output, "%s. Description: %s. Version: %s. State: %s",
                 component.getName(null),
                 component.getDescription(null),

@@ -2,7 +2,6 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.AgentConfiguration;
-import com.bytex.snamp.io.IOUtils;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
@@ -11,7 +10,8 @@ import java.util.Map;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
-import static com.bytex.snamp.management.shell.Utils.*;
+import static com.bytex.snamp.management.shell.Utils.appendln;
+import static com.bytex.snamp.management.shell.Utils.newLine;
 
 /**
  * Displays configuration of the managed resource.
@@ -63,8 +63,8 @@ public final class ResourceInfoCommand extends ConfigurationCommand {
 
     @Override
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) throws InterruptedException {
-        if (configuration.getManagedResources().containsKey(resourceName)) {
-            final ManagedResourceConfiguration resource = configuration.getManagedResources().get(resourceName);
+        if (configuration.getEntities(ManagedResourceConfiguration.class).containsKey(resourceName)) {
+            final ManagedResourceConfiguration resource = configuration.getEntities(ManagedResourceConfiguration.class).get(resourceName);
             appendln(output, "Resource Name: %s", resourceName);
             appendln(output, "Connection Type: %s", resource.getConnectionType());
             appendln(output, "Connection String: %s", resource.getConnectionString());

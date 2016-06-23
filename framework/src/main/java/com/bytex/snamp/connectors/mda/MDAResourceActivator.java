@@ -61,6 +61,7 @@ public abstract class MDAResourceActivator extends ManagedResourceActivator<Data
                     final DataAcceptor acceptor = factory.create(resourceName,
                             connectionString,
                             connectionParameters);
+                    @SuppressWarnings("unchecked")
                     final HttpService publisher = getDependency(RequiredServiceAccessor.class, HttpService.class, dependencies);
                     acceptor.beginListening(expirationTime, publisher);
                     return acceptor;

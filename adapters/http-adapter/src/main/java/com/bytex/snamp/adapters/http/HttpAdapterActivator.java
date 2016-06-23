@@ -22,6 +22,7 @@ public final class HttpAdapterActivator extends ResourceAdapterActivator<HttpAda
 
     private static final class RestAdapterFactory implements ResourceAdapterFactory<HttpAdapter>{
 
+        @SuppressWarnings("unchecked")
         @Override
         public HttpAdapter createAdapter(final String adapterInstance,
                                          final RequiredService<?>... dependencies) throws Exception {

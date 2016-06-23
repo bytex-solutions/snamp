@@ -61,12 +61,12 @@ final class ManagementShell implements Command, SessionAware {
         private final ExitCallback callback;
         private final ExecutorService executor;
 
-        public Interpreter(final AdapterController controller,
+        private Interpreter(final AdapterController controller,
                            final InputStream is,
                            OutputStream os,
                            final OutputStream es,
                            final ExitCallback callback,
-                           final ExecutorService executor) throws IOException {
+                           final ExecutorService executor) {
             this.controller = Objects.requireNonNull(controller, "controller is null.");
             if (TtyOutputStream.needToApply()) {
                 this.outStream = new TtyOutputStream(os);
@@ -132,14 +132,9 @@ final class ManagementShell implements Command, SessionAware {
         this.executor = executor;
     }
 
-    public static Factory<Command> createFactory(final AdapterController controller,
-                                                 final ExecutorService executor) {
-        return new Factory<Command>() {
-            @Override
-            public Command create() {
-                return new ManagementShell(controller, executor);
-            }
-        };
+    static Factory<Command> createFactory(final AdapterController controller,
+                                          final ExecutorService executor) {
+        return () -> new ManagementShell(controller, executor);
     }
 
     /**
@@ -197,19 +192,14 @@ final class ManagementShell implements Command, SessionAware {
      */
     @Override
     public void start(final Environment env) {
-        try {
-            final Interpreter i = new Interpreter(controller,
-                    inStream.get(),
-                    outStream.get(),
-                    errStream.get(),
-                    exitCallback.get(),
-                    executor);
-            i.start();
-            interpreter.set(i);
-        }
-        catch (final IOException e){
-            SshHelpers.log(Level.SEVERE, "Unable to start SNAMP shell", e);
-        }
+        final Interpreter i = new Interpreter(controller,
+                inStream.get(),
+                outStream.get(),
+                errStream.get(),
+                exitCallback.get(),
+                executor);
+        i.start();
+        interpreter.set(i);
     }
 
     /**
@@ -251,8 +241,8 @@ final class ManagementShell implements Command, SessionAware {
         return matchList.toArray(new String[matchList.size()]);
     }
 
-    static Command createSshCommand(final String commandLine,
-                                 final CommandExecutionContext controller) {
+    private static Command createSshCommand(final String commandLine,
+                                            final CommandExecutionContext controller) {
         final String[] parts = splitArguments(commandLine);
         final ManagementShellCommand factory = createCommand(ArrayUtils.getFirst(parts), controller);
         return factory.createSshCommand(ArrayUtils.remove(parts, 0));

@@ -109,7 +109,7 @@ public final class JolokiaConfigurationTest extends AbstractSnampIntegrationTest
         processConfiguration(new SafeConsumer<AgentConfiguration>() {
             @Override
             public void accept(final AgentConfiguration config) {
-                final ManagedResourceConfiguration resource = config.getManagedResources().getOrAdd(RESOURCE_NAME);
+                final ManagedResourceConfiguration resource = config.getEntities(ManagedResourceConfiguration.class).getOrAdd(RESOURCE_NAME);
                 resource.getParameters().put("param1", "parameterValue");
                 resource.setConnectionType("snmp");
                 resource.setConnectionString("udp://127.0.0.1/161");

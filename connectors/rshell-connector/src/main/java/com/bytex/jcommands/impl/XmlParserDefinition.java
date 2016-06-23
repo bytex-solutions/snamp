@@ -126,7 +126,7 @@ public class XmlParserDefinition {
     private static final class SimpleDateParser extends SimpleDateFormat implements DateParser {
         private static final long serialVersionUID = 3787599179710232160L;
 
-        public SimpleDateParser(final String pattern) {
+        private SimpleDateParser(final String pattern) {
             super(pattern);
         }
     }
@@ -146,11 +146,11 @@ public class XmlParserDefinition {
     private static final class DecimalNumberParser extends DecimalFormat implements NumberParser{
         private static final long serialVersionUID = 500477579425937782L;
 
-        public DecimalNumberParser(final String pattern){
+        private DecimalNumberParser(final String pattern){
             super(pattern);
         }
 
-        public DecimalNumberParser(){
+        private DecimalNumberParser(){
 
         }
 
@@ -291,12 +291,12 @@ public class XmlParserDefinition {
         private static final long serialVersionUID = 10998420667381405L;
         private XmlParsingResultType elementType;
 
-        public ArrayBuilder() {
+        private ArrayBuilder() {
             super(10);
             elementType = XmlParsingResultType.STRING;
         }
 
-        public void setElementType(final XmlParsingResultType value) {
+        private void setElementType(final XmlParsingResultType value) {
             this.elementType = value;
         }
 
@@ -672,14 +672,11 @@ public class XmlParserDefinition {
                                     final ScriptEngine engine) throws ScriptException {
         return parseScalar(parsingTemplate,
                 engine,
-                new Converter<Short>() {
-                    @Override
-                    public Short apply(final String input) {
-                        try {
-                            return format.parseAsShort(input);
-                        } catch (final ParseException e) {
-                            throw new NumberFormatException(e.getMessage());
-                        }
+                input -> {
+                    try {
+                        return format.parseAsShort(input);
+                    } catch (final ParseException e) {
+                        throw new NumberFormatException(e.getMessage());
                     }
                 },
                 (short) 0);
@@ -690,14 +687,11 @@ public class XmlParserDefinition {
                                     final ScriptEngine engine) throws ScriptException {
         return parseScalar(parsingTemplate,
                 engine,
-                new Converter<Byte>() {
-                    @Override
-                    public Byte apply(final String input) {
-                        try {
-                            return format.parseAsByte(input);
-                        } catch (final ParseException e) {
-                            throw new NumberFormatException(e.getMessage());
-                        }
+                input -> {
+                    try {
+                        return format.parseAsByte(input);
+                    } catch (final ParseException e) {
+                        throw new NumberFormatException(e.getMessage());
                     }
                 },
                 (byte) 0);
@@ -708,14 +702,11 @@ public class XmlParserDefinition {
                                   final ScriptEngine engine) throws ScriptException {
         return parseScalar(parsingTemplate,
                 engine,
-                new Converter<Integer>() {
-                    @Override
-                    public Integer apply(final String input) {
-                        try {
-                            return format.parseAsInt(input);
-                        } catch (final ParseException e) {
-                            throw new NumberFormatException(e.getMessage());
-                        }
+                input -> {
+                    try {
+                        return format.parseAsInt(input);
+                    } catch (final ParseException e) {
+                        throw new NumberFormatException(e.getMessage());
                     }
                 },
                 0);
@@ -726,14 +717,11 @@ public class XmlParserDefinition {
                                         final ScriptEngine engine) throws ScriptException {
         return parseScalar(parsingTemplate,
                 engine,
-                new Converter<Long>() {
-                    @Override
-                    public Long apply(final String input) {
-                        try {
-                            return format.parseAsLong(input);
-                        } catch (final ParseException e) {
-                            throw new NumberFormatException(e.getMessage());
-                        }
+                input -> {
+                    try {
+                        return format.parseAsLong(input);
+                    } catch (final ParseException e) {
+                        throw new NumberFormatException(e.getMessage());
                     }
                 },
                 0L);
@@ -744,14 +732,11 @@ public class XmlParserDefinition {
                                   final ScriptEngine engine) throws ScriptException {
         return parseScalar(parsingTemplate,
                 engine,
-                new Converter<BigInteger>() {
-                    @Override
-                    public BigInteger apply(final String input) {
-                        try {
-                            return format.parseAsBigInteger(input);
-                        } catch (final ParseException e) {
-                            throw new NumberFormatException(e.getMessage());
-                        }
+                input -> {
+                    try {
+                        return format.parseAsBigInteger(input);
+                    } catch (final ParseException e) {
+                        throw new NumberFormatException(e.getMessage());
                     }
                 },
                 BigInteger.ZERO);
@@ -762,14 +747,11 @@ public class XmlParserDefinition {
                                           final ScriptEngine engine) throws ScriptException {
         return parseScalar(parsingTemplate,
                 engine,
-                new Converter<BigDecimal>() {
-                    @Override
-                    public BigDecimal apply(final String input) {
-                        try {
-                            return parser.parseAsBigDecimal(input);
-                        } catch (final ParseException e) {
-                            throw new NumberFormatException(e.getMessage());
-                        }
+                input -> {
+                    try {
+                        return parser.parseAsBigDecimal(input);
+                    } catch (final ParseException e) {
+                        throw new NumberFormatException(e.getMessage());
                     }
                 },
                 BigDecimal.ZERO);
@@ -779,12 +761,7 @@ public class XmlParserDefinition {
                                            final ScriptEngine engine) throws ScriptException {
         return parseScalar(parsingTemplate,
                 engine,
-                new Converter<String>() {
-                    @Override
-                    public String apply(final String input) {
-                        return input;
-                    }
-                },
+                input -> input,
                 "");
     }
 
@@ -792,19 +769,16 @@ public class XmlParserDefinition {
                                            final ScriptEngine engine) throws ScriptException {
         return parseScalar(parsingTemplate,
                 engine,
-                new Converter<Boolean>() {
-                    @Override
-                    public Boolean apply(final String input) {
-                        if (input != null)
-                            switch (input.toLowerCase()) {
-                                case "1":
-                                case "true":
-                                case "yes":
-                                case "ok":
-                                    return true;
-                            }
-                        return false;
-                    }
+                input -> {
+                    if (input != null)
+                        switch (input.toLowerCase()) {
+                            case "1":
+                            case "true":
+                            case "yes":
+                            case "ok":
+                                return true;
+                        }
+                    return false;
                 },
                 Boolean.FALSE);
     }
@@ -813,12 +787,7 @@ public class XmlParserDefinition {
                                        final ScriptEngine engine) throws ScriptException{
         return parseScalar(parsingTemplate,
                 engine,
-                new Converter<Character>() {
-                    @Override
-                    public Character apply(final String input) {
-                        return input == null || input.isEmpty() ? '\0' : input.charAt(0);
-                    }
-                },
+                input -> input == null || input.isEmpty() ? '\0' : input.charAt(0),
                 '\0');
     }
 
@@ -827,14 +796,11 @@ public class XmlParserDefinition {
                                     final ScriptEngine engine) throws ScriptException {
         return parseScalar(parsingTemplate,
                 engine,
-                new Converter<Float>() {
-                    @Override
-                    public Float apply(final String input) {
-                        try {
-                            return parser.parseAsFloat(input);
-                        } catch (final ParseException e) {
-                            throw new NumberFormatException(e.getMessage());
-                        }
+                input -> {
+                    try {
+                        return parser.parseAsFloat(input);
+                    } catch (final ParseException e) {
+                        throw new NumberFormatException(e.getMessage());
                     }
                 }, 0F);
     }
@@ -844,14 +810,11 @@ public class XmlParserDefinition {
                                     final ScriptEngine engine) throws ScriptException {
         return parseScalar(parsingTemplate,
                 engine,
-                new Converter<Double>() {
-                    @Override
-                    public Double apply(final String input) {
-                        try {
-                            return parser.parseAsDouble(input);
-                        } catch (final ParseException e) {
-                            throw new NumberFormatException(e.getMessage());
-                        }
+                input -> {
+                    try {
+                        return parser.parseAsDouble(input);
+                    } catch (final ParseException e) {
+                        throw new NumberFormatException(e.getMessage());
                     }
                 }, 0.0);
     }
@@ -861,14 +824,11 @@ public class XmlParserDefinition {
                                   final ScriptEngine engine) throws ScriptException{
         return parseScalar(parsingTemplate,
                 engine,
-                new Converter<Date>() {
-                    @Override
-                    public Date apply(final String input) {
-                        try {
-                            return dateTimeFormat.parse(input);
-                        } catch (final ParseException ignored) {
-                            return new Date(0L);
-                        }
+                input -> {
+                    try {
+                        return dateTimeFormat.parse(input);
+                    } catch (final ParseException ignored) {
+                        return new Date(0L);
                     }
                 }, new Date(0L));
     }

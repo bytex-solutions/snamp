@@ -83,190 +83,160 @@ public final class ResourceAggregatorTest extends AbstractSnampIntegrationTest {
 
     @Test
     public void patternMatcherTest() throws JMException{
-        runTest(new TestLogic() {
-            @Override
-            public void runTest(final DynamicMBean jmxConnector, final DynamicMBean aggregator) throws JMException {
-                jmxConnector.setAttribute(new Attribute("1.0", "9"));
-                Object val = aggregator.getAttribute("42");
-                assertTrue(val instanceof Boolean);
-                assertTrue((Boolean) val);
-                jmxConnector.setAttribute(new Attribute("1.0", "aaa"));
-                val = aggregator.getAttribute("42");
-                assertTrue(val instanceof Boolean);
-                assertFalse((Boolean) val);
-            }
+        runTest((jmxConnector, aggregator) -> {
+            jmxConnector.setAttribute(new Attribute("1.0", "9"));
+            Object val = aggregator.getAttribute("42");
+            assertTrue(val instanceof Boolean);
+            assertTrue((Boolean) val);
+            jmxConnector.setAttribute(new Attribute("1.0", "aaa"));
+            val = aggregator.getAttribute("42");
+            assertTrue(val instanceof Boolean);
+            assertFalse((Boolean) val);
         });
     }
 
     @Test
     public void comparisonWithTest() throws JMException{
-        runTest(new TestLogic() {
-            @Override
-            public void runTest(final DynamicMBean jmxConnector, final DynamicMBean aggregator) throws JMException {
-                jmxConnector.setAttribute(new Attribute("3.0", 56));
-                Object val = aggregator.getAttribute("43");
-                assertTrue(val instanceof Boolean);
-                assertTrue((Boolean) val);
-                jmxConnector.setAttribute(new Attribute("3.0", 9));
-                val = aggregator.getAttribute("43");
-                assertTrue(val instanceof Boolean);
-                assertFalse((Boolean) val);
-            }
+        runTest((jmxConnector, aggregator) -> {
+            jmxConnector.setAttribute(new Attribute("3.0", 56));
+            Object val = aggregator.getAttribute("43");
+            assertTrue(val instanceof Boolean);
+            assertTrue((Boolean) val);
+            jmxConnector.setAttribute(new Attribute("3.0", 9));
+            val = aggregator.getAttribute("43");
+            assertTrue(val instanceof Boolean);
+            assertFalse((Boolean) val);
         });
     }
 
     @Test
     public void percentFromTest() throws JMException{
-        runTest(new TestLogic() {
-            @Override
-            public void runTest(final DynamicMBean jmxConnector, final DynamicMBean aggregator) throws JMException {
-                jmxConnector.setAttribute(new Attribute("3.0", 25));
-                Object val = aggregator.getAttribute("45");
-                assertTrue(val instanceof Double);
-                assertEquals(50, (Double) val, 2);
-                jmxConnector.setAttribute(new Attribute("3.0", 40));
-                val = aggregator.getAttribute("45");
-                assertTrue(val instanceof Double);
-                assertEquals(80, (Double) val, 2);
-            }
+        runTest((jmxConnector, aggregator) -> {
+            jmxConnector.setAttribute(new Attribute("3.0", 25));
+            Object val = aggregator.getAttribute("45");
+            assertTrue(val instanceof Double);
+            assertEquals(50, (Double) val, 2);
+            jmxConnector.setAttribute(new Attribute("3.0", 40));
+            val = aggregator.getAttribute("45");
+            assertTrue(val instanceof Double);
+            assertEquals(80, (Double) val, 2);
         });
     }
 
     @Test
     public void percentTest() throws JMException{
-        runTest(new TestLogic() {
-            @Override
-            public void runTest(final DynamicMBean jmxConnector, final DynamicMBean aggregator) throws JMException {
-                jmxConnector.setAttribute(new Attribute("3.0", 25));
-                jmxConnector.setAttribute(new Attribute("4.0", BigInteger.valueOf(50L)));
-                Object val = aggregator.getAttribute("46");
-                assertTrue(val instanceof Double);
-                assertEquals(50, (Double) val, 2);
-                jmxConnector.setAttribute(new Attribute("3.0", 40));
-                val = aggregator.getAttribute("46");
-                assertTrue(val instanceof Double);
-                assertEquals(80, (Double) val, 2);
-            }
+        runTest((jmxConnector, aggregator) -> {
+            jmxConnector.setAttribute(new Attribute("3.0", 25));
+            jmxConnector.setAttribute(new Attribute("4.0", BigInteger.valueOf(50L)));
+            Object val = aggregator.getAttribute("46");
+            assertTrue(val instanceof Double);
+            assertEquals(50, (Double) val, 2);
+            jmxConnector.setAttribute(new Attribute("3.0", 40));
+            val = aggregator.getAttribute("46");
+            assertTrue(val instanceof Double);
+            assertEquals(80, (Double) val, 2);
         });
     }
 
     @Test
     public void comparisonTest() throws JMException{
-        runTest(new TestLogic() {
-            @Override
-            public void runTest(final DynamicMBean jmxConnector, final DynamicMBean aggregator) throws JMException {
-                jmxConnector.setAttribute(new Attribute("3.0", 56));
-                jmxConnector.setAttribute(new Attribute("4.0", BigInteger.ONE));
-                Object val = aggregator.getAttribute("44");
-                assertTrue(val instanceof Boolean);
-                assertTrue((Boolean) val);
-                jmxConnector.setAttribute(new Attribute("3.0", 150));
-                jmxConnector.setAttribute(new Attribute("4.0", new BigInteger("100500")));
-                val = aggregator.getAttribute("44");
-                assertTrue(val instanceof Boolean);
-                assertFalse((Boolean) val);
-            }
+        runTest((jmxConnector, aggregator) -> {
+            jmxConnector.setAttribute(new Attribute("3.0", 56));
+            jmxConnector.setAttribute(new Attribute("4.0", BigInteger.ONE));
+            Object val = aggregator.getAttribute("44");
+            assertTrue(val instanceof Boolean);
+            assertTrue((Boolean) val);
+            jmxConnector.setAttribute(new Attribute("3.0", 150));
+            jmxConnector.setAttribute(new Attribute("4.0", new BigInteger("100500")));
+            val = aggregator.getAttribute("44");
+            assertTrue(val instanceof Boolean);
+            assertFalse((Boolean) val);
         });
     }
 
     @Test
     public void counterTest() throws JMException{
-        runTest(new TestLogic() {
-            @Override
-            public void runTest(final DynamicMBean jmxConnector, final DynamicMBean aggregator) throws JMException {
-                jmxConnector.setAttribute(new Attribute("3.0", 5));
-                Object val = aggregator.getAttribute("47");
-                assertEquals(5L, val);
-                val = aggregator.getAttribute("47");
-                assertEquals(10L, val);
-                val = aggregator.getAttribute("47");
-                assertEquals(15L, val);
-                try {
-                    Thread.sleep(5000);
-                } catch (final InterruptedException e) {
-                    throw new ReflectionException(e);
-                }
-                val = aggregator.getAttribute("47");
-                assertEquals(5L, val);
+        runTest((jmxConnector, aggregator) -> {
+            jmxConnector.setAttribute(new Attribute("3.0", 5));
+            Object val = aggregator.getAttribute("47");
+            assertEquals(5L, val);
+            val = aggregator.getAttribute("47");
+            assertEquals(10L, val);
+            val = aggregator.getAttribute("47");
+            assertEquals(15L, val);
+            try {
+                Thread.sleep(5000);
+            } catch (final InterruptedException e) {
+                throw new ReflectionException(e);
             }
+            val = aggregator.getAttribute("47");
+            assertEquals(5L, val);
         });
     }
 
     @Test
     public void averageTest() throws JMException{
-        runTest(new TestLogic() {
-            @Override
-            public void runTest(final DynamicMBean jmxConnector, final DynamicMBean aggregator) throws JMException {
-                jmxConnector.setAttribute(new Attribute("3.0", 20));
-                Object val = aggregator.getAttribute("48");
-                assertEquals(20F, (Double)val, 3);
-                jmxConnector.setAttribute(new Attribute("3.0", 40));
-                val = aggregator.getAttribute("48");
-                assertEquals(30F, (Double)val, 3);
-                try {
-                    Thread.sleep(5000);
-                } catch (final InterruptedException e) {
-                    throw new ReflectionException(e);
-                }
-                val = aggregator.getAttribute("48");
-                assertEquals(40F, (Double)val, 3);
+        runTest((jmxConnector, aggregator) -> {
+            jmxConnector.setAttribute(new Attribute("3.0", 20));
+            Object val = aggregator.getAttribute("48");
+            assertEquals(20F, (Double)val, 3);
+            jmxConnector.setAttribute(new Attribute("3.0", 40));
+            val = aggregator.getAttribute("48");
+            assertEquals(30F, (Double)val, 3);
+            try {
+                Thread.sleep(5000);
+            } catch (final InterruptedException e) {
+                throw new ReflectionException(e);
             }
+            val = aggregator.getAttribute("48");
+            assertEquals(40F, (Double)val, 3);
         });
     }
 
     @Test
     public void peakTest() throws JMException{
-        runTest(new TestLogic() {
-            @Override
-            public void runTest(final DynamicMBean jmxConnector, final DynamicMBean aggregator) throws JMException {
-                jmxConnector.setAttribute(new Attribute("3.0", 20));
-                Object val = aggregator.getAttribute("49");
-                assertEquals(20L, val);
-                jmxConnector.setAttribute(new Attribute("3.0", 40));
-                val = aggregator.getAttribute("49");
-                assertEquals(40L, val);
-                jmxConnector.setAttribute(new Attribute("3.0", 30));
-                val = aggregator.getAttribute("49");
-                assertEquals(40L, val);
-                try {
-                    Thread.sleep(5000);
-                } catch (final InterruptedException e) {
-                    throw new ReflectionException(e);
-                }
-                val = aggregator.getAttribute("49");
-                assertEquals(30L, val);
+        runTest((jmxConnector, aggregator) -> {
+            jmxConnector.setAttribute(new Attribute("3.0", 20));
+            Object val = aggregator.getAttribute("49");
+            assertEquals(20L, val);
+            jmxConnector.setAttribute(new Attribute("3.0", 40));
+            val = aggregator.getAttribute("49");
+            assertEquals(40L, val);
+            jmxConnector.setAttribute(new Attribute("3.0", 30));
+            val = aggregator.getAttribute("49");
+            assertEquals(40L, val);
+            try {
+                Thread.sleep(5000);
+            } catch (final InterruptedException e) {
+                throw new ReflectionException(e);
             }
+            val = aggregator.getAttribute("49");
+            assertEquals(30L, val);
         });
     }
 
     @Test
     public void decomposerTest() throws JMException{
-        runTest(new TestLogic() {
-            @Override
-            public void runTest(final DynamicMBean jmxConnector, final DynamicMBean aggregator) throws JMException {
-                Object val = aggregator.getAttribute("50");
-                assertEquals("10", val);
-            }
+        runTest((jmxConnector, aggregator) -> {
+            Object val = aggregator.getAttribute("50");
+            assertEquals("10", val);
         });
     }
 
     @Test
     public void composerTest() throws JMException{
-        runTest(new TestLogic() {
-            @Override
-            public void runTest(final DynamicMBean jmxConnector, final DynamicMBean aggregator) throws JMException {
-                jmxConnector.setAttribute(new Attribute("3.0", 907));
-                jmxConnector.setAttribute(new Attribute("1.0", "Frank Underwood"));
-                jmxConnector.setAttribute(new Attribute("4.0", BigInteger.valueOf(100500L)));
-                jmxConnector.setAttribute(new Attribute("8.0", 34.2F));
+        runTest((jmxConnector, aggregator) -> {
+            jmxConnector.setAttribute(new Attribute("3.0", 907));
+            jmxConnector.setAttribute(new Attribute("1.0", "Frank Underwood"));
+            jmxConnector.setAttribute(new Attribute("4.0", BigInteger.valueOf(100500L)));
+            jmxConnector.setAttribute(new Attribute("8.0", 34.2F));
 
-                final CompositeData value = (CompositeData) aggregator.getAttribute("51");
-                assertNotNull(value);
-                assertEquals(907, CompositeDataUtils.getInteger(value, "3.0", 0));
-                assertEquals("Frank Underwood", CompositeDataUtils.getString(value, "1.0", ""));
-                assertEquals(BigInteger.valueOf(100500L), CompositeDataUtils.getBigInteger(value, "4.0", BigInteger.ZERO));
-                assertEquals(34.2F, CompositeDataUtils.getFloat(value, "8.0", 0F), 0.01);
-            }
+            final CompositeData value = (CompositeData) aggregator.getAttribute("51");
+            assertNotNull(value);
+            assertEquals(907, CompositeDataUtils.getInteger(value, "3.0", 0));
+            assertEquals("Frank Underwood", CompositeDataUtils.getString(value, "1.0", ""));
+            assertEquals(BigInteger.valueOf(100500L), CompositeDataUtils.getBigInteger(value, "4.0", BigInteger.ZERO));
+            assertEquals(34.2F, CompositeDataUtils.getFloat(value, "8.0", 0F), 0.01);
         });
     }
 
@@ -320,7 +290,7 @@ public final class ResourceAggregatorTest extends AbstractSnampIntegrationTest {
     @Override
     protected void setupTestConfiguration(final AgentConfiguration config) {
         //JMX Connector config
-        ManagedResourceConfiguration connector = config.getManagedResources().getOrAdd(JMX_RESOURCE_NAME);
+        ManagedResourceConfiguration connector = config.getEntities(ManagedResourceConfiguration.class).getOrAdd(JMX_RESOURCE_NAME);
         connector.setConnectionString(AbstractJmxConnectorTest.JMX_RMI_CONNECTION_STRING);
         connector.setConnectionType(AbstractJmxConnectorTest.CONNECTOR_NAME);
         connector.getParameters().put("login", AbstractJmxConnectorTest.JMX_LOGIN);
@@ -366,7 +336,7 @@ public final class ResourceAggregatorTest extends AbstractSnampIntegrationTest {
 
         //Aggregator config
         connector =
-                config.getManagedResources().getOrAdd(AGGREG_RESOURCE_NAME);
+                config.getEntities(ManagedResourceConfiguration.class).getOrAdd(AGGREG_RESOURCE_NAME);
         connector.setConnectionType(AGGREGATOR_CONNECTOR);
 
         attribute = connector.getFeatures(AttributeConfiguration.class).getOrAdd("42");

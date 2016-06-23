@@ -1,6 +1,7 @@
 package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.configuration.AgentConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.*;
 import org.apache.karaf.shell.commands.Command;
 
 /**
@@ -16,8 +17,8 @@ public final class ResetConfigurationCommand extends ConfigurationCommand {
 
     @Override
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
-        configuration.getManagedResources().clear();
-        configuration.getResourceAdapters().clear();
+        configuration.getEntities(ManagedResourceConfiguration.class).clear();
+        configuration.getEntities(ResourceAdapterConfiguration.class).clear();
         return true;
     }
 }

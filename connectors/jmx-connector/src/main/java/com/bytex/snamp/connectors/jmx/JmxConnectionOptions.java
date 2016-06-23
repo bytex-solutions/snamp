@@ -1,5 +1,6 @@
 package com.bytex.snamp.connectors.jmx;
 
+import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.connectors.ManagedResourceConfigurationParser;
 import com.bytex.snamp.internal.Utils;
 
@@ -83,15 +84,20 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
         return new JmxConnectionManager(this, watchDogPeriod, logger);
     }
 
-    /**
+    /**s
      * Creates a new direct connection to JMX endpoint.
      * @return A new connection to JMX endpoint.
      * @throws IOException If the connector client or the
      * connection cannot be made because of a communication problem.
      */
     public JMXConnector createConnection() throws IOException {
-        //this string should be used in OSGI environment. Otherwise, JMX connector
+        //this string should be used in OSGi environment. Otherwise, JMX connector
         //will not resolve the JMX registry via JNDI
-        return Utils.withContextClassLoader(getClass().getClassLoader(), () -> JMXConnectorFactory.connect(JmxConnectionOptions.this, getJmxOptions()));
+        return Utils.withContextClassLoader(getClass().getClassLoader(), new ExceptionalCallable<JMXConnector, IOException>() {
+            @Override
+            public JMXConnector call() throws IOException {
+                return JMXConnectorFactory.connect(JmxConnectionOptions.this, getJmxOptions());
+            }
+        });
     }
 }

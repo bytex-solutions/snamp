@@ -146,25 +146,22 @@ public final class ActiveMQTest extends AbstractMQConnectorTest {
 
     @Test
     public void dictionaryAttributeTest() throws Exception {
-        runTest(new Consumer<Session, Exception>() {
-            @Override
-            public void accept(final Session session) throws Exception {
-                final Destination output = session.createQueue(QUEUE_NAME);
-                final MessageProducer producer = session.createProducer(output);
-                producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
-                final CompositeData expectedValue = new CompositeDataBuilder("MemoryStatus", "dummy")
-                        .put("free", "free mem", 65)
-                        .put("total", "total mem", 100500)
-                        .build();
-                final MapMessage message = session.createMapMessage();
-                message.setInt("free", 65);
-                message.setInt("total", 100500);
-                message.setStringProperty("snampStorageKey", "dictionary");
-                message.setJMSType("write");
-                producer.send(message);
-                Thread.sleep(1000); //message delivery is asynchronous process
-                testAttribute("6.1", TypeToken.of(CompositeData.class), expectedValue, true);
-            }
+        runTest(session -> {
+            final Destination output = session.createQueue(QUEUE_NAME);
+            final MessageProducer producer = session.createProducer(output);
+            producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
+            final CompositeData expectedValue = new CompositeDataBuilder("MemoryStatus", "dummy")
+                    .put("free", "free mem", 65)
+                    .put("total", "total mem", 100500)
+                    .build();
+            final MapMessage message = session.createMapMessage();
+            message.setInt("free", 65);
+            message.setInt("total", 100500);
+            message.setStringProperty("snampStorageKey", "dictionary");
+            message.setJMSType("write");
+            producer.send(message);
+            Thread.sleep(1000); //message delivery is asynchronous process
+            testAttribute("6.1", TypeToken.of(CompositeData.class), expectedValue, true);
         });
     }
 

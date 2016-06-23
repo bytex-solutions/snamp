@@ -36,11 +36,11 @@ public final class ConfigAdapterInstanceCommand extends ConfigurationCommand {
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
         if (Strings.isNullOrEmpty(instanceName)) return false;
         final ResourceAdapterConfiguration adapter;
-        if (configuration.getResourceAdapters().containsKey(instanceName)) {//modify existing adapter
-            adapter = configuration.getResourceAdapters().get(instanceName);
+        if (configuration.getEntities(ResourceAdapterConfiguration.class).containsKey(instanceName)) {//modify existing adapter
+            adapter = configuration.getEntities(ResourceAdapterConfiguration.class).get(instanceName);
             output.append("Updated");
         } else {  //create new adapter instance
-            adapter = configuration.getResourceAdapters().getOrAdd(instanceName);
+            adapter = configuration.getEntities(ResourceAdapterConfiguration.class).getOrAdd(instanceName);
             output.append("Created");
         }
         //setup system name
@@ -50,7 +50,8 @@ public final class ConfigAdapterInstanceCommand extends ConfigurationCommand {
         if (!ArrayUtils.isNullOrEmpty(parameters))
             for (final String pair : parameters) {
                 final StringKeyValue keyValue = StringKeyValue.parse(pair);
-                adapter.getParameters().put(keyValue.getKey(), keyValue.getValue());
+                if (keyValue != null)
+                    adapter.getParameters().put(keyValue.getKey(), keyValue.getValue());
             }
         return true;
     }
