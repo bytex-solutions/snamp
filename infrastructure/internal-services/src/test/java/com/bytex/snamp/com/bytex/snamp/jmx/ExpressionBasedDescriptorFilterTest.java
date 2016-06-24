@@ -18,6 +18,7 @@ public final class ExpressionBasedDescriptorFilterTest extends Assert {
     @Test
     public void notificationFilter() throws InvalidSyntaxException {
         final EventConfiguration config = newEntityConfiguration(EventConfiguration.class);
+        assertNotNull(config);
         config.setAlternativeName("cat");
         config.getParameters().put(NotificationDescriptor.SEVERITY_PARAM, Severity.CRITICAL.toString());
         config.getParameters().put("param", "1");
