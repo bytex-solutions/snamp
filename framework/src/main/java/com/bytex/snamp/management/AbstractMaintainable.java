@@ -268,8 +268,14 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
         return action != null ? doAction(action, arguments, loc): null;
     }
 
+    private static String getActionName(final MaintenanceActionInfo actionInfo){
+        return actionInfo.getName();
+    }
+
     private static <T extends Enum<T> & MaintenanceActionInfo> Set<String> getMaintenanceActions(final Iterable<T> actions) {
-        return ImmutableSet.copyOf(StreamSupport.stream(actions.spliterator(), false).map(MaintenanceActionInfo::getName).collect(Collectors.toList()));
+        return ImmutableSet
+                .copyOf(StreamSupport.stream(actions.spliterator(), false)
+                        .map(AbstractMaintainable::getActionName).collect(Collectors.toList()));
     }
 
     /**

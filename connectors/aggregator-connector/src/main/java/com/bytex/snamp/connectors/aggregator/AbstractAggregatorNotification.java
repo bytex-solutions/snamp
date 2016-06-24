@@ -1,5 +1,6 @@
 package com.bytex.snamp.connectors.aggregator;
 
+import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.connectors.attributes.AttributeSupport;
 import com.bytex.snamp.connectors.notifications.CustomNotificationInfo;
@@ -17,7 +18,6 @@ import java.util.logging.Logger;
 import static com.bytex.snamp.connectors.aggregator.AggregatorConnectorConfiguration.getForeignAttributeName;
 import static com.bytex.snamp.connectors.aggregator.AggregatorConnectorConfiguration.getSourceManagedResource;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.createEntityConfiguration;
 
 /**
  * @author Roman Sakno
@@ -62,7 +62,7 @@ abstract class AbstractAggregatorNotification extends CustomNotificationInfo {
                                     final NotificationEnqueue sender);
 
     static EventConfiguration createEventConfiguration(final BundleContext context){
-        return createEntityConfiguration(context, EventConfiguration.class);
+        return ConfigurationManager.createEntityConfiguration(context, EventConfiguration.class);
     }
 
     final void process(final NotificationEnqueue sender) throws InstanceNotFoundException {

@@ -27,7 +27,7 @@ import java.util.logging.Logger;
 public final class PersistentConfigurationManager extends AbstractAggregator implements ConfigurationManager {
     private final ConfigurationAdmin admin;
     private final Logger logger;
-    private final ReadWriteLock configurationSynchronizer;
+    private final ReadWriteLock configurationLock;
     @Aggregation
     private final CMManagedResourceParserImpl resourceParser;
     @Aggregation
@@ -40,7 +40,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     public PersistentConfigurationManager(final ConfigurationAdmin configAdmin){
         admin = Objects.requireNonNull(configAdmin, "configAdmin is null.");
         logger = Logger.getLogger(getClass().getName());
-        configurationSynchronizer = new ReentrantReadWriteLock();
+        configurationLock = new ReentrantReadWriteLock();
         resourceParser = new CMManagedResourceParserImpl();
         adapterParser = new CMResourceAdapterParserImpl();
     }
@@ -102,7 +102,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     @Override
     public <E extends Throwable> void processConfiguration(final ConfigurationProcessor<E> handler) throws E, IOException {
         //configuration may be changed by handler so we protect it with exclusive lock.
-        processConfiguration(handler, configurationSynchronizer.writeLock());
+        processConfiguration(handler, configurationLock.writeLock());
     }
 
     /**
@@ -119,7 +119,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         processConfiguration(config -> {
             handler.accept(config);
             return false;
-        }, configurationSynchronizer.readLock());
+        }, configurationLock.readLock());
     }
 
     /**

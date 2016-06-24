@@ -17,6 +17,11 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
     private final ServiceReference<S> serviceRef;
     private S serviceImpl;
 
+    private ServiceHolder(final LocalServiceReference<S> localRef){
+        serviceRef = Objects.requireNonNull(localRef);
+        serviceImpl = localRef.get();
+    }
+
     /**
      * Initializes a new service reference holder.
      * @param context The context of the bundle which holds this reference. Cannot be {@literal null}.
@@ -55,6 +60,28 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
     }
 
     /**
+     * Attempts to create a reference to OSGi or local (provided via {@link java.util.ServiceLoader}) service without throwing exception
+     * if service was not registered.
+     * @param context The class loader which holds this reference. Cannot be {@literal null}.
+     * @param serviceType The requested service type. Cannot be {@literal null}.
+     * @param <S> Type of service interface.
+     * @return A reference to OSGi or local service; or {@literal null}, if service was not registered.
+     * @since 1.2
+     */
+    public static <S> ServiceHolder<S> tryCreate(final ClassLoader context, final Class<S> serviceType){
+        if(context instanceof BundleReference)
+            return tryCreate(getBundleContext((BundleReference)context), serviceType);
+        else {
+            final LocalServiceReference<S> serviceRef = LocalServiceReference.resolve(context, serviceType);
+            return serviceRef != null ? new ServiceHolder<>(serviceRef) : null;
+        }
+    }
+
+    private static BundleContext getBundleContext(final BundleReference bundleRef){
+        return bundleRef.getBundle().getBundleContext();
+    }
+
+    /**
      * Gets a strong reference to the service.
      * @return A strong reference to the service; or {@literal null}, if reference is released.
      */
@@ -81,6 +108,23 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
     public final boolean release(final BundleContext context) {
         serviceImpl = null;
         return context.ungetService(serviceRef);
+    }
+
+    /**
+     * Releases this reference.
+     * @param context The class loader that was used to create this service holder.
+     * @return {@literal false} if the context bundle's use count for the service
+     *         is zero or if the service has been unregistered; {@literal true}
+     *         otherwise.
+     *  @since 1.2
+     */
+    public final boolean release(final ClassLoader context){
+        if(context instanceof BundleReference)
+            return release(getBundleContext((BundleReference)context));
+        else {
+            serviceImpl = null;
+            return true;
+        }
     }
 
     /**

@@ -96,7 +96,7 @@ public final class MaintainableTest extends Assert {
     }
 
     @Test
-    public final void maintainableTest() throws ExecutionException, InterruptedException {
+    public void maintainableTest() throws ExecutionException, InterruptedException {
         final Maintainable m = new MaintainableImpl();
         assertEquals(2, m.getActions().size());
         assertTrue(m.getActions().contains("inc"));

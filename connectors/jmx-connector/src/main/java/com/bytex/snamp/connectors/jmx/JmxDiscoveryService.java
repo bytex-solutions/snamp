@@ -1,5 +1,6 @@
 package com.bytex.snamp.connectors.jmx;
 
+import com.bytex.snamp.configuration.ConfigurationManager;
 import org.osgi.framework.BundleContext;
 
 import javax.management.*;
@@ -11,7 +12,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
-import static com.bytex.snamp.configuration.AgentConfiguration.createEntityConfiguration;
 import static com.bytex.snamp.connectors.jmx.JmxConnectorConfigurationDescriptor.OBJECT_NAME_PROPERTY;
 
 /**
@@ -29,7 +29,7 @@ final class JmxDiscoveryService{
         final List<AttributeConfiguration> result = new ArrayList<>(40);
         for (final ObjectName objectName : connection.queryNames(null, null))
             for (final MBeanAttributeInfo attr : connection.getMBeanInfo(objectName).getAttributes()) {
-                final AttributeConfiguration config = createEntityConfiguration(context, AttributeConfiguration.class);
+                final AttributeConfiguration config = ConfigurationManager.createEntityConfiguration(context, AttributeConfiguration.class);
                 if(config != null) {
                     config.getParameters().put(OBJECT_NAME_PROPERTY, objectName.getCanonicalName());
                     config.setAlternativeName(attr.getName());
@@ -45,7 +45,7 @@ final class JmxDiscoveryService{
         for (final ObjectName objectName : connection.queryNames(null, null))
             for (final MBeanNotificationInfo notif : connection.getMBeanInfo(objectName).getNotifications())
                 for (final String category : notif.getNotifTypes()) {
-                    final EventConfiguration config = createEntityConfiguration(context, EventConfiguration.class);
+                    final EventConfiguration config = ConfigurationManager.createEntityConfiguration(context, EventConfiguration.class);
                     if(config != null) {
                         config.setAlternativeName(category);
                         config.getParameters().put(OBJECT_NAME_PROPERTY, objectName.getCanonicalName());

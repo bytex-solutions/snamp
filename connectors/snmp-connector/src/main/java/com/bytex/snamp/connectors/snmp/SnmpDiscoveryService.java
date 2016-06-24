@@ -2,6 +2,7 @@ package com.bytex.snamp.connectors.snmp;
 
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
+import com.bytex.snamp.configuration.ConfigurationManager;
 import org.osgi.framework.BundleContext;
 import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.Variable;
@@ -11,7 +12,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.createEntityConfiguration;
 import static com.bytex.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.SNMP_CONVERSION_FORMAT_PARAM;
 
 /**
@@ -33,7 +33,7 @@ final class SnmpDiscoveryService {
     private static Collection<AttributeConfiguration> discoverAttributes(final BundleContext context, final SnmpClient client) throws TimeoutException, InterruptedException, ExecutionException {
         return client.walk(SnmpConnectorHelpers.getDiscoveryTimeout()).stream()
                 .map(input ->{
-                    final AttributeConfiguration config = createEntityConfiguration(context, AttributeConfiguration.class);
+                    final AttributeConfiguration config = ConfigurationManager.createEntityConfiguration(context, AttributeConfiguration.class);
                     if(config != null) {
                         config.setAlternativeName(input.getOid().toDottedString());
                         setupAttributeOptions(input.getVariable(), config.getParameters());

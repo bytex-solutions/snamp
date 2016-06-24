@@ -1,10 +1,7 @@
 package com.bytex.snamp.configuration;
 
 import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.core.ServiceHolder;
-import org.osgi.framework.BundleContext;
 
-import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -359,29 +356,5 @@ public interface AgentConfiguration extends Cloneable {
      * Clears this configuration.
      */
     void clear();
-
-    /**
-     * Creates a new instance of entity configuration.
-     * @param context Context of caller bundle. Cannot be {@literal null}.
-     * @param entityType Type of entity. Can be {@link ManagedResourceConfiguration},
-     *                  {@link ResourceAdapterConfiguration}. {@link ManagedResourceConfiguration.AttributeConfiguration}, {@link ManagedResourceConfiguration.EventConfiguration}, {@link ManagedResourceConfiguration.OperationConfiguration}.
-     * @param <E> Type of requested entity.
-     * @return A new instance of entity configuration; or {@literal null}, if entity is not supported.
-     * @since 1.2
-     */
-    static <E extends EntityConfiguration> E createEntityConfiguration(final BundleContext context, final Class<E> entityType){
-        final ServiceHolder<ConfigurationManager> manager = ServiceHolder.tryCreate(context, ConfigurationManager.class);
-        if(manager != null)
-            try{
-                return manager.get().transformConfiguration(config -> config.createEntityConfiguration(entityType));
-            }
-            catch (final IOException ignored){
-                return null;
-            }
-            finally {
-                manager.release(context);
-            }
-        else return null;
-    }
 
 }

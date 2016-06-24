@@ -1,7 +1,7 @@
 package com.bytex.snamp.connectors.groovy;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.ConfigurationManager;
 import com.google.common.collect.ImmutableList;
 import groovy.lang.Binding;
 import org.osgi.framework.BundleContext;
@@ -29,7 +29,7 @@ public abstract class ManagedResourceInitializationScript extends ManagedResourc
     }
 
     private <E extends EntityConfiguration> E createEntityConfiguration(final Class<E> entityType) {
-        return contextRef != null ? AgentConfiguration.createEntityConfiguration(contextRef, entityType) : null;
+        return contextRef != null ? ConfigurationManager.createEntityConfiguration(contextRef, entityType) : null;
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.bytex.snamp.concurrent;
 
+import com.bytex.snamp.Consumer;
 import com.google.common.base.Function;
 import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.TimeSpan;
@@ -89,8 +90,8 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ReentrantRea
      * @param <V> Type of the resource reading value operation.
      * @return The value obtained from the resource.
      */
-    public final <V> V read(final ConsistentAction<R, V> reader){
-        return read((Action<R, V, ExceptionPlaceholder>)reader);
+    public final <V> V read(final ConsistentAction<? super R, ? extends V> reader){
+        return read((Action<? super R, ? extends V, ExceptionPlaceholder>)reader);
     }
 
     /**
@@ -105,8 +106,8 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ReentrantRea
      * @throws TimeoutException Read lock cannot be acquired in the specified time.
      * @throws InterruptedException Synchronization interrupted.
      */
-    public final <V> V read(final ConsistentAction<R, V> reader, final TimeSpan readTimeout) throws TimeoutException, InterruptedException {
-        return read((Action<R, V, ExceptionPlaceholder>)reader, readTimeout);
+    public final <V> V read(final ConsistentAction<? super R, ? extends V> reader, final TimeSpan readTimeout) throws TimeoutException, InterruptedException {
+        return read((Action<? super R, ? extends V, ExceptionPlaceholder>)reader, readTimeout);
     }
 
     /**
@@ -120,7 +121,7 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ReentrantRea
      * @return The reading operation result.
      * @throws E Type of the exception that can be raised by reader.
      */
-    public final <V, E extends Throwable> V read(final Action<R, V, E> reader) throws E{
+    public final <V, E extends Throwable> V read(final Action<? super R, ? extends V, E> reader) throws E{
         if(reader == null) return null;
         final Lock rl = readLock();
         rl.lock();
@@ -130,6 +131,42 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ReentrantRea
         finally {
             rl.unlock();
         }
+    }
+
+    /**
+     * Provides inconsistent read on the resource.
+     * <p>
+     *    This operation acquires read lock (may be infinitely in time) on the resource.
+     * </p>
+     * @param reader The resource reader.
+     * @param <E> Type of the exception that can be raised by reader.
+     * @throws E Type of the exception that can be raised by reader.
+     * @since 1.2
+     */
+    public final <E extends Throwable> void consume(final Consumer<? super R, E> reader) throws E {
+        read((Action<R, Void, E>) resource -> {
+            reader.accept(resource);
+            return null;
+        });
+    }
+
+    /**
+     * Provides inconsistent invoke on the resource.
+     * <p>
+     *    This operation acquires read lock (may be infinitely in time) on the resource.
+     * </p>
+     * @param reader The resource reader.
+     * @param <E> Type of the exception that can be raised by reader.
+     * @throws E Type of the exception that can be raised by reader.
+     * @throws TimeoutException Read lock cannot be acquired in the specified time.
+     * @throws InterruptedException Synchronization interrupted.
+     * @since 1.2
+     */
+    public final <E extends Throwable> void consume(final Consumer<? super R, E> reader, final TimeSpan readTimeout) throws E, TimeoutException, InterruptedException {
+        read((Action<R, Void, E>) resource -> {
+            reader.accept(resource);
+            return null;
+        }, readTimeout);
     }
 
     /**
@@ -145,7 +182,7 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ReentrantRea
      * @throws TimeoutException Read lock cannot be acquired in the specified time.
      * @throws InterruptedException Synchronization interrupted.
      */
-    public final <V, E extends Throwable> V read(final Action<R, V, E> reader, final TimeSpan readTimeout) throws E, TimeoutException, InterruptedException {
+    public final <V, E extends Throwable> V read(final Action<? super R, ? extends V, E> reader, final TimeSpan readTimeout) throws E, TimeoutException, InterruptedException {
         if(reader == null) return null;
         final Lock rl = readLock();
         if(readTimeout == TimeSpan.INFINITE) rl.lockInterruptibly();
@@ -183,8 +220,8 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ReentrantRea
      * @throws TimeoutException Write lock cannot be acquired in the specified time.
      * @throws InterruptedException Synchronization interrupted.
      */
-    public final <O> O write(final ConsistentAction<R, O> writer, final TimeSpan writeTimeout) throws TimeoutException, InterruptedException {
-        return write((Action<R, O, ExceptionPlaceholder>)writer, writeTimeout);
+    public final <O> O write(final ConsistentAction<? super R, ? extends O> writer, final TimeSpan writeTimeout) throws TimeoutException, InterruptedException {
+        return write((Action<? super R, ? extends O, ExceptionPlaceholder>)writer, writeTimeout);
     }
 
     /**
@@ -198,7 +235,7 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ReentrantRea
      * @return The value obtained from the resource.
      * @throws E An exception that can be raised by reader.
      */
-    public final <O, E extends Throwable> O write(final Action<R, O, E> writer) throws E{
+    public final <O, E extends Throwable> O write(final Action<? super R, ? extends O, E> writer) throws E{
         if(writer == null) return null;
         final Lock wl = writeLock();
         wl.lock();
@@ -208,6 +245,42 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ReentrantRea
         finally {
             wl.unlock();
         }
+    }
+
+    /**
+     * Provides inconsistent write on the resource.
+     * <p>
+     *     This operation acquires write lock (may be infinitely in time) on the resource.
+     * </p>
+     * @param writer The resource writer.
+     * @param <E> An exception that can be raised by reader.
+     * @throws E An exception that can be raised by reader.
+     * @since 1.2
+     */
+    public final <E extends Throwable> void modify(final Consumer<? super R, E> writer) throws E{
+        write((Action<R, Void, E>) resource -> {
+            writer.accept(resource);
+            return null;
+        });
+    }
+
+    /**
+     * Provides inconsistent write on the resource.
+     * <p>
+     *     This operation acquires write lock on the resource.
+     * </p>
+     * @param writer The resource writer.
+     * @param <E> An exception that can be raised by reader.
+     * @throws E An exception that can be raised by reader.
+     * @throws TimeoutException Write lock cannot be acquired in the specified time.
+     * @throws InterruptedException Synchronization interrupted.
+     * @since 1.2
+     */
+    public final <E extends Throwable> void modify(final Consumer<? super R, E> writer, final TimeSpan writeTimeout) throws E, TimeoutException, InterruptedException {
+        write((Action<R, Void, E>) resource -> {
+            writer.accept(resource);
+            return null;
+        }, writeTimeout);
     }
 
     /**
@@ -223,7 +296,7 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ReentrantRea
      * @throws TimeoutException Write lock cannot be acquired in the specified time.
      * @throws InterruptedException Synchronization interrupted.
      */
-    public final <O, E extends Throwable> O write(final Action<R, O, E> writer, final TimeSpan writeTimeout) throws E, TimeoutException, InterruptedException {
+    public final <O, E extends Throwable> O write(final Action<? super R, ? extends O, E> writer, final TimeSpan writeTimeout) throws E, TimeoutException, InterruptedException {
         if(writer == null) return null;
         final Lock wl = writeLock();
         if(writeTimeout == TimeSpan.INFINITE) wl.lockInterruptibly();

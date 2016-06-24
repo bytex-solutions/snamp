@@ -1,5 +1,6 @@
 package com.bytex.snamp.concurrent;
 
+import com.bytex.snamp.ExceptionPlaceholder;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.bytex.snamp.Wrapper;
@@ -126,7 +127,21 @@ public class ConcurrentResourceAccessor<R> extends AbstractConcurrentResourceAcc
      * @param newResource The factory of the new resource. Cannot be {@literal null}.
      * @throws IllegalArgumentException newResource is {@literal null}.
      */
-    public final void changeResource(final ConsistentAction<R, R> newResource){
+    public final void changeResource(final ConsistentAction<R, R> newResource) {
+        changeResource((Action<R, R, ExceptionPlaceholder>) newResource);
+    }
+
+    /**
+     * Changes the resource. This operation may fail.
+     * <p>
+     *   This operation acquires write-lock on the resource.
+     * </p>
+     * @param newResource The factory of the new resource. Cannot be {@literal null}.
+     * @throws IllegalArgumentException newResource is {@literal null}.
+     * @throws E An exception thrown by resource setter. The original resource remain unchanged.
+     * @since 1.2
+     */
+    public final <E extends Throwable> void changeResource(final Action<R, R, E> newResource) throws E{
         if(newResource == null) throw new IllegalArgumentException("newResource is null.");
         final WriteLock wl = writeLock();
         wl.lock();

@@ -61,7 +61,7 @@ public class LocalProcessExecutionChannelTest extends Assert {
         template.getCommandOutputParser().addParsingRule("[a-z]+");
         template.getCommandOutputParser().addParsingRule("[a-z]+");
         template.getCommandOutputParser().addParsingRule("[a-z]+");
-        template.getCommandOutputParser().addParsingRule("[a-z]+");
+        template.getCommandOutputParser().addParsingRule("[a-z]+(/[a-z]+)?");
         template.getCommandOutputParser().addParsingRule("[a-z]+");
         template.getCommandOutputParser().addParsingRule("[a-zA-Z]+\\:");
         template.getCommandOutputParser().addDictionaryEntryRule("total", "[0-9]+", XmlParsingResultType.INTEGER);
@@ -70,7 +70,7 @@ public class LocalProcessExecutionChannelTest extends Assert {
         final CommandExecutionChannel channel = CommandExecutionChannels.createLocalProcessExecutionChannel(ImmutableMap.of(
             "format", "-m"
         ));
-        final Object memStatus = channel.exec(template, Collections.<String, Object>emptyMap());
+        final Object memStatus = channel.exec(template, Collections.emptyMap());
         assertTrue(memStatus instanceof Map);
         assertEquals(3, ((Map)memStatus).size());
         assertTrue(((Map)memStatus).get("total") instanceof Integer);

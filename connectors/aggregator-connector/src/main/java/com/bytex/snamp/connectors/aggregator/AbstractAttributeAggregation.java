@@ -1,7 +1,7 @@
 package com.bytex.snamp.connectors.aggregator;
 
-import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.attributes.AttributeSpecifier;
@@ -79,7 +79,7 @@ abstract class AbstractAttributeAggregation<T> extends OpenMBeanAttributeAccesso
     }
 
     static AttributeConfiguration createAttributeConfiguration(final BundleContext context){
-        return AgentConfiguration.createEntityConfiguration(context, AttributeConfiguration.class);
+        return ConfigurationManager.createEntityConfiguration(context, AttributeConfiguration.class);
     }
 
     /**

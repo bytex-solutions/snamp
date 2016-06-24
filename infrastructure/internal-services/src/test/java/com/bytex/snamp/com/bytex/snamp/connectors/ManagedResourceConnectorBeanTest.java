@@ -4,9 +4,9 @@ import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.modeling.AttributeValue;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
-import static com.bytex.snamp.configuration.impl.SerializableAgentConfiguration.newEntityConfiguration;
-
+import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
+import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.OperationConfiguration;
 import com.bytex.snamp.configuration.ConfigParameters;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
 import com.bytex.snamp.connectors.ManagedResourceConnectorBean;
@@ -28,6 +28,8 @@ import java.util.Locale;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+
+import static com.bytex.snamp.configuration.impl.SerializableAgentConfiguration.newEntityConfiguration;
 
 /**
  * Represents tests for {@link ManagedResourceConnectorBean} class.
@@ -54,7 +56,7 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
             }
         }
 
-        static final class Property1Marshaller implements ManagementAttributeMarshaller<String> {
+        public static final class Property1Marshaller implements ManagementAttributeMarshaller<String> {
 
             @Override
             public SimpleType<String> getOpenType() {

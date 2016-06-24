@@ -3,6 +3,7 @@ package com.bytex.snamp.configuration;
 import com.bytex.snamp.Box;
 import com.bytex.snamp.Consumer;
 import com.bytex.snamp.core.FrameworkService;
+import com.bytex.snamp.core.ServiceHolder;
 
 import java.io.IOException;
 import java.util.function.Function;
@@ -105,4 +106,28 @@ public interface ConfigurationManager extends FrameworkService {
      */
     @Deprecated
     void sync();
+
+    /**
+     * Creates a new instance of entity configuration.
+     * @param context Class loader of caller code. Cannot be {@literal null}.
+     * @param entityType Type of entity. Can be {@link AgentConfiguration.ManagedResourceConfiguration},
+     *                  {@link AgentConfiguration.ResourceAdapterConfiguration}. {@link AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration}, {@link AgentConfiguration.ManagedResourceConfiguration.EventConfiguration}, {@link AgentConfiguration.ManagedResourceConfiguration.OperationConfiguration}.
+     * @param <E> Type of requested entity.
+     * @return A new instance of entity configuration; or {@literal null}, if entity is not supported.
+     * @since 1.2
+     */
+    static <E extends AgentConfiguration.EntityConfiguration> E createEntityConfiguration(final ClassLoader context, final Class<E> entityType){
+        final ServiceHolder<ConfigurationManager> manager = ServiceHolder.tryCreate(context, ConfigurationManager.class);
+        if(manager != null)
+            try{
+                return manager.get().transformConfiguration(config -> config.createEntityConfiguration(entityType));
+            }
+            catch (final IOException ignored){
+                return null;
+            }
+            finally {
+                manager.release(context);
+            }
+        else return null;
+    }
 }

@@ -4,6 +4,7 @@ import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.Descriptive;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.configuration.ConfigParameters;
+import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.connectors.attributes.*;
 import com.bytex.snamp.connectors.discovery.DiscoveryResultBuilder;
 import com.bytex.snamp.connectors.discovery.DiscoveryService;
@@ -36,7 +37,6 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.createEntityConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
 
 
@@ -355,6 +355,10 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             throw new MBeanException(new IllegalArgumentException(String.format("Operation '%s' doesn't exist", descriptor.getName(operationName))));
         }
 
+        private ClassLoader getConnectorClassLoader(){
+            return connectorRef.get().getClass().getClassLoader();
+        }
+
         @Override
         public Collection<JavaBeanOperationInfo> expand() {
             final List<JavaBeanOperationInfo> result = new LinkedList<>();
@@ -362,7 +366,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                     .filter(method -> method.getMethod().isAnnotationPresent(ManagementOperation.class))
                     .forEach(method -> {
                         final OperationConfiguration config =
-                                createEntityConfiguration(Utils.getBundleContextOfObject(connectorRef.get()), OperationConfiguration.class);
+                                ConfigurationManager.createEntityConfiguration(getConnectorClassLoader(), OperationConfiguration.class);
                         if(config != null) {
                             config.setAlternativeName(method.getName());
                             config.setAutomaticallyAdded(true);
@@ -623,6 +627,10 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             throw JMExceptionUtils.attributeNotFound(descriptor.getName(attributeName));
         }
 
+        private ClassLoader getConnectorClassLoader(){
+            return connectorRef.get().getClass().getClassLoader();
+        }
+
         @Override
         public Collection<JavaBeanAttributeInfo> expand() {
             final List<JavaBeanAttributeInfo> result = new LinkedList<>();
@@ -630,7 +638,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                     .filter(property -> !isReservedProperty(property))
                     .forEach(property -> {
                         final AttributeConfiguration config =
-                                createEntityConfiguration(Utils.getBundleContextOfObject(connectorRef.get()), AttributeConfiguration.class);
+                                ConfigurationManager.createEntityConfiguration(getConnectorClassLoader(), AttributeConfiguration.class);
                         if(config != null) {
                             config.setAlternativeName(property.getName());
                             config.setAutomaticallyAdded(true);
@@ -748,8 +756,8 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             this.notifications = Objects.requireNonNull(notifications);
         }
 
-        private BundleContext getConnectorContext(){
-            return Utils.getBundleContext(beanMetadata.getBeanDescriptor().getBeanClass());
+        private ClassLoader getConnectorClassLoader(){
+            return beanMetadata.getBeanDescriptor().getBeanClass().getClassLoader();
         }
 
         protected BeanDiscoveryService(final Class<? extends ManagedResourceConnectorBean> connectorType) throws IntrospectionException {
@@ -765,7 +773,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             final Collection<AttributeConfiguration> result = Lists.newArrayListWithExpectedSize(properties.length);
             for (final PropertyDescriptor descriptor : properties)
                 if (!isReservedProperty(descriptor)) {
-                    final AttributeConfiguration attribute = createEntityConfiguration(getConnectorContext(), AttributeConfiguration.class);
+                    final AttributeConfiguration attribute = ConfigurationManager.createEntityConfiguration(getConnectorClassLoader(), AttributeConfiguration.class);
                     if(attribute != null) {
                         attribute.setAlternativeName(descriptor.getName());
                         result.add(attribute);
@@ -777,7 +785,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         private Collection<EventConfiguration> discoverNotifications(final Collection<? extends ManagementNotificationType<?>> notifications){
             final Collection<EventConfiguration> result = Lists.newArrayListWithExpectedSize(notifications.size());
             for(final ManagementNotificationType<?> notifType: notifications) {
-                final EventConfiguration event = createEntityConfiguration(getConnectorContext(), EventConfiguration.class);
+                final EventConfiguration event = ConfigurationManager.createEntityConfiguration(getConnectorClassLoader(), EventConfiguration.class);
                 if(event != null) {
                     event.setAlternativeName(notifType.getCategory());
                     result.add(event);
