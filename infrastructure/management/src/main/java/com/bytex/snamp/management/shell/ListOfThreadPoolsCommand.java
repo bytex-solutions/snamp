@@ -12,9 +12,9 @@ import org.apache.karaf.shell.commands.Command;
         description = "List of SNAMP thread pools")
 public final class ListOfThreadPoolsCommand extends AbstractThreadPoolCommand {
 
-    private static void printThreadPooolConfig(final String name,
-                                               final ThreadPoolConfig config,
-                                               final StringBuilder output) {
+    private static void printThreadPoolConfig(final String name,
+                                              final ThreadPoolConfig config,
+                                              final StringBuilder output) {
         output
                 .append(name).append(System.lineSeparator())
                 .append(String.format("MinPoolSize: %s", config.getMinPoolSize())).append(System.lineSeparator())
@@ -26,10 +26,10 @@ public final class ListOfThreadPoolsCommand extends AbstractThreadPoolCommand {
 
     @Override
     void doExecute(final ThreadPoolRepository repository, final StringBuilder output) {
-        printThreadPooolConfig(ThreadPoolRepository.DEFAULT_POOL, repository.getConfiguration(ThreadPoolRepository.DEFAULT_POOL), output);
+        printThreadPoolConfig(ThreadPoolRepository.DEFAULT_POOL, repository.getConfiguration(ThreadPoolRepository.DEFAULT_POOL), output);
         output.append(System.lineSeparator());
         for(final String name: repository) {
-            printThreadPooolConfig(name, repository.getConfiguration(name), output);
+            printThreadPoolConfig(name, repository.getConfiguration(name), output);
             output.append(System.lineSeparator());
         }
     }

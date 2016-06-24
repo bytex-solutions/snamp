@@ -30,7 +30,7 @@ public final class ArrayUtils {
         byte[] convert(final T array, final int index);
     }
 
-    private static final ImmutableSet<SimpleType<?>> PRIMITIVE_TYPES = ImmutableSet.<SimpleType<?>>of(SimpleType.BOOLEAN,
+    private static final ImmutableSet<SimpleType<?>> PRIMITIVE_TYPES = ImmutableSet.of(SimpleType.BOOLEAN,
             SimpleType.CHARACTER,
             SimpleType.BYTE,
             SimpleType.SHORT,

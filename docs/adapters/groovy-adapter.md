@@ -141,7 +141,9 @@ Simple messaging using communicator:
 ```groovy
 def communicator = getCommunicator 'test-communicator'
 communicator.register(asListener { msg -> println msg})
-//in other script file
+```
+in other script file
+```groovy
 def communicator = getCommunicator 'test-communicator'
 communicator.post 'Hello, world!'
 ```
@@ -154,7 +156,9 @@ def listen(message){
     communicator.post('pong')
 }
 
-communicator.register(asListener this.&listen)
+communicator.register(asListener(this.&listen))
+```
+```groovy
 //script2.groovy
 communicator = getCommunicator 'test-communicator'
 def response = communicator.post('ping', 2000)  //2 seconds for response timeout

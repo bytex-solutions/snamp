@@ -61,7 +61,7 @@ public final class CommandExecutionChannels {
     }
 
     public static CommandExecutionChannel createLocalProcessExecutionChannel() {
-        return new LocalProcessExecutionChannel(Collections.<String, String>emptyMap());
+        return new LocalProcessExecutionChannel(Collections.emptyMap());
     }
 
     public static CommandExecutionChannel createLocalProcessExecutionChannel(final Map<String, String> params){

@@ -4,9 +4,6 @@ import com.bytex.jcommands.CommandExecutionChannel;
 import com.bytex.jcommands.impl.TypeTokens;
 import com.bytex.jcommands.impl.XmlCommandLineToolProfile;
 import com.bytex.jcommands.impl.XmlParserDefinition;
-import com.bytex.jcommands.impl.XmlParsingResultType;
-import com.bytex.snamp.EntryReader;
-import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
@@ -115,12 +112,9 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
                                                       final XmlParserDefinition definition) throws OpenDataException{
             final TabularTypeBuilder builder = new TabularTypeBuilder();
             builder.addColumn(INDEX_COLUMN, "The index of the row", SimpleType.INTEGER, true);
-            definition.exportTableOrDictionaryType(new EntryReader<String, XmlParsingResultType, ExceptionPlaceholder>() {
-                @Override
-                public boolean read(final String index, final XmlParsingResultType value) {
-                    builder.addColumn(index, index, value.getOpenType(), false);
-                    return true;
-                }
+            definition.exportTableOrDictionaryType((index, value) -> {
+                builder.addColumn(index, index, value.getOpenType(), false);
+                return true;
             });
             builder.setTypeName(String.format("%sTabularType", descriptor.getName(attributeName)), true);
             builder.setDescription(RShellAttributeInfo.getDescription(descriptor), true);
@@ -168,12 +162,9 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
                                                       final AttributeDescriptor descriptor,
                                                     final XmlParserDefinition definition) throws OpenDataException{
             final CompositeTypeBuilder builder = new CompositeTypeBuilder();
-            definition.exportTableOrDictionaryType(new EntryReader<String, XmlParsingResultType, ExceptionPlaceholder>() {
-                @Override
-                public boolean read(final String index, final XmlParsingResultType value) {
-                    builder.addItem(index, index, value.getOpenType());
-                    return true;
-                }
+            definition.exportTableOrDictionaryType((index, value) -> {
+                builder.addItem(index, index, value.getOpenType());
+                return true;
             });
             builder.setTypeName(String.format("%sCompositeType", descriptor.getName(attributeName)));
             builder.setDescription(RShellAttributeInfo.getDescription(descriptor));

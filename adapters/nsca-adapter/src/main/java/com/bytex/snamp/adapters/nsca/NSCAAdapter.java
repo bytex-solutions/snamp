@@ -104,9 +104,7 @@ final class NSCAAdapter extends AbstractResourceAdapter {
 
         private void clear() {
             try (final LockScope ignored = beginWrite()) {
-                for (final ResourceNotificationList<?> list : notifications.values())
-                    for (final NotificationAccessor accessor : list.values())
-                        accessor.close();
+                notifications.values().forEach(list -> list.values().forEach(NotificationAccessor::close));
                 notifications.clear();
             }
             checkSender = null;

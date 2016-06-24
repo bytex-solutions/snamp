@@ -12,6 +12,7 @@ import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.management.Maintainable;
+import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.common.collect.ObjectArrays;
 import com.google.common.collect.Sets;
@@ -23,6 +24,7 @@ import java.math.BigInteger;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
@@ -1110,10 +1112,10 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      */
     public static Collection<String> getInstalledResourceConnectors(final BundleContext context){
         final Collection<Bundle> candidates = getResourceConnectorBundles(context);
-        final Collection<String> systemNames = new ArrayList<>(candidates.size());
-        for(final Bundle bnd: candidates)
-            systemNames.add(bnd.getHeaders().get(CONNECTOR_NAME_MANIFEST_HEADER));
-        return systemNames;
+        return candidates.stream()
+                .map(bnd -> bnd.getHeaders().get(CONNECTOR_NAME_MANIFEST_HEADER))
+                .filter(header -> !Strings.isNullOrEmpty(header))
+                .collect(Collectors.toCollection(LinkedList::new));
     }
 
     static String createFilter(final String connectorType, final String filter){

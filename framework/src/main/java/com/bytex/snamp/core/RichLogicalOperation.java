@@ -21,7 +21,7 @@ public class RichLogicalOperation extends LogicalOperation {
                                final CorrelationIdentifierGenerator correlationID,
                                final ImmutableMap<String, ?> params) {
         super(logger, name, correlationID);
-        this.properties = params != null ? params : ImmutableMap.<String, Object>of();
+        this.properties = params != null ? params : ImmutableMap.of();
     }
 
     public RichLogicalOperation(final Logger logger,

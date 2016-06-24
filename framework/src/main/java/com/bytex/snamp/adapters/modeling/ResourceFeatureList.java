@@ -55,8 +55,7 @@ public abstract class ResourceFeatureList<M extends MBeanFeatureInfo, TAccessor 
 
     @Override
     public final void clear() {
-        for(final TAccessor accessor: values())
-            accessor.close();
+        values().forEach(FeatureAccessor::close);
         super.clear();
     }
 }

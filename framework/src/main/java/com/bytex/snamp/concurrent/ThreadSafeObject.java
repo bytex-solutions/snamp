@@ -114,7 +114,7 @@ public abstract class ThreadSafeObject {
             case 0:
                 throw new IllegalArgumentException("Empty resource groups");
             case 1:
-                resourceGroups = ImmutableMap.<Enum<?>, ReadWriteLockSlim>of(groups.iterator().next(), new ReentrantReadWriteLockSlim());
+                resourceGroups = ImmutableMap.of(groups.iterator().next(), new ReentrantReadWriteLockSlim());
                 break;
             default:
                 final ImmutableMap.Builder<Enum<?>, ReadWriteLockSlim> builder = ImmutableMap.builder();

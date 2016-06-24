@@ -1,6 +1,6 @@
 package com.bytex.snamp.adapters.groovy.impl;
 
-import com.google.common.collect.*;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.adapters.groovy.AttributesRootAPI;
@@ -10,12 +10,13 @@ import com.bytex.snamp.adapters.groovy.dsl.GroovyManagementModel;
 import com.bytex.snamp.adapters.modeling.*;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
-import com.bytex.snamp.EntryReader;
+import com.google.common.collect.*;
 import org.osgi.framework.BundleContext;
 
 import javax.management.*;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Represents repository of t
@@ -46,14 +47,13 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
         private Iterable<ScriptNotificationAccessor> clear(final String resourceName) {
             try (final LockScope ignored = beginWrite()) {
                 final ResourceNotificationList<ScriptNotificationAccessor> list = notifications.remove(resourceName);
-                return list != null ? list.values() : ImmutableList.<ScriptNotificationAccessor>of();
+                return list != null ? list.values() : ImmutableList.of();
             }
         }
 
         private void clear() {
             try (final LockScope ignored = beginWrite()) {
-                for (final ResourceNotificationList<?> list : notifications.values())
-                    list.clear();
+                notifications.values().forEach(ResourceFeatureList::clear);
                 notifications.clear();
             }
         }
@@ -87,10 +87,9 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
             try (final LockScope ignored = beginRead()) {
                 final ResourceNotificationList<?> list = notifications.get(resourceName);
                 if (list != null) {
-                    final List<MBeanNotificationInfo> result = Lists.newArrayListWithExpectedSize(list.size());
-                    for (final FeatureAccessor<MBeanNotificationInfo> accessor : list.values())
-                        result.add(accessor.getMetadata());
-                    return result;
+                    return list.values().stream()
+                            .map(FeatureAccessor::getMetadata)
+                            .collect(Collectors.toList());
                 } else return ImmutableList.of();
             }
         }

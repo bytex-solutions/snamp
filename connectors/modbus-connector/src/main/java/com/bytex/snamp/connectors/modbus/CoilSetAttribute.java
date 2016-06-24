@@ -16,9 +16,10 @@ import javax.management.openmbean.SimpleType;
  */
 final class CoilSetAttribute extends ModbusArrayAttributeInfo<boolean[], CoilAccess> {
     private static final String DESCRIPTION = "A set of coils";
+    private static final long serialVersionUID = 2220377415321325345L;
 
     CoilSetAttribute(final String attributeID, final AttributeDescriptor descriptor, final CoilAccess deviceAccess) throws OpenDataException {
-        super(attributeID, DESCRIPTION, new ArrayType<boolean[]>(SimpleType.BOOLEAN, true), AttributeSpecifier.READ_WRITE, descriptor, deviceAccess);
+        super(attributeID, DESCRIPTION, new ArrayType<>(SimpleType.BOOLEAN, true), AttributeSpecifier.READ_WRITE, descriptor, deviceAccess);
     }
 
     @Override

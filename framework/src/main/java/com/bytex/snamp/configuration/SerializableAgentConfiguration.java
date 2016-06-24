@@ -198,9 +198,9 @@ public class SerializableAgentConfiguration extends AbstractAgentConfiguration i
         @Override
         public final void reset() {
             super.reset();
-            for(final EntityConfiguration entity: values())
-                if(entity instanceof Resettable)
-                    ((Resettable)entity).reset();
+            values().stream()
+                    .filter(entity -> entity instanceof Resettable)
+                    .forEach(entity -> ((Resettable) entity).reset());
         }
 
         @Override

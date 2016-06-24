@@ -25,14 +25,11 @@ final class ConcurrentPassiveCheckSender extends NagiosPassiveCheckSender {
     }
 
     <I> void send(final Function<? super I, MessagePayload> payload, final I input) {
-        executor.submit(new Callable<MessagePayload>() {
-            @Override
-            public MessagePayload call() throws IOException, NagiosException {
-                final MessagePayload result = payload.apply(input);
-                if (result != null)
-                    ConcurrentPassiveCheckSender.super.send(result);
-                return result;
-            }
+        executor.submit(() -> {
+            final MessagePayload result = payload.apply(input);
+            if (result != null)
+                ConcurrentPassiveCheckSender.super.send(result);
+            return result;
         });
     }
 

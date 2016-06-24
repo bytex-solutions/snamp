@@ -18,14 +18,13 @@ import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanNotificationInfo;
 import javax.naming.NamingException;
-import javax.naming.directory.DirContext;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
+
 import static com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterConfigurationParser.isValidNotification;
 
 /**
@@ -94,19 +93,10 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
 
     SnmpResourceAdapter(final String adapterInstanceName, final JNDIContextManager contextManager) {
         super(adapterInstanceName);
-        contextFactory = createFactory(contextManager);
+        contextFactory = contextManager::newInitialDirContext;
         updateManager = null;
         notifications = HashMultimap.create();
         attributes = HashMultimap.create();
-    }
-
-    private static DirContextFactory createFactory(final JNDIContextManager contextManager){
-        return new DirContextFactory() {
-            @Override
-            public DirContext create(final Hashtable<String, ?> env) throws NamingException {
-                return contextManager.newInitialDirContext(env);
-            }
-        };
     }
 
     /**
@@ -230,11 +220,9 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
             if (updateManager != null)
                 updateManager.close();
             //remove all notifications
-            for (final FeatureAccessor<?> mapping : notifications.values())
-                mapping.close();
+            notifications.values().forEach(FeatureAccessor::close);
             //remove all attributes
-            for (final FeatureAccessor<?> mapping : attributes.values())
-                mapping.close();
+            attributes.values().forEach(FeatureAccessor::close);
         } finally {
             updateManager = null;
             notifications.clear();

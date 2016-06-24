@@ -88,7 +88,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         }
 
         private static InternalState initialState(){
-            return new InternalState(AdapterState.CREATED, ImmutableMap.<String, String>of());
+            return new InternalState(AdapterState.CREATED, ImmutableMap.of());
         }
 
         private InternalState setParameters(final Map<String, String> value){
@@ -100,7 +100,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         }
 
         private static InternalState finalState(){
-            return new InternalState(AdapterState.CLOSED, ImmutableMap.<String, String>of());
+            return new InternalState(AdapterState.CLOSED, ImmutableMap.of());
         }
 
         private boolean parametersAreEqual(final Map<String, String> newParameters) {
@@ -500,8 +500,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                 //explore all available resources
                 final Collection<ServiceReference<ManagedResourceConnector>> resources =
                         getBundleContext().getServiceReferences(ManagedResourceConnector.class, null);
-                for(final ServiceReference<ManagedResourceConnector> resourceRef: resources)
-                    addResource(resourceRef);
+                resources.forEach(this::addResource);
                 InternalState newState = currentState.setParameters(params);
                 start(newState.parameters);
                 mutableState = newState.setAdapterState(AdapterState.STARTED);
@@ -522,8 +521,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                     final BundleContext context = getBundleContext();
                     final Collection<ServiceReference<ManagedResourceConnector>> resources =
                             context.getServiceReferences(ManagedResourceConnector.class, null);
-                    for(final ServiceReference<ManagedResourceConnector> resourceRef: resources)
-                        removeResource(resourceRef);
+                    resources.forEach(this::removeResource);
                 }
                 finally {
                     getBundleContext().removeServiceListener(this);

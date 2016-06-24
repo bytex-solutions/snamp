@@ -1,7 +1,6 @@
 package com.bytex.snamp.connectors.mq;
 
 import javax.jms.JMSException;
-import java.util.concurrent.Callable;
 
 /**
  * @author Roman Sakno
@@ -22,13 +21,5 @@ public final class JMSExceptionUtils {
 
     public static JMSException wrap(final Exception e){
         return wrap(e.getMessage(), e);
-    }
-
-    public static <V> V wrap(final Callable<V> task) throws JMSException{
-        try {
-            return task.call();
-        } catch (final Exception e) {
-            throw wrap(e);
-        }
     }
 }

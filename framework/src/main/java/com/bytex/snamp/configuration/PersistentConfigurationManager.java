@@ -308,7 +308,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
                 ArrayUtils.emptyArray(byte[].class));
         return serializedForm != null && serializedForm.length > 0 ?
                 IOUtils.deserialize(serializedForm, featureType):
-                ImmutableMap.<String, F>of();
+                ImmutableMap.of();
     }
 
     public static Map<String, SerializableManagedResourceConfiguration.SerializableAttributeConfiguration> getAttributes(final Dictionary<String, ?> resourceConfig) throws IOException{

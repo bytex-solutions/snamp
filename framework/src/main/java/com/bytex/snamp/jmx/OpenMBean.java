@@ -686,15 +686,15 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
     }
 
     protected final <N> void sendNotification(final Class<? extends OpenNotification<N>> notifType, final N eventObject){
-        for(final OpenNotification<?> n: notifications)
-            if(notifType.isInstance(n))
-                sendNotification(notifType.cast(n).createNotification(this, eventObject));
+        notifications.stream()
+                .filter(notifType::isInstance)
+                .forEach(n -> sendNotification(notifType.cast(n).createNotification(OpenMBean.this, eventObject)));
     }
 
     public final void sendNotification(final String name, final Object eventObject){
-        for(final OpenNotification<?> n: notifications)
-            if(Objects.equals(name, n.name))
-                sendNotification(n.createNotificationUnsafe(this, eventObject));
+        notifications.stream()
+                .filter(n -> Objects.equals(name, n.name))
+                .forEach(n -> sendNotification(n.createNotificationUnsafe(OpenMBean.this, eventObject)));
     }
 
     /**

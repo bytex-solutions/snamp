@@ -25,6 +25,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.createEntityConfi
  * @since 1.0
  */
 abstract class AbstractAggregatorNotification extends CustomNotificationInfo {
+    private static final long serialVersionUID = -848996422871723373L;
     private final String source;
     private final Logger logger;
 

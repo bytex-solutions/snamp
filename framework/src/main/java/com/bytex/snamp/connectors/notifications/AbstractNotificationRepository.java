@@ -22,6 +22,7 @@ import java.util.LinkedList;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Represents a base class that allows to enable notification support for the management connector.
@@ -214,19 +215,18 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
 
         final Collection<Notification> notifs;
         try (final LockScope ignored = beginRead()) {
-            notifs = Lists.newArrayListWithExpectedSize(notifications.size());
-            for (final NotificationHolder<M> holder : notifications.values())
-                if (Objects.equals(NotificationDescriptor.getName(holder.getMetadata()), category)) {
-                    final Notification n = new NotificationBuilder()
-                            .setTimeStamp(timeStamp)
-                            .setSequenceNumber(sequenceNumber)
-                            .setType(holder.getNotifType())
-                            .setSource(this)
-                            .setMessage(message)
-                            .setUserData(userData)
-                            .get();
-                    notifs.add(n);
-                }
+            notifs = notifications.values().stream()
+                    .filter(holder -> Objects.equals(NotificationDescriptor.getName(holder.getMetadata()), category))
+                    .map(holder ->  new NotificationBuilder()
+                        .setTimeStamp(timeStamp)
+                        .setSequenceNumber(sequenceNumber)
+                        .setType(holder.getNotifType())
+                        .setSource(this)
+                        .setMessage(message)
+                        .setUserData(userData)
+                        .get()
+                    ).
+                    collect(Collectors.toCollection(() -> Lists.newArrayListWithExpectedSize(notifications.size())));
         }
         //fire listeners
         fireListeners(notifs);

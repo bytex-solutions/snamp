@@ -127,7 +127,7 @@ public final class DistributedServices {
      * Gets distributed {@link java.util.concurrent.ConcurrentMap}.
      * @param context Context of the caller OSGi bundle.
      * @param collectionName Name of the distributed collection.
-     * @return Distributed or process-lAbstractocal storage.
+     * @return Distributed or process-local storage.
      */
     public static ConcurrentMap<String, Object> getDistributedStorage(final BundleContext context,
                                                                             final String collectionName){

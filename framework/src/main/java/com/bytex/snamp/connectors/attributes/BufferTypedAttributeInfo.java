@@ -9,6 +9,8 @@ import java.nio.Buffer;
  * @since 1.0
  */
 public class BufferTypedAttributeInfo<B extends Buffer> extends CustomAttributeInfo {
+    private static final long serialVersionUID = 921553832292630988L;
+
     /**
      * Constructs an <CODE>MBeanAttributeInfo</CODE> object.
      *

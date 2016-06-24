@@ -1,15 +1,15 @@
 package com.bytex.snamp.adapters.modeling;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.bytex.snamp.Consumer;
-import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.ThreadSafe;
+import com.bytex.snamp.concurrent.ThreadSafeObject;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 import javax.management.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Represents an abstract object that helps you to organize storage
@@ -129,7 +129,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
         try (final LockScope ignored = beginRead()) {
             return attributes.containsKey(resourceName) ?
                     attributes.get(resourceName).keySet() :
-                    ImmutableSet.<String>of();
+                    ImmutableSet.of();
         }
     }
 
@@ -138,10 +138,9 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
         try(final LockScope ignored = beginRead()){
             final ResourceAttributeList<?> resource = attributes.get(resourceName);
             if(resource != null){
-                final List<MBeanAttributeInfo> result = Lists.newArrayListWithExpectedSize(resource.size());
-                for(final FeatureAccessor<MBeanAttributeInfo> accessor: resource.values())
-                    result.add(accessor.getMetadata());
-                return result;
+                return resource.values().stream()
+                        .map(FeatureAccessor::getMetadata)
+                        .collect(Collectors.toCollection(LinkedList::new));
             }
             else return ImmutableList.of();
         }
@@ -157,7 +156,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
         try(final LockScope ignored = beginWrite()){
             return attributes.containsKey(resourceName) ?
                     attributes.remove(resourceName).values():
-                    ImmutableList.<TAccessor>of();
+                    ImmutableList.of();
         }
     }
 
@@ -181,8 +180,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
     @ThreadSafe
     public final void clear(){
         try(final LockScope ignored = beginWrite()){
-            for(final ResourceAttributeList<?> list: attributes.values())
-                list.clear();
+            attributes.values().forEach(ResourceFeatureList::clear);
             attributes.clear();
         }
     }

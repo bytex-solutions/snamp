@@ -135,9 +135,9 @@ public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> ext
                     handler.onError(resourceName, accessor.getMetadata(), e);
                 return;
             }
-            for (final FilterAndProcessAttributeStatement handler : handlers)
-                if (handler.apply(attributeValue))
-                    handler.onSuccess(resourceName, accessor.getMetadata(), attributeValue);
+            handlers.stream()
+                    .filter(handler -> handler.apply(attributeValue))
+                    .forEach(handler -> handler.onSuccess(resourceName, accessor.getMetadata(), attributeValue));
         }
     }
 
@@ -172,9 +172,9 @@ public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> ext
     public final boolean processAttribute(final String resourceName, final TAccessor accessor) {
         //abort if passive node
         if (DistributedServices.isActiveNode(Utils.getBundleContextOfObject(this))) {
-            for (final AttributeSelectStatement group : selectionStatements)
-                if (group.match((DescriptorRead) accessor))
-                    group.process(resourceName, accessor);
+            selectionStatements.stream()
+                    .filter(group -> group.match((DescriptorRead) accessor))
+                    .forEach(group -> group.process(resourceName, accessor));
             return true;
         } else return false;
     }

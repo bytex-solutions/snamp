@@ -8,6 +8,8 @@ import com.bytex.snamp.configuration.AbsentConfigurationParameterException;
  * @since 1.0
  */
 final class MQAbsentConfigurationParameterException extends AbsentConfigurationParameterException {
+    private static final long serialVersionUID = -1809722505756348822L;
+
     MQAbsentConfigurationParameterException(String parameterName) {
         super(parameterName);
     }

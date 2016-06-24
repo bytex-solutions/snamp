@@ -169,7 +169,7 @@ public class Switch<I, O> implements Function<I, O> {
 
     @ThreadSafe(false)
     public final Switch<I, O> equalsToNull(final Supplier<? extends O> action){
-        return addCase(Switch.<I, O>equalsToNullStatement(action));
+        return addCase(Switch.equalsToNullStatement(action));
     }
 
     @ThreadSafe(false)
@@ -247,7 +247,7 @@ public class Switch<I, O> implements Function<I, O> {
      * @throws InterruptedException Caller thread interrupted before execution was completed.
      */
     public final O apply(final I value, final Executor executor) throws ExecutionException, InterruptedException {
-        return apply(value, new ExecutorCompletionService<O>(executor));
+        return apply(value, new ExecutorCompletionService<>(executor));
     }
 
     /**

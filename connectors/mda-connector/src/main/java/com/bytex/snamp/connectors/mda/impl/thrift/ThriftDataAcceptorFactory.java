@@ -1,15 +1,11 @@
 package com.bytex.snamp.connectors.mda.impl.thrift;
 
 import com.bytex.snamp.connectors.mda.DataAcceptorFactory;
-import com.bytex.snamp.connectors.mda.impl.MDAThreadPoolConfig;
+import com.bytex.snamp.connectors.mda.impl.MDAConnectorConfigurationParser;
+import org.apache.thrift.transport.TTransportException;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.*;
 import java.util.Map;
-
-import static com.bytex.snamp.connectors.mda.impl.MDAResourceConfigurationDescriptorProviderImpl.parseSocketTimeout;
 
 /**
  * Represents factory of {@link ThriftDataAcceptor} class.
@@ -20,20 +16,21 @@ import static com.bytex.snamp.connectors.mda.impl.MDAResourceConfigurationDescri
 public final class ThriftDataAcceptorFactory implements DataAcceptorFactory {
     private static final String THRIFT_SCHEME = "thrift";
 
-    ThriftDataAcceptor create(final String resourceName,
-                        final URI connectionString,
-                        final Map<String, String> parameters) throws Exception {
+    private static ThriftDataAcceptor create(final String resourceName,
+                                             final URI connectionString,
+                                             final Map<String, String> parameters,
+                                             final MDAConnectorConfigurationParser configurationParser) throws UnknownHostException, TTransportException {
         return new ThriftDataAcceptor(resourceName,
                 new InetSocketAddress(InetAddress.getByName(connectionString.getHost()), connectionString.getPort()),
-                parseSocketTimeout(parameters),
-                new MDAThreadPoolConfig(resourceName, parameters));
+                configurationParser.parseSocketTimeout(parameters),
+                () -> configurationParser.getThreadPool(parameters));
     }
 
     @Override
     public ThriftDataAcceptor create(final String resourceName,
                                      final String connectionString,
                                      final Map<String, String> parameters) throws Exception {
-        return create(resourceName, new URI(connectionString), parameters);
+        return create(resourceName, new URI(connectionString), parameters, new MDAConnectorConfigurationParser());
     }
 
     /**

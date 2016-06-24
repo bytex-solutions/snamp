@@ -43,7 +43,7 @@ public final class AddThreadPoolCommand extends AbstractThreadPoolCommand {
         config.setMaxPoolSize(maxPoolSize);
         config.setThreadPriority(threadPriority);
         if(queueSize < 0)
-            config.useInifiniteQueue();
+            config.useInfiniteQueue();
         else
             config.setQueueSize(queueSize);
         config.setKeepAliveTime(keepAliveTime);

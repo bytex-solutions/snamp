@@ -221,12 +221,9 @@ final class JmxConnectionManager implements AutoCloseable {
     }
 
     ObjectName resolveName(final ObjectName name) throws Exception {
-        return handleConnection(new MBeanServerConnectionHandler<ObjectName>() {
-            @Override
-            public ObjectName handle(final MBeanServerConnection connection) throws IOException, JMException {
-                final Set<ObjectInstance> beans = connection.queryMBeans(name, null);
-                return beans.size() > 0 ? beans.iterator().next().getObjectName() : null;
-            }
+        return handleConnection(connection -> {
+            final Set<ObjectInstance> beans = connection.queryMBeans(name, null);
+            return beans.size() > 0 ? beans.iterator().next().getObjectName() : null;
         });
     }
 

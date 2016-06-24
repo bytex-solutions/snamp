@@ -11,6 +11,7 @@ import javax.management.NotificationListener;
  * @since 1.0
  */
 public final class NotificationListenerHolder implements NotificationListener, NotificationFilter {
+    private static final long serialVersionUID = 4627857440844836452L;
     private final NotificationListener listener;
     private final NotificationFilter filter;
     private final Object handback;

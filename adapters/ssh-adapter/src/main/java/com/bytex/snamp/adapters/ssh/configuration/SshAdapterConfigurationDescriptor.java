@@ -6,9 +6,9 @@ import com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfigura
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 
-import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration.THREAD_POOL_KEY;
 
@@ -42,8 +42,9 @@ public final class SshAdapterConfigurationDescriptor extends ConfigurationEntity
                 final Set<String> result = new HashSet<>(10);
                 final Enumeration<NetworkInterface> nics = NetworkInterface.getNetworkInterfaces();
                 while (nics.hasMoreElements())
-                    for (final InterfaceAddress iface : nics.nextElement().getInterfaceAddresses())
-                        result.add(iface.getAddress().getHostAddress());
+                    result.addAll(nics.nextElement().getInterfaceAddresses().stream()
+                            .map(iface -> iface.getAddress().getHostAddress())
+                            .collect(Collectors.toCollection(LinkedList::new)));
                 return ArrayUtils.toArray(result, String.class);
             }
         }

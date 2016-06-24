@@ -26,6 +26,7 @@ import java.util.Map;
 final class Composer extends AbstractAttributeAggregation<CompositeData> {
     static final String NAME = "composer";
     private static final String DESCRIPTION = "Composes all scalar attributes";
+    private static final long serialVersionUID = 2877483846537647364L;
 
 
     private static CompositeType detectAttributeType(final AttributeDescriptor descriptor,

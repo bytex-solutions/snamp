@@ -303,7 +303,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
      * @since 1.2
      * @version 1.2
      */
-    static final class SerializableResourceAdapterConfiguration extends AbstractEntityConfiguration implements ResourceAdapterConfiguration{
+    public static final class SerializableResourceAdapterConfiguration extends AbstractEntityConfiguration implements ResourceAdapterConfiguration{
         private static final byte FORMAT_VERSION = 1;
         private static final long serialVersionUID = 7926704115151740217L;
         private String adapterName;
@@ -454,7 +454,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
          * @since 1.2
          * @version 1.2
          */
-        static final class SerializableOperationConfiguration extends AbstractFeatureConfiguration implements OperationConfiguration{
+        public static final class SerializableOperationConfiguration extends AbstractFeatureConfiguration implements OperationConfiguration{
             private static final long serialVersionUID = 8267389949041604889L;
             private TimeSpan timeout = TimeSpan.INFINITE;
 

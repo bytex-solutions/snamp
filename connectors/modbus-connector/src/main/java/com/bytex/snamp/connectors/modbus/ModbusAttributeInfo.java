@@ -14,14 +14,15 @@ import static com.bytex.snamp.connectors.modbus.ModbusResourceConnectorConfigura
  *
  */
 abstract class ModbusAttributeInfo<T, A extends SlaveDeviceAccess> extends OpenMBeanAttributeAccessor<T> {
+    private static final long serialVersionUID = -1718119127501806280L;
     private final A slaveDeviceAccess;
 
-    protected ModbusAttributeInfo(final String attributeID,
-                                  final String description,
-                                  final OpenType<T> attributeType,
-                                  final AttributeSpecifier specifier,
-                                  final AttributeDescriptor descriptor,
-                                  final A deviceAccess) {
+    ModbusAttributeInfo(final String attributeID,
+                        final String description,
+                        final OpenType<T> attributeType,
+                        final AttributeSpecifier specifier,
+                        final AttributeDescriptor descriptor,
+                        final A deviceAccess) {
         super(attributeID, description, attributeType, specifier, descriptor);
         this.slaveDeviceAccess = Objects.requireNonNull(deviceAccess);
     }

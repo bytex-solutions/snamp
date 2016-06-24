@@ -2,7 +2,6 @@ package com.bytex.snamp.adapters.ssh;
 
 import com.bytex.snamp.Consumer;
 import com.bytex.snamp.EntryReader;
-import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.adapters.AbstractResourceAdapter;
 import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationEventBox;
@@ -71,8 +70,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
                 @Override
                 public void clear() {
-                    for(final ResourceNotificationList<?> list: values())
-                        list.clear();
+                    values().forEach(ResourceFeatureList::clear);
                     super.clear();
                 }
             };
@@ -503,28 +501,20 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
     private static Multimap<String, ? extends FeatureBindingInfo<MBeanAttributeInfo>> getAttributes(final AttributeSet<SshAttributeAccessor> attributes){
         final Multimap<String, ReadOnlyFeatureBindingInfo<MBeanAttributeInfo>> result = HashMultimap.create();
-        attributes.forEachAttribute(new EntryReader<String, SshAttributeAccessor, ExceptionPlaceholder>() {
-            @Override
-            public boolean read(final String resourceName, final SshAttributeAccessor accessor) {
-                final ImmutableMap.Builder<String, String> parameters = ImmutableMap.builder();
-                if (accessor.canRead())
-                    parameters.put("read-command", accessor.getReadCommand(resourceName));
-                if (accessor.canWrite())
-                    parameters.put("write-command", accessor.getWriteCommand(resourceName));
-                return result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor, parameters.build()));
-            }
+        attributes.forEachAttribute((resourceName, accessor) -> {
+            final ImmutableMap.Builder<String, String> parameters = ImmutableMap.builder();
+            if (accessor.canRead())
+                parameters.put("read-command", accessor.getReadCommand(resourceName));
+            if (accessor.canWrite())
+                parameters.put("write-command", accessor.getWriteCommand(resourceName));
+            return result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor, parameters.build()));
         });
         return result;
     }
 
     private static Multimap<String, ? extends FeatureBindingInfo<MBeanNotificationInfo>> getNotifications(final NotificationSet<SshNotificationAccessor> notifs){
         final Multimap<String, ReadOnlyFeatureBindingInfo<MBeanNotificationInfo>> result = HashMultimap.create();
-        notifs.forEachNotification(new EntryReader<String, SshNotificationAccessor, ExceptionPlaceholder>() {
-            @Override
-            public boolean read(final String resourceName, final SshNotificationAccessor accessor) {
-                return result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor, "listen-command", accessor.getListenCommand()));
-            }
-        });
+        notifs.forEachNotification((resourceName, accessor) -> result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor, "listen-command", accessor.getListenCommand())));
         return result;
     }
 

@@ -28,12 +28,7 @@ public final class DescriptorUtils {
     public static final String MAX_VALUE_FIELD = JMX.MAX_VALUE_FIELD;
     public static final String UNIT_OF_MEASUREMENT_FIELD = "units";
 
-    public static final DescriptorRead EMPTY_DESCRIPTOR = new DescriptorRead() {
-        @Override
-        public Descriptor getDescriptor() {
-            return ImmutableDescriptor.EMPTY_DESCRIPTOR;
-        }
-    };
+    public static final DescriptorRead EMPTY_DESCRIPTOR = () -> ImmutableDescriptor.EMPTY_DESCRIPTOR;
 
     private DescriptorUtils(){
     }

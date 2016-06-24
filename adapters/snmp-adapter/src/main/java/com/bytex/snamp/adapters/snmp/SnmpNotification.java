@@ -2,7 +2,6 @@ package com.bytex.snamp.adapters.snmp;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.Consumer;
-import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.adapters.snmp.helpers.OctetStringHelper;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 import com.bytex.snamp.connectors.notifications.Severity;
@@ -92,12 +91,9 @@ final class SnmpNotification extends HashMap<OID, Variable> {
             final Variable value = type.convert(attachment, options);
             output.put(new OID(notificationID).append(MAX_RESERVED_POSTFIX + 1), value != null ? value : new Null());
         } else if (Objects.equals(type, SnmpType.TABLE))
-            forEachVariable(attachment, options, mapper, new SafeConsumer<VariableBinding>() {
-                @Override
-                public void accept(final VariableBinding binding) {
-                    output.put(new OID(notificationID).append(MAX_RESERVED_POSTFIX + 1).append(binding.getOid()), binding.getVariable());
-                }
-            });
+            forEachVariable(attachment, options, mapper, binding ->
+                output.put(new OID(notificationID).append(MAX_RESERVED_POSTFIX + 1).append(binding.getOid()), binding.getVariable())
+            );
     }
 
     private static <E extends Exception> void forEachVariable(final CompositeData attachment,
@@ -132,15 +128,12 @@ final class SnmpNotification extends HashMap<OID, Variable> {
                                                               final SnmpTypeMapper typeMapper,
                                                               final Consumer<VariableBinding, E> handler) throws E{
         final MutableInteger rowIndex = new MutableInteger(0);
-        TabularDataUtils.forEachRow(attachment, new Consumer<CompositeData, E>() {
-            @Override
-            public void accept(final CompositeData value) throws E {
-                int columnIndex = 0;
-                for(final String columnName: value.getCompositeType().keySet()){
-                    final SnmpType columnType = typeMapper.apply(WellKnownType.getType(value.getCompositeType().getType(columnName)));
-                    assert columnType != null;
-                    handler.accept(new VariableBinding(new OID(new int[]{columnIndex++, rowIndex.getAndIncrement()}), columnType.convert(value.get(columnName), options)));
-                }
+        TabularDataUtils.forEachRow(attachment, value -> {
+            int columnIndex = 0;
+            for(final String columnName: value.getCompositeType().keySet()){
+                final SnmpType columnType = typeMapper.apply(WellKnownType.getType(value.getCompositeType().getType(columnName)));
+                assert columnType != null;
+                handler.accept(new VariableBinding(new OID(new int[]{columnIndex++, rowIndex.getAndIncrement()}), columnType.convert(value.get(columnName), options)));
             }
         });
     }
