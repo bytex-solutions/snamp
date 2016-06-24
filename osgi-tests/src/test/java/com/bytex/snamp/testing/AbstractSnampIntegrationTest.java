@@ -1,20 +1,17 @@
 package com.bytex.snamp.testing;
 
-import com.bytex.snamp.Consumer;
 import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.*;
 import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.configuration.AgentConfiguration;
-import com.bytex.snamp.configuration.PersistentConfigurationManager;
-import com.bytex.snamp.configuration.SerializableAgentConfiguration;
+import com.bytex.snamp.configuration.ConfigurationManager;
 import org.junit.After;
 import org.junit.Before;
 import org.ops4j.pax.exam.karaf.options.KarafFeaturesOption;
 import org.ops4j.pax.exam.options.MavenArtifactUrlReference;
 import org.osgi.framework.BundleContext;
-import org.osgi.service.cm.ConfigurationAdmin;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -25,6 +22,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
+import static com.bytex.snamp.configuration.ConfigurationManager.ConfigurationProcessor;
 
 /**
  * Represents an abstract class for all SNAMP-based integration tests.
@@ -79,10 +77,9 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
         }
     };
 
-    private PersistentConfigurationManager configManager = null;
     @Inject
     @SpecialUse
-    private ConfigurationAdmin configAdmin = null;
+    private ConfigurationManager configAdmin = null;
 
     protected AbstractSnampIntegrationTest(){
         super(SNAMP_ENV_BUILDER);
@@ -101,37 +98,14 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    private PersistentConfigurationManager getTestConfigurationManager() throws IOException{
-        if(configManager == null){
-            configManager = new PersistentConfigurationManager(configAdmin);
-            configManager.load();
-        }
-        return configManager;
-    }
-
-    private void refreshConfiguration() throws IOException{
-        if(configManager == null)
-            configManager = new PersistentConfigurationManager(configAdmin);
-        configManager.load();
-    }
-
     /**
      * Creates a new configuration for running this test.
      * @param config The configuration to set.
      */
     protected abstract void setupTestConfiguration(final AgentConfiguration config);
 
-    protected final <E extends Throwable> void processConfiguration(final Consumer<? super SerializableAgentConfiguration, E> handler,
-                                                                    final boolean saveChanges) throws E, IOException {
-        getTestConfigurationManager().processConfiguration(handler, saveChanges);
-    }
-
-    protected final <E extends Throwable> void processConfiguration(final Consumer<? super SerializableAgentConfiguration, E> handler,
-                                                                    final boolean refresh,
-                                                                    final boolean saveChanges) throws E, IOException{
-        if(refresh)
-            refreshConfiguration();
-        processConfiguration(handler, saveChanges);
+    protected final <E extends Throwable> void processConfiguration(final ConfigurationProcessor<E> handler) throws E, IOException {
+        configAdmin.processConfiguration(handler);
     }
 
     protected void beforeStartTest(final BundleContext context) throws Exception{
@@ -150,8 +124,10 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
     public final void prepare() throws Exception {
         beforeStartTest(getTestBundleContext());
         //read SNAMP configuration
-        setupTestConfiguration(getTestConfigurationManager().getCurrentConfiguration());
-        getTestConfigurationManager().save();
+        processConfiguration(config -> {
+            setupTestConfiguration(config);
+            return true;
+        });
         afterStartTest(getTestBundleContext());
     }
 
@@ -166,8 +142,10 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
     @After
     public final void cleanup() throws Exception{
         beforeCleanupTest(getTestBundleContext());
-        getTestConfigurationManager().getCurrentConfiguration().clear();
-        getTestConfigurationManager().save();
+        processConfiguration(config -> {
+            config.clear();
+            return true;
+        });
         afterCleanupTest(getTestBundleContext());
     }
 

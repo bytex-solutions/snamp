@@ -1,5 +1,6 @@
 package com.bytex.snamp.testing.connectors.jmx;
 
+import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
@@ -202,12 +203,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
                 .add(true, 42, "Frank Underwood")
                 .add(true, 43, "Peter Russo")
                 .build();
-        testAttribute("7.1", TypeToken.of(TabularData.class), table, new Equator<TabularData>() {
-            @Override
-            public boolean equate(final TabularData o1, final TabularData o2) {
-                return o1.size() == o2.size() && o1.values().containsAll(o2.values());
-            }
-        });
+        testAttribute("7.1", TypeToken.of(TabularData.class), table, (o1, o2) -> o1.size() == o2.size() && o1.values().containsAll(o2.values()));
     }
 
     @Test
@@ -225,7 +221,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
     @Test
     public void testForArrayProperty() throws Exception {
         final short[] array = new short[]{10, 20, 30, 40, 50};
-        testAttribute("5.1", TypeToken.of(short[].class), array, arrayEquator());
+        testAttribute("5.1", TypeToken.of(short[].class), array, ArrayUtils::strictEquals);
     }
 
     @Test

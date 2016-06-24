@@ -1,15 +1,11 @@
 package com.bytex.snamp.testing.adapters.ssh;
 
-import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.adapters.ResourceAdapter;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.adapters.ResourceAdapterClient;
-import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
-import com.bytex.snamp.testing.connectors.AbstractResourceConnectorTest;
 import com.bytex.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connectors.jmx.TestOpenMBean;
 import net.schmizz.sshj.SSHClient;
@@ -83,17 +79,14 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
 
     @Test
     public void integerTest() throws IOException {
-        testScalarAttribute("3.0", "42", AbstractResourceConnectorTest.<String>valueEquator());
+        testScalarAttribute("3.0", "42", Objects::equals);
     }
 
     private static Equator<String> quotedEquator(){
-        return new Equator<String>() {
-            @Override
-            public boolean equate(String value1, String value2) {
-                value2 = value2.replace('\'', '\"');
-                value1 = '\"' + value1 + '\"';
-                return Objects.equals(value1, value2);
-            }
+        return (value1, value2) -> {
+            value2 = value2.replace('\'', '\"');
+            value1 = '\"' + value1 + '\"';
+            return Objects.equals(value1, value2);
         };
     }
 
@@ -104,34 +97,29 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
 
     @Test
     public void booleanTest() throws IOException{
-        testScalarAttribute("2.0", "true", AbstractResourceConnectorTest.<String>valueEquator());
+        testScalarAttribute("2.0", "true", Objects::equals);
     }
 
     @Test
     public void bigIntTest() throws IOException{
-        testScalarAttribute("4.0", "10005000", AbstractResourceConnectorTest.<String>valueEquator());
+        testScalarAttribute("4.0", "10005000", Objects::equals);
     }
 
     @Test
     public void floatTest() throws IOException{
-        testScalarAttribute("8.0", "3.141", AbstractResourceConnectorTest.<String>valueEquator());
+        testScalarAttribute("8.0", "3.141", Objects::equals);
     }
 
     @Test
     public void arrayTest() throws IOException{
-        testScalarAttribute("5.1", "[42,100,332,99]", AbstractResourceConnectorTest.<String>valueEquator());
+        testScalarAttribute("5.1", "[42,100,332,99]", Objects::equals);
     }
 
     @Test
     public void attributesBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
         final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
         try {
-            assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new EntryReader<String, ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
-                @Override
-                public boolean read(final String resourceName, final ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo> bindingInfo) {
-                    return bindingInfo.getProperty("read-command") instanceof String;
-                }
-            }));
+            assertTrue(client.forEachFeature(MBeanAttributeInfo.class, (resourceName, bindingInfo) -> bindingInfo.getProperty("read-command") instanceof String));
         } finally {
             client.release(getTestBundleContext());
         }

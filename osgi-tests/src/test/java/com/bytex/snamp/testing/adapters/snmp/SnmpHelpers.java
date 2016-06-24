@@ -36,6 +36,7 @@ final class SnmpHelpers {
     private static class CustomDateTimeFormatter extends SimpleDateFormat implements DateTimeFormatter{
         private static final String DEFAUT_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
         public static final String FORMATTER_NAME = "default";
+        private static final long serialVersionUID = 4767301051857562154L;
 
         public CustomDateTimeFormatter(){
             this(DEFAUT_FORMAT);

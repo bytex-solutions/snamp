@@ -3,7 +3,7 @@ package com.bytex.snamp.configuration.diff;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.configuration.AbstractAgentConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration;
-import com.bytex.snamp.configuration.SerializableAgentConfiguration;
+import com.bytex.snamp.configuration.impl.SerializableAgentConfiguration;
 import org.junit.Assert;
 import org.junit.Test;
 

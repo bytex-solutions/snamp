@@ -1,6 +1,5 @@
 package com.bytex.snamp.testing.connectors;
 
-import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.Consumer;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.TypeTokens;
@@ -74,16 +73,6 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         boolean equate(final V value1, final V value2);
     }
 
-
-    protected static Equator arrayEquator(){
-        return (value1, value2) -> Objects.equals(value1.getClass().getComponentType(), value2.getClass().getComponentType()) &&
-                ArrayUtils.equals(value1, value2);
-    }
-
-    protected static <V> Equator<V> successEquator(){
-        return (value1, value2) -> true;
-    }
-
     private final String connectorType;
     /**
      * Represents connection string.
@@ -94,7 +83,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
 
     protected AbstractResourceConnectorTest(final String connectorType,
                                             final String connectionString){
-        this(connectorType, connectionString, Collections.<String, String>emptyMap());
+        this(connectorType, connectionString, Collections.emptyMap());
     }
 
     protected AbstractResourceConnectorTest(final String connectorType,

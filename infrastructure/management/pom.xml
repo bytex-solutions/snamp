@@ -37,6 +37,12 @@
       <artifactId>junit</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.bytex.snamp</groupId>
+      <artifactId>internal-services</artifactId>
+      <version>1.2.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.apache.karaf.shell</groupId>
       <artifactId>org.apache.karaf.shell.console</artifactId>
     </dependency>

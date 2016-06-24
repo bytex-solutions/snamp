@@ -1,5 +1,6 @@
 package com.bytex.snamp.connectors.groovy;
 
+import com.bytex.snamp.internal.Utils;
 import com.google.common.base.StandardSystemProperty;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
@@ -143,6 +144,7 @@ public final class ManagedResourceScriptEngine extends GroovyScriptEngine implem
     public ManagedResourceInfo init(final String initScript,
                      final Map<String, ?> initParams) throws ResourceException, ScriptException {
         final ManagedResourceInitializationScript result = createScript(initScript, initParams, ManagedResourceInitializationScript.class);
+        result.setContext(Utils.getBundleContextOfObject(this));
         result.run();
         return result;
     }

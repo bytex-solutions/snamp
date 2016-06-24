@@ -80,6 +80,7 @@ public final class ArrayUtils {
                     });
 
     private ArrayUtils(){
+        throw new InstantiationError();
     }
 
     /**
@@ -285,12 +286,22 @@ public final class ArrayUtils {
     }
 
     public static boolean equals(final Object array1, final Object array2){
-        if(Array.getLength(array1) == Array.getLength(array2)) {
+        return equals(array1, array2, false);
+    }
+
+    public static boolean strictEquals(final Object array1, final Object array2){
+        return equals(array1, array2, true);
+    }
+
+    private static boolean equals(final Object array1, final Object array2, boolean strictComponentType) {
+        if (strictComponentType && !array1.getClass().getComponentType().equals(array2.getClass().getComponentType()))
+            return false;
+        else if (Array.getLength(array1) == Array.getLength(array2)) {
             for (int i = 0; i < Array.getLength(array1); i++)
                 if (!Objects.equals(Array.get(array1, i), Array.get(array2, i))) return false;
             return true;
-        }
-        else return false;
+        } else
+            return false;
     }
 
     private static <T> ArrayType<T[]> createArrayType(final SimpleType<T> elementType) throws OpenDataException{

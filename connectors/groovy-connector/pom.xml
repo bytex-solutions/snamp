@@ -14,10 +14,14 @@
   <description>SNAMP resource connector used for Groovy scripts for management information aggregation</description>
   <dependencies>
     <dependency>
+      <groupId>com.bytex.snamp</groupId>
+      <artifactId>internal-services</artifactId>
+      <version>1.2.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.12</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.bytex.snamp</groupId>

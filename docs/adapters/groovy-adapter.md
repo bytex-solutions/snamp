@@ -132,7 +132,9 @@ Working with timers:
 def timer = createTimer({ println 'Tick' }, 300)  //will print 'Tick' every 300 milliseconds
 timer.run() //start printing
 timer.close() //stop printing
-//the code above is equivalent to
+```
+the code above is equivalent to
+```groovy
 def timer = schedule({ println 'Tick' }, 300)
 timer.close()
 ```

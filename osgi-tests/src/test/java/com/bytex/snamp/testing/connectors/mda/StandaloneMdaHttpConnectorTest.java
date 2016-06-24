@@ -1,7 +1,6 @@
 package com.bytex.snamp.testing.connectors.mda;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.Consumer;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.jmx.CompositeDataUtils;
@@ -106,7 +105,7 @@ public final class StandaloneMdaHttpConnectorTest extends AbstractMdaConnectorTe
         assertArrayEquals(ArrayUtils.emptyArray(byte[].class), JsonUtils.parseByteArray(result.getAsJsonArray()));
         result = getAttributeViaHttp("array");
         assertArrayEquals(expectedValue, JsonUtils.parseByteArray(result.getAsJsonArray()));
-        testAttribute("attr5", TypeToken.of(byte[].class), expectedValue, arrayEquator(), true);
+        testAttribute("attr5", TypeToken.of(byte[].class), expectedValue, ArrayUtils::strictEquals, true);
     }
 
     @Test
@@ -168,12 +167,7 @@ public final class StandaloneMdaHttpConnectorTest extends AbstractMdaConnectorTe
 
     @Test
     public void notificationTest1() throws Exception {
-        final Notification received = waitForNotification("e1", new Consumer<ManagedResourceConnector, IOException>() {
-            @Override
-            public void accept(final ManagedResourceConnector connector) throws IOException {
-                sendNotification("testEvent1", "Frank Underwood", 10L, 50L, new JsonPrimitive(100500L));
-            }
-        }, TimeSpan.ofSeconds(3L));
+        final Notification received = waitForNotification("e1", connector -> sendNotification("testEvent1", "Frank Underwood", 10L, 50L, new JsonPrimitive(100500L)), TimeSpan.ofSeconds(3L));
         assertNotNull(received);
         assertEquals("Frank Underwood", received.getMessage());
         assertEquals(10L, received.getSequenceNumber());

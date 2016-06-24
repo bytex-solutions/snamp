@@ -203,6 +203,12 @@
         </dependency>
         <dependency>
             <groupId>com.bytex.snamp</groupId>
+            <artifactId>internal-services</artifactId>
+            <version>${snamp.services.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.bytex.snamp</groupId>
             <artifactId>snmp4j</artifactId>
             <version>${snmp4j.version}</version>
             <scope>test</scope>

@@ -9,8 +9,8 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.nio.file.Paths;
-
-import static com.bytex.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.bytex.snamp.configuration.impl.SerializableAgentConfiguration.newEntityConfiguration;
 
 /**
  * @author Roman Sakno
@@ -33,8 +33,9 @@ public final class ManagedResourceScriptEngineTest extends Assert {
 
     @Test
     public void dummyAttributeTest() throws Exception {
-        final SerializableAttributeConfiguration config = new SerializableAttributeConfiguration();
-        config.setParameter("configParam", "Hello, world!");
+        final AttributeConfiguration config = newEntityConfiguration(AttributeConfiguration.class);
+        assertNotNull(config);
+        config.getParameters().put("configParam", "Hello, world!");
         config.setReadWriteTimeout(TimeSpan.ofSeconds(2));
 
         final AttributeAccessor scr = engine.loadAttribute("DummyAttribute", new AttributeDescriptor(config));

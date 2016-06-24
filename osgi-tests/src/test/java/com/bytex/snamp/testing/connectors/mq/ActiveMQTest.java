@@ -139,7 +139,7 @@ public final class ActiveMQTest extends AbstractMQConnectorTest {
                 message.setJMSType("write");
                 producer.send(message);
                 Thread.sleep(1000); //message delivery is asynchronous process
-                testAttribute("5.1", TypeToken.of(int[].class), expectedValue, arrayEquator(), true);
+                testAttribute("5.1", TypeToken.of(int[].class), expectedValue, ArrayUtils::strictEquals, true);
             }
         });
     }

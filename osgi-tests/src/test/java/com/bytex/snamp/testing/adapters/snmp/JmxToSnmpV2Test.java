@@ -1,20 +1,16 @@
 package com.bytex.snamp.testing.adapters.snmp;
 
-import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.ExceptionalCallable;
-import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.ResourceAdapter;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.adapters.ResourceAdapterClient;
 import com.bytex.snamp.configuration.AbstractAgentConfiguration;
-import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.connectors.notifications.Severity;
-import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.SnmpTable;
@@ -104,25 +100,21 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
     public void renameResourceTest() throws Exception {
         final String NEW_RESOURCE_NAME = "temp-resource";
         //change the name of the resource
-        processConfiguration(new SafeConsumer<AgentConfiguration>() {
-            @Override
-            public void accept(final AgentConfiguration config) {
-                final ManagedResourceConfiguration resource = config.getEntities(ManagedResourceConfiguration.class).remove(TEST_RESOURCE_NAME);
-                assertNotNull(resource);
-                AbstractAgentConfiguration.copy(resource,
-                        config.getEntities(ManagedResourceConfiguration.class).getOrAdd(NEW_RESOURCE_NAME));
-            }
-        }, true);
+        processConfiguration(config -> {
+            final ManagedResourceConfiguration resource = config.getEntities(ManagedResourceConfiguration.class).remove(TEST_RESOURCE_NAME);
+            assertNotNull(resource);
+            AbstractAgentConfiguration.copy(resource,
+                    config.getEntities(ManagedResourceConfiguration.class).getOrAdd(NEW_RESOURCE_NAME));
+            return true;
+        });
         Thread.sleep(1000);
-        processConfiguration(new SafeConsumer<AgentConfiguration>() {
-            @Override
-            public void accept(final AgentConfiguration config) {
-                final ManagedResourceConfiguration resource = config.getEntities(ManagedResourceConfiguration.class).remove(NEW_RESOURCE_NAME);
-                assertNotNull(resource);
-                AbstractAgentConfiguration.copy(resource,
-                        config.getEntities(ManagedResourceConfiguration.class).getOrAdd(TEST_RESOURCE_NAME));
-            }
-        }, true);
+        processConfiguration(config -> {
+            final ManagedResourceConfiguration resource = config.getEntities(ManagedResourceConfiguration.class).remove(NEW_RESOURCE_NAME);
+            assertNotNull(resource);
+            AbstractAgentConfiguration.copy(resource,
+                    config.getEntities(ManagedResourceConfiguration.class).getOrAdd(TEST_RESOURCE_NAME));
+            return true;
+        });
     }
 
     @Test
@@ -438,13 +430,8 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
     public void attributesBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
         final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
         try {
-            assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new EntryReader<String, ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
-                @Override
-                public boolean read(final String resourceName, final ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo> bindingInfo) {
-                    return bindingInfo.getProperty(ResourceAdapter.FeatureBindingInfo.MAPPED_TYPE) instanceof Enum &&
-                            bindingInfo.getProperty("OID") instanceof OID;
-                }
-            }));
+            assertTrue(client.forEachFeature(MBeanAttributeInfo.class, (resourceName, bindingInfo) -> bindingInfo.getProperty(ResourceAdapter.FeatureBindingInfo.MAPPED_TYPE) instanceof Enum &&
+                    bindingInfo.getProperty("OID") instanceof OID));
         } finally {
             client.release(getTestBundleContext());
         }
@@ -454,12 +441,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
     public void notificationsBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
         final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
         try {
-            assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new EntryReader<String, ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
-                @Override
-                public boolean read(final String resourceName, final ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo> bindingInfo) {
-                    return bindingInfo.getProperty("OID") instanceof OID;
-                }
-            }));
+            assertTrue(client.forEachFeature(MBeanAttributeInfo.class, (resourceName, bindingInfo) -> bindingInfo.getProperty("OID") instanceof OID));
         } finally {
             client.release(getTestBundleContext());
         }

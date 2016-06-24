@@ -154,7 +154,9 @@ Simple messaging using communicator:
 ```groovy
 def communicator = getCommunicator 'test-communicator'
 communicator.register(asListener { msg -> println msg})
-//in other script file
+```
+in other script file
+```groovy
 def communicator = getCommunicator 'test-communicator'
 communicator.post 'Hello, world!'
 ```

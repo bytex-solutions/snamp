@@ -1,7 +1,7 @@
 package com.bytex.snamp.testing.security.login.config.json;
 
-import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.security.LoginConfigurationManager;
 import com.bytex.snamp.security.auth.login.json.JsonConfiguration;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;

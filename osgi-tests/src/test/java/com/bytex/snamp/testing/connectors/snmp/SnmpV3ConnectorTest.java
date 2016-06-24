@@ -1,11 +1,11 @@
 package com.bytex.snamp.testing.connectors.snmp;
 
+import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.Repeater;
 import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.notifications.NotificationSupport;
-import com.bytex.snamp.testing.connectors.AbstractResourceConnectorTest;
 import com.google.common.reflect.TypeToken;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
@@ -25,11 +25,11 @@ import org.snmp4j.transport.TransportMappings;
 
 import javax.management.JMException;
 import javax.management.Notification;
-import javax.management.NotificationListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
@@ -125,7 +125,7 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
                     TransportMapping<?> tm = mappings.createTransportMapping(GenericAddress.parse(String.format("%s/%s", HOST_NAME, REMOTE_PORT)));
                     if(tm instanceof DefaultUdpTransportMapping)
                         ((DefaultUdpTransportMapping)tm).setSocketTimeout(5000);
-                    transportMappings = new TransportMapping[]{tm};
+                    transportMappings = new TransportMapping<?>[]{tm};
                 }
                 catch (final RuntimeException e){
                     throw new IOException(String.format("Unable to create SNMP transport for %s/%s address.", HOST_NAME, REMOTE_PORT), e);
@@ -326,12 +326,7 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
             assertNotNull(notifications);
             assertNotNull(notifications.getNotificationInfo("snmp-notif"));
             final SynchronizationEvent<Notification> trap = new SynchronizationEvent<>(false);
-            notifications.addNotificationListener(new NotificationListener() {
-                @Override
-                public void handleNotification(final Notification notification, final Object handback) {
-                    trap.fire(notification);
-                }
-            }, null, null);
+            notifications.addNotificationListener((notification, handback) -> trap.fire(notification), null, null);
             //obtain client addresses
             final Address[] addresses = connector.queryObject(Address[].class);
             assertNotNull(addresses);
@@ -352,7 +347,7 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
         testAttribute("opaqueAttr",
                 TypeToken.of(byte[].class),
                 new byte[]{10, 20, 30, 40, 50},
-                arrayEquator(),
+                ArrayUtils::strictEquals,
                 false);
     }
 
@@ -361,12 +356,12 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
         testAttribute("ipAddressAsByte",
                 TypeToken.of(byte[].class),
                 new IpAddress("192.168.0.1").toByteArray(),
-                arrayEquator(),
+                ArrayUtils::strictEquals,
                 false);
         testAttribute("ipAddressAsString",
                 TypeToken.of(String.class),
                 "192.168.0.1",
-                AbstractResourceConnectorTest.<String>valueEquator(),
+                Objects::equals,
                 false);
     }
 
@@ -375,12 +370,12 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
         testAttribute("oidAsIntArray",
                 TypeToken.of(int[].class),
                 new OID("1.4.5.3.1").getValue(),
-                arrayEquator(),
+                ArrayUtils::strictEquals,
                 false);
         testAttribute("oidAsString",
                 TypeToken.of(String.class),
                 "1.4.5.3.1",
-                AbstractResourceConnectorTest.<String>valueEquator(),
+                Objects::equals,
                 false);
     }
 
@@ -405,7 +400,7 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
         testAttribute("counter32",
                 TypeToken.of(Long.class),
                 42L,
-                AbstractResourceConnectorTest.<Long>valueEquator(),
+                Objects::equals,
                 false);
     }
 
@@ -450,7 +445,7 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
         testAttribute("octetstringAsByteArray",
                 TypeToken.of(byte[].class),
                 new byte[]{10, 20, 1, 4},
-                arrayEquator(),
+                ArrayUtils::strictEquals,
                 false);
     }
 

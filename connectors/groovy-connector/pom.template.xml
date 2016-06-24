@@ -52,10 +52,14 @@
     </build>
     <dependencies>
         <dependency>
+            <groupId>com.bytex.snamp</groupId>
+            <artifactId>internal-services</artifactId>
+            <version>${snamp.services.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <scope>provided</scope>
