@@ -1,11 +1,12 @@
 package com.bytex.snamp.connectors.aggregator;
 
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
+import org.osgi.framework.BundleContext;
 
 import javax.management.openmbean.SimpleType;
 import java.math.BigDecimal;
 
-import static com.bytex.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 
 /**
  * @author Roman Sakno
@@ -32,8 +33,8 @@ final class UnaryPercent extends UnaryAttributeAggregation<Double>{
                 userValue);
     }
 
-    static SerializableAttributeConfiguration getConfiguration() {
-        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration();
+    static AttributeConfiguration getConfiguration(final BundleContext context) {
+        final AttributeConfiguration result = createAttributeConfiguration(context);
         result.setAlternativeName(NAME);
         fillParameters(result.getParameters());
         result.getParameters().put(AggregatorConnectorConfiguration.VALUE_PARAM, "1");

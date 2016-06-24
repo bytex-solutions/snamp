@@ -15,10 +15,10 @@ import java.util.Objects;
 /**
  * Represents in-memory agent configuration that can be stored as serialized Java object.
  * @author Roman Sakno
- * @since 1.0
+ * @since 1.2
  * @version 1.2
  */
-final class SerializableAgentConfiguration extends AbstractAgentConfiguration implements Externalizable {
+public final class SerializableAgentConfiguration extends AbstractAgentConfiguration implements Externalizable {
     private final static byte FORMAT_VERSION = 1;
     private static final long serialVersionUID = 8461144056430141155L;
 
@@ -29,7 +29,7 @@ final class SerializableAgentConfiguration extends AbstractAgentConfiguration im
     /**
      * Represents serializable configuration entity.
      * @author Roman Sakno
-     * @since 1.0
+     * @since 1.2
      * @version 1.2
      */
     interface SerializableEntityConfiguration extends EntityConfiguration, Modifiable, Externalizable{
@@ -300,7 +300,7 @@ final class SerializableAgentConfiguration extends AbstractAgentConfiguration im
     /**
      * Represents adapter settings. This class cannot be inherited.
      * @author Roman Sakno
-     * @since 1.0
+     * @since 1.2
      * @version 1.2
      */
     static final class SerializableResourceAdapterConfiguration extends AbstractEntityConfiguration implements ResourceAdapterConfiguration{
@@ -398,10 +398,10 @@ final class SerializableAgentConfiguration extends AbstractAgentConfiguration im
     /**
      * Represents configuration of the management information provider. This class cannot be inherited.
      * @author Roman Sakno
-     * @since 1.0
+     * @since 1.2
      * @version 1.2
      */
-    public static final class SerializableManagedResourceConfiguration extends AbstractEntityConfiguration implements ManagedResourceConfiguration{
+    static final class SerializableManagedResourceConfiguration extends AbstractEntityConfiguration implements ManagedResourceConfiguration{
         private static final long serialVersionUID = 5044050385424748355L;
 
         private static final class OperationRegistry extends ConfigurationEntityRegistry<SerializableManagedResourceConfiguration.SerializableOperationConfiguration>{
@@ -451,7 +451,7 @@ final class SerializableAgentConfiguration extends AbstractAgentConfiguration im
         /**
          * Represents configuration of the managed resource operation. This class cannot be inherited.
          * @author Roman Sakno
-         * @since 1.0
+         * @since 1.2
          * @version 1.2
          */
         static final class SerializableOperationConfiguration extends AbstractFeatureConfiguration implements OperationConfiguration{
@@ -526,11 +526,16 @@ final class SerializableAgentConfiguration extends AbstractAgentConfiguration im
         /**
          * Represents configuration of the event source. This class cannot be inherited.
          * @author Roman Sakno
-         * @since 1.0
+         * @since 1.2
          * @version 1.2
          */
-        public static final class SerializableEventConfiguration extends AbstractFeatureConfiguration implements EventConfiguration {
+        static final class SerializableEventConfiguration extends AbstractFeatureConfiguration implements EventConfiguration {
             private static final long serialVersionUID = -6838585011981639479L;
+
+            @SpecialUse
+            public SerializableEventConfiguration(){
+
+            }
 
             /**
              * The object implements the writeExternal method to save its contents
@@ -590,12 +595,16 @@ final class SerializableAgentConfiguration extends AbstractAgentConfiguration im
 
         /**
          * Represents configuration of the management attribute. This class cannot be inherited.
-         * @since 1.0
+         * @since 1.2
          * @version 1.2
          */
-        public static final class SerializableAttributeConfiguration extends AbstractFeatureConfiguration implements AttributeConfiguration{
+        static final class SerializableAttributeConfiguration extends AbstractFeatureConfiguration implements AttributeConfiguration{
             private static final long serialVersionUID = -2134014000719123759L;
             private TimeSpan readWriteTimeout = TimeSpan.INFINITE;
+
+            @SpecialUse
+            public SerializableAttributeConfiguration() {
+            }
 
             /**
              * The object implements the writeExternal method to save its contents
@@ -1059,6 +1068,17 @@ final class SerializableAgentConfiguration extends AbstractAgentConfiguration im
      */
     @Override
     public <E extends EntityConfiguration> E createEntityConfiguration(final Class<E> entityType) {
+        return newEntityConfiguration(entityType);
+    }
+
+    /**
+     * Creates a new instance of entity configuration.
+     *
+     * @param entityType Type of entity. Can be {@link ManagedResourceConfiguration},
+     *                   {@link ResourceAdapterConfiguration}. {@link ManagedResourceConfiguration.AttributeConfiguration}, {@link ManagedResourceConfiguration.EventConfiguration}, {@link ManagedResourceConfiguration.OperationConfiguration}.
+     * @return A new instance of entity configuration; or {@literal null}, if entity is not supported.
+     */
+    public static  <E extends EntityConfiguration> E newEntityConfiguration(final Class<E> entityType) {
         if(entityType.isAssignableFrom(SerializableManagedResourceConfiguration.class))
             return entityType.cast(new SerializableManagedResourceConfiguration());
         else if(entityType.isAssignableFrom(SerializableResourceAdapterConfiguration.class))

@@ -1,8 +1,13 @@
-package com.bytex.snamp.connectors.attributes;
+package com.bytex.snamp.com.bytex.snamp.connectors.attributes;
 
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.configuration.ConfigParameters;
-import com.bytex.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.bytex.snamp.configuration.impl.SerializableAgentConfiguration.newEntityConfiguration;
+import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
+import com.bytex.snamp.connectors.attributes.AttributeSpecifier;
+import com.bytex.snamp.connectors.attributes.OpenAttributeRepository;
+import com.bytex.snamp.connectors.attributes.OpenMBeanAttributeAccessor;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -73,7 +78,7 @@ public final class OpenAttributeSupportTest extends Assert {
     @Test
     public void stringAttributeTest() throws Exception {
         final Attributes support = new Attributes();
-        final SerializableAttributeConfiguration attributeConfig = new SerializableAttributeConfiguration();
+        final AttributeConfiguration attributeConfig = newEntityConfiguration(AttributeConfiguration.class);
         attributeConfig.setAlternativeName("str");
         support.addAttribute("a", TimeSpan.INFINITE, new ConfigParameters(attributeConfig));
         support.addAttribute("b", TimeSpan.INFINITE, new ConfigParameters(attributeConfig));

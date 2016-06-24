@@ -1,11 +1,12 @@
 package com.bytex.snamp.connectors.aggregator;
 
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
+import org.osgi.framework.BundleContext;
 
 import javax.management.openmbean.SimpleType;
 import java.util.Objects;
 
-import static com.bytex.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 
 /**
  * Represents proxy attribute that exposes value of the foreign attribute as a string.
@@ -21,8 +22,8 @@ final class Stringifier extends UnaryAttributeAggregation<String> {
         super(attributeID, DESCRIPTION, SimpleType.STRING, descriptor);
     }
 
-    static SerializableAttributeConfiguration getConfiguration() {
-        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration();
+    static AttributeConfiguration getConfiguration(final BundleContext context) {
+        final AttributeConfiguration result = createAttributeConfiguration(context);
         result.setAlternativeName(NAME);
         fillParameters(result.getParameters());
         return result;

@@ -1,5 +1,7 @@
 package com.bytex.snamp.connectors.aggregator;
 
+import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.attributes.AttributeSpecifier;
@@ -20,10 +22,10 @@ abstract class AbstractAttributeAggregation<T> extends OpenMBeanAttributeAccesso
     private static final long serialVersionUID = -3564884715121017964L;
     private final String source;
 
-    protected AbstractAttributeAggregation(final String attributeID,
-                                           final String description,
-                                           final OpenType<T> attributeType,
-                                           final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException {
+    AbstractAttributeAggregation(final String attributeID,
+                                 final String description,
+                                 final OpenType<T> attributeType,
+                                 final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException {
         super(attributeID,
                 description,
                 attributeType,
@@ -32,8 +34,8 @@ abstract class AbstractAttributeAggregation<T> extends OpenMBeanAttributeAccesso
         source = AggregatorConnectorConfiguration.getSourceManagedResource(descriptor);
     }
 
-    protected static ManagedResourceConnectorClient getResource(final AttributeDescriptor descriptor,
-                                                                      final BundleContext context) throws AbsentAggregatorAttributeParameterException, InstanceNotFoundException {
+    static ManagedResourceConnectorClient getResource(final AttributeDescriptor descriptor,
+                                                      final BundleContext context) throws AbsentAggregatorAttributeParameterException, InstanceNotFoundException {
         return new ManagedResourceConnectorClient(context, AggregatorConnectorConfiguration.getSourceManagedResource(descriptor));
     }
 
@@ -42,7 +44,7 @@ abstract class AbstractAttributeAggregation<T> extends OpenMBeanAttributeAccesso
      *
      * @return The name of the managed resource.
      */
-    public final String getResourceName() {
+    private String getResourceName() {
         return source;
     }
 
@@ -72,8 +74,12 @@ abstract class AbstractAttributeAggregation<T> extends OpenMBeanAttributeAccesso
         }
     }
 
-    protected final BundleContext getBundleContext(){
+    private BundleContext getBundleContext(){
         return Utils.getBundleContextOfObject(this);
+    }
+
+    static AttributeConfiguration createAttributeConfiguration(final BundleContext context){
+        return AgentConfiguration.createEntityConfiguration(context, AttributeConfiguration.class);
     }
 
     /**

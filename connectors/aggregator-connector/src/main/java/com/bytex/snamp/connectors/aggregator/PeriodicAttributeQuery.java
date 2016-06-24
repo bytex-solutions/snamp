@@ -1,8 +1,9 @@
 package com.bytex.snamp.connectors.aggregator;
 
-import com.bytex.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableEventConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import com.bytex.snamp.connectors.attributes.AttributeSupport;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
+import org.osgi.framework.BundleContext;
 
 import javax.management.AttributeNotFoundException;
 import javax.management.JMException;
@@ -40,8 +41,8 @@ final class PeriodicAttributeQuery extends AbstractAggregatorNotification {
         sender.sendNotification(this, "Attribute value = " + attributeValue, attributeValue);
     }
 
-    static SerializableEventConfiguration getConfiguration() {
-        final SerializableEventConfiguration result = new SerializableEventConfiguration();
+    static EventConfiguration getConfiguration(final BundleContext context) {
+        final EventConfiguration result = createEventConfiguration(context);
         result.setAlternativeName(CATEGORY);
         result.getParameters().put(AggregatorConnectorConfiguration.SOURCE_PARAM, "");
         result.getParameters().put(AggregatorConnectorConfiguration.FOREIGN_ATTRIBUTE_PARAM, "");

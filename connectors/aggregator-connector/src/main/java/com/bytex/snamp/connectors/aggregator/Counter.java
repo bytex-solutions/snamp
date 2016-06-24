@@ -2,9 +2,10 @@ package com.bytex.snamp.connectors.aggregator;
 
 import com.bytex.snamp.concurrent.LongAccumulator;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
+import org.osgi.framework.BundleContext;
 
 import javax.management.openmbean.SimpleType;
-import static com.bytex.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 
 /**
  * Represents counter.
@@ -31,8 +32,8 @@ final class Counter extends UnaryAttributeAggregation<Long> {
         return accumulator.update(NumberUtils.toLong(value));
     }
 
-    static SerializableAttributeConfiguration getConfiguration() {
-        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration();
+    static AttributeConfiguration getConfiguration(final BundleContext context) {
+        final AttributeConfiguration result = createAttributeConfiguration(context);
         result.setAlternativeName(NAME);
         fillParameters(result.getParameters());
         return result;

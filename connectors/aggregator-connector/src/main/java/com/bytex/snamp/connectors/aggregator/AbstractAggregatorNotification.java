@@ -16,6 +16,8 @@ import java.util.logging.Logger;
 
 import static com.bytex.snamp.connectors.aggregator.AggregatorConnectorConfiguration.getForeignAttributeName;
 import static com.bytex.snamp.connectors.aggregator.AggregatorConnectorConfiguration.getSourceManagedResource;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.createEntityConfiguration;
 
 /**
  * @author Roman Sakno
@@ -29,7 +31,7 @@ abstract class AbstractAggregatorNotification extends CustomNotificationInfo {
     /**
      * The name of the imported attribute.
      */
-    protected final String foreignAttribute;
+    final String foreignAttribute;
 
     AbstractAggregatorNotification(final String notifType,
                                    final String description,
@@ -46,17 +48,21 @@ abstract class AbstractAggregatorNotification extends CustomNotificationInfo {
     }
 
 
-    protected final void attributeNotFound(final String attributeName, final AttributeNotFoundException e) {
+    final void attributeNotFound(final String attributeName, final AttributeNotFoundException e) {
         logger.log(Level.WARNING, String.format("Unknown attribute '%s'", attributeName), e);
     }
 
-    protected final void failedToGetAttribute(final String attributeName,
-                                      final Exception e) {
+    final void failedToGetAttribute(final String attributeName,
+                                    final Exception e) {
         logger.log(Level.SEVERE, String.format("Can't read '%s' attribute", attributeName), e);
     }
 
     protected abstract void process(final AttributeSupport attributes,
                                     final NotificationEnqueue sender);
+
+    static EventConfiguration createEventConfiguration(final BundleContext context){
+        return createEntityConfiguration(context, EventConfiguration.class);
+    }
 
     final void process(final NotificationEnqueue sender) throws InstanceNotFoundException {
         final BundleContext context = getBundleContext();

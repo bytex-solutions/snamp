@@ -1,11 +1,13 @@
 package com.bytex.snamp.connectors.aggregator;
 
+import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.ImmutableList;
 import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.configuration.AbstractAgentConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.connectors.discovery.DiscoveryResultBuilder;
 import com.bytex.snamp.connectors.discovery.DiscoveryService;
+import org.osgi.framework.BundleContext;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -19,27 +21,31 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
  */
 final class AggregatorDiscoveryService extends AbstractAggregator implements DiscoveryService {
 
-    private static Collection<AttributeConfiguration> discoverAttributes(){
-        return ImmutableList.<AttributeConfiguration>of(
-            PatternMatcher.getConfiguration(),
-                UnaryComparison.getConfiguration(),
-                BinaryComparison.getConfiguration(),
-                BinaryPercent.getConfiguration(),
-                UnaryPercent.getConfiguration(),
-                Counter.getConfiguration(),
-                Average.getConfiguratoin() ,
-                Peak.getConfiguration(),
-                Decomposer.getConfiguration(),
-                Stringifier.getConfiguration(),
-                Composer.getConfiguration()
+    private static Collection<AttributeConfiguration> discoverAttributes(final BundleContext context){
+        return ImmutableList.of(
+            PatternMatcher.getConfiguration(context),
+                UnaryComparison.getConfiguration(context),
+                BinaryComparison.getConfiguration(context),
+                BinaryPercent.getConfiguration(context),
+                UnaryPercent.getConfiguration(context),
+                Counter.getConfiguration(context),
+                Average.getConfiguration(context),
+                Peak.getConfiguration(context),
+                Decomposer.getConfiguration(context),
+                Stringifier.getConfiguration(context),
+                Composer.getConfiguration(context)
         );
     }
 
-    private static Collection<EventConfiguration> discoverEvents(){
-        return ImmutableList.<EventConfiguration>of(
-            PeriodicAttributeQuery.getConfiguration(),
-            HealthCheckNotification.getConfiguration()
+    private static Collection<EventConfiguration> discoverEvents(final BundleContext context){
+        return ImmutableList.of(
+            PeriodicAttributeQuery.getConfiguration(context),
+            HealthCheckNotification.getConfiguration(context)
         );
+    }
+
+    private BundleContext getBundleContext(){
+        return Utils.getBundleContextOfObject(this);
     }
 
     /**
@@ -49,7 +55,6 @@ final class AggregatorDiscoveryService extends AbstractAggregator implements Dis
      * Do not add elements from the returned collection directly in {@link AgentConfiguration.ManagedResourceConfiguration#getFeatures(Class)}
      * result set, use the following algorithm:
      * <ul>
-     * <li>Create a new managed entity with {@link AgentConfiguration.ManagedResourceConfiguration#registerFeature(Class)} method.</li>
      * <li>Use {@link AbstractAgentConfiguration#copy(AttributeConfiguration, AttributeConfiguration)}
      * or {@link AbstractAgentConfiguration#copy(EventConfiguration, EventConfiguration)} method
      * to copy managed entity returned by this method into the newly created entity.</li>
@@ -67,9 +72,9 @@ final class AggregatorDiscoveryService extends AbstractAggregator implements Dis
     @Override
     public <T extends FeatureConfiguration> Collection<T> discover(final String connectionString, final Map<String, String> connectionOptions, final Class<T> entityType) {
         if(Objects.equals(entityType, AttributeConfiguration.class))
-            return (Collection<T>)discoverAttributes();
+            return (Collection<T>)discoverAttributes(getBundleContext());
         else if(Objects.equals(entityType, EventConfiguration.class))
-            return (Collection<T>)discoverEvents();
+            return (Collection<T>)discoverEvents(getBundleContext());
         else return Collections.emptyList();
     }
 

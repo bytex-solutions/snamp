@@ -1,7 +1,7 @@
 package com.bytex.snamp.connectors.aggregator;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.connectors.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
@@ -58,8 +58,8 @@ final class Composer extends AbstractAttributeAggregation<CompositeData> {
         return new CompositeDataSupport(attributeType, result);
     }
 
-    static SerializableAttributeConfiguration getConfiguration() {
-        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration();
+    static AttributeConfiguration getConfiguration(final BundleContext context) {
+        final AttributeConfiguration result = createAttributeConfiguration(context);
         result.setAlternativeName(NAME);
         result.getParameters().put(AggregatorConnectorConfiguration.SOURCE_PARAM, "");
         return result;

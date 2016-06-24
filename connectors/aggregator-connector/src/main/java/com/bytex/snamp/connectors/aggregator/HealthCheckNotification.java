@@ -3,10 +3,12 @@ package com.bytex.snamp.connectors.aggregator;
 import com.bytex.snamp.connectors.attributes.AttributeSupport;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 import com.bytex.snamp.internal.Utils;
+import org.osgi.framework.BundleContext;
 
 import javax.management.JMException;
 import java.util.logging.Logger;
-import static com.bytex.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableEventConfiguration;
+
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 
 /**
  * @author Roman Sakno
@@ -33,8 +35,8 @@ final class HealthCheckNotification extends AbstractAggregatorNotification {
         }
     }
 
-    static SerializableEventConfiguration getConfiguration() {
-        final SerializableEventConfiguration result = new SerializableEventConfiguration();
+    static EventConfiguration getConfiguration(final BundleContext context) {
+        final EventConfiguration result = createEventConfiguration(context);
         result.setAlternativeName(CATEGORY);
         result.getParameters().put(AggregatorConnectorConfiguration.SOURCE_PARAM, "");
         result.getParameters().put(AggregatorConnectorConfiguration.FOREIGN_ATTRIBUTE_PARAM, "");

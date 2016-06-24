@@ -1,10 +1,11 @@
 package com.bytex.snamp.connectors.aggregator;
 
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
+import org.osgi.framework.BundleContext;
 
 import javax.management.openmbean.SimpleType;
 
-import static com.bytex.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 
 /**
  * Compares two foreign attributes
@@ -31,8 +32,8 @@ final class BinaryComparison extends BinaryAttributeAggregation<Boolean> {
                 NumberUtils.toBigDecimal(right));
     }
 
-    static SerializableAttributeConfiguration getConfiguration() {
-        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration();
+    static AttributeConfiguration getConfiguration(final BundleContext context) {
+        final AttributeConfiguration result = createAttributeConfiguration(context);
         result.setAlternativeName(NAME);
         fillParameters(result.getParameters());
         result.getParameters().put(AggregatorConnectorConfiguration.COMPARER_PARAM, "=");

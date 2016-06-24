@@ -1,7 +1,8 @@
 package com.bytex.snamp.connectors.aggregator;
 
-import com.bytex.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
+import org.osgi.framework.BundleContext;
 
 import javax.management.openmbean.SimpleType;
 import java.math.BigDecimal;
@@ -35,8 +36,8 @@ final class UnaryComparison extends UnaryAttributeAggregation<Boolean> {
         return comparison.compute(NumberUtils.toBigDecimal(foreignAttributeValue), userDefinedValue);
     }
 
-    public static SerializableAttributeConfiguration getConfiguration() {
-        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration();
+    public static AttributeConfiguration getConfiguration(final BundleContext context) {
+        final AttributeConfiguration result = createAttributeConfiguration(context);
         result.setAlternativeName(NAME);
         fillParameters(result.getParameters());
         result.getParameters().put(AggregatorConnectorConfiguration.COMPARER_PARAM, "=");

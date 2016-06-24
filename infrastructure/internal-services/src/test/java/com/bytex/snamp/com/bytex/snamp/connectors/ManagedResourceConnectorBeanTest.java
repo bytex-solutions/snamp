@@ -1,12 +1,15 @@
-package com.bytex.snamp.connectors;
+package com.bytex.snamp.com.bytex.snamp.connectors;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.modeling.AttributeValue;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
+import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
+import static com.bytex.snamp.configuration.impl.SerializableAgentConfiguration.newEntityConfiguration;
+
 import com.bytex.snamp.configuration.ConfigParameters;
+import com.bytex.snamp.connectors.ManagedResourceActivator;
+import com.bytex.snamp.connectors.ManagedResourceConnectorBean;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.attributes.CustomAttributeInfo;
 import com.bytex.snamp.connectors.discovery.DiscoveryService;
@@ -25,7 +28,6 @@ import java.util.Locale;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
-import static com.bytex.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.*;
 
 /**
  * Represents tests for {@link ManagedResourceConnectorBean} class.
@@ -148,19 +150,19 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
     }
 
     private static ConfigParameters makeAttributeConfig(final String name){
-        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration();
+        final AttributeConfiguration result = newEntityConfiguration(AttributeConfiguration.class);
         result.setAlternativeName(name);
         return new ConfigParameters(result);
     }
 
     private static ConfigParameters makeEventConfig(final String name){
-        final SerializableEventConfiguration result = new SerializableEventConfiguration();
+        final EventConfiguration result = newEntityConfiguration(EventConfiguration.class);
         result.setAlternativeName(name);
         return new ConfigParameters(result);
     }
 
     private static ConfigParameters makeOperationConfig(final String name){
-        final SerializableOperationConfiguration result = new SerializableOperationConfiguration();
+        final OperationConfiguration result = newEntityConfiguration(OperationConfiguration.class);
         result.setAlternativeName(name);
         return new ConfigParameters(result);
     }
