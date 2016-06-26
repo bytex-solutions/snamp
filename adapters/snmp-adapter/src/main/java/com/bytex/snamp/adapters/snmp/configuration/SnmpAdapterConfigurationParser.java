@@ -1,6 +1,6 @@
 package com.bytex.snamp.adapters.snmp.configuration;
 
-import com.bytex.snamp.adapters.ResourceAdapterConfigurationParser;
+import com.bytex.snamp.adapters.ResourceAdapterDescriptionProvider;
 import com.google.common.base.Supplier;
 import org.snmp4j.SNMP4JSettings;
 import org.snmp4j.mp.MPv3;
@@ -19,7 +19,7 @@ import static com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterConfigurati
 /**
  * Provides parser of SNMP Adapter configuration properties.
  */
-public class SnmpAdapterConfigurationParser extends ResourceAdapterConfigurationParser {
+public class SnmpAdapterConfigurationParser extends ResourceAdapterDescriptionProvider {
     public String parseContext(final Map<String, String> parameters) throws SnmpAdapterAbsentParameterException {
         if(parameters.containsKey(CONTEXT_PARAM_NAME))
             return parameters.get(CONTEXT_PARAM_NAME);

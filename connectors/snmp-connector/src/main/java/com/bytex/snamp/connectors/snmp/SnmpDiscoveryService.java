@@ -3,7 +3,6 @@ package com.bytex.snamp.connectors.snmp;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
-import org.osgi.framework.BundleContext;
 import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.Variable;
 
@@ -12,7 +11,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
-import static com.bytex.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.SNMP_CONVERSION_FORMAT_PARAM;
+import static com.bytex.snamp.connectors.snmp.SnmpConnectorDescriptionProvider.SNMP_CONVERSION_FORMAT_PARAM;
 
 /**
  * Represents SNMP discovery service.
@@ -30,7 +29,7 @@ final class SnmpDiscoveryService {
             options.put(SNMP_CONVERSION_FORMAT_PARAM, OctetStringConversionFormat.adviceFormat((OctetString) v));
     }
 
-    private static Collection<AttributeConfiguration> discoverAttributes(final BundleContext context, final SnmpClient client) throws TimeoutException, InterruptedException, ExecutionException {
+    private static Collection<AttributeConfiguration> discoverAttributes(final ClassLoader context, final SnmpClient client) throws TimeoutException, InterruptedException, ExecutionException {
         return client.walk(SnmpConnectorHelpers.getDiscoveryTimeout()).stream()
                 .map(input ->{
                     final AttributeConfiguration config = ConfigurationManager.createEntityConfiguration(context, AttributeConfiguration.class);
@@ -45,7 +44,7 @@ final class SnmpDiscoveryService {
     }
 
     @SuppressWarnings("unchecked")
-    static  <T extends FeatureConfiguration> Collection<T> discover(final BundleContext context, final Class<T> entityType, final SnmpClient client) throws TimeoutException, InterruptedException, ExecutionException {
+    static  <T extends FeatureConfiguration> Collection<T> discover(final ClassLoader context, final Class<T> entityType, final SnmpClient client) throws TimeoutException, InterruptedException, ExecutionException {
         if (Objects.equals(entityType, AttributeConfiguration.class))
             return (Collection<T>) discoverAttributes(context, client);
         else return Collections.emptyList();

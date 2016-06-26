@@ -1,6 +1,6 @@
 package com.bytex.snamp.connectors.mq;
 
-import com.bytex.snamp.connectors.ManagedResourceConfigurationParser;
+import com.bytex.snamp.connectors.ManagedResourceDescriptionProvider;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
@@ -13,7 +13,7 @@ import static com.bytex.snamp.connectors.mq.MQResourceConnectorConfigurationDesc
  * @version 1.0
  * @since 1.0
  */
-public final class MQConnectorConfigurationParser extends ManagedResourceConfigurationParser {
+public final class MQConnectorDescriptionProvider extends ManagedResourceDescriptionProvider {
     public Connection createConnection(final ConnectionFactory factory, final Map<String, String> parameters) throws JMSException {
         if(parameters.containsKey(USERNAME_PARAM) && parameters.containsKey(PASSWORD_PARAM)){
             return factory.createConnection(parameters.get(USERNAME_PARAM), parameters.get(PASSWORD_PARAM));

@@ -1,7 +1,7 @@
 package com.bytex.snamp.connectors.jmx;
 
 import com.bytex.snamp.ExceptionalCallable;
-import com.bytex.snamp.connectors.ManagedResourceConfigurationParser;
+import com.bytex.snamp.connectors.ManagedResourceDescriptionProvider;
 import com.bytex.snamp.internal.Utils;
 
 import javax.management.MalformedObjectNameException;
@@ -45,7 +45,7 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
 
     JmxConnectionOptions(final String connectionString, final Map<String, String> options) throws MalformedURLException, MalformedObjectNameException {
         super(connectionString);
-        final ManagedResourceConfigurationParser parser = new ManagedResourceConfigurationParser() { };
+        final ManagedResourceDescriptionProvider parser = new ManagedResourceDescriptionProvider() { };
         if(options.containsKey(JMX_LOGIN) && options.containsKey(JMX_PASSWORD)){
             login = options.get(JMX_LOGIN);
             password = options.get(JMX_PASSWORD);

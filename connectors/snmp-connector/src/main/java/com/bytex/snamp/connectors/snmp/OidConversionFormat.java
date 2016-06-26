@@ -7,7 +7,7 @@ import javax.management.InvalidAttributeValueException;
 import javax.management.openmbean.OpenType;
 import javax.management.openmbean.SimpleType;
 
-import static com.bytex.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.SNMP_CONVERSION_FORMAT_PARAM;
+import static com.bytex.snamp.connectors.snmp.SnmpConnectorDescriptionProvider.SNMP_CONVERSION_FORMAT_PARAM;
 import static com.bytex.snamp.jmx.DescriptorUtils.getField;
 import static com.bytex.snamp.jmx.DescriptorUtils.hasField;
 

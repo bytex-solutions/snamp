@@ -6,7 +6,7 @@ import com.bytex.snamp.adapters.AbstractResourceAdapter;
 import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationEventBox;
 import com.bytex.snamp.adapters.modeling.*;
-import com.bytex.snamp.adapters.ssh.configuration.SshAdapterConfigurationParser;
+import com.bytex.snamp.adapters.ssh.configuration.SshAdapterDescriptionProvider;
 import com.bytex.snamp.adapters.ssh.configuration.SshSecuritySettings;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.jmx.ExpressionBasedDescriptorFilter;
@@ -406,7 +406,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
     @Override
     protected void start(final Map<String, String> parameters) throws Exception {
-        final SshAdapterConfigurationParser parser = new SshAdapterConfigurationParser();
+        final SshAdapterDescriptionProvider parser = SshAdapterDescriptionProvider.getInstance();
         start(parser.getHost(parameters),
                 parser.getPort(parameters),
                 parser.getKeyPairProvider(parameters),

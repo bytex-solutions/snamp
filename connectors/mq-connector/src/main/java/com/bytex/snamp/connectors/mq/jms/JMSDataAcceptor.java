@@ -4,7 +4,7 @@ import com.bytex.snamp.configuration.AbsentConfigurationParameterException;
 import com.bytex.snamp.connectors.mda.DataAcceptor;
 import com.bytex.snamp.connectors.mda.MDAAttributeRepository;
 import com.bytex.snamp.connectors.mda.MDANotificationRepository;
-import com.bytex.snamp.connectors.mq.MQConnectorConfigurationParser;
+import com.bytex.snamp.connectors.mq.MQConnectorDescriptionProvider;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.base.Strings;
 
@@ -34,7 +34,7 @@ final class JMSDataAcceptor extends DataAcceptor implements ExceptionListener {
     JMSDataAcceptor(final String resourceName,
                     final Map<String, String> parameters,
                     final JMSDataConverter converter,
-                    final MQConnectorConfigurationParser configurationParser,
+                    final MQConnectorDescriptionProvider configurationParser,
                     final ConnectionFactory factory) throws JMSException, AbsentConfigurationParameterException {
         dataConverter = converter;
         jmsConnection = configurationParser.createConnection(factory, parameters);

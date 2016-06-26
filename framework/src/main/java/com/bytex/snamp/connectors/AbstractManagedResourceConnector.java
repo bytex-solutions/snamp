@@ -439,7 +439,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      * Determines whether SmartMode should be enabled for configured connector.
      * @param parameters Configuration parameters of the managed resource. Cannot be {@literal null}.
      * @return {@literal true} if SmartMode={@literal true} in the specified configuration parameters.
-     * @deprecated Use {@link ManagedResourceConfigurationParser#isSmartModeEnabled(Map)}
+     * @deprecated Use {@link ManagedResourceDescriptionProvider#isSmartModeEnabled(Map)}
      */
     @Deprecated
     public static boolean isSmartModeEnabled(final Map<String, ?> parameters) {

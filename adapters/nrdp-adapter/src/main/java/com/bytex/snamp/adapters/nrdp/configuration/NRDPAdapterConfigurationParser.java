@@ -2,7 +2,7 @@ package com.bytex.snamp.adapters.nrdp.configuration;
 
 import ch.shamu.jsendnrdp.NRDPServerConnectionSettings;
 import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.adapters.ResourceAdapterConfigurationParser;
+import com.bytex.snamp.adapters.ResourceAdapterDescriptionProvider;
 import com.google.common.base.Strings;
 
 import javax.management.Descriptor;
@@ -16,7 +16,7 @@ import static com.bytex.snamp.adapters.nrdp.configuration.NRDPAdapterConfigurati
 /**
  * Represents parser of NRDP adapter configuration.
  */
-public final class NRDPAdapterConfigurationParser extends ResourceAdapterConfigurationParser {
+public final class NRDPAdapterConfigurationParser extends ResourceAdapterDescriptionProvider {
 
     public NRDPServerConnectionSettings parseSettings(final Map<String, String> parameters) throws AbsentNRDPConfigurationParameterException {
         final String serverURL;

@@ -1,7 +1,7 @@
 package com.bytex.snamp.connectors.mq.jms;
 
 import com.bytex.snamp.connectors.mda.DataAcceptorFactory;
-import com.bytex.snamp.connectors.mq.MQConnectorConfigurationParser;
+import com.bytex.snamp.connectors.mq.MQConnectorDescriptionProvider;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.base.Strings;
 import org.osgi.framework.BundleContext;
@@ -24,7 +24,7 @@ public final class JMSDataAcceptorFactory implements DataAcceptorFactory {
     private JMSDataAcceptor create(final String resourceName,
                                    String connectionString,
                                    final Map<String, String> parameters,
-                                   final MQConnectorConfigurationParser configurationParser) throws Exception {
+                                   final MQConnectorDescriptionProvider configurationParser) throws Exception {
         final BundleContext context = Utils.getBundleContextOfObject(this);
         //parse converter
         final String scriptFile = configurationParser.getConverterScript(parameters);
@@ -72,7 +72,7 @@ public final class JMSDataAcceptorFactory implements DataAcceptorFactory {
     public JMSDataAcceptor create(final String resourceName,
                                String connectionString,
                                final Map<String, String> parameters) throws Exception {
-        return create(resourceName, connectionString, parameters, new MQConnectorConfigurationParser());
+        return create(resourceName, connectionString, parameters, new MQConnectorDescriptionProvider());
     }
 
     /**

@@ -41,7 +41,7 @@ import java.util.logging.Logger;
 import static com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor.Action;
 import static com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor.ConsistentAction;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration.AUTOMATICALLY_ADDED_KEY;
-import static com.bytex.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.*;
+import static com.bytex.snamp.connectors.snmp.SnmpConnectorDescriptionProvider.*;
 
 /**
  * Represents SNMP-compliant managed resource.
@@ -582,7 +582,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         @Override
         protected SnmpAttributeInfo connectAttribute(final String attributeName, final AttributeDescriptor descriptor) throws Exception {
             final Variable value = client.read(new Action<SnmpClient, Variable, Exception>() {
-                private final TimeSpan responseTimeout = SnmpConnectorConfigurationProvider.getResponseTimeout(descriptor);
+                private final TimeSpan responseTimeout = SnmpConnectorDescriptionProvider.getResponseTimeout(descriptor);
 
                 @Override
                 public Variable invoke(final SnmpClient client) throws IOException, TimeoutException, InterruptedException, ExecutionException {
@@ -744,21 +744,17 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
     private final AbstractConcurrentResourceAccessor<SnmpClient> client;
     private final boolean smartMode;
 
+
     SnmpResourceConnector(final String resourceName,
-                          final SnmpConnectionOptions snmpConnectionOptions) throws IOException {
-        client = new ConcurrentResourceAccessor<>(snmpConnectionOptions.createSnmpClient());
+                          final String connectionString,
+                          final Map<String, String> parameters) throws IOException {
+        client = new ConcurrentResourceAccessor<>(SnmpConnectorDescriptionProvider.getInstance().createSnmpClient(GenericAddress.parse(connectionString), parameters));
         attributes = new SnmpAttributeRepository(resourceName, client, getLogger());
         notifications = new SnmpNotificationRepository(resourceName,
                 client,
                 Utils.getBundleContextOfObject(this),
                 getLogger());
-        smartMode = snmpConnectionOptions.isSmartModeEnabled();
-    }
-
-    SnmpResourceConnector(final String resourceName,
-                          final String connectionString,
-                          final Map<String, String> parameters) throws IOException {
-        this(resourceName, new SnmpConnectionOptions(connectionString, parameters));
+        smartMode = SnmpConnectorDescriptionProvider.getInstance().isSmartModeEnabled(parameters);
     }
 
     @Override

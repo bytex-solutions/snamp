@@ -2,7 +2,7 @@ package com.bytex.snamp.adapters.ssh;
 
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.adapters.ssh.configuration.SshAdapterConfigurationDescriptor;
+import com.bytex.snamp.adapters.ssh.configuration.SshAdapterDescriptionProvider;
 
 /**
  * Represents OSGi activator for {@link com.bytex.snamp.adapters.ssh.SshAdapter} resource adapter.
@@ -13,7 +13,7 @@ import com.bytex.snamp.adapters.ssh.configuration.SshAdapterConfigurationDescrip
  */
 public final class SshAdapterActivator extends ResourceAdapterActivator<SshAdapter> {
 
-    private static final class ConfigurationDescriptorServiceManager extends ConfigurationEntityDescriptionManager<SshAdapterConfigurationDescriptor> {
+    private static final class ConfigurationDescriptorServiceManager extends ConfigurationEntityDescriptionManager<SshAdapterDescriptionProvider> {
 
         /**
          * Creates a new instance of the configuration description provider.
@@ -22,8 +22,8 @@ public final class SshAdapterActivator extends ResourceAdapterActivator<SshAdapt
          * @return A new instance of the configuration description provider.
          */
         @Override
-        protected SshAdapterConfigurationDescriptor createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
-            return new SshAdapterConfigurationDescriptor();
+        protected SshAdapterDescriptionProvider createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
+            return SshAdapterDescriptionProvider.getInstance();
         }
     }
 

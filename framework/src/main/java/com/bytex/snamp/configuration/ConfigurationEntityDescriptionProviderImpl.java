@@ -4,7 +4,7 @@ import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.configuration.AgentConfiguration.EntityConfiguration;
 
 import java.util.Arrays;
-import java.util.Objects;
+import java.util.Collection;
 import java.util.logging.Logger;
 
 /**
@@ -13,7 +13,7 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 public class ConfigurationEntityDescriptionProviderImpl extends AbstractAggregator implements ConfigurationEntityDescriptionProvider {
-    private final Iterable<ConfigurationEntityDescription<? extends EntityConfiguration>> descriptions;
+    private final Collection<ConfigurationEntityDescription> descriptions;
 
     /**
      * Initializes a new instance of the configuration description provider.
@@ -34,10 +34,11 @@ public class ConfigurationEntityDescriptionProviderImpl extends AbstractAggregat
     @SuppressWarnings("unchecked")
     @Override
     public final <T extends EntityConfiguration> ConfigurationEntityDescription<T> getDescription(final Class<T> configurationEntity) {
-        for(final ConfigurationEntityDescription description: descriptions)
-            if(Objects.equals(configurationEntity, description.getEntityType()))
-                return description;
-        return null;
+        if (configurationEntity == null) throw new NullPointerException("configurationEntity is null.");
+        return descriptions.stream()
+                .filter(description -> configurationEntity.equals(description.getEntityType()))
+                .findFirst()
+                .orElseGet(() -> null);
     }
 
     /**

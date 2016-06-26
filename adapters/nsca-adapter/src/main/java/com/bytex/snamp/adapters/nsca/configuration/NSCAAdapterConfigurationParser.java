@@ -1,7 +1,7 @@
 package com.bytex.snamp.adapters.nsca.configuration;
 
 import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.adapters.ResourceAdapterConfigurationParser;
+import com.bytex.snamp.adapters.ResourceAdapterDescriptionProvider;
 import com.google.common.base.Strings;
 import com.googlecode.jsendnsca.core.Encryption;
 import com.googlecode.jsendnsca.core.NagiosSettings;
@@ -17,7 +17,7 @@ import static com.bytex.snamp.adapters.nsca.configuration.NSCAAdapterConfigurati
 /**
  * Represents parser for NSCA adapter configuration parameters.
  */
-public final class NSCAAdapterConfigurationParser extends ResourceAdapterConfigurationParser {
+public final class NSCAAdapterConfigurationParser extends ResourceAdapterDescriptionProvider {
     public NagiosSettings parseSettings(final Map<String, String> parameters) throws AbsentNSCAConfigurationParameterException {
         final NagiosSettings result = new NagiosSettings();
         if(parameters.containsKey(NAGIOS_HOST_PARAM))

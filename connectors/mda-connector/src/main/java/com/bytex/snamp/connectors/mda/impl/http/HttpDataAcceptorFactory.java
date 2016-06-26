@@ -1,7 +1,7 @@
 package com.bytex.snamp.connectors.mda.impl.http;
 
 import com.bytex.snamp.connectors.mda.DataAcceptorFactory;
-import com.bytex.snamp.connectors.mda.impl.MDAConnectorConfigurationParser;
+import com.bytex.snamp.connectors.mda.impl.MDAConnectorDescriptionProvider;
 
 import java.util.Map;
 
@@ -23,7 +23,7 @@ public final class HttpDataAcceptorFactory implements DataAcceptorFactory {
     private static HttpDataAcceptor create(final String resourceName,
                                            String servletContext,
                                            final Map<String, String> parameters,
-                                           final MDAConnectorConfigurationParser configurationParser) {
+                                           final MDAConnectorDescriptionProvider configurationParser) {
         if (isNullOrEmpty(servletContext))
             servletContext = getServletContext(resourceName);
         return new HttpDataAcceptor(resourceName,
@@ -35,7 +35,7 @@ public final class HttpDataAcceptorFactory implements DataAcceptorFactory {
     public HttpDataAcceptor create(final String resourceName,
                                    final String servletContext,
                                    final Map<String, String> parameters) throws Exception {
-        return create(resourceName, servletContext, parameters, new MDAConnectorConfigurationParser());
+        return create(resourceName, servletContext, parameters, new MDAConnectorDescriptionProvider());
     }
 
     @Override

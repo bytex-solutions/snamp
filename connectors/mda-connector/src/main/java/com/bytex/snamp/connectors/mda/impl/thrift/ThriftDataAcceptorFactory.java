@@ -1,7 +1,7 @@
 package com.bytex.snamp.connectors.mda.impl.thrift;
 
 import com.bytex.snamp.connectors.mda.DataAcceptorFactory;
-import com.bytex.snamp.connectors.mda.impl.MDAConnectorConfigurationParser;
+import com.bytex.snamp.connectors.mda.impl.MDAConnectorDescriptionProvider;
 import org.apache.thrift.transport.TTransportException;
 
 import java.net.*;
@@ -19,7 +19,7 @@ public final class ThriftDataAcceptorFactory implements DataAcceptorFactory {
     private static ThriftDataAcceptor create(final String resourceName,
                                              final URI connectionString,
                                              final Map<String, String> parameters,
-                                             final MDAConnectorConfigurationParser configurationParser) throws UnknownHostException, TTransportException {
+                                             final MDAConnectorDescriptionProvider configurationParser) throws UnknownHostException, TTransportException {
         return new ThriftDataAcceptor(resourceName,
                 new InetSocketAddress(InetAddress.getByName(connectionString.getHost()), connectionString.getPort()),
                 configurationParser.parseSocketTimeout(parameters),
@@ -30,7 +30,7 @@ public final class ThriftDataAcceptorFactory implements DataAcceptorFactory {
     public ThriftDataAcceptor create(final String resourceName,
                                      final String connectionString,
                                      final Map<String, String> parameters) throws Exception {
-        return create(resourceName, new URI(connectionString), parameters, new MDAConnectorConfigurationParser());
+        return create(resourceName, new URI(connectionString), parameters, new MDAConnectorDescriptionProvider());
     }
 
     /**

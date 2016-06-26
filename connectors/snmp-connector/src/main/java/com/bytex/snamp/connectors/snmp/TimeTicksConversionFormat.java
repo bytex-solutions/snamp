@@ -11,7 +11,7 @@ import java.util.Objects;
 
 import static com.bytex.snamp.jmx.DescriptorUtils.*;
 
-import static com.bytex.snamp.connectors.snmp.SnmpConnectorConfigurationProvider.SNMP_CONVERSION_FORMAT_PARAM;
+import static com.bytex.snamp.connectors.snmp.SnmpConnectorDescriptionProvider.SNMP_CONVERSION_FORMAT_PARAM;
 
 /**
  * Represents {@link org.snmp4j.smi.TimeTicks} conversion format.

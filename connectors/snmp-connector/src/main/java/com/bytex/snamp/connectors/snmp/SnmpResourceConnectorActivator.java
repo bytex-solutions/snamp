@@ -5,8 +5,8 @@ import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
-import com.bytex.snamp.internal.Utils;
 import org.snmp4j.log.OSGiLogFactory;
+import org.snmp4j.smi.GenericAddress;
 
 import javax.management.openmbean.CompositeData;
 import java.io.IOException;
@@ -75,23 +75,23 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
     public SnmpResourceConnectorActivator() {
         super(new SnmpConnectorFactory(),
                 new RequiredService<?>[]{new SimpleDependency<>(ThreadPoolRepository.class)},
-                new SupportConnectorServiceManager<?, ?>[]{new ConfigurationEntityDescriptionManager<SnmpConnectorConfigurationProvider>() {
+                new SupportConnectorServiceManager<?, ?>[]{new ConfigurationEntityDescriptionManager<SnmpConnectorDescriptionProvider>() {
                     @Override
-                    protected SnmpConnectorConfigurationProvider createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) throws Exception {
-                        return new SnmpConnectorConfigurationProvider();
+                    protected SnmpConnectorDescriptionProvider createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) throws Exception {
+                        return SnmpConnectorDescriptionProvider.getInstance();
                     }
                 },
                         new SimpleDiscoveryServiceManager<SnmpClient>(new SimpleDependency<>(ThreadPoolRepository.class)) {
                             @Override
                             protected SnmpClient createManagementInformationProvider(final String connectionString, final Map<String, String> connectionOptions, final RequiredService<?>... dependencies) throws Exception {
-                                final SnmpClient client = new SnmpConnectionOptions(connectionString, connectionOptions).createSnmpClient();
+                                final SnmpClient client = SnmpConnectorDescriptionProvider.getInstance().createSnmpClient(GenericAddress.parse(connectionString), connectionOptions);
                                 client.listen();
                                 return client;
                             }
 
                             @Override
                             protected <T extends FeatureConfiguration> Collection<T> getManagementInformation(final Class<T> entityType, final SnmpClient client, final RequiredService<?>... dependencies) throws Exception {
-                                return SnmpDiscoveryService.discover(Utils.getBundleContextOfObject(this), entityType, client);
+                                return SnmpDiscoveryService.discover(getClass().getClassLoader(), entityType, client);
                             }
                         }});
     }
