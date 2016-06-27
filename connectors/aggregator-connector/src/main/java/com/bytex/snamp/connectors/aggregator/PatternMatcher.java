@@ -1,12 +1,12 @@
 package com.bytex.snamp.connectors.aggregator;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
-import org.osgi.framework.BundleContext;
 
 import javax.management.openmbean.SimpleType;
 import java.util.Objects;
 import java.util.regex.Pattern;
+
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 
 /**
  * Represents regular expression computation.
@@ -35,8 +35,8 @@ final class PatternMatcher extends UnaryAttributeAggregation<Boolean> {
         return pattern.matcher(Objects.toString(foreignAttributeValue, "")).matches();
     }
 
-    static AttributeConfiguration getConfiguration(final BundleContext context) {
-        final AttributeConfiguration result = createAttributeConfiguration(context);
+    static AttributeConfiguration getConfiguration() {
+        final AttributeConfiguration result = createAttributeConfiguration(PatternMatcher.class.getClassLoader());
         result.setAlternativeName(NAME);
         fillParameters(result.getParameters());
         result.getParameters().put(AggregatorConnectorConfiguration.VALUE_PARAM, "");

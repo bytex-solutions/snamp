@@ -1,7 +1,6 @@
 package com.bytex.snamp.connectors.aggregator;
 
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
-import org.osgi.framework.BundleContext;
 
 import javax.management.openmbean.SimpleType;
 
@@ -32,8 +31,8 @@ final class BinaryComparison extends BinaryAttributeAggregation<Boolean> {
                 NumberUtils.toBigDecimal(right));
     }
 
-    static AttributeConfiguration getConfiguration(final BundleContext context) {
-        final AttributeConfiguration result = createAttributeConfiguration(context);
+    static AttributeConfiguration getConfiguration() {
+        final AttributeConfiguration result = createAttributeConfiguration(BinaryComparison.class.getClassLoader());
         result.setAlternativeName(NAME);
         fillParameters(result.getParameters());
         result.getParameters().put(AggregatorConnectorConfiguration.COMPARER_PARAM, "=");

@@ -4,7 +4,7 @@ import com.bytex.snamp.configuration.AbsentConfigurationParameterException;
 import com.bytex.snamp.connectors.mda.DataAcceptor;
 import com.bytex.snamp.connectors.mda.MDAAttributeRepository;
 import com.bytex.snamp.connectors.mda.MDANotificationRepository;
-import com.bytex.snamp.connectors.mq.MQConnectorDescriptionProvider;
+import com.bytex.snamp.connectors.mq.MQResourceConnectorDescriptionProvider;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.base.Strings;
 
@@ -34,18 +34,17 @@ final class JMSDataAcceptor extends DataAcceptor implements ExceptionListener {
     JMSDataAcceptor(final String resourceName,
                     final Map<String, String> parameters,
                     final JMSDataConverter converter,
-                    final MQConnectorDescriptionProvider configurationParser,
                     final ConnectionFactory factory) throws JMSException, AbsentConfigurationParameterException {
         dataConverter = converter;
-        jmsConnection = configurationParser.createConnection(factory, parameters);
-        queueName = configurationParser.getInputQueueName(parameters);
-        isTopic = configurationParser.isInputTopic(parameters);
-        messageSelector = configurationParser.getMessageSelector(parameters);
-        outputQueueName = configurationParser.getOutputQueueName(parameters);
-        isTopicOutput = configurationParser.isOutputTopic(parameters);
+        jmsConnection = MQResourceConnectorDescriptionProvider.getInstance().createConnection(factory, parameters);
+        queueName = MQResourceConnectorDescriptionProvider.getInstance().getInputQueueName(parameters);
+        isTopic = MQResourceConnectorDescriptionProvider.getInstance().isInputTopic(parameters);
+        messageSelector = MQResourceConnectorDescriptionProvider.getInstance().getMessageSelector(parameters);
+        outputQueueName = MQResourceConnectorDescriptionProvider.getInstance().getOutputQueueName(parameters);
+        isTopicOutput = MQResourceConnectorDescriptionProvider.getInstance().isOutputTopic(parameters);
         attributes = new JMSAttributeRepository(resourceName, converter, getLogger());
         notifications = new JMSNotificationRepository(resourceName,
-                configurationParser.getThreadPool(parameters),
+                MQResourceConnectorDescriptionProvider.getInstance().parseThreadPool(parameters),
                 converter,
                 Utils.getBundleContextOfObject(this),
                 getLogger());

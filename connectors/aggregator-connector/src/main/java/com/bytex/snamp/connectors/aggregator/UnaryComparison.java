@@ -1,11 +1,11 @@
 package com.bytex.snamp.connectors.aggregator;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
-import org.osgi.framework.BundleContext;
 
 import javax.management.openmbean.SimpleType;
 import java.math.BigDecimal;
+
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 
 /**
  * Represents an attribute which compares the foreign attribute with user defined value.
@@ -36,8 +36,8 @@ final class UnaryComparison extends UnaryAttributeAggregation<Boolean> {
         return comparison.compute(NumberUtils.toBigDecimal(foreignAttributeValue), userDefinedValue);
     }
 
-    public static AttributeConfiguration getConfiguration(final BundleContext context) {
-        final AttributeConfiguration result = createAttributeConfiguration(context);
+    public static AttributeConfiguration getConfiguration() {
+        final AttributeConfiguration result = createAttributeConfiguration(UnaryComparison.class.getClassLoader());
         result.setAlternativeName(NAME);
         fillParameters(result.getParameters());
         result.getParameters().put(AggregatorConnectorConfiguration.COMPARER_PARAM, "=");

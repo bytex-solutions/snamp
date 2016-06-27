@@ -18,19 +18,19 @@ public final class ThriftDataAcceptorFactory implements DataAcceptorFactory {
 
     private static ThriftDataAcceptor create(final String resourceName,
                                              final URI connectionString,
-                                             final Map<String, String> parameters,
-                                             final MDAConnectorDescriptionProvider configurationParser) throws UnknownHostException, TTransportException {
+                                             final Map<String, String> parameters) throws UnknownHostException, TTransportException {
+        final MDAConnectorDescriptionProvider configurationParser = MDAConnectorDescriptionProvider.getInstance();
         return new ThriftDataAcceptor(resourceName,
                 new InetSocketAddress(InetAddress.getByName(connectionString.getHost()), connectionString.getPort()),
                 configurationParser.parseSocketTimeout(parameters),
-                () -> configurationParser.getThreadPool(parameters));
+                () -> configurationParser.parseThreadPool(parameters));
     }
 
     @Override
     public ThriftDataAcceptor create(final String resourceName,
-                                     final String connectionString,
-                                     final Map<String, String> parameters) throws Exception {
-        return create(resourceName, new URI(connectionString), parameters, new MDAConnectorDescriptionProvider());
+                                             final String connectionString,
+                                             final Map<String, String> parameters) throws UnknownHostException, TTransportException, URISyntaxException {
+        return create(resourceName, new URI(connectionString), parameters);
     }
 
     /**

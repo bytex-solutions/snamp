@@ -78,7 +78,7 @@ abstract class AbstractAttributeAggregation<T> extends OpenMBeanAttributeAccesso
         return Utils.getBundleContextOfObject(this);
     }
 
-    static AttributeConfiguration createAttributeConfiguration(final BundleContext context){
+    static AttributeConfiguration createAttributeConfiguration(final ClassLoader context){
         return ConfigurationManager.createEntityConfiguration(context, AttributeConfiguration.class);
     }
 

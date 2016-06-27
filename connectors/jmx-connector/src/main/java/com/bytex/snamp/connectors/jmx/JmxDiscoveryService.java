@@ -1,7 +1,6 @@
 package com.bytex.snamp.connectors.jmx;
 
 import com.bytex.snamp.configuration.ConfigurationManager;
-import org.osgi.framework.BundleContext;
 
 import javax.management.*;
 import javax.management.remote.JMXConnector;
@@ -12,7 +11,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
-import static com.bytex.snamp.connectors.jmx.JmxConnectorConfigurationDescriptor.OBJECT_NAME_PROPERTY;
+import static com.bytex.snamp.connectors.jmx.JmxConnectorDescriptionProvider.OBJECT_NAME_PROPERTY;
 
 /**
  * Represents discovery service provider.
@@ -25,7 +24,7 @@ final class JmxDiscoveryService{
         throw new InstantiationError();
     }
 
-    private static Collection<AttributeConfiguration> discoverAttributes(final BundleContext context, final MBeanServerConnection connection) throws IOException, JMException {
+    private static Collection<AttributeConfiguration> discoverAttributes(final ClassLoader context, final MBeanServerConnection connection) throws IOException, JMException {
         final List<AttributeConfiguration> result = new ArrayList<>(40);
         for (final ObjectName objectName : connection.queryNames(null, null))
             for (final MBeanAttributeInfo attr : connection.getMBeanInfo(objectName).getAttributes()) {
@@ -40,7 +39,7 @@ final class JmxDiscoveryService{
         return result;
     }
 
-    private static Collection<EventConfiguration> discoverEvents(final BundleContext context, final MBeanServerConnection connection) throws IOException, JMException {
+    private static Collection<EventConfiguration> discoverEvents(final ClassLoader context, final MBeanServerConnection connection) throws IOException, JMException {
         final List<EventConfiguration> result = new ArrayList<>(10);
         for (final ObjectName objectName : connection.queryNames(null, null))
             for (final MBeanNotificationInfo notif : connection.getMBeanInfo(objectName).getNotifications())
@@ -57,7 +56,7 @@ final class JmxDiscoveryService{
     }
 
     @SuppressWarnings("unchecked")
-    private static <T extends FeatureConfiguration> Collection<T> discover(final BundleContext context, final MBeanServerConnection connection, final Class<T> entityType) throws IOException, JMException {
+    private static <T extends FeatureConfiguration> Collection<T> discover(final ClassLoader context, final MBeanServerConnection connection, final Class<T> entityType) throws IOException, JMException {
         if (entityType == null) return Collections.emptyList();
         else if (AttributeConfiguration.class.equals(entityType))
             return (Collection<T>) discoverAttributes(context, connection);
@@ -66,7 +65,7 @@ final class JmxDiscoveryService{
         else return Collections.emptyList();
     }
 
-    static <T extends FeatureConfiguration> Collection<T> discover(final BundleContext context, final JMXConnector options, final Class<T> entityType) throws IOException, JMException {
+    static <T extends FeatureConfiguration> Collection<T> discover(final ClassLoader context, final JMXConnector options, final Class<T> entityType) throws IOException, JMException {
         return discover(context, options.getMBeanServerConnection(), entityType);
     }
 }

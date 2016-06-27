@@ -3,6 +3,7 @@ package com.bytex.snamp.connectors.mda;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
+import com.bytex.snamp.connectors.ManagedResourceDescriptionProvider;
 import com.bytex.snamp.jmx.CompositeTypeBuilder;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.WellKnownType;
@@ -28,7 +29,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
  * @version 1.2
  * @since 1.0
  */
-public abstract class MDAResourceConfigurationDescriptorProvider extends ConfigurationEntityDescriptionProviderImpl {
+public abstract class MDAResourceConfigurationDescriptorProvider extends ConfigurationEntityDescriptionProviderImpl implements ManagedResourceDescriptionProvider {
     private static final Splitter ITEMS_SPLITTER = Splitter.on(',').trimResults();
     /**
      * Represents configuration parameter which describes the type of the attribute.

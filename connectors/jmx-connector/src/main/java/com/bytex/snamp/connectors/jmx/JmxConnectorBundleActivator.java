@@ -186,10 +186,10 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
     @SpecialUse
     public JmxConnectorBundleActivator() {
         super(new JmxConnectorFactory(),
-                new ConfigurationEntityDescriptionManager<JmxConnectorConfigurationDescriptor>() {
+                new ConfigurationEntityDescriptionManager<JmxConnectorDescriptionProvider>() {
                     @Override
-                    protected JmxConnectorConfigurationDescriptor createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
-                        return new JmxConnectorConfigurationDescriptor();
+                    protected JmxConnectorDescriptionProvider createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
+                        return JmxConnectorDescriptionProvider.getInstance();
                     }
                 },
                 new JmxMaintenanceServiceManager(),
@@ -204,7 +204,7 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
                     protected <T extends FeatureConfiguration> Collection<T> getManagementInformation(final Class<T> entityType,
                                                                                                final JMXConnector connection,
                                                                                                final RequiredService<?>... dependencies) throws JMException, IOException {
-                        return JmxDiscoveryService.discover(getBundleContextOfObject(this), connection, entityType);
+                        return JmxDiscoveryService.discover(getClass().getClassLoader(), connection, entityType);
                     }
                 });
     }

@@ -1,16 +1,55 @@
 package com.bytex.snamp.connectors.mda.impl;
 
-import com.bytex.snamp.connectors.ManagedResourceDescriptionProvider;
+import com.bytex.snamp.concurrent.LazyContainers;
+import com.bytex.snamp.concurrent.LazyValue;
+import com.bytex.snamp.connectors.mda.MDAResourceConfigurationDescriptorProvider;
 
 import java.util.Map;
-import static com.bytex.snamp.connectors.mda.impl.MDAResourceConfigurationDescriptorProviderImpl.SOCKET_TIMEOUT_PARAM;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
-public final class MDAConnectorDescriptionProvider extends ManagedResourceDescriptionProvider {
+public final class MDAConnectorDescriptionProvider extends MDAResourceConfigurationDescriptorProvider {
+    static final String SOCKET_TIMEOUT_PARAM = "socketTimeout";
+
+    private static final class AttributeConfigurationDescriptorImpl extends AttributeConfigurationDescriptor{
+        private static final String RESOURCE_NAME = "MdaAttributeConfig";
+
+        private AttributeConfigurationDescriptorImpl(){
+            super(RESOURCE_NAME);
+        }
+    }
+
+    private static final class EventConfigurationDescriptorImpl extends EventConfigurationDescriptor{
+        private static final String RESOURCE_NAME = "MdaEventConfig";
+
+        private EventConfigurationDescriptorImpl(){
+            super(RESOURCE_NAME);
+        }
+    }
+
+    private static final class ConnectorConfigurationDescriptorImpl extends ConnectorConfigurationDescriptor{
+        private static final String RESOURCE_NAME = "MdaConnectorConfig";
+
+        private ConnectorConfigurationDescriptorImpl(){
+            super(RESOURCE_NAME, SOCKET_TIMEOUT_PARAM);
+        }
+    }
+
+    private static final LazyValue<MDAConnectorDescriptionProvider> INSTANCE = LazyContainers.NORMAL.create(MDAConnectorDescriptionProvider::new);
+
+    private MDAConnectorDescriptionProvider(){
+        super(new AttributeConfigurationDescriptorImpl(),
+                new EventConfigurationDescriptorImpl(),
+                new ConnectorConfigurationDescriptorImpl());
+    }
+
+    public static MDAConnectorDescriptionProvider getInstance(){
+        return INSTANCE.get();
+    }
+
     public int parseSocketTimeout(final Map<String, String> parameters){
         if(parameters.containsKey(SOCKET_TIMEOUT_PARAM))
             return Integer.parseInt(parameters.get(SOCKET_TIMEOUT_PARAM));

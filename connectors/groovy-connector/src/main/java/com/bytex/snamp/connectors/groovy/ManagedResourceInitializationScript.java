@@ -4,7 +4,6 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.google.common.collect.ImmutableList;
 import groovy.lang.Binding;
-import org.osgi.framework.BundleContext;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -22,9 +21,9 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
 public abstract class ManagedResourceInitializationScript extends ManagedResourceScript implements ManagedResourceInfo {
     private final Collection<AttributeConfiguration> attributes = new LinkedList<>();
     private final Collection<EventConfiguration> events = new LinkedList<>();
-    private BundleContext contextRef;
+    private ClassLoader contextRef;
 
-    final void setContext(final BundleContext context){
+    final void setContext(final ClassLoader context){
         this.contextRef = context;
     }
 

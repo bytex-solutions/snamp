@@ -1,7 +1,7 @@
 package com.bytex.snamp.connectors.jmx;
 
+import com.bytex.snamp.Box;
 import com.bytex.snamp.ExceptionalCallable;
-import com.bytex.snamp.connectors.ManagedResourceDescriptionProvider;
 import com.bytex.snamp.internal.Utils;
 
 import javax.management.MalformedObjectNameException;
@@ -15,8 +15,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
-
-import static com.bytex.snamp.connectors.jmx.JmxConnectorConfigurationDescriptor.*;
 
 /**
  * Represents JMX connector initialization options.
@@ -45,16 +43,14 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
 
     JmxConnectionOptions(final String connectionString, final Map<String, String> options) throws MalformedURLException, MalformedObjectNameException {
         super(connectionString);
-        final ManagedResourceDescriptionProvider parser = new ManagedResourceDescriptionProvider() { };
-        if(options.containsKey(JMX_LOGIN) && options.containsKey(JMX_PASSWORD)){
-            login = options.get(JMX_LOGIN);
-            password = options.get(JMX_PASSWORD);
-        }
-        else login = password = "";
-        this.watchDogPeriod = options.containsKey(CONNECTION_CHECK_PERIOD) ?
-                Integer.parseInt(options.get(CONNECTION_CHECK_PERIOD)) : 3000L;
+        final JmxConnectorDescriptionProvider parser = JmxConnectorDescriptionProvider.getInstance();
+        final Box<String> userName = new Box<>(), password = new Box<>();
+        parser.parseUserNameAndPassword(options, userName, password);
+        this.login = userName.get();
+        this.password = password.get();
+        this.watchDogPeriod = parser.parseWatchDogPeriod(options);
         this.smartMode = parser.isSmartModeEnabled(options);
-        this.globalNamespace = getObjectName(options);
+        this.globalNamespace = parser.parseRootObjectName(options);
     }
 
     private Map<String, Object> getJmxOptions(){

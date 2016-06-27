@@ -1,7 +1,6 @@
 package com.bytex.snamp.connectors.aggregator;
 
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
-import org.osgi.framework.BundleContext;
 
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.InvalidKeyException;
@@ -38,8 +37,8 @@ final class Decomposer extends UnaryAttributeAggregation<String> {
                 toString(value);
     }
 
-    static AttributeConfiguration getConfiguration(final BundleContext context) {
-        final AttributeConfiguration result = createAttributeConfiguration(context);
+    static AttributeConfiguration getConfiguration() {
+        final AttributeConfiguration result = createAttributeConfiguration(Decomposer.class.getClassLoader());
         result.setAlternativeName(NAME);
         fillParameters(result.getParameters());
         result.getParameters().put(AggregatorConnectorConfiguration.FIELD_PATH_PARAM, "");

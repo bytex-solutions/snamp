@@ -1,17 +1,21 @@
 package com.bytex.snamp.connectors.jmx;
 
-import com.google.common.base.Functions;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.ImmutableMap;
 import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.SafeConsumer;
+import com.bytex.snamp.concurrent.LazyContainers;
+import com.bytex.snamp.concurrent.LazyValue;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
+import com.bytex.snamp.connectors.ManagedResourceDescriptionProvider;
 import com.bytex.snamp.connectors.SelectableConnectorParameterDescriptor;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.bytex.snamp.jmx.DescriptorUtils;
+import com.google.common.base.Functions;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableMap;
 
 import javax.management.*;
 import javax.management.openmbean.CompositeData;
@@ -24,9 +28,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.SMART_MODE_KEY;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration.AUTOMATICALLY_ADDED_KEY;
 
 /**
@@ -35,13 +37,13 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
  * @version 1.2
  * @since 1.0
  */
-final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl {
-    static final String JMX_LOGIN = "login";
-    static final String JMX_PASSWORD = "password";
+final class JmxConnectorDescriptionProvider extends ConfigurationEntityDescriptionProviderImpl implements ManagedResourceDescriptionProvider {
+    private static final String JMX_LOGIN = "login";
+    private static final String JMX_PASSWORD = "password";
     /**
      * Connection watchdog control period (in milliseconds).
      */
-    static final String CONNECTION_CHECK_PERIOD = "connectionCheckPeriod";
+    private static final String CONNECTION_CHECK_PERIOD = "connectionCheckPeriod";
     static final String OBJECT_NAME_PROPERTY = "objectName";
     static final String SEVERITY_PARAM = NotificationDescriptor.SEVERITY_PARAM;
     private static final String USE_REGEXP_PARAM = "useRegexp";
@@ -126,8 +128,14 @@ final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescr
         }
     }
 
-    JmxConnectorConfigurationDescriptor(){
+    private static final LazyValue<JmxConnectorDescriptionProvider> INSTANCE = LazyContainers.NORMAL.create(JmxConnectorDescriptionProvider::new);
+
+    private JmxConnectorDescriptionProvider(){
         super(new AttributeConfigurationInfo(), new ConnectorConfigurationInfo(), new EventConfigurationInfo());
+    }
+
+    static JmxConnectorDescriptionProvider getInstance(){
+        return INSTANCE.get();
     }
 
     static boolean useRegexpOption(final Descriptor options) {
@@ -156,11 +164,7 @@ final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescr
         else throw new JmxAbsentConfigurationParameterException(OBJECT_NAME_PROPERTY);
     }
 
-    static ObjectName getObjectName(final Map<String, String> parameters) throws MalformedObjectNameException{
-        if(parameters.containsKey(OBJECT_NAME_PROPERTY))
-            return new ObjectName(parameters.get(OBJECT_NAME_PROPERTY));
-        else return null;
-    }
+
 
     static CompositeData toConfigurationParameters(final ObjectName name) throws OpenDataException {
         return CompositeDataUtils.create(
@@ -168,5 +172,25 @@ final class JmxConnectorConfigurationDescriptor extends ConfigurationEntityDescr
                         OBJECT_NAME_PROPERTY, name.getCanonicalName(),
                         AUTOMATICALLY_ADDED_KEY, Boolean.TRUE.toString()
                 ), SimpleType.STRING);
+    }
+
+    long parseWatchDogPeriod(final Map<String, String> parameters){
+        return parameters.containsKey(CONNECTION_CHECK_PERIOD) ?
+                Integer.parseInt(parameters.get(CONNECTION_CHECK_PERIOD)) : 3000L;
+    }
+
+    ObjectName parseRootObjectName(final Map<String, String> parameters) throws MalformedObjectNameException{
+        return parameters.containsKey(OBJECT_NAME_PROPERTY) ? new ObjectName(parameters.get(OBJECT_NAME_PROPERTY)) : null;
+    }
+
+    void parseUserNameAndPassword(final Map<String, String> parameters, final SafeConsumer<? super String> userName, final SafeConsumer<? super String> password){
+        if(parameters.containsKey(JMX_LOGIN) && parameters.containsKey(JMX_PASSWORD)){
+            userName.accept(parameters.get(JMX_LOGIN));
+            password.accept(parameters.get(JMX_PASSWORD));
+        }
+        else {
+            userName.accept("");
+            password.accept("");
+        }
     }
 }

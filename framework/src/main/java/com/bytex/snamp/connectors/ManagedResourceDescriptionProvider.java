@@ -52,7 +52,7 @@ public interface ManagedResourceDescriptionProvider extends ConfigurationEntityD
      * @param parameters Configuration parameters of the managed resource. Cannot be {@literal null}.
      * @return Thread pool specified in configuration parameters; or {@literal null} if {@link ThreadPoolRepository} service was not registered.
      */
-    default ExecutorService getThreadPool(final Map<String, ?> parameters) {
+    default ExecutorService parseThreadPool(final Map<String, ?> parameters) {
         final String poolName = getProperty(parameters, THREAD_POOL_KEY, String.class, DEFAULT_THREAD_POOL_VALUE);
         return ThreadPoolRepository.getThreadPool(Utils.getBundleContextOfObject(this), poolName, true);
     }

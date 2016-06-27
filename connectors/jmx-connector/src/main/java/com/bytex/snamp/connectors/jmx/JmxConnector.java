@@ -35,7 +35,7 @@ import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.bytex.snamp.connectors.jmx.JmxConnectorConfigurationDescriptor.*;
+import static com.bytex.snamp.connectors.jmx.JmxConnectorDescriptionProvider.*;
 
 /**
  * Represents JMX connector.
@@ -744,7 +744,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
             if(!smartMode)
                 getLogger().log(Level.SEVERE, String.format("SmartMode cannot be enabled for %s resource. Configuration property '%s' is not specified",
                         resourceName,
-                        JmxConnectorConfigurationDescriptor.OBJECT_NAME_PROPERTY));
+                        JmxConnectorDescriptionProvider.OBJECT_NAME_PROPERTY));
         }
         else smartMode = false;
         this.notifications = new JmxNotificationRepository(resourceName,

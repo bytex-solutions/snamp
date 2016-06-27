@@ -1,7 +1,6 @@
 package com.bytex.snamp.connectors.aggregator;
 
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
-import org.osgi.framework.BundleContext;
 
 import javax.management.openmbean.SimpleType;
 import java.math.BigDecimal;
@@ -34,8 +33,8 @@ final class BinaryPercent extends BinaryAttributeAggregation<Double> {
         return compute(NumberUtils.toBigDecimal(left), NumberUtils.toBigDecimal(right));
     }
 
-    static AttributeConfiguration getConfiguration(final BundleContext context) {
-        final AttributeConfiguration result = createAttributeConfiguration(context);
+    static AttributeConfiguration getConfiguration() {
+        final AttributeConfiguration result = createAttributeConfiguration(BinaryPercent.class.getClassLoader());
         result.setAlternativeName(NAME);
         fillParameters(result.getParameters());
         return result;

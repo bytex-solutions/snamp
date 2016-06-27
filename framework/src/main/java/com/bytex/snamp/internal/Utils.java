@@ -11,11 +11,9 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandleProxies;
-import java.lang.invoke.MethodHandles;
+import java.lang.invoke.*;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.Dictionary;
 import java.util.Map;
 import java.util.Properties;
@@ -256,27 +254,44 @@ public final class Utils {
         return props;
     }
 
-    private static boolean isPublicAbstract(final int modifiers){
-        return Modifier.isPublic(modifiers) && Modifier.isAbstract(modifiers);
+    public static java.util.function.Supplier<?> reflectGetter(final MethodHandles.Lookup lookup,
+                                                            final Object owner,
+                                                            final Method getter) throws ReflectiveOperationException {
+        final MethodType invokedType = owner == null ?
+                MethodType.methodType(java.util.function.Supplier.class) :
+                MethodType.methodType(java.util.function.Supplier.class, getter.getDeclaringClass());
+
+        try {
+            final CallSite site = LambdaMetafactory.metafactory(lookup, "get",
+                    invokedType,
+                    MethodType.methodType(Object.class),
+                    lookup.unreflect(getter),
+                    MethodType.methodType(getter.getReturnType()));
+            return (java.util.function.Supplier<?>) (owner == null ? site.getTarget().invoke() : site.getTarget().invoke(owner));
+        } catch (final LambdaConversionException e){
+            throw new ReflectiveOperationException(e);
+        } catch (final Throwable e){
+            throw new InvocationTargetException(e);
+        }
     }
 
-    public static <I, O> O changeFunctionalInterfaceType(final I fi,
-                                                         final Class<I> inputInterface,
-                                                         final Class<O> outputInterface) {
-        if (outputInterface.isInstance(fi))
-            return outputInterface.cast(fi);
-        else if (MethodHandleProxies.isWrapperInstance(fi))
-            return MethodHandleProxies.asInterfaceInstance(outputInterface, MethodHandleProxies.wrapperInstanceTarget(fi));
-        else for (final Method candidate : inputInterface.getDeclaredMethods())
-                if (isPublicAbstract(candidate.getModifiers())) {
-                    final MethodHandle handle;
-                    try {
-                        handle = MethodHandles.publicLookup().unreflect(candidate);
-                    } catch (final IllegalAccessException e) {
-                        throw new IllegalArgumentException("Invalid interface method " + candidate);
-                    }
-                    return MethodHandleProxies.asInterfaceInstance(outputInterface, handle.bindTo(fi));
-                }
-        throw new IllegalArgumentException("Incorrect interface " + inputInterface);
+    public static java.util.function.Consumer reflectSetter(final MethodHandles.Lookup lookup,
+                                                               final Object owner,
+                                                               final Method setter) throws ReflectiveOperationException {
+        final MethodType invokedType = owner == null ?
+                MethodType.methodType(java.util.function.Consumer.class) :
+                MethodType.methodType(java.util.function.Consumer.class, setter.getDeclaringClass());
+        try {
+            final CallSite site = LambdaMetafactory.metafactory(lookup, "accept",
+                    invokedType,
+                    MethodType.methodType(void.class, Object.class),
+                    lookup.unreflect(setter),
+                    MethodType.methodType(setter.getReturnType(), setter.getParameterTypes()[0]));
+            return (java.util.function.Consumer) (owner == null ? site.getTarget().invoke() : site.getTarget().invoke(owner));
+        } catch (final LambdaConversionException e) {
+            throw new ReflectiveOperationException(e);
+        } catch (final Throwable e) {
+            throw new InvocationTargetException(e);
+        }
     }
 }

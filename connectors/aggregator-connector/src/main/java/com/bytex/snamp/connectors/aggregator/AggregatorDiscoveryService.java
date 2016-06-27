@@ -1,15 +1,16 @@
 package com.bytex.snamp.connectors.aggregator;
 
-import com.bytex.snamp.internal.Utils;
-import com.google.common.collect.ImmutableList;
 import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.configuration.AbstractAgentConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.connectors.discovery.DiscoveryResultBuilder;
 import com.bytex.snamp.connectors.discovery.DiscoveryService;
-import org.osgi.framework.BundleContext;
+import com.google.common.collect.ImmutableList;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
@@ -21,31 +22,27 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
  */
 final class AggregatorDiscoveryService extends AbstractAggregator implements DiscoveryService {
 
-    private static Collection<AttributeConfiguration> discoverAttributes(final BundleContext context){
+    private static Collection<AttributeConfiguration> discoverAttributes(){
         return ImmutableList.of(
-            PatternMatcher.getConfiguration(context),
-                UnaryComparison.getConfiguration(context),
-                BinaryComparison.getConfiguration(context),
-                BinaryPercent.getConfiguration(context),
-                UnaryPercent.getConfiguration(context),
-                Counter.getConfiguration(context),
-                Average.getConfiguration(context),
-                Peak.getConfiguration(context),
-                Decomposer.getConfiguration(context),
-                Stringifier.getConfiguration(context),
-                Composer.getConfiguration(context)
+            PatternMatcher.getConfiguration(),
+                UnaryComparison.getConfiguration(),
+                BinaryComparison.getConfiguration(),
+                BinaryPercent.getConfiguration(),
+                UnaryPercent.getConfiguration(),
+                Counter.getConfiguration(),
+                Average.getConfiguration(),
+                Peak.getConfiguration(),
+                Decomposer.getConfiguration(),
+                Stringifier.getConfiguration(),
+                Composer.getConfiguration()
         );
     }
 
-    private static Collection<EventConfiguration> discoverEvents(final BundleContext context){
+    private static Collection<EventConfiguration> discoverEvents(){
         return ImmutableList.of(
-            PeriodicAttributeQuery.getConfiguration(context),
-            HealthCheckNotification.getConfiguration(context)
+            PeriodicAttributeQuery.getConfiguration(),
+            HealthCheckNotification.getConfiguration()
         );
-    }
-
-    private BundleContext getBundleContext(){
-        return Utils.getBundleContextOfObject(this);
     }
 
     /**
@@ -72,9 +69,9 @@ final class AggregatorDiscoveryService extends AbstractAggregator implements Dis
     @Override
     public <T extends FeatureConfiguration> Collection<T> discover(final String connectionString, final Map<String, String> connectionOptions, final Class<T> entityType) {
         if(Objects.equals(entityType, AttributeConfiguration.class))
-            return (Collection<T>)discoverAttributes(getBundleContext());
+            return (Collection<T>)discoverAttributes();
         else if(Objects.equals(entityType, EventConfiguration.class))
-            return (Collection<T>)discoverEvents(getBundleContext());
+            return (Collection<T>)discoverEvents();
         else return Collections.emptyList();
     }
 

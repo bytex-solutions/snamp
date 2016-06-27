@@ -1,7 +1,6 @@
 package com.bytex.snamp.connectors.aggregator;
 
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
-import org.osgi.framework.BundleContext;
 
 import javax.management.openmbean.SimpleType;
 import java.util.Objects;
@@ -22,8 +21,8 @@ final class Stringifier extends UnaryAttributeAggregation<String> {
         super(attributeID, DESCRIPTION, SimpleType.STRING, descriptor);
     }
 
-    static AttributeConfiguration getConfiguration(final BundleContext context) {
-        final AttributeConfiguration result = createAttributeConfiguration(context);
+    static AttributeConfiguration getConfiguration() {
+        final AttributeConfiguration result = createAttributeConfiguration(Stringifier.class.getClassLoader());
         result.setAlternativeName(NAME);
         fillParameters(result.getParameters());
         return result;

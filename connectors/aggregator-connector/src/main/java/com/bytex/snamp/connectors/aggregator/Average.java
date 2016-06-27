@@ -1,9 +1,9 @@
 package com.bytex.snamp.connectors.aggregator;
 
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
-import org.osgi.framework.BundleContext;
 
 import javax.management.openmbean.SimpleType;
+
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 
 /**
@@ -41,8 +41,8 @@ final class Average extends UnaryAttributeAggregation<Double> {
         return sum / count;
     }
 
-    static AttributeConfiguration getConfiguration(final BundleContext context) {
-        final AttributeConfiguration result = createAttributeConfiguration(context);
+    static AttributeConfiguration getConfiguration() {
+        final AttributeConfiguration result = createAttributeConfiguration(Average.class.getClassLoader());
         result.setAlternativeName(NAME);
         fillParameters(result.getParameters());
         return result;

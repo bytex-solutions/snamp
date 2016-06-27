@@ -61,7 +61,7 @@ abstract class AbstractAggregatorNotification extends CustomNotificationInfo {
     protected abstract void process(final AttributeSupport attributes,
                                     final NotificationEnqueue sender);
 
-    static EventConfiguration createEventConfiguration(final BundleContext context){
+    static EventConfiguration createEventConfiguration(final ClassLoader context){
         return ConfigurationManager.createEntityConfiguration(context, EventConfiguration.class);
     }
 

@@ -20,22 +20,15 @@ public final class HttpDataAcceptorFactory implements DataAcceptorFactory {
         return SERVLET_CONTEXT.concat(resourceName);
     }
 
-    private static HttpDataAcceptor create(final String resourceName,
+    @Override
+    public HttpDataAcceptor create(final String resourceName,
                                            String servletContext,
-                                           final Map<String, String> parameters,
-                                           final MDAConnectorDescriptionProvider configurationParser) {
+                                           final Map<String, String> parameters) {
         if (isNullOrEmpty(servletContext))
             servletContext = getServletContext(resourceName);
         return new HttpDataAcceptor(resourceName,
                 servletContext,
-                () -> configurationParser.getThreadPool(parameters));
-    }
-
-    @Override
-    public HttpDataAcceptor create(final String resourceName,
-                                   final String servletContext,
-                                   final Map<String, String> parameters) throws Exception {
-        return create(resourceName, servletContext, parameters, new MDAConnectorDescriptionProvider());
+                () -> MDAConnectorDescriptionProvider.getInstance().parseThreadPool(parameters));
     }
 
     @Override

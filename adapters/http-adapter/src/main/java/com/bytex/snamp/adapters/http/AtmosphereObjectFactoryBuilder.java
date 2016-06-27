@@ -7,8 +7,6 @@ import org.atmosphere.cpr.AtmosphereObjectFactory;
 
 import java.util.concurrent.Callable;
 
-import static com.bytex.snamp.internal.Utils.changeFunctionalInterfaceType;
-
 /**
  * @author Roman Sakno
  * @version 1.2
@@ -43,7 +41,7 @@ final class AtmosphereObjectFactoryBuilder implements Supplier<AtmosphereObjectF
     @SuppressWarnings("unchecked")
     public <V> AtmosphereObjectFactoryBuilder add(final Class<V> classType,
                                                   final Supplier<? extends V> factory) {
-        return add(classType, changeFunctionalInterfaceType(factory, Supplier.class, Callable.class));
+        return add(classType, (Callable<? extends V>) factory::get);
     }
 
     public AtmosphereObjectFactory build(){

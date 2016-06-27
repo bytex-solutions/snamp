@@ -2,9 +2,9 @@ package com.bytex.snamp.connectors.aggregator;
 
 import com.bytex.snamp.concurrent.LongAccumulator;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
-import org.osgi.framework.BundleContext;
 
 import javax.management.openmbean.SimpleType;
+
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 
 /**
@@ -29,8 +29,8 @@ final class Peak extends UnaryAttributeAggregation<Long> {
         return accumulator.update(NumberUtils.toLong(value));
     }
 
-    static AttributeConfiguration getConfiguration(final BundleContext context) {
-        final AttributeConfiguration result = createAttributeConfiguration(context);
+    static AttributeConfiguration getConfiguration() {
+        final AttributeConfiguration result = createAttributeConfiguration(Peak.class.getClassLoader());
         result.setAlternativeName(NAME);
         fillParameters(result.getParameters());
         return result;

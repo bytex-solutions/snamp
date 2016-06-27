@@ -148,7 +148,7 @@ final class SnmpConnectorDescriptionProvider extends ConfigurationEntityDescript
     SnmpClient createSnmpClient(final Address connectionAddress, final Map<String, String> parameters) throws IOException{
         final OctetString engineID = parseEngineID(parameters);
         final OctetString community = parseCommunity(parameters);
-        final ExecutorService threadPool = getThreadPool(parameters);
+        final ExecutorService threadPool = parseThreadPool(parameters);
         final OctetString userName = parameters.containsKey(USER_NAME_PARAM) ?
                 new OctetString(parameters.get(USER_NAME_PARAM)) :
                 null;

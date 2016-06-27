@@ -1,7 +1,7 @@
 package com.bytex.snamp.connectors.mq.jms;
 
 import com.bytex.snamp.connectors.mda.DataAcceptorFactory;
-import com.bytex.snamp.connectors.mq.MQConnectorDescriptionProvider;
+import com.bytex.snamp.connectors.mq.MQResourceConnectorDescriptionProvider;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.base.Strings;
 import org.osgi.framework.BundleContext;
@@ -21,13 +21,13 @@ public final class JMSDataAcceptorFactory implements DataAcceptorFactory {
     private static final String AMQP_PREFIX = "amqp:";
     private static final String AMQP_SECURE_PREFIX = "amqps:";
 
-    private JMSDataAcceptor create(final String resourceName,
+    @Override
+    public JMSDataAcceptor create(final String resourceName,
                                    String connectionString,
-                                   final Map<String, String> parameters,
-                                   final MQConnectorDescriptionProvider configurationParser) throws Exception {
+                                   final Map<String, String> parameters) throws Exception {
         final BundleContext context = Utils.getBundleContextOfObject(this);
         //parse converter
-        final String scriptFile = configurationParser.getConverterScript(parameters);
+        final String scriptFile = MQResourceConnectorDescriptionProvider.getInstance().getConverterScript(parameters);
         final JMSDataConverter converter = Strings.isNullOrEmpty(scriptFile) ?
                 JMSDataConverter.createDefault() :
                 JMSDataConverter.loadFrom(new File(scriptFile), getClass().getClassLoader());
@@ -42,7 +42,7 @@ public final class JMSDataAcceptorFactory implements DataAcceptorFactory {
             connectionFactory = QueueClient.JNDI.getConnectionFactory(connectionString.replaceFirst(JNDI_PREFIX, ""), context);
             //AMQP
         else if (connectionString.startsWith(AMQP_PREFIX) || connectionString.startsWith(AMQP_SECURE_PREFIX)) {
-            final String protocolVersion = configurationParser.getAmqpVersion(parameters);
+            final String protocolVersion = MQResourceConnectorDescriptionProvider.getInstance().getAmqpVersion(parameters);
             final QueueClient client;
             if (Strings.isNullOrEmpty(protocolVersion))
                 client = QueueClient.AMQP_0_9_1;
@@ -65,14 +65,7 @@ public final class JMSDataAcceptorFactory implements DataAcceptorFactory {
             connectionFactory = client.getConnectionFactory(connectionString, context);
         } else throw new IllegalArgumentException("Unknown message queue technology");
         //setup thread pool
-        return new JMSDataAcceptor(resourceName, parameters, converter, configurationParser, connectionFactory);
-    }
-
-    @Override
-    public JMSDataAcceptor create(final String resourceName,
-                               String connectionString,
-                               final Map<String, String> parameters) throws Exception {
-        return create(resourceName, connectionString, parameters, new MQConnectorDescriptionProvider());
+        return new JMSDataAcceptor(resourceName, parameters, converter, connectionFactory);
     }
 
     /**

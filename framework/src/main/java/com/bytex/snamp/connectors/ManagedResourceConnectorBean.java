@@ -15,7 +15,7 @@ import com.bytex.snamp.connectors.operations.OperationDescriptor;
 import com.bytex.snamp.connectors.operations.OperationSupport;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.core.LongCounter;
-import com.bytex.snamp.internal.Utils;
+import static com.bytex.snamp.internal.Utils.*;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.google.common.base.Strings;
@@ -34,6 +34,8 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -409,8 +411,8 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      */
     private static class JavaBeanAttributeInfo extends CustomAttributeInfo implements AttributeDescriptorRead{
         private static final long serialVersionUID = -5047097712279607039L;
-        private final MethodHandle getter;
-        private final MethodHandle setter;
+        private final Supplier<?> getter;
+        private final Consumer setter;
 
         /**
          * Represents attribute formatter.
@@ -440,43 +442,25 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                     throw new ReflectionException(e);
                 }
             else formatter = new DefaultManagementAttributeMarshaller();
-            final MethodHandles.Lookup lookup = MethodHandles.publicLookup();
+            final MethodHandles.Lookup lookup = MethodHandles.lookup();
             try{
-                this.setter = setter != null ? lookup.unreflect(setter).bindTo(owner): null;
-                this.getter = getter != null ? lookup.unreflect(getter).bindTo(owner): null;
-            } catch (final IllegalAccessException e) {
+                this.setter = setter != null ? reflectSetter(lookup, owner, setter): null;
+                this.getter = getter != null ? reflectGetter(lookup, owner, getter): null;
+            } catch (final ReflectiveOperationException e) {
                 throw new ReflectionException(e);
             }
         }
 
         final Object getValue() throws ReflectionException {
             if (getter != null)
-                try {
-                    return formatter.toJmxValue(getter.invoke(), this);
-                } catch (final Exception e) {
-                    throw new ReflectionException(e);
-                } catch (final Error e) {
-                    throw e;
-                } catch (final Throwable e) {
-                    throw new ReflectionException(new UndeclaredThrowableException(e));
-                }
+                return formatter.toJmxValue(getter.get(), this);
             else throw new ReflectionException(new UnsupportedOperationException("Attribute is write-only"));
         }
 
         @SuppressWarnings("unchecked")
         final void setValue(final Object value) throws ReflectionException, InvalidAttributeValueException {
             if (setter != null)
-                try {
-                    setter.invoke(formatter.fromJmxValue(value, this));
-                } catch (final IllegalArgumentException e) {
-                    throw new InvalidAttributeValueException(e.getMessage());
-                } catch (final Exception e) {
-                    throw new ReflectionException(e);
-                } catch (final Error e) {
-                    throw e;
-                } catch (final Throwable e) {
-                    throw new ReflectionException(new UndeclaredThrowableException(e));
-                }
+                setter.accept(formatter.fromJmxValue(value, this));
             else throw new ReflectionException(new UnsupportedOperationException("Attribute is read-only"));
         }
 
@@ -850,7 +834,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                 getLogger());
         notifications = new JavaBeanNotificationRepository(resourceName,
                 notifTypes,
-                Utils.getBundleContextOfObject(this),
+                getBundleContextOfObject(this),
                 getLogger());
         operations = new<ManagedResourceConnectorBean> JavaBeanOperationRepository(resourceName,
                 this,
