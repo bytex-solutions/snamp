@@ -10,7 +10,9 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import static com.bytex.snamp.internal.Utils.*;
+
+import static com.bytex.snamp.internal.Utils.reflectGetter;
+import static com.bytex.snamp.internal.Utils.reflectSetter;
 
 /**
  * @author Roman Sakno
@@ -18,6 +20,11 @@ import static com.bytex.snamp.internal.Utils.*;
  * @since 1.0
  */
 public final class UtilsTest extends Assert {
+    private static final class Container{
+        @SpecialUse
+        int value;
+    }
+
     @SpecialUse
     private static BigInteger getBigInteger(){
         return BigInteger.TEN;

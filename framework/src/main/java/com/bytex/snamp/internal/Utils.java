@@ -18,6 +18,7 @@ import java.util.Dictionary;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
 
 import static org.osgi.framework.Constants.OBJECTCLASS;
 
@@ -254,19 +255,19 @@ public final class Utils {
         return props;
     }
 
-    public static java.util.function.Supplier<?> reflectGetter(final MethodHandles.Lookup lookup,
-                                                            final Object owner,
-                                                            final Method getter) throws ReflectiveOperationException {
+    private static java.util.function.Supplier<?> reflectGetter(final MethodHandles.Lookup lookup,
+                                                               final Object owner,
+                                                               final MethodHandle getter) throws ReflectiveOperationException {
         final MethodType invokedType = owner == null ?
                 MethodType.methodType(java.util.function.Supplier.class) :
-                MethodType.methodType(java.util.function.Supplier.class, getter.getDeclaringClass());
+                MethodType.methodType(java.util.function.Supplier.class, owner.getClass());
 
         try {
             final CallSite site = LambdaMetafactory.metafactory(lookup, "get",
                     invokedType,
                     MethodType.methodType(Object.class),
-                    lookup.unreflect(getter),
-                    MethodType.methodType(getter.getReturnType()));
+                    getter,
+                    MethodType.methodType(getter.type().returnType()));
             return (java.util.function.Supplier<?>) (owner == null ? site.getTarget().invoke() : site.getTarget().invoke(owner));
         } catch (final LambdaConversionException e){
             throw new ReflectiveOperationException(e);
@@ -275,23 +276,42 @@ public final class Utils {
         }
     }
 
-    public static java.util.function.Consumer reflectSetter(final MethodHandles.Lookup lookup,
-                                                               final Object owner,
-                                                               final Method setter) throws ReflectiveOperationException {
-        final MethodType invokedType = owner == null ?
-                MethodType.methodType(java.util.function.Consumer.class) :
-                MethodType.methodType(java.util.function.Consumer.class, setter.getDeclaringClass());
+    public static java.util.function.Supplier<?> reflectGetter(final MethodHandles.Lookup lookup,
+                                                            final Object owner,
+                                                            final Method getter) throws ReflectiveOperationException {
+        return reflectGetter(lookup, owner, lookup.unreflect(getter));
+    }
+
+    private static Consumer reflectSetter(final MethodHandles.Lookup lookup,
+                                                            final Object owner,
+                                                            final MethodHandle setter) throws ReflectiveOperationException {
+        final MethodType invokedType;
+        final MethodType instantiatedMethodType;
+        if(owner == null){
+            invokedType = MethodType.methodType(Consumer.class);
+            instantiatedMethodType = MethodType.methodType(void.class, setter.type().parameterType(0));
+        }
+        else {
+            invokedType = MethodType.methodType(Consumer.class, owner.getClass());
+            instantiatedMethodType = MethodType.methodType(void.class, setter.type().parameterType(1));//zero index points to 'this' reference
+        }
         try {
             final CallSite site = LambdaMetafactory.metafactory(lookup, "accept",
                     invokedType,
                     MethodType.methodType(void.class, Object.class),
-                    lookup.unreflect(setter),
-                    MethodType.methodType(setter.getReturnType(), setter.getParameterTypes()[0]));
-            return (java.util.function.Consumer) (owner == null ? site.getTarget().invoke() : site.getTarget().invoke(owner));
+                    setter,
+                    instantiatedMethodType);
+            return (Consumer) (owner == null ? site.getTarget().invoke() : site.getTarget().invoke(owner));
         } catch (final LambdaConversionException e) {
             throw new ReflectiveOperationException(e);
         } catch (final Throwable e) {
             throw new InvocationTargetException(e);
         }
+    }
+
+    public static java.util.function.Consumer reflectSetter(final MethodHandles.Lookup lookup,
+                                                               final Object owner,
+                                                               final Method setter) throws ReflectiveOperationException {
+        return reflectSetter(lookup, owner, lookup.unreflect(setter));
     }
 }
