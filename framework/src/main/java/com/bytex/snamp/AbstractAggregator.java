@@ -9,6 +9,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.lang.invoke.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -38,6 +39,14 @@ import java.util.concurrent.ExecutionException;
  * @version 1.2
  */
 public abstract class AbstractAggregator implements Aggregator {
+    private static final class AggregationException extends IllegalStateException{
+        private static final long serialVersionUID = 1626738914147286451L;
+
+        private AggregationException(final Throwable cause){
+            super(cause);
+        }
+    }
+
     private interface AggregationSupplier {
         Object get(final Aggregator owner) throws ReflectiveOperationException;
     }
@@ -52,32 +61,6 @@ public abstract class AbstractAggregator implements Aggregator {
         @Override
         public Object get(final Aggregator owner) throws IllegalAccessException {
             return field.get(owner);
-        }
-    }
-
-    private static final class MethodAggregationSupplier implements AggregationSupplier {
-        private final Method method;
-
-        private MethodAggregationSupplier(final Method m){
-            this.method = Objects.requireNonNull(m);
-        }
-
-        @Override
-        public Object get(final Aggregator owner) throws InvocationTargetException, IllegalAccessException {
-            return method.invoke(owner);
-        }
-    }
-
-    private static final class ObjectAggregationSupplier implements AggregationSupplier{
-        private final Object object;
-
-        private ObjectAggregationSupplier(final Object obj){
-            this.object = Objects.requireNonNull(obj);
-        }
-
-        @Override
-        public Object get(final Aggregator owner) {
-            return object;
         }
     }
 
@@ -96,24 +79,45 @@ public abstract class AbstractAggregator implements Aggregator {
             this.aggregatorType = declaredType;
         }
 
-        private static AggregationSupplier load(final Class<?> inheritanceFrame, final Class<?> serviceType) {
+        private static AggregationSupplier reflectField(final Field fld){
+            return new FieldAggregationSupplier(fld);
+        }
+
+        private static AggregationSupplier reflectMethod(final Method m) throws ReflectiveOperationException{
+            final MethodType invokedType = MethodType.methodType(AggregationSupplier.class);
+            final MethodHandles.Lookup lookup = MethodHandles.lookup();
+            try {
+                final CallSite site = LambdaMetafactory.metafactory(lookup, "get",
+                        invokedType,
+                        MethodType.methodType(Object.class, Aggregator.class),
+                        lookup.unreflect(m),
+                        MethodType.methodType(m.getReturnType(), m.getDeclaringClass()));
+                return (AggregationSupplier) site.getTarget().invoke();
+            } catch (final LambdaConversionException e) {
+                throw new ReflectiveOperationException(e);
+            } catch (final Throwable e) {
+                throw new InvocationTargetException(e);
+            }
+        }
+
+        private static AggregationSupplier load(final Class<?> inheritanceFrame, final Class<?> serviceType) throws ReflectiveOperationException {
             //iterates through fields
             for (final Field f : inheritanceFrame.getDeclaredFields())
                 if (f.isAnnotationPresent(Aggregation.class) && serviceType.isAssignableFrom(f.getType())) {
                     if (!f.isAccessible()) f.setAccessible(true);
-                    return new FieldAggregationSupplier(f);
+                    return reflectField(f);
                 }
             //iterates through methods
             for (final Method m : inheritanceFrame.getDeclaredMethods())
                 if (m.isAnnotationPresent(Aggregation.class) && serviceType.isAssignableFrom(m.getReturnType())) {
                     if (!m.isAccessible()) m.setAccessible(true);
-                    return new MethodAggregationSupplier(m);
+                    return reflectMethod(m);
                 }
             return null;
         }
 
         @Override
-        public AggregationSupplier load(final Class<?> serviceType) throws AggregationNotFoundException {
+        public AggregationSupplier load(final Class<?> serviceType) throws AggregationNotFoundException, ReflectiveOperationException {
             for (Class<?> inheritanceFrame = aggregatorType; !inheritanceFrame.equals(AbstractAggregator.class); inheritanceFrame = inheritanceFrame.getSuperclass()) {
                 final AggregationSupplier result = load(inheritanceFrame, serviceType);
                 if (result != null) return result;
@@ -140,7 +144,7 @@ public abstract class AbstractAggregator implements Aggregator {
         public <T> AggregationBuilder aggregate(final Class<T> objectType, final T obj) {
             if (aggregator == null)
                 aggregator = createAggregator();
-            aggregator.providers.put(objectType, new ObjectAggregationSupplier(obj));
+            aggregator.providers.put(objectType, aggregator -> obj);
             return this;
         }
 
@@ -194,11 +198,11 @@ public abstract class AbstractAggregator implements Aggregator {
             //try to load from cache
             return objectType.cast(providers.get(objectType).get(this));
         } catch (final ExecutionException e) {
-            return e.getCause() instanceof AggregationNotFoundException ?
-                    queryObjectFallback(objectType, fallback) :  //try fallback scenarios
-                    null;
+            if (e.getCause() instanceof AggregationNotFoundException)
+                return queryObjectFallback(objectType, fallback);  //try fallback scenarios
+            else throw new AggregationException(e.getCause());
         } catch (final ReflectiveOperationException e) {
-            return null;
+            throw new AggregationException(e);
         }
     }
 
