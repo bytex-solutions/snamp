@@ -2,7 +2,7 @@ package com.bytex.snamp.adapters.snmp;
 
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterConfigurationDescriptor;
+import com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterDescriptionProvider;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import org.osgi.service.jndi.JNDIContextManager;
 import org.snmp4j.log.OSGiLogFactory;
@@ -17,7 +17,7 @@ public final class SnmpResourceAdapterActivator extends ResourceAdapterActivator
         OSGiLogFactory.setup();
     }
 
-    private static final class SnmpAdapterConfigurationEntityDescriptionManager extends ConfigurationEntityDescriptionManager<SnmpAdapterConfigurationDescriptor> {
+    private static final class SnmpAdapterConfigurationEntityDescriptionManager extends ConfigurationEntityDescriptionManager<SnmpAdapterDescriptionProvider> {
 
         /**
          * Creates a new instance of the configuration description provider.
@@ -27,8 +27,8 @@ public final class SnmpResourceAdapterActivator extends ResourceAdapterActivator
          * @throws Exception An exception occurred during provider instantiation.
          */
         @Override
-        public SnmpAdapterConfigurationDescriptor createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) throws Exception {
-            return new SnmpAdapterConfigurationDescriptor();
+        public SnmpAdapterDescriptionProvider createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) throws Exception {
+            return SnmpAdapterDescriptionProvider.getInstance();
         }
     }
 

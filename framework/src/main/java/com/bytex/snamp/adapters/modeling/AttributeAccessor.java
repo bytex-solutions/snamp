@@ -2,6 +2,8 @@ package com.bytex.snamp.adapters.modeling;
 
 import com.bytex.snamp.Consumer;
 import com.bytex.snamp.TypeTokens;
+import com.bytex.snamp.concurrent.LazyValue;
+import com.bytex.snamp.concurrent.LazyContainers;
 import com.bytex.snamp.connectors.FeatureModifiedEvent;
 import com.bytex.snamp.connectors.attributes.AttributeAddedEvent;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
@@ -46,8 +48,8 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
     }
 
     private AttributeSupport attributeSupport;
-    private volatile WellKnownType wellKnownType;
-    private volatile OpenType<?> openType;
+    private final LazyValue<WellKnownType> wellKnownType;
+    private final LazyValue<OpenType<?>> openType;
 
     /**
      * Initializes a new attribute accessor.
@@ -56,6 +58,8 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
     public AttributeAccessor(final MBeanAttributeInfo metadata) {
         super(metadata);
         attributeSupport = null;
+        wellKnownType = LazyContainers.SOFT_REFERENCED.create(() -> AttributeDescriptor.getType(getMetadata()));
+        openType = LazyContainers.SOFT_REFERENCED.create(() -> AttributeDescriptor.getOpenType(getMetadata()));
     }
 
     /**
@@ -99,8 +103,8 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
     @Override
     public final void close() {
         attributeSupport = null;
-        wellKnownType = null;
-        openType = null;
+        wellKnownType.reset();
+        openType.reset();
     }
 
     /**
@@ -111,32 +115,20 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
         return getMetadata().getName();
     }
 
-    private synchronized WellKnownType getTypeImpl(){
-        if(wellKnownType == null)
-            wellKnownType = AttributeDescriptor.getType(getMetadata());
-        return wellKnownType;
-    }
-
     /**
      * Gets type of this attribute.
      * @return The type of this attribute.
      */
     public final WellKnownType getType(){
-        return wellKnownType == null ? getTypeImpl() : wellKnownType;
-    }
-
-    private synchronized OpenType<?> getOpenTypeImpl(){
-        if(openType == null)
-            openType = AttributeDescriptor.getOpenType(getMetadata());
-        return openType;
+        return wellKnownType.get();
     }
 
     /**
      * Gets JMX Open Type of this attribute.
      * @return The type of this attribute.
      */
-    public final OpenType<?> getOpenType(){
-        return openType == null ? getOpenTypeImpl() : openType;
+    public final OpenType<?> getOpenType() {
+        return openType.get();
     }
 
     /**

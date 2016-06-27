@@ -1,6 +1,6 @@
 package com.bytex.snamp.adapters.snmp;
 
-import com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterConfigurationParser;
+import com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterDescriptionProvider;
 import org.snmp4j.agent.*;
 import org.snmp4j.smi.OID;
 
@@ -18,7 +18,7 @@ final class SnmpAttributeAccessorImpl extends SnmpAttributeAccessor {
 
     SnmpAttributeAccessorImpl(final MBeanAttributeInfo metadata) throws ParseException {
         super(metadata);
-        attributeID = SnmpAdapterConfigurationParser.parseOID(metadata, SnmpHelpers.OID_GENERATOR);
+        attributeID = SnmpAdapterDescriptionProvider.parseOID(metadata, SnmpHelpers.OID_GENERATOR);
     }
 
     @Override

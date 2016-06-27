@@ -4,7 +4,7 @@ import com.bytex.snamp.adapters.profiles.BasicResourceAdapterProfile;
 import com.bytex.snamp.adapters.snmp.configuration.DirContextFactory;
 import com.bytex.snamp.adapters.snmp.configuration.SecurityConfiguration;
 import com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterAbsentParameterException;
-import com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterConfigurationParser;
+import com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterDescriptionProvider;
 import com.bytex.snamp.jmx.WellKnownType;
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
@@ -23,18 +23,12 @@ import java.util.Objects;
  */
 class SnmpResourceAdapterProfile extends BasicResourceAdapterProfile implements SnmpTypeMapper {
     static final String PROFILE_NAME = DEFAULT_PROFILE_NAME;
-    private final SnmpAdapterConfigurationParser configurationParser;
+    private final SnmpAdapterDescriptionProvider configurationParser;
 
     SnmpResourceAdapterProfile(final Map<String, String> parameters,
-                                         final boolean defaultProfile) {
-        this(parameters, defaultProfile, new SnmpAdapterConfigurationParser());
-    }
-
-    SnmpResourceAdapterProfile(final Map<String, String> parameters,
-                               final boolean defaultProfile,
-                               final SnmpAdapterConfigurationParser parser) {
+                               final boolean defaultProfile) {
         super(parameters, defaultProfile);
-        this.configurationParser = Objects.requireNonNull(parser);
+        this.configurationParser = SnmpAdapterDescriptionProvider.getInstance();
     }
 
     /**

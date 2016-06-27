@@ -1,6 +1,8 @@
 package com.bytex.snamp.jmx;
 
 import com.bytex.snamp.MethodStub;
+import com.bytex.snamp.concurrent.LazyContainers;
+import com.bytex.snamp.concurrent.LazyValue;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
@@ -317,7 +319,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
          * Represents type of the attribute.
          */
         protected final T openType;
-        private volatile Class<V> javaType;
+        private final LazyValue<Class<V>> javaType;
         private final ThreadLocal<OpenMBean> owner;
 
         /**
@@ -328,7 +330,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
         protected OpenAttribute(final String attributeName, final T openType){
             super(attributeName);
             this.openType = openType;
-            javaType = null;
+            javaType = LazyContainers.NORMAL.create(() -> null);
             owner = new ThreadLocal<>();
         }
 
@@ -425,14 +427,8 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
         }
 
         @SuppressWarnings("unchecked")
-        private synchronized Class<V> getJavaTypeSync() throws ClassNotFoundException{
-            if(javaType == null)
-                javaType = (Class<V>)Class.forName(openType.getClassName());
-            return javaType;
-        }
-
         private Class<V> getJavaType() throws ClassNotFoundException {
-            return javaType == null ? getJavaTypeSync() : javaType;
+            return javaType.get(() -> (Class<V>) Class.forName(openType.getClassName()));
         }
 
         /**

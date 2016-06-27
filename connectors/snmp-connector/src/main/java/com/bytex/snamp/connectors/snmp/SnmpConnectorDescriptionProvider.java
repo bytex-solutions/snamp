@@ -1,6 +1,7 @@
 package com.bytex.snamp.connectors.snmp;
 
 import com.bytex.snamp.TimeSpan;
+import com.bytex.snamp.concurrent.LazyContainers;
 import com.bytex.snamp.concurrent.LazyValue;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
@@ -88,7 +89,7 @@ final class SnmpConnectorDescriptionProvider extends ConfigurationEntityDescript
         }
     }
 
-    private static volatile LazyValue<SnmpConnectorDescriptionProvider> INSTANCE = LazyValue.create(SnmpConnectorDescriptionProvider::new, true);
+    private static final LazyValue<SnmpConnectorDescriptionProvider> INSTANCE = LazyContainers.NORMAL.create(SnmpConnectorDescriptionProvider::new);
 
     private SnmpConnectorDescriptionProvider(){
         super(new ConnectorConfigurationDescriptor(),

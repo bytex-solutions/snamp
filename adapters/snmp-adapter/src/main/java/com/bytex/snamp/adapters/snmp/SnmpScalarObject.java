@@ -23,7 +23,7 @@ import java.util.Objects;
 import java.util.logging.Level;
 
 import static com.bytex.snamp.adapters.snmp.SnmpHelpers.getAccessRestrictions;
-import static com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterConfigurationParser.parseOID;
+import static com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterDescriptionProvider.parseOID;
 
 /**
  * Represents a base class for scalar SNMP managed objects.
@@ -62,11 +62,11 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
         setVolatile(true);
     }
 
-    protected static <T extends Variable> InvalidAttributeValueException unexpectedSnmpType(final Class<T> type){
+    static <T extends Variable> InvalidAttributeValueException unexpectedSnmpType(final Class<T> type){
         return new InvalidAttributeValueException(String.format("%s expected", type));
     }
 
-    protected static InvalidAttributeValueException unexpectedAttributeType(final Type type){
+    static InvalidAttributeValueException unexpectedAttributeType(final Type type){
         return new InvalidAttributeValueException(String.format("Unexpected type %s", type));
     }
 
@@ -140,7 +140,7 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
         return accessor.getMetadata();
     }
 
-    protected final Type getAttributeType() throws ReflectionException {
+    final Type getAttributeType() throws ReflectionException {
         final WellKnownType knownType = accessor.getType();
         return knownType != null ? knownType : accessor.getRawType();
     }

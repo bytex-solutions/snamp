@@ -18,7 +18,7 @@ import java.text.ParseException;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
-import static com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterConfigurationParser.*;
+import static com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterDescriptionProvider.*;
 
 /**
  * @author Roman Sakno

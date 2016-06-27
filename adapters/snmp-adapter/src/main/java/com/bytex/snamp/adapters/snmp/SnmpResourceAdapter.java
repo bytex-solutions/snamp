@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 
-import static com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterConfigurationParser.isValidNotification;
+import static com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterDescriptionProvider.isValidNotification;
 
 /**
  * @author Roman Sakno
@@ -279,7 +279,7 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
         return getLoggerImpl();
     }
 
-    static String getAdapterNameImpl(){
+    private static String getAdapterNameImpl(){
         return getAdapterName(SnmpResourceAdapter.class);
     }
 

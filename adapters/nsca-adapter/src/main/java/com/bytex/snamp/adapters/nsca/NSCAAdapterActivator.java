@@ -25,7 +25,7 @@ public final class NSCAAdapterActivator extends ResourceAdapterActivator<NSCAAda
 
         @Override
         protected NSCAAdapterConfigurationDescriptor createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
-            return new NSCAAdapterConfigurationDescriptor();
+            return NSCAAdapterConfigurationDescriptor.getInstance();
         }
     }
 

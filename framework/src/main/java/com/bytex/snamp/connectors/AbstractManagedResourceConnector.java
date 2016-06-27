@@ -3,6 +3,8 @@ package com.bytex.snamp.connectors;
 import com.bytex.snamp.Descriptive;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.ThreadSafe;
+import com.bytex.snamp.concurrent.LazyContainers;
+import com.bytex.snamp.concurrent.LazyValue;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.connectors.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connectors.attributes.AttributeSupport;
@@ -39,7 +41,11 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
  */
 public abstract class AbstractManagedResourceConnector extends AbstractFrameworkService implements ManagedResourceConnector, Descriptive {
     private final IllegalStateFlag closed = createConnectorStateFlag();
-    private volatile MetricsReader metrics;
+    private final LazyValue<MetricsReader> metrics;
+
+    protected AbstractManagedResourceConnector() {
+        metrics = LazyContainers.SOFT_REFERENCED.create(this::createMetricsReader);
+    }
 
     private static IllegalStateFlag createConnectorStateFlag(){
         return new IllegalStateFlag() {
@@ -112,7 +118,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
     public void close() throws Exception {
         //change state of the connector
         closed.set();
-        metrics = null;
+        metrics.reset();
         clearCache();
     }
 
@@ -275,12 +281,6 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      */
     protected abstract MetricsReader createMetricsReader();
 
-    private synchronized MetricsReader getMetricsSync(){
-        if(metrics == null)
-            metrics = createMetricsReader();
-        return metrics;
-    }
-
     /**
      * Gets metrics associated with this instance of the resource connector.
      * @return Connector metrics.
@@ -290,7 +290,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
     @SpecialUse
     public final MetricsReader getMetrics(){
         verifyClosedState();
-        return metrics == null ? getMetricsSync() : metrics;
+        return metrics.get();
     }
 
     /**

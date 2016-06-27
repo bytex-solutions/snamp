@@ -7,7 +7,7 @@ import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.adapters.modeling.*;
 import com.bytex.snamp.adapters.nsca.configuration.AbsentNSCAConfigurationParameterException;
-import com.bytex.snamp.adapters.nsca.configuration.NSCAAdapterConfigurationParser;
+import com.bytex.snamp.adapters.nsca.configuration.NSCAAdapterConfigurationDescriptor;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.ImmutableList;
@@ -186,7 +186,7 @@ final class NSCAAdapter extends AbstractResourceAdapter {
 
     @Override
     protected void start(final Map<String, String> parameters) throws AbsentNSCAConfigurationParameterException {
-        final NSCAAdapterConfigurationParser parser = new NSCAAdapterConfigurationParser();
+        final NSCAAdapterConfigurationDescriptor parser = NSCAAdapterConfigurationDescriptor.getInstance();
         start(parser.getPassiveCheckSendPeriod(parameters),
                 parser.parseSettings(parameters),
                 parser.getThreadPool(parameters));

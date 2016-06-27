@@ -1,5 +1,7 @@
 package com.bytex.snamp;
 
+import com.bytex.snamp.concurrent.LazyValue;
+import com.bytex.snamp.concurrent.LazyContainers;
 import com.google.common.base.MoreObjects;
 import com.bytex.snamp.internal.Utils;
 
@@ -19,19 +21,17 @@ public class ResourceReader implements Closeable, SafeCloseable {
      * The name of the resource.
      */
     public final String resourceName;
-    private volatile ResourceBundle bundle;
+    private final LazyValue<ResourceBundle> bundle;
 
     public ResourceReader(final String baseName){
         resourceName = Utils.getFullyQualifiedResourceName(getClass(), baseName);
-        bundle = null;
+        bundle = LazyContainers.SOFT_REFERENCED.create(() -> getBundleImpl(Locale.getDefault()));
     }
 
-    private synchronized ResourceBundle getBundleSync(final Locale loc) {
-        if (bundle == null)
-            bundle = ResourceBundle.getBundle(resourceName,
+    private ResourceBundle getBundleImpl(final Locale loc) {
+        return ResourceBundle.getBundle(resourceName,
                     MoreObjects.firstNonNull(loc, Locale.getDefault()),
                     getClass().getClassLoader());
-        return bundle;
     }
 
     /**
@@ -41,7 +41,7 @@ public class ResourceReader implements Closeable, SafeCloseable {
      * @throws MissingResourceException No resource bundle can be found
      */
     public final ResourceBundle getBundle(final Locale loc) throws MissingResourceException {
-        return bundle == null ? getBundleSync(loc) : bundle;
+        return bundle.get(() -> getBundleImpl(loc));
     }
 
     /**
@@ -94,7 +94,7 @@ public class ResourceReader implements Closeable, SafeCloseable {
      */
     @Override
     public void close() {
-        bundle = null;
+        bundle.reset();
         ResourceBundle.clearCache(getClass().getClassLoader());
     }
 }

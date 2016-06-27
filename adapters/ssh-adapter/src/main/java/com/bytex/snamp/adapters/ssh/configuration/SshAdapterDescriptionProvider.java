@@ -3,6 +3,7 @@ package com.bytex.snamp.adapters.ssh.configuration;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.adapters.ResourceAdapterDescriptionProvider;
 import com.bytex.snamp.adapters.SelectableAdapterParameterDescriptor;
+import com.bytex.snamp.concurrent.LazyContainers;
 import com.bytex.snamp.concurrent.LazyValue;
 import com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
@@ -84,7 +85,7 @@ public final class SshAdapterDescriptionProvider extends ConfigurationEntityDesc
         }
     }
 
-    private static final LazyValue<SshAdapterDescriptionProvider> INSTANCE = LazyValue.create(SshAdapterDescriptionProvider::new, true);
+    private static final LazyValue<SshAdapterDescriptionProvider> INSTANCE = LazyContainers.NORMAL.create(SshAdapterDescriptionProvider::new);
 
     private SshAdapterDescriptionProvider() {
         super(new AdapterConfigurationInfo());

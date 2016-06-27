@@ -24,7 +24,7 @@ public final class NRDPAdapterActivator extends ResourceAdapterActivator<NRDPAda
 
         @Override
         protected NRDPAdapterConfigurationDescriptor createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
-            return new NRDPAdapterConfigurationDescriptor();
+            return NRDPAdapterConfigurationDescriptor.getInstance();
         }
     }
 

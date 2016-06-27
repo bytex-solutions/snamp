@@ -31,7 +31,7 @@ import java.util.logging.Level;
 
 import static com.bytex.snamp.adapters.snmp.SnmpHelpers.getAccessRestrictions;
 import static com.bytex.snamp.adapters.snmp.SnmpResourceAdapterProfile.createDefaultTypeMapper;
-import static com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterConfigurationParser.parseOID;
+import static com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterDescriptionProvider.parseOID;
 import static com.bytex.snamp.jmx.DescriptorUtils.getField;
 import static com.bytex.snamp.jmx.DescriptorUtils.hasField;
 
@@ -334,7 +334,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
      * Determines whether this table is empty.
      * @return {@literal true}, if this table is empty; otherwise, {@literal false}.
      */
-    public boolean isEmpty(){
+    private boolean isEmpty(){
         return getModel().getRowCount() == 0;
     }
 

@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterConfigurationParser.parseDateTimeDisplayFormat;
+import static com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterDescriptionProvider.parseDateTimeDisplayFormat;
 
 /**
  * Represents SNMP notification with attachments.
@@ -34,7 +34,7 @@ final class SnmpNotification extends HashMap<OID, Variable> {
     /**
      * Represents identifier of this SNMP notification instance.
      */
-    public final OID notificationID;
+    final OID notificationID;
     private final OID messageId;
     private final OID severityId;
     private final OID sequenceNumberId;
@@ -48,7 +48,7 @@ final class SnmpNotification extends HashMap<OID, Variable> {
      * Initializes a new SNMP notification message.
      * @param notificationID Notification identifier. Cannot be {@literal null}.
      */
-    SnmpNotification(final OID notificationID, final VariableBinding... bindings){
+    private SnmpNotification(final OID notificationID, final VariableBinding... bindings){
         super(bindings.length > 0 ? bindings.length : 4);
         if(notificationID == null) throw new IllegalArgumentException("notificationID is null.");
         this.notificationID = notificationID;
@@ -138,10 +138,10 @@ final class SnmpNotification extends HashMap<OID, Variable> {
         });
     }
 
-    static <E extends Exception> void forEachVariable(final Object attachment,
-                                                      final DescriptorRead options,
-                                                      final SnmpTypeMapper typeMapper,
-                                                      final Consumer<VariableBinding, E> handler) throws E{
+    private static <E extends Exception> void forEachVariable(final Object attachment,
+                                                              final DescriptorRead options,
+                                                              final SnmpTypeMapper typeMapper,
+                                                              final Consumer<VariableBinding, E> handler) throws E{
         if(attachment instanceof CompositeData)
             forEachVariable((CompositeData)attachment, options, typeMapper, handler);
         else if(ArrayUtils.isArray(attachment))
@@ -150,7 +150,7 @@ final class SnmpNotification extends HashMap<OID, Variable> {
             forEachVariable((TabularData)attachment, options, typeMapper, handler);
     }
 
-    boolean put(final VariableBinding binding) {
+    private boolean put(final VariableBinding binding) {
         if (binding == null || containsKey(binding.getOid())) return false;
         put(binding.getOid(), binding.getVariable());
         return true;

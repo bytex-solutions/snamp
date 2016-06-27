@@ -1,5 +1,6 @@
 package com.bytex.snamp.connectors.jmx;
 
+import com.bytex.snamp.concurrent.LazyValue;
 import com.bytex.snamp.concurrent.Repeater;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.Internal;

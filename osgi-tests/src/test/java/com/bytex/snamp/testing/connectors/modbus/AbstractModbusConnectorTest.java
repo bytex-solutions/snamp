@@ -21,18 +21,8 @@ public abstract class AbstractModbusConnectorTest extends AbstractResourceConnec
     protected static final String CONNECTOR_TYPE = "modbus";
     private ModbusSlave device;
     //virtual device image
-    protected final DigitalInputAccessor DI_0 = new DigitalInputAccessor() {
-        @Override
-        public boolean getValue() {
-            return true;
-        }
-    };
-    protected final DigitalInputAccessor DI_1 = new DigitalInputAccessor() {
-        @Override
-        public boolean getValue() {
-            return false;
-        }
-    };
+    protected final DigitalInputAccessor DI_0 = () -> true;
+    protected final DigitalInputAccessor DI_1 = () -> false;
     protected final DigitalOutputAccessor DO_0 = new DigitalOutputAccessor() {
         private volatile boolean value;
 
@@ -46,18 +36,8 @@ public abstract class AbstractModbusConnectorTest extends AbstractResourceConnec
             return value;
         }
     };
-    protected final InputRegisterAccessor IR_0 = new InputRegisterAccessor() {
-        @Override
-        public short getValue() {
-            return 42;
-        }
-    };
-    protected final InputRegisterAccessor IR_1 = new InputRegisterAccessor() {
-        @Override
-        public short getValue() {
-            return 56;
-        }
-    };
+    protected final InputRegisterAccessor IR_0 = (InputRegisterAccessor) () -> (short)42;
+    protected final InputRegisterAccessor IR_1 = (InputRegisterAccessor) () -> (short)56;
     protected final OutputRegisterAccessor OR_0 = new OutputRegisterAccessor() {
         private volatile short register;
 

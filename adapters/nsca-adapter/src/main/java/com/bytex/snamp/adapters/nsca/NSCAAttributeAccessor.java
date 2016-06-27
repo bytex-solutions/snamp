@@ -15,8 +15,8 @@ import java.util.Objects;
 import java.util.Set;
 
 import static com.bytex.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
-import static com.bytex.snamp.adapters.nsca.configuration.NSCAAdapterConfigurationParser.getServiceName;
-import static com.bytex.snamp.adapters.nsca.configuration.NSCAAdapterConfigurationParser.getUnitOfMeasurement;
+import static com.bytex.snamp.adapters.nsca.configuration.NSCAAdapterConfigurationDescriptor.getServiceName;
+import static com.bytex.snamp.adapters.nsca.configuration.NSCAAdapterConfigurationDescriptor.getUnitOfMeasurement;
 
 /**
  * Provides transformation between attribute of the resource and NSCA protocol.
@@ -28,7 +28,7 @@ final class NSCAAttributeAccessor extends AttributeAccessor implements FeatureBi
         super(metadata);
     }
 
-    MessagePayload getMessage(final String host) {
+    private MessagePayload getMessage(final String host) {
         final MessagePayload payload = new MessagePayload();
         payload.setHostname(host);
         payload.setServiceName(getServiceName(getMetadata().getDescriptor(),

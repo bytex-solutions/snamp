@@ -2,7 +2,7 @@ package com.bytex.snamp.adapters.nsca;
 
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.adapters.modeling.NotificationRouter;
-import com.bytex.snamp.adapters.nsca.configuration.NSCAAdapterConfigurationParser;
+import com.bytex.snamp.adapters.nsca.configuration.NSCAAdapterConfigurationDescriptor;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 import com.google.common.collect.ImmutableSet;
@@ -52,7 +52,7 @@ final class NSCANotificationAccessor extends NotificationRouter implements Featu
     }
 
     static String getServiceName(final MBeanNotificationInfo metadata) {
-        return NSCAAdapterConfigurationParser.getServiceName(metadata.getDescriptor(),
+        return NSCAAdapterConfigurationDescriptor.getServiceName(metadata.getDescriptor(),
                 NotificationDescriptor.getName(metadata));
     }
 
