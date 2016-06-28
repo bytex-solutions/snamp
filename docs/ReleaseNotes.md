@@ -1,23 +1,22 @@
-# SNAMP 1.1.0
-Maintenance release with important updates of third-party libraries and minor product fixes.
+# SNAMP 1.2.0
+Upgrade of all SNAMP components and migration to Java 8:
 
 Change list:
 
-* Shell command `snamp:config-operation` renamed to `snamp:configure-operation`
+* SNAMP now requires at least Java 8. Java 7 is not supported anymore.
+*
 
 Updated components:
 
 * Apache Karaf
-* Groovy
-* Google Guava
+* Apache Decanter
+* Hazelcast
 * Google GSON
-* Apache Thrift
+* Groovy
+* Bouncy Castle
 * SNMP4J
 
 All SNAMP components are affected so you need to backup your configuration, install new SNAMP version and reload the configuration. 
-
-# SNAMP 1.0.0
-Read-to-use in production environment version of SNAMP.
 
 ## Components
 The following components are released as parts of SNAMP:
@@ -74,6 +73,6 @@ First production release of NSCA Resource Adapter.
 First production release of NRDP Resource Adapter.
 
 ## Dependencies
-Java SE 7
-Apache Karaf 3.0.5
+Java SE 8
+Apache Karaf 3.0.7
 Hazelcast 3.4.2

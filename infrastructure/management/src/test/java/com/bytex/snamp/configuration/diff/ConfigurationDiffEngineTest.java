@@ -7,7 +7,7 @@ import com.bytex.snamp.configuration.impl.SerializableAgentConfiguration;
 import org.junit.Assert;
 import org.junit.Test;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.*;
 
 /**
  * @author Roman Sakno
@@ -105,7 +105,7 @@ public final class ConfigurationDiffEngineTest extends Assert {
         AbstractAgentConfiguration.copy(resource, resource3);
         resource3.setConnectionString("connection-string-3");
         ConfigurationDiffEngine.merge(target, baseline);
-        Assert.assertEquals(0, baseline.getEntities(ManagedResourceConfiguration.class).size());
+        Assert.assertEquals(0, baseline.getEntities(ResourceAdapterConfiguration.class).size());
         Assert.assertEquals(2, baseline.getEntities(ManagedResourceConfiguration.class).size());
     }
 }
