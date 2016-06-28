@@ -37,9 +37,6 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
 
     private static final class JmxMaintenanceService extends AbstractAggregator implements Maintainable{
 
-        private JmxMaintenanceService(){
-        }
-
         /**
          * Returns read-only map of maintenance actions.
          *

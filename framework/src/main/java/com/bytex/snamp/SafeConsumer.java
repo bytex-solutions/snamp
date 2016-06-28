@@ -9,6 +9,7 @@ import java.util.function.Function;
  * @version 1.2
  * @since 1.0
  */
+@FunctionalInterface
 public interface SafeConsumer<T> extends Consumer<T, ExceptionPlaceholder>, java.util.function.Consumer<T> {
     /**
      * Performs this operation on the given argument.

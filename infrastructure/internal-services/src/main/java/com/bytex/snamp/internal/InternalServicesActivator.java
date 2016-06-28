@@ -45,7 +45,7 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
         @SuppressWarnings("unchecked")
         @Override
         protected PersistentConfigurationManager activateService(final Map<String, Object> identity, final RequiredService<?>... requiredServices) {
-            return new PersistentConfigurationManager(getDependency(RequiredServiceAccessor.class, ConfigurationAdmin.class));
+            return new PersistentConfigurationManager(getDependency(RequiredServiceAccessor.class, ConfigurationAdmin.class, requiredServices));
         }
     }
 
@@ -75,8 +75,13 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
         private final Gson formatter;
 
         private RealmsManager(final Gson formatter) {
-            super(JaasRealm.class, JaasRealmImpl.FACTORY_PID);
+            super(JaasRealm.class);
             this.formatter = Objects.requireNonNull(formatter);
+        }
+
+        @Override
+        protected String getFactoryPID(final RequiredService<?>... dependencies) {
+            return JaasRealmImpl.FACTORY_PID;
         }
 
         private JaasRealmImpl createService(final Dictionary<String, ?> configuration){

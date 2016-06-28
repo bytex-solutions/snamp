@@ -83,7 +83,7 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
             final Dictionary<String, Object> configuredServices = persistentConfig.getProperties();
             if (configuredServices == null) return null;
             final byte[] serializedConfig = Utils.getProperty(configuredServices, name, byte[].class, (byte[]) null);
-            return IOUtils.deserialize(serializedConfig, ThreadPoolConfig.class);
+            return IOUtils.deserialize(serializedConfig, ThreadPoolConfig.class, getClass().getClassLoader());
         } catch (final IOException e) {
             logger.log(Level.SEVERE, String.format("Unable to read '%s' thread pool configuration", name), e);
             return null;
@@ -151,7 +151,7 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
                             final byte[] serializedConfig = Utils.getProperty(properties, poolName, byte[].class, (byte[]) null);
                             final ThreadPoolConfig config;
                             try {
-                                config = IOUtils.deserialize(serializedConfig, ThreadPoolConfig.class);
+                                config = IOUtils.deserialize(serializedConfig, ThreadPoolConfig.class, getClass().getClassLoader());
                             } catch (final IOException e) {
                                 logger.log(Level.SEVERE, "Unable to read thread pool config");
                                 continue;

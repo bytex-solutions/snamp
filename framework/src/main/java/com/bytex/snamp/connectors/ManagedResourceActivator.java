@@ -362,30 +362,32 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          * Represents name of the managed resource connector.
          */
         protected final String connectorType;
-        private final BundleContext resourceContext;
 
         private ManagedResourceConnectorRegistry(final String connectorType,
                                                  final ManagedResourceConnectorLifecycleController<TConnector> controller,
-                                                 final BundleContext context,
                                                  final RequiredService<?>... dependencies) {
-            super(ManagedResourceConnector.class,
-                    CMManagedResourceParser.getConnectorFactoryPersistentID(context, connectorType),
-                    dependencies);
+            super(ManagedResourceConnector.class, ObjectArrays.<RequiredService>concat(dependencies, new SimpleDependency<>(ConfigurationManager.class)));
             this.controller = Objects.requireNonNull(controller, "controller is null.");
             this.connectorType = connectorType;
             this.configurationHashes = Maps.newHashMapWithExpectedSize(10);
-            this.resourceContext = context;
-        }
-
-        private ManagedResourceConnectorRegistry(final String connectorType,
-                                                 final ManagedResourceConnectorLifecycleController<TConnector> controller,
-                                                 final RequiredService<?>... dependencies) {
-            this(connectorType, controller, Utils.getBundleContextOfObject(controller), dependencies);
         }
 
         private ManagedResourceConnectorRegistry(final ManagedResourceConnectorLifecycleController<TConnector> controller,
                                                  final RequiredService<?>... dependencies){
             this(getConnectorType(controller), controller, dependencies);
+        }
+
+        private static CMManagedResourceParser getParser(final RequiredService<?>... dependencies){
+            final ConfigurationManager configManager = getDependency(RequiredServiceAccessor.class, ConfigurationManager.class, dependencies);
+            assert configManager != null;
+            final CMManagedResourceParser parser = configManager.queryObject(CMManagedResourceParser.class);
+            assert parser != null;
+            return parser;
+        }
+
+        @Override
+        protected String getFactoryPID(final RequiredService<?>... dependencies) {
+            return getParser(dependencies).getConnectorFactoryPersistentID(connectorType);
         }
 
         @Override
@@ -394,16 +396,17 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         }
 
         private void updateFeatures(final TConnector connector,
-                            final Dictionary<String, ?> configuration) throws Exception {
+                            final Dictionary<String, ?> configuration,
+                                    final CMManagedResourceParser parser) throws Exception {
             controller.updateConnector(connector,
                     AttributeConfiguration.class,
-                    CMManagedResourceParser.getAttributes(resourceContext, configuration));
+                    parser.getAttributes(configuration));
             controller.updateConnector(connector,
                     EventConfiguration.class,
-                    CMManagedResourceParser.getEvents(resourceContext, configuration));
+                    parser.getEvents(configuration));
             controller.updateConnector(connector,
                     OperationConfiguration.class,
-                    CMManagedResourceParser.getOperations(resourceContext, configuration));
+                    parser.getOperations(configuration));
             //expansion should be the last instruction in this method because updating procedure
             //may remove all automatically added attributes
             AbstractManagedResourceConnector.expandAll(connector);
@@ -424,10 +427,11 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         protected TConnector update(TConnector connector,
                                     final Dictionary<String, ?> configuration,
                                     final RequiredService<?>... dependencies) throws Exception {
-            final String resourceName = CMManagedResourceParser.getResourceName(resourceContext, configuration);
+            final CMManagedResourceParser parser = getParser(dependencies);
+            final String resourceName = parser.getResourceName(configuration);
             final BigInteger oldHash = configurationHashes.get(resourceName);
-            final String connectionString = CMManagedResourceParser.getConnectionString(resourceContext, configuration);
-            final Map<String, String> connectorParameters = CMManagedResourceParser.getResourceConnectorParameters(resourceContext, configuration);
+            final String connectionString = parser.getConnectionString(configuration);
+            final Map<String, String> connectorParameters = parser.getResourceConnectorParameters(configuration);
             //we should not update resource connector if connection parameters was not changed
             final BigInteger newHash = computeConnectionParamsHashCode(connectionString, connectorParameters);
             if(!newHash.equals(oldHash)){
@@ -439,7 +443,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                         dependencies);
             }
             //but we should always update resource features
-            updateFeatures(connector, configuration);
+            updateFeatures(connector, configuration, parser);
             return connector;
         }
 
@@ -455,10 +459,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                              final String servicePID,
                                              final Dictionary<String, ?> configuration,
                                              final Exception e) {
-            logger.log(Level.SEVERE, String.format("Unable to update connector. Connection string: %s, connection parameters: %s",
-                    CMManagedResourceParser.getConnectionString(resourceContext, configuration),
-                    CMManagedResourceParser.getResourceConnectorParameters(resourceContext, configuration)),
-                    e);
+            logger.log(Level.SEVERE, String.format("Unable to update connector '%s'", servicePID), e);
         }
 
         /**
@@ -471,7 +472,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         protected void failedToCleanupService(final Logger logger,
                                               final String servicePID,
                                               final Exception e) {
-            logger.log(Level.SEVERE, "Unable to dispose connector", e);
+            logger.log(Level.SEVERE, String.format("Unable to dispose connector '%s'", servicePID), e);
         }
 
         /**
@@ -489,16 +490,17 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         protected TConnector createService(final Map<String, Object> identity,
                                            final Dictionary<String, ?> configuration,
                                            final RequiredService<?>... dependencies) throws Exception {
-            final String resourceName = CMManagedResourceParser.getResourceName(resourceContext, configuration);
-            final Map<String, String> options = CMManagedResourceParser.getResourceConnectorParameters(resourceContext, configuration);
-            final String connectionString = CMManagedResourceParser.getConnectionString(resourceContext, configuration);
+            final CMManagedResourceParser parser = getParser(dependencies);
+            final String resourceName = parser.getResourceName(configuration);
+            final Map<String, String> options = parser.getResourceConnectorParameters(configuration);
+            final String connectionString = parser.getConnectionString(configuration);
             configurationHashes.put(resourceName, computeConnectionParamsHashCode(connectionString, options));
             createIdentity(resourceName,
                     connectorType,
                     connectionString,
                     identity);
             final TConnector result = controller.createConnector(resourceName, connectionString, options, dependencies);
-            updateFeatures(result, configuration);
+            updateFeatures(result, configuration, parser);
             return result;
         }
 

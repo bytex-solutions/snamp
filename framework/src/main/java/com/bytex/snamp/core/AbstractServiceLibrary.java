@@ -1,8 +1,11 @@
 package com.bytex.snamp.core;
 
+import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.ThreadSafe;
+import com.bytex.snamp.concurrent.LazyContainers;
+import com.bytex.snamp.concurrent.LazyValue;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
@@ -338,22 +341,29 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      * @param <TService> Type of the dynamic service.
      */
     public static abstract class DynamicServiceManager<TService> extends ProvidedService<ManagedServiceFactory, ManagedServiceFactoryImpl<TService>>{
-        /**
-         * Represents a base persistent identifier used as a perfix for individual dynamic services configuration.
-         */
-        protected final String factoryPID;
+        private final LazyValue<String> factoryPID;
 
         /**
          * Initializes a new holder for the provided service.
          *
-         * @param factoryPID The base persistent identifier used as a prefix for individual dynamic services configuration.
          * @param dependencies A collection of service dependencies of dynamic services.
          * @throws IllegalArgumentException contract is {@literal null}.
          */
-        protected DynamicServiceManager(final String factoryPID, final RequiredService<?>... dependencies) {
+        protected DynamicServiceManager(final RequiredService<?>... dependencies) {
             super(ManagedServiceFactory.class, dependencies);
-            this.factoryPID = factoryPID;
+            factoryPID = LazyContainers.NORMAL.create(this::getFactoryPIDImpl);
         }
+
+        private String getFactoryPIDImpl(){
+            return getFactoryPID(ArrayUtils.toArray(super.ownDependencies, RequiredService.class));
+        }
+
+        /**
+         * Gets the base persistent identifier used as a prefix for individual dynamic services configuration.
+         * @param dependencies A set of dependencies required by this service manager.
+         * @return The base persistent identifier. Cannot be {@literal null} or empty string.
+         */
+        protected abstract String getFactoryPID(final RequiredService<?>... dependencies);
 
         /**
          * Automatically invokes by SNAMP when the dynamic service should be updated with
@@ -427,11 +437,11 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         }
 
         LogicalOperation createLogicalOperationForUpdate(final String servicePID){
-            return DynamicServiceLogicalOperation.update(factoryPID, servicePID);
+            return DynamicServiceLogicalOperation.update(factoryPID.get(), servicePID);
         }
 
         LogicalOperation createLogicalOperationForDelete(final String servicePID){
-            return DynamicServiceLogicalOperation.delete(factoryPID, servicePID);
+            return DynamicServiceLogicalOperation.delete(factoryPID.get(), servicePID);
         }
 
         /**
@@ -443,6 +453,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          */
         @Override
         protected final ManagedServiceFactoryImpl<TService> activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception {
+            final String factoryPID = this.factoryPID.get();
             identity.put(Constants.SERVICE_PID, factoryPID);
             return new ManagedServiceFactoryImpl<TService>(){
                 private static final long serialVersionUID = -7596205835324011065L;
@@ -591,24 +602,22 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         /**
          * Initializes a new dynamic service manager.
          * @param serviceContract The contract of the dynamic services.
-         * @param factoryPID The base persistent identifier used as a prefix for individual dynamic services configuration.
          * @param dependencies A collection of dependencies required for the newly created service.
          */
         protected ServiceSubRegistryManager(final Class<S> serviceContract,
-                                            final String factoryPID,
                                             final RequiredService<?>... dependencies){
-            super(factoryPID, dependencies);
+            super(dependencies);
             this.serviceContract = serviceContract;
         }
 
         @Override
         final LogicalOperation createLogicalOperationForUpdate(final String servicePID) {
-            return SubRegistryLogicalOperation.update(factoryPID, servicePID, serviceContract);
+            return SubRegistryLogicalOperation.update(super.factoryPID.get(), servicePID, serviceContract);
         }
 
         @Override
         final LogicalOperation createLogicalOperationForDelete(final String servicePID) {
-            return SubRegistryLogicalOperation.delete(factoryPID, servicePID, serviceContract);
+            return SubRegistryLogicalOperation.delete(super.factoryPID.get(), servicePID, serviceContract);
         }
 
         /**

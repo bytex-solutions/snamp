@@ -108,7 +108,7 @@ final class CMManagedResourceParserImpl implements CMManagedResourceParser {
         return result;
     }
 
-    private static <F extends FeatureConfiguration> Map<String, F> getFeatures(final Dictionary<String, ?> resourceConfig,
+    private <F extends FeatureConfiguration> Map<String, F> getFeatures(final Dictionary<String, ?> resourceConfig,
                                                                                final String featureHolder,
                                                                                final TypeToken<SerializableMap<String, F>> featureType) throws IOException{
         byte[] serializedForm = Utils.getProperty(resourceConfig,
@@ -116,7 +116,7 @@ final class CMManagedResourceParserImpl implements CMManagedResourceParser {
                 byte[].class,
                 ArrayUtils.emptyArray(byte[].class));
         return serializedForm != null && serializedForm.length > 0 ?
-                IOUtils.deserialize(serializedForm, featureType):
+                IOUtils.deserialize(serializedForm, featureType, getClass().getClassLoader()):
                 ImmutableMap.of();
     }
 

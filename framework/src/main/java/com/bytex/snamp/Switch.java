@@ -148,7 +148,7 @@ public class Switch<I, O> implements Function<I, O> {
     }
 
     public final <T> Switch<I, O> instanceOf(final Class<T> type, final Function<? super T, ? extends O> action) {
-        return addCase(Predicates.instanceOf(type), Functions.compose(action, CastFunction.of(type)));
+        return addCase(Predicates.instanceOf(type), Functions.compose(action, type::cast));
     }
 
     public final Switch<I, O> instanceOf(final Class<?> type, final O value) {

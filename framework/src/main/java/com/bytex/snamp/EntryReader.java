@@ -9,6 +9,7 @@ package com.bytex.snamp;
  * @version 1.2
  * @since 1.0
  */
+@FunctionalInterface
 public interface EntryReader<I, R, E extends Exception> {
     /**
      * Processes the single record.

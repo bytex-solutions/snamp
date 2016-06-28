@@ -2,10 +2,10 @@ package com.bytex.snamp.adapters;
 
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
+import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.internal.CMResourceAdapterParser;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.FrameworkService;
-import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.management.Maintainable;
 import com.google.common.base.Strings;
 import com.google.common.collect.ObjectArrays;
@@ -56,24 +56,14 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
          * Represents name of the resource adapter.
          */
         protected final String adapterName;
-        private final BundleContext adapterContext;
 
         private ResourceAdapterRegistry(final String adapterName,
                                         final ResourceAdapterFactory<TAdapter> factory,
-                                        final BundleContext adapterContext,
                                         final RequiredService<?>... dependencies) {
             super(ResourceAdapter.class,
-                    CMResourceAdapterParser.getAdapterFactoryPersistentID(adapterContext, adapterName),
-                    dependencies);
+                    ObjectArrays.<RequiredService>concat(dependencies, new SimpleDependency<>(ConfigurationManager.class)));
             this.adapterFactory = Objects.requireNonNull(factory, "factory is null.");
             this.adapterName = adapterName;
-            this.adapterContext = adapterContext;
-        }
-
-        private ResourceAdapterRegistry(final String adapterName,
-                                        final ResourceAdapterFactory<TAdapter> factory,
-                                        final RequiredService<?>... dependencies) {
-            this(adapterName, factory, Utils.getBundleContextOfObject(factory), dependencies);
         }
 
         private ResourceAdapterRegistry(final ResourceAdapterFactory<TAdapter> factory,
@@ -81,11 +71,25 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
             this(getAdapterName(factory), factory, dependencies);
         }
 
+        private static CMResourceAdapterParser getParser(final RequiredService<?>... dependencies){
+            final ConfigurationManager configManager = getDependency(RequiredServiceAccessor.class, ConfigurationManager.class, dependencies);
+            assert configManager != null;
+            final CMResourceAdapterParser parser = configManager.queryObject(CMResourceAdapterParser.class);
+            assert parser != null;
+            return parser;
+        }
+
+        @Override
+        protected String getFactoryPID(final RequiredService<?>... dependencies) {
+            return getParser(dependencies).getAdapterFactoryPersistentID(adapterName);
+        }
+
         @Override
         protected TAdapter update(final TAdapter adapter,
                                   final Dictionary<String, ?> configuration,
                                   final RequiredService<?>... dependencies) throws Exception {
-            adapter.tryUpdate(CMResourceAdapterParser.getAdapterParameters(adapterContext, configuration));
+            final CMResourceAdapterParser parser = getParser(dependencies);
+            adapter.tryUpdate(parser.getAdapterParameters(configuration));
             return adapter;
         }
 
@@ -93,11 +97,12 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
         protected TAdapter createService(final Map<String, Object> identity,
                                          final Dictionary<String, ?> configuration,
                                          final RequiredService<?>... dependencies) throws Exception {
-            final String instanceName = CMResourceAdapterParser.getAdapterInstanceName(adapterContext, configuration);
+            final CMResourceAdapterParser parser = getParser(dependencies);
+            final String instanceName = parser.getAdapterInstanceName(configuration);
             createIdentity(adapterName, instanceName, identity);
             final TAdapter resourceAdapter = adapterFactory.createAdapter(instanceName, dependencies);
             if (resourceAdapter != null)
-                if (resourceAdapter.tryStart(CMResourceAdapterParser.getAdapterParameters(adapterContext, configuration))) {
+                if (resourceAdapter.tryStart(parser.getAdapterParameters(configuration))) {
                     return resourceAdapter;
                 } else {
                     resourceAdapter.close();
@@ -119,7 +124,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
             logger.log(Level.SEVERE,
                     String.format("Unable to update adapter. Name: %s, instance: %s",
                             adapterName,
-                            CMResourceAdapterParser.getAdapterInstanceName(adapterContext, configuration)),
+                            servicePID),
                     e);
         }
 
@@ -127,7 +132,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
         protected void failedToCleanupService(final Logger logger,
                                               final String servicePID,
                                               final Exception e) {
-            logger.log(Level.SEVERE, String.format("Unable to release adapter. Name: %s", adapterName),
+            logger.log(Level.SEVERE, String.format("Unable to release adapter. Name: %s, instance: $s", adapterName, servicePID),
                     e);
         }
     }

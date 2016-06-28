@@ -9,6 +9,7 @@ import com.google.common.base.Function;
  * @version 1.2
  * @since 1.0
  */
+@FunctionalInterface
 public interface Wrapper<T> {
     /**
      * Handles the wrapped object.

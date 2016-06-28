@@ -65,12 +65,13 @@ public final class IOUtils {
     }
 
     public static <T extends Serializable> T deserialize(final byte[] serializedForm,
-                                                         final TypeToken<T> expectedType) throws IOException {
+                                                         final TypeToken<T> expectedType,
+                                                         final ClassResolver resolver) throws IOException {
         if (serializedForm == null || serializedForm.length == 0)
             return null;
         else
             try (final ByteArrayInputStream stream = new ByteArrayInputStream(serializedForm);
-                 final ObjectInputStream deserializer = new ObjectInputStream(stream)) {
+                 final ObjectInputStream deserializer = new CustomObjectInputStream(stream, resolver)) {
                 return TypeTokens.cast(deserializer.readObject(), expectedType);
             } catch (final ClassNotFoundException | ClassCastException e) {
                 throw new IOException(e);
@@ -78,8 +79,31 @@ public final class IOUtils {
     }
 
     public static <T extends Serializable> T deserialize(final byte[] serializedForm,
+                                                         final TypeToken<T> expectedType,
+                                                         final ClassLoader customLoader) throws IOException {
+        return deserialize(serializedForm, expectedType, desc -> Class.forName(desc.getName(), false, customLoader));
+    }
+
+    public static <T extends Serializable> T deserialize(final byte[] serializedForm,
+                                                         final TypeToken<T> expectedType) throws IOException {
+        return deserialize(serializedForm, expectedType, expectedType.getClass().getClassLoader());
+    }
+
+    public static <T extends Serializable> T deserialize(final byte[] serializedForm,
                                                          final Class<T> expectedType) throws IOException {
         return deserialize(serializedForm, TypeToken.of(expectedType));
+    }
+
+    public static <T extends Serializable> T deserialize(final byte[] serializedForm,
+                                                         final Class<T> expectedType,
+                                                         final ClassLoader customLoader) throws IOException {
+        return deserialize(serializedForm, TypeToken.of(expectedType), customLoader);
+    }
+
+    public static <T extends Serializable> T deserialize(final byte[] serializedForm,
+                                                         final Class<T> expectedType,
+                                                         final ClassResolver resolver) throws IOException {
+        return deserialize(serializedForm, TypeToken.of(expectedType), resolver);
     }
 
     public static byte[] readFully(final InputStream inputStream) throws IOException {

@@ -7,6 +7,7 @@ package com.bytex.snamp;
  * @since 1.0
  * @see Attribute
  */
+@FunctionalInterface
 public interface AttributeReader {
     /**
      * Gets value of the attribute.

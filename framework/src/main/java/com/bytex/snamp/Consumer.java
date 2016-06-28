@@ -10,6 +10,7 @@ import java.util.function.Function;
  * @version 1.2
  * @since 1.0
  */
+@FunctionalInterface
 public interface Consumer<T, E extends Throwable> {
     /**
      * Performs this operation on the given argument.

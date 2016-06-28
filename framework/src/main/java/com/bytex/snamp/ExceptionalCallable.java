@@ -10,6 +10,7 @@ import java.util.concurrent.Callable;
  * @version 1.2
  * @since 1.0
  */
+@FunctionalInterface
 public interface ExceptionalCallable<V, E extends Exception> extends Callable<V> {
     /**
      * Computes a result, or throws an exception if unable to do so.
