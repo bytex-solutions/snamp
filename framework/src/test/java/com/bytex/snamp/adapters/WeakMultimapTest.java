@@ -28,7 +28,7 @@ public final class WeakMultimapTest extends Assert {
             final Reference<?> ref = queue.poll();
             if(ref == null) break;
         }
-        WeakMultimap.iterate(map, EmptyEntryReader.<String, Object>getInstance());
+        WeakMultimap.iterate(map, EmptyEntryReader.getInstance());
         assertEquals(0, map.size());
     }
 }

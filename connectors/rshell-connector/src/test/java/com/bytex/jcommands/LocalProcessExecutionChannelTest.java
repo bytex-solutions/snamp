@@ -24,7 +24,7 @@ import java.util.Map;
 public class LocalProcessExecutionChannelTest extends Assert {
     @Test
     public void instantiationTest() throws Exception{
-        try(final CommandExecutionChannel channel = CommandExecutionChannels.createChannel(LocalProcessExecutionChannel.CHANNEL_NAME, Collections.<String, String>emptyMap())){
+        try(final CommandExecutionChannel channel = CommandExecutionChannels.createChannel(LocalProcessExecutionChannel.CHANNEL_NAME, Collections.emptyMap())){
             assertNotNull(channel);
         }
     }

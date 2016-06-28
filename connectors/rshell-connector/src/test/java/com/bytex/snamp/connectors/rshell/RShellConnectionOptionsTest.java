@@ -14,7 +14,7 @@ public final class RShellConnectionOptionsTest extends Assert {
     @Test
     public void localProcessTest() throws Exception {
         final RShellConnectionOptions options =
-                new RShellConnectionOptions("process", Collections.<String, String>emptyMap());
+                new RShellConnectionOptions("process", Collections.emptyMap());
         assertNotNull(options.createExecutionChannel());
     }
 }
