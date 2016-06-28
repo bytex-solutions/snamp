@@ -125,12 +125,12 @@ final class CMResourceAdapterParserImpl implements CMResourceAdapterParser {
     private static void serialize(final String adapterInstanceName,
                                   final SerializableResourceAdapterConfiguration adapter,
                                   final Configuration output) throws IOException{
-        serialize(adapter, output);
-        Utils.setProperty(output.getProperties(), ADAPTER_INSTANCE_NAME_PROPERTY, adapterInstanceName);
+        final Dictionary<String, String> configuration = serialize(adapter);
+        Utils.setProperty(configuration, ADAPTER_INSTANCE_NAME_PROPERTY, adapterInstanceName);
+        output.update(configuration);
     }
 
-    private static void serialize(final SerializableResourceAdapterConfiguration adapter,
-                                  final Configuration output) throws IOException{
+    private static Dictionary<String, String> serialize(final SerializableResourceAdapterConfiguration adapter) {
         final Dictionary<String, String> result = new Hashtable<>(4);
 
         for(final Map.Entry<String, String> entry: adapter.getParameters().entrySet())
@@ -140,13 +140,13 @@ final class CMResourceAdapterParserImpl implements CMResourceAdapterParser {
                 case ConfigurationAdmin.SERVICE_BUNDLELOCATION:
                 case ConfigurationAdmin.SERVICE_FACTORYPID:
             }
-        output.update(result);
+        return result;
     }
 
     @Override
     public void serialize(final ResourceAdapterConfiguration input, final Configuration output) throws IOException {
         assert input instanceof SerializableResourceAdapterConfiguration;
-        serialize((SerializableResourceAdapterConfiguration) input, output);
+        output.update(serialize((SerializableResourceAdapterConfiguration) input));
     }
 
     private void serialize(final String adapterInstance,

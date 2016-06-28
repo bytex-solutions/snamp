@@ -185,12 +185,12 @@ final class CMManagedResourceParserImpl implements CMManagedResourceParser {
     private static void serialize(final String resourceName,
                    final SerializableManagedResourceConfiguration resource,
                    final Configuration output) throws IOException {
-        serialize(resource, output);
-        Utils.setProperty(output.getProperties(), RESOURCE_NAME_PROPERTY, resourceName);
+        final Dictionary<String, Object> configuration = serialize(resource);
+        Utils.setProperty(configuration, RESOURCE_NAME_PROPERTY, resourceName);
+        output.update(configuration);
     }
 
-    private static void serialize(final SerializableManagedResourceConfiguration resource,
-                            final Configuration output) throws IOException {
+    private static Dictionary<String, Object> serialize(final SerializableManagedResourceConfiguration resource) throws IOException {
         final Dictionary<String, Object> result = new Hashtable<>(4);
         Utils.setProperty(result, CONNECTION_STRING_PROPERTY, resource.getConnectionString());
         final Map<String, ? extends AttributeConfiguration> attributes = resource.getFeatures(AttributeConfiguration.class);
@@ -213,13 +213,13 @@ final class CMManagedResourceParserImpl implements CMManagedResourceParser {
                 case ConfigurationAdmin.SERVICE_BUNDLELOCATION:
                 case ConfigurationAdmin.SERVICE_FACTORYPID:
             }
-        output.update(result);
+        return result;
     }
 
     @Override
     public void serialize(final ManagedResourceConfiguration input, final Configuration output) throws IOException {
         assert input instanceof SerializableManagedResourceConfiguration;
-        serialize((SerializableManagedResourceConfiguration)input, output);
+        output.update(serialize((SerializableManagedResourceConfiguration) input));
     }
 
     private void serialize(final String resourceName,
