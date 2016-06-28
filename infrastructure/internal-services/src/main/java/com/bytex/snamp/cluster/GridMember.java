@@ -158,6 +158,7 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
         }finally {
             electionThread.resign();
             electionThread = null;
+            clearCache();
         }
     }
 }

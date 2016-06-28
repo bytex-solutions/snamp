@@ -39,14 +39,6 @@ import java.util.concurrent.ExecutionException;
  * @version 1.2
  */
 public abstract class AbstractAggregator implements Aggregator {
-    private static final class AggregationException extends IllegalStateException{
-        private static final long serialVersionUID = 1626738914147286451L;
-
-        private AggregationException(final Throwable cause){
-            super(cause);
-        }
-    }
-
     private interface AggregationSupplier {
         Object get(final Aggregator owner) throws ReflectiveOperationException;
     }
@@ -69,6 +61,14 @@ public abstract class AbstractAggregator implements Aggregator {
 
         private AggregationNotFoundException(){
 
+        }
+    }
+
+    private static final class AggregationException extends IllegalStateException{
+        private static final long serialVersionUID = 1626738914147286451L;
+
+        private AggregationException(final Throwable cause){
+            super(cause);
         }
     }
 
@@ -130,7 +130,7 @@ public abstract class AbstractAggregator implements Aggregator {
      * Represents aggregation builder.
      * This class cannot be inherited or instantiated directly from your code.
      */
-    public static final class AggregationBuilder implements Supplier<AbstractAggregator>{
+    public static final class AggregationBuilder implements Supplier<AbstractAggregator>, java.util.function.Supplier<AbstractAggregator>{
         private AbstractAggregator aggregator;
 
         private AggregationBuilder(){
@@ -142,9 +142,13 @@ public abstract class AbstractAggregator implements Aggregator {
         }
 
         public <T> AggregationBuilder aggregate(final Class<T> objectType, final T obj) {
+            return this.<T>aggregate(objectType, () -> obj);
+        }
+
+        public <T> AggregationBuilder aggregate(final Class<T> objectType, final java.util.function.Supplier<T> factory){
             if (aggregator == null)
                 aggregator = createAggregator();
-            aggregator.providers.put(objectType, aggregator -> obj);
+            aggregator.providers.put(objectType, aggregator -> factory.get());
             return this;
         }
 
@@ -155,7 +159,7 @@ public abstract class AbstractAggregator implements Aggregator {
             return result == null ? createAggregator() : result;
         }
 
-        public Aggregator build(){
+        public AbstractAggregator build(){
             return get();
         }
     }
@@ -226,16 +230,4 @@ public abstract class AbstractAggregator implements Aggregator {
         return new AggregationBuilder();
     }
 
-    public static Aggregator compose(final Aggregator... values){
-        return new Aggregator() {
-            @Override
-            public <T> T queryObject(final Class<T> objectType) {
-                for(final Aggregator a: values){
-                    final T result = a.queryObject(objectType);
-                    if(result != null) return result;
-                }
-                return null;
-            }
-        };
-    }
 }

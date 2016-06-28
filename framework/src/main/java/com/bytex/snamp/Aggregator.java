@@ -32,4 +32,33 @@ public interface Aggregator {
      * @return An instance of the aggregated object; or {@literal null} if object is not available.
      */
     <T> T queryObject(final Class<T> objectType);
+
+    static Aggregator empty(){
+        return new Aggregator() {
+            @Override
+            public <T> T queryObject(final Class<T> objectType) {
+                return null;
+            }
+        };
+    }
+
+    static Aggregator compose(final Aggregator... values) {
+        switch (values.length) {
+            case 0:
+                return empty();
+            case 1:
+                return values[0];
+            default:
+                return new Aggregator() {
+                    @Override
+                    public <T> T queryObject(final Class<T> objectType) {
+                        for (final Aggregator a : values) {
+                            final T result = a.queryObject(objectType);
+                            if (result != null) return result;
+                        }
+                        return null;
+                    }
+                };
+        }
+    }
 }
