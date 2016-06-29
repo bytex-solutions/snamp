@@ -60,7 +60,7 @@
                             com.bytex.jcommands
                         </Export-Package>
                         <!--SNAMP specific header-->
-                        <SNAMP-Resource-Connector>rshell</SNAMP-Resource-Connector>
+                        <Provide-Capability>com.bytex.snamp.connectors; type=rshell</Provide-Capability>
                     </instructions>
                 </configuration>
             </plugin>

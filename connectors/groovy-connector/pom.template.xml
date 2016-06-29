@@ -44,7 +44,7 @@
                             *
                         </DynamicImport-Package>
                         <!--SNAMP specific header-->
-                        <SNAMP-Resource-Connector>groovy</SNAMP-Resource-Connector>
+                        <Provide-Capability>com.bytex.snamp.connectors; type=groovy</Provide-Capability>
                     </instructions>
                 </configuration>
             </plugin>

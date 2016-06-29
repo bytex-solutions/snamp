@@ -77,7 +77,7 @@
               *</Import-Package>
             <DynamicImport-Package>com.ibm.*;version="[7.5,9)"</DynamicImport-Package>
             <Export-Package />
-            <SNAMP-Resource-Connector>ibm-wmq</SNAMP-Resource-Connector>
+            <Provide-Capability>com.bytex.snamp.connectors; type=ibm-wmq</Provide-Capability>
           </instructions>
         </configuration>
       </plugin>

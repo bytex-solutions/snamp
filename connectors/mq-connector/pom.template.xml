@@ -40,7 +40,7 @@
                             *;scope=compile
                         </Embed-Dependency>
                         <!--SNAMP specific header-->
-                        <SNAMP-Resource-Connector>mq</SNAMP-Resource-Connector>
+                        <Provide-Capability>com.bytex.snamp.connectors; type=mq</Provide-Capability>
                     </instructions>
                 </configuration>
             </plugin>

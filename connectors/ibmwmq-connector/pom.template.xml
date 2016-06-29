@@ -35,7 +35,7 @@
             </DynamicImport-Package>
             <Export-Package/>
             <!--SNAMP specific header-->
-            <SNAMP-Resource-Connector>ibm-wmq</SNAMP-Resource-Connector>
+            <Provide-Capability>com.bytex.snamp.connectors; type=ibm-wmq</Provide-Capability>
           </instructions>
         </configuration>
       </plugin>

@@ -25,7 +25,7 @@
                         <Bundle-Activator>com.bytex.snamp.connectors.mda.impl.MDAResourceActivatorImpl</Bundle-Activator>
                         <Export-Package/>
                         <!--SNAMP specific header-->
-                        <SNAMP-Resource-Connector>mda</SNAMP-Resource-Connector>
+                        <Provide-Capability>com.bytex.snamp.connectors; type=mda</Provide-Capability>
                     </instructions>
                 </configuration>
             </plugin>

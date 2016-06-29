@@ -76,7 +76,7 @@
             <Bundle-Activator>com.bytex.snamp.connectors.groovy.impl.GroovyResourceActivator</Bundle-Activator>
             <Export-Package>com.bytex.snamp.connectors.groovy</Export-Package>
             <DynamicImport-Package>*</DynamicImport-Package>
-            <SNAMP-Resource-Connector>groovy</SNAMP-Resource-Connector>
+            <Provide-Capability>com.bytex.snamp.connectors; type=groovy</Provide-Capability>
           </instructions>
         </configuration>
       </plugin>

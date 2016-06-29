@@ -82,7 +82,7 @@
             <DynamicImport-Package>*</DynamicImport-Package>
             <Embed-Transitive>true</Embed-Transitive>
             <Embed-Dependency>*;scope=compile</Embed-Dependency>
-            <SNAMP-Resource-Connector>mq</SNAMP-Resource-Connector>
+            <Provide-Capability>com.bytex.snamp.connectors; type=mq</Provide-Capability>
           </instructions>
         </configuration>
       </plugin>

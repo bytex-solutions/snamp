@@ -48,7 +48,7 @@
             <Bundle-SymbolicName>com.bytex.snamp.connectors.aggregator</Bundle-SymbolicName>
             <Bundle-Activator>com.bytex.snamp.connectors.aggregator.AggregatorResourceConnectorActivator</Bundle-Activator>
             <Export-Package />
-            <SNAMP-Resource-Connector>aggregator</SNAMP-Resource-Connector>
+            <Provide-Capability>com.bytex.snamp.connectors; type=aggregator</Provide-Capability>
           </instructions>
         </configuration>
       </plugin>

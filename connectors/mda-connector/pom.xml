@@ -79,7 +79,7 @@
             <Bundle-SymbolicName>com.bytex.snamp.connectors.mda</Bundle-SymbolicName>
             <Bundle-Activator>com.bytex.snamp.connectors.mda.impl.MDAResourceActivatorImpl</Bundle-Activator>
             <Export-Package />
-            <SNAMP-Resource-Connector>mda</SNAMP-Resource-Connector>
+            <Provide-Capability>com.bytex.snamp.connectors; type=mda</Provide-Capability>
           </instructions>
         </configuration>
       </plugin>

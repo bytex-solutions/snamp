@@ -37,7 +37,7 @@
                             *
                         </Import-Package>
                         <!--SNAMP specific header-->
-                        <SNAMP-Resource-Connector>modbus</SNAMP-Resource-Connector>
+                        <Provide-Capability>com.bytex.snamp.connectors; type=modbus</Provide-Capability>
                     </instructions>
                 </configuration>
             </plugin>

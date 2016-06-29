@@ -60,7 +60,7 @@
             <Embed-Transitive>true</Embed-Transitive>
             <Import-Package>!gnu.io,
                             *</Import-Package>
-            <SNAMP-Resource-Connector>modbus</SNAMP-Resource-Connector>
+            <Provide-Capability>com.bytex.snamp.connectors; type=modbus</Provide-Capability>
           </instructions>
         </configuration>
       </plugin>
