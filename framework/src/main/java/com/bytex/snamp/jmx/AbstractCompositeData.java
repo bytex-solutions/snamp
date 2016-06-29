@@ -1,7 +1,5 @@
 package com.bytex.snamp.jmx;
 
-import com.bytex.snamp.ArrayUtils;
-
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeType;
 import javax.management.openmbean.OpenDataException;
@@ -61,7 +59,7 @@ public abstract class AbstractCompositeData<V> extends HashMap<String, V> implem
     protected abstract String getItemDescription(final String itemName);
 
     private CompositeType getCompositeTypeImpl() throws OpenDataException {
-        final String[] itemNames = ArrayUtils.toArray(keySet(), String.class);
+        final String[] itemNames = keySet().stream().toArray(String[]::new);
         final String[] itemDescriptions = new String[itemNames.length];
         final OpenType<?>[] itemTypes = new OpenType<?>[itemNames.length];
         for (int i = 0; i < itemNames.length; i++) {

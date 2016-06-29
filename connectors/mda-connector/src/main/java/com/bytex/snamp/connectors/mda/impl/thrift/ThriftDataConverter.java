@@ -13,7 +13,6 @@ import javax.management.openmbean.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.*;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
 
@@ -215,15 +214,12 @@ final class ThriftDataConverter {
     }
 
     private static String[] getSortedItems(final CompositeType type){
-        final String[] sortedItems = ArrayUtils.toArray(type.keySet(), String.class);
-        Arrays.sort(sortedItems);
-        return sortedItems;
+        return type.keySet().stream().sorted().toArray(String[]::new);
     }
 
     private static void serialize(final CompositeData input, final TProtocol output) throws TException{
         final TStruct struct = new TStruct(input.getCompositeType().getTypeName());
         final String[] sortedItems = getSortedItems(input.getCompositeType());
-        Arrays.sort(sortedItems);
         short index = 1;
         output.writeStructBegin(struct);
         for(final String itemName: sortedItems){

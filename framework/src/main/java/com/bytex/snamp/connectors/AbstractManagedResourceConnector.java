@@ -15,8 +15,6 @@ import com.bytex.snamp.connectors.operations.OperationSupport;
 import com.bytex.snamp.core.AbstractFrameworkService;
 import com.bytex.snamp.internal.IllegalStateFlag;
 import com.bytex.snamp.jmx.JMExceptionUtils;
-import static com.google.common.base.Strings.isNullOrEmpty;
-import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 
 import javax.management.*;
@@ -320,8 +318,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      */
     protected static void addResourceEventListener(final ResourceEventListener listener,
                                                    final AbstractFeatureRepository<?>... modelers){
-        for(final AbstractFeatureRepository<?> modeler: modelers)
-            modeler.addModelEventListener(listener);
+        Arrays.stream(modelers).forEach(modeler -> modeler.addModelEventListener(listener));
     }
 
     /**
@@ -332,8 +329,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      */
     protected static void removeResourceEventListener(final ResourceEventListener listener,
                                                       final AbstractFeatureRepository<?>... modelers){
-        for(final AbstractFeatureRepository<?> modeler: modelers)
-            modeler.removeModelEventListener(listener);
+        Arrays.stream(modelers).forEach(modeler -> modeler.removeModelEventListener(listener));
     }
 
     /**
@@ -440,7 +436,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      * @return System name of the connector.
      */
     public static String getConnectorType(final Class<? extends ManagedResourceConnector> connectorImpl){
-        return getConnectorType(FrameworkUtil.getBundle(connectorImpl));
+        return ManagedResourceConnector.getResourceConnectorType(FrameworkUtil.getBundle(connectorImpl));
     }
 
     /**
@@ -450,18 +446,6 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      */
     public static String getConnectorType(final ManagedResourceConnector connector){
         return getConnectorType(connector.getClass());
-    }
-
-    static String getConnectorType(final Dictionary<String, ?> identity) {
-        return Objects.toString(identity.get(CONNECTOR_NAME_MANIFEST_HEADER), "");
-    }
-
-    static String getConnectorType(final Bundle bnd){
-        return isResourceConnectorBundle(bnd) ? getConnectorType(bnd.getHeaders()) : "";
-    }
-
-    static boolean isResourceConnectorBundle(final Bundle bnd) {
-        return !(bnd == null || isNullOrEmpty(bnd.getHeaders().get(CONNECTOR_NAME_MANIFEST_HEADER)));
     }
 
     /**

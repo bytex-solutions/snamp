@@ -80,7 +80,7 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
         }
 
         @Override
-        protected String getFactoryPID(final RequiredService<?>... dependencies) {
+        protected String getFactoryPID(final RequiredService<?>[] dependencies) {
             return JaasRealmImpl.FACTORY_PID;
         }
 

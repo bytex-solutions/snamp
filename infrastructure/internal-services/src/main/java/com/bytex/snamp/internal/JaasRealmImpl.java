@@ -1,11 +1,9 @@
 package com.bytex.snamp.internal;
 
+import com.bytex.snamp.core.ServiceHolder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
-import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.core.ServiceHolder;
-import com.bytex.snamp.internal.Utils;
 import org.apache.karaf.jaas.config.JaasRealm;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -68,7 +66,7 @@ final class JaasRealmImpl implements JaasRealm {
 
     @Override
     public AppConfigurationEntry[] getEntries() {
-        return ArrayUtils.toArray(entries, AppConfigurationEntry.class);
+        return entries.stream().toArray(AppConfigurationEntry[]::new);
     }
 
     private static String getConfigFilter(){

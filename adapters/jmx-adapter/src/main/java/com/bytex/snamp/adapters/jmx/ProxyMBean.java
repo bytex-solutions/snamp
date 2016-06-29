@@ -19,12 +19,9 @@ import javax.management.openmbean.*;
 import java.io.Closeable;
 import java.lang.management.ManagementFactory;
 import java.nio.*;
-import java.util.Collection;
-import java.util.LinkedList;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
  * Represents proxy MBean that is used to expose attributes and notifications
@@ -359,22 +356,19 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     }
 
     private OpenMBeanAttributeInfo[] getAttributeInfo() {
-        try(final LockScope ignored = beginRead(MBeanResources.ATTRIBUTES)){
-            final Collection<OpenMBeanAttributeInfo> result =
-                    attributes.values().stream()
-                            .map(JmxAttributeAccessor::cloneMetadata)
-                            .collect(Collectors.toCollection(LinkedList::new));
-            return ArrayUtils.toArray(result, OpenMBeanAttributeInfo.class);
+        try (final LockScope ignored = beginRead(MBeanResources.ATTRIBUTES)) {
+            return attributes.values().stream()
+                    .map(JmxAttributeAccessor::cloneMetadata)
+                    .toArray(OpenMBeanAttributeInfo[]::new);
         }
     }
 
     @Override
     public MBeanNotificationInfo[] getNotificationInfo() {
-        try(final LockScope ignored = beginRead(MBeanResources.NOTIFICATIONS)){
-            final Collection<MBeanNotificationInfo> result = notifications.values().stream()
+        try (final LockScope ignored = beginRead(MBeanResources.NOTIFICATIONS)) {
+            return notifications.values().stream()
                     .map(JmxNotificationAccessor::cloneMetadata)
-                    .collect(Collectors.toCollection(LinkedList::new));
-            return ArrayUtils.toArray(result, MBeanNotificationInfo.class);
+                    .toArray(MBeanNotificationInfo[]::new);
         }
     }
 

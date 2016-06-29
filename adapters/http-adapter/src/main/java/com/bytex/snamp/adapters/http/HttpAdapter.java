@@ -171,10 +171,10 @@ final class HttpAdapter extends AbstractResourceAdapter {
 
                 @Override
                 public void clear() {
-                    for(final NotificationBroadcaster broadcaster: values()){
+                    values().forEach(broadcaster -> {
                         broadcaster.clear();
                         broadcaster.destroy();
-                    }
+                    });
                     super.clear();
                 }
             };

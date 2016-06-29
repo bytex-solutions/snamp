@@ -1,10 +1,8 @@
 package com.bytex.snamp.io;
 
-import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.TypeTokens;
 import com.google.common.base.Splitter;
 import com.google.common.base.StandardSystemProperty;
-import static com.google.common.base.Strings.isNullOrEmpty;
 import com.google.common.reflect.TypeToken;
 
 import java.io.*;
@@ -12,6 +10,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.BitSet;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * @author Roman Sakno
@@ -149,9 +149,8 @@ public final class IOUtils {
         return result.toString();
     }
 
-    public static String[] splitPath(final String connectionString) {
-        return ArrayUtils.toArray(PATH_SPLITTER.trimResults().splitToList(connectionString),
-                String.class);
+    public static String[] splitPath(final String path) {
+        return PATH_SPLITTER.trimResults().splitToList(path).stream().toArray(String[]::new);
     }
 
     public static BitSet toBitSet(final boolean[] bits) {

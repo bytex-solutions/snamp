@@ -22,8 +22,7 @@ public final class OperationMetricsWriter implements OperationMetrics {
 
     public void update(){
         totalInvocations.incrementAndGet();
-        for(final LongAccumulator accumulator: statOfInvocations.values())
-            accumulator.update(1L);
+        statOfInvocations.values().stream().forEach(accumulator -> accumulator.update(1L));
     }
 
     @Override

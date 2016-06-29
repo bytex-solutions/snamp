@@ -1,10 +1,12 @@
 package com.bytex.snamp.core;
 
-import com.google.common.collect.Maps;
 import org.osgi.framework.*;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Represents a permanent reference to the OSGi service. You should release this service manually
@@ -167,11 +169,8 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
      * @return All properties associated with this reference.
      */
     public final Map<String, ?> getProperties(){
-        final String[] keys = getPropertyKeys();
-        final Map<String, Object> result = Maps.newHashMapWithExpectedSize(keys.length);
-        for(final String key: keys)
-            result.put(key, getProperty(key));
-        return result;
+        return Arrays.stream(getPropertyKeys())
+                .collect(Collectors.toMap(Function.identity(), this::getProperty));
     }
 
     /**

@@ -1,15 +1,14 @@
 package com.bytex.snamp.adapters;
 
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.concurrent.SpinWait;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.core.SupportService;
-import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.management.Maintainable;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.Futures;
 import org.osgi.framework.*;
@@ -22,6 +21,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.bytex.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
 import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfiguration;
@@ -200,10 +201,8 @@ public final class ResourceAdapterClient extends ServiceHolder<ResourceAdapter> 
             ref = getServiceReference(context, adapterName, null, Maintainable.class);
             if(ref == null) throw unsupportedServiceRequest(adapterName, Maintainable.class);
             final Maintainable service = context.getService(ref);
-            final Map<String, String> result = Maps.newHashMapWithExpectedSize(service.getActions().size());
-            for(final String actionName: service.getActions())
-                result.put(actionName, service.getActionDescription(actionName, loc));
-            return result;
+            return service.getActions().stream()
+                    .collect(Collectors.toMap(Function.identity(), actionName -> service.getActionDescription(actionName, loc)));
         }
         catch (final InvalidSyntaxException ignored) {
             ref = null;

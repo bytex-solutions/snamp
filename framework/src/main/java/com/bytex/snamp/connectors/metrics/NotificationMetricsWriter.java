@@ -22,8 +22,7 @@ public final class NotificationMetricsWriter implements NotificationMetrics {
 
     public void update(){
         totalEmitted.incrementAndGet();
-        for(final LongAccumulator accumulator: statOfEmitted.values())
-            accumulator.update(1L);
+        statOfEmitted.values().forEach(accumulator -> accumulator.update(1L));
     }
 
     /**

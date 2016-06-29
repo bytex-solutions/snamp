@@ -1,6 +1,5 @@
 package com.bytex.snamp.connectors.groovy.impl;
 
-import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.GroupedThreadFactory;
@@ -14,9 +13,9 @@ import com.bytex.snamp.connectors.metrics.MetricsReader;
 import com.bytex.snamp.connectors.notifications.*;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.io.IOUtils;
 import com.google.common.base.Splitter;
 import com.google.common.base.StandardSystemProperty;
-import static com.google.common.base.Strings.isNullOrEmpty;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
 import org.osgi.framework.BundleContext;
@@ -35,6 +34,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * @author Roman Sakno
@@ -278,15 +279,10 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         return props;
     }
 
-    static String[] getPaths(final String connectionString){
-        return ArrayUtils.toArray(PATH_SPLITTER.trimResults().splitToList(connectionString),
-                String.class);
-    }
-
     GroovyResourceConnector(final String resourceName,
                             final String connectionString,
                             final Map<String, String> params) throws IOException, ResourceException, ScriptException {
-        final String[] paths = getPaths(connectionString);
+        final String[] paths = IOUtils.splitPath(connectionString);
         final ManagedResourceScriptEngine engine = new ManagedResourceScriptEngine(getClass().getClassLoader(),
                 toProperties(params),
                 paths);

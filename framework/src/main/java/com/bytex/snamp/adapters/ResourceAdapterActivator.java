@@ -7,7 +7,6 @@ import com.bytex.snamp.configuration.internal.CMResourceAdapterParser;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.management.Maintainable;
-import static com.google.common.base.Strings.isNullOrEmpty;
 import com.google.common.collect.ObjectArrays;
 import org.osgi.framework.*;
 import org.osgi.service.cm.ConfigurationAdmin;
@@ -20,6 +19,7 @@ import java.util.stream.Collectors;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
 import static com.bytex.snamp.adapters.ResourceAdapter.ADAPTER_NAME_MANIFEST_HEADER;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents lifetime manager for managed resource adapter.
@@ -81,7 +81,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
         }
 
         @Override
-        protected String getFactoryPID(final RequiredService<?>... dependencies) {
+        protected String getFactoryPID(final RequiredService<?>[] dependencies) {
             return getParser(dependencies).getAdapterFactoryPersistentID(adapterName);
         }
 
@@ -380,20 +380,15 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
     }
 
     private static List<Bundle> getResourceAdapterBundles(final BundleContext context){
-        final Bundle[] bundles = context.getBundles();
-        final List<Bundle> result = new LinkedList<>();
-        for(final Bundle bnd: bundles)
-            if(isResourceAdapterBundle(bnd)) result.add(bnd);
-        return result;
+        return Arrays.stream(context.getBundles())
+                .filter(ResourceAdapterActivator::isResourceAdapterBundle)
+                .collect(Collectors.toCollection(LinkedList::new));
     }
 
-    static List<Bundle> getResourceAdapterBundles(final BundleContext context, final String adapterName){
-        final Bundle[] bundles = context.getBundles();
-        final List<Bundle> result = new ArrayList<>(bundles.length);
-        for(final Bundle bnd: bundles)
-            if(Objects.equals(bnd.getHeaders().get(ADAPTER_NAME_MANIFEST_HEADER), adapterName))
-                result.add(bnd);
-        return result;
+    static List<Bundle> getResourceAdapterBundles(final BundleContext context, final String adapterName) {
+        return Arrays.stream(context.getBundles())
+                .filter(bnd -> Objects.equals(bnd.getHeaders().get(ADAPTER_NAME_MANIFEST_HEADER), adapterName))
+                .collect(Collectors.toCollection(LinkedList::new));
     }
 
     /**

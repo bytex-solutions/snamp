@@ -13,10 +13,10 @@ import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.Date;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.IntFunction;
 import java.util.function.Predicate;
 
 /**
@@ -44,7 +44,7 @@ public final class ArrayUtils {
             .softValues()
             .build(new CacheLoader<Class<?>, Object>() {
                 @Override
-                public Object load(final Class<?> componentType) throws IllegalArgumentException {
+                public Object load(final Class<?> componentType) throws IllegalArgumentException, NegativeArraySizeException {
                     return Array.newInstance(componentType, 0);
                 }
             });
@@ -113,17 +113,6 @@ public final class ArrayUtils {
      */
     public static boolean isArray(final Object candidate){
         return candidate instanceof Object[] || candidate != null && candidate.getClass().isArray();
-    }
-
-    /**
-     * Converts collection to array.
-     * @param source The collection to convert.
-     * @param componentType Array component type.
-     * @param <T> Array component type.
-     * @return An array with elements from the collection.
-     */
-    public static <T> T[] toArray(final Collection<? extends T> source, final Class<T> componentType){
-        return source.toArray(ObjectArrays.newArray(componentType, source.size()));
     }
 
     /**
@@ -547,5 +536,9 @@ public final class ArrayUtils {
         for(int index = 0; index < value.length; index++)
             result.set(index, value[index]);
         return result.toByteArray();
+    }
+
+    public static <T> IntFunction<T[]> arrayConstructor(final Class<T> elementType){
+        return length -> ObjectArrays.newArray(elementType, length);
     }
 }

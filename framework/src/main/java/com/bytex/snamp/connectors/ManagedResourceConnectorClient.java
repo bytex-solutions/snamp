@@ -19,6 +19,8 @@ import javax.management.*;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Future;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
 import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfiguration;
@@ -213,10 +215,8 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
             ref = getServiceReference(context, connectorType, null, Maintainable.class);
             if(ref == null) throw unsupportedServiceRequest(connectorType, Maintainable.class);
             final Maintainable service = context.getService(ref);
-            final Map<String, String> result = new HashMap<>(service.getActions().size());
-            for(final String actionName: service.getActions())
-                result.put(actionName, service.getActionDescription(actionName, loc));
-            return result;
+            return service.getActions().stream()
+                    .collect(Collectors.toMap(Function.identity(), actionName -> service.getActionDescription(actionName, loc)));
         }
         catch (final InvalidSyntaxException ignored) {
             ref = null;
@@ -266,35 +266,23 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
      * @return A map of management connector references where the key of the map represents
      *          a name of the management target.
      */
+    @SuppressWarnings("unchecked")
     public static Map<String, ServiceReference<ManagedResourceConnector>> getConnectors(final BundleContext context){
         if(context == null) return Collections.emptyMap();
         else try {
             ServiceReference<?>[] connectors = context.getAllServiceReferences(ManagedResourceConnector.class.getName(), null);
             if(connectors == null) connectors = emptyArray(ServiceReference[].class);
-            final Map<String, ServiceReference<ManagedResourceConnector>> result = new HashMap<>(connectors.length);
-            for(final ServiceReference<?> serviceRef: connectors) {
-                @SuppressWarnings("unchecked")
-                final ServiceReference<ManagedResourceConnector> connectorRef = (ServiceReference<ManagedResourceConnector>)serviceRef;
-                result.put(getManagedResourceName(connectorRef), connectorRef);
-            }
-            return result;
+            return Arrays.stream(connectors)
+                    .map(ref -> (ServiceReference<ManagedResourceConnector>)ref)
+                    .collect(Collectors.toMap(ManagedResourceConnectorClient::getManagedResourceName, Function.identity()));
         }
         catch (final InvalidSyntaxException ignored) {
             return Collections.emptyMap();
         }
     }
 
-    /**
-     * Gets type of the management connector by its reference.
-     * @param connectorRef The reference to the management connector.
-     * @return The type of the management connector.
-     */
-    public static String getConnectorType(final ServiceReference<ManagedResourceConnector> connectorRef){
-        return ManagedResourceActivator.getConnectorType(connectorRef);
-    }
-
     public String getConnectorType(){
-        return getConnectorType(this);
+        return ManagedResourceConnector.getResourceConnectorType(getBundle());
     }
 
     /**
@@ -350,15 +338,6 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
         } catch (final InvalidSyntaxException ignored) {
             return false;
         }
-    }
-
-    /**
-     * Determines whether the specified reference is a reference to {@link com.bytex.snamp.connectors.ManagedResourceConnector} service.
-     * @param ref A reference to check.
-     * @return {@literal true}, if the specified object is a reference to the {@link com.bytex.snamp.connectors.ManagedResourceConnector} service; otherwise, {@literal false}.
-     */
-    public static boolean isResourceConnector(final ServiceReference<?> ref){
-        return ManagedResourceActivator.isResourceConnector(ref);
     }
 
     public static ManagedResourceConfiguration getResourceConfiguration(final BundleContext context,

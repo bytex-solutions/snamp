@@ -1,7 +1,6 @@
 package com.bytex.snamp.connectors.snmp;
 
 import com.bytex.snamp.Aggregator;
-import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
@@ -215,12 +214,9 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
     protected abstract PDU createPDU(final int pduType);
 
     final Address[] getClientAddresses(){
-        final Collection<TransportMapping> mappings = getMessageDispatcher().getTransportMappings();
-        final Address[] result = new Address[mappings.size()];
-        int i = 0;
-        for(final TransportMapping m: mappings)
-            result[i++] = m.getListenAddress();
-        return result;
+        return getMessageDispatcher().getTransportMappings().stream()
+                .map(TransportMapping::getListenAddress)
+                .toArray(Address[]::new);
     }
 
     protected abstract Target createTarget(final Duration timeout);
@@ -313,6 +309,6 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
         final Collection<VariableBinding> bindings = variables.entrySet().stream()
                 .map(entry -> new VariableBinding(entry.getKey(), entry.getValue()))
                 .collect(Collectors.toCollection(LinkedList::new));
-        set(ArrayUtils.toArray(bindings, VariableBinding.class), timeout);
+        set(bindings.stream().toArray(VariableBinding[]::new), timeout);
     }
 }

@@ -27,10 +27,7 @@ import javax.management.MBeanOperationInfo;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.time.Duration;
-import java.util.Collection;
-import java.util.Dictionary;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -460,12 +457,10 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                 //expose all features
                 final AttributeSupport attributeSupport = connector.queryObject(AttributeSupport.class);
                 if(attributeSupport != null)
-                    for(final MBeanAttributeInfo metadata: attributeSupport.getAttributeInfo())
-                        attributeAdded(new AttributeAddedEvent(attributeSupport, resourceName, metadata));
+                    Arrays.stream(attributeSupport.getAttributeInfo()).forEach(metadata -> attributeAdded(new AttributeAddedEvent(attributeSupport, resourceName, metadata)));
                 final NotificationSupport notificationSupport = connector.queryObject(NotificationSupport.class);
                 if(notificationSupport != null)
-                    for(final MBeanNotificationInfo metadata: notificationSupport.getNotificationInfo())
-                        notificationAdded(new NotificationAddedEvent(notificationSupport, resourceName, metadata));
+                    Arrays.stream(notificationSupport.getNotificationInfo()).forEach(metadata -> notificationAdded(new NotificationAddedEvent(notificationSupport, resourceName, metadata)));
             } finally {
                 context.ungetService(resourceRef);
             }
@@ -478,8 +473,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         if(connector != null)
             try{
                 connector.removeResourceEventListener(this);
-                for(final FeatureAccessor<?> accessor: removeAllFeaturesImpl(resourceName))
-                    accessor.close();
+                removeAllFeaturesImpl(resourceName).forEach(FeatureAccessor::close);
             }
             finally {
                 context.ungetService(resourceRef);
@@ -544,7 +538,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      */
     @Override
     public final void serviceChanged(final ServiceEvent event) {
-        if (ManagedResourceConnectorClient.isResourceConnector(event.getServiceReference()))
+        if (ManagedResourceConnector.isResourceConnector(event.getServiceReference()))
             try (final LogicalOperation logger = AdapterLogicalOperation.connectorChangesDetected(getLogger(), adapterInstanceName)) {
                 @SuppressWarnings("unchecked")
                 final ServiceReference<ManagedResourceConnector> connectorRef = (ServiceReference<ManagedResourceConnector>) event.getServiceReference();

@@ -18,7 +18,6 @@ import com.bytex.snamp.connectors.operations.OperationDescriptorRead;
 import com.bytex.snamp.connectors.operations.OperationSupport;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
-import com.google.common.collect.Sets;
 import org.osgi.framework.BundleContext;
 
 import javax.management.*;
@@ -33,6 +32,7 @@ import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static com.bytex.snamp.connectors.jmx.JmxConnectorDescriptionProvider.*;
 import static com.google.common.base.MoreObjects.firstNonNull;
@@ -484,11 +484,9 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
         }
 
         private Set<ObjectName> getNotificationTargets() {
-            final JmxNotificationInfo[] notifications = getNotificationInfo();
-            final Set<ObjectName> targets = Sets.newHashSetWithExpectedSize(notifications.length);
-            for(final JmxNotificationInfo info: notifications)
-                targets.add(info.getOwner());
-            return targets;
+            return Arrays.stream(getNotificationInfo())
+                    .map(JmxNotificationInfo::getOwner)
+                    .collect(Collectors.toSet());
         }
 
         private void enableListening(final ObjectName target) throws Exception {

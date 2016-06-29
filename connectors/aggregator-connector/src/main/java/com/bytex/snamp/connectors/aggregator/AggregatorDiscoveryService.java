@@ -7,10 +7,7 @@ import com.bytex.snamp.connectors.discovery.DiscoveryResultBuilder;
 import com.bytex.snamp.connectors.discovery.DiscoveryService;
 import com.google.common.collect.ImmutableList;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.logging.Logger;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
@@ -87,8 +84,7 @@ final class AggregatorDiscoveryService extends AbstractAggregator implements Dis
     @Override
     public final DiscoveryResult discover(final String connectionString, final Map<String, String> connectionOptions, final Class<? extends FeatureConfiguration>... entityTypes) {
         final DiscoveryResultBuilder result = new DiscoveryResultBuilder();
-        for(final Class<? extends FeatureConfiguration> type: entityTypes)
-            result.importFeatures(this, connectionString, connectionOptions, type);
+        Arrays.stream(entityTypes).forEach(type -> result.importFeatures(this, connectionString, connectionOptions, type));
         return result.get();
     }
 

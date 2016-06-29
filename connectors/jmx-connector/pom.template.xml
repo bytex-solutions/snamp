@@ -23,7 +23,7 @@
                         <Bundle-Activator>com.bytex.snamp.connectors.jmx.JmxConnectorBundleActivator</Bundle-Activator>
                         <Export-Package/>
                         <!--SNAMP specific header-->
-                        <SNAMP-Resource-Connector>jmx</SNAMP-Resource-Connector>
+                        <Provide-Capability>com.bytex.snamp.connectors; type=jmx</Provide-Capability>
                     </instructions>
                 </configuration>
             </plugin>

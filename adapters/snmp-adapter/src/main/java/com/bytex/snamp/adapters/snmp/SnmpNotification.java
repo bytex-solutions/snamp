@@ -16,10 +16,7 @@ import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.TabularData;
 import java.lang.reflect.Array;
 import java.text.ParseException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import static com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterDescriptionProvider.parseDateTimeDisplayFormat;
 
@@ -52,8 +49,7 @@ final class SnmpNotification extends HashMap<OID, Variable> {
         super(bindings.length > 0 ? bindings.length : 4);
         if(notificationID == null) throw new IllegalArgumentException("notificationID is null.");
         this.notificationID = notificationID;
-        for(final VariableBinding b: bindings)
-            put(b);
+        Arrays.stream(bindings).forEach(this::put);
         messageId = new OID(notificationID).append(1);
         severityId = new OID(notificationID).append(2);
         sequenceNumberId = new OID(notificationID).append(3);

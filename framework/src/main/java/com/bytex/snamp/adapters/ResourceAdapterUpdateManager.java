@@ -2,6 +2,7 @@ package com.bytex.snamp.adapters;
 
 import com.bytex.snamp.MethodStub;
 
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
@@ -155,8 +156,7 @@ public class ResourceAdapterUpdateManager implements AutoCloseable {
                                                          final ResourceAdapterUpdatedCallback... callbacks){
         return () -> {
             callback.updated();
-            for(final ResourceAdapterUpdatedCallback other: callbacks)
-                other.updated();
+            Arrays.stream(callbacks).forEach(ResourceAdapterUpdatedCallback::updated);
         };
     }
 }

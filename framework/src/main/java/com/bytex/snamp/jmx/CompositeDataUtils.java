@@ -1,6 +1,5 @@
 package com.bytex.snamp.jmx;
 
-import com.bytex.snamp.ArrayUtils;
 import com.google.common.collect.Maps;
 
 import javax.management.openmbean.*;
@@ -13,11 +12,11 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Provides helper methods that allows to create and
@@ -91,11 +90,8 @@ public final class CompositeDataUtils {
      * @return Map with items from input {@link CompositeData}.
      */
     public static Map<String, ?> toMap(final CompositeData data) {
-        final Collection<String> items = data.getCompositeType().keySet();
-        final Map<String, Object> result = Maps.newHashMapWithExpectedSize(items.size());
-        for(final String itemName: items)
-            result.put(itemName, data.get(itemName));
-        return result;
+        return data.getCompositeType().keySet().stream()
+                .collect(Collectors.toMap(Function.identity(), data::get));
     }
 
     public static CompositeData create(final String typeName,
@@ -103,7 +99,7 @@ public final class CompositeDataUtils {
                                        final Map<String, ?> map,
                                        final Function<? super String, ? extends OpenType<?>> typeProvider,
                                        final Function<String, String> descriptionProvider) throws OpenDataException {
-        final String[] itemNames = ArrayUtils.toArray(map.keySet(), String.class);
+        final String[] itemNames = map.keySet().stream().toArray(String[]::new);
         final String[] itemDescriptions = map.keySet().stream().map(descriptionProvider).toArray(String[]::new);
         final OpenType<?>[] itemTypes = new OpenType<?>[itemNames.length];
         for (int i = 0; i < itemTypes.length; i++)
@@ -240,8 +236,7 @@ public final class CompositeDataUtils {
     }
 
     public static void fillMap(final CompositeData source, final Map<String, Object> dest){
-        for(final String key: source.getCompositeType().keySet())
-            dest.put(key, source.get(key));
+        source.getCompositeType().keySet().forEach(key -> dest.put(key, source.get(key)));
     }
 
     /**

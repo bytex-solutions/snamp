@@ -1,10 +1,8 @@
 package com.bytex.snamp.connectors.aggregator;
 
-import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.connectors.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
-import com.google.common.collect.Maps;
 import org.osgi.framework.BundleContext;
 
 import javax.management.Attribute;
@@ -14,6 +12,7 @@ import javax.management.JMException;
 import javax.management.openmbean.*;
 import java.util.Collection;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 
@@ -52,11 +51,9 @@ final class Composer extends AbstractAttributeAggregation<CompositeData> {
 
     @Override
     protected CompositeDataSupport compute(final DynamicMBean attributeSupport) throws OpenDataException {
-        final CompositeType attributeType = (CompositeType)getOpenType();
-        final Collection<? extends Attribute> attributes = attributeSupport.getAttributes(ArrayUtils.toArray(attributeType.keySet(), String.class)).asList();
-        final Map<String, Object> result = Maps.newHashMapWithExpectedSize(attributes.size());
-        for(final Attribute attr: attributes)
-            result.put(attr.getName(), attr.getValue());
+        final CompositeType attributeType = (CompositeType) getOpenType();
+        final Collection<? extends Attribute> attributes = attributeSupport.getAttributes(attributeType.keySet().stream().toArray(String[]::new)).asList();
+        final Map<String, Object> result = attributes.stream().collect(Collectors.toMap(Attribute::getName, Attribute::getValue));
         return new CompositeDataSupport(attributeType, result);
     }
 

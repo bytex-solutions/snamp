@@ -10,13 +10,11 @@ import javax.management.openmbean.*;
 import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.nio.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Describes a well-known type that should be supported by
@@ -583,12 +581,9 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
     }
 
     private static EnumSet<WellKnownType> filterTypes(final Predicate<WellKnownType> filter){
-        final WellKnownType[] allTypes = values();
-        final Collection<WellKnownType> types = new ArrayList<>(allTypes.length);
-        for(final WellKnownType t: allTypes)
-            if(filter.test(t))
-                types.add(t);
-        return EnumSet.copyOf(types);
+        return EnumSet.copyOf(Arrays.stream(values())
+                .filter(filter)
+                .collect(Collectors.toList()));
     }
 
     public static EnumSet<WellKnownType> getPrimitiveTypes(){

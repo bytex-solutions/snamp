@@ -132,7 +132,7 @@ abstract class ConfigurationSchemaOperation extends OpenMBean.OpenOperation<Comp
                 for(final ConfigurationEntityDescription.ParameterRelationship rel: ConfigurationEntityDescription.ParameterRelationship.values()){
                     final Set<String> relationship = new HashSet<>();
                     relationship.addAll(descriptor.getRelatedParameters(rel));
-                    parameter.put(getRelationshipKey(rel), ArrayUtils.toArray(relationship, String.class));
+                    parameter.put(getRelationshipKey(rel), relationship.stream().toArray(String[]::new));
                 }
                 builder.newRow()
                         .cell("Parameter", parameterName)

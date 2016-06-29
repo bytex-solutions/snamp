@@ -1,6 +1,5 @@
 package com.bytex.snamp.management.jmx;
 
-import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.adapters.SelectableAdapterParameterDescriptor;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
@@ -87,6 +86,6 @@ abstract class AbstractSnampComponentParamValueOperation extends OpenMBean.OpenO
 
             }
         });
-        return ArrayUtils.toArray(result, String.class);
+        return result.stream().toArray(String[]::new);
     }
 }

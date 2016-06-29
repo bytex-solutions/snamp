@@ -114,8 +114,7 @@ public class NotificationListenerList extends ThreadSafeObject implements Notifi
     @Override
     public final void handleNotification(final Notification notification, final Object handback) {
         try(final LockScope ignored = beginRead()){
-            for(final NotificationListenerHolder holder: listeners)
-                handleNotification(holder, intercept(notification), handback);
+            listeners.forEach(holder -> handleNotification(holder, intercept(notification), handback));
         }
     }
 

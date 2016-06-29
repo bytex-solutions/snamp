@@ -29,8 +29,7 @@ public final class AttributeMetricsWriter implements AttributeMetrics {
      */
     public void updateReads(){
         totalReads.incrementAndGet();
-        for(final LongAccumulator accumulator: statForReads.values())
-            accumulator.update(1L);
+        statForReads.values().forEach(accumulator -> accumulator.update(1L));
     }
 
     /**
@@ -38,8 +37,7 @@ public final class AttributeMetricsWriter implements AttributeMetrics {
      */
     public void updateWrites(){
         totalWrites.incrementAndGet();
-        for(final LongAccumulator accumulator: statForWrites.values())
-            accumulator.update(1L);
+        statForWrites.values().stream().forEach(accumulator -> accumulator.update(1L));
     }
 
     /**

@@ -796,8 +796,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                                         final Map<String, String> connectionOptions,
                                         final Class<? extends FeatureConfiguration>... entityTypes) {
             final DiscoveryResultBuilder result = new DiscoveryResultBuilder();
-            for(final Class<? extends FeatureConfiguration> type: entityTypes)
-                result.importFeatures(this, connectionString, connectionOptions, type);
+            Arrays.stream(entityTypes).forEach(type -> result.importFeatures(this, connectionString, connectionOptions, type));
             return result.get();
         }
     }

@@ -6,6 +6,7 @@ package com.bytex.snamp.core;
  * @since 1.0
  * @version 1.2
  */
+@FunctionalInterface
 public interface LongCounter {
     /**
      * Generates a new cluster-wide unique identifier.

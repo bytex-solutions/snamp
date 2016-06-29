@@ -8,6 +8,7 @@ import org.osgi.framework.*;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 import static com.bytex.snamp.internal.Utils.isInstanceOf;
@@ -764,8 +765,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
     }
 
     private static void unregister(final BundleContext context, final Collection<RequiredService<?>> dependencies){
-        for(final RequiredService<?> dependency: dependencies)
-            dependency.unbind(context);
+        dependencies.forEach(dependency -> dependency.unbind(context));
     }
 
     private void deactivateInternal(final BundleContext context, final ActivationPropertyReader activationProperties) throws Exception {
@@ -911,11 +911,9 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
 
             @Override
             public Enumeration<Object> elements() {
-                final String[] properties = reference.getPropertyKeys();
-                final List<Object> values = new ArrayList<>(properties.length);
-                for(final String p: properties)
-                    values.add(reference.getProperty(p));
-                return Collections.enumeration(values);
+                return Collections.enumeration(Arrays.stream(reference.getPropertyKeys())
+                        .map(reference::getProperty)
+                        .collect(Collectors.toList()));
             }
 
             public Object get(final String key){

@@ -141,9 +141,9 @@ public final class StandaloneMdaThriftConnectorTest extends AbstractMdaConnector
     public void longArrayAttributeTest() throws IOException, TException {
         final Client client = createClient();
         final Long[] expectedValue = {3L, 90L, 50L, 7L};
-        final Long[] result = ArrayUtils.toArray(client.set_longArray(ImmutableList.copyOf(expectedValue)), Long.class);
+        final Long[] result = client.set_longArray(ImmutableList.copyOf(expectedValue)).stream().toArray(Long[]::new);
         assertArrayEquals(ArrayUtils.emptyArray(Long[].class), result);
-        assertArrayEquals(expectedValue, ArrayUtils.toArray(client.get_longArray(), Long.class));
+        assertArrayEquals(expectedValue, client.get_longArray().stream().toArray(Long[]::new));
     }
 
     @Test

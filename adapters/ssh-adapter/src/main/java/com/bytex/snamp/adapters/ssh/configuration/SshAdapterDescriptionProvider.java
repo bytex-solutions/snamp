@@ -1,6 +1,5 @@
 package com.bytex.snamp.adapters.ssh.configuration;
 
-import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.adapters.ResourceAdapterDescriptionProvider;
 import com.bytex.snamp.adapters.SelectableAdapterParameterDescriptor;
 import com.bytex.snamp.concurrent.LazyContainers;
@@ -58,7 +57,7 @@ public final class SshAdapterDescriptionProvider extends ConfigurationEntityDesc
                     result.addAll(nics.nextElement().getInterfaceAddresses().stream()
                             .map(iface -> iface.getAddress().getHostAddress())
                             .collect(Collectors.toCollection(LinkedList::new)));
-                return ArrayUtils.toArray(result, String.class);
+                return result.stream().toArray(String[]::new);
             }
         }
 

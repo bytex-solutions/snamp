@@ -1,8 +1,7 @@
 package com.bytex.snamp.security.auth.login.json.spi;
 
-import com.google.gson.*;
-import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.security.auth.login.json.JsonConfiguration;
+import com.google.gson.*;
 
 import javax.security.auth.login.AppConfigurationEntry;
 import java.lang.reflect.Type;
@@ -19,8 +18,8 @@ final class JsonConfigurationSerializerDeserializer implements JsonSerializer<Js
     @Override
     public JsonObject serialize(final JsonConfiguration src, final Type typeOfSrc, final JsonSerializationContext context) {
         final JsonObject result = new JsonObject();
-        for(final String realmName: src.keySet())
-            result.add(realmName, context.serialize(ArrayUtils.toArray(src.get(realmName), AppConfigurationEntry.class),
+        for (final String realmName : src.keySet())
+            result.add(realmName, context.serialize(src.get(realmName).stream().toArray(AppConfigurationEntry[]::new),
                     AppConfigurationEntry[].class));
         return result;
     }

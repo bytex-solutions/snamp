@@ -187,8 +187,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     protected final void fire(final NotificationCollector sender){
         //collect notifications
         try(final LockScope ignored = beginRead()){
-            for(final NotificationHolder<M> holder: notifications.values())
-                sender.process(holder.getMetadata());
+            notifications.values().stream().forEach(holder -> sender.process(holder.getMetadata()));
         }
         //send notifications
         fireListeners(sender);

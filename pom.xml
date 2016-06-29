@@ -83,7 +83,7 @@
     <thrift.version>0.9.3</thrift.version>
     <guava.version>19.0</guava.version>
     <aries.proxy.api.version>1.0.1</aries.proxy.api.version>
-    <activemq.version>5.12.1</activemq.version>
+    <activemq.version>5.13.3</activemq.version>
     <snamp.adapters.syslog.version>1.2.0</snamp.adapters.syslog.version>
     <snamp.framework.version>1.2.0</snamp.framework.version>
     <snamp.connectors.mda.version>1.2.0</snamp.connectors.mda.version>
@@ -305,28 +305,6 @@
           <source>${maven.compiler.source}</source>
           <target>${maven.compiler.target}</target>
         </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>flatten-maven-plugin</artifactId>
-        <version>1.0.0</version>
-        <executions>
-          <execution>
-            <id>flatten</id>
-            <phase>process-resources</phase>
-            <goals>
-              <goal>flatten</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>flatten.clean</id>
-            <phase>clean</phase>
-            <goals>
-              <goal>clean</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration />
       </plugin>
     </plugins>
   </build>

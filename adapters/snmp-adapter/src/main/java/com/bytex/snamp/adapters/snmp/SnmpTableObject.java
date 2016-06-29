@@ -243,7 +243,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
         //add RowStatus column
         if(useRowStatus)
             columns.add(new MORowStatusColumn(columnID, typeMapper));
-        return ArrayUtils.toArray(columns, MONamedColumn.class);
+        return columns.stream().toArray(MONamedColumn[]::new);
     }
 
     private static MONamedColumn[] createColumns(final CompositeType type,
@@ -254,7 +254,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
         final List<MONamedColumn> columns = Lists.newArrayListWithCapacity(type.keySet().size());
         for(final String itemName: type.keySet())
             columns.add(new MONamedColumn(columnID++, type, itemName, typeMapper, access));
-        return ArrayUtils.toArray(columns, MONamedColumn.class);
+        return columns.stream().toArray(MONamedColumn[]::new);
     }
 
     private static MONamedColumn[] createColumns(final TabularType type,
@@ -271,7 +271,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
         //add RowStatus column
         if(useRowStatus)
             columns.add(new MORowStatusColumn(columnID, typeMapper));
-        return ArrayUtils.toArray(columns, MONamedColumn.class);
+        return columns.stream().toArray(MONamedColumn[]::new);
     }
 
     private static MONamedColumn[] createColumns(final OpenType<?> type,
@@ -373,7 +373,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
                     cells.add(columnIndex, cell);
                 }
             }
-            table.addRow(table.createRow(makeRowID(rowIndex.getAndIncrement()), ArrayUtils.toArray(cells, Variable.class)));
+            table.addRow(table.createRow(makeRowID(rowIndex.getAndIncrement()), cells.stream().toArray(Variable[]::new)));
         });
     }
 
@@ -386,7 +386,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
             final Variable cell = columnDef.createCellValue(data.get(columnDef.name), conversionOptions);
             cells.add(columnIndex, cell);
         }
-        table.addRow(table.createRow(makeRowID(0), ArrayUtils.toArray(cells, Variable.class)));
+        table.addRow(table.createRow(makeRowID(0), cells.stream().toArray(Variable[]::new)));
     }
 
     private static void fill(final Object array,
@@ -401,7 +401,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
             //handle row status column
             if(needRowStatus)
                 cells.add(1, TableRowStatus.ACTIVE.toManagedScalarValue());
-            table.addRow(table.createRow(makeRowID(i), ArrayUtils.toArray(cells, Variable.class)));
+            table.addRow(table.createRow(makeRowID(i), cells.stream().toArray(Variable[]::new)));
         }
     }
 

@@ -80,7 +80,7 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
                     @Override
                     public String call() throws IOException, InterruptedException{
                         for(final ServiceReference<ManagedResourceConnector> ref: connectors.values())
-                            if(Objects.equals(getConnectorType(ref), JmxConnector.getType()))
+                            if(Objects.equals(ManagedResourceConnector.getResourceConnectorType(ref.getBundle()), JmxConnector.getType()))
                                 try{
                                     final ManagedResourceConnector connector = context.getService(ref);
                                     connector.queryObject(JmxConnectionManager.class).simulateConnectionAbort();

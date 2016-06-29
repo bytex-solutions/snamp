@@ -4,8 +4,10 @@ import com.bytex.snamp.ResourceReader;
 import com.google.common.collect.ImmutableSet;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfiguration;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents resource-based configuration entity descriptor.
@@ -102,12 +104,9 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
 
     private Collection<String> getRelatedParameters(final String parameterName, final String relationPostfix){
         final String params = getString(parameterName + relationPostfix, null, "");
-        if(params == null || params.isEmpty()) return Collections.emptyList();
-        final String[] values =  params.split(",");
-        final Collection<String> result = new ArrayList<>(values.length);
-        for(final String p: values)
-            result.add(p.trim());
-        return result;
+        if(isNullOrEmpty(params)) return Collections.emptyList();
+        final String[] values = params.split(",");
+        return Arrays.stream(values).map(String::trim).collect(Collectors.toList());
     }
 
     /**

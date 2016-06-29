@@ -14,8 +14,11 @@ import javax.management.MBeanOperationInfo;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.OpenMBeanOperationInfo;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.OperationConfiguration;
 import static com.bytex.snamp.connectors.operations.OperationSupport.*;
@@ -80,10 +83,8 @@ public class OperationDescriptor extends ImmutableDescriptor implements Configur
     @Override
     public final OperationDescriptor setFields(final Map<String, ?> values){
         if(values == null || values.isEmpty()) return this;
-        final String[] fields = getFieldNames();
-        final Map<String, Object> newFields = Maps.newHashMapWithExpectedSize(fields.length + values.size());
-        for(final String name: fields)
-            newFields.put(name, getFieldValue(name));
+        final Map<String, Object> newFields = Arrays.stream(getFieldNames())
+                .collect(Collectors.toMap(Function.identity(), this::getFieldValue));
         newFields.putAll(values);
         return new OperationDescriptor(newFields);
     }

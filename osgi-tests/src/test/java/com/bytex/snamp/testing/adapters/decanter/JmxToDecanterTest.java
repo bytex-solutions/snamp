@@ -54,7 +54,7 @@ public class JmxToDecanterTest extends AbstractJmxConnectorTest<TestOpenMBean> i
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
     @Test

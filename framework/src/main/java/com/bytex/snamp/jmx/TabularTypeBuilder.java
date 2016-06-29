@@ -1,7 +1,6 @@
 package com.bytex.snamp.jmx;
 
 import com.bytex.snamp.AbstractAggregator;
-import com.bytex.snamp.ArrayUtils;
 
 import javax.management.openmbean.*;
 import java.util.*;
@@ -163,7 +162,7 @@ public final class TabularTypeBuilder extends AbstractAggregator implements Open
         return new TabularType(typeName,
                 typeDescription,
                 buildRowType(),
-                ArrayUtils.toArray(indexes, String.class));
+                indexes.stream().toArray(String[]::new));
     }
 
     /**

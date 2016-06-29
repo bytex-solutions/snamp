@@ -5,6 +5,7 @@ import com.bytex.snamp.Consumer;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.adapters.ResourceAdapterClient;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
+import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.core.AbstractFrameworkService;
 import com.bytex.snamp.core.SupportService;
@@ -380,7 +381,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
      */
     public static boolean isSnampComponent(final Bundle bnd){
         if(ResourceAdapterActivator.isResourceAdapterBundle(bnd) ||
-                ManagedResourceActivator.isResourceConnectorBundle(bnd)) return false;
+                ManagedResourceConnector.isResourceConnectorBundle(bnd)) return false;
         final String importPackages = bnd.getHeaders().get(Constants.IMPORT_PACKAGE);
         if(importPackages == null) return false;
         final String snampPackageNameRoot = Aggregator.class.getPackage().getName();
@@ -395,11 +396,10 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
     @Override
     public final Collection<? extends SnampComponentDescriptor> getInstalledComponents() {
         final BundleContext context = getBundleContextOfObject(this);
-        final Collection<InternalSnampComponentDescriptor> result = new LinkedList<>();
-        for(final Bundle bnd: context.getBundles())
-            if(isSnampComponent(bnd))
-                result.add(new InternalSnampComponentDescriptor(bnd.getBundleId()));
-        return result;
+        return Arrays.stream(context.getBundles())
+                .filter(AbstractSnampManager::isSnampComponent)
+                .map(bnd -> new InternalSnampComponentDescriptor(bnd.getBundleId()))
+                .collect(Collectors.toCollection(LinkedList::new));
     }
 
     public final ResourceConnectorDescriptor getResourceConnector(final String connectorName) {

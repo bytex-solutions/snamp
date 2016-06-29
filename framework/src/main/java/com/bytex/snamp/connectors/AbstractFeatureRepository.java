@@ -1,5 +1,6 @@
 package com.bytex.snamp.connectors;
 
+import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.WeakEventListenerList;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
@@ -7,7 +8,6 @@ import com.bytex.snamp.connectors.metrics.Metrics;
 import com.bytex.snamp.io.IOUtils;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
-import com.google.common.collect.ObjectArrays;
 import com.google.common.collect.Sets;
 
 import javax.management.MBeanFeatureInfo;
@@ -149,11 +149,7 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
     }
 
     protected final F[] toArray(final Collection<? extends FeatureHolder<F>> features) {
-        final F[] result = ObjectArrays.newArray(metadataType, features.size());
-        int index = 0;
-        for(final FeatureHolder<F> holder: features)
-            result[index++] = holder.getMetadata();
-        return result;
+        return features.stream().toArray(ArrayUtils.arrayConstructor(metadataType));
     }
 
     protected final void removeAllResourceEventListeners() {

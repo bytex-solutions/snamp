@@ -1,6 +1,5 @@
 package com.bytex.snamp.core;
 
-import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.ThreadSafe;
@@ -134,6 +133,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
 
         private ServiceRegistrationHolder<S, T> registration;
         private ActivationPropertyReader properties;
+        private BundleContext bundleContext;
 
         /**
          * Initializes a new holder for the provided service.
@@ -193,6 +193,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                             logger.log(Level.SEVERE, String.format("Unable to cleanup service %s", serviceContract), e);
                         } finally {
                             registration = null;
+                            bundleContext = null;
                             logger.close();
                         }
                     }
@@ -205,12 +206,26 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                         } catch (final Exception e) {
                             logger.log(Level.SEVERE, String.format("Unable to activate %s service", serviceContract), e);
                             if (registration != null) registration.unregister();
-                            this.registration = null;
+                            registration = null;
+                            bundleContext = null;
                         } finally {
                             logger.close();
                         }
                     }
             }
+        }
+
+        /**
+         * Gets bundle context used in {@link #serviceChanged(ServiceEvent)}.
+         * @return Bundle context used in {@link #serviceChanged(ServiceEvent)}.
+         */
+        final synchronized BundleContext getBundleContext(){
+            if(registration != null)
+                return registration.getBundleContext();
+            else if(bundleContext != null)
+                return bundleContext;
+            else
+                return getBundleContextOfObject(this);
         }
 
         /**
@@ -220,7 +235,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          */
         @Override
         public final void serviceChanged(final ServiceEvent event) {
-            serviceChanged(getBundleContextOfObject(this), event);
+            serviceChanged(getBundleContext(), event);
         }
 
         /**
@@ -234,12 +249,13 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                     ProvidedServiceState.PUBLISHED;
         }
 
-        private void activateAndRegisterService(final BundleContext context) throws Exception{
+        private synchronized void activateAndRegisterService(final BundleContext context) throws Exception{
             final Hashtable<String, Object> identity = new Hashtable<>(3);
             this.registration = new ServiceRegistrationHolder<>(serviceContract,
                     activateService(identity, ownDependencies.toArray(new RequiredService<?>[ownDependencies.size()])),
                     identity,
                     context);
+            this.bundleContext = context;
         }
 
         /**
@@ -355,7 +371,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         }
 
         private String getFactoryPIDImpl(){
-            return getFactoryPID(ArrayUtils.toArray(super.ownDependencies, RequiredService.class));
+            return getFactoryPID(super.ownDependencies.stream().toArray(RequiredService<?>[]::new));
         }
 
         /**
@@ -363,7 +379,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * @param dependencies A set of dependencies required by this service manager.
          * @return The base persistent identifier. Cannot be {@literal null} or empty string.
          */
-        protected abstract String getFactoryPID(final RequiredService<?>... dependencies);
+        protected abstract String getFactoryPID(final RequiredService<?>[] dependencies);
 
         /**
          * Automatically invokes by SNAMP when the dynamic service should be updated with
@@ -541,6 +557,10 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             registration = context.registerService(serviceContract, service, identity);
         }
 
+        private BundleContext getBundleContext(){
+            return getReference().getBundle().getBundleContext();
+        }
+
         @Override
         public void setProperties(final Dictionary<String, ?> properties) {
             registration.setProperties(properties);
@@ -659,7 +679,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             else if (oldService != newService) {
                 //save the identity of the service and removes registration of the previous version of service
                 final Dictionary<String, ?> identity = dispose(registration);
-                registration = new ServiceRegistrationHolder<>(serviceContract, newService, identity, getBundleContextOfObject(this));
+                registration = new ServiceRegistrationHolder<>(serviceContract, newService, identity, super.getBundleContext());
             }
             return registration;
         }
@@ -696,7 +716,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             final Hashtable<String, Object> identity = new Hashtable<>(4);
             identity.put(Constants.SERVICE_PID, servicePID);
             final T service = createService(identity, configuration, dependencies);
-            return service != null ? new ServiceRegistrationHolder<>(serviceContract, service, identity, getBundleContextOfObject(this)) : null;
+            return service != null ? new ServiceRegistrationHolder<>(serviceContract, service, identity, super.getBundleContext()) : null;
         }
 
         /**

@@ -2,11 +2,18 @@ package com.bytex.snamp.connectors;
 
 import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.core.FrameworkService;
+import com.bytex.snamp.internal.Utils;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.wiring.BundleRevision;
 
 import javax.management.DynamicMBean;
 import javax.management.MBeanFeatureInfo;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents management connector that provides unified access to the management information.
@@ -26,15 +33,18 @@ import java.util.Map;
  */
 public interface ManagedResourceConnector extends AutoCloseable, FrameworkService, DynamicMBean {
     /**
-     * Represents name of the manifest header which contains the name of the management connector.
+     * This namespace must be defined in Provide-Capability manifest header inside of the bundle containing implementation
+     * of Managed Resource Connector.
      * <p>
-     *     The following example demonstrates how to set the name of the management connector
-     *     in the connector's bundle manifest:
-     *     <pre><tt>
-     *          SNAMP-Resource-Connector: impl
-     *     </tt></pre>
+     *     Example: Provide-Capability: com.bytex.snamp.connectors; type=jmx
      */
-    String CONNECTOR_NAME_MANIFEST_HEADER = "SNAMP-Resource-Connector";
+    String CAPABILITY_NAMESPACE = "com.bytex.snamp.connectors";
+
+    /**
+     * This property must be defined in Provide-Capability manifest header and specify type of Managed Resource Connector.
+     * @see #CAPABILITY_NAMESPACE
+     */
+    String TYPE_CAPABILITY_ATTRIBUTE = "type";
 
     /**
      * Represents an exception indicating that the resource connector cannot be updated
@@ -97,4 +107,23 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
      * @return A collection of registered features; or empty collection if the specified feature type is not supported.
      */
     <F extends MBeanFeatureInfo> Collection<? extends F> expand(final Class<F> featureType);
+
+    static String getResourceConnectorType(final Bundle bnd){
+        final BundleRevision revision = bnd.adapt(BundleRevision.class);
+        assert revision != null;
+        return revision.getCapabilities(CAPABILITY_NAMESPACE)
+                .stream()
+                .map(capability -> capability.getAttributes().get(TYPE_CAPABILITY_ATTRIBUTE))
+                .map(name -> Objects.toString(name, ""))
+                .findFirst()
+                .orElseGet(() -> "");
+    }
+
+    static boolean isResourceConnectorBundle(final Bundle bnd) {
+        return bnd != null && !isNullOrEmpty(getResourceConnectorType(bnd));
+    }
+
+    static boolean isResourceConnector(final ServiceReference<?> ref){
+        return Utils.isInstanceOf(ref, ManagedResourceConnector.class) && isResourceConnectorBundle(ref.getBundle());
+    }
 }
