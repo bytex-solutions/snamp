@@ -1,7 +1,6 @@
 package com.bytex.snamp.adapters;
 
 import com.bytex.snamp.AbstractAggregator;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.modeling.*;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
@@ -27,6 +26,7 @@ import javax.management.MBeanNotificationInfo;
 import javax.management.MBeanOperationInfo;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.Map;
@@ -685,7 +685,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * @return {@literal true}, if Bus is switched to synchronous mode; otherwise, {@literal false}.
      * @throws InterruptedException Switching is terminated.
      */
-    public static boolean disableEventAsyncMode(final TimeSpan terminationTimeout) throws InterruptedException {
+    public static boolean disableEventAsyncMode(final Duration terminationTimeout) throws InterruptedException {
         return ResourceAdapterEventBus.disableAsyncMode(terminationTimeout);
     }
 }

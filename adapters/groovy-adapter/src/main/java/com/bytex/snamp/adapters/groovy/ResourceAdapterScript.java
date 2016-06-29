@@ -1,7 +1,6 @@
 package com.bytex.snamp.adapters.groovy;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.adapters.groovy.dsl.GroovyManagementModel;
@@ -12,6 +11,7 @@ import groovy.lang.Closure;
 import groovy.lang.Script;
 
 import javax.management.JMException;
+import java.time.Duration;
 import java.util.EventListener;
 import java.util.concurrent.ExecutionException;
 
@@ -172,14 +172,14 @@ public abstract class ResourceAdapterScript extends Script implements AutoClosea
     }
 
     @SpecialUse
-    protected final ResourceAttributesAnalyzer<?> attributesAnalyzer(final TimeSpan checkPeriod) {
+    protected final ResourceAttributesAnalyzer<?> attributesAnalyzer(final Duration checkPeriod) {
         final AttributesRootAPI model = queryModelObject(AttributesRootAPI.class);
         return model != null ? model.attributesAnalyzer(checkPeriod) : null;
     }
 
     @SpecialUse
     protected final ResourceAttributesAnalyzer<?> attributesAnalyzer(final long checkPeriod){
-        return attributesAnalyzer(TimeSpan.ofMillis(checkPeriod));
+        return attributesAnalyzer(Duration.ofMillis(checkPeriod));
     }
 
     @SpecialUse

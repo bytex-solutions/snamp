@@ -1,6 +1,5 @@
 package com.bytex.snamp.connectors.modbus;
 
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
@@ -16,6 +15,7 @@ import javax.management.openmbean.OpenDataException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.time.Duration;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
@@ -111,7 +111,7 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
         return assembleMetricsReader(attributes);
     }
 
-    boolean addAttribute(final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options){
+    boolean addAttribute(final String attributeName, final Duration readWriteTimeout, final CompositeData options){
         return attributes.addAttribute(attributeName, readWriteTimeout, options) != null;
     }
 

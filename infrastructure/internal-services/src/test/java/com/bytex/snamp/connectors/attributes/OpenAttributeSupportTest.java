@@ -1,13 +1,9 @@
-package com.bytex.snamp.com.bytex.snamp.connectors.attributes;
+package com.bytex.snamp.connectors.attributes;
 
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.configuration.ConfigParameters;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.impl.SerializableAgentConfiguration.newEntityConfiguration;
-import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
-import com.bytex.snamp.connectors.attributes.AttributeSpecifier;
-import com.bytex.snamp.connectors.attributes.OpenAttributeRepository;
-import com.bytex.snamp.connectors.attributes.OpenMBeanAttributeAccessor;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -79,9 +75,10 @@ public final class OpenAttributeSupportTest extends Assert {
     public void stringAttributeTest() throws Exception {
         final Attributes support = new Attributes();
         final AttributeConfiguration attributeConfig = newEntityConfiguration(AttributeConfiguration.class);
+        assertNotNull(attributeConfig);
         attributeConfig.setAlternativeName("str");
-        support.addAttribute("a", TimeSpan.INFINITE, new ConfigParameters(attributeConfig));
-        support.addAttribute("b", TimeSpan.INFINITE, new ConfigParameters(attributeConfig));
+        support.addAttribute("a", null, new ConfigParameters(attributeConfig));
+        support.addAttribute("b", null, new ConfigParameters(attributeConfig));
         support.setAttribute(new Attribute("a", "1"));
         support.setAttribute(new Attribute("b", "2"));
         assertEquals("1", support.getAttribute("a"));

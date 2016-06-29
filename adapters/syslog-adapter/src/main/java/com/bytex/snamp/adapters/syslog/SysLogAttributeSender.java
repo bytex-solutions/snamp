@@ -1,11 +1,11 @@
 package com.bytex.snamp.adapters.syslog;
 
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.modeling.ModelOfAttributes;
 import com.bytex.snamp.adapters.modeling.PeriodicPassiveChecker;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
 
+import java.time.Duration;
 import java.util.Objects;
 
 /**
@@ -16,7 +16,7 @@ import java.util.Objects;
 final class SysLogAttributeSender extends PeriodicPassiveChecker<SysLogAttributeAccessor> {
     private final ConcurrentSyslogMessageSender messageSender;
 
-    SysLogAttributeSender(final TimeSpan period,
+    SysLogAttributeSender(final Duration period,
                           final ConcurrentSyslogMessageSender sender,
                           final ModelOfAttributes<SysLogAttributeAccessor> attributes){
         super(period, attributes);

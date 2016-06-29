@@ -4,7 +4,6 @@ import ch.shamu.jsendnrdp.NRDPServerConnectionSettings;
 import ch.shamu.jsendnrdp.domain.NagiosCheckResult;
 import ch.shamu.jsendnrdp.domain.State;
 import com.bytex.snamp.EntryReader;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.AbstractResourceAdapter;
 import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationListener;
@@ -20,6 +19,7 @@ import com.google.common.collect.Multimap;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanNotificationInfo;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -120,7 +120,7 @@ final class NRDPAdapter extends AbstractResourceAdapter {
     private static final class NSCAPeriodPassiveCheckSender extends PeriodicPassiveChecker<NRDPAttributeAccessor> {
         private final ConcurrentPassiveCheckSender checkSender;
 
-        NSCAPeriodPassiveCheckSender(final TimeSpan period,
+        NSCAPeriodPassiveCheckSender(final Duration period,
                                      final ConcurrentPassiveCheckSender sender,
                                      final NRDPAttributeModelOfAttributes attributes) {
             super(period, attributes);
@@ -172,7 +172,7 @@ final class NRDPAdapter extends AbstractResourceAdapter {
         else return null;
     }
 
-    private synchronized void start(final TimeSpan checkPeriod,
+    private synchronized void start(final Duration checkPeriod,
                        final NRDPServerConnectionSettings settings,
                        final ExecutorService threadPool) {
         final ConcurrentPassiveCheckSender checkSender = new ConcurrentPassiveCheckSender(settings, threadPool);

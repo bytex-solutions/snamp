@@ -7,7 +7,6 @@ import com.cloudbees.syslog.sender.SyslogMessageSender;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.*;
 import com.bytex.snamp.adapters.modeling.*;
 import com.bytex.snamp.EntryReader;
@@ -16,6 +15,7 @@ import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanNotificationInfo;
 import java.io.CharArrayWriter;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -160,7 +160,7 @@ final class SysLogAdapter extends AbstractResourceAdapter {
     }
 
     private void start(final SyslogMessageSender sender,
-                       final TimeSpan passiveCheckSendPeriod){
+                       final Duration passiveCheckSendPeriod){
         final ConcurrentSyslogMessageSender parallelSender =
                 new ConcurrentSyslogMessageSender(sender);
         attributeSender = new SysLogAttributeSender(passiveCheckSendPeriod,

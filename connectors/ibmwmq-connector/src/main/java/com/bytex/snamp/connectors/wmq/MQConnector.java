@@ -8,7 +8,6 @@ import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.pcf.PCFMessage;
 import com.ibm.mq.pcf.PCFMessageAgent;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.ManagedResourceConnectorBean;
 
 import java.beans.IntrospectionException;
@@ -17,6 +16,7 @@ import java.net.URI;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
@@ -63,12 +63,12 @@ final class MQConnector extends ManagedResourceConnectorBean implements CMQC, CM
         queueName = properties.getQueueName();
         channelName = properties.getChannelName();
         mqmonitor = properties.createMessageAgent();
-        bytesSentLast24Hours = new DiffLongAccumulator(TimeSpan.ofDays(1));
-        bytesSentLastHour = new DiffLongAccumulator(TimeSpan.ofHours(1));
-        bytesReceivedLast24Hours = new DiffLongAccumulator(TimeSpan.ofHours(24));
-        bytesReceivedLastHour = new DiffLongAccumulator(TimeSpan.ofHours(1));
-        messagesProcessedLast24Hours = new DiffIntAccumulator(TimeSpan.ofHours(24));
-        messagesProcessedLastHour = new DiffIntAccumulator(TimeSpan.ofHours(1));
+        bytesSentLast24Hours = new DiffLongAccumulator(Duration.ofDays(1));
+        bytesSentLastHour = new DiffLongAccumulator(Duration.ofHours(1));
+        bytesReceivedLast24Hours = new DiffLongAccumulator(Duration.ofDays(1));
+        bytesReceivedLastHour = new DiffLongAccumulator(Duration.ofHours(1));
+        messagesProcessedLast24Hours = new DiffIntAccumulator(Duration.ofDays(1));
+        messagesProcessedLastHour = new DiffIntAccumulator(Duration.ofHours(1));
     }
 
     MQConnector(final String resourceName,

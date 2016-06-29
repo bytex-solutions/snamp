@@ -2,7 +2,6 @@ package com.bytex.snamp.connectors.operations;
 
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.AbstractFeatureRepository;
 import com.bytex.snamp.connectors.metrics.OperationMetrics;
 import com.bytex.snamp.connectors.metrics.OperationMetricsWriter;
@@ -17,6 +16,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Supplier;
@@ -298,7 +298,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      * @return The metadata of enabled operation; or {@literal null}, if operation is not available.
      */
     public final M enableOperation(final String operationName,
-                                   final TimeSpan invocationTimeout,
+                                   final Duration invocationTimeout,
                                    final CompositeData options){
         OperationHolder<M> holder;
         try(final LockScope ignored = beginWrite()){

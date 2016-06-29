@@ -1,7 +1,6 @@
 package com.bytex.snamp.testing.adapters.xmpp;
 
 import com.bytex.snamp.ExceptionalCallable;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.adapters.ResourceAdapterClient;
 import com.bytex.snamp.adapters.xmpp.client.XMPPClient;
@@ -30,6 +29,7 @@ import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -99,7 +99,7 @@ public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean>
             client.beginChat("agent");
             client.peekMessage(SET);
             Thread.sleep(100);
-            final String response = client.sendMessage(GET, "Hi.*", TimeSpan.ofSeconds(10));
+            final String response = client.sendMessage(GET, "Hi.*", Duration.ofSeconds(10));
             assertTrue(String.format("Expected %s. Actual %s", value, response),
                     equator.equate(response, value));
         }
@@ -166,7 +166,7 @@ public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean>
 
     @Test
     public void attributesBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
-        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
+        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, Duration.ofSeconds(2));
         try {
             assertTrue(client.forEachFeature(MBeanAttributeInfo.class, (resourceName, bindingInfo) -> bindingInfo.getProperty("read-command") instanceof String));
         } finally {
@@ -203,7 +203,7 @@ public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean>
                 ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
                 return null;
             }
-        }, TimeSpan.ofMinutes(4));
+        }, Duration.ofMinutes(4));
     }
 
     @Override

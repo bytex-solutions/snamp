@@ -3,7 +3,6 @@ package com.bytex.snamp.testing.management;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.SafeConsumer;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.configuration.AgentConfiguration;
@@ -33,6 +32,7 @@ import javax.management.remote.JMXServiceURL;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
@@ -110,16 +110,13 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             final TabularData attrs =
                     (TabularData)connection.invoke(commonsObj, "getAvailableAttributes", new Object[]{TEST_RESOURCE_NAME}, new String[]{String.class.getName()});
             assertFalse(attrs.isEmpty());
-            TabularDataUtils.forEachRow(attrs, new SafeConsumer<CompositeData>() {
-                @Override
-                public void accept(final CompositeData row) {
-                    assertTrue(row.get("description") instanceof String);
-                    assertTrue(row.get("parameters") instanceof TabularData);
-                    assertTrue(row.get("type") instanceof String);
-                    assertTrue(row.get("readable") instanceof Boolean);
-                    assertTrue(row.get("writable") instanceof Boolean);
-                    assertTrue(row.get("name") instanceof String);
-                }
+            TabularDataUtils.forEachRow(attrs, (SafeConsumer<CompositeData>) row -> {
+                assertTrue(row.get("description") instanceof String);
+                assertTrue(row.get("parameters") instanceof TabularData);
+                assertTrue(row.get("type") instanceof String);
+                assertTrue(row.get("readable") instanceof Boolean);
+                assertTrue(row.get("writable") instanceof Boolean);
+                assertTrue(row.get("name") instanceof String);
             });
         }
     }
@@ -132,14 +129,11 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             final TabularData attrs =
                     (TabularData)connection.invoke(commonsObj, "getBindingOfAttributes", new Object[]{ADAPTER_INSTANCE_NAME}, new String[]{String.class.getName()});
             assertFalse(attrs.isEmpty());
-            TabularDataUtils.forEachRow(attrs, new SafeConsumer<CompositeData>() {
-                @Override
-                public void accept(final CompositeData row) {
-                    assertTrue(row.get("resourceName") instanceof String);
-                    assertTrue(row.get("name") instanceof String);
-                    assertTrue(row.get("mappedType") instanceof String);
-                    assertTrue(row.get("details") instanceof TabularData);
-                }
+            TabularDataUtils.forEachRow(attrs, (SafeConsumer<CompositeData>) row -> {
+                assertTrue(row.get("resourceName") instanceof String);
+                assertTrue(row.get("name") instanceof String);
+                assertTrue(row.get("mappedType") instanceof String);
+                assertTrue(row.get("details") instanceof TabularData);
             });
         }
     }
@@ -181,11 +175,8 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             //test notifications
             assertTrue(connection.getMBeanInfo(commonsObj).getNotifications().length > 0);
             final SynchronizationEvent<Notification> syncEvent = new SynchronizationEvent<>(true);
-            connection.addNotificationListener(commonsObj, new NotificationListener() {
-                @Override
-                public void handleNotification(final Notification notification, final Object handback) {
-                    syncEvent.fire(notification);
-                }
+            connection.addNotificationListener(commonsObj, (notification, handback) -> {
+                syncEvent.fire(notification);
             }, null, null);
             final String eventPayload = "Hello, world!";
             logger.log(LogService.LOG_ERROR, eventPayload);
@@ -704,7 +695,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
                 ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
                 return null;
             }
-        }, TimeSpan.ofSeconds(4));
+        }, Duration.ofSeconds(4));
     }
 
     @Override

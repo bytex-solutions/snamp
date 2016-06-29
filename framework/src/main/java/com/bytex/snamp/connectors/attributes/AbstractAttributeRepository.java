@@ -2,7 +2,6 @@ package com.bytex.snamp.connectors.attributes;
 
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.ThreadSafe;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.AbstractFeatureRepository;
 import com.bytex.snamp.connectors.metrics.AttributeMetrics;
 import com.bytex.snamp.connectors.metrics.AttributeMetricsWriter;
@@ -19,11 +18,13 @@ import javax.management.openmbean.CompositeType;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
 import java.math.BigInteger;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -40,19 +41,19 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     private static final class AttributeHolder<M extends MBeanAttributeInfo> extends FeatureHolder<M> {
         private AttributeHolder(final M metadata,
                                 final String attributeName,
-                                final TimeSpan readWriteTimeout,
+                                final Duration readWriteTimeout,
                                 final CompositeData options) {
             super(metadata, computeIdentity(attributeName, readWriteTimeout, options));
         }
 
         private boolean equals(final String attributeName,
-                               final TimeSpan readWriteTimeout,
+                               final Duration readWriteTimeout,
                                final CompositeData options) {
             return identity.equals(computeIdentity(attributeName, readWriteTimeout, options));
         }
 
         private static BigInteger computeIdentity(final String attributeName,
-                                                  final TimeSpan readWriteTimeout,
+                                                  final Duration readWriteTimeout,
                                                   final CompositeData options) {
             BigInteger result = toBigInteger(attributeName);
             if (readWriteTimeout != null)
@@ -163,14 +164,14 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      *
      * @param executor   The executor used to schedule attribute reader. Cannot be {@literal null}.
      * @param attributes A set of attributes to read. Cannot be {@literal null}.
-     * @param timeout    Synchronization timeout. May be {@link TimeSpan#INFINITE}.
+     * @param timeout    Synchronization timeout. May be {@literal null}.
      * @return A list of obtained attributes.
      * @throws InterruptedException Operation is interrupted.
      * @throws TimeoutException     Unable to read attributes in the specified time duration.
      */
     protected final AttributeList getAttributesParallel(final ExecutorService executor,
                                                         final String[] attributes,
-                                                        final TimeSpan timeout) throws InterruptedException, TimeoutException {
+                                                        final Duration timeout) throws InterruptedException, TimeoutException {
         final List<Attribute> result = Collections.
                 synchronizedList(Lists.<Attribute>newArrayListWithExpectedSize(attributes.length));
         final CountDownLatch synchronizer = new CountDownLatch(attributes.length);
@@ -187,7 +188,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
             });
         if (timeout == null)
             synchronizer.await();
-        else if (!synchronizer.await(timeout.duration, timeout.unit))
+        else if (!synchronizer.await(timeout.toNanos(), TimeUnit.NANOSECONDS))
             throw new TimeoutException();
         return new AttributeList(result);
     }
@@ -198,7 +199,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      * @param attributes A list of the attributes to be retrieved.
      * @return The list of attributes retrieved.
      * @see #getAttributesSequential(String[])
-     * @see #getAttributesParallel(ExecutorService, String[], TimeSpan)
+     * @see #getAttributesParallel(ExecutorService, String[], Duration)
      */
     @Override
     public AttributeList getAttributes(final String[] attributes) {
@@ -231,14 +232,14 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      * @param executor   The executor used to schedule attribute writer. Cannot be {@literal null}.
      * @param attributes A list of attributes: The identification of the
      *                   attributes to be set and  the values they are to be set to.
-     * @param timeout    Synchronization timeout. May be {@link TimeSpan#INFINITE}.
+     * @param timeout    Synchronization timeout. May be {@literal null}.
      * @return The list of attributes that were set, with their new values.
      * @throws InterruptedException Operation is interrupted.
      * @throws TimeoutException     Unable to set attributes in the specified time duration.
      */
     protected final AttributeList setAttributesParallel(final ExecutorService executor,
                                                         final AttributeList attributes,
-                                                        final TimeSpan timeout) throws TimeoutException, InterruptedException {
+                                                        final Duration timeout) throws TimeoutException, InterruptedException {
         if (attributes.isEmpty()) return attributes;
         final List<Attribute> result =
                 Collections.synchronizedList(Lists.<Attribute>newArrayListWithExpectedSize(attributes.size()));
@@ -257,7 +258,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
             });
         if (timeout == null)
             synchronizer.await();
-        else if (!synchronizer.await(timeout.duration, timeout.unit))
+        else if (!synchronizer.await(timeout.toNanos(), TimeUnit.NANOSECONDS))
             throw new TimeoutException();
         return new AttributeList(result);
     }
@@ -269,7 +270,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      *                   attributes to be set and  the values they are to be set to.
      * @return The list of attributes that were set, with their new values.
      * @see #setAttributesSequential(AttributeList)
-     * @see #setAttributesParallel(ExecutorService, AttributeList, TimeSpan)
+     * @see #setAttributesParallel(ExecutorService, AttributeList, Duration)
      */
     @Override
     public AttributeList setAttributes(final AttributeList attributes) {
@@ -296,7 +297,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      * @return The description of the attribute.
      */
     public final M addAttribute(final String attributeName,
-                                final TimeSpan readWriteTimeout,
+                                final Duration readWriteTimeout,
                                 final CompositeData options) {
         AttributeHolder<M> holder;
         try (final LockScope ignored = beginWrite()) {

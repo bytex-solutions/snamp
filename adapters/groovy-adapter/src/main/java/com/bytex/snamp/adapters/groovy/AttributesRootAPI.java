@@ -1,8 +1,9 @@
 package com.bytex.snamp.adapters.groovy;
 
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.modeling.AttributeAccessor;
 import com.bytex.snamp.EntryReader;
+
+import java.time.Duration;
 
 /**
  * Represents root-level DSL for working with attributes.
@@ -12,5 +13,5 @@ import com.bytex.snamp.EntryReader;
  */
 public interface AttributesRootAPI {
     <E extends Exception> void processAttributes(final EntryReader<String, AttributeAccessor, E> handler) throws E;
-    ResourceAttributesAnalyzer<?> attributesAnalyzer(final TimeSpan checkPeriod);
+    ResourceAttributesAnalyzer<?> attributesAnalyzer(final Duration checkPeriod);
 }

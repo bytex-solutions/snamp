@@ -4,7 +4,6 @@ import com.bytex.snamp.configuration.AgentConfiguration;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.configuration.ConfigParameters;
 import com.bytex.snamp.connectors.ConfigurationEntityRuntimeMetadata;
 import com.bytex.snamp.jmx.DescriptorUtils;
@@ -16,6 +15,7 @@ import javax.management.MBeanAttributeInfo;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.OpenMBeanAttributeInfo;
 import javax.management.openmbean.OpenType;
+import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
 
@@ -48,7 +48,7 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
      * @param readWriteTimeout Attribute read/write timeout.
      * @param options Attribute connection options.
      */
-    public AttributeDescriptor(final TimeSpan readWriteTimeout,
+    public AttributeDescriptor(final Duration readWriteTimeout,
                                final CompositeData options){
         this(getFields(readWriteTimeout, options));
     }
@@ -57,7 +57,7 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
         super(fields);
     }
 
-    private static Map<String, ?> getFields(final TimeSpan readWriteTimeout,
+    private static Map<String, ?> getFields(final Duration readWriteTimeout,
                                             final CompositeData options){
         final Map<String, Object> fields = Maps.newHashMapWithExpectedSize(options.values().size() + 1);
         fields.put(READ_WRITE_TIMEOUT_FIELD, readWriteTimeout);
@@ -75,7 +75,7 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
         return ot != null ? WellKnownType.getType(ot) : WellKnownType.getType(attribute.getType());
     }
 
-    public final TimeSpan getReadWriteTimeout(){
+    public final Duration getReadWriteTimeout(){
         return getReadWriteTimeout(this);
     }
 
@@ -134,18 +134,18 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
         return setFields(DescriptorUtils.toMap(values));
     }
 
-    public static TimeSpan getReadWriteTimeout(final Descriptor metadata){
+    public static Duration getReadWriteTimeout(final Descriptor metadata) {
         final Object timeout = metadata.getFieldValue(READ_WRITE_TIMEOUT_FIELD);
-        if(timeout instanceof TimeSpan)
-            return (TimeSpan)timeout;
-        else if(timeout instanceof Number)
-            return TimeSpan.ofMillis(((Number)timeout).longValue());
-        else if(timeout instanceof String)
-            return TimeSpan.ofMillis(Long.parseLong(timeout.toString()));
+        if (timeout instanceof Duration)
+            return (Duration) timeout;
+        else if (timeout instanceof Number)
+            return Duration.ofMillis(((Number) timeout).longValue());
+        else if (timeout instanceof CharSequence)
+            return Duration.parse((CharSequence) timeout);
         else return null;
     }
 
-    public static TimeSpan getReadWriteTimeout(final MBeanAttributeInfo metadata){
+    public static Duration getReadWriteTimeout(final MBeanAttributeInfo metadata){
         return getReadWriteTimeout(metadata.getDescriptor());
     }
 

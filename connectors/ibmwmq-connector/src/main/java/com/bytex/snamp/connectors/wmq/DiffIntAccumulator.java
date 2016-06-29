@@ -1,6 +1,6 @@
 package com.bytex.snamp.connectors.wmq;
 
-import com.bytex.snamp.TimeSpan;
+import java.time.Duration;
 
 /**
  * @author Roman Sakno
@@ -21,7 +21,7 @@ public final class DiffIntAccumulator {
      *
      * @param ttl          Time-to-live of the value in this accumulator. Cannot be {@literal null}.
      */
-    DiffIntAccumulator(final TimeSpan ttl){
+    DiffIntAccumulator(final Duration ttl){
         timeToLive = ttl.toMillis();
         timer = System.currentTimeMillis();
         current = 0;

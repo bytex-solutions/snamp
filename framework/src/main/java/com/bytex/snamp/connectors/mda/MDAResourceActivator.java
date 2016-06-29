@@ -1,10 +1,10 @@
 package com.bytex.snamp.connectors.mda;
 
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
 import org.osgi.service.http.HttpService;
 
 import javax.management.openmbean.CompositeData;
+import java.time.Duration;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -24,7 +24,7 @@ public abstract class MDAResourceActivator extends ManagedResourceActivator<Data
      */
     protected static abstract class MonitoringDataAcceptorFactory extends ManagedResourceConnectorModeler<DataAcceptor> implements Iterable<DataAcceptorFactory>{
         @Override
-        protected final boolean addAttribute(final DataAcceptor connector, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+        protected final boolean addAttribute(final DataAcceptor connector, final String attributeName, final Duration readWriteTimeout, final CompositeData options) {
             return connector.addAttribute(attributeName, readWriteTimeout, options);
         }
 
@@ -44,7 +44,7 @@ public abstract class MDAResourceActivator extends ManagedResourceActivator<Data
         }
 
         @Override
-        protected final boolean enableOperation(final DataAcceptor connector, final String operationName, final TimeSpan invocationTimeout, final CompositeData options) {
+        protected final boolean enableOperation(final DataAcceptor connector, final String operationName, final Duration invocationTimeout, final CompositeData options) {
             return false;
         }
 
@@ -55,7 +55,7 @@ public abstract class MDAResourceActivator extends ManagedResourceActivator<Data
 
         @Override
         public final DataAcceptor createConnector(final String resourceName, final String connectionString, final Map<String, String> connectionParameters, final RequiredService<?>... dependencies) throws Exception {
-            final TimeSpan expirationTime = TimeSpan.ofMillis(parseExpireTime(connectionParameters));
+            final Duration expirationTime = Duration.ofMillis(parseExpireTime(connectionParameters));
             for(final DataAcceptorFactory factory: this)
                 if(factory.canCreateFrom(connectionString)){
                     final DataAcceptor acceptor = factory.create(resourceName,

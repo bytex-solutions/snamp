@@ -3,7 +3,6 @@ package com.bytex.snamp.connectors.groovy.impl;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.GroupedThreadFactory;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
@@ -26,6 +25,7 @@ import javax.management.InvalidAttributeValueException;
 import javax.management.ReflectionException;
 import javax.management.openmbean.CompositeData;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
@@ -341,7 +341,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         removeResourceEventListener(listener, attributes);
     }
 
-    boolean addAttribute(final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+    boolean addAttribute(final String attributeName, final Duration readWriteTimeout, final CompositeData options) {
         verifyClosedState();
         return attributes.addAttribute(attributeName, readWriteTimeout, options) != null;
     }

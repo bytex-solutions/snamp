@@ -12,7 +12,6 @@ import org.snmp4j.smi.OctetString;
 import javax.naming.NamingException;
 import java.io.IOException;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Represents default profile for SNMP Resource Adapter.

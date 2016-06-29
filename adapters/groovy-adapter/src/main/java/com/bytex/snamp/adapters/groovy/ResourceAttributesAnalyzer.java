@@ -2,7 +2,6 @@ package com.bytex.snamp.adapters.groovy;
 
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.modeling.ModelOfAttributes;
 import com.bytex.snamp.adapters.modeling.AttributeAccessor;
 import com.bytex.snamp.adapters.modeling.PeriodicPassiveChecker;
@@ -14,6 +13,7 @@ import org.osgi.framework.InvalidSyntaxException;
 import javax.management.DescriptorRead;
 import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
+import java.time.Duration;
 import java.util.*;
 import java.util.function.Predicate;
 
@@ -150,7 +150,7 @@ public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> ext
      * @param attributes A collection of attributes. Cannot be {@literal null}.
      * @throws IllegalArgumentException period is {@literal null}.
      */
-    public ResourceAttributesAnalyzer(final TimeSpan period,
+    public ResourceAttributesAnalyzer(final Duration period,
                                       final ModelOfAttributes<TAccessor> attributes) {
         super(period, attributes);
         selectionStatements = new LinkedHashSet<>(10);

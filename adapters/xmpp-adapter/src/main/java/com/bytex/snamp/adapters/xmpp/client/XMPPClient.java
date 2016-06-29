@@ -1,6 +1,5 @@
 package com.bytex.snamp.adapters.xmpp.client;
 
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.xmpp.XMPPAdapterConfigurationProvider;
 import com.bytex.snamp.configuration.AbsentConfigurationParameterException;
 import org.jivesoftware.smack.AbstractXMPPConnection;
@@ -15,9 +14,11 @@ import org.jivesoftware.smack.packet.Presence;
 import java.io.Closeable;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -58,7 +59,7 @@ public final class XMPPClient implements Closeable {
 
     public String sendMessage(final String message,
                               final String ignoreFilter,
-                              final TimeSpan responseTimeout) throws IOException, TimeoutException, InterruptedException, ExecutionException {
+                              final Duration responseTimeout) throws IOException, TimeoutException, InterruptedException, ExecutionException {
         if(chat == null) throw new IOException("Chat doesn't exist");
         final ChatMessageEvent response = new ChatMessageEvent(ignoreFilter);
         chat.addMessageListener(response);
@@ -69,7 +70,7 @@ public final class XMPPClient implements Closeable {
         }
         final Message responseMsg;
         try{
-            responseMsg = response.getAwaitor().get(responseTimeout.duration, responseTimeout.unit);
+            responseMsg = response.getAwaitor().get(responseTimeout.toNanos(), TimeUnit.NANOSECONDS);
         }
         finally {
             chat.removeMessageListener(response);

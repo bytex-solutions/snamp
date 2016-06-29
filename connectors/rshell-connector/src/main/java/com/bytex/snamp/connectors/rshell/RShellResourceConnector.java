@@ -4,7 +4,6 @@ import com.bytex.jcommands.CommandExecutionChannel;
 import com.bytex.jcommands.impl.TypeTokens;
 import com.bytex.jcommands.impl.XmlCommandLineToolProfile;
 import com.bytex.jcommands.impl.XmlParserDefinition;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
 import com.bytex.snamp.connectors.attributes.*;
@@ -22,6 +21,7 @@ import javax.script.ScriptException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -312,7 +312,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
         return assembleMetricsReader(attributes);
     }
 
-    boolean addAttribute(final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+    boolean addAttribute(final String attributeName, final Duration readWriteTimeout, final CompositeData options) {
         return attributes.addAttribute(attributeName, readWriteTimeout, options) != null;
     }
 

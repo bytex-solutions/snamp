@@ -1,7 +1,6 @@
 package com.bytex.snamp.adapters.nsca;
 
 import com.bytex.snamp.EntryReader;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.AbstractResourceAdapter;
 import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationListener;
@@ -19,6 +18,7 @@ import com.googlecode.jsendnsca.core.NagiosSettings;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanNotificationInfo;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -123,7 +123,7 @@ final class NSCAAdapter extends AbstractResourceAdapter {
     private static final class NSCAPeriodPassiveCheckSender extends PeriodicPassiveChecker<NSCAAttributeAccessor> {
         private final ConcurrentPassiveCheckSender checkSender;
 
-        NSCAPeriodPassiveCheckSender(final TimeSpan period,
+        NSCAPeriodPassiveCheckSender(final Duration period,
                                      final ConcurrentPassiveCheckSender sender,
                                      final NSCAAttributeModelOfAttributes attributes) {
             super(period, attributes);
@@ -175,7 +175,7 @@ final class NSCAAdapter extends AbstractResourceAdapter {
         else return null;
     }
 
-    private void start(final TimeSpan checkPeriod,
+    private void start(final Duration checkPeriod,
                        final NagiosSettings settings,
                        final ExecutorService threadPool) {
         final ConcurrentPassiveCheckSender checkSender = new ConcurrentPassiveCheckSender(settings, threadPool);

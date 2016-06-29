@@ -1,7 +1,6 @@
 package com.bytex.snamp.concurrent;
 
-import com.bytex.snamp.TimeSpan;
-
+import java.time.Duration;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -13,7 +12,7 @@ import java.util.function.Supplier;
  */
 public abstract class ConditionWait extends SpinWait<Object> {
 
-    protected ConditionWait(final TimeSpan spinDelay) {
+    protected ConditionWait(final Duration spinDelay) {
         super(spinDelay);
     }
 

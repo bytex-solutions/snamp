@@ -1,7 +1,6 @@
 package com.bytex.snamp.testing.adapters.snmp;
 
 import com.bytex.snamp.ExceptionalCallable;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.connectors.notifications.Severity;
@@ -30,6 +29,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.util.Calendar;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -323,7 +323,7 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
                 ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
                 return null;
             }
-        }, TimeSpan.ofSeconds(4));
+        }, Duration.ofSeconds(4));
     }
 
     @Override

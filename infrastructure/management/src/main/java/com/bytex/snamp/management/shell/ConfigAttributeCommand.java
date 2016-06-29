@@ -2,11 +2,12 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
+
+import java.time.Duration;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -45,7 +46,7 @@ public final class ConfigAttributeCommand extends ConfigurationCommand {
             final ManagedResourceConfiguration resource = configuration.getEntities(ManagedResourceConfiguration.class).get(resourceName);
             final AttributeConfiguration attribute = resource.getFeatures(AttributeConfiguration.class).getOrAdd(name);
             if (readWriteTimeout > INFINITE_TIMEOUT)
-                attribute.setReadWriteTimeout(TimeSpan.ofMillis(readWriteTimeout));
+                attribute.setReadWriteTimeout(Duration.ofMillis(readWriteTimeout));
             if (!ArrayUtils.isNullOrEmpty(parameters))
                 for (final String param : parameters) {
                     final StringKeyValue pair = StringKeyValue.parse(param);

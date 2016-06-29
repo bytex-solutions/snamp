@@ -2,7 +2,6 @@ package com.bytex.snamp.connectors.snmp;
 
 import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor;
 import com.bytex.snamp.concurrent.ConcurrentResourceAccessor;
 import com.bytex.snamp.configuration.AgentConfiguration;
@@ -29,6 +28,7 @@ import javax.management.openmbean.*;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.ParseException;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -515,7 +515,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
 
     private static final class SnmpAttributeRepository extends AbstractAttributeRepository<SnmpAttributeInfo> implements Aggregator {
         private static final Class<SnmpAttributeInfo> FEATURE_TYPE = SnmpAttributeInfo.class;
-        private static final TimeSpan BATCH_READ_WRITE_TIMEOUT = TimeSpan.ofSeconds(30);
+        private static final Duration BATCH_READ_WRITE_TIMEOUT = Duration.ofSeconds(30);
         private final AbstractConcurrentResourceAccessor<SnmpClient> client;
         private final ExecutorService executor;
         private final Logger logger;
@@ -580,14 +580,8 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
          */
         @Override
         protected SnmpAttributeInfo connectAttribute(final String attributeName, final AttributeDescriptor descriptor) throws Exception {
-            final Variable value = client.read(new Action<SnmpClient, Variable, Exception>() {
-                private final TimeSpan responseTimeout = SnmpConnectorDescriptionProvider.getResponseTimeout(descriptor);
-
-                @Override
-                public Variable invoke(final SnmpClient client) throws IOException, TimeoutException, InterruptedException, ExecutionException {
-                    return client.get(new OID(descriptor.getName(attributeName)), responseTimeout);
-                }
-            });
+            final Duration responseTimeout = SnmpConnectorDescriptionProvider.getResponseTimeout(descriptor);
+            final Variable value = client.read((Action<SnmpClient, Variable, Exception>) client -> client.get(new OID(descriptor.getName(attributeName)), responseTimeout));
             if(value == null) throw JMExceptionUtils.attributeNotFound(descriptor.getName(attributeName));
             else switch (value.getSyntax()){
                 case SMIConstants.SYNTAX_INTEGER32:
@@ -665,7 +659,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
          * @param attributes A list of the attributes to be retrieved.
          * @return The list of attributes retrieved.
          * @see #getAttributesSequential(String[])
-         * @see #getAttributesParallel(java.util.concurrent.ExecutorService, String[], com.bytex.snamp.TimeSpan)
+         * @see #getAttributesParallel(java.util.concurrent.ExecutorService, String[], Duration)
          */
         @Override
         public AttributeList getAttributes(final String[] attributes) {
@@ -684,7 +678,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
          *                   attributes to be set and  the values they are to be set to.
          * @return The list of attributes that were set, with their new values.
          * @see #setAttributesSequential(javax.management.AttributeList)
-         * @see #setAttributesParallel(java.util.concurrent.ExecutorService, javax.management.AttributeList, com.bytex.snamp.TimeSpan)
+         * @see #setAttributesParallel(java.util.concurrent.ExecutorService, javax.management.AttributeList, Duration)
          */
         @Override
         public AttributeList setAttributes(final AttributeList attributes) {
@@ -771,7 +765,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         });
     }
 
-    boolean addAttribute(final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+    boolean addAttribute(final String attributeName, final Duration readWriteTimeout, final CompositeData options) {
         verifyClosedState();
         return attributes.addAttribute(attributeName, readWriteTimeout, options) != null;
     }

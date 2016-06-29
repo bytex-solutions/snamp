@@ -55,12 +55,7 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
             @SuppressWarnings("unchecked")
             final FutureThread<Object>[] tables = new FutureThread[10];
             for (int i = 0; i < tables.length; i++)
-                tables[i] = FutureThread.start(new Callable<Object>() {
-                    @Override
-                    public Object call() throws JMException {
-                        return attributes.getAttribute("ms");
-                    }
-                });
+                tables[i] = FutureThread.start(() -> attributes.getAttribute("ms"));
             for (final FutureThread<Object> thread : tables) {
                 final Object table = thread.get();
                 assertNotNull(table);

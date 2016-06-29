@@ -2,7 +2,6 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.connectors.notifications.NotificationBox;
 import com.bytex.snamp.connectors.notifications.NotificationSupport;
@@ -13,9 +12,11 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 import javax.management.*;
 import java.io.PrintStream;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Listens event from the specified resource.
@@ -63,7 +64,7 @@ public final class ListenEventsCommand extends OsgiCommandSupport implements Sna
     private static void listenEvents(final NotificationSupport notifSupport,
                                      final String[] categories,
                                      final int capacity,
-                                     final TimeSpan timeout,
+                                     final Duration timeout,
                                      final PrintStream output) throws ListenerNotFoundException, InterruptedException {
         if(notifSupport == null){
             output.println("Notifications are not supported");
@@ -74,7 +75,7 @@ public final class ListenEventsCommand extends OsgiCommandSupport implements Sna
         notifSupport.addNotificationListener(mailbox, new AllowedCategories(categories), null);
         try{
             while (true){
-                final Notification notif = mailbox.poll(timeout.duration, timeout.unit);//InterruptedException when CTRL+C was pressed
+                final Notification notif = mailbox.poll(timeout.toNanos(), TimeUnit.NANOSECONDS);//InterruptedException when CTRL+C was pressed
                 if(notif == null) continue;
                 output.println(notif.getType());
                 output.println(new Date(notif.getTimeStamp()));
@@ -99,7 +100,7 @@ public final class ListenEventsCommand extends OsgiCommandSupport implements Sna
             listenEvents(client.queryObject(NotificationSupport.class),
                     categories,
                     capacity,
-                    TimeSpan.ofMillis(listenPeriodMillis),
+                    Duration.ofMillis(listenPeriodMillis),
                     session.getConsole());
             return null;
         } finally {

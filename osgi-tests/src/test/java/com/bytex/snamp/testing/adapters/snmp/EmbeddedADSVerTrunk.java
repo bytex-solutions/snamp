@@ -229,7 +229,7 @@ public class EmbeddedADSVerTrunk{
         //see CopyStrategyConfiguration, line 69
         final Partition userPartition = Utils.withContextClassLoader(cacheService.getClass().getClassLoader(), new ExceptionalCallable<Partition, Exception>() {
             @Override
-            public Partition call() throws Exception{
+            public Partition call() throws Exception {
                 cacheService.initialize( service.getInstanceLayout() );
                 service.setCacheService( cacheService );
                 // first load the schema
@@ -255,16 +255,16 @@ public class EmbeddedADSVerTrunk{
 
                 // Now we can create as many partitions as we need
                 // Create some new partitions named 'foo', 'bar' and 'apache'.
-                Partition userPartition = addPartition( "users", "dc=ad,dc=microsoft,dc=com", service.getDnFactory() );
+                Partition userPartition1 = addPartition( "users", "dc=ad,dc=microsoft,dc=com", service.getDnFactory() );
 
                 // Index some attributes on the apache partition
-                addIndex( userPartition, "objectClass", "ou", "uid" );
+                addIndex(userPartition1, "objectClass", "ou", "uid" );
 
                 // And start the service
                 service.startup();
-                return userPartition;
+                return userPartition1;
             }
-        });
+            });
 
         // Inject the context entry for dc=foo,dc=com partition if it does not already exist
         try

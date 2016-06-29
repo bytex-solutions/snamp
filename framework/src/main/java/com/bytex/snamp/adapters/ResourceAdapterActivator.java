@@ -71,6 +71,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
             this(getAdapterName(factory), factory, dependencies);
         }
 
+        @SuppressWarnings("unchecked")
         private static CMResourceAdapterParser getParser(final RequiredService<?>... dependencies){
             final ConfigurationManager configManager = getDependency(RequiredServiceAccessor.class, ConfigurationManager.class, dependencies);
             assert configManager != null;
@@ -132,7 +133,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
         protected void failedToCleanupService(final Logger logger,
                                               final String servicePID,
                                               final Exception e) {
-            logger.log(Level.SEVERE, String.format("Unable to release adapter. Name: %s, instance: $s", adapterName, servicePID),
+            logger.log(Level.SEVERE, String.format("Unable to release adapter. Name: %s, instance: %s", adapterName, servicePID),
                     e);
         }
     }

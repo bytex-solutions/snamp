@@ -3,13 +3,13 @@ package com.bytex.snamp.adapters.syslog;
 import com.cloudbees.syslog.Facility;
 import com.cloudbees.syslog.MessageFormat;
 import com.cloudbees.syslog.sender.SyslogMessageSender;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 
 import javax.management.Descriptor;
+import java.time.Duration;
 import java.util.Map;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -132,9 +132,9 @@ final class SysLogConfigurationDescriptor extends ConfigurationEntityDescription
         return factory.create(address, port, format, ssl, connectionTimeout);
     }
 
-    static TimeSpan getPassiveCheckSendPeriod(final Map<String, String> parameters){
+    static Duration getPassiveCheckSendPeriod(final Map<String, String> parameters){
         if(parameters.containsKey(PASSIVE_CHECK_SEND_PERIOD_PARAM))
-            return TimeSpan.ofMillis(Long.parseLong(parameters.get(PASSIVE_CHECK_SEND_PERIOD_PARAM)));
-        else return TimeSpan.ofSeconds(1L);
+            return Duration.ofMillis(Long.parseLong(parameters.get(PASSIVE_CHECK_SEND_PERIOD_PARAM)));
+        else return Duration.ofSeconds(1L);
     }
 }

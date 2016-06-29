@@ -1,6 +1,5 @@
 package com.bytex.snamp.connectors.snmp;
 
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.LazyContainers;
 import com.bytex.snamp.concurrent.LazyValue;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
@@ -16,6 +15,7 @@ import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
@@ -42,7 +42,7 @@ final class SnmpConnectorDescriptionProvider extends ConfigurationEntityDescript
     private static final String SOCKET_TIMEOUT_PARAM = "socketTimeout";
     private static final int DEFAULT_SOCKET_TIMEOUT = 3000;
     private static final String RESPONSE_TIMEOUT_PARAM = "responseTimeout";
-    private static final TimeSpan DEFAULT_RESPONSE_TIMEOUT = TimeSpan.ofSeconds(6);
+    private static final Duration DEFAULT_RESPONSE_TIMEOUT = Duration.ofSeconds(6);
     //attribute related parameters
     static final String SNMP_CONVERSION_FORMAT_PARAM = "snmpConversionFormat";
     //event related parameters
@@ -101,9 +101,9 @@ final class SnmpConnectorDescriptionProvider extends ConfigurationEntityDescript
         return INSTANCE.get();
     }
 
-    static TimeSpan getResponseTimeout(final AttributeDescriptor attributeParams){
+    static Duration getResponseTimeout(final AttributeDescriptor attributeParams){
         return attributeParams.hasField(RESPONSE_TIMEOUT_PARAM) ?
-                TimeSpan.ofMillis(attributeParams.getField(RESPONSE_TIMEOUT_PARAM, String.class)):
+                Duration.ofMillis(Long.parseLong(attributeParams.getField(RESPONSE_TIMEOUT_PARAM, String.class))):
                 DEFAULT_RESPONSE_TIMEOUT;
     }
 

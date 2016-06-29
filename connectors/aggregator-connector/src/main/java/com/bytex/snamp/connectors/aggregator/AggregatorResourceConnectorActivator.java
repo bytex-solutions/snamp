@@ -1,10 +1,10 @@
 package com.bytex.snamp.connectors.aggregator;
 
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
 
 import javax.management.openmbean.CompositeData;
 import java.beans.IntrospectionException;
+import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
 
@@ -21,7 +21,7 @@ public final class AggregatorResourceConnectorActivator extends ManagedResourceA
         @Override
         protected boolean addAttribute(final AggregatorResourceConnector connector,
                                     final String attributeName,
-                                    final TimeSpan readWriteTimeout,
+                                    final Duration readWriteTimeout,
                                     final CompositeData options) {
             return connector.addAttribute(attributeName, readWriteTimeout, options);
         }
@@ -34,7 +34,7 @@ public final class AggregatorResourceConnectorActivator extends ManagedResourceA
         }
 
         @Override
-        protected boolean enableOperation(final AggregatorResourceConnector connector, final String operationName, final TimeSpan timeout, final CompositeData options) {
+        protected boolean enableOperation(final AggregatorResourceConnector connector, final String operationName, final Duration timeout, final CompositeData options) {
             //not supported
             return false;
         }

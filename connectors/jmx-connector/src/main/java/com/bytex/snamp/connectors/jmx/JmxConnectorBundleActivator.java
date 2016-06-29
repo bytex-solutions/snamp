@@ -1,7 +1,6 @@
 package com.bytex.snamp.connectors.jmx;
 
 import com.bytex.snamp.AbstractAggregator;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.FutureThread;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
@@ -19,6 +18,7 @@ import javax.management.openmbean.CompositeData;
 import javax.management.remote.JMXConnector;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
@@ -136,7 +136,7 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
         @Override
         protected boolean addAttribute(final JmxConnector connector,
                                     final String attributeName,
-                                    final TimeSpan readWriteTimeout,
+                                    final Duration readWriteTimeout,
                                     final CompositeData options) {
             return connector.addAttribute(attributeName, readWriteTimeout, options);
         }
@@ -151,7 +151,7 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
         @Override
         protected boolean enableOperation(final JmxConnector connector,
                                        final String operationName,
-                                       final TimeSpan invocationTimeout,
+                                       final Duration invocationTimeout,
                                        final CompositeData options) {
             return connector.enableOperation(operationName, invocationTimeout, options);
         }

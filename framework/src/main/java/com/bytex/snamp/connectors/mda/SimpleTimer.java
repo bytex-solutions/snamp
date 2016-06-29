@@ -1,8 +1,8 @@
 package com.bytex.snamp.connectors.mda;
 
 import com.bytex.snamp.ThreadSafe;
-import com.bytex.snamp.TimeSpan;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -69,7 +69,7 @@ final class SimpleTimer extends AtomicLong implements AccessTimer {
      */
     @SuppressWarnings("NullableProblems")
     @Override
-    public int compareTo(final TimeSpan interval) {
-        return checkInterval(interval.duration, interval.unit);
+    public int compareTo(final Duration interval) {
+        return checkInterval(interval.toNanos(), TimeUnit.NANOSECONDS);
     }
 }

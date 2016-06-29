@@ -1,6 +1,5 @@
 package com.bytex.snamp.adapters.nsca.configuration;
 
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.ResourceAdapterDescriptionProvider;
 import com.bytex.snamp.concurrent.LazyContainers;
 import com.bytex.snamp.concurrent.LazyValue;
@@ -13,6 +12,7 @@ import com.googlecode.jsendnsca.core.Encryption;
 import com.googlecode.jsendnsca.core.NagiosSettings;
 
 import javax.management.Descriptor;
+import java.time.Duration;
 import java.util.Map;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -116,10 +116,10 @@ public final class NSCAAdapterConfigurationDescriptor extends ConfigurationEntit
                 defaultService;
     }
 
-    public TimeSpan getPassiveCheckSendPeriod(final Map<String, String> parameters){
+    public Duration getPassiveCheckSendPeriod(final Map<String, String> parameters){
         if(parameters.containsKey(PASSIVE_CHECK_SEND_PERIOD_PARAM))
-            return TimeSpan.ofMillis(parameters.get(PASSIVE_CHECK_SEND_PERIOD_PARAM));
-        else return TimeSpan.ofSeconds(1L);
+            return Duration.ofMillis(Long.parseLong(parameters.get(PASSIVE_CHECK_SEND_PERIOD_PARAM)));
+        else return Duration.ofSeconds(1L);
     }
 
     public static String getUnitOfMeasurement(final Descriptor descr){

@@ -1,7 +1,7 @@
 package com.bytex.snamp.configuration;
 
-import com.bytex.snamp.TimeSpan;
-
+import java.time.Duration;
+import java.time.temporal.TemporalUnit;
 import java.util.Map;
 
 /**
@@ -198,19 +198,23 @@ public interface AgentConfiguration extends Cloneable {
             /**
              * Recommended timeout for read/write of attribute in smart mode.
              */
-            TimeSpan TIMEOUT_FOR_SMART_MODE = TimeSpan.ofSeconds(10);
+            Duration TIMEOUT_FOR_SMART_MODE = Duration.ofSeconds(10);
 
             /**
              * Gets attribute value invoke/write operation timeout.
              * @return Gets attribute value invoke/write operation timeout.
              */
-            TimeSpan getReadWriteTimeout();
+            Duration getReadWriteTimeout();
+
+            default long getReadWriteTimeout(final TemporalUnit unit){
+                return getReadWriteTimeout().get(unit);
+            }
 
             /**
              * Sets attribute value invoke/write operation timeout.
              * @param value A new value of the timeout.
              */
-            void setReadWriteTimeout(final TimeSpan value);
+            void setReadWriteTimeout(final Duration value);
         }
 
         /**
@@ -223,19 +227,19 @@ public interface AgentConfiguration extends Cloneable {
             /**
              * Recommended timeout for invocation of operation in smart mode.
              */
-            TimeSpan TIMEOUT_FOR_SMART_MODE = TimeSpan.ofSeconds(10);
+            Duration TIMEOUT_FOR_SMART_MODE = Duration.ofSeconds(10);
 
             /**
              * Gets timeout of operation invocation.
              * @return Timeout value.
              */
-            TimeSpan getInvocationTimeout();
+            Duration getInvocationTimeout();
 
             /**
              * Sets timeout of operation invocation.
              * @param value A new timeout value.
              */
-            void setInvocationTimeout(final TimeSpan value);
+            void setInvocationTimeout(final Duration value);
         }
 
         /**

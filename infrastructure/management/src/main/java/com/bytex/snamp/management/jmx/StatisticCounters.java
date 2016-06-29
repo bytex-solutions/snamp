@@ -1,8 +1,8 @@
 package com.bytex.snamp.management.jmx;
 
-import com.bytex.snamp.TimeSpan;
 import org.osgi.service.log.LogService;
 
+import java.time.Duration;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -25,7 +25,7 @@ final class StatisticCounters {
      * @param frequency The initial timer value.
      * @throws IllegalArgumentException initial is null.
      */
-    StatisticCounters(final TimeSpan frequency) {
+    StatisticCounters(final Duration frequency) {
         this.frequency = frequency.toMillis();
         numberOfFaults = new AtomicLong(0L);
         numberOfDebugMessages = new AtomicLong(0L);

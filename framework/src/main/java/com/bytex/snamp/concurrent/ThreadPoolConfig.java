@@ -1,8 +1,7 @@
 package com.bytex.snamp.concurrent;
 
-import com.bytex.snamp.TimeSpan;
-
 import java.io.Serializable;
+import java.time.Duration;
 import java.util.concurrent.*;
 import java.util.function.Function;
 
@@ -33,7 +32,7 @@ public final class ThreadPoolConfig implements Serializable, Function<String, Ex
      * When the number of threads is greater than the minimum, this is the maximum time that excess idle threads
      *        will wait for new tasks before terminating
      */
-    public static final TimeSpan DEFAULT_KEEP_ALIVE_TIME = TimeSpan.ofMillis(1000);
+    public static final Duration DEFAULT_KEEP_ALIVE_TIME = Duration.ofSeconds(1);
 
     /**
      * Infinite size of the queue used to enqueue scheduled tasks.
@@ -44,7 +43,7 @@ public final class ThreadPoolConfig implements Serializable, Function<String, Ex
     private int minPoolSize = DEFAULT_MIN_POOL_SIZE;
     private int maxPoolSize = DEFAULT_MAX_POOL_SIZE;
     private int threadPriority = DEFAULT_PRIORITY;
-    private TimeSpan keepAliveTime = DEFAULT_KEEP_ALIVE_TIME;
+    private Duration keepAliveTime = DEFAULT_KEEP_ALIVE_TIME;
     private int queueSize = INFINITE_QUEUE_SIZE;
 
     public int getMinPoolSize() {
@@ -71,15 +70,15 @@ public final class ThreadPoolConfig implements Serializable, Function<String, Ex
         threadPriority = value;
     }
 
-    public TimeSpan getKeepAliveTime() {
+    public Duration getKeepAliveTime() {
         return keepAliveTime;
     }
 
     public void setKeepAliveTime(final long millis) {
-        keepAliveTime = TimeSpan.ofMillis(millis);
+        keepAliveTime = Duration.ofMillis(millis);
     }
 
-    public void setKeepAliveTime(final TimeSpan value){
+    public void setKeepAliveTime(final Duration value){
         keepAliveTime = value;
     }
 

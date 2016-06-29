@@ -1,7 +1,6 @@
 package com.bytex.snamp.management.jmx;
 
 import com.bytex.snamp.Box;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.diff.ConfigurationDiffEngine;
@@ -17,6 +16,7 @@ import org.osgi.service.cm.ConfigurationException;
 import javax.management.MBeanAttributeInfo;
 import javax.management.openmbean.*;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
 
@@ -98,20 +98,20 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
         }
     }
 
-    private static TimeSpan convertTimeout(final long timeout){
+    private static Duration convertTimeout(final long timeout){
         return timeout == Long.MAX_VALUE || timeout <= INFINITE_TIMEOUT ?
-                TimeSpan.INFINITE:
-                TimeSpan.ofMillis(timeout);
+                null:
+                Duration.ofMillis(timeout);
     }
 
-    private static long convertTimeout(final TimeSpan timeout){
-        if(timeout == TimeSpan.INFINITE)
+    private static long convertTimeout(final Duration timeout){
+        if(timeout == null)
             return INFINITE_TIMEOUT;
         final long result = timeout.toMillis();
         return result == Long.MAX_VALUE ? INFINITE_TIMEOUT : result;
     }
 
-    private static TimeSpan convertTimeout(final CompositeData entry, final String key){
+    private static Duration convertTimeout(final CompositeData entry, final String key){
         return convertTimeout(getLong(entry, key, INFINITE_TIMEOUT));
     }
 

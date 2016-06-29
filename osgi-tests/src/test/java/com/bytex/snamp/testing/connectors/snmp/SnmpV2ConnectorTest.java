@@ -1,7 +1,6 @@
 package com.bytex.snamp.testing.connectors.snmp;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.Repeater;
 import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.configuration.AgentConfiguration;
@@ -36,6 +35,7 @@ import javax.management.JMException;
 import javax.management.Notification;
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
@@ -207,7 +207,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
             public void stop() {
                 if (notifSender != null)
                     try {
-                        notifSender.stop(TimeSpan.ofSeconds(1));
+                        notifSender.stop(Duration.ofSeconds(1));
                     } catch (final Exception e) {
                         fail(e.getMessage());
                     }
@@ -224,7 +224,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
                 run();
                 if (coldStart) sendColdStartNotification();
                 coldStart = false;
-                notifSender = new Repeater(TimeSpan.ofSeconds(1)) {
+                notifSender = new Repeater(Duration.ofSeconds(1)) {
                     @Override
                     protected void doAction() {
                         final VariableBinding[] bindings = {

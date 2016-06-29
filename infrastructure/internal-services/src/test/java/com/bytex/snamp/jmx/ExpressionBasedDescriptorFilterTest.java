@@ -1,4 +1,4 @@
-package com.bytex.snamp.com.bytex.snamp.jmx;
+package com.bytex.snamp.jmx;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.bytex.snamp.configuration.impl.SerializableAgentConfiguration.newEntityConfiguration;

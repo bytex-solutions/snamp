@@ -1,7 +1,6 @@
 package com.bytex.snamp.testing.connectors;
 
 import com.bytex.snamp.Consumer;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.TypeTokens;
 import com.bytex.snamp.concurrent.SpinWait;
 import com.bytex.snamp.configuration.AgentConfiguration;
@@ -29,12 +28,14 @@ import javax.management.Attribute;
 import javax.management.DynamicMBean;
 import javax.management.JMException;
 import javax.management.Notification;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
@@ -94,7 +95,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         this.connectorParameters = parameters;
     }
 
-    private static void waitForConnector(final TimeSpan timeout,
+    private static void waitForConnector(final Duration timeout,
                                   final String resourceName,
                                   final BundleContext context) throws TimeoutException, InterruptedException, ExecutionException {
         final Future<ServiceReference<ManagedResourceConnector>> awaitor = new SpinWait<ServiceReference<ManagedResourceConnector>>() {
@@ -103,10 +104,10 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
                 return ManagedResourceConnectorClient.getResourceConnector(context, resourceName);
             }
         };
-        awaitor.get(timeout.duration, timeout.unit);
+        awaitor.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
     }
 
-    private static void waitForNoConnector(final TimeSpan timeout,
+    private static void waitForNoConnector(final Duration timeout,
                                            final String resourceName,
                                            final BundleContext context) throws TimeoutException, InterruptedException, ExecutionException {
         final Future<?> awaitor = new SpinWait<Object>() {
@@ -115,7 +116,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
                 return ManagedResourceConnectorClient.getResourceConnector(context, resourceName) != null ? null : new Object();
             }
         };
-        awaitor.get(timeout.duration, timeout.unit);
+        awaitor.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
     }
 
     protected final ManagedResourceConnector getManagementConnector(final BundleContext context){
@@ -158,7 +159,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
                                                final BundleContext context) throws TimeoutException, InterruptedException, BundleException, ExecutionException {
         try(final LogicalOperation ignored = ConnectorTestLogicalOperation.stopResourceConnector(connectorType, testName)) {
             assertTrue(String.format("Connector %s is not deployed", connectorType), ManagedResourceActivator.stopResourceConnector(context, connectorType));
-            waitForNoConnector(TimeSpan.ofSeconds(10), resourceName, context);
+            waitForNoConnector(Duration.ofSeconds(10), resourceName, context);
         }
     }
 
@@ -172,7 +173,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
                                               final BundleContext context) throws TimeoutException, InterruptedException, BundleException, ExecutionException {
         try (final LogicalOperation ignored = ConnectorTestLogicalOperation.startResourceConnector(connectorType, testName)) {
             assertTrue(String.format("Connector %s is not deployed", connectorType), ManagedResourceActivator.startResourceConnector(context, connectorType));
-            waitForConnector(TimeSpan.ofSeconds(10), resourceName, context);
+            waitForConnector(Duration.ofSeconds(10), resourceName, context);
         }
     }
 
@@ -291,7 +292,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
 
     protected final <E extends Throwable> Notification waitForNotification(final String listID,
                                                      final Consumer<ManagedResourceConnector, E> sender,
-                                                                           final TimeSpan timeout) throws E, InterruptedException, ExecutionException, TimeoutException {
+                                                                           final Duration timeout) throws E, InterruptedException, ExecutionException, TimeoutException {
         final SynchronizationListener listener = new SynchronizationListener(listID);
         final Future<Notification> notifAwaitor;
         final ManagedResourceConnector connector = getManagementConnector();
@@ -305,6 +306,6 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         finally {
             releaseManagementConnector();
         }
-        return notifAwaitor.get(timeout.duration, timeout.unit);
+        return notifAwaitor.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
     }
 }

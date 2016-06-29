@@ -1,7 +1,6 @@
 package com.bytex.snamp.testing.connectors.jmx;
 
 
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.Repeater;
 import com.google.common.collect.ImmutableMap;
 
@@ -9,6 +8,7 @@ import javax.management.*;
 import javax.management.openmbean.*;
 import javax.management.timer.TimerNotification;
 import java.math.BigInteger;
+import java.time.Duration;
 import java.util.Date;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
@@ -183,7 +183,7 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
 
         }
         if(generateNotifs){
-            final Repeater generator = new Repeater(TimeSpan.ofSeconds(2)) {
+            final Repeater generator = new Repeater(Duration.ofSeconds(2)) {
                 @Override
                 protected void doAction() {
                     propertyChanged("ATTR", STRING_PROPERTY.getType(), "previous", "next");

@@ -1,10 +1,10 @@
 package com.bytex.snamp.adapters.modeling;
 
 import com.bytex.snamp.ExceptionPlaceholder;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.Repeater;
 import com.bytex.snamp.EntryReader;
 
+import java.time.Duration;
 import java.util.Objects;
 
 /**
@@ -23,7 +23,7 @@ public abstract class PeriodicPassiveChecker<TAccessor extends AttributeAccessor
      * @param attributes A collection of attributes. Cannot be {@literal null}.
      * @throws IllegalArgumentException period is {@literal null}.
      */
-    protected PeriodicPassiveChecker(final TimeSpan period,
+    protected PeriodicPassiveChecker(final Duration period,
                                      final ModelOfAttributes<TAccessor> attributes) {
         super(period);
         this.attributes = Objects.requireNonNull(attributes);

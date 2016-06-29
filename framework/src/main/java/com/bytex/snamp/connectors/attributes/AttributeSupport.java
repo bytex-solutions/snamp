@@ -32,7 +32,7 @@ public interface AttributeSupport {
 
     /**
      * The name of the field in {@link javax.management.Descriptor} which
-     * contains {@link com.bytex.snamp.TimeSpan} value.
+     * contains {@link java.time.Duration} value.
      */
     String READ_WRITE_TIMEOUT_FIELD = "readWriteTimeout";
 

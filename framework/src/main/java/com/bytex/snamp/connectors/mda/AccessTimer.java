@@ -1,6 +1,6 @@
 package com.bytex.snamp.connectors.mda;
 
-import com.bytex.snamp.TimeSpan;
+import java.time.Duration;
 
 /**
  * Represents timer that measures time of the last access.
@@ -8,7 +8,7 @@ import com.bytex.snamp.TimeSpan;
  * @version 1.2
  * @since 1.0
  */
-public interface AccessTimer extends Comparable<TimeSpan> {
+public interface AccessTimer extends Comparable<Duration> {
     /**
      * Resets last access time.
      */
@@ -24,5 +24,5 @@ public interface AccessTimer extends Comparable<TimeSpan> {
      *      =0, if this timer represents the same interval as specified.
      */
     @Override
-    int compareTo(final TimeSpan expirationTime);
+    int compareTo(final Duration expirationTime);
 }

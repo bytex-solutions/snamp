@@ -1,10 +1,11 @@
 package com.bytex.snamp.concurrent;
 
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.TimeSpan;
 import com.google.common.collect.ImmutableMap;
 
+import java.time.Duration;
 import java.util.EnumSet;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -172,11 +173,11 @@ public abstract class ThreadSafeObject {
         return scope;
     }
 
-    protected final boolean tryBeginWrite(final Enum<?> resourceGroup, final TimeSpan timeout) throws InterruptedException {
-        return getWriteLock(resourceGroup).tryLock(timeout.duration, timeout.unit);
+    protected final boolean tryBeginWrite(final Enum<?> resourceGroup, final Duration timeout) throws InterruptedException {
+        return getWriteLock(resourceGroup).tryLock(timeout.toNanos(), TimeUnit.NANOSECONDS);
     }
 
-    protected final boolean tryBeginWrite(final TimeSpan timeout) throws InterruptedException {
+    protected final boolean tryBeginWrite(final Duration timeout) throws InterruptedException {
         return tryBeginWrite(SingleResourceGroup.INSTANCE, timeout);
     }
 
@@ -234,11 +235,11 @@ public abstract class ThreadSafeObject {
         return scope;
     }
 
-    protected final boolean tryBeginRead(final Enum<?> resourceGroup, final TimeSpan timeout) throws InterruptedException {
-        return getReadLock(resourceGroup).tryLock(timeout.duration, timeout.unit);
+    protected final boolean tryBeginRead(final Enum<?> resourceGroup, final Duration timeout) throws InterruptedException {
+        return getReadLock(resourceGroup).tryLock(timeout.toNanos(), TimeUnit.NANOSECONDS);
     }
 
-    protected final boolean tryBeginRead(final TimeSpan timeout) throws InterruptedException {
+    protected final boolean tryBeginRead(final Duration timeout) throws InterruptedException {
         return tryBeginRead(SingleResourceGroup.INSTANCE, timeout);
     }
 

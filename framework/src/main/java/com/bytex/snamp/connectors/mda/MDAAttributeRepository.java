@@ -1,7 +1,6 @@
 package com.bytex.snamp.connectors.mda;
 
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.attributes.OpenAttributeRepository;
 import com.bytex.snamp.core.DistributedServices;
@@ -13,6 +12,7 @@ import javax.management.InvalidAttributeValueException;
 import javax.management.openmbean.CompositeType;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
+import java.time.Duration;
 import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,7 +27,7 @@ import static com.bytex.snamp.connectors.mda.MDAResourceConfigurationDescriptorP
  * @version 1.2
  */
 public abstract class MDAAttributeRepository<M extends MDAAttributeInfo> extends OpenAttributeRepository<M> implements SafeCloseable {
-    private TimeSpan expirationTime;
+    private Duration expirationTime;
     private AccessTimer lastWriteAccess;
     private final Cache<String, OpenType<?>> attributeTypes;
 
@@ -42,7 +42,7 @@ public abstract class MDAAttributeRepository<M extends MDAAttributeInfo> extends
         attributeTypes = CacheBuilder.newBuilder().weakValues().build();
     }
 
-    final void init(final TimeSpan expirationTime,
+    final void init(final Duration expirationTime,
                     final AccessTimer accessTimer){
         this.expirationTime = expirationTime;
         this.lastWriteAccess = accessTimer;

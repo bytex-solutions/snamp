@@ -2,7 +2,6 @@ package com.bytex.snamp.adapters.snmp;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.modeling.AttributeAccessor;
 import com.bytex.snamp.jmx.TabularDataUtils;
 import com.google.common.base.Stopwatch;
@@ -25,7 +24,9 @@ import javax.management.MBeanAttributeInfo;
 import javax.management.openmbean.*;
 import java.lang.reflect.Array;
 import java.text.ParseException;
+import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 
@@ -172,12 +173,12 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
     }
 
     private static final class UpdateManager {
-        private final TimeSpan tableCacheTime;
+        private final Duration tableCacheTime;
         private Object updateSource;
         private Date updateTimeStamp;
         private final Stopwatch timer;
 
-        private UpdateManager(final TimeSpan initial){
+        private UpdateManager(final Duration initial){
             tableCacheTime = initial;
             timer = Stopwatch.createUnstarted();
         }
@@ -200,12 +201,12 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
         }
 
         private boolean isEmpty(){
-            final long elapsed = timer.elapsed(tableCacheTime.unit);
-            return elapsed > tableCacheTime.duration;
+            final long elapsed = timer.elapsed(TimeUnit.NANOSECONDS);
+            return elapsed > tableCacheTime.toNanos();
         }
 
         private UpdateManager(){
-            this(TimeSpan.ofSeconds(5));
+            this(Duration.ofSeconds(5));
         }
 
         private void reset(){
@@ -309,7 +310,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
         //save additional fields
         _connector = connector;
         cacheManager = hasField(connector.getMetadata().getDescriptor(), TABLE_CACHE_TIME_PARAM) ?
-                new UpdateManager(TimeSpan.ofMillis(getField(connector.getMetadata().getDescriptor(), TABLE_CACHE_TIME_PARAM, String.class))):
+                new UpdateManager(Duration.ofMillis(Long.parseLong(getField(connector.getMetadata().getDescriptor(), TABLE_CACHE_TIME_PARAM, String.class)))):
                 new UpdateManager();
     }
 

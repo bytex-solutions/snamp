@@ -1,7 +1,6 @@
 package com.bytex.snamp.io;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.TypeTokens;
 import com.google.common.base.Splitter;
 import com.google.common.base.StandardSystemProperty;
@@ -11,6 +10,7 @@ import com.google.common.reflect.TypeToken;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.BitSet;
 
 /**
@@ -135,7 +135,7 @@ public final class IOUtils {
     }
 
     public static boolean waitForData(final InputStream is,
-                                      final TimeSpan timeout) throws IOException, InterruptedException {
+                                      final Duration timeout) throws IOException, InterruptedException {
         return waitForData(is, timeout.toMillis());
     }
 

@@ -17,6 +17,7 @@ import org.osgi.framework.FrameworkUtil;
 
 import java.io.File;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.ops4j.pax.exam.CoreOptions.*;
 import static org.ops4j.pax.exam.karaf.options.KarafDistributionOption.*;
@@ -134,15 +135,12 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
         if(enableRemoteDebugging())
             result.add(debugConfiguration("32441", true));
         result.add(systemProperty(TEST_CONTAINER_INDICATOR).value("true"));
-        for(final Map.Entry<String, String> sp: builder.getSystemProperties(getClass()).entrySet())
-            result.add(systemProperty(sp.getKey()).value(sp.getValue()));
-        for(final Map.Entry<String, String> fp: builder.getFrameworkProperties(getClass()).entrySet())
-            result.add(frameworkProperty(fp.getKey()).value(fp.getValue()));
+        result.addAll(builder.getSystemProperties(getClass()).entrySet().stream().map(sp -> systemProperty(sp.getKey()).value(sp.getValue())).collect(Collectors.toList()));
+        result.addAll(builder.getFrameworkProperties(getClass()).entrySet().stream().map(fp -> frameworkProperty(fp.getKey()).value(fp.getValue())).collect(Collectors.toList()));
         result.add(systemProperty(PROJECT_DIR).value(StandardSystemProperty.USER_DIR.value()));
         result.add(getPropagatedProperties());
         // https://ops4j1.jira.com/wiki/display/PAXEXAM3/Configuration+Options
         result.add(keepRuntimeFolder());
-        // result.add(new KarafDistributionConfigurationFilePutOption("etc/system.properties",  "java.security.auth.login.config", "C:\\Users\\temni\\Documents\\projects\\snamp\\auth.conf"));
         // result.add(new KarafDistributionConfigurationFileReplacementOption("etc/system.properties", new File("src/")));
         result.addAll(builder.getFeatures(getClass()));
         return result.toArray(new Option[result.size()]);

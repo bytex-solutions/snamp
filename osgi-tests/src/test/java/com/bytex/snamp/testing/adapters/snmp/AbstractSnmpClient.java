@@ -144,22 +144,19 @@ abstract class AbstractSnmpClient implements SnmpClient {
      */
     public final Future<SnmpNotification> addNotificationListener(final OID notificationID){
         final SynchronizationEvent<SnmpNotification> signaller = new SynchronizationEvent<>();
-        snmp.addCommandResponder(new CommandResponder() {
-            @Override
-            public final void processPdu(final CommandResponderEvent event) {
-                final PDU p = event.getPDU();
-                if(p.getVariableBindings().size() == 0) return;
-                else {
-                    final Collection<? extends VariableBinding> bindings = p.getVariableBindings();
-                    SnmpNotification notif = null;
-                    for(final VariableBinding binding: bindings)
-                        if(binding.getOid().startsWith(notificationID)){
-                            if(notif == null) notif = new SnmpNotification(notificationID);
-                            notif.put(binding);
-                        }
-                    if(notif != null && notif.size() > 0)
-                        signaller.fire(notif);
-                }
+        snmp.addCommandResponder(event -> {
+            final PDU p = event.getPDU();
+            if(p.getVariableBindings().size() == 0) return;
+            else {
+                final Collection<? extends VariableBinding> bindings = p.getVariableBindings();
+                SnmpNotification notif = null;
+                for(final VariableBinding binding: bindings)
+                    if(binding.getOid().startsWith(notificationID)){
+                        if(notif == null) notif = new SnmpNotification(notificationID);
+                        notif.put(binding);
+                    }
+                if(notif != null && notif.size() > 0)
+                    signaller.fire(notif);
             }
         });
         return signaller.getAwaitor();

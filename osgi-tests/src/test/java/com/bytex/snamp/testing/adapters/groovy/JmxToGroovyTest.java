@@ -1,14 +1,11 @@
 package com.bytex.snamp.testing.adapters.groovy;
 
-import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.ExceptionalCallable;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.ResourceAdapter;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.adapters.ResourceAdapterClient;
 import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
-import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.io.Communicator;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.testing.SnampDependencies;
@@ -22,6 +19,7 @@ import org.osgi.framework.BundleException;
 import javax.management.*;
 import java.io.File;
 import java.math.BigInteger;
+import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -61,7 +59,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     @Test
     public void stringAttributeTest() throws ExecutionException, TimeoutException, InterruptedException {
         final Communicator channel = Communicator.getSession(COMMUNICATION_CHANNEL);
-        final Object result = channel.post("changeStringAttribute", NON_NOTIF, TimeSpan.ofSeconds(10));
+        final Object result = channel.post("changeStringAttribute", NON_NOTIF, Duration.ofSeconds(10));
         assertTrue(result instanceof String);
         assertEquals("Frank Underwood", result);
     }
@@ -69,7 +67,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     @Test
     public void booleanAttributeTest() throws ExecutionException, TimeoutException, InterruptedException {
         final Communicator channel = Communicator.getSession(COMMUNICATION_CHANNEL);
-        final Object result = channel.post("changeBooleanAttribute", NON_NOTIF, TimeSpan.ofSeconds(10));
+        final Object result = channel.post("changeBooleanAttribute", NON_NOTIF, Duration.ofSeconds(10));
         assertTrue(result instanceof Boolean);
         assertEquals(Boolean.TRUE, result);
     }
@@ -77,7 +75,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     @Test
     public void integerAttributeTest() throws ExecutionException, TimeoutException, InterruptedException {
         final Communicator channel = Communicator.getSession(COMMUNICATION_CHANNEL);
-        final Object result = channel.post("changeIntegerAttribute", NON_NOTIF, TimeSpan.ofSeconds(10));
+        final Object result = channel.post("changeIntegerAttribute", NON_NOTIF, Duration.ofSeconds(10));
         assertTrue(result instanceof Integer);
         assertEquals(1020, result);
     }
@@ -109,14 +107,9 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
 
     @Test
     public void attributesBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
-        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
+        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, Duration.ofSeconds(2));
         try {
-            assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new EntryReader<String, ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
-                @Override
-                public boolean read(final String resourceName, final ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo> bindingInfo) {
-                    return bindingInfo.getProperty(ResourceAdapter.FeatureBindingInfo.MAPPED_TYPE) instanceof WellKnownType;
-                }
-            }));
+            assertTrue(client.forEachFeature(MBeanAttributeInfo.class, (resourceName, bindingInfo) -> bindingInfo.getProperty(ResourceAdapter.FeatureBindingInfo.MAPPED_TYPE) instanceof WellKnownType));
         } finally {
             client.release(getTestBundleContext());
         }
@@ -124,14 +117,9 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
 
     @Test
     public void notificationsBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
-        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
+        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, Duration.ofSeconds(2));
         try {
-            assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new EntryReader<String, ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
-                @Override
-                public boolean read(final String resourceName, final ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo> bindingInfo) {
-                    return bindingInfo != null;
-                }
-            }));
+            assertTrue(client.forEachFeature(MBeanAttributeInfo.class, (resourceName, bindingInfo) -> bindingInfo != null));
         } finally {
             client.release(getTestBundleContext());
         }
@@ -209,7 +197,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
                 ResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
                 return null;
             }
-        }, TimeSpan.ofSeconds(15));
+        }, Duration.ofSeconds(15));
     }
 
     @Override

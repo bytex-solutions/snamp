@@ -26,7 +26,7 @@ public interface OperationSupport {
 
     /**
      * The name of the field in {@link javax.management.Descriptor} which
-     * contains {@link com.bytex.snamp.TimeSpan} value.
+     * contains {@link java.time.Duration} value.
      */
     String INVOCATION_TIMEOUT_FIELD = "invocationTimeout";
 

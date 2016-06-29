@@ -2,7 +2,6 @@ package com.bytex.snamp.connectors.jmx;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.GroupedThreadFactory;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
@@ -28,6 +27,7 @@ import javax.management.openmbean.*;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.MalformedURLException;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -767,7 +767,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
     }
 
     boolean addAttribute(final String attributeName,
-                                    final TimeSpan readWriteTimeout,
+                                    final Duration readWriteTimeout,
                                     final CompositeData options) {
         verifyClosedState();
         return attributes.addAttribute(attributeName, readWriteTimeout, options) != null;
@@ -780,7 +780,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
     }
 
     boolean enableOperation(final String operationName,
-                                       final TimeSpan invocationTimeout,
+                                       final Duration invocationTimeout,
                                        final CompositeData options){
         verifyClosedState();
         return operations.enableOperation(operationName, invocationTimeout, options) != null;

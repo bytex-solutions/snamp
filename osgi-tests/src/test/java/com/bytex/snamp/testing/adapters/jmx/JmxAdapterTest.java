@@ -1,13 +1,10 @@
 package com.bytex.snamp.testing.adapters.jmx;
 
-import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.ExceptionalCallable;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.adapters.ResourceAdapterClient;
 import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
-import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.metrics.MetricsReader;
 import com.bytex.snamp.jmx.CompositeDataBuilder;
@@ -31,6 +28,7 @@ import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.time.Duration;
 import java.util.Hashtable;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
@@ -161,17 +159,14 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
             final SynchronizationEvent<Notification> attributeChangedEvent = new SynchronizationEvent<>();
             final SynchronizationEvent<Notification> testEvent = new SynchronizationEvent<>();
             final SynchronizationEvent<Notification> eventWithAttachmentHolder = new SynchronizationEvent<>();
-            connection.addNotificationListener(resourceObjectName, new NotificationListener() {
-                @Override
-                public void handleNotification(final Notification notification, final Object handback) {
-                    switch (notification.getType()){
-                        case "19.1":
-                            attributeChangedEvent.fire(notification); return;
-                        case "21.1":
-                            eventWithAttachmentHolder.fire(notification); return;
-                        case "20.1":
-                            testEvent.fire(notification);
-                    }
+            connection.addNotificationListener(resourceObjectName, (notification, handback) -> {
+                switch (notification.getType()){
+                    case "19.1":
+                        attributeChangedEvent.fire(notification); return;
+                    case "21.1":
+                        eventWithAttachmentHolder.fire(notification); return;
+                    case "20.1":
+                        testEvent.fire(notification);
                 }
             }, null, null);
             final Future<Notification> attributeChangedEventAwaitor = attributeChangedEvent.getAwaitor();
@@ -197,14 +192,9 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
 
     @Test
     public void attributeBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
-        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
+        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, Duration.ofSeconds(2));
         try {
-            assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new EntryReader<String, FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
-                @Override
-                public boolean read(final String resourceName, final FeatureBindingInfo<MBeanAttributeInfo> bindingInfo) {
-                    return bindingInfo.getProperty(FeatureBindingInfo.MAPPED_TYPE) instanceof OpenType<?>;
-                }
-            }));
+            assertTrue(client.forEachFeature(MBeanAttributeInfo.class, (resourceName, bindingInfo) -> bindingInfo.getProperty(FeatureBindingInfo.MAPPED_TYPE) instanceof OpenType<?>));
         } finally {
             client.release(getTestBundleContext());
         }
@@ -212,14 +202,9 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
 
     @Test
     public void notificationBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
-        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
+        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, Duration.ofSeconds(2));
         try {
-            assertTrue(client.forEachFeature(MBeanNotificationInfo.class, new EntryReader<String, FeatureBindingInfo<MBeanNotificationInfo>, ExceptionPlaceholder>() {
-                @Override
-                public boolean read(final String resourceName, final FeatureBindingInfo<MBeanNotificationInfo> bindingInfo) {
-                    return bindingInfo != null;
-                }
-            }));
+            assertTrue(client.forEachFeature(MBeanNotificationInfo.class, (resourceName, bindingInfo) -> bindingInfo != null));
         } finally {
             client.release(getTestBundleContext());
         }
@@ -260,7 +245,7 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
                 ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
                 return null;
             }
-        }, TimeSpan.ofMinutes(4));
+        }, Duration.ofMinutes(4));
     }
 
     @Override

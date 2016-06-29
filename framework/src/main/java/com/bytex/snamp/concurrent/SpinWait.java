@@ -1,8 +1,8 @@
 package com.bytex.snamp.concurrent;
 
-import com.bytex.snamp.TimeSpan;
 import com.google.common.base.Stopwatch;
 
+import java.time.Duration;
 import java.util.concurrent.*;
 
 /**
@@ -34,9 +34,9 @@ public abstract class SpinWait<T> implements Future<T> {
     /**
      * Represents default value of the spin delay.
      */
-    protected static final TimeSpan DEFAULT_SPIN_DELAY = TimeSpan.ofMillis(1);
+    protected static final Duration DEFAULT_SPIN_DELAY = Duration.ofMillis(1);
 
-    protected SpinWait(final TimeSpan spinDelay){
+    protected SpinWait(final Duration spinDelay){
         this.delayMillis = spinDelay.toMillis();
         state = new VolatileBox<>(SpinState.ACTIVE);
         result = null;
@@ -66,7 +66,7 @@ public abstract class SpinWait<T> implements Future<T> {
         }
     }
 
-    private T get(final long timeoutMillis) throws InterruptedException, ExecutionException, TimeoutException {
+    private T get(final long timeoutNanos) throws InterruptedException, ExecutionException, TimeoutException {
         final Stopwatch timer = Stopwatch.createStarted();
         while (!state.get().isDone) {
             final T result;
@@ -79,7 +79,7 @@ public abstract class SpinWait<T> implements Future<T> {
             }
             if (result != null && state.compareAndSet(SpinState.ACTIVE, SpinState.COMPLETED))
                  this.result = result;
-            else if (timer.elapsed(TimeUnit.MILLISECONDS) >= timeoutMillis)
+            else if (timer.elapsed(TimeUnit.NANOSECONDS) >= timeoutNanos)
                 throw new TimeoutException("Spin wait timed out");
             else if (Thread.interrupted()) throw spinWaitInterrupted();
             else Thread.sleep(delayMillis);
@@ -104,7 +104,7 @@ public abstract class SpinWait<T> implements Future<T> {
      */
     @Override
     public final T get(final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        return get(unit.toMillis(timeout));
+        return get(unit.toNanos(timeout));
     }
 
     /**

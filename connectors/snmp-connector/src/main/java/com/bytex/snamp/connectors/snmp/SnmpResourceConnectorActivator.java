@@ -1,7 +1,6 @@
 package com.bytex.snamp.connectors.snmp;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
@@ -10,6 +9,7 @@ import org.snmp4j.smi.GenericAddress;
 
 import javax.management.openmbean.CompositeData;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -40,7 +40,7 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
             return result;
         }
         @Override
-        protected boolean addAttribute(final SnmpResourceConnector connector, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+        protected boolean addAttribute(final SnmpResourceConnector connector, final String attributeName, final Duration readWriteTimeout, final CompositeData options) {
             return connector.addAttribute(attributeName, readWriteTimeout, options);
         }
 
@@ -60,7 +60,7 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
         }
 
         @Override
-        protected boolean enableOperation(final SnmpResourceConnector connector, final String operationName, final TimeSpan timeout, final CompositeData options) {
+        protected boolean enableOperation(final SnmpResourceConnector connector, final String operationName, final Duration timeout, final CompositeData options) {
             //not supported
             return false;
         }

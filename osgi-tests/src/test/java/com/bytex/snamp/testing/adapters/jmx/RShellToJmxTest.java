@@ -1,7 +1,6 @@
 package com.bytex.snamp.testing.adapters.jmx;
 
 import com.bytex.snamp.ExceptionalCallable;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -30,6 +29,7 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 import javax.script.ScriptException;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Hashtable;
 import java.util.Set;
 
@@ -85,7 +85,7 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
                 ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
                 return null;
             }
-        }, TimeSpan.ofSeconds(20));
+        }, Duration.ofSeconds(20));
     }
 
     @Override

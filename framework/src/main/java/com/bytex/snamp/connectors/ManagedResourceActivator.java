@@ -2,7 +2,6 @@ package com.bytex.snamp.connectors;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.MethodStub;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.configuration.internal.CMManagedResourceParser;
 import com.bytex.snamp.connectors.discovery.AbstractDiscoveryService;
@@ -21,6 +20,7 @@ import org.osgi.service.cm.ConfigurationAdmin;
 
 import javax.management.openmbean.CompositeData;
 import java.math.BigInteger;
+import java.time.Duration;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -229,7 +229,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          */
         protected abstract boolean addAttribute(final TConnector connector,
                                              final String attributeName,
-                                             final TimeSpan readWriteTimeout,
+                                             final Duration readWriteTimeout,
                                              final CompositeData options);
 
         /**
@@ -307,7 +307,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
         protected abstract boolean enableOperation(final TConnector connector,
                                                 final String operationName,
-                                                final TimeSpan invocationTimeout,
+                                                final Duration invocationTimeout,
                                                 final CompositeData options);
 
         /**
@@ -377,6 +377,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
             this(getConnectorType(controller), controller, dependencies);
         }
 
+        @SuppressWarnings("unchecked")
         private static CMManagedResourceParser getParser(final RequiredService<?>... dependencies){
             final ConfigurationManager configManager = getDependency(RequiredServiceAccessor.class, ConfigurationManager.class, dependencies);
             assert configManager != null;

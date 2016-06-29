@@ -3,11 +3,11 @@ package com.bytex.snamp.configuration.impl;
 import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.SerializableMap;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.configuration.AbstractAgentConfiguration;
 import com.google.common.collect.ForwardingMap;
 
 import java.io.*;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -456,7 +456,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
          */
         public static final class SerializableOperationConfiguration extends AbstractFeatureConfiguration implements OperationConfiguration{
             private static final long serialVersionUID = 8267389949041604889L;
-            private TimeSpan timeout = TimeSpan.INFINITE;
+            private Duration timeout;
 
             @SpecialUse
             public SerializableOperationConfiguration(){
@@ -498,17 +498,17 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
             @Override
             public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
                 long timeout = in.readLong();
-                this.timeout = timeout < 0L ? TimeSpan.INFINITE : TimeSpan.ofMillis(timeout);
+                this.timeout = timeout < 0L ? null : Duration.ofMillis(timeout);
                 readParameters(in);
             }
 
             @Override
-            public TimeSpan getInvocationTimeout() {
+            public Duration getInvocationTimeout() {
                 return timeout;
             }
 
             @Override
-            public void setInvocationTimeout(final TimeSpan value) {
+            public void setInvocationTimeout(final Duration value) {
                 markAsModified();
                 this.timeout = value;
             }
@@ -600,7 +600,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
          */
         static final class SerializableAttributeConfiguration extends AbstractFeatureConfiguration implements AttributeConfiguration{
             private static final long serialVersionUID = -2134014000719123759L;
-            private TimeSpan readWriteTimeout = TimeSpan.INFINITE;
+            private Duration readWriteTimeout;
 
             @SpecialUse
             public SerializableAttributeConfiguration() {
@@ -641,7 +641,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
             @Override
             public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
                 final long timeout = in.readLong();
-                readWriteTimeout = timeout < 0L ? TimeSpan.INFINITE : TimeSpan.ofMillis(timeout);
+                readWriteTimeout = timeout < 0L ? null : Duration.ofMillis(timeout);
                 readParameters(in);
             }
 
@@ -651,7 +651,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
              * @return The attribute invoke/write operation timeout.
              */
             @Override
-            public TimeSpan getReadWriteTimeout() {
+            public Duration getReadWriteTimeout() {
                 return readWriteTimeout;
             }
 
@@ -660,7 +660,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
              * @param timeout A new value invoke/write operation timeout.
              */
             @Override
-            public void setReadWriteTimeout(final TimeSpan timeout) {
+            public void setReadWriteTimeout(final Duration timeout) {
                 markAsModified();
                 this.readWriteTimeout = timeout;
             }

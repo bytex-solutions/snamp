@@ -1,6 +1,5 @@
 package com.bytex.snamp.adapters;
 
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.SpinWait;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
@@ -17,9 +16,11 @@ import org.osgi.framework.*;
 
 import javax.management.InstanceNotFoundException;
 import javax.management.MBeanFeatureInfo;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
@@ -62,8 +63,8 @@ public final class ResourceAdapterClient extends ServiceHolder<ResourceAdapter> 
 
     public ResourceAdapterClient(final BundleContext context,
                                  final String instanceName,
-                                 final TimeSpan instanceTimeout) throws TimeoutException, InterruptedException, ExecutionException{
-        super(context, new ResourceAdapterServiceWait(context, instanceName).get(instanceTimeout.duration, instanceTimeout.unit));
+                                 final Duration instanceTimeout) throws TimeoutException, InterruptedException, ExecutionException{
+        super(context, new ResourceAdapterServiceWait(context, instanceName).get(instanceTimeout.toNanos(), TimeUnit.NANOSECONDS));
     }
 
     private static ServiceReference<ResourceAdapter> getResourceAdapterAndCheck(final BundleContext context,

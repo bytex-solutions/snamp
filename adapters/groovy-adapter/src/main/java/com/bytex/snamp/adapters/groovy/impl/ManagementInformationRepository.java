@@ -1,7 +1,6 @@
 package com.bytex.snamp.adapters.groovy.impl;
 
 import com.bytex.snamp.EntryReader;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.adapters.groovy.AttributesRootAPI;
 import com.bytex.snamp.adapters.groovy.EventsRootAPI;
@@ -15,6 +14,7 @@ import org.osgi.framework.BundleContext;
 
 import javax.management.*;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -176,7 +176,7 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
     }
 
     @Override
-    public ResourceAttributesAnalyzer<?> attributesAnalyzer(final TimeSpan checkPeriod) {
+    public ResourceAttributesAnalyzer<?> attributesAnalyzer(final Duration checkPeriod) {
         return new ScriptAttributesAnalyzer(checkPeriod, attributes);
     }
 

@@ -1,16 +1,18 @@
 package com.bytex.snamp.connectors.jmx;
 
-import com.bytex.snamp.concurrent.LazyValue;
-import com.bytex.snamp.concurrent.Repeater;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.Internal;
 import com.bytex.snamp.ThreadSafe;
+import com.bytex.snamp.concurrent.Repeater;
 
-import javax.management.*;
+import javax.management.JMException;
+import javax.management.MBeanServerConnection;
+import javax.management.ObjectInstance;
+import javax.management.ObjectName;
 import javax.management.remote.JMXConnectionNotification;
 import javax.management.remote.JMXConnector;
 import java.io.Closeable;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -74,7 +76,7 @@ final class JmxConnectionManager implements AutoCloseable {
         private final AtomicReference<IOException> problem;
         private final Logger logger;
 
-        private ConnectionWatchDog(final TimeSpan period,
+        private ConnectionWatchDog(final Duration period,
                                    final ConnectionHolder connection,
                                    final Lock writeLock,
                                    final Logger logger) {
@@ -152,7 +154,7 @@ final class JmxConnectionManager implements AutoCloseable {
     private final ConnectionHolder connectionHolder;
     private final ConnectionWatchDog watchDog;
     private final Lock readLock;
-    private final TimeSpan watchPeriod;
+    private final Duration watchPeriod;
 
     JmxConnectionManager(final JmxConnectionFactory connectionString,
                          final long watchDogPeriod,
@@ -160,7 +162,7 @@ final class JmxConnectionManager implements AutoCloseable {
         final ReentrantReadWriteLock coordinator = new ReentrantReadWriteLock();
         this.readLock = coordinator.readLock();
         connectionHolder = new ConnectionHolder(connectionString);
-        watchDog = new ConnectionWatchDog(this.watchPeriod = TimeSpan.ofMillis(watchDogPeriod), connectionHolder, coordinator.writeLock(), logger);
+        watchDog = new ConnectionWatchDog(this.watchPeriod = Duration.ofMillis(watchDogPeriod), connectionHolder, coordinator.writeLock(), logger);
         //staring the watch dog
         watchDog.run();
     }

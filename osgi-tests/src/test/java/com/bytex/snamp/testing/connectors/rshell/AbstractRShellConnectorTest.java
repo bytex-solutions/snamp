@@ -65,19 +65,11 @@ public abstract class AbstractRShellConnectorTest extends AbstractResourceConnec
         final SshServer server = this.server = SshServer.setUpDefaultServer();
         server.setPort(port);
         server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(certificateFile));
-        server.setPasswordAuthenticator(new PasswordAuthenticator() {
-            @Override
-            public boolean authenticate(final String username, final String pwd, final ServerSession session) {
-                return Objects.equals(username, sshUserName) &&
-                        Objects.equals(password, pwd);
-            }
-        });
-        server.setCommandFactory(new CommandFactory() {
-            @Override
-            public Command createCommand(final String command) {
-                final ProcessShellFactory factory = new ProcessShellFactory(command.split(" "));
-                return factory.create();
-            }
+        server.setPasswordAuthenticator((username, pwd, session) -> Objects.equals(username, sshUserName) &&
+                Objects.equals(password, pwd));
+        server.setCommandFactory(command -> {
+            final ProcessShellFactory factory = new ProcessShellFactory(command.split(" "));
+            return factory.create();
         });
         server.start();
     }

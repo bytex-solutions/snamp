@@ -1,7 +1,6 @@
 package com.bytex.snamp.testing.adapters.snmp;
 
 import com.bytex.snamp.ExceptionalCallable;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
 import com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
@@ -29,6 +28,7 @@ import javax.management.ObjectName;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.util.Calendar;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -83,7 +83,7 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
                 ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
                 return null;
             }
-        }, TimeSpan.ofSeconds(4));
+        }, Duration.ofSeconds(4));
     }
 
     @Override

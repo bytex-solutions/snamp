@@ -1,6 +1,5 @@
 package com.bytex.snamp.testing.management;
 
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.OperatingSystem;
@@ -14,6 +13,7 @@ import org.apache.felix.service.command.CommandSession;
 import org.junit.Test;
 
 import java.io.*;
+import java.time.Duration;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -180,7 +180,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
                     .getFeatures(AttributeConfiguration.class)
                     .get("attr");
             assertNotNull(attribute);
-            assertEquals(TimeSpan.ofSeconds(12), attribute.getReadWriteTimeout());
+            assertEquals(Duration.ofSeconds(12), attribute.getReadWriteTimeout());
             assertEquals("val", attribute.getParameters().get("par"));
             return false;
         });
@@ -283,7 +283,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
                     .getFeatures(AttributeConfiguration.class)
                     .get("attr");
             assertNotNull(attribute);
-            assertEquals(TimeSpan.ofSeconds(12), attribute.getReadWriteTimeout());
+            assertEquals(Duration.ofSeconds(12), attribute.getReadWriteTimeout());
             assertEquals("val", attribute.getParameters().get("par"));
             return false;
         });

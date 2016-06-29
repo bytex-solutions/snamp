@@ -2,16 +2,17 @@ package com.bytex.snamp.adapters;
 
 import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.Internal;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.GroupedThreadFactory;
 import com.bytex.snamp.EntryReader;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
 import java.lang.ref.WeakReference;
+import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Roman Sakno
@@ -49,9 +50,9 @@ final class ResourceAdapterEventBus {
     }
 
     @Internal
-    static boolean disableAsyncMode(final TimeSpan terminationTimeout) throws InterruptedException {
+    static boolean disableAsyncMode(final Duration terminationTimeout) throws InterruptedException {
         EVENT_EXECUTOR.shutdown();
-        return EVENT_EXECUTOR.awaitTermination(terminationTimeout.duration, terminationTimeout.unit);
+        return EVENT_EXECUTOR.awaitTermination(terminationTimeout.toNanos(), TimeUnit.NANOSECONDS);
     }
 
     static boolean addEventListener(final String adapterName,

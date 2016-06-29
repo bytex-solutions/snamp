@@ -1,15 +1,12 @@
-package com.bytex.snamp.com.bytex.snamp.connectors;
+package com.bytex.snamp.connectors;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.modeling.AttributeValue;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.OperationConfiguration;
 import com.bytex.snamp.configuration.ConfigParameters;
-import com.bytex.snamp.connectors.ManagedResourceActivator;
-import com.bytex.snamp.connectors.ManagedResourceConnectorBean;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.attributes.CustomAttributeInfo;
 import com.bytex.snamp.connectors.discovery.DiscoveryService;
@@ -22,6 +19,7 @@ import javax.management.*;
 import javax.management.openmbean.OpenType;
 import javax.management.openmbean.SimpleType;
 import java.beans.IntrospectionException;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Locale;
@@ -174,7 +172,7 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         final TestManagementConnectorBean connector = new TestManagementConnectorBean();
         connector.field1 = "123";
         final MBeanAttributeInfo md;
-        assertNotNull(md = connector.addAttribute("p1", TimeSpan.ofSeconds(1), makeAttributeConfig("property1")));
+        assertNotNull(md = connector.addAttribute("p1", Duration.ofSeconds(1), makeAttributeConfig("property1")));
         //enables notifications
         assertNotNull(connector.enableNotifications("propertyChanged", makeEventConfig("propertyChanged")));
         final SynchronizationListener listener = new SynchronizationListener();
@@ -192,7 +190,7 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         assertEquals("p1", md.getName());
         assertEquals(SimpleType.STRING, AttributeDescriptor.getOpenType(md));
         //enables operations
-        assertNotNull(connector.enableOperation("cs", TimeSpan.INFINITE, makeOperationConfig("computeSum")));
+        assertNotNull(connector.enableOperation("cs", null, makeOperationConfig("computeSum")));
         final Object result = connector.invoke("cs", new Object[]{4, 5}, ArrayUtils.emptyArray(String[].class));
         assertTrue(result instanceof Integer);
         assertEquals(9, result);

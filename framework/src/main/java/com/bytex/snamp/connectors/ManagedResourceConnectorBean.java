@@ -2,7 +2,6 @@ package com.bytex.snamp.connectors;
 
 import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.Descriptive;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.configuration.ConfigParameters;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.connectors.attributes.*;
@@ -33,6 +32,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.lang.reflect.UndeclaredThrowableException;
+import java.time.Duration;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -958,14 +958,14 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * @return The description of the attribute.
      */
     public final MBeanAttributeInfo addAttribute(final String attributeName,
-                                                 final TimeSpan readWriteTimeout,
+                                                 final Duration readWriteTimeout,
                                                  final CompositeData options) {
         verifyClosedState();
         return attributes.addAttribute(attributeName, readWriteTimeout, options);
     }
 
     public final MBeanOperationInfo enableOperation(final String operationName,
-                                                    final TimeSpan invocationTimeout,
+                                                    final Duration invocationTimeout,
                                                     final CompositeData options){
         verifyClosedState();
         return operations.enableOperation(operationName, invocationTimeout, options);

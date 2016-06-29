@@ -1,8 +1,9 @@
 package com.bytex.snamp.connectors.wmq;
 
-import com.bytex.snamp.TimeSpan;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.time.Duration;
 
 /**
  * @author Roman Sakno
@@ -12,7 +13,7 @@ import org.junit.Test;
 public final class DiffAccumulatorTest extends Assert {
     @Test
     public void longAccumulatorTest() throws InterruptedException {
-        final DiffLongAccumulator acc = new DiffLongAccumulator(TimeSpan.ofMillis(500L));
+        final DiffLongAccumulator acc = new DiffLongAccumulator(Duration.ofMillis(500L));
         assertEquals(0L, acc.update(15L));
         assertEquals(4L, acc.update(19L));
         assertEquals(8L, acc.update(23L));
@@ -24,7 +25,7 @@ public final class DiffAccumulatorTest extends Assert {
 
     @Test
     public void intAccumulatorTest() throws InterruptedException {
-        final DiffIntAccumulator acc = new DiffIntAccumulator(TimeSpan.ofMillis(500L));
+        final DiffIntAccumulator acc = new DiffIntAccumulator(Duration.ofMillis(500L));
         assertEquals(0L, acc.update(15));
         assertEquals(4L, acc.update(19));
         assertEquals(8L, acc.update(23));

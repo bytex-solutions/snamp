@@ -1,6 +1,5 @@
 package com.bytex.snamp.management.jmx;
 
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.connectors.discovery.DiscoveryService;
 import com.bytex.snamp.jmx.CompositeTypeBuilder;
@@ -13,6 +12,7 @@ import com.google.common.collect.Maps;
 
 import javax.management.MBeanOperationInfo;
 import javax.management.openmbean.*;
+import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -92,8 +92,8 @@ final class DiscoverManagementMetadataOperation extends OpenMBean.OpenOperation<
             for (AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration attribute: attributes) {
                 final Map<String, Object> attrMap = new HashMap<>();
                 // append the r/w timeout
-                if (attribute.getReadWriteTimeout() != TimeSpan.INFINITE)
-                    attrMap.put("ReadWriteTimeout", attribute.getReadWriteTimeout().convert(TimeUnit.MILLISECONDS).duration);
+                if (attribute.getReadWriteTimeout() != null)
+                    attrMap.put("ReadWriteTimeout", attribute.getReadWriteTimeout(ChronoUnit.MILLIS));
                 else {
                     attrMap.put("ReadWriteTimeout", -1L);
                 }

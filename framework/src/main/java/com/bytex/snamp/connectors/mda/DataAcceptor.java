@@ -1,11 +1,11 @@
 package com.bytex.snamp.connectors.mda;
 
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
 import com.bytex.snamp.connectors.metrics.MetricsReader;
 
 import javax.management.openmbean.CompositeData;
+import java.time.Duration;
 import java.util.Objects;
 import java.util.Set;
 
@@ -52,7 +52,7 @@ public abstract class DataAcceptor extends AbstractManagedResourceConnector {
     }
 
     final boolean addAttribute(final String attributeName,
-                         final TimeSpan readWriteTimeout,
+                         final Duration readWriteTimeout,
                          final CompositeData options){
         return getAttributes().addAttribute(attributeName, readWriteTimeout, options) != null;
     }
@@ -69,7 +69,7 @@ public abstract class DataAcceptor extends AbstractManagedResourceConnector {
         getNotifications().retainAll(notifications);
     }
 
-    final void beginListening(final TimeSpan expirationTime, final Object... dependencies) throws Exception {
+    final void beginListening(final Duration expirationTime, final Object... dependencies) throws Exception {
         getAttributes().init(expirationTime, accessTimer);
         getNotifications().init(accessTimer);
         beginListening(dependencies);

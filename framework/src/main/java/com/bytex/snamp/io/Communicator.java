@@ -1,7 +1,6 @@
 package com.bytex.snamp.io;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -9,9 +8,11 @@ import com.google.common.eventbus.AllowConcurrentEvents;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
+import java.time.Duration;
 import java.util.EventListener;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Predicate;
 
@@ -66,7 +67,7 @@ public final class Communicator extends EventBus {
         return actualMessage -> incomingIdentity != System.identityHashCode(actualMessage);
     }
 
-    public Object post(final Object message, final TimeSpan timeout) throws TimeoutException, InterruptedException, ExecutionException {
+    public Object post(final Object message, final Duration timeout) throws TimeoutException, InterruptedException, ExecutionException {
         return post(message, null, timeout);
     }
 
@@ -74,14 +75,14 @@ public final class Communicator extends EventBus {
         return post(message, null, timeout);
     }
 
-    public Object post(final Object message, Predicate<Object> responseFilter, final TimeSpan timeout) throws TimeoutException, InterruptedException, ExecutionException {
+    public Object post(final Object message, Predicate<Object> responseFilter, final Duration timeout) throws TimeoutException, InterruptedException, ExecutionException {
         responseFilter = exceptIncoming(message).and(responseFilter);
         final IncomingMessageEvent event = new IncomingMessageEvent(responseFilter);
         final Future<?> awaitor = event.getAwaitor();
         register(event);
         post(message);
         try {
-            return awaitor.get(timeout.duration, timeout.unit);
+            return awaitor.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
         }
         finally {
             unregister(event);
@@ -99,7 +100,7 @@ public final class Communicator extends EventBus {
      * @throws ExecutionException Filter raises exception.
      */
     public Object post(final Object message, final Predicate<Object> responseFilter, final long timeout) throws TimeoutException, InterruptedException, ExecutionException {
-        return post(message, responseFilter, TimeSpan.ofMillis(timeout));
+        return post(message, responseFilter, Duration.ofMillis(timeout));
     }
 
     public SynchronizationEvent<?> registerMessageSynchronizer(final Object except) {

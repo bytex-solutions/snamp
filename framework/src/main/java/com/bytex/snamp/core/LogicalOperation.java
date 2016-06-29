@@ -1,11 +1,11 @@
 package com.bytex.snamp.core;
 
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.TimeSpan;
 import com.google.common.base.Joiner;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
 import java.util.ResourceBundle;
@@ -390,8 +390,8 @@ public class LogicalOperation extends Logger implements SafeCloseable {
      * Gets duration of logical operation execution.
      * @return The duration of logical operation execution.
      */
-    public final TimeSpan getDuration(){
-        return TimeSpan.ofNanos(getDuration(TimeUnit.NANOSECONDS));
+    public final Duration getDuration(){
+        return Duration.ofNanos(getDuration(TimeUnit.NANOSECONDS));
     }
 
     /**
