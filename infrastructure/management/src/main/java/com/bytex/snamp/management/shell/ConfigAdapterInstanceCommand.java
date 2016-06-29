@@ -3,12 +3,12 @@ package com.bytex.snamp.management.shell;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.AgentConfiguration;
-import static com.google.common.base.Strings.isNullOrEmpty;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Registers a new adapter instance.
@@ -35,14 +35,7 @@ public final class ConfigAdapterInstanceCommand extends ConfigurationCommand {
     @Override
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
         if (isNullOrEmpty(instanceName)) return false;
-        final ResourceAdapterConfiguration adapter;
-        if (configuration.getEntities(ResourceAdapterConfiguration.class).containsKey(instanceName)) {//modify existing adapter
-            adapter = configuration.getEntities(ResourceAdapterConfiguration.class).get(instanceName);
-            output.append("Updated");
-        } else {  //create new adapter instance
-            adapter = configuration.getEntities(ResourceAdapterConfiguration.class).getOrAdd(instanceName);
-            output.append("Created");
-        }
+        final ResourceAdapterConfiguration adapter = configuration.getOrRegisterEntity(ResourceAdapterConfiguration.class, instanceName);
         //setup system name
         if (!isNullOrEmpty(systemName))
             adapter.setAdapterName(systemName);
@@ -53,6 +46,7 @@ public final class ConfigAdapterInstanceCommand extends ConfigurationCommand {
                 if (keyValue != null)
                     adapter.getParameters().put(keyValue.getKey(), keyValue.getValue());
             }
+        output.append("Updated");
         return true;
     }
 }

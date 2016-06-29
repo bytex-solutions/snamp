@@ -215,6 +215,10 @@ public interface AgentConfiguration extends Cloneable {
              * @param value A new value of the timeout.
              */
             void setReadWriteTimeout(final Duration value);
+
+            default void setReadWriteTimeout(final long amount, final TemporalUnit unit){
+                setReadWriteTimeout(Duration.of(amount, unit));
+            }
         }
 
         /**
@@ -235,11 +239,19 @@ public interface AgentConfiguration extends Cloneable {
              */
             Duration getInvocationTimeout();
 
+            default long getInvocationTimeout(final TemporalUnit unit){
+                return getInvocationTimeout().get(unit);
+            }
+
             /**
              * Sets timeout of operation invocation.
              * @param value A new timeout value.
              */
             void setInvocationTimeout(final Duration value);
+
+            default void setInvocationTimeout(final long amount, final TemporalUnit unit){
+                setInvocationTimeout(Duration.of(amount, unit));
+            }
         }
 
         /**
@@ -314,9 +326,7 @@ public interface AgentConfiguration extends Cloneable {
      * @param <E> Type of requested entity.
      * @return A new instance of entity configuration; or {@literal null}, if entity is not supported.
      */
-    default <E extends EntityConfiguration> E createEntityConfiguration(final Class<E> entityType){
-        return null;
-    }
+    <E extends EntityConfiguration> E createEntityConfiguration(final Class<E> entityType);
 
     /**
      * Imports the state of specified object into this object.

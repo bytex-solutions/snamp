@@ -14,7 +14,7 @@ import java.util.concurrent.Future;
 public final class SynchronizationEventTest extends Assert {
 
     @Test
-    public final void manualResetTest() throws InterruptedException, ExecutionException {
+    public void manualResetTest() throws InterruptedException, ExecutionException {
         final SynchronizationEvent<String> event = new SynchronizationEvent<>();
         final Future<String> awaitor1 = event.getAwaitor();
         assertTrue(event.fire("Signal #1"));
@@ -26,7 +26,7 @@ public final class SynchronizationEventTest extends Assert {
     }
 
     @Test
-    public final void autoResetTest() throws InterruptedException, ExecutionException {
+    public void autoResetTest() throws InterruptedException, ExecutionException {
         final SynchronizationEvent<String> event = new SynchronizationEvent<>(true);
         final Future<String> awaitor1 = event.getAwaitor();
         assertTrue(event.fire("Signal #1"));

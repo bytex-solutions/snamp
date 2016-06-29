@@ -13,7 +13,7 @@ import org.apache.felix.service.command.CommandSession;
 import org.junit.Test;
 
 import java.io.*;
-import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -180,7 +180,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
                     .getFeatures(AttributeConfiguration.class)
                     .get("attr");
             assertNotNull(attribute);
-            assertEquals(Duration.ofSeconds(12), attribute.getReadWriteTimeout());
+            assertEquals(12, attribute.getReadWriteTimeout(ChronoUnit.SECONDS));
             assertEquals("val", attribute.getParameters().get("par"));
             return false;
         });
@@ -283,7 +283,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
                     .getFeatures(AttributeConfiguration.class)
                     .get("attr");
             assertNotNull(attribute);
-            assertEquals(Duration.ofSeconds(12), attribute.getReadWriteTimeout());
+            assertEquals(12, attribute.getReadWriteTimeout(ChronoUnit.SECONDS));
             assertEquals("val", attribute.getParameters().get("par"));
             return false;
         });

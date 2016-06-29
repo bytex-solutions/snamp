@@ -16,11 +16,11 @@ public class RepeaterTest extends Assert {
     private static final class SecondsCounter extends Repeater{
         private final AtomicLong c = new AtomicLong(0);
 
-        public SecondsCounter(){
+        private SecondsCounter(){
             super(Duration.ofSeconds(1));
         }
 
-        public final long getValue(){
+        public long getValue(){
             return c.get();
         }
 
@@ -34,7 +34,7 @@ public class RepeaterTest extends Assert {
          * @param s A new repeater state.
          */
         @Override
-        protected final void stateChanged(final RepeaterState s) {
+        protected void stateChanged(final RepeaterState s) {
             switch (s){
                 case STARTED: c.getAndSet(0L);
             }

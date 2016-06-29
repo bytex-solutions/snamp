@@ -903,7 +903,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
     @Override
     public <F extends MBeanFeatureInfo> Collection<? extends F> expand(final Class<F> featureType) {
         if(smartMode)
-            if(attributes.canExpandWith(featureType))
+            if(SnmpAttributeRepository.canExpandWith(featureType))
                 return (Collection<F>)attributes.expand();
         return Collections.emptyList();
     }

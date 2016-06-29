@@ -18,7 +18,6 @@ import com.bytex.snamp.connectors.operations.OperationDescriptorRead;
 import com.bytex.snamp.connectors.operations.OperationSupport;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
-import static com.google.common.base.MoreObjects.firstNonNull;
 import com.google.common.collect.Sets;
 import org.osgi.framework.BundleContext;
 
@@ -36,6 +35,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.bytex.snamp.connectors.jmx.JmxConnectorDescriptionProvider.*;
+import static com.google.common.base.MoreObjects.firstNonNull;
 
 /**
  * Represents JMX connector.
@@ -878,11 +878,11 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
     @Override
     public <F extends MBeanFeatureInfo> Collection<? extends F> expand(final Class<F> featureType) {
         if(this.smartMode)
-            if(attributes.canExpandWith(featureType))
+            if(JmxAttributeRepository.canExpandWith(featureType))
                 return (Collection<F>)attributes.expand();
-            else if(notifications.canExpandWith(featureType))
+            else if(JmxNotificationRepository.canExpandWith(featureType))
                 return (Collection<F>)notifications.expand();
-            else if(operations.canExpandWith(featureType))
+            else if(JmxOperationRepository.canExpandWith(featureType))
                 return (Collection<F>)operations.expand();
         return Collections.emptyList();
     }

@@ -8,7 +8,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.impl.SerializableAgentConfiguration.newEntityConfiguration;
@@ -37,7 +37,7 @@ public final class ManagedResourceScriptEngineTest extends Assert {
         final AttributeConfiguration config = newEntityConfiguration(AttributeConfiguration.class);
         assertNotNull(config);
         config.getParameters().put("configParam", "Hello, world!");
-        config.setReadWriteTimeout(Duration.ofSeconds(2));
+        config.setReadWriteTimeout(2, ChronoUnit.SECONDS);
 
         final AttributeAccessor scr = engine.loadAttribute("DummyAttribute", new AttributeDescriptor(config));
         assertEquals(ManagedResourceAttributeScript.INT32, scr.type());

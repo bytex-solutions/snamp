@@ -7,7 +7,7 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 
-import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -46,7 +46,7 @@ public final class ConfigAttributeCommand extends ConfigurationCommand {
             final ManagedResourceConfiguration resource = configuration.getEntities(ManagedResourceConfiguration.class).get(resourceName);
             final AttributeConfiguration attribute = resource.getFeatures(AttributeConfiguration.class).getOrAdd(name);
             if (readWriteTimeout > INFINITE_TIMEOUT)
-                attribute.setReadWriteTimeout(Duration.ofMillis(readWriteTimeout));
+                attribute.setReadWriteTimeout(readWriteTimeout, ChronoUnit.MILLIS);
             if (!ArrayUtils.isNullOrEmpty(parameters))
                 for (final String param : parameters) {
                     final StringKeyValue pair = StringKeyValue.parse(param);

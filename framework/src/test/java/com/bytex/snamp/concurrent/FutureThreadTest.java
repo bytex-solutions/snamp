@@ -15,7 +15,7 @@ public final class FutureThreadTest extends Assert {
 
 
     @Test
-    public final void multipleTasksTest() throws ExecutionException, InterruptedException {
+    public void multipleTasksTest() throws ExecutionException, InterruptedException {
         final FutureThread<Boolean> bThread = new FutureThread<>(() -> true);
         final FutureThread<Integer> nThread = new FutureThread<>(() -> {
             Thread.sleep(300);
@@ -43,7 +43,7 @@ public final class FutureThreadTest extends Assert {
     }
 
     @Test(expected = CancellationException.class)
-    public final void taskCancellationTest() throws InterruptedException, ExecutionException {
+    public void taskCancellationTest() throws InterruptedException, ExecutionException {
         final FutureThread<String> longRunning = new FutureThread<>(() -> {
             while (!Thread.currentThread().isInterrupted())
                 Thread.yield();

@@ -1116,9 +1116,9 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
     @SuppressWarnings("unchecked")
     @Override
     public <F extends MBeanFeatureInfo> Collection<? extends F> expand(final Class<F> featureType) {
-        if (attributes.canExpandWith(featureType))
+        if (JavaBeanAttributeRepository.canExpandWith(featureType))
             return (Collection<F>) attributes.expand();
-        else if(operations.canExpandWith(featureType))
+        else if(JavaBeanOperationRepository.canExpandWith(featureType))
             return (Collection<F>) operations.expand();
         else return Collections.emptyList();
     }

@@ -6,9 +6,10 @@ import com.bytex.snamp.configuration.impl.SerializableAgentConfiguration;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.*;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 
 /**
  * @author Roman Sakno
@@ -23,7 +24,7 @@ public final class ConfigurationDiffEngineTest extends Assert {
         final ManagedResourceConfiguration.AttributeConfiguration attr = resource
                 .getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class)
                 .getOrAdd("attr");
-        attr.setReadWriteTimeout(Duration.ofSeconds(1));
+        attr.setReadWriteTimeout(1, ChronoUnit.SECONDS);
         resource.setConnectionString("connection-string");
         resource.setConnectionType("jmx");
         resource.getParameters().put("param", "value");
@@ -48,7 +49,7 @@ public final class ConfigurationDiffEngineTest extends Assert {
         ManagedResourceConfiguration.AttributeConfiguration attr = resource
                 .getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class)
                 .getOrAdd("attr");
-        attr.setReadWriteTimeout(Duration.ofSeconds(1));
+        attr.setReadWriteTimeout(1, ChronoUnit.SECONDS);
         resource.setConnectionString("connection-string");
         resource.setConnectionType("jmx");
         resource.getParameters().put("param", "value");
@@ -92,7 +93,7 @@ public final class ConfigurationDiffEngineTest extends Assert {
         final ManagedResourceConfiguration.AttributeConfiguration attr = resource
                 .getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class)
                 .getOrAdd("attr");
-        attr.setReadWriteTimeout(Duration.ofSeconds(1));
+        attr.setReadWriteTimeout(1, ChronoUnit.SECONDS);
         resource.setConnectionString("connection-string");
         resource.setConnectionType("jmx");
         resource.getParameters().put("param", "value");

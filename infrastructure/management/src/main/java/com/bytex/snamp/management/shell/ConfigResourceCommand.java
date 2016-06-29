@@ -3,13 +3,13 @@ package com.bytex.snamp.management.shell;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.AgentConfiguration;
-import static com.google.common.base.Strings.isNullOrEmpty;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import static com.bytex.snamp.management.shell.Utils.appendln;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Configures managed resource.
@@ -40,15 +40,7 @@ public final class ConfigResourceCommand extends ConfigurationCommand {
     @Override
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
         if(isNullOrEmpty(resourceName)) return false;
-        final ManagedResourceConfiguration resource;
-        if(configuration.getEntities(ManagedResourceConfiguration.class).containsKey(resourceName)){//modify existing resource
-            resource = configuration.getEntities(ManagedResourceConfiguration.class).get(resourceName);
-            appendln(output, "Updated");
-        }
-        else {  //create new adapter instance
-            resource = configuration.getEntities(ManagedResourceConfiguration.class).getOrAdd(resourceName);
-            appendln(output, "Created");
-        }
+        final ManagedResourceConfiguration resource = configuration.getOrRegisterEntity(ManagedResourceConfiguration.class, resourceName);
         //setup connection type
         if(!isNullOrEmpty(connectionType))
             resource.setConnectionType(connectionType);
@@ -62,6 +54,7 @@ public final class ConfigResourceCommand extends ConfigurationCommand {
                 if (keyValue != null)
                     resource.getParameters().put(keyValue.getKey(), keyValue.getValue());
             }
+        appendln(output, "Updated");
         return true;
     }
 }
