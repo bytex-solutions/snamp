@@ -115,6 +115,9 @@ public final class XMPPClient implements Closeable {
             } catch (final SmackException.NotConnectedException e) {
                 throw new IOException(e);
             }
+            finally {
+                chat = null;
+            }
         }
     }
 
