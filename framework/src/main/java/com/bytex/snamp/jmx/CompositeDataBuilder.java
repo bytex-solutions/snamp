@@ -1,13 +1,12 @@
 package com.bytex.snamp.jmx;
 
-import com.google.common.base.Supplier;
-
 import javax.management.ObjectName;
 import javax.management.openmbean.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.function.Supplier;
 
 /**
  * Represents builder of {@link javax.management.openmbean.CompositeData} instance.

@@ -12,7 +12,7 @@ import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.management.Maintainable;
-import com.google.common.base.Strings;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import com.google.common.collect.Maps;
 import com.google.common.collect.ObjectArrays;
 import com.google.common.collect.Sets;
@@ -1116,7 +1116,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         final Collection<Bundle> candidates = getResourceConnectorBundles(context);
         return candidates.stream()
                 .map(bnd -> bnd.getHeaders().get(CONNECTOR_NAME_MANIFEST_HEADER))
-                .filter(header -> !Strings.isNullOrEmpty(header))
+                .filter(header -> !isNullOrEmpty(header))
                 .collect(Collectors.toCollection(LinkedList::new));
     }
 

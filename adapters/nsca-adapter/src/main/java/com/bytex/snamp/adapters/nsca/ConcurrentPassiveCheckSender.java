@@ -1,6 +1,5 @@
 package com.bytex.snamp.adapters.nsca;
 
-import com.google.common.base.Function;
 import com.googlecode.jsendnsca.core.MessagePayload;
 import com.googlecode.jsendnsca.core.NagiosException;
 import com.googlecode.jsendnsca.core.NagiosPassiveCheckSender;
@@ -9,6 +8,7 @@ import com.googlecode.jsendnsca.core.NagiosSettings;
 import java.io.IOException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Function;
 
 /**
  * @author Roman Sakno

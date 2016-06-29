@@ -4,13 +4,13 @@ import ch.shamu.jsendnrdp.NRDPException;
 import ch.shamu.jsendnrdp.NRDPServerConnectionSettings;
 import ch.shamu.jsendnrdp.domain.NagiosCheckResult;
 import ch.shamu.jsendnrdp.impl.NagiosCheckSenderImpl;
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 
 import java.io.IOException;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Function;
 
 /**
  * @author Roman Sakno

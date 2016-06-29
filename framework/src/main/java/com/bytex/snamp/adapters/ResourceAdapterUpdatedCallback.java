@@ -6,13 +6,8 @@ package com.bytex.snamp.adapters;
  * @version 1.2
  * @since 1.0
  */
+@FunctionalInterface
 public interface ResourceAdapterUpdatedCallback {
-    /**
-     * Represents the callback that does nothing.
-     * @deprecated Use empty lambda instead.
-     */
-    @Deprecated
-    ResourceAdapterUpdatedCallback STUB = () -> {};
 
     /**
      * Updating of the resource adapter is completed.

@@ -5,7 +5,7 @@ import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.TabularDataBuilderRowFill;
 import com.bytex.snamp.jmx.TabularTypeBuilder;
 import com.bytex.snamp.jmx.WellKnownType;
-import com.google.common.base.MoreObjects;
+import static com.google.common.base.MoreObjects.firstNonNull;
 
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanInfo;
@@ -52,7 +52,7 @@ final class AvailableAttributesOperation extends AvailableFeaturesOperation<MBea
                 .cell(READABLE_COLUMN, attributeInfo.isReadable())
                 .cell(WRITABLE_COLUMN, attributeInfo.isWritable())
                 .cell(PARAMETERS_COLUMN, toTabularData(attributeInfo))
-                .cell(DESCRIPTION_COLUMN, MoreObjects.firstNonNull(description, ""))
+                .cell(DESCRIPTION_COLUMN, firstNonNull(description, ""))
                 .cell(TYPE_COLUMN, attributeType == null ? attributeInfo.getType() : attributeType.getDisplayName())
                 .flush();
     }

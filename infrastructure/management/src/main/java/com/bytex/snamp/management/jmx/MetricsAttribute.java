@@ -8,7 +8,7 @@ import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.TabularDataBuilderRowFill;
 import com.bytex.snamp.jmx.TabularTypeBuilder;
-import com.google.common.base.Strings;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
@@ -38,7 +38,7 @@ public final class MetricsAttribute extends OpenAttribute<TabularData, TabularTy
     }
 
     public static MetricsReader getMetrics(final String resourceName, final BundleContext context) throws InstanceNotFoundException {
-        if (Strings.isNullOrEmpty(resourceName))
+        if (isNullOrEmpty(resourceName))
             return new SummaryMetrics(context);
         else {
             final ManagedResourceConnectorClient connector = new ManagedResourceConnectorClient(context, resourceName);

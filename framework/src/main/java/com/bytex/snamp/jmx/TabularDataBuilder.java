@@ -1,11 +1,11 @@
 package com.bytex.snamp.jmx;
 
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 
 import javax.management.openmbean.*;
 import java.util.*;
+import java.util.function.Supplier;
 
 /**
  * Represents {@link javax.management.openmbean.TabularData} instance builder.

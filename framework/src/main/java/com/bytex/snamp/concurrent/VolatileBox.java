@@ -1,11 +1,11 @@
 package com.bytex.snamp.concurrent;
 
-import com.google.common.base.Function;
-import com.google.common.base.Supplier;
 import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.Wrapper;
 
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Represents thread-safe version of {@link com.bytex.snamp.Box}.

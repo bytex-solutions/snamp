@@ -1,6 +1,5 @@
 package com.bytex.jcommands.impl;
 
-import com.google.common.base.Supplier;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.bytex.snamp.*;
@@ -18,6 +17,7 @@ import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import static com.bytex.snamp.ArrayUtils.emptyArray;
 

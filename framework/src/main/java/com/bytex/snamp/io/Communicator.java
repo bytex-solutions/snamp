@@ -3,8 +3,6 @@ package com.bytex.snamp.io;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.SynchronizationEvent;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.eventbus.AllowConcurrentEvents;
@@ -15,6 +13,7 @@ import java.util.EventListener;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Predicate;
 
 /**
  * Represents named data bus for in-process communication.
@@ -31,7 +30,7 @@ public final class Communicator extends EventBus {
 
         private IncomingMessageEvent(final Predicate<Object> filter) {
             super(false);
-            this.responseFilter = filter != null ? filter : Predicates.alwaysTrue();
+            this.responseFilter = filter != null ? filter : obj -> true;
         }
 
         @Subscribe
@@ -40,7 +39,7 @@ public final class Communicator extends EventBus {
         public void accept(final Object message) {
             boolean success;
             try{
-                success = responseFilter.apply(message);
+                success = responseFilter.test(message);
             }
             catch (final Throwable e){
                 raise(e);
@@ -76,7 +75,7 @@ public final class Communicator extends EventBus {
     }
 
     public Object post(final Object message, Predicate<Object> responseFilter, final TimeSpan timeout) throws TimeoutException, InterruptedException, ExecutionException {
-        responseFilter = Predicates.and(exceptIncoming(message), responseFilter);
+        responseFilter = exceptIncoming(message).and(responseFilter);
         final IncomingMessageEvent event = new IncomingMessageEvent(responseFilter);
         final Future<?> awaitor = event.getAwaitor();
         register(event);

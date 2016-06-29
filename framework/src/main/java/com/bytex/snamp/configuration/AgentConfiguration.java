@@ -282,45 +282,13 @@ public interface AgentConfiguration extends Cloneable {
     }
 
     /**
-     * Gets a collection of resource adapters.
-     * <p>
-     *     The key represents user-defined unique name of the adapter.
-     * </p>
-     * @return A collection of resource adapters.
-     * @deprecated Use {@link #getEntities(Class)} instead.
-     */
-    @Deprecated
-    EntityMap<? extends ResourceAdapterConfiguration> getResourceAdapters();
-
-    /**
-     * Gets a collection of managed resources.
-     * <p>
-     *     The key represents user-defined name of the managed resource.
-     * </p>
-     * @return The dictionary of managed resources.
-     * @deprecated Use {@link #getEntities(Class)} instead.
-     */
-    @Deprecated
-    EntityMap<? extends ManagedResourceConfiguration> getManagedResources();
-
-    /**
      * Obtains a repository of configuration entities.
      * @param entityType Type of entity. You can use {@link ManagedResourceConfiguration} or {@link ResourceAdapterConfiguration} as entities.
      * @param <E> Type of entity.
      * @return A repository of configuration entities; or {@literal null}, if entity type is not supported by SNAMP configuration subsystem.
      * @since 1.2
      */
-    @SuppressWarnings("unchecked")
-    default <E extends EntityConfiguration> EntityMap<? extends E> getEntities(final Class<E> entityType){
-        final EntityMap result;
-        if (ManagedResourceConfiguration.class.equals(entityType))
-            result = getManagedResources();
-        else if (ResourceAdapterConfiguration.class.equals(entityType))
-            result = getResourceAdapters();
-        else
-            result = null;
-        return result;
-    }
+    <E extends EntityConfiguration> EntityMap<? extends E> getEntities(final Class<E> entityType);
 
     /**
      * Obtain configuration of SNAMP entity or register new.

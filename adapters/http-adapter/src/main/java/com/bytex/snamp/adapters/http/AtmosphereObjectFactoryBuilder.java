@@ -1,11 +1,11 @@
 package com.bytex.snamp.adapters.http;
 
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
 import org.atmosphere.cpr.AtmosphereFramework;
 import org.atmosphere.cpr.AtmosphereObjectFactory;
 
 import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
 /**
  * @author Roman Sakno

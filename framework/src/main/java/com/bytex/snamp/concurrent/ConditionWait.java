@@ -1,9 +1,9 @@
 package com.bytex.snamp.concurrent;
 
 import com.bytex.snamp.TimeSpan;
-import com.google.common.base.Predicate;
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
+
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * Represents spin wait based on the periodic condition check.
@@ -38,12 +38,12 @@ public abstract class ConditionWait extends SpinWait<Object> {
         return new ConditionWait() {
             @Override
             protected boolean checkCondition() {
-                return predicate.apply(stateProvider.get());
+                return predicate.test(stateProvider.get());
             }
         };
     }
 
-    public static <T> ConditionWait create(final Predicate<? super T> predicate, final T state){
-        return create(predicate, Suppliers.ofInstance(state));
+    public static <T> ConditionWait create(final Predicate<? super T> predicate, final T state) {
+        return create(predicate, (Supplier<T>) () -> state);
     }
 }

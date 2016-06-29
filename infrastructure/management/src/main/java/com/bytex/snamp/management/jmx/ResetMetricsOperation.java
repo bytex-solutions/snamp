@@ -3,7 +3,7 @@ package com.bytex.snamp.management.jmx;
 import com.bytex.snamp.connectors.metrics.MetricsReader;
 import com.bytex.snamp.connectors.metrics.SummaryMetrics;
 import com.bytex.snamp.internal.Utils;
-import com.google.common.base.Strings;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import org.osgi.framework.BundleContext;
 
 import javax.management.InstanceNotFoundException;
@@ -25,7 +25,7 @@ final class ResetMetricsOperation extends OpenOperation<Void, SimpleType<Void>> 
     }
 
     private static void invoke(final String resourceName, final BundleContext context) throws InstanceNotFoundException {
-        final MetricsReader metrics = Strings.isNullOrEmpty(resourceName) ?
+        final MetricsReader metrics = isNullOrEmpty(resourceName) ?
                 new SummaryMetrics(context) :
                 MetricsAttribute.getMetrics(resourceName, context);
         metrics.resetAll();

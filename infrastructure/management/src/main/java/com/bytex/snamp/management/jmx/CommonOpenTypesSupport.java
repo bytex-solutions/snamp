@@ -2,12 +2,12 @@ package com.bytex.snamp.management.jmx;
 
 import com.bytex.snamp.jmx.CompositeTypeBuilder;
 import com.bytex.snamp.jmx.TabularTypeBuilder;
-import com.google.common.base.Supplier;
 
 import javax.management.MBeanFeatureInfo;
 import javax.management.openmbean.SimpleType;
 import javax.management.openmbean.TabularType;
 import java.util.Locale;
+import java.util.function.Supplier;
 
 import static com.bytex.snamp.internal.Utils.interfaceStaticInitialize;
 import static com.bytex.snamp.jmx.OpenMBean.OpenOperation.TypedParameterInfo;

@@ -1,6 +1,5 @@
 package com.bytex.snamp.connectors.jmx;
 
-import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.concurrent.LazyContainers;
 import com.bytex.snamp.concurrent.LazyValue;
@@ -12,9 +11,7 @@ import com.bytex.snamp.connectors.SelectableConnectorParameterDescriptor;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.bytex.snamp.jmx.DescriptorUtils;
-import com.google.common.base.Functions;
 import com.google.common.base.Splitter;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableMap;
 
 import javax.management.*;
@@ -97,8 +94,7 @@ final class JmxConnectorDescriptionProvider extends ConfigurationEntityDescripti
                 final JmxConnectionOptions options = new JmxConnectionOptions(connectionString, connectionOptions);
                 try (final JMXConnector connection = options.createConnection()) {
                     final MBeanServerConnection server = connection.getMBeanServerConnection();
-                    return ArrayUtils.toArray(Collections2.transform(server.queryNames(null, null),
-                            Functions.toStringFunction()), String.class);
+                    return server.queryNames(null, null).stream().map(ObjectName::toString).toArray(String[]::new);
 
                 }
             }

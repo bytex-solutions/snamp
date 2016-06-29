@@ -6,7 +6,7 @@ import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.TabularDataBuilderRowFill;
 import com.bytex.snamp.jmx.TabularTypeBuilder;
 import com.bytex.snamp.jmx.WellKnownType;
-import com.google.common.base.MoreObjects;
+import static com.google.common.base.MoreObjects.firstNonNull;
 
 import javax.management.MBeanInfo;
 import javax.management.MBeanNotificationInfo;
@@ -50,7 +50,7 @@ final class AvailableEventsOperation extends AvailableFeaturesOperation<MBeanNot
         row
                 .cell(CATEGORY_COLUMN, ArrayUtils.getFirst(notificationInfo.getNotifTypes(), ""))
                 .cell(PARAMETERS_COLUMN, toTabularData(notificationInfo))
-                .cell(DESCRIPTION_COLUMN, MoreObjects.firstNonNull(description, ""))
+                .cell(DESCRIPTION_COLUMN, firstNonNull(description, ""))
                 .cell(ATTACHMENT_TYPE_COLUMN, attachmentType == null ? "" : attachmentType.getDisplayName())
                 .cell(SEVERITY_COLUMN, NotificationDescriptor.getSeverity(notificationInfo).toString())
                 .flush();

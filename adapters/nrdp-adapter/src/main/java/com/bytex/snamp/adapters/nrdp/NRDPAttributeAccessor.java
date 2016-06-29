@@ -4,7 +4,6 @@ import ch.shamu.jsendnrdp.domain.NagiosCheckResult;
 import ch.shamu.jsendnrdp.domain.State;
 import com.bytex.snamp.adapters.modeling.AttributeAccessor;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
 
 import javax.management.AttributeNotFoundException;
@@ -14,6 +13,7 @@ import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 
 import static com.bytex.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
 import static com.bytex.snamp.adapters.nrdp.configuration.NRDPAdapterConfigurationDescriptor.getServiceName;

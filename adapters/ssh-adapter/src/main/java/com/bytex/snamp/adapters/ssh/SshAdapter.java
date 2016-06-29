@@ -12,8 +12,6 @@ import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.jmx.ExpressionBasedDescriptorFilter;
 import com.bytex.snamp.jmx.TabularDataUtils;
 import com.bytex.snamp.jmx.WellKnownType;
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
 import com.google.common.collect.*;
 import org.apache.sshd.SshServer;
 import org.apache.sshd.common.KeyPairProvider;
@@ -37,6 +35,7 @@ import java.security.PublicKey;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 /**
  * Represents SSH resource adapter.
@@ -275,15 +274,10 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
             super(metadata);
         }
 
-        private static String joinString(final Collection<?> values,
+        private static String joinString(final Stream<String> values,
                                   final String format,
                                   final String separator) {
-            return Joiner.on(separator).join(Collections2.transform(values, new Function<Object, String>() {
-                @Override
-                public String apply(final Object input) {
-                    return String.format(format, input);
-                }
-            }));
+            return String.join(separator, (CharSequence[]) values.map(input -> String.format(format, input)).toArray(String[]::new));
         }
 
         @Override
@@ -292,12 +286,9 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
             final String COLUMN_SEPARATOR = "\t";
             final String ITEM_FORMAT = "%-10s";
             //print column first
-            output.append(joinString(data.getTabularType().getRowType().keySet(), ITEM_FORMAT, COLUMN_SEPARATOR));
+            output.append(joinString(data.getTabularType().getRowType().keySet().stream(), ITEM_FORMAT, COLUMN_SEPARATOR));
             //print rows
-            TabularDataUtils.forEachRow(data, row -> {
-                final Collection<?> values = Collections2.transform(row.values(), SshHelpers.FORMATTER::toJson);
-                output.append(joinString(values, ITEM_FORMAT, COLUMN_SEPARATOR));
-            });
+            TabularDataUtils.forEachRow(data, row -> output.append(joinString(row.values().stream().map(SshHelpers.FORMATTER::toJson), ITEM_FORMAT, COLUMN_SEPARATOR)));
         }
     }
 

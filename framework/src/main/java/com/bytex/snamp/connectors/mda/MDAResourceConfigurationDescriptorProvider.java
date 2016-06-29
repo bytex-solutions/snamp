@@ -8,7 +8,7 @@ import com.bytex.snamp.jmx.CompositeTypeBuilder;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.google.common.base.Splitter;
-import com.google.common.base.Strings;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import com.google.common.collect.ObjectArrays;
 
 import javax.management.Descriptor;
@@ -90,7 +90,7 @@ public abstract class MDAResourceConfigurationDescriptorProvider extends Configu
             final String itemNames = DescriptorUtils.getField(descriptor, ITEM_NAMES_PARAM, String.class);
             final String itemTypes = DescriptorUtils.getField(descriptor, ITEM_TYPES_PARAM, String.class);
             final String typeName = DescriptorUtils.getField(descriptor, TYPE_NAME_PARAM, String.class);
-            if(Strings.isNullOrEmpty(itemNames) || Strings.isNullOrEmpty(itemTypes) || Strings.isNullOrEmpty(typeName))
+            if(isNullOrEmpty(itemNames) || isNullOrEmpty(itemTypes) || isNullOrEmpty(typeName))
                 return null;
             else return parseCompositeType(typeName, ITEMS_SPLITTER.splitToList(itemNames), ITEMS_SPLITTER.splitToList(itemTypes));
         }

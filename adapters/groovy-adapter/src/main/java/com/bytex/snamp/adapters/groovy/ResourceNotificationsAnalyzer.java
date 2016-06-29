@@ -1,6 +1,5 @@
 package com.bytex.snamp.adapters.groovy;
 
-import com.google.common.base.Predicate;
 import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.concurrent.WriteOnceRef;
@@ -11,6 +10,7 @@ import org.osgi.framework.InvalidSyntaxException;
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
 import java.util.*;
+import java.util.function.Predicate;
 
 /**
  * Represents analyzer of input stream of notifications received from managed resources.
@@ -23,7 +23,7 @@ public class ResourceNotificationsAnalyzer implements ResourceFeaturesAnalyzer, 
 
     }
 
-    public static class FilterAndProcessNotificationStatement implements Predicate<Notification>{
+    public static class FilterAndProcessNotificationStatement implements Predicate<Notification> {
         private final Predicate<Notification> condition;
         private final WriteOnceRef<NotificationListener> handler;
 
@@ -33,8 +33,8 @@ public class ResourceNotificationsAnalyzer implements ResourceFeaturesAnalyzer, 
         }
 
         @Override
-        public final boolean apply(final Notification notif){
-            return condition.apply(notif);
+        public final boolean test(final Notification notif){
+            return condition.test(notif);
         }
 
         public final void then(final NotificationListener listener){
@@ -80,7 +80,7 @@ public class ResourceNotificationsAnalyzer implements ResourceFeaturesAnalyzer, 
         private void process(final MBeanNotificationInfo metadata,
                              final Notification notif){
             handlers.stream()
-                    .filter(statement -> statement.apply(notif))
+                    .filter(statement -> statement.test(notif))
                     .forEach(statement -> statement.onSuccess(metadata, notif));
         }
     }

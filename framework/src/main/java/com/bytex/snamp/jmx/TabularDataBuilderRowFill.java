@@ -1,11 +1,11 @@
 package com.bytex.snamp.jmx;
 
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
 
 import javax.management.ObjectName;
 import javax.management.openmbean.*;
 import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * Represents row constructor for {@link javax.management.openmbean.TabularData}.

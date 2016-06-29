@@ -5,7 +5,6 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.concurrent.LazyContainers;
 import com.bytex.snamp.concurrent.LazyValue;
-import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.connectors.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connectors.attributes.AttributeSupport;
 import com.bytex.snamp.connectors.metrics.Metrics;
@@ -16,7 +15,7 @@ import com.bytex.snamp.connectors.operations.OperationSupport;
 import com.bytex.snamp.core.AbstractFrameworkService;
 import com.bytex.snamp.internal.IllegalStateFlag;
 import com.bytex.snamp.jmx.JMExceptionUtils;
-import com.google.common.base.Strings;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 
@@ -436,21 +435,6 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
     }
 
     /**
-     * Determines whether SmartMode should be enabled for configured connector.
-     * @param parameters Configuration parameters of the managed resource. Cannot be {@literal null}.
-     * @return {@literal true} if SmartMode={@literal true} in the specified configuration parameters.
-     * @deprecated Use {@link ManagedResourceDescriptionProvider#isSmartModeEnabled(Map)}
-     */
-    @Deprecated
-    public static boolean isSmartModeEnabled(final Map<String, ?> parameters) {
-        if(parameters.containsKey(AgentConfiguration.ManagedResourceConfiguration.SMART_MODE_KEY)){
-            final Object smartMode = parameters.get(AgentConfiguration.ManagedResourceConfiguration.SMART_MODE_KEY);
-            return Objects.equals(smartMode, Boolean.TRUE) || Objects.equals(smartMode, Boolean.TRUE.toString());
-        }
-        else return false;
-    }
-
-    /**
      * Returns system name of the connector using its implementation class.
      * @param connectorImpl A class that represents implementation of resource connector.
      * @return System name of the connector.
@@ -477,7 +461,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
     }
 
     static boolean isResourceConnectorBundle(final Bundle bnd) {
-        return !(bnd == null || Strings.isNullOrEmpty(bnd.getHeaders().get(CONNECTOR_NAME_MANIFEST_HEADER)));
+        return !(bnd == null || isNullOrEmpty(bnd.getHeaders().get(CONNECTOR_NAME_MANIFEST_HEADER)));
     }
 
     /**

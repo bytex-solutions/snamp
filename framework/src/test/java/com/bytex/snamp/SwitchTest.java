@@ -1,6 +1,5 @@
 package com.bytex.snamp;
 
-import com.google.common.base.Suppliers;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -21,7 +20,7 @@ public final class SwitchTest extends Assert {
         final boolean result = new Switch<Long, Boolean>()
                 .equals(42L, Boolean.FALSE)
                 .equals(43L, Boolean.TRUE)
-                .equalsToNull(Suppliers.ofInstance(Boolean.FALSE))
+                .equalsToNull(() -> Boolean.FALSE)
                 .apply(43L);
         assertTrue(result);
     }

@@ -1,7 +1,7 @@
 package com.bytex.snamp.core;
 
 import com.bytex.snamp.internal.Utils;
-import com.google.common.base.Strings;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import org.osgi.framework.*;
 
 import java.util.Objects;
@@ -20,7 +20,7 @@ public abstract class ExposedServiceHandler<S, I> {
 
     protected ExposedServiceHandler(final Class<S> serviceType,
                                     final String filter) throws InvalidSyntaxException {
-        this.filter = Strings.isNullOrEmpty(filter) ? null : FrameworkUtil.createFilter(filter);
+        this.filter = isNullOrEmpty(filter) ? null : FrameworkUtil.createFilter(filter);
         this.serviceType = Objects.requireNonNull(serviceType);
     }
 

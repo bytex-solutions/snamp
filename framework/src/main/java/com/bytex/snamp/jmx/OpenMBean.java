@@ -3,7 +3,6 @@ package com.bytex.snamp.jmx;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.concurrent.LazyContainers;
 import com.bytex.snamp.concurrent.LazyValue;
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 
@@ -13,6 +12,7 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
 

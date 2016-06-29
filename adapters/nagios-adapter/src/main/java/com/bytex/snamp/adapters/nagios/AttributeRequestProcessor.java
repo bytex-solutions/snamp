@@ -1,7 +1,8 @@
 package com.bytex.snamp.adapters.nagios;
 
-import com.google.common.base.Supplier;
 import com.bytex.snamp.SafeConsumer;
+
+import java.util.function.Supplier;
 
 /**
  * @author Roman Sakno

@@ -1,7 +1,9 @@
 package com.bytex.snamp.configuration.impl;
 
-import com.bytex.snamp.*;
+import com.bytex.snamp.AbstractAggregator;
+import com.bytex.snamp.Box;
 import com.bytex.snamp.Consumer;
+import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import org.osgi.service.cm.ConfigurationAdmin;
@@ -11,8 +13,7 @@ import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.function.*;
-import java.util.logging.Level;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 /**
@@ -55,23 +56,6 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         }
     }
 
-    /**
-     * Returns the currently loaded configuration.
-     *
-     * @return The currently loaded configuration.
-     */
-    @Override
-    @Aggregation
-    @Deprecated
-    public AgentConfiguration getCurrentConfiguration() {
-        try {
-            return transformConfiguration(Function.identity());
-        } catch (final IOException e) {
-            logger.log(Level.SEVERE, "Unable to read configuration", e);
-            return new SerializableAgentConfiguration();
-        }
-    }
-
     private <E extends Throwable> void processConfiguration(final ConfigurationProcessor<E> handler, final Lock synchronizer) throws E, IOException {
         //obtain lock on configuration
         try {
@@ -82,8 +66,8 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         //Process configuration protected by lock.
         try {
             final SerializableAgentConfiguration config = new SerializableAgentConfiguration();
-            adapterParser.readAdapters(admin, config.getResourceAdaptersImpl());
-            resourceParser.readResources(admin, config.getManagedResourcesImpl());
+            adapterParser.readAdapters(admin, config.getResourceAdapters());
+            resourceParser.readResources(admin, config.getManagedResources());
             if(handler.process(config))
                 save(config);
         } finally {
@@ -134,16 +118,6 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         final Box<O> result = new Box<>();
         readConfiguration(result.changeConsumingType(handler));
         return result.get();
-    }
-
-    @Override
-    @Deprecated
-    public void reload() {
-    }
-
-    @Override
-    @Deprecated
-    public void sync() {
     }
 
     /**

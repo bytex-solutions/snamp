@@ -1,13 +1,11 @@
 package com.bytex.snamp;
 
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
-
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.function.Supplier;
 
 /**
  * Represents an iterator with reset support.
@@ -204,7 +202,7 @@ public abstract class ResettableIterator<T> implements Iterator<T>, Serializable
      * @return Iterator with single element.
      */
     public static <T> ResettableIterator<T> of(final T value) {
-        return of(Suppliers.ofInstance(value));
+        return of(() -> value);
     }
 
     /**

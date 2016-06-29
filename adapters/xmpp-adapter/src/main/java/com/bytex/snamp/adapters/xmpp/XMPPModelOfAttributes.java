@@ -6,9 +6,6 @@ import com.bytex.snamp.adapters.modeling.ModelOfAttributes;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.jmx.TabularDataUtils;
 import com.bytex.snamp.jmx.WellKnownType;
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Collections2;
 import org.jivesoftware.smack.packet.ExtensionElement;
 
 import javax.management.JMException;
@@ -18,6 +15,7 @@ import javax.management.openmbean.TabularData;
 import java.nio.*;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 /**
  * @author Roman Sakno
@@ -253,15 +251,10 @@ final class XMPPModelOfAttributes extends ModelOfAttributes<XMPPAttributeAccesso
             super(metadata);
         }
 
-        private static String joinString(final Collection<?> values,
+        private static String joinString(final Stream<String> values,
                                          final String format,
                                          final String separator) {
-            return Joiner.on(separator).join(Collections2.transform(values, new Function<Object, String>() {
-                @Override
-                public String apply(final Object input) {
-                    return String.format(format, input);
-                }
-            }));
+            return String.join(separator, (CharSequence[]) values.map(input -> String.format(format, input)).toArray(String[]::new));
         }
 
         @Override
@@ -271,12 +264,9 @@ final class XMPPModelOfAttributes extends ModelOfAttributes<XMPPAttributeAccesso
             final String COLUMN_SEPARATOR = "\t";
             final String ITEM_FORMAT = "%-10s";
             //print column first
-            result.append(joinString(data.getTabularType().getRowType().keySet(), ITEM_FORMAT, COLUMN_SEPARATOR));
+            result.append(joinString(data.getTabularType().getRowType().keySet().stream(), ITEM_FORMAT, COLUMN_SEPARATOR));
             //print rows
-            TabularDataUtils.forEachRow(data, row -> {
-                final Collection<?> values = Collections2.transform(row.values(), FORMATTER::toJson);
-                result.append(joinString(values, ITEM_FORMAT, COLUMN_SEPARATOR));
-            });
+            TabularDataUtils.forEachRow(data, row -> result.append(joinString(row.values().stream().map(FORMATTER::toJson), ITEM_FORMAT, COLUMN_SEPARATOR)));
             return result.toString();
         }
     }

@@ -47,20 +47,6 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * @version 1.2
  */
 public abstract class AbstractResourceAdapter extends AbstractAggregator implements ResourceAdapter, ResourceEventListener{
-    private static final class ResourceAdapterUpdateNotifier extends WeakReference<AbstractResourceAdapter> implements ResourceAdapterUpdatedCallback {
-
-        private ResourceAdapterUpdateNotifier(final AbstractResourceAdapter adapter) {
-            super(adapter);
-        }
-
-        @Override
-        public void updated() {
-            final AbstractResourceAdapter adapter = get();
-            if (adapter != null)
-                ResourceAdapterEventBus.notifyAdapterUpdated(adapter.getAdapterName(), adapter);
-        }
-    }
-
     private static final class AdapterLogicalOperation extends RichLogicalOperation {
         private static final String ADAPTER_INSTANCE_NAME_PROPERTY = "adapterInstanceName";
 
@@ -432,6 +418,14 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         }
     }
 
+    private static ResourceAdapterUpdatedCallback adapterUpdatedNotifier(final WeakReference<? extends AbstractResourceAdapter> adapterRef){
+        return () -> {
+            final AbstractResourceAdapter adapter = adapterRef.get();
+            if (adapter != null)
+                ResourceAdapterEventBus.notifyAdapterUpdated(adapter.getAdapterName(), adapter);
+        };
+    }
+
     /**
      * Begin or prolong updating the internal structure of this adapter.
      * @param manager The update manager.
@@ -440,9 +434,9 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
     protected final void beginUpdate(final ResourceAdapterUpdateManager manager,
                                      ResourceAdapterUpdatedCallback callback) {
         if (callback == null)
-            callback = new ResourceAdapterUpdateNotifier(this);
+            callback = adapterUpdatedNotifier(new WeakReference<>(this));
         else
-            callback = ResourceAdapterUpdateManager.combineCallbacks(callback, new ResourceAdapterUpdateNotifier(this));
+            callback = ResourceAdapterUpdateManager.combineCallbacks(callback, adapterUpdatedNotifier(new WeakReference<>(this)));
         if (manager.beginUpdate(callback))
             ResourceAdapterEventBus.notifyAdapterUpdating(getAdapterName(), this);
     }

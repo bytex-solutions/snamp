@@ -2,7 +2,7 @@ package com.bytex.snamp;
 
 import com.bytex.snamp.concurrent.LazyValue;
 import com.bytex.snamp.concurrent.LazyContainers;
-import com.google.common.base.MoreObjects;
+import static com.google.common.base.MoreObjects.firstNonNull;
 import com.bytex.snamp.internal.Utils;
 
 import java.io.Closeable;
@@ -30,7 +30,7 @@ public class ResourceReader implements Closeable, SafeCloseable {
 
     private ResourceBundle getBundleImpl(final Locale loc) {
         return ResourceBundle.getBundle(resourceName,
-                    MoreObjects.firstNonNull(loc, Locale.getDefault()),
+                    firstNonNull(loc, Locale.getDefault()),
                     getClass().getClassLoader());
     }
 

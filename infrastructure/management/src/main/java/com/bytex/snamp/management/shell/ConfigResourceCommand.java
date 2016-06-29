@@ -3,7 +3,7 @@ package com.bytex.snamp.management.shell;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.AgentConfiguration;
-import com.google.common.base.Strings;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
@@ -39,7 +39,7 @@ public final class ConfigResourceCommand extends ConfigurationCommand {
 
     @Override
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
-        if(Strings.isNullOrEmpty(resourceName)) return false;
+        if(isNullOrEmpty(resourceName)) return false;
         final ManagedResourceConfiguration resource;
         if(configuration.getEntities(ManagedResourceConfiguration.class).containsKey(resourceName)){//modify existing resource
             resource = configuration.getEntities(ManagedResourceConfiguration.class).get(resourceName);
@@ -50,10 +50,10 @@ public final class ConfigResourceCommand extends ConfigurationCommand {
             appendln(output, "Created");
         }
         //setup connection type
-        if(!Strings.isNullOrEmpty(connectionType))
+        if(!isNullOrEmpty(connectionType))
             resource.setConnectionType(connectionType);
         //setup connection string
-        if(!Strings.isNullOrEmpty(connectionString))
+        if(!isNullOrEmpty(connectionString))
             resource.setConnectionString(connectionString);
         //setup parameters
         if(!ArrayUtils.isNullOrEmpty(parameters))

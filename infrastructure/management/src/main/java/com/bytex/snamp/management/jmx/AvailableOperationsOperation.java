@@ -5,7 +5,7 @@ import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.TabularDataBuilderRowFill;
 import com.bytex.snamp.jmx.TabularTypeBuilder;
 import com.bytex.snamp.jmx.WellKnownType;
-import com.google.common.base.MoreObjects;
+import static com.google.common.base.MoreObjects.firstNonNull;
 
 import javax.management.MBeanInfo;
 import javax.management.MBeanOperationInfo;
@@ -49,7 +49,7 @@ final class AvailableOperationsOperation extends AvailableFeaturesOperation<MBea
         row
                 .cell(NAME_COLUMN, operationInfo.getName())
                 .cell(PARAMETERS_COLUMN, toTabularData(operationInfo))
-                .cell(DESCRIPTION_COLUMN, MoreObjects.firstNonNull(description, ""))
+                .cell(DESCRIPTION_COLUMN, firstNonNull(description, ""))
                 .cell(RETURN_TYPE_COLUMN, returnType == null ? operationInfo.getReturnType() : returnType.getDisplayName())
                 .cell(IMPACT_COLUMN, operationInfo.getImpact())
                 .flush();

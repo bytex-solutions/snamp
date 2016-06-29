@@ -1,13 +1,13 @@
 package com.bytex.snamp.concurrent;
 
 import com.bytex.snamp.Consumer;
-import com.google.common.base.Function;
 import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.Wrapper;
 
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.*;
+import java.util.function.Function;
 
 /**
  * Provides a base class for organizing thread-safe access to the thread-unsafe resource.
@@ -148,25 +148,6 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ReentrantRea
             reader.accept(resource);
             return null;
         });
-    }
-
-    /**
-     * Provides inconsistent invoke on the resource.
-     * <p>
-     *    This operation acquires read lock (may be infinitely in time) on the resource.
-     * </p>
-     * @param reader The resource reader.
-     * @param <E> Type of the exception that can be raised by reader.
-     * @throws E Type of the exception that can be raised by reader.
-     * @throws TimeoutException Read lock cannot be acquired in the specified time.
-     * @throws InterruptedException Synchronization interrupted.
-     * @since 1.2
-     */
-    public final <E extends Throwable> void consume(final Consumer<? super R, E> reader, final TimeSpan readTimeout) throws E, TimeoutException, InterruptedException {
-        read((Action<R, Void, E>) resource -> {
-            reader.accept(resource);
-            return null;
-        }, readTimeout);
     }
 
     /**

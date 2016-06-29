@@ -1,6 +1,6 @@
 package com.bytex.snamp.jmx;
 
-import com.google.common.base.Strings;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -107,8 +107,8 @@ public final class TabularDataUtils {
         final Box<String> indexName = new Box<>("");
         final Box<String> valueName = new Box<>("");
         getKeyValueColumn(type, indexName, valueName);
-        assert !Strings.isNullOrEmpty(indexName.get()) : indexName;
-        assert !Strings.isNullOrEmpty(valueName.get()) : valueName;
+        assert !isNullOrEmpty(indexName.get()) : indexName;
+        assert !isNullOrEmpty(valueName.get()) : valueName;
         final TabularDataSupport result = new TabularDataSupport(type);
         for (final Map.Entry<?, ?> entry : pairs.entrySet())
             if (entry.getValue() != null)
@@ -121,8 +121,8 @@ public final class TabularDataUtils {
         final Box<String> keyColumn = new Box<>("");
         final Box<String> valueColumn = new Box<>("");
         getKeyValueColumn(table.getTabularType(), keyColumn, valueColumn);
-        assert !Strings.isNullOrEmpty(keyColumn.get()) : keyColumn;
-        assert !Strings.isNullOrEmpty(valueColumn.get()) : valueColumn;
+        assert !isNullOrEmpty(keyColumn.get()) : keyColumn;
+        assert !isNullOrEmpty(valueColumn.get()) : valueColumn;
         final Map<Object, Object> result = Maps.newHashMapWithExpectedSize(table.size());
         forEachRow(table, new SafeConsumer<CompositeData>() {
             private final String keyColumnName = keyColumn.get();

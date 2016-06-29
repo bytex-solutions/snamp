@@ -4,8 +4,6 @@ import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.Internal;
 import com.google.common.base.Joiner;
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
@@ -19,6 +17,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static org.osgi.framework.Constants.OBJECTCLASS;
 
@@ -123,7 +122,7 @@ public final class Utils {
                                        final K propertyKey,
                                        final Class<V> propertyType,
                                        final V defaultValue){
-        return getProperty(map, propertyKey, propertyType, Suppliers.ofInstance(defaultValue));
+        return getProperty(map, propertyKey, propertyType, (Supplier<V>) () -> defaultValue);
     }
 
     /**
@@ -194,7 +193,7 @@ public final class Utils {
                                      final K propertyKey,
                                      final Class<V> propertyType,
                                      final V defaultValue){
-        return getProperty(dict, propertyKey, propertyType, Suppliers.ofInstance(defaultValue));
+        return getProperty(dict, propertyKey, propertyType, (Supplier<V>) () -> defaultValue);
     }
 
     public static <V, E extends Exception> V withContextClassLoader(final ClassLoader loader, final ExceptionalCallable<V, E> action) throws E{

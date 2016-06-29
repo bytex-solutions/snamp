@@ -1,6 +1,6 @@
 package com.bytex.snamp.connectors.notifications;
 
-import com.google.common.base.MoreObjects;
+import static com.google.common.base.MoreObjects.firstNonNull;
 
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
@@ -39,6 +39,6 @@ public class CustomNotificationInfo extends MBeanNotificationInfo implements Not
      */
     @Override
     public final NotificationDescriptor getDescriptor() {
-        return MoreObjects.firstNonNull(descriptor, NotificationDescriptor.EMPTY_DESCRIPTOR);
+        return firstNonNull(descriptor, NotificationDescriptor.EMPTY_DESCRIPTOR);
     }
 }

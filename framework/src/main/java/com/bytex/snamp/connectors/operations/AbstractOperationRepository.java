@@ -8,10 +8,8 @@ import com.bytex.snamp.connectors.metrics.OperationMetrics;
 import com.bytex.snamp.connectors.metrics.OperationMetricsWriter;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.ListenableFuture;
 
 import javax.management.*;
 import javax.management.openmbean.CompositeData;
@@ -20,6 +18,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.util.*;
+import java.util.concurrent.CompletionStage;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -37,7 +37,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      * from your code.
      * @param <M> Type of the operation metadata.
      */
-    protected static final class OperationCallInfo<M extends MBeanOperationInfo> extends AbstractList<Object> implements DescriptorRead, Supplier<Map<String, ?>>{
+    protected static final class OperationCallInfo<M extends MBeanOperationInfo> extends AbstractList<Object> implements DescriptorRead, Supplier<Map<String, ?>> {
         private final M metadata;
         private final Object[] arguments;
 
@@ -404,7 +404,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      *                      be loaded through the same class loader as the one used for loading the
      *                      managed resource connector on which the action is invoked.
      * @return The object returned by the operation, which represents the result of
-     * invoking the operation on the specified managed resource; or {@link ListenableFuture}
+     * invoking the operation on the specified managed resource; or {@link CompletionStage}
      * for asynchronous operations.
      * @throws MBeanException      Wraps a <CODE>java.lang.Exception</CODE> thrown by the managed resource.
      * @throws ReflectionException Wraps a <CODE>java.lang.Exception</CODE> thrown while trying to invoke the method

@@ -27,8 +27,7 @@ public class ResourceAdapterUpdateManager implements AutoCloseable {
             setDaemon(true);
             setPriority(3);
             this.timeout = new AtomicLong(restartTimeout);
-            this.callback = firstNonNull(callback, () -> {
-            });
+            this.callback = firstNonNull(callback, () -> { });
         }
 
         @Override

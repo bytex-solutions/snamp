@@ -9,7 +9,7 @@ import com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfigura
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import com.bytex.snamp.jmx.DescriptorUtils;
-import com.google.common.base.Strings;
+import static com.google.common.base.Strings.nullToEmpty;
 
 import javax.management.Descriptor;
 import java.util.Map;
@@ -112,6 +112,6 @@ public final class NRDPAdapterConfigurationDescriptor extends ConfigurationEntit
     }
 
     public static String getUnitOfMeasurement(final Descriptor descr){
-        return Strings.nullToEmpty(getUOM(descr));
+        return nullToEmpty(getUOM(descr));
     }
 }

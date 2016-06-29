@@ -1,7 +1,7 @@
 package com.bytex.snamp.connectors.notifications;
 
 import com.bytex.snamp.concurrent.SynchronizationEvent;
-import com.google.common.base.Strings;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 import javax.management.Notification;
 import javax.management.NotificationFilter;
@@ -34,7 +34,7 @@ public final class SynchronizationListener extends SynchronizationEvent<Notifica
      */
     public SynchronizationListener(final String subscriptionList){
         super(true);
-        expectedSubscriptionList = Strings.isNullOrEmpty(subscriptionList) ?
+        expectedSubscriptionList = isNullOrEmpty(subscriptionList) ?
                 ANY_SUBSCRIPTION_LIST: subscriptionList;
     }
 

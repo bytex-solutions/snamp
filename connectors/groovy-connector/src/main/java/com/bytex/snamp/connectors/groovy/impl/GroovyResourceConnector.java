@@ -17,7 +17,7 @@ import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.base.Splitter;
 import com.google.common.base.StandardSystemProperty;
-import com.google.common.base.Strings;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
 import org.osgi.framework.BundleContext;
@@ -56,7 +56,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         private static String getDescription(final NotificationDescriptor descriptor,
                                              final String fallback){
             final String result = descriptor.getDescription();
-            return Strings.isNullOrEmpty(result) ?
+            return isNullOrEmpty(result) ?
                     fallback:
                     result;
         }
@@ -169,7 +169,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         private static String getDescription(final AttributeDescriptor descriptor,
                                              final String fallback){
             final String result = descriptor.getDescription();
-            return Strings.isNullOrEmpty(result) ? fallback : result;
+            return isNullOrEmpty(result) ? fallback : result;
         }
 
         @Override
@@ -269,7 +269,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
 
     static {
         final String pathSeparator = StandardSystemProperty.PATH_SEPARATOR.value();
-        PATH_SPLITTER = Splitter.on(Strings.isNullOrEmpty(pathSeparator) ? ":" : pathSeparator);
+        PATH_SPLITTER = Splitter.on(isNullOrEmpty(pathSeparator) ? ":" : pathSeparator);
     }
 
     static Properties toProperties(final Map<String, String> params){
@@ -292,7 +292,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
                 paths);
         engine.setGlobalVariable(RESOURCE_NAME_VAR, resourceName);
         final String initScript = GroovyResourceConfigurationDescriptor.getInitScriptFile(params);
-        groovyConnector = Strings.isNullOrEmpty(initScript) ?
+        groovyConnector = isNullOrEmpty(initScript) ?
                 null :
                 engine.init(initScript, params);
         attributes = new GroovyAttributeRepository(resourceName, engine);

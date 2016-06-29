@@ -7,7 +7,6 @@ import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.concurrent.LazyContainers;
 import com.bytex.snamp.concurrent.LazyValue;
 import com.bytex.snamp.internal.Utils;
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.osgi.framework.*;
@@ -15,6 +14,7 @@ import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedServiceFactory;
 
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -529,7 +529,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         }
     }
 
-    private static final class ServiceRegistrationHolder<S, T extends S> implements ServiceRegistration<S>, Supplier<T>{
+    private static final class ServiceRegistrationHolder<S, T extends S> implements ServiceRegistration<S>, Supplier<T> {
         private final ServiceRegistration<S> registration;
         private T serviceInstance;
 

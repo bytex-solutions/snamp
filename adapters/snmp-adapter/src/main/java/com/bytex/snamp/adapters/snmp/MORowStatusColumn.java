@@ -1,6 +1,5 @@
 package com.bytex.snamp.adapters.snmp;
 
-import com.google.common.base.Function;
 import com.bytex.snamp.jmx.WellKnownType;
 import org.snmp4j.agent.mo.MOAccessImpl;
 import org.snmp4j.agent.mo.MOMutableColumn;
@@ -8,6 +7,7 @@ import org.snmp4j.smi.Integer32;
 import org.snmp4j.smi.Variable;
 
 import javax.management.DescriptorRead;
+import java.util.function.Function;
 
 /**
  * Represents RowStatus column as described in SMIv2 (RFC 1903).

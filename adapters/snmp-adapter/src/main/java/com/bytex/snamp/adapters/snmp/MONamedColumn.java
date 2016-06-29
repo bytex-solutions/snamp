@@ -1,6 +1,5 @@
 package com.bytex.snamp.adapters.snmp;
 
-import com.google.common.base.Function;
 import com.bytex.snamp.jmx.WellKnownType;
 import org.snmp4j.agent.MOAccess;
 import org.snmp4j.agent.mo.MOMutableColumn;
@@ -11,6 +10,7 @@ import javax.management.InvalidAttributeValueException;
 import javax.management.openmbean.ArrayType;
 import javax.management.openmbean.CompositeType;
 import javax.management.openmbean.TabularType;
+import java.util.function.Function;
 
 /**
  * Represents named column value.

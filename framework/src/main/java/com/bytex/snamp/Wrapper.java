@@ -1,6 +1,6 @@
 package com.bytex.snamp;
 
-import com.google.common.base.Function;
+import java.util.function.Function;
 
 /**
  * Represents a wrapper for the specified type of object.

@@ -3,11 +3,11 @@ package com.bytex.snamp.concurrent;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.Wrapper;
-import com.google.common.base.Function;
-import com.google.common.base.Supplier;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Represents a container that can be written once per its lifetime.

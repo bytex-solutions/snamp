@@ -33,7 +33,6 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
      *     <pre><tt>
      *          SNAMP-Resource-Connector: impl
      *     </tt></pre>
-     * </p>
      */
     String CONNECTOR_NAME_MANIFEST_HEADER = "SNAMP-Resource-Connector";
 

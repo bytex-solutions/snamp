@@ -5,7 +5,6 @@ import com.bytex.snamp.concurrent.VolatileBox;
 import com.bytex.snamp.connectors.mda.DataAcceptor;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.json.JsonUtils;
-import com.google.common.base.Supplier;
 import com.google.gson.*;
 import com.sun.jersey.spi.resource.Singleton;
 import org.osgi.service.http.HttpService;
@@ -24,6 +23,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Supplier;
 
 /**
  * @author Roman Sakno

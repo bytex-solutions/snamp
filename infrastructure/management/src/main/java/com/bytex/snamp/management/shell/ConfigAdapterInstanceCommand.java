@@ -3,7 +3,7 @@ package com.bytex.snamp.management.shell;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.AgentConfiguration;
-import com.google.common.base.Strings;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
@@ -34,7 +34,7 @@ public final class ConfigAdapterInstanceCommand extends ConfigurationCommand {
 
     @Override
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
-        if (Strings.isNullOrEmpty(instanceName)) return false;
+        if (isNullOrEmpty(instanceName)) return false;
         final ResourceAdapterConfiguration adapter;
         if (configuration.getEntities(ResourceAdapterConfiguration.class).containsKey(instanceName)) {//modify existing adapter
             adapter = configuration.getEntities(ResourceAdapterConfiguration.class).get(instanceName);
@@ -44,7 +44,7 @@ public final class ConfigAdapterInstanceCommand extends ConfigurationCommand {
             output.append("Created");
         }
         //setup system name
-        if (!Strings.isNullOrEmpty(systemName))
+        if (!isNullOrEmpty(systemName))
             adapter.setAdapterName(systemName);
         //setup parameters
         if (!ArrayUtils.isNullOrEmpty(parameters))

@@ -10,7 +10,6 @@ import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
 import com.bytex.snamp.jmx.CompositeTypeBuilder;
 import com.bytex.snamp.jmx.JMExceptionUtils;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
@@ -26,6 +25,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -600,7 +600,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
         final CompositeTypeBuilder result = new CompositeTypeBuilder(typeName, typeDescription);
         for (final MBeanAttributeInfo attributeInfo : attributes) {
             final OpenType<?> attributeType = AttributeDescriptor.getOpenType(attributeInfo);
-            if (selector.apply(attributeType))
+            if (selector.test(attributeType))
                 result.addItem(attributeInfo.getName(), attributeInfo.getDescription(), attributeType);
         }
         return result.build();

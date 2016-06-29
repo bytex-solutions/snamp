@@ -1,11 +1,6 @@
 package com.bytex.snamp.jmx;
 
 import com.bytex.snamp.ArrayUtils;
-import com.google.common.base.Function;
-import com.google.common.base.Functions;
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.Maps;
 
 import javax.management.openmbean.*;
@@ -21,6 +16,8 @@ import java.math.BigInteger;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Provides helper methods that allows to create and
@@ -107,9 +104,7 @@ public final class CompositeDataUtils {
                                        final Function<? super String, ? extends OpenType<?>> typeProvider,
                                        final Function<String, String> descriptionProvider) throws OpenDataException {
         final String[] itemNames = ArrayUtils.toArray(map.keySet(), String.class);
-        final String[] itemDescriptions = ArrayUtils.toArray(
-                Collections2.transform(map.keySet(), descriptionProvider),
-                String.class);
+        final String[] itemDescriptions = map.keySet().stream().map(descriptionProvider).toArray(String[]::new);
         final OpenType<?>[] itemTypes = new OpenType<?>[itemNames.length];
         for (int i = 0; i < itemTypes.length; i++)
             itemTypes[i] = typeProvider.apply(itemNames[i]);
@@ -133,13 +128,11 @@ public final class CompositeDataUtils {
                                            final String description,
                                            final Map<String, V> map,
                                            final OpenType<V> type) throws OpenDataException {
-        final Function<? super String, ? extends OpenType<?>> typeProvider = Functions.constant(type);
-        final Function<String, String> itemDescriptionProvider = Functions.identity();
         return create(typeName,
                 description,
                 map,
-                typeProvider,
-                itemDescriptionProvider);
+                v -> type,
+                Function.identity());
     }
 
     public static <V> CompositeData create(final Map<String, V> map,
@@ -165,7 +158,7 @@ public final class CompositeDataUtils {
                             final String itemName,
                             final Class<T> itemType,
                             final T defval){
-        return getValue(dict, itemName, itemType, Suppliers.ofInstance(defval));
+        return getValue(dict, itemName, itemType, (Supplier<T>)() -> defval);
     }
 
     public static <T> T getValue(final CompositeData dict,

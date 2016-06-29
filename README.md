@@ -8,7 +8,7 @@ for the complex IT infrastructure.
 ## Prerequisites
 * CPU Arch: x86/x64
 * Runtime: Java SE 8 or higher (Oracle HotSpot or OpenJDK is recommended but not required)
-* OS: Ubuntu (Server) 10.04 or higher, Windows 7/8/10, Windows Server 2003/2012, RedHat, OpenSUSE, CentOS
+* OS: Ubuntu (Server) 12.04 or higher, Windows 7/8/10, Windows Server 2003/2012, RedHat, OpenSUSE, CentOS
 * RAM: 2Gb or higher
 
 ### For developers
@@ -34,7 +34,7 @@ Generally, you need to pass
 ```
 to the `maven` process when first importing the project.
 
-If you use IntelliJ IDEA 13/14/15 as IDE - follow the instructions:
+If you use IntelliJ IDEA 14/15/2016 as IDE - follow the instructions:
 
 1. Open _File_ -> _Settings_ menu
 1. Find _Build, Execution, Deployment_ -> _Build Tools_ -> _Maven_ -> _Runner_

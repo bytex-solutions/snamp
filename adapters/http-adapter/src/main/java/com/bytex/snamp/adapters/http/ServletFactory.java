@@ -1,8 +1,7 @@
 package com.bytex.snamp.adapters.http;
 
-import com.google.common.base.Supplier;
-
 import javax.servlet.Servlet;
+import java.util.function.Supplier;
 
 /**
  * Represents {@link javax.servlet.Servlet} factory.

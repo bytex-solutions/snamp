@@ -1,7 +1,7 @@
 package com.bytex.snamp.connectors.attributes;
 
 import com.bytex.snamp.configuration.AgentConfiguration;
-import com.google.common.base.Strings;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.bytex.snamp.TimeSpan;
@@ -85,7 +85,7 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
 
     public final String getDescription(final String defval){
         final String result = getDescription();
-        return Strings.isNullOrEmpty(result) ? defval : result;
+        return isNullOrEmpty(result) ? defval : result;
     }
 
     /**

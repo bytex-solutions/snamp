@@ -2,7 +2,6 @@ package com.bytex.snamp.adapters.groovy;
 
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
-import com.google.common.base.Predicate;
 import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.modeling.ModelOfAttributes;
 import com.bytex.snamp.adapters.modeling.AttributeAccessor;
@@ -16,6 +15,7 @@ import javax.management.DescriptorRead;
 import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
 import java.util.*;
+import java.util.function.Predicate;
 
 /**
  * Represents advanced attribute analyzer based on periodic attribute query.
@@ -53,8 +53,8 @@ public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> ext
          */
         @SuppressWarnings("unchecked")
         @Override
-        public final boolean apply(final Object attributeValue) {
-            return checker.apply(attributeValue);
+        public final boolean test(final Object attributeValue) {
+            return checker.test(attributeValue);
         }
 
         public final FilterAndProcessAttributeStatement failure(final AttributeValueHandler<? super Throwable, ? extends RuntimeException> handler){
@@ -136,7 +136,7 @@ public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> ext
                 return;
             }
             handlers.stream()
-                    .filter(handler -> handler.apply(attributeValue))
+                    .filter(handler -> handler.test(attributeValue))
                     .forEach(handler -> handler.onSuccess(resourceName, accessor.getMetadata(), attributeValue));
         }
     }

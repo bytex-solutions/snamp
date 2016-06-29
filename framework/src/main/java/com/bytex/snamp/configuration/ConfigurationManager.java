@@ -43,19 +43,7 @@ public interface ConfigurationManager extends FrameworkService {
      * @throws IOException Unrecoverable exception thrown by configuration infrastructure.
      * @since 1.2
      */
-    default <E extends Throwable> void processConfiguration(final ConfigurationProcessor<E> handler) throws E, IOException {
-        synchronized (this) {
-            AgentConfiguration config = getCurrentConfiguration();
-            if (config == null) {
-                reload();
-                config = getCurrentConfiguration();
-            }
-            if (config == null)
-                throw new IOException("Configuration is not available");
-            else if(handler.process(config))
-                sync();
-        }
-    }
+    <E extends Throwable> void processConfiguration(final ConfigurationProcessor<E> handler) throws E, IOException;
 
     /**
      * Read SNAMP configuration.
@@ -84,28 +72,6 @@ public interface ConfigurationManager extends FrameworkService {
         readConfiguration(result.changeConsumingType(handler));
         return result.get();
     }
-
-    /**
-     * Returns the currently loaded configuration.
-     * @return The currently loaded configuration.
-     * @deprecated Use {@link #processConfiguration(ConfigurationProcessor)} instead. Deprecated since 1.2
-     */
-    @Deprecated
-    AgentConfiguration getCurrentConfiguration();
-
-    /**
-     * Reload agent configuration from the persistent storage.
-     * @deprecated Use {@link #processConfiguration(ConfigurationProcessor)} instead. Deprecated since 1.2
-     */
-    @Deprecated
-    void reload();
-
-    /**
-     * Dumps the agent configuration into the persistent storage.
-     * Use {@link #processConfiguration(ConfigurationProcessor)} instead. Deprecated since 1.2
-     */
-    @Deprecated
-    void sync();
 
     /**
      * Creates a new instance of entity configuration.

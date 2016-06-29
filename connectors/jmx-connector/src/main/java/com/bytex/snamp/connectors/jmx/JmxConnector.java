@@ -19,8 +19,7 @@ import com.bytex.snamp.connectors.operations.OperationDescriptorRead;
 import com.bytex.snamp.connectors.operations.OperationSupport;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
-import com.google.common.base.Function;
-import com.google.common.base.MoreObjects;
+import static com.google.common.base.MoreObjects.firstNonNull;
 import com.google.common.collect.Sets;
 import org.osgi.framework.BundleContext;
 
@@ -32,6 +31,7 @@ import java.net.MalformedURLException;
 import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -92,7 +92,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
 
         @Override
         public OperationDescriptor getDescriptor() {
-            return MoreObjects.firstNonNull(descriptor, OperationDescriptor.EMPTY_DESCRIPTOR);
+            return firstNonNull(descriptor, OperationDescriptor.EMPTY_DESCRIPTOR);
         }
 
         @Override
@@ -682,7 +682,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
          */
         @Override
         public AttributeDescriptor getDescriptor() {
-            return MoreObjects.firstNonNull(descriptor, AttributeDescriptor.EMPTY_DESCRIPTOR);
+            return firstNonNull(descriptor, AttributeDescriptor.EMPTY_DESCRIPTOR);
         }
 
         /**

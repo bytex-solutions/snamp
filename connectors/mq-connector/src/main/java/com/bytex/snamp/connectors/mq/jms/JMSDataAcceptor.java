@@ -6,7 +6,7 @@ import com.bytex.snamp.connectors.mda.MDAAttributeRepository;
 import com.bytex.snamp.connectors.mda.MDANotificationRepository;
 import com.bytex.snamp.connectors.mq.MQResourceConnectorDescriptionProvider;
 import com.bytex.snamp.internal.Utils;
-import com.google.common.base.Strings;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 import javax.jms.*;
 import java.io.IOException;
@@ -88,7 +88,7 @@ final class JMSDataAcceptor extends DataAcceptor implements ExceptionListener {
                     outputQueueName,
                     isTopicOutput);
             final Destination dest = isTopic ? jmsSession.createTopic(queueName) : jmsSession.createQueue(queueName);
-            final MessageConsumer consumer = Strings.isNullOrEmpty(messageSelector) ?
+            final MessageConsumer consumer = isNullOrEmpty(messageSelector) ?
                     jmsSession.createConsumer(dest) :
                     jmsSession.createConsumer(dest, messageSelector);
             consumer.setMessageListener(new JMSMessageListener(attributes, notifications, dataConverter, getLogger()));

@@ -12,7 +12,6 @@ import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.Communicator;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.JMExceptionUtils;
-import com.google.common.base.Supplier;
 import com.google.common.eventbus.Subscribe;
 import groovy.lang.Closure;
 import groovy.lang.Script;
@@ -24,6 +23,7 @@ import java.util.Dictionary;
 import java.util.EventListener;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;

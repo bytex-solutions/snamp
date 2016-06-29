@@ -3,7 +3,7 @@ package com.bytex.snamp.connectors.mq.jms;
 import com.bytex.snamp.connectors.mda.DataAcceptorFactory;
 import com.bytex.snamp.connectors.mq.MQResourceConnectorDescriptionProvider;
 import com.bytex.snamp.internal.Utils;
-import com.google.common.base.Strings;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import org.osgi.framework.BundleContext;
 
 import javax.jms.ConnectionFactory;
@@ -28,7 +28,7 @@ public final class JMSDataAcceptorFactory implements DataAcceptorFactory {
         final BundleContext context = Utils.getBundleContextOfObject(this);
         //parse converter
         final String scriptFile = MQResourceConnectorDescriptionProvider.getInstance().getConverterScript(parameters);
-        final JMSDataConverter converter = Strings.isNullOrEmpty(scriptFile) ?
+        final JMSDataConverter converter = isNullOrEmpty(scriptFile) ?
                 JMSDataConverter.createDefault() :
                 JMSDataConverter.loadFrom(new File(scriptFile), getClass().getClassLoader());
         //detect connection factory
@@ -44,7 +44,7 @@ public final class JMSDataAcceptorFactory implements DataAcceptorFactory {
         else if (connectionString.startsWith(AMQP_PREFIX) || connectionString.startsWith(AMQP_SECURE_PREFIX)) {
             final String protocolVersion = MQResourceConnectorDescriptionProvider.getInstance().getAmqpVersion(parameters);
             final QueueClient client;
-            if (Strings.isNullOrEmpty(protocolVersion))
+            if (isNullOrEmpty(protocolVersion))
                 client = QueueClient.AMQP_0_9_1;
             else switch (protocolVersion) {
                 case "0-8":

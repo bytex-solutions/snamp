@@ -18,7 +18,7 @@ import com.bytex.snamp.core.LongCounter;
 import static com.bytex.snamp.internal.Utils.*;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 import com.bytex.snamp.jmx.WellKnownType;
-import com.google.common.base.Strings;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.osgi.framework.BundleContext;
@@ -311,7 +311,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                     description = name = Integer.toString(i);
                 else {
                     name = metadata.name();
-                    description = Strings.isNullOrEmpty(metadata.description()) ?
+                    description = isNullOrEmpty(metadata.description()) ?
                             Integer.toString(i) :
                             metadata.description();
                 }

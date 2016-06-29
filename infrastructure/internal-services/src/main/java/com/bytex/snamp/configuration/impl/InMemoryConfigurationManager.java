@@ -66,38 +66,6 @@ public final class InMemoryConfigurationManager extends AbstractAggregator imple
     }
 
     /**
-     * Returns the currently loaded configuration.
-     *
-     * @return The currently loaded configuration.
-     * @deprecated Use {@link #processConfiguration(ConfigurationProcessor)} instead. Deprecated since 1.2
-     */
-    @Override
-    public AgentConfiguration getCurrentConfiguration() {
-        return currentConfiguration.read(SerializableAgentConfiguration::clone);
-    }
-
-    /**
-     * Reload agent configuration from the persistent storage.
-     *
-     * @deprecated Use {@link #processConfiguration(ConfigurationProcessor)} instead. Deprecated since 1.2
-     */
-    @Override
-    @Deprecated
-    public void reload() {
-
-    }
-
-    /**
-     * Dumps the agent configuration into the persistent storage.
-     * Use {@link #processConfiguration(ConfigurationProcessor)} instead. Deprecated since 1.2
-     */
-    @Override
-    @Deprecated
-    public void sync() {
-
-    }
-
-    /**
      * Gets logger associated with this service.
      *
      * @return The logger associated with this service.

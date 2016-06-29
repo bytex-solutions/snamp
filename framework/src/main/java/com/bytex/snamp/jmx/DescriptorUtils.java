@@ -1,8 +1,6 @@
 package com.bytex.snamp.jmx;
 
 import com.bytex.snamp.ArrayUtils;
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import com.google.common.collect.Maps;
 
 import javax.management.Descriptor;
@@ -14,6 +12,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.lang.reflect.Array;
 import java.util.*;
+import java.util.function.Supplier;
 
 /**
  * Represents utility methods for working with {@link javax.management.Descriptor} instances.
@@ -55,7 +54,7 @@ public final class DescriptorUtils {
                                  final String fieldName,
                                  final Class<T> fieldType,
                                  final T defval){
-        return getField(descr, fieldName, fieldType, Suppliers.ofInstance(defval));
+        return getField(descr, fieldName, fieldType, (Supplier<T>) () -> defval);
     }
 
     public static <T> T getField(final Descriptor descr,

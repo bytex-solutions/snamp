@@ -1,9 +1,9 @@
 package com.bytex.snamp.concurrent;
 
 import com.bytex.snamp.ExceptionPlaceholder;
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import com.bytex.snamp.Wrapper;
+
+import java.util.function.Supplier;
 
 /**
  * Provides thread-safe access to the thread-unsafe resource.
@@ -96,7 +96,7 @@ public class ConcurrentResourceAccessor<R> extends AbstractConcurrentResourceAcc
      * @param newResource A new instance of the resource.
      */
     public final void changeResource(final R newResource){
-        changeResource(Suppliers.ofInstance(newResource));
+        changeResource(() -> newResource);
     }
 
     /**

@@ -1003,41 +1003,12 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
         return result;
     }
 
-    /**
-     * Gets a collection of resource adapters.
-     * <p>
-     * The key represents user-defined unique name of the adapter.
-     * </p>
-     *
-     * @return A collection of resource adapters.
-     * @deprecated Use {@link #getEntities(Class)} instead.
-     */
-    @Override
-    @Deprecated
-    public ConfigurationEntityRegistry<SerializableResourceAdapterConfiguration> getResourceAdapters() {
-        return getResourceAdaptersImpl();
-    }
-
-    ConfigurationEntityRegistry<SerializableResourceAdapterConfiguration> getResourceAdaptersImpl() {
+    ConfigurationEntityRegistry<SerializableResourceAdapterConfiguration> getResourceAdapters() {
         return adapters;
     }
 
-    /**
-     * Gets a collection of managed resources.
-     * <p>
-     * The key represents user-defined name of the managed resource.
-     * </p>
-     *
-     * @return The dictionary of managed resources.
-     * @deprecated Use {@link #getEntities(Class)} instead.
-     */
-    @Override
-    @Deprecated
-    public ConfigurationEntityRegistry<SerializableManagedResourceConfiguration> getManagedResources() {
-        return getManagedResourcesImpl();
-    }
 
-    ConfigurationEntityRegistry<SerializableManagedResourceConfiguration> getManagedResourcesImpl() {
+    ConfigurationEntityRegistry<SerializableManagedResourceConfiguration> getManagedResources() {
         return resources;
     }
 

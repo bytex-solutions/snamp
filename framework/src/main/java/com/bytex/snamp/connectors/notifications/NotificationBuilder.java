@@ -1,12 +1,12 @@
 package com.bytex.snamp.connectors.notifications;
 
-import com.google.common.base.Supplier;
 import com.bytex.snamp.ThreadSafe;
 
 import javax.management.Notification;
 import java.util.Date;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 
 /**
  * Represents builder of {@link Notification} objects.

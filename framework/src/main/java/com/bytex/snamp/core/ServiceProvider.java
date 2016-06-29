@@ -1,7 +1,8 @@
 package com.bytex.snamp.core;
 
-import com.google.common.base.Supplier;
 import org.osgi.framework.ServiceReference;
+
+import java.util.function.Supplier;
 
 /**
  * Represents OSGi service provider that combines a service reference and accessor

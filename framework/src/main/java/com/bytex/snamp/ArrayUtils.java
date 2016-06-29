@@ -1,7 +1,5 @@
 package com.bytex.snamp;
 
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -18,6 +16,8 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Represents advanced routines to work with arrays.
@@ -254,7 +254,7 @@ public final class ArrayUtils {
 
     public static <T> T find(final T[] array, final Predicate<T> filter, final T defval) {
         for(final T item: array)
-            if(filter.apply(item)) return item;
+            if(filter.test(item)) return item;
         return defval;
     }
 

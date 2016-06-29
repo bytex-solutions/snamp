@@ -1,12 +1,12 @@
 package com.bytex.snamp.core;
 
 import com.bytex.snamp.*;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
 import org.osgi.framework.*;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
@@ -194,7 +194,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
             for(final ActivationProperty<?> prop: keySet())
                 if(propertyType.isInstance(prop)){
                     final P candidate = propertyType.cast(prop);
-                    if(filter.apply(candidate)) return candidate;
+                    if(filter.test(candidate)) return candidate;
                 }
             return null;
         }

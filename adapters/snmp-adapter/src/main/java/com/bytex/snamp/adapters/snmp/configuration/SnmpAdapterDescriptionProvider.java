@@ -7,7 +7,6 @@ import com.bytex.snamp.concurrent.LazyValue;
 import com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
-import com.google.common.base.Supplier;
 import org.snmp4j.SNMP4JSettings;
 import org.snmp4j.mp.MPv3;
 import org.snmp4j.smi.OID;
@@ -17,6 +16,7 @@ import javax.management.DescriptorRead;
 import javax.naming.NamingException;
 import java.text.ParseException;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;

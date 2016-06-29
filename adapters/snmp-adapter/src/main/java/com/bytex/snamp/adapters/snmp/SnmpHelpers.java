@@ -2,7 +2,6 @@ package com.bytex.snamp.adapters.snmp;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.io.IOUtils;
-import com.google.common.base.Supplier;
 import com.google.common.primitives.Shorts;
 import org.snmp4j.agent.MOAccess;
 import org.snmp4j.agent.mo.MOAccessImpl;
@@ -19,6 +18,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;

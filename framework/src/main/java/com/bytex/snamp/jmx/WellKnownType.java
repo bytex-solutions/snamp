@@ -1,7 +1,5 @@
 package com.bytex.snamp.jmx;
 
-import com.google.common.base.Predicate;
-import com.google.common.base.Supplier;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -17,6 +15,8 @@ import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * Describes a well-known type that should be supported by
@@ -472,7 +472,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
      *      otherwise, {@literal false}.
      */
     @Override
-    public boolean apply(final Object value){
+    public boolean test(final Object value){
         return isInstance(value);
     }
 
@@ -586,7 +586,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
         final WellKnownType[] allTypes = values();
         final Collection<WellKnownType> types = new ArrayList<>(allTypes.length);
         for(final WellKnownType t: allTypes)
-            if(filter.apply(t))
+            if(filter.test(t))
                 types.add(t);
         return EnumSet.copyOf(types);
     }

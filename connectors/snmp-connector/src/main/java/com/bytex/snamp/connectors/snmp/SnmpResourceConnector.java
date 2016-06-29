@@ -16,7 +16,6 @@ import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.Buffers;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.bytex.snamp.jmx.JMExceptionUtils;
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.osgi.framework.BundleContext;
@@ -194,7 +193,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
                 }
             }
             else {//concatenate bindings, no attachments
-                message = Joiner.on(System.lineSeparator()).join(bindings);
+                message = String.join(System.lineSeparator(), (CharSequence[]) bindings.stream().map(VariableBinding::toString).toArray(String[]::new));
                 bindings.clear();
             }
             fire(notificationInfo.getDescriptor().getName(ArrayUtils.getFirst(notificationInfo.getNotifTypes())),

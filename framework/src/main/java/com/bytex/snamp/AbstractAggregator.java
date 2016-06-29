@@ -1,6 +1,5 @@
 package com.bytex.snamp;
 
-import com.google.common.base.Supplier;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -15,6 +14,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
 
 /**
  * Represents a basic support for aggregation.
@@ -130,7 +130,7 @@ public abstract class AbstractAggregator implements Aggregator {
      * Represents aggregation builder.
      * This class cannot be inherited or instantiated directly from your code.
      */
-    public static final class AggregationBuilder implements Supplier<AbstractAggregator>, java.util.function.Supplier<AbstractAggregator>{
+    public static final class AggregationBuilder implements Supplier<AbstractAggregator>{
         private AbstractAggregator aggregator;
 
         private AggregationBuilder(){

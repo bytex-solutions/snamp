@@ -1,6 +1,5 @@
 package com.bytex.snamp.connectors.discovery;
 
-import com.google.common.base.Supplier;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -10,6 +9,7 @@ import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfigura
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static com.bytex.snamp.connectors.discovery.DiscoveryService.DiscoveryResult;
 

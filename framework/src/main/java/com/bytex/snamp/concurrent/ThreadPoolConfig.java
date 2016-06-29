@@ -1,10 +1,10 @@
 package com.bytex.snamp.concurrent;
 
 import com.bytex.snamp.TimeSpan;
-import com.google.common.base.Function;
 
 import java.io.Serializable;
 import java.util.concurrent.*;
+import java.util.function.Function;
 
 /**
  * Represents configuration of the thread pool.

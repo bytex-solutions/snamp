@@ -1,8 +1,9 @@
 package com.bytex.snamp.adapters.groovy;
 
 import com.bytex.snamp.adapters.NotificationListener;
-import com.google.common.base.Predicate;
 import groovy.lang.Closure;
+
+import java.util.function.Predicate;
 
 /**
  * Represents additional converters for Groovy {@link groovy.lang.Closure}.

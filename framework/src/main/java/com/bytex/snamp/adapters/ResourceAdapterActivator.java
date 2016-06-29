@@ -7,7 +7,7 @@ import com.bytex.snamp.configuration.internal.CMResourceAdapterParser;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.management.Maintainable;
-import com.google.common.base.Strings;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import com.google.common.collect.ObjectArrays;
 import org.osgi.framework.*;
 import org.osgi.service.cm.ConfigurationAdmin;
@@ -478,7 +478,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
         final Collection<Bundle> candidates = getResourceAdapterBundles(context);
         return candidates.stream()
                 .map(ResourceAdapterActivator::getAdapterName)
-                .filter(name -> !Strings.isNullOrEmpty(name))
+                .filter(name -> !isNullOrEmpty(name))
                 .collect(Collectors.toCollection(HashSet::new));
     }
 

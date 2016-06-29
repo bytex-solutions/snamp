@@ -15,7 +15,6 @@ import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connectors.jmx.TestOpenMBean;
-import com.google.common.base.Predicate;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
@@ -26,6 +25,7 @@ import java.math.BigInteger;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Predicate;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -43,12 +43,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final String INSTANCE_NAME = "groovy-adapter";
     private static final String ADAPTER_NAME = "groovy";
     private static final String COMMUNICATION_CHANNEL = "test-communication-channel";
-    private static final Predicate<Object> NON_NOTIF = new Predicate<Object>() {
-        @Override
-        public boolean apply(final Object responseMessage) {
-            return !(responseMessage instanceof Notification);
-        }
-    };
+    private static final Predicate<Object> NON_NOTIF = responseMessage -> !(responseMessage instanceof Notification);
 
     public JmxToGroovyTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(), new ObjectName(BEAN_NAME));

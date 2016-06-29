@@ -1,9 +1,10 @@
 package com.bytex.snamp;
 
-import com.google.common.base.*;
-
 import java.util.Objects;
 import java.util.concurrent.*;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * Represents alternative {@code switch} construction that uses any input type.
@@ -67,7 +68,7 @@ public class Switch<I, O> implements Function<I, O> {
 
         @Override
         public boolean match(final I value) {
-            return matcher.apply(value);
+            return matcher.test(value);
         }
 
         @Override
@@ -148,11 +149,11 @@ public class Switch<I, O> implements Function<I, O> {
     }
 
     public final <T> Switch<I, O> instanceOf(final Class<T> type, final Function<? super T, ? extends O> action) {
-        return addCase(Predicates.instanceOf(type), Functions.compose(action, type::cast));
+        return addCase(type::isInstance, ((Function<? super I, ? extends T>) type::cast).andThen(action));
     }
 
     public final Switch<I, O> instanceOf(final Class<?> type, final O value) {
-        return instanceOf(type, Functions.constant(value));
+        return instanceOf(type, obj -> value);
     }
 
     @ThreadSafe(false)
@@ -164,7 +165,7 @@ public class Switch<I, O> implements Function<I, O> {
     @ThreadSafe(false)
     public final Switch<I, O> equals(final I expected,
                                      final O output) {
-        return equals(expected, Functions.constant(output));
+        return equals(expected, obj -> output);
     }
 
     @ThreadSafe(false)
@@ -174,7 +175,7 @@ public class Switch<I, O> implements Function<I, O> {
 
     @ThreadSafe(false)
     public final Switch<I, O> equalsToNull(final O result){
-        return equalsToNull(Suppliers.ofInstance(result));
+        return equalsToNull(() -> result);
     }
 
     @ThreadSafe(false)
@@ -186,7 +187,7 @@ public class Switch<I, O> implements Function<I, O> {
     @ThreadSafe(false)
     public final Switch<I, O> theSame(final I value,
                                 final O output) {
-        return theSame(value, Functions.constant(output));
+        return theSame(value, obj -> output);
     }
 
     /**
@@ -202,7 +203,7 @@ public class Switch<I, O> implements Function<I, O> {
 
     @ThreadSafe(false)
     public final Switch<I, O> otherwise(final O output) {
-        return otherwise(Functions.constant(output));
+        return otherwise(obj -> output);
     }
 
     public final O apply(final I value, final Function<? super I, ? extends O> defaultCase){
@@ -212,8 +213,8 @@ public class Switch<I, O> implements Function<I, O> {
         return defaultCase != null ? defaultCase.apply(value) : null;
     }
 
-    public final O apply(final I value, final O defaultResult){
-        return apply(value, Functions.constant(defaultResult));
+    public final O apply(final I value, final O defaultResult) {
+        return apply(value, obj -> defaultResult);
     }
 
     /**

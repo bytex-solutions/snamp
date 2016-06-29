@@ -3,7 +3,7 @@ package com.bytex.snamp.connectors.mq.jms;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.google.common.base.StandardSystemProperty;
-import com.google.common.base.Strings;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import com.google.common.collect.Maps;
 import groovy.lang.Binding;
 import groovy.lang.Script;
@@ -88,7 +88,7 @@ public abstract class JMSDataConverter extends Script implements JMSMessageConve
     private static void setupClassPath(final CompilerConfiguration config) {
         final List<String> classPath = config.getClasspath();
         final String javaClassPath = StandardSystemProperty.JAVA_CLASS_PATH.value();
-        if (!Strings.isNullOrEmpty(javaClassPath)) {
+        if (!isNullOrEmpty(javaClassPath)) {
             StringTokenizer tokenizer = new StringTokenizer(javaClassPath, File.pathSeparator);
             while (tokenizer.hasMoreTokens())
                 classPath.add(tokenizer.nextToken());
@@ -1047,7 +1047,7 @@ public abstract class JMSDataConverter extends Script implements JMSMessageConve
     @Override
     public SnampMessageType getMessageType(final Message message) throws JMSException{
         final String messageType = message.getJMSType();
-        if(Strings.isNullOrEmpty(messageType)) return SnampMessageType.WRITE;
+        if(isNullOrEmpty(messageType)) return SnampMessageType.WRITE;
         else switch (messageType) {
             default:
             case "write":

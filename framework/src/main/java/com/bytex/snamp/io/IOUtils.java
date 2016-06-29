@@ -5,7 +5,7 @@ import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.TypeTokens;
 import com.google.common.base.Splitter;
 import com.google.common.base.StandardSystemProperty;
-import com.google.common.base.Strings;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import com.google.common.reflect.TypeToken;
 
 import java.io.*;
@@ -27,7 +27,7 @@ public final class IOUtils {
 
     static {
         final String pathSeparator = StandardSystemProperty.PATH_SEPARATOR.value();
-        PATH_SPLITTER = Splitter.on(Strings.isNullOrEmpty(pathSeparator) ? ":" : pathSeparator);
+        PATH_SPLITTER = Splitter.on(isNullOrEmpty(pathSeparator) ? ":" : pathSeparator);
     }
 
     private IOUtils() {

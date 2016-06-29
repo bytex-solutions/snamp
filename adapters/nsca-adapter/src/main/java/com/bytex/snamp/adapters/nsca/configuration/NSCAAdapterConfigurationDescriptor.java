@@ -8,7 +8,7 @@ import com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfigura
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import com.bytex.snamp.jmx.DescriptorUtils;
-import com.google.common.base.Strings;
+import static com.google.common.base.Strings.nullToEmpty;
 import com.googlecode.jsendnsca.core.Encryption;
 import com.googlecode.jsendnsca.core.NagiosSettings;
 
@@ -123,6 +123,6 @@ public final class NSCAAdapterConfigurationDescriptor extends ConfigurationEntit
     }
 
     public static String getUnitOfMeasurement(final Descriptor descr){
-        return Strings.nullToEmpty(getUOM(descr));
+        return nullToEmpty(getUOM(descr));
     }
 }

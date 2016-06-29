@@ -1,10 +1,9 @@
 package com.bytex.snamp;
 
-import com.google.common.base.Supplier;
-
 import java.lang.ref.WeakReference;
 import java.util.EventListener;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 /**
  * Represents a weak reference to the event listener.
