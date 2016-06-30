@@ -30,7 +30,7 @@
                         <Embed-Transitive>true</Embed-Transitive>
                         <Export-Package/>
                         <!--SNAMP specific header-->
-                        <SNAMP-Resource-Adapter>syslog</SNAMP-Resource-Adapter>
+                        <Provide-Capability>com.bytex.snamp.adapters; type=syslog</Provide-Capability>
                     </instructions>
                 </configuration>
             </plugin>

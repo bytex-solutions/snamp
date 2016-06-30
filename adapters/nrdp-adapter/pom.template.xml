@@ -36,7 +36,7 @@
                             *
                         </Import-Package>
                         <!--SNAMP specific header-->
-                        <SNAMP-Resource-Adapter>nrdp</SNAMP-Resource-Adapter>
+                        <Provide-Capability>com.bytex.snamp.adapters; type=nrdp</Provide-Capability>
                     </instructions>
                 </configuration>
             </plugin>

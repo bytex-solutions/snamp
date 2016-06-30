@@ -56,7 +56,7 @@
             <Bundle-Activator>com.bytex.snamp.adapters.groovy.impl.GroovyResourceAdapterActivator</Bundle-Activator>
             <Export-Package>com.bytex.snamp.adapters.groovy</Export-Package>
             <DynamicImport-Package>*</DynamicImport-Package>
-            <SNAMP-Resource-Adapter>groovy</SNAMP-Resource-Adapter>
+            <Provide-Capability>com.bytex.snamp.adapters; type=groovy</Provide-Capability>
           </instructions>
         </configuration>
       </plugin>

@@ -1,12 +1,20 @@
 package com.bytex.snamp.adapters;
 
+import com.bytex.snamp.connectors.ManagedResourceConnector;
+import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.Multimap;
 import com.bytex.snamp.core.FrameworkService;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceListener;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.wiring.BundleRevision;
 
 import javax.management.MBeanFeatureInfo;
 import java.io.Closeable;
+import java.util.Objects;
 import java.util.Set;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents resource adapter.
@@ -16,9 +24,18 @@ import java.util.Set;
  */
 public interface ResourceAdapter extends FrameworkService, ServiceListener, Closeable {
     /**
-     * Represents name of the bundle manifest header that contains system name of the adapter.
+     * This namespace must be defined in Provide-Capability manifest header inside of the bundle containing implementation
+     * of Resource Adapter.
+     * <p>
+     *     Example: Provide-Capability: com.bytex.snamp.adapters; type=snmp
      */
-    String ADAPTER_NAME_MANIFEST_HEADER = "SNAMP-Resource-Adapter";
+    String CAPABILITY_NAMESPACE = "com.bytex.snamp.adapters";
+
+    /**
+     * This property must be defined in Provide-Capability manifest header and specify type of Resource Adapter.
+     * @see #CAPABILITY_NAMESPACE
+     */
+    String TYPE_CAPABILITY_ATTRIBUTE = "type";
 
     /**
      * Represents binding of the feature from the connected resource.
@@ -91,4 +108,23 @@ public interface ResourceAdapter extends FrameworkService, ServiceListener, Clos
      * @see com.bytex.snamp.adapters.ResourceAdapter.FeatureBindingInfo
      */
     <M extends MBeanFeatureInfo> Multimap<String, ? extends FeatureBindingInfo<M>> getBindings(final Class<M> featureType);
+
+    static String getResourceAdapterType(final Bundle bnd){
+        final BundleRevision revision = bnd.adapt(BundleRevision.class);
+        assert revision != null;
+        return revision.getCapabilities(CAPABILITY_NAMESPACE)
+                .stream()
+                .map(capability -> capability.getAttributes().get(TYPE_CAPABILITY_ATTRIBUTE))
+                .map(name -> Objects.toString(name, ""))
+                .findFirst()
+                .orElseGet(() -> "");
+    }
+
+    static boolean isResourceAdapterBundle(final Bundle bnd) {
+        return bnd != null && !isNullOrEmpty(getResourceAdapterType(bnd));
+    }
+
+    static boolean isResourceAdapter(final ServiceReference<?> ref){
+        return Utils.isInstanceOf(ref, ManagedResourceConnector.class) && isResourceAdapterBundle(ref.getBundle());
+    }
 }

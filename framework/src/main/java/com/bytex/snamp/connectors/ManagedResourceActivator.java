@@ -373,7 +373,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
         private ManagedResourceConnectorRegistry(final ManagedResourceConnectorLifecycleController<TConnector> controller,
                                                  final RequiredService<?>... dependencies){
-            this(getConnectorType(controller), controller, dependencies);
+            this(ManagedResourceConnector.getResourceConnectorType(Utils.getBundleContextOfObject(controller).getBundle()), controller, dependencies);
         }
 
         @SuppressWarnings("unchecked")
@@ -971,10 +971,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     @Override
     public final int hashCode() {
         return getConnectorType().hashCode();
-    }
-
-    private static String getConnectorType(final ManagedResourceConnectorLifecycleController<?> registry){
-        return ManagedResourceConnector.getResourceConnectorType(FrameworkUtil.getBundle(registry.getClass()));
     }
 
     static String getManagedResourceName(final ServiceReference<ManagedResourceConnector> connectorRef) {

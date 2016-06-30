@@ -6,6 +6,7 @@ import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.internal.CMResourceAdapterParser;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.FrameworkService;
+import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.management.Maintainable;
 import com.google.common.collect.ObjectArrays;
 import org.osgi.framework.*;
@@ -18,7 +19,6 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
-import static com.bytex.snamp.adapters.ResourceAdapter.ADAPTER_NAME_MANIFEST_HEADER;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
@@ -35,6 +35,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  */
 public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> extends AbstractServiceLibrary {
     private static final String ADAPTER_INSTANCE_IDENTITY_PROPERTY = "instanceName";
+    private static final String ADAPTER_TYPE_IDENTITY_PROPERTY = "adapterType";
     private static final ActivationProperty<String> ADAPTER_NAME_HOLDER = defineActivationProperty(String.class);
     private static final ActivationProperty<Logger> LOGGER_HOLDER = defineActivationProperty(Logger.class);
 
@@ -68,7 +69,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
 
         private ResourceAdapterRegistry(final ResourceAdapterFactory<TAdapter> factory,
                                        final RequiredService<?>... dependencies) {
-            this(getAdapterName(factory), factory, dependencies);
+            this(ResourceAdapter.getResourceAdapterType(Utils.getBundleContextOfObject(factory).getBundle()), factory, dependencies);
         }
 
         @SuppressWarnings("unchecked")
@@ -141,7 +142,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
     private static void createIdentity(final String adapterName,
                                        final String instanceName,
                                        final Map<String, Object> identity){
-        identity.put(ADAPTER_NAME_MANIFEST_HEADER, adapterName);
+        identity.put(ADAPTER_TYPE_IDENTITY_PROPERTY, adapterName);
         identity.put(ADAPTER_INSTANCE_IDENTITY_PROPERTY, instanceName);
     }
 
@@ -194,7 +195,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
          */
         @Override
         protected final T activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception {
-            identity.put(ADAPTER_NAME_MANIFEST_HEADER, getAdapterName());
+            identity.put(ADAPTER_TYPE_IDENTITY_PROPERTY, getAdapterName());
             return createMaintenanceService(dependencies);
         }
     }
@@ -234,7 +235,7 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
          */
         @Override
         protected final T activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception {
-            identity.put(ADAPTER_NAME_MANIFEST_HEADER, getAdapterName());
+            identity.put(ADAPTER_TYPE_IDENTITY_PROPERTY, getAdapterName());
             return createConfigurationDescriptionProvider(dependencies);
         }
     }
@@ -266,12 +267,8 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
         this(new ResourceAdapterRegistry<>(factory, adapterDependencies), optionalServices);
     }
 
-    private static String getAdapterName(final ResourceAdapterFactory<?> factory){
-        return getAdapterName(FrameworkUtil.getBundle(factory.getClass()));
-    }
-
-    public final String getAdapterName(){
-        return getAdapterName(FrameworkUtil.getBundle(getClass()));
+    public final String getAdapterName() {
+        return ResourceAdapter.getResourceAdapterType(Utils.getBundleContextOfObject(this).getBundle());
     }
 
     /**
@@ -368,26 +365,15 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
                 e);
     }
 
-    /**
-     * Determines whether the specified bundle provides implementation
-     * of the managed resource adapter.
-     * @param bnd The bundle to check.
-     * @return {@literal true}, if the specified bundle provides implementation
-     * of the managed resource adapter.
-     */
-    public static boolean isResourceAdapterBundle(final Bundle bnd){
-        return AbstractResourceAdapter.isResourceAdapterBundle(bnd);
-    }
-
     private static List<Bundle> getResourceAdapterBundles(final BundleContext context){
         return Arrays.stream(context.getBundles())
-                .filter(ResourceAdapterActivator::isResourceAdapterBundle)
+                .filter(ResourceAdapter::isResourceAdapterBundle)
                 .collect(Collectors.toCollection(LinkedList::new));
     }
 
     static List<Bundle> getResourceAdapterBundles(final BundleContext context, final String adapterName) {
         return Arrays.stream(context.getBundles())
-                .filter(bnd -> Objects.equals(bnd.getHeaders().get(ADAPTER_NAME_MANIFEST_HEADER), adapterName))
+                .filter(bnd -> ResourceAdapter.getResourceAdapterType(bnd).equals(adapterName))
                 .collect(Collectors.toCollection(LinkedList::new));
     }
 
@@ -461,9 +447,6 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
         return success;
     }
 
-    private static String getAdapterName(final Bundle bnd){
-        return AbstractResourceAdapter.getAdapterName(bnd);
-    }
 
     /**
      * Gets a collection of installed adapters (system names).
@@ -473,15 +456,15 @@ public class ResourceAdapterActivator<TAdapter extends AbstractResourceAdapter> 
     public static Collection<String> getInstalledResourceAdapters(final BundleContext context) {
         final Collection<Bundle> candidates = getResourceAdapterBundles(context);
         return candidates.stream()
-                .map(ResourceAdapterActivator::getAdapterName)
+                .map(ResourceAdapter::getResourceAdapterType)
                 .filter(name -> !isNullOrEmpty(name))
                 .collect(Collectors.toCollection(HashSet::new));
     }
 
     static String createFilter(final String adapterName, final String filter){
         return filter == null || filter.isEmpty() ?
-                String.format("(%s=%s)", ADAPTER_NAME_MANIFEST_HEADER, adapterName):
-                String.format("(&(%s=%s)%s)", ADAPTER_NAME_MANIFEST_HEADER, adapterName, filter);
+                String.format("(%s=%s)", ADAPTER_TYPE_IDENTITY_PROPERTY, adapterName):
+                String.format("(&(%s=%s)%s)", ADAPTER_TYPE_IDENTITY_PROPERTY, adapterName, filter);
     }
 
     static String createFilter(final String adapterInstanceName){

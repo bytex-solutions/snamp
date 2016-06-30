@@ -43,7 +43,7 @@
                         </Embed-Dependency>
                         <Embed-Transitive>true</Embed-Transitive>
                         <!--SNAMP specific header-->
-                        <SNAMP-Resource-Adapter>ssh</SNAMP-Resource-Adapter>
+                        <Provide-Capability>com.bytex.snamp.adapters; type=ssh</Provide-Capability>
                     </instructions>
                 </configuration>
             </plugin>

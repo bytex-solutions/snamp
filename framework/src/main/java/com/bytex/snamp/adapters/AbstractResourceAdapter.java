@@ -16,6 +16,7 @@ import com.bytex.snamp.connectors.operations.OperationAddedEvent;
 import com.bytex.snamp.connectors.operations.OperationRemovingEvent;
 import com.bytex.snamp.core.LogicalOperation;
 import com.bytex.snamp.core.RichLogicalOperation;
+import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.google.common.collect.*;
 import org.osgi.framework.*;
@@ -635,24 +636,13 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
     }
 
     public static String getAdapterName(final Class<? extends ResourceAdapter> adapterType){
-        return getAdapterName(FrameworkUtil.getBundle(adapterType));
+        return ResourceAdapter.getResourceAdapterType(Utils.getBundleContext(adapterType).getBundle());
     }
 
     public static String getAdapterName(final ResourceAdapter adapter) {
         return getAdapterName(adapter.getClass());
     }
 
-    static boolean isResourceAdapterBundle(final Bundle bnd){
-        return bnd != null && bnd.getHeaders().get(ADAPTER_NAME_MANIFEST_HEADER) != null;
-    }
-
-    private static String getAdapterName(final Dictionary<String, ?> identity) {
-        return Objects.toString(identity.get(ADAPTER_NAME_MANIFEST_HEADER), "");
-    }
-
-    static String getAdapterName(final Bundle bnd){
-        return getAdapterName(bnd.getHeaders());
-    }
 
     @Override
     public <M extends MBeanFeatureInfo> Multimap<String, ? extends FeatureBindingInfo<M>> getBindings(final Class<M> featureType) {

@@ -111,7 +111,7 @@
                             !org.jboss.*,
                             !org.mortbay.*,
                             *</Import-Package>
-            <SNAMP-Resource-Adapter>http</SNAMP-Resource-Adapter>
+            <Provide-Capability>com.bytex.snamp.adapters; type=http</Provide-Capability>
             <Embed-Dependency>*;scope=compile</Embed-Dependency>
           </instructions>
         </configuration>

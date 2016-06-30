@@ -53,7 +53,7 @@
             <Bundle-SymbolicName>com.bytex.snamp.adapters.snmp</Bundle-SymbolicName>
             <Bundle-Activator>com.bytex.snamp.adapters.snmp.SnmpResourceAdapterActivator</Bundle-Activator>
             <Export-Package />
-            <SNAMP-Resource-Adapter>snmp</SNAMP-Resource-Adapter>
+            <Provide-Capability>com.bytex.snamp.adapters; type=snmp</Provide-Capability>
           </instructions>
         </configuration>
       </plugin>

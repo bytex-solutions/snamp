@@ -2,6 +2,7 @@ package com.bytex.snamp.management;
 
 import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.Consumer;
+import com.bytex.snamp.adapters.ResourceAdapter;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.adapters.ResourceAdapterClient;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
@@ -380,7 +381,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
      * @return {@literal true}, if the specified bundle is a part of SNAMP; otherwise, {@literal false}.
      */
     public static boolean isSnampComponent(final Bundle bnd){
-        if(ResourceAdapterActivator.isResourceAdapterBundle(bnd) ||
+        if(ResourceAdapter.isResourceAdapterBundle(bnd) ||
                 ManagedResourceConnector.isResourceConnectorBundle(bnd)) return false;
         final String importPackages = bnd.getHeaders().get(Constants.IMPORT_PACKAGE);
         if(importPackages == null) return false;

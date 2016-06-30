@@ -43,7 +43,7 @@
             <Bundle-SymbolicName>com.bytex.snamp.adapters.jmx</Bundle-SymbolicName>
             <Bundle-Activator>com.bytex.snamp.adapters.jmx.JmxResourceAdapterActivator</Bundle-Activator>
             <Export-Package />
-            <SNAMP-Resource-Adapter>jmx</SNAMP-Resource-Adapter>
+            <Provide-Capability>com.bytex.snamp.adapters; type=jmx</Provide-Capability>
           </instructions>
         </configuration>
       </plugin>

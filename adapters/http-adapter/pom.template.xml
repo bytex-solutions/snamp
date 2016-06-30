@@ -47,9 +47,9 @@
                             !org.mortbay.*,
                             *
                         </Import-Package>
-                        <!--SNAMP specific header-->
-                        <SNAMP-Resource-Adapter>http</SNAMP-Resource-Adapter>
                         <Embed-Dependency>*;scope=compile</Embed-Dependency>
+                        <!--SNAMP specific header-->
+                        <Provide-Capability>com.bytex.snamp.adapters; type=http</Provide-Capability>
                     </instructions>
                 </configuration>
             </plugin>

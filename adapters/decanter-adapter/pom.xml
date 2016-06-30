@@ -43,7 +43,7 @@
             <Bundle-SymbolicName>com.bytex.snamp.adapters.decanter</Bundle-SymbolicName>
             <Bundle-Activator>com.bytex.snamp.adapters.decanter.DecanterAdapterActivator</Bundle-Activator>
             <Export-Package />
-            <SNAMP-Resource-Adapter>decanter</SNAMP-Resource-Adapter>
+            <Provide-Capability>com.bytex.snamp.adapters; type=decanter</Provide-Capability>
           </instructions>
         </configuration>
       </plugin>

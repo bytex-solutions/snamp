@@ -85,7 +85,7 @@
                             !org.apache.log.*,
                             !org.slf4j.impl.*,
                             *</Import-Package>
-            <SNAMP-Resource-Adapter>nrdp</SNAMP-Resource-Adapter>
+            <Provide-Capability>com.bytex.snamp.adapters; type=nrdp</Provide-Capability>
           </instructions>
         </configuration>
       </plugin>
