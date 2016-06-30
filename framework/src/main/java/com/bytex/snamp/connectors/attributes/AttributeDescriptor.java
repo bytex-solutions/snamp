@@ -1,5 +1,6 @@
 package com.bytex.snamp.connectors.attributes;
 
+import com.bytex.snamp.KeyValueExtractor;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigParameters;
 import com.bytex.snamp.connectors.ConfigurationEntityRuntimeMetadata;
@@ -18,7 +19,6 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -125,7 +125,9 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
     public final AttributeDescriptor setFields(final Map<String, ?> values){
         if(values == null || values.isEmpty()) return this;
         final Map<String, Object> newFields = Arrays.stream(getFieldNames())
-                .collect(Collectors.toMap(Function.identity(), this::getFieldValue));
+                .map(KeyValueExtractor.of(this::getFieldValue))
+                .filter(entry -> entry.getValue() != null)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         newFields.putAll(values);
         return new AttributeDescriptor(newFields);
     }

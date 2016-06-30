@@ -330,7 +330,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
         protected OpenAttribute(final String attributeName, final T openType){
             super(attributeName);
             this.openType = openType;
-            javaType = LazyContainers.NORMAL.create(() -> null);
+            javaType = LazyContainers.THREAD_SAFE.of(() -> null);
             owner = new ThreadLocal<>();
         }
 

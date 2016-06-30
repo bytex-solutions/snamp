@@ -38,7 +38,7 @@ public final class MDAConnectorDescriptionProvider extends MDAResourceConfigurat
         }
     }
 
-    private static final LazyValue<MDAConnectorDescriptionProvider> INSTANCE = LazyContainers.NORMAL.create(MDAConnectorDescriptionProvider::new);
+    private static final LazyValue<MDAConnectorDescriptionProvider> INSTANCE = LazyContainers.THREAD_SAFE.of(MDAConnectorDescriptionProvider::new);
 
     private MDAConnectorDescriptionProvider(){
         super(new AttributeConfigurationDescriptorImpl(),

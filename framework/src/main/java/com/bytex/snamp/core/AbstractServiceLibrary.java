@@ -367,7 +367,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          */
         protected DynamicServiceManager(final RequiredService<?>... dependencies) {
             super(ManagedServiceFactory.class, dependencies);
-            factoryPID = LazyContainers.NORMAL.create(this::getFactoryPIDImpl);
+            factoryPID = LazyContainers.THREAD_SAFE.of(this::getFactoryPIDImpl);
         }
 
         private String getFactoryPIDImpl(){

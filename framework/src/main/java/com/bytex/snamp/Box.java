@@ -1,11 +1,11 @@
 package com.bytex.snamp;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
-
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Supplier;
+
+import static com.google.common.base.MoreObjects.firstNonNull;
 
 /**
  * Represents simple container that holds mutable typed value.
@@ -72,6 +72,15 @@ public class Box<T> implements Wrapper<T>, Supplier<T>, SafeConsumer<T>, Cloneab
         final T result = value;
         value = newValue;
         return result;
+    }
+
+    /**
+     * Determines whether object in this container is not {@literal null}.
+     * @return {@literal true}, if object in this container is not {@literal null}; otherwise, {@literal false}.
+     * @since 1.2
+     */
+    public final boolean hasValue(){
+        return value != null;
     }
 
     /**

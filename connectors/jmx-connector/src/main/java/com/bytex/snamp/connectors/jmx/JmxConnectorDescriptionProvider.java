@@ -124,7 +124,7 @@ final class JmxConnectorDescriptionProvider extends ConfigurationEntityDescripti
         }
     }
 
-    private static final LazyValue<JmxConnectorDescriptionProvider> INSTANCE = LazyContainers.NORMAL.create(JmxConnectorDescriptionProvider::new);
+    private static final LazyValue<JmxConnectorDescriptionProvider> INSTANCE = LazyContainers.THREAD_SAFE.of(JmxConnectorDescriptionProvider::new);
 
     private JmxConnectorDescriptionProvider(){
         super(new AttributeConfigurationInfo(), new ConnectorConfigurationInfo(), new EventConfigurationInfo());

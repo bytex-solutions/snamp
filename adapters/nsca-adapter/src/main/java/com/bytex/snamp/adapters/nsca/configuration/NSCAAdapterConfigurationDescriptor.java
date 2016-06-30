@@ -75,7 +75,7 @@ public final class NSCAAdapterConfigurationDescriptor extends ConfigurationEntit
                     PASSIVE_CHECK_SEND_PERIOD_PARAM);
         }
     }
-    private static final LazyValue<NSCAAdapterConfigurationDescriptor> INSTANCE = LazyContainers.NORMAL.create(NSCAAdapterConfigurationDescriptor::new);
+    private static final LazyValue<NSCAAdapterConfigurationDescriptor> INSTANCE = LazyContainers.THREAD_SAFE.of(NSCAAdapterConfigurationDescriptor::new);
 
     private NSCAAdapterConfigurationDescriptor() {
         super(new ResourceAdapterConfigurationInfo(),

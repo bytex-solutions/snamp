@@ -16,7 +16,7 @@ import java.io.InputStream;
  * @since 1.0
  */
 public final class PlatformVersion extends Version {
-    private static final LazyValue<PlatformVersion> CURRENT_VERSION = LazyContainers.SOFT_REFERENCED.create(PlatformVersion::getCurrentVersionImpl);
+    private static final LazyValue<PlatformVersion> CURRENT_VERSION = LazyContainers.THREAD_SAFE_SOFT_REFERENCED.of(PlatformVersion::getCurrentVersionImpl);
 
     private PlatformVersion(final String version){
         super(version);

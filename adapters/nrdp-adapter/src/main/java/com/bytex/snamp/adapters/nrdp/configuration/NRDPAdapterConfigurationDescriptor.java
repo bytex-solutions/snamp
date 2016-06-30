@@ -71,7 +71,7 @@ public final class NRDPAdapterConfigurationDescriptor extends ConfigurationEntit
         }
     }
 
-    private static final LazyValue<NRDPAdapterConfigurationDescriptor> INSTANCE = LazyContainers.NORMAL.create(NRDPAdapterConfigurationDescriptor::new);
+    private static final LazyValue<NRDPAdapterConfigurationDescriptor> INSTANCE = LazyContainers.THREAD_SAFE.of(NRDPAdapterConfigurationDescriptor::new);
 
     private NRDPAdapterConfigurationDescriptor() {
         super(new ResourceAdapterConfigurationInfo(),

@@ -41,7 +41,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
     private final LazyValue<MetricsReader> metrics;
 
     protected AbstractManagedResourceConnector() {
-        metrics = LazyContainers.SOFT_REFERENCED.create(this::createMetricsReader);
+        metrics = LazyContainers.THREAD_SAFE_SOFT_REFERENCED.of(this::createMetricsReader);
     }
 
     private static IllegalStateFlag createConnectorStateFlag(){

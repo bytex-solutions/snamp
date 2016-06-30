@@ -84,7 +84,7 @@ public final class SshAdapterDescriptionProvider extends ConfigurationEntityDesc
         }
     }
 
-    private static final LazyValue<SshAdapterDescriptionProvider> INSTANCE = LazyContainers.NORMAL.create(SshAdapterDescriptionProvider::new);
+    private static final LazyValue<SshAdapterDescriptionProvider> INSTANCE = LazyContainers.THREAD_SAFE.of(SshAdapterDescriptionProvider::new);
 
     private SshAdapterDescriptionProvider() {
         super(new AdapterConfigurationInfo());

@@ -89,7 +89,7 @@ final class SnmpConnectorDescriptionProvider extends ConfigurationEntityDescript
         }
     }
 
-    private static final LazyValue<SnmpConnectorDescriptionProvider> INSTANCE = LazyContainers.NORMAL.create(SnmpConnectorDescriptionProvider::new);
+    private static final LazyValue<SnmpConnectorDescriptionProvider> INSTANCE = LazyContainers.THREAD_SAFE.of(SnmpConnectorDescriptionProvider::new);
 
     private SnmpConnectorDescriptionProvider(){
         super(new ConnectorConfigurationDescriptor(),

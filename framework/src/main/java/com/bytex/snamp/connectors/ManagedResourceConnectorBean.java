@@ -111,7 +111,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
 
         @Override
         public String getCategory() {
-            return null;
+            return "";
         }
 
         @Override

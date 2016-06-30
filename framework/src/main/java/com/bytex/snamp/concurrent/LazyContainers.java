@@ -9,21 +9,28 @@ import java.util.function.Supplier;
  * @version 1.2
  */
 public enum LazyContainers {
-    /**
-     * Normal container with lazy initialization.
-     */
-    NORMAL {
+    THREAD_UNSAFE{
         @Override
-        public <V> LazyStrongReferencedValue<V> create(final Supplier<V> activator) {
+        public <V> SimpleLazyValue<V> of(final Supplier<V> activator) {
+            return new SimpleLazyValue<>(activator);
+        }
+    },
+
+    /**
+     * Thread-safe container with lazy initialization.
+     */
+    THREAD_SAFE {
+        @Override
+        public <V> LazyStrongReferencedValue<V> of(final Supplier<V> activator) {
             return new LazyStrongReferencedValue<>(activator);
         }
     },
     /**
-     * A container that store a soft reference to the initialized object.
+     * Thread-safe container that store a soft reference to the initialized object.
      */
-    SOFT_REFERENCED {
+    THREAD_SAFE_SOFT_REFERENCED {
         @Override
-        public <V> LazySoftReferencedValue<V> create(final Supplier<V> activator) {
+        public <V> LazySoftReferencedValue<V> of(final Supplier<V> activator) {
             return new LazySoftReferencedValue<>(activator);
         }
     };
@@ -34,5 +41,5 @@ public enum LazyContainers {
      * @param <V> Type of object in the container.
      * @return An object container that provides lazy initialization.
      */
-    public abstract <V> LazyValue<V> create(final Supplier<V> activator);
+    public abstract <V> LazyValue<V> of(final Supplier<V> activator);
 }

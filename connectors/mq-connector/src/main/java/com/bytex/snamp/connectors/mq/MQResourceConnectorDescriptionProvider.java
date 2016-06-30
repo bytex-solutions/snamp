@@ -62,7 +62,7 @@ public final class MQResourceConnectorDescriptionProvider extends MDAResourceCon
         }
     }
 
-    private static final LazyValue<MQResourceConnectorDescriptionProvider> INSTANCE = LazyContainers.NORMAL.create(MQResourceConnectorDescriptionProvider::new);
+    private static final LazyValue<MQResourceConnectorDescriptionProvider> INSTANCE = LazyContainers.THREAD_SAFE.of(MQResourceConnectorDescriptionProvider::new);
 
     private MQResourceConnectorDescriptionProvider() {
         super(new MQConnectorConfigurationDescriptor(),

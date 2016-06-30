@@ -149,7 +149,7 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
     }
 
     protected final F[] toArray(final Collection<? extends FeatureHolder<F>> features) {
-        return features.stream().toArray(ArrayUtils.arrayConstructor(metadataType));
+        return features.stream().map(FeatureHolder::getMetadata).toArray(ArrayUtils.arrayConstructor(metadataType));
     }
 
     protected final void removeAllResourceEventListeners() {

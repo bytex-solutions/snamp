@@ -131,7 +131,7 @@ public final class SnmpAdapterDescriptionProvider extends ConfigurationEntityDes
         }
     }
 
-    private static final LazyValue<SnmpAdapterDescriptionProvider> INSTANCE = LazyContainers.NORMAL.create(SnmpAdapterDescriptionProvider::new);
+    private static final LazyValue<SnmpAdapterDescriptionProvider> INSTANCE = LazyContainers.THREAD_SAFE.of(SnmpAdapterDescriptionProvider::new);
 
     private SnmpAdapterDescriptionProvider(){
         super(new ResourceAdapterConfigurationInfo(), new AttributeConfigurationInfo(), new EventConfigurationInfo());

@@ -25,7 +25,7 @@ public class ResourceReader implements Closeable, SafeCloseable {
 
     public ResourceReader(final String baseName){
         resourceName = Utils.getFullyQualifiedResourceName(getClass(), baseName);
-        bundle = LazyContainers.SOFT_REFERENCED.create(() -> getBundleImpl(Locale.getDefault()));
+        bundle = LazyContainers.THREAD_SAFE_SOFT_REFERENCED.of(() -> getBundleImpl(Locale.getDefault()));
     }
 
     private ResourceBundle getBundleImpl(final Locale loc) {

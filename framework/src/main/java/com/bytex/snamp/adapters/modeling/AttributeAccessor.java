@@ -58,8 +58,8 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
     public AttributeAccessor(final MBeanAttributeInfo metadata) {
         super(metadata);
         attributeSupport = null;
-        wellKnownType = LazyContainers.SOFT_REFERENCED.create(() -> AttributeDescriptor.getType(getMetadata()));
-        openType = LazyContainers.SOFT_REFERENCED.create(() -> AttributeDescriptor.getOpenType(getMetadata()));
+        wellKnownType = LazyContainers.THREAD_SAFE_SOFT_REFERENCED.of(() -> AttributeDescriptor.getType(getMetadata()));
+        openType = LazyContainers.THREAD_SAFE_SOFT_REFERENCED.of(() -> AttributeDescriptor.getOpenType(getMetadata()));
     }
 
     /**

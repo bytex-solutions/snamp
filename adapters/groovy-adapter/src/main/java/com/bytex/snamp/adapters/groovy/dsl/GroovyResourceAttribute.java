@@ -26,7 +26,7 @@ public final class GroovyResourceAttribute extends GroovyObjectSupport {
         this.attributes = attributes;
         this.attributeName = attributeName;
         this.resourceName = resourceName;
-        this.metadataCache = LazyContainers.SOFT_REFERENCED.create(() ->
+        this.metadataCache = LazyContainers.THREAD_SAFE_SOFT_REFERENCED.of(() ->
                 attributes.getAttributesMetadata(resourceName).stream()
                         .filter(metadata -> attributeName.equals(metadata.getName()))
                         .map(GroovyFeatureMetadata::new)
