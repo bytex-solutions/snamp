@@ -1,5 +1,7 @@
 package com.bytex.snamp.testing.adapters.decanter;
 
+import com.bytex.snamp.ExceptionalCallable;
+import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
@@ -7,6 +9,8 @@ import com.bytex.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connectors.jmx.TestOpenMBean;
 import com.google.common.reflect.TypeToken;
 import org.junit.Test;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
@@ -17,6 +21,7 @@ import javax.management.JMException;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.management.openmbean.CompositeData;
+import java.time.Duration;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -37,6 +42,8 @@ import static com.bytex.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
  */
 @SnampDependencies(SnampFeature.DECANTER_ADAPTER)
 public class JmxToDecanterTest extends AbstractJmxConnectorTest<TestOpenMBean> implements EventConstants {
+    private static final String ADAPTER_NAME = "decanter";
+
     private static final class DecanterEventListener extends SynchronizationEvent<Event> implements EventHandler{
         private DecanterEventListener(){
             super(true);
@@ -96,8 +103,32 @@ public class JmxToDecanterTest extends AbstractJmxConnectorTest<TestOpenMBean> i
     }
 
     @Override
+    protected void beforeStartTest(final BundleContext context) throws Exception {
+        super.beforeStartTest(context);
+        beforeCleanupTest(context);
+    }
+
+    @Override
+    protected void afterStartTest(final BundleContext context) throws Exception {
+        startResourceConnector(context);
+        syncWithAdapterStartedEvent(ADAPTER_NAME, new ExceptionalCallable<Void, BundleException>() {
+            @Override
+            public Void call() throws BundleException {
+                ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
+                return null;
+            }
+        }, Duration.ofMinutes(4));
+    }
+
+    @Override
+    protected void beforeCleanupTest(final BundleContext context) throws Exception {
+        ResourceAdapterActivator.stopResourceAdapter(context, ADAPTER_NAME);
+        stopResourceConnector(context);
+    }
+
+    @Override
     protected void fillAdapters(final EntityMap<? extends ResourceAdapterConfiguration> adapters) {
-        adapters.getOrAdd("decanter-adapter").setAdapterName("decanter");
+        adapters.getOrAdd("decanter-adapter").setAdapterName(ADAPTER_NAME);
     }
 
     @Override

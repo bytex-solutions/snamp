@@ -126,7 +126,8 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
         final MavenArtifactUrlReference karafUrl = maven()
                 .groupId("org.apache.karaf")
                 .artifactId("apache-karaf")
-                .versionAsInProject().type("tar.gz");
+                .versionAsInProject()
+                .type("tar.gz");
         final List<Option> result = new ArrayList<>(20);
         result.add(karafDistributionConfiguration().frameworkUrl(karafUrl)
                 .name("Apache Karaf")
@@ -141,7 +142,7 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
         result.add(getPropagatedProperties());
         // https://ops4j1.jira.com/wiki/display/PAXEXAM3/Configuration+Options
         result.add(keepRuntimeFolder());
-        // result.add(new KarafDistributionConfigurationFileReplacementOption("etc/system.properties", new File("src/")));
+        result.add(bootDelegationPackage("jdk.nashorn.*"));
         result.addAll(builder.getFeatures(getClass()));
         return result.toArray(new Option[result.size()]);
     }

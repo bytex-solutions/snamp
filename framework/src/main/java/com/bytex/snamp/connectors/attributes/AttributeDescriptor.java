@@ -1,6 +1,5 @@
 package com.bytex.snamp.connectors.attributes;
 
-import com.bytex.snamp.KeyValueExtractor;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigParameters;
 import com.bytex.snamp.connectors.ConfigurationEntityRuntimeMetadata;
@@ -16,10 +15,8 @@ import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.OpenMBeanAttributeInfo;
 import javax.management.openmbean.OpenType;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.connectors.attributes.AttributeSupport.*;
@@ -124,10 +121,7 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
     @Override
     public final AttributeDescriptor setFields(final Map<String, ?> values){
         if(values == null || values.isEmpty()) return this;
-        final Map<String, Object> newFields = Arrays.stream(getFieldNames())
-                .map(KeyValueExtractor.of(this::getFieldValue))
-                .filter(entry -> entry.getValue() != null)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        final Map<String, Object> newFields = DescriptorUtils.toMap(this, Object.class, false);
         newFields.putAll(values);
         return new AttributeDescriptor(newFields);
     }

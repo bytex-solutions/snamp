@@ -7,7 +7,6 @@ import javax.management.Descriptor;
 import javax.management.DescriptorRead;
 import javax.management.ImmutableDescriptor;
 import javax.management.JMX;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.lang.reflect.Array;
@@ -30,6 +29,7 @@ public final class DescriptorUtils {
     public static final DescriptorRead EMPTY_DESCRIPTOR = () -> ImmutableDescriptor.EMPTY_DESCRIPTOR;
 
     private DescriptorUtils(){
+        throw new InstantiationError();
     }
 
     public static <T> T getField(final Descriptor descr,
@@ -79,15 +79,6 @@ public final class DescriptorUtils {
         try(final StringWriter writer = new StringWriter(1024)){
             props.store(writer, comments);
             return writer.toString();
-        }
-    }
-
-    public static String toXML(final Descriptor descr, final String comments) throws IOException {
-        final Properties props = toProperties(descr);
-        final String ENCODING = "UTF-8";
-        try (final ByteArrayOutputStream out = new ByteArrayOutputStream(1024)) {
-            props.storeToXML(out, comments, ENCODING);
-            return new String(out.toByteArray(), ENCODING);
         }
     }
 

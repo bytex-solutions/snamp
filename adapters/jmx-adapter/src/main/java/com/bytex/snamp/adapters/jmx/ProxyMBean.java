@@ -7,6 +7,7 @@ import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.notifications.NotificationListenerList;
 import com.bytex.snamp.io.Buffers;
+import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.management.OpenMBeanProvider;
 import com.google.common.collect.ImmutableList;
@@ -50,7 +51,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
                     true,
                     false,
                     false,
-                    getMetadata().getDescriptor());
+                    DescriptorUtils.copyOf(getMetadata().getDescriptor()));
         }
 
         @Override
@@ -78,7 +79,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
                     source.isReadable(),
                     source.isWritable(),
                     source.isIs(),
-                    getMetadata().getDescriptor());
+                    DescriptorUtils.copyOf(getMetadata().getDescriptor()));
         }
 
         @Override
@@ -109,7 +110,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
                     true,
                     true,
                     false,
-                    getMetadata().getDescriptor());
+                    DescriptorUtils.copyOf(getMetadata().getDescriptor()));
         }
 
         @Override
