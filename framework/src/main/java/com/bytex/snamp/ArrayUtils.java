@@ -9,6 +9,7 @@ import com.google.common.primitives.*;
 
 import javax.management.ObjectName;
 import javax.management.openmbean.*;
+import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -353,11 +354,11 @@ public final class ArrayUtils {
         return isNullOrEmptyArray(array);
     }
 
-    private static <T extends Comparable<T>> Object toArray(final byte[] array,
-                                  Class<T> newElementType,
-                                  final Function<byte[], T> elementConv,
-                                  final int componentSize,
-                                  final boolean primitive) {
+    private static <T extends Comparable<T> & Serializable> Object toArray(final byte[] array,
+                                                                           Class<T> newElementType,
+                                                                           final Function<byte[], T> converter,
+                                                                           final int componentSize,
+                                                                           final boolean primitive) {
         if (primitive) newElementType = Primitives.unwrap(newElementType);
         final Object result = Array.newInstance(newElementType, array.length / componentSize);
         for (int sourcePosition = 0, destPosition = 0; sourcePosition < array.length; sourcePosition += componentSize, destPosition += 1) {
@@ -366,7 +367,7 @@ public final class ArrayUtils {
                 return result;
             else {
                 System.arraycopy(array, sourcePosition, subbuffer, 0, componentSize);
-                Array.set(result, destPosition, elementConv.apply(subbuffer));
+                Array.set(result, destPosition, converter.apply(subbuffer));
             }
         }
         return result;

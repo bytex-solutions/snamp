@@ -170,4 +170,10 @@ public final class ArrayUtilsTest extends Assert {
         array1 = ArrayUtils.toByteArray(new Long[]{10L, 20L});
         assertArrayEquals(Bytes.concat(Longs.toByteArray(10L), Longs.toByteArray(20L)), array1);
     }
+
+    @Test
+    public void arrayConstructorTest(){
+        Object arr = ArrayUtils.arrayConstructor(byte.class).apply(10);
+
+    }
 }

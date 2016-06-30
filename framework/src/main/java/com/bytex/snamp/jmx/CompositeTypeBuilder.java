@@ -20,9 +20,9 @@ public final class CompositeTypeBuilder implements OpenTypeBuilder<CompositeType
     private String typeDescription;
     private final LinkedHashMap<String, CompositeTypeItem> items;
 
-    CompositeTypeBuilder(final String typeName,
-                         final String typeDescription,
-                         final int capacity){
+    private CompositeTypeBuilder(final String typeName,
+                                 final String typeDescription,
+                                 final int capacity){
         this.items = new LinkedHashMap<>(capacity);
         this.typeDescription = Objects.requireNonNull(typeDescription, "typeDescription is null.");
         this.typeName = Objects.requireNonNull(typeName, "typeName is null.");
