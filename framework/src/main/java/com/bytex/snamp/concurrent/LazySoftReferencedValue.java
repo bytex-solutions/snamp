@@ -9,7 +9,7 @@ import java.util.function.Supplier;
  * @since 1.0
  * @version 1.0
  */
-final class LazySoftReferencedValue<V> extends AbstractLazyValue<V, SoftReference<V>> {
+final class LazySoftReferencedValue<V> extends ThreadSafeLazyValue<V, SoftReference<V>> {
 
     LazySoftReferencedValue(final Supplier<V> activator) {
         super(activator);

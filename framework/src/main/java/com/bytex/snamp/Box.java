@@ -89,8 +89,8 @@ public class Box<T> implements Wrapper<T>, Supplier<T>, SafeConsumer<T>, Cloneab
      * @param defval The alternative value to return.
      * @return An object stored in this box; or {@code defval} if stored object is {@literal null}.
      */
-    public final T getOrDefault(final T defval){
-        return firstNonNull(value, defval);
+    public final T getOrDefault(final Supplier<T> defval){
+        return value == null ? defval.get() : value;
     }
 
     /**

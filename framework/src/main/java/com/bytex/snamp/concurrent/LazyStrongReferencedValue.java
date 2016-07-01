@@ -5,7 +5,7 @@ import java.util.function.Supplier;
 /**
  * Represents a container for object with lazy initialization which stores a soft reference to the object.
  */
-final class LazyStrongReferencedValue<V> extends AbstractLazyValue<V, V>{
+final class LazyStrongReferencedValue<V> extends ThreadSafeLazyValue<V, V> {
 
     LazyStrongReferencedValue(final Supplier<V> activator) {
         super(activator);

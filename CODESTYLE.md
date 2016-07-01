@@ -9,16 +9,16 @@ Generic recommendations:
 1. Each public class which is accessible from the declaring bundle should have JavaDoc with short class description, author, `@since` and `@version` elements
 1. `final` keyword for parameters and local variables applied as a Code Style that simplifies concurrent programming. There is no optimization reasons for that
 1. `final` keyword for fields has two meanings: simplification of concurrent programming and [Value Object](https://wikis.oracle.com/display/HotSpotInternals/Value+Objects) optimization
-1. `final` keyword of methods has two menanigs: fix the stable behavior and improve chance of [inlining](https://wikis.oracle.com/display/HotSpotInternals/PerformanceTechniques)
+1. `final` keyword of methods has two meanings: fix the stable behavior and improve chance of [inlining](https://wikis.oracle.com/display/HotSpotInternals/PerformanceTechniques)
 1. All getters and setters must be `final`
 1. Use immutable objects whenever possible (to reduce potential concurrent problems and obtain benefits of [Value Objects](https://wikis.oracle.com/display/HotSpotInternals/Value+Objects))
 1. Each interface should have default or abstract implementation
-1. Use [Template method pattern](http://en.wikipedia.org/wiki/Template_method_pattern) for partial implementation of interface methods within abstract class (abstract class delcares interface method with `final` keyword but provides extensibility point in the form of protected abstract method called from interface method)
+1. Use [Template method pattern](http://en.wikipedia.org/wiki/Template_method_pattern) for partial implementation of interface methods within abstract class (abstract class declares interface method with `final` keyword but provides extensibility point in the form of protected abstract method called from interface method)
 1. Declare `serialVersionUUID` for each serializable class
 1. Use interface instead of class as a type of parameters and return values
 1. Use interface instead of class in generic constraint (`T extends Interface` instead of `T extends Class`)
 1. Use weak reference to avoid cyclic references between objects
-1. Avoid global escaping of anynymous class instances
+1. Avoid global escaping of anonymous class instances
 1. Avoid global escaping of primitive wrappers (this helps HotSpot escape analysis to allocate wrapper on the thread stack)
 1. Reuse `Guava` and standard Java classes wherever possible
 1. Avoid usage of Java Proxy in performance-critical code

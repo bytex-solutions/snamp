@@ -2,8 +2,10 @@ package com.bytex.snamp;
 
 import com.google.common.collect.ObjectArrays;
 
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Array;
 import java.util.*;
+import java.util.function.Supplier;
 
 /**
  * Represents a list of weak references to event listeners.
@@ -15,6 +17,13 @@ import java.util.*;
  */
 @ThreadSafe
 public abstract class WeakEventListenerList<L extends EventListener, E extends EventObject> implements Collection<L> {
+
+    private static final class WeakEventListener<L extends EventListener> extends WeakReference<L> implements Supplier<L>, EventListener {
+        private WeakEventListener(final L listener) {
+            super(Objects.requireNonNull(listener));
+        }
+    }
+
     private static final WeakEventListener[] EMPTY_LISTENERS = new WeakEventListener[0];
     private volatile WeakEventListener<L>[] listeners;
 
@@ -265,14 +274,9 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
     @Override
     public final Iterator<L> iterator() {
         final WeakEventListener<L>[] snapshot = listeners;
-        if(snapshot == null) return ResettableIterator.of();
-        final Collection<L> result = new LinkedList<>();
-        for (final WeakEventListener<L> listenerRef : snapshot) {
-            final L listener = listenerRef.get();
-            if (listener != null)
-                result.add(listener);
-        }
-        return result.iterator();
+        return snapshot == null ?
+                ResettableIterator.of() :
+                Arrays.stream(snapshot).map(WeakEventListener::get).filter(listener -> listener != null).iterator();
     }
 
     @Override

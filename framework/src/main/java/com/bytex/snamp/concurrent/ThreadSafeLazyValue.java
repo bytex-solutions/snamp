@@ -11,11 +11,11 @@ import java.util.function.Supplier;
  * @param <V> Type of object stored in the container.
  * @param <C> Type of inner container that store the object.
  */
-abstract class AbstractLazyValue<V, C> implements LazyValue<V> {
+abstract class ThreadSafeLazyValue<V, C> implements LazyValue<V> {
     private final Supplier<? extends V> activator;
     private volatile C ref;
 
-    AbstractLazyValue(final Supplier<? extends V> activator){
+    ThreadSafeLazyValue(final Supplier<? extends V> activator){
         this.activator = Objects.requireNonNull(activator);
     }
 

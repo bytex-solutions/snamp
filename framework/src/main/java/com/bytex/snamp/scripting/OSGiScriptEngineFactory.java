@@ -78,7 +78,7 @@ final class OSGiScriptEngineFactory implements ScriptEngineFactory{
     }
 
     @Override
-    public ScriptEngine getScriptEngine() {
+    public ForwardingScriptEngine getScriptEngine() {
         return new ForwardingScriptEngine() {
             @Override
             protected ScriptEngine delegate() {
@@ -86,7 +86,7 @@ final class OSGiScriptEngineFactory implements ScriptEngineFactory{
             }
 
             @Override
-            public ScriptEngineFactory getFactory() {
+            public OSGiScriptEngineFactory getFactory() {
                 return OSGiScriptEngineFactory.this;
             }
         };

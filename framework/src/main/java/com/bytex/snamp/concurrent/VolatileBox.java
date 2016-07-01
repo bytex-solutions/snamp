@@ -43,6 +43,18 @@ public class VolatileBox<T> extends AtomicReference<T> implements Wrapper<T>, Su
     }
 
     /**
+     * Retrieves an instance of the stored object or returns alternative value
+     * if stored object is {@literal null}.
+     * @param defval The alternative value to return.
+     * @return An object stored in this box; or {@code defval} if stored object is {@literal null}.
+     * @since 1.2
+     */
+    public final T getOrDefault(final Supplier<T> defval){
+        final T value = get();
+        return value == null ? defval.get() : value;
+    }
+
+    /**
      * Handles the wrapped object.
      * @param handler The wrapped object handler.
      * @return The wrapped object handling result.

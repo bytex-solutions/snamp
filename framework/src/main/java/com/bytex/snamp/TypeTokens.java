@@ -34,6 +34,4 @@ public final class TypeTokens {
     public static <T> T safeCast(final Object value, final TypeToken<T> target){
         return isInstance(value, target) ? (T)value : null;
     }
-
-
 }

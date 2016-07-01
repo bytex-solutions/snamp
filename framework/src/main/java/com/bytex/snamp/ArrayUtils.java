@@ -27,6 +27,7 @@ import java.util.function.Predicate;
  * @since 1.0
  */
 public final class ArrayUtils {
+    @FunctionalInterface
     private interface ByteArrayConverter<T>{
         byte[] convert(final T array, final int index);
     }
