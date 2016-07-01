@@ -1,6 +1,5 @@
 package com.bytex.snamp.testing.adapters.jmx;
 
-import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -27,12 +26,11 @@ import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineFactory;
+import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Hashtable;
-import java.util.Set;
 
 import static com.bytex.snamp.testing.connectors.jmx.AbstractJmxConnectorTest.*;
 
@@ -120,17 +118,8 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
     }
 
     @Test
-    public void systemScriptEngineTest() throws ScriptException {
-        final OSGiScriptEngineManager manager = new OSGiScriptEngineManager(getTestBundleContext());
-        final ScriptEngine engine = manager.getEngineByName("javascript");
-        final Object result = engine.eval("(function() { return 3 + 5; }).call();");
-        assertTrue(result instanceof Number);
-        assertEquals(8L, ((Number)result).longValue());
-    }
-
-    @Test
     public void javaScriptEngineTest() throws IOException, ReflectiveOperationException, ScriptException {
-        final OSGiScriptEngineManager engineManager = new OSGiScriptEngineManager(getTestBundleContext());
+        final ScriptEngineManager engineManager = new OSGiScriptEngineManager(getTestBundleContext());
         final ScriptEngine javaScript = engineManager.getEngineByName("JavaScript");
         assertNotNull(javaScript);
         final Object result = javaScript.eval("function sayHelloWorld(){return 'Hello, world!';}; sayHelloWorld();");

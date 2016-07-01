@@ -20,10 +20,6 @@ import static com.bytex.snamp.internal.Utils.reflectSetter;
  * @since 1.0
  */
 public final class UtilsTest extends Assert {
-    private static final class Container{
-        @SpecialUse
-        int value;
-    }
 
     @SpecialUse
     private static BigInteger getBigInteger(){

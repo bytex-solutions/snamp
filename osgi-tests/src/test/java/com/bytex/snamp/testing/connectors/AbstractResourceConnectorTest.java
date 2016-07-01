@@ -173,7 +173,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
                                               final BundleContext context) throws TimeoutException, InterruptedException, BundleException, ExecutionException {
         try (final LogicalOperation ignored = ConnectorTestLogicalOperation.startResourceConnector(connectorType, testName)) {
             assertTrue(String.format("Connector %s is not deployed", connectorType), ManagedResourceActivator.startResourceConnector(context, connectorType));
-            waitForConnector(Duration.ofSeconds(10), resourceName, context);
+            waitForConnector(Duration.ofMinutes(10), resourceName, context);
         }
     }
 

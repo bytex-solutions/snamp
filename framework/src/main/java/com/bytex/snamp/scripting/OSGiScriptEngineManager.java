@@ -1,6 +1,7 @@
 package com.bytex.snamp.scripting;
 
 import com.bytex.snamp.ThreadSafe;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.wiring.BundleWiring;
 
@@ -29,12 +30,12 @@ public final class OSGiScriptEngineManager extends ScriptEngineManager {
     private final BundleContext context;
 
     public OSGiScriptEngineManager(final BundleContext context) {
-        super(getClassLoader(Objects.requireNonNull(context)));
+        super(getClassLoader(Objects.requireNonNull(context).getBundle()));
         this.context = context;
     }
 
-    private static ClassLoader getClassLoader(final BundleContext context){
-        return context.getBundle().adapt(BundleWiring.class).getClassLoader();
+    private static ClassLoader getClassLoader(final Bundle bundle){
+        return bundle.adapt(BundleWiring.class).getClassLoader();
     }
 
     @Override
@@ -58,24 +59,25 @@ public final class OSGiScriptEngineManager extends ScriptEngineManager {
     @Override
     public ScriptEngine getEngineByName(final String shortName) {
         return getEngineFactoriesImpl()
-                .filter(factory -> shortName.equals(factory.getEngineName()))
+                .filter(factory -> factory.getNames().contains(shortName))
                 .map(ScriptEngineFactory::getScriptEngine)
                 .findFirst()
                 .orElseGet(() -> super.getEngineByName(shortName));
     }
 
     private static Stream<OSGiScriptEngineFactory> getFactories(final ClassLoader scope) {
-        final Iterable<ScriptEngineFactory> systemFactories = ServiceLoader.load(ScriptEngineFactory.class, scope);
-        return StreamSupport.stream(systemFactories.spliterator(), false).map(engine -> new OSGiScriptEngineFactory(engine, scope));
+        return StreamSupport.stream(ServiceLoader.load(ScriptEngineFactory.class, scope).spliterator(), false).map(engine -> new OSGiScriptEngineFactory(engine, scope));
     }
 
     private Stream<? extends ScriptEngineFactory> getEngineFactoriesImpl() {
         //find system script engines
-        final Stream<OSGiScriptEngineFactory> systemFactories = getFactories(getClass().getClassLoader());
+        final ServiceLoader<ScriptEngineFactory> engine = ServiceLoader.load(ScriptEngineFactory.class, ClassLoader.getSystemClassLoader());
+        final Stream<OSGiScriptEngineFactory> systemFactories = StreamSupport.stream(engine.spliterator(), false)
+                .map(factory -> new OSGiScriptEngineFactory(factory, getClassLoader(context.getBundle())));
         //find other script engines
         final Stream<OSGiScriptEngineFactory> userDefinedFactories = Arrays.stream(context.getBundles())
                 .filter(bundle -> bundle.getBundleId() != 0L)
-                .flatMap(bundle -> getFactories(getClassLoader(bundle.getBundleContext())));
+                .flatMap(bundle -> getFactories(getClassLoader(bundle)));
         return Stream.concat(systemFactories, userDefinedFactories);
     }
 

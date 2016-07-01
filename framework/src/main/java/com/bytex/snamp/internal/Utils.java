@@ -254,7 +254,7 @@ public final class Utils {
         return props;
     }
 
-    private static java.util.function.Supplier<?> reflectGetter(final MethodHandles.Lookup lookup,
+    private static java.util.function.Supplier reflectGetter(final MethodHandles.Lookup lookup,
                                                                final Object owner,
                                                                final MethodHandle getter) throws ReflectiveOperationException {
         final MethodType invokedType = owner == null ?
