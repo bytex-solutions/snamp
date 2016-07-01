@@ -1,6 +1,7 @@
 package com.bytex.snamp;
 
 import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
 /**
  * A task that returns a result and may throw an exception.
@@ -20,4 +21,17 @@ public interface ExceptionalCallable<V, E extends Exception> extends Callable<V>
      */
     @Override
     V call() throws E;
+
+    static <V> ExceptionalCallable<V, ExceptionPlaceholder> fromSupplier(final Supplier<V> fn){
+        return new ExceptionalCallable<V, ExceptionPlaceholder>() { //DO NOT REPLACE WITH LAMDA!! Compiler can't understand this statement in lambda form
+            @Override
+            public V call() {
+                return fn.get();
+            }
+        };
+    }
+
+    static <V> ExceptionalCallable<V, Exception> fromCallable(final Callable<V> fn){
+        return fn::call;
+    }
 }

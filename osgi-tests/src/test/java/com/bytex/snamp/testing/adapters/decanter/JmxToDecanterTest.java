@@ -3,6 +3,7 @@ package com.bytex.snamp.testing.adapters.decanter;
 import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.concurrent.SynchronizationEvent;
+import com.bytex.snamp.testing.BundleExceptionCallable;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
@@ -111,12 +112,9 @@ public class JmxToDecanterTest extends AbstractJmxConnectorTest<TestOpenMBean> i
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
-        syncWithAdapterStartedEvent(ADAPTER_NAME, new ExceptionalCallable<Void, BundleException>() {
-            @Override
-            public Void call() throws BundleException {
-                ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
-                return null;
-            }
+        syncWithAdapterStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
+            ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
+            return null;
         }, Duration.ofMinutes(4));
     }
 

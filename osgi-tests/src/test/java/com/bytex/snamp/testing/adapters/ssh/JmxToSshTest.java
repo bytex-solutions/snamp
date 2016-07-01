@@ -3,6 +3,7 @@ package com.bytex.snamp.testing.adapters.ssh;
 import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.adapters.ResourceAdapterClient;
+import com.bytex.snamp.testing.BundleExceptionCallable;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
@@ -134,12 +135,9 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
-        syncWithAdapterStartedEvent(ADAPTER_NAME, new ExceptionalCallable<Void, BundleException>() {
-            @Override
-            public Void call() throws BundleException {
+        syncWithAdapterStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
                 ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
                 return null;
-            }
         }, Duration.ofSeconds(60));
     }
 

@@ -8,10 +8,7 @@ import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.bytex.snamp.jmx.TabularDataBuilder;
 import com.bytex.snamp.jmx.json.JsonUtils;
-import com.bytex.snamp.testing.CollectionSizeAwaitor;
-import com.bytex.snamp.testing.ImportPackages;
-import com.bytex.snamp.testing.SnampDependencies;
-import com.bytex.snamp.testing.SnampFeature;
+import com.bytex.snamp.testing.*;
 import com.bytex.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connectors.jmx.TestOpenMBean;
 import com.google.gson.Gson;
@@ -127,12 +124,9 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
         ResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
         stopResourceConnector(getTestBundleContext());
         //start empty adapter
-        syncWithAdapterStartedEvent(ADAPTER_NAME, new ExceptionalCallable<Void, BundleException>() {
-            @Override
-            public Void call() throws BundleException {
+        syncWithAdapterStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
                 ResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
                 return null;
-            }
         }, TIMEOUT);
         //start connector, this causes attribute registration and SNMP adapter restarting,
         //waiting is not required because HTTP adapter supports hot reconfiguring
@@ -256,12 +250,9 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
-        syncWithAdapterStartedEvent(ADAPTER_NAME, new ExceptionalCallable<Void, BundleException>() {
-            @Override
-            public Void call() throws BundleException {
+        syncWithAdapterStartedEvent(ADAPTER_NAME, (BundleExceptionCallable)() -> {
                 ResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
                 return null;
-            }
         }, Duration.ofSeconds(15));
     }
 

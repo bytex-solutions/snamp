@@ -8,6 +8,7 @@ import com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfigura
 import com.bytex.snamp.internal.OperatingSystem;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.bytex.snamp.scripting.OSGiScriptEngineManager;
+import com.bytex.snamp.testing.BundleExceptionCallable;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connectors.rshell.AbstractRShellConnectorTest;
@@ -79,12 +80,9 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
-        syncWithAdapterStartedEvent(ADAPTER_NAME, new ExceptionalCallable<Void, BundleException>() {
-            @Override
-            public Void call() throws BundleException {
+        syncWithAdapterStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
                 ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
                 return null;
-            }
         }, Duration.ofSeconds(20));
     }
 
@@ -122,14 +120,12 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
     }
 
     @Test
-    public void systemScriptEngineTest() throws IOException, ClassNotFoundException {
-        final Set<String> factories = OSGiScriptEngineManager.getSystemScriptEngineFactories();
-        assertTrue(factories.size() > 0);
-        for (final String className : factories) {
-            final Class<?> cls = Class.forName(className, true, getClass().getClassLoader());
-            assertNotNull(cls);
-            assertTrue(ScriptEngineFactory.class.isAssignableFrom(cls));
-        }
+    public void systemScriptEngineTest() throws ScriptException {
+        final OSGiScriptEngineManager manager = new OSGiScriptEngineManager(getTestBundleContext());
+        final ScriptEngine engine = manager.getEngineByName("javascript");
+        final Object result = engine.eval("(function() { return 3 + 5; }).call();");
+        assertTrue(result instanceof Number);
+        assertEquals(8L, ((Number)result).longValue());
     }
 
     @Test

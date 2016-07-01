@@ -227,9 +227,7 @@ public class EmbeddedADSVerTrunk{
         final CacheService cacheService = new CacheService();
         //this line is necessary to valid loading of EHCACHE ReadWriteCopyStrategy
         //see CopyStrategyConfiguration, line 69
-        final Partition userPartition = Utils.withContextClassLoader(cacheService.getClass().getClassLoader(), new ExceptionalCallable<Partition, Exception>() {
-            @Override
-            public Partition call() throws Exception {
+        final Partition userPartition = Utils.withContextClassLoader(cacheService.getClass().getClassLoader(), ExceptionalCallable.fromCallable(() -> {
                 cacheService.initialize( service.getInstanceLayout() );
                 service.setCacheService( cacheService );
                 // first load the schema
@@ -263,8 +261,7 @@ public class EmbeddedADSVerTrunk{
                 // And start the service
                 service.startup();
                 return userPartition1;
-            }
-            });
+            }));
 
         // Inject the context entry for dc=foo,dc=com partition if it does not already exist
         try
