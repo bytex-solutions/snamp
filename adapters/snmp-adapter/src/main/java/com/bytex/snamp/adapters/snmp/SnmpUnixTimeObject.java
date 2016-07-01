@@ -11,7 +11,7 @@ import javax.management.InvalidAttributeValueException;
 import java.text.ParseException;
 import java.util.Date;
 
-import static com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterDescriptionProvider.parseDateTimeDisplayFormat;
+import static com.bytex.snamp.adapters.snmp.SnmpAdapterDescriptionProvider.parseDateTimeDisplayFormat;
 
 final class SnmpUnixTimeObject extends SnmpScalarObject<OctetString>{
     static final int SYNTAX = SMIConstants.SYNTAX_OCTET_STRING;

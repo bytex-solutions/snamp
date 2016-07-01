@@ -1,6 +1,5 @@
 package com.bytex.snamp.adapters.snmp;
 
-import com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterDescriptionProvider;
 import org.snmp4j.agent.*;
 import org.snmp4j.smi.OID;
 

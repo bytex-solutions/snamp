@@ -1,4 +1,4 @@
-package com.bytex.snamp.adapters.nrdp.configuration;
+package com.bytex.snamp.adapters.nrdp;
 
 import ch.shamu.jsendnrdp.NRDPServerConnectionSettings;
 import com.bytex.snamp.adapters.ResourceAdapterDescriptionProvider;
@@ -8,7 +8,6 @@ import com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfigura
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import com.bytex.snamp.jmx.DescriptorUtils;
-import static com.google.common.base.Strings.nullToEmpty;
 
 import javax.management.Descriptor;
 import java.time.Duration;
@@ -18,13 +17,14 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration.THREAD_POOL_KEY;
 import static com.bytex.snamp.jmx.DescriptorUtils.*;
+import static com.google.common.base.Strings.nullToEmpty;
 
 /**
  * @author Roman Sakno
  * @version 1.2
  * @since 1.0
  */
-public final class NRDPAdapterConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl implements ResourceAdapterDescriptionProvider {
+final class NRDPAdapterConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl implements ResourceAdapterDescriptionProvider {
     private static final String NRDP_SERVER_URL_PARAM = "serverURL";
     private static final String CONNECTION_TIMEOUT_PARAM = "connectionTimeout";
     private static final String TOKEN_PARAM = "token";
@@ -79,11 +79,11 @@ public final class NRDPAdapterConfigurationDescriptor extends ConfigurationEntit
                 new EventConfigurationInfo());
     }
 
-    public static NRDPAdapterConfigurationDescriptor getInstance(){
+    static NRDPAdapterConfigurationDescriptor getInstance(){
         return INSTANCE.get();
     }
 
-    public NRDPServerConnectionSettings parseSettings(final Map<String, String> parameters) throws AbsentNRDPConfigurationParameterException {
+    NRDPServerConnectionSettings parseSettings(final Map<String, String> parameters) throws AbsentNRDPConfigurationParameterException {
         final String serverURL;
         final int connectionTimeout;
         final String token;
@@ -99,19 +99,19 @@ public final class NRDPAdapterConfigurationDescriptor extends ConfigurationEntit
         return new NRDPServerConnectionSettings(serverURL, token, connectionTimeout);
     }
 
-    public static String getServiceName(final Descriptor descriptor, final String defaultService){
+    static String getServiceName(final Descriptor descriptor, final String defaultService){
         return hasField(descriptor, SERVICE_NAME_PARAM) ?
                 getField(descriptor, SERVICE_NAME_PARAM, String.class):
                 defaultService;
     }
 
-    public Duration getPassiveCheckSendPeriod(final Map<String, String> parameters){
+    Duration getPassiveCheckSendPeriod(final Map<String, String> parameters){
         if(parameters.containsKey(PASSIVE_CHECK_SEND_PERIOD_PARAM))
             return Duration.ofMillis(Long.parseLong(parameters.get(PASSIVE_CHECK_SEND_PERIOD_PARAM)));
         else return Duration.ofSeconds(1L);
     }
 
-    public static String getUnitOfMeasurement(final Descriptor descr){
+    static String getUnitOfMeasurement(final Descriptor descr){
         return nullToEmpty(getUOM(descr));
     }
 }

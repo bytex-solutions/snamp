@@ -1,4 +1,4 @@
-package com.bytex.snamp.adapters.nsca.configuration;
+package com.bytex.snamp.adapters.nsca;
 
 import com.bytex.snamp.configuration.AbsentConfigurationParameterException;
 
@@ -8,7 +8,7 @@ import com.bytex.snamp.configuration.AbsentConfigurationParameterException;
  * @version 1.2
  * @since 1.0
  */
-public final class AbsentNSCAConfigurationParameterException extends AbsentConfigurationParameterException {
+final class AbsentNSCAConfigurationParameterException extends AbsentConfigurationParameterException {
     private static final long serialVersionUID = -6214629994928685764L;
 
     AbsentNSCAConfigurationParameterException(final String parameterName) {

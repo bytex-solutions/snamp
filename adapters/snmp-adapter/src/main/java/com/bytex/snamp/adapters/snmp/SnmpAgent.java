@@ -1,7 +1,6 @@
 package com.bytex.snamp.adapters.snmp;
 
 import com.bytex.snamp.adapters.ResourceAdapterUpdatedCallback;
-import com.bytex.snamp.adapters.snmp.configuration.SecurityConfiguration;
 import org.snmp4j.TransportMapping;
 import org.snmp4j.agent.*;
 import org.snmp4j.agent.mo.snmp.*;

@@ -16,8 +16,8 @@ import java.util.Set;
 import java.util.function.Function;
 
 import static com.bytex.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
-import static com.bytex.snamp.adapters.nrdp.configuration.NRDPAdapterConfigurationDescriptor.getServiceName;
-import static com.bytex.snamp.adapters.nrdp.configuration.NRDPAdapterConfigurationDescriptor.getUnitOfMeasurement;
+import static com.bytex.snamp.adapters.nrdp.NRDPAdapterConfigurationDescriptor.getServiceName;
+import static com.bytex.snamp.adapters.nrdp.NRDPAdapterConfigurationDescriptor.getUnitOfMeasurement;
 
 /**
  * Provides transformation between attribute of the connected resource and NRDP protocol.

@@ -18,7 +18,7 @@ import java.lang.reflect.Array;
 import java.text.ParseException;
 import java.util.*;
 
-import static com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterDescriptionProvider.parseDateTimeDisplayFormat;
+import static com.bytex.snamp.adapters.snmp.SnmpAdapterDescriptionProvider.parseDateTimeDisplayFormat;
 
 /**
  * Represents SNMP notification with attachments.

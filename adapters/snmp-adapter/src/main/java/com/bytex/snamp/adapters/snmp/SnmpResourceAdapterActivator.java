@@ -2,7 +2,6 @@ package com.bytex.snamp.adapters.snmp;
 
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterDescriptionProvider;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import org.osgi.service.jndi.JNDIContextManager;
 import org.snmp4j.log.OSGiLogFactory;

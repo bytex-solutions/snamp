@@ -8,8 +8,6 @@ import com.bytex.snamp.adapters.AbstractResourceAdapter;
 import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.adapters.modeling.*;
-import com.bytex.snamp.adapters.nrdp.configuration.AbsentNRDPConfigurationParameterException;
-import com.bytex.snamp.adapters.nrdp.configuration.NRDPAdapterConfigurationDescriptor;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.ImmutableList;

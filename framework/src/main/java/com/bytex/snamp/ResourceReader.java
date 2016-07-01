@@ -1,8 +1,6 @@
 package com.bytex.snamp;
 
-import com.bytex.snamp.concurrent.LazyValue;
-import com.bytex.snamp.concurrent.LazyContainers;
-import static com.google.common.base.MoreObjects.firstNonNull;
+import com.google.common.base.MoreObjects;
 import com.bytex.snamp.internal.Utils;
 
 import java.io.Closeable;
@@ -13,7 +11,7 @@ import java.util.ResourceBundle;
 /**
  * Represents Java resource reader.
  * @author Roman Sakno
- * @version 1.2
+ * @version 1.0
  * @since 1.0
  */
 public class ResourceReader implements Closeable, SafeCloseable {
@@ -21,17 +19,9 @@ public class ResourceReader implements Closeable, SafeCloseable {
      * The name of the resource.
      */
     public final String resourceName;
-    private final LazyValue<ResourceBundle> bundle;
 
     public ResourceReader(final String baseName){
         resourceName = Utils.getFullyQualifiedResourceName(getClass(), baseName);
-        bundle = LazyContainers.THREAD_SAFE_SOFT_REFERENCED.of(() -> getBundleImpl(Locale.getDefault()));
-    }
-
-    private ResourceBundle getBundleImpl(final Locale loc) {
-        return ResourceBundle.getBundle(resourceName,
-                    firstNonNull(loc, Locale.getDefault()),
-                    getClass().getClassLoader());
     }
 
     /**
@@ -41,7 +31,9 @@ public class ResourceReader implements Closeable, SafeCloseable {
      * @throws MissingResourceException No resource bundle can be found
      */
     public final ResourceBundle getBundle(final Locale loc) throws MissingResourceException {
-        return bundle.get(() -> getBundleImpl(loc));
+        return ResourceBundle.getBundle(resourceName,
+                MoreObjects.firstNonNull(loc, Locale.getDefault()),
+                getClass().getClassLoader());
     }
 
     /**
@@ -94,7 +86,6 @@ public class ResourceReader implements Closeable, SafeCloseable {
      */
     @Override
     public void close() {
-        bundle.reset();
         ResourceBundle.clearCache(getClass().getClassLoader());
     }
 }

@@ -1,4 +1,4 @@
-package com.bytex.snamp.adapters.nrdp.configuration;
+package com.bytex.snamp.adapters.nrdp;
 
 import com.bytex.snamp.configuration.AbsentConfigurationParameterException;
 
@@ -8,7 +8,7 @@ import com.bytex.snamp.configuration.AbsentConfigurationParameterException;
  * @version 1.2
  * @since 1.0
  */
-public final class AbsentNRDPConfigurationParameterException extends AbsentConfigurationParameterException {
+final class AbsentNRDPConfigurationParameterException extends AbsentConfigurationParameterException {
     private static final long serialVersionUID = -6214629994928685764L;
 
     AbsentNRDPConfigurationParameterException(final String parameterName) {

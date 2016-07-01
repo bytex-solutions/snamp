@@ -2,7 +2,6 @@ package com.bytex.snamp.adapters.nsca;
 
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.adapters.nsca.configuration.NSCAAdapterConfigurationDescriptor;
 
 /**
  * Represents activator of Nagios adapter.

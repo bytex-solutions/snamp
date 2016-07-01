@@ -1,4 +1,4 @@
-package com.bytex.snamp.adapters.ssh.configuration;
+package com.bytex.snamp.adapters.ssh;
 
 import com.bytex.snamp.adapters.ResourceAdapterDescriptionProvider;
 import com.bytex.snamp.adapters.SelectableAdapterParameterDescriptor;
@@ -25,7 +25,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterCo
  * @version 1.2
  * @since 1.0
  */
-public final class SshAdapterDescriptionProvider extends ConfigurationEntityDescriptionProviderImpl implements ResourceAdapterDescriptionProvider {
+final class SshAdapterDescriptionProvider extends ConfigurationEntityDescriptionProviderImpl implements ResourceAdapterDescriptionProvider {
     private static final String HOST_PARAM = "host";
     private static final String PORT_PARAM = "port";
     private static final String HOST_KEY_FILE_PARAM = "hostKeyFile";
@@ -90,23 +90,23 @@ public final class SshAdapterDescriptionProvider extends ConfigurationEntityDesc
         super(new AdapterConfigurationInfo());
     }
 
-    public static SshAdapterDescriptionProvider getInstance(){
+    static SshAdapterDescriptionProvider getInstance(){
         return INSTANCE.get();
     }
 
-    public String getHost(final Map<String, String> parameters){
+    String getHost(final Map<String, String> parameters){
         return parameters.containsKey(HOST_PARAM) ?
                 parameters.get(HOST_PARAM) :
                 DEFAULT_HOST;
     }
 
-    public int getPort(final Map<String, String> parameters) {
+    int getPort(final Map<String, String> parameters) {
         return parameters.containsKey(PORT_PARAM) ?
                 Integer.parseInt(parameters.get(PORT_PARAM)) :
                 DEFAULT_PORT;
     }
 
-    public KeyPairProvider getKeyPairProvider(final Map<String, String> parameters){
+    KeyPairProvider getKeyPairProvider(final Map<String, String> parameters){
         final KeyPairProviderFactory factory;
         switch (parameters.containsKey(HOST_KEY_FORMAT_PARAM) ?
                 parameters.get(HOST_KEY_FORMAT_PARAM) :
@@ -203,7 +203,7 @@ public final class SshAdapterDescriptionProvider extends ConfigurationEntityDesc
         };
     }
 
-    public SshSecuritySettings getSecuritySettings(final Map<String, String> parameters){
+    SshSecuritySettings getSecuritySettings(final Map<String, String> parameters){
         return getSecuritySettingsImpl(parameters);
     }
 }

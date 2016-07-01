@@ -2,7 +2,6 @@ package com.bytex.snamp.adapters.nsca;
 
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.adapters.modeling.NotificationRouter;
-import com.bytex.snamp.adapters.nsca.configuration.NSCAAdapterConfigurationDescriptor;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 import com.google.common.collect.ImmutableSet;

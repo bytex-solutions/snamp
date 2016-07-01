@@ -1,4 +1,4 @@
-package com.bytex.snamp.adapters.ssh.configuration;
+package com.bytex.snamp.adapters.ssh;
 
 import net.schmizz.sshj.userauth.keyprovider.KeyFormat;
 
@@ -11,7 +11,7 @@ import java.security.PublicKey;
  * @version 1.2
  * @since 1.0
  */
-public interface SshSecuritySettings {
+interface SshSecuritySettings {
 
     String getUserName();
     String getPassword();

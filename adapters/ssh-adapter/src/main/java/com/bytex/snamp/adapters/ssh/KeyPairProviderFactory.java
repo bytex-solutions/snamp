@@ -1,4 +1,4 @@
-package com.bytex.snamp.adapters.ssh.configuration;
+package com.bytex.snamp.adapters.ssh;
 
 import org.apache.sshd.common.KeyPairProvider;
 import org.apache.sshd.server.keyprovider.PEMGeneratorHostKeyProvider;

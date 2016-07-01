@@ -12,7 +12,6 @@ import javax.management.Notification;
 import java.util.Set;
 
 import static com.bytex.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
-import com.bytex.snamp.adapters.nrdp.configuration.NRDPAdapterConfigurationDescriptor;
 
 /**
  * Provides transformation between notification of the connected resource and NRDP protocol.

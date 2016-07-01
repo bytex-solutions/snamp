@@ -6,8 +6,6 @@ import com.bytex.snamp.adapters.modeling.AttributeAccessor;
 import com.bytex.snamp.adapters.modeling.FeatureAccessor;
 import com.bytex.snamp.adapters.modeling.NotificationAccessor;
 import com.bytex.snamp.adapters.profiles.PolymorphicResourceAdapter;
-import com.bytex.snamp.adapters.snmp.configuration.DirContextFactory;
-import com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterAbsentParameterException;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
@@ -25,7 +23,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 
-import static com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterDescriptionProvider.isValidNotification;
+import static com.bytex.snamp.adapters.snmp.SnmpAdapterDescriptionProvider.isValidNotification;
 
 /**
  * @author Roman Sakno

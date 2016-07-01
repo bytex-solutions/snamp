@@ -23,7 +23,7 @@ import java.util.Objects;
 import java.util.logging.Level;
 
 import static com.bytex.snamp.adapters.snmp.SnmpHelpers.getAccessRestrictions;
-import static com.bytex.snamp.adapters.snmp.configuration.SnmpAdapterDescriptionProvider.parseOID;
+import static com.bytex.snamp.adapters.snmp.SnmpAdapterDescriptionProvider.parseOID;
 
 /**
  * Represents a base class for scalar SNMP managed objects.
