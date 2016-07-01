@@ -7,7 +7,6 @@ import org.osgi.framework.wiring.BundleWiring;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 import javax.script.ScriptEngineManager;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -30,7 +29,12 @@ public final class OSGiScriptEngineManager extends ScriptEngineManager {
     private final BundleContext context;
 
     public OSGiScriptEngineManager(final BundleContext context) {
-        this.context = Objects.requireNonNull(context);
+        super(getClassLoader(Objects.requireNonNull(context)));
+        this.context = context;
+    }
+
+    private static ClassLoader getClassLoader(final BundleContext context){
+        return context.getBundle().adapt(BundleWiring.class).getClassLoader();
     }
 
     @Override
@@ -71,7 +75,7 @@ public final class OSGiScriptEngineManager extends ScriptEngineManager {
         //find other script engines
         final Stream<OSGiScriptEngineFactory> userDefinedFactories = Arrays.stream(context.getBundles())
                 .filter(bundle -> bundle.getBundleId() != 0L)
-                .flatMap(bundle -> getFactories(bundle.adapt(BundleWiring.class).getClassLoader()));
+                .flatMap(bundle -> getFactories(getClassLoader(bundle.getBundleContext())));
         return Stream.concat(systemFactories, userDefinedFactories);
     }
 
