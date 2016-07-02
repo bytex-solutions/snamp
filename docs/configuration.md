@@ -184,6 +184,10 @@ snamp:stop-connector | Stop bundle with individual resource connector
 snamp:version | Show version of SNAMP platform
 snamp:cluster-member | Status of the SNAMP cluster member
 snamp:resource-metrics | Collect metrics provided by managed resources
+snamp:thread-pool-add | Register a new thread pool that can be used by resource connector or adapter through `threadPool` configuration property
+snamp:thread-pool-list | List of registered thread pools
+snamp:thread-pool-remove | Remove thread pool
+snamp:script | Execute JavaScript-based script to configure SNAMP
 
 Use `--help` flag to know more information about command and its parameters:
 ```bash
@@ -380,11 +384,7 @@ Parameter | Applied to | Meaning
 name | Event configuration, Attribute configuration, Operation configuration | Resource-specific name of the attribute, event or operation
 group | Anything | Name of the group used for grouping resources, adapters, attributes and etc.
 severity | Event configuration | Overrides severity of notification supplied by managed resource
-minPoolSize | Managed Resource or Resource Adapter configuration | The number of threads to keep in the pool, even if they are idle
-maxPoolSize | Managed Resource or Resource Adapter configuration | The maximum number of threads to allow in the pool
-queueSize | Managed Resource or Resource Adapter configuration | The maximum number of waiting input requests
-keepAliveTime | Managed Resource or Resource Adapter configuration | when the number of threads is greater than the `minPoolSize`, this is the maximum time (in millis) that excess idle threads will wait for new tasks before terminating
-priority | Managed Resource or Resource Adapter configuration | Priority of all threads in the thread pool
+threadPool | Managed Resource or Resource Adapter configuration | Name of thread pool used by adapter or connector. If not specified then default thread pool is shared between all components.
 units | Attribute configuration | Unit of measurement (UOM) of the attribute value. For example: `ms`, `m`, `kg`, `MB`
 defaultValue | Attribute configuration | The default value of the attribute if the actual value is not available
 minValue | Attribute configuration | The minimum (exclusive) permitted value for the attribute
@@ -406,12 +406,10 @@ informational | Normal operational messages - may be harvested for reporting, me
 debug | Info useful to developers for debugging the application, not useful during operations.
 
 ### Thread pool configuration parameters
-Some Resource Connectors and Adapters supports explicit configuration of its internal thread pool. All related configuration parameters are optional therefore you may specify some of them. But you should take into account the following restrictions:
-* `minPoolSize` must be less than `maxPoolSize`
-* If `queueSize` is not specified explicitly then SNAMP component uses unlimited capacity of the queue
-* Setting `keepAliveTime` to zero is not recommended due to performance penalties
-* If `priority` is not specified then SNAMP uses default OS priority for threads in pool
-* Value `priority` must lie in the interval _1..10_, where _1_ is the lowest priority.
+Some Resource Connectors and Adapters support use multi-threaded I/O operations. By default, SNAMP provides single thread pool shared across all connectors and adapters.
+The number of dedicated threads available to SNAMP components equal to `availableProcessors * 1.5`.
+
+Additional thread pools can be registered using `snamp:thread-pool-add` command. The name of the thread pool can be specified in `threadPool` configuration property associated with resource adapter or connector.
 
 Generally, SNAMP supports four major configuration of thread pool:
 * Limited capacity of the queue, limited count of threads.

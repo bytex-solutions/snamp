@@ -24,9 +24,7 @@ All SNAMP components are affected so you need to reconfigure SNAMP. It is not po
 ## SNAMP Platform 1.2.0
 Centralized configuration of parallelism provided by the following commands:
 
-* `snamp:thread-pool-add`
-* `snamp:thread-pool-remove`
-* `snamp:thread-pool-list`
+* Thread pool configuration commands using `snamp:thread-pool-add`, `snamp:thread-pool-remove` and `snamp:thread-pool-list` commands
 * `threadPool` configuration property represents a name of thread pool configured with `snamp:thread-pool-add` command and used by resource connector or adapter
 
 The following configuration parameters are no longer supported: `minPoolSize`, `maxPoolSize`, `queueSize`, `keepAliveTime` and `priority`.

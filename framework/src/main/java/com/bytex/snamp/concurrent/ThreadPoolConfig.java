@@ -21,7 +21,7 @@ public final class ThreadPoolConfig implements Serializable, Function<String, Ex
     /**
      * Default maximum number of threads to allow in the pool
      */
-    public static final int DEFAULT_MAX_POOL_SIZE = Runtime.getRuntime().availableProcessors() + 1;
+    public static final int DEFAULT_MAX_POOL_SIZE = getDefaultMaxPoolSize();
 
     /**
      * Default priority of threads in the pool.
@@ -45,6 +45,11 @@ public final class ThreadPoolConfig implements Serializable, Function<String, Ex
     private int threadPriority = DEFAULT_PRIORITY;
     private Duration keepAliveTime = DEFAULT_KEEP_ALIVE_TIME;
     private int queueSize = INFINITE_QUEUE_SIZE;
+
+    private static int getDefaultMaxPoolSize(){
+        final int availableProcessors = Runtime.getRuntime().availableProcessors();
+        return availableProcessors + availableProcessors / 2;
+    }
 
     public int getMinPoolSize() {
         return minPoolSize;
