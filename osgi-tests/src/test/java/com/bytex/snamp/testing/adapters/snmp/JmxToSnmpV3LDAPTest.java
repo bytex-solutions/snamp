@@ -1,6 +1,5 @@
 package com.bytex.snamp.testing.adapters.snmp;
 
-import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.connectors.notifications.Severity;
@@ -13,7 +12,6 @@ import com.bytex.snamp.testing.connectors.jmx.TestOpenMBean;
 import com.google.common.collect.ImmutableList;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
 import org.snmp4j.security.AuthSHA;
 import org.snmp4j.security.PrivAES128;
 import org.snmp4j.security.SecurityLevel;

@@ -81,7 +81,6 @@
         <configuration>
           <finalName>${project.parent.name}-{$project.version}</finalName>
           <ignoreScopeProvided>true</ignoreScopeProvided>
-          <javase>1.8</javase>
           <bootFeatures>
             <feature>standard</feature>
             <feature>management</feature>
@@ -107,7 +106,7 @@
         <artifactId>maven-resources-plugin</artifactId>
         <executions>
           <execution>
-            <id>custom-karaf-config</id>
+            <id>branding</id>
             <phase>generate-resources</phase>
             <goals>
               <goal>resources</goal>

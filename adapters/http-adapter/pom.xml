@@ -111,8 +111,8 @@
                             !org.jboss.*,
                             !org.mortbay.*,
                             *</Import-Package>
-            <Provide-Capability>com.bytex.snamp.adapters; type=http</Provide-Capability>
             <Embed-Dependency>*;scope=compile</Embed-Dependency>
+            <Provide-Capability>com.bytex.snamp.adapters; type=http</Provide-Capability>
           </instructions>
         </configuration>
       </plugin>
