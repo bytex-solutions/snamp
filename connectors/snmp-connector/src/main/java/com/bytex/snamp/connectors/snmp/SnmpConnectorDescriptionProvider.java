@@ -125,6 +125,10 @@ final class SnmpConnectorDescriptionProvider extends ConfigurationEntityDescript
             case "md-5":
             case "md5": return AuthMD5.ID;
             case "sha": return AuthSHA.ID;
+            case "hmac128-sha224": return AuthHMAC128SHA224.ID;
+            case "hmac192-sha256": return AuthHMAC192SHA256.ID;
+            case "hmac256-sha384": return AuthHMAC256SHA384.ID;
+            case "hmac384-sha512": return AuthHMAC384SHA512.ID;
             default: return new OID(authProtocol);
         }
     }

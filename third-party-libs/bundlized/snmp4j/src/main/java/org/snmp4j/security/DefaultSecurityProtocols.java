@@ -1,8 +1,5 @@
 package org.snmp4j.security;
 
-import org.snmp4j.security.nonstandard.PrivAES192With3DESKeyExtension;
-import org.snmp4j.security.nonstandard.PrivAES256With3DESKeyExtension;
-
 /**
  * Represents a set of default security protocols.
  * This class cannot be inherited.
@@ -26,8 +23,6 @@ public final class DefaultSecurityProtocols extends SecurityProtocols {
         addPrivacyProtocol(new PrivAES128());
         addPrivacyProtocol(new PrivAES192());
         addPrivacyProtocol(new PrivAES256());
-        addPrivacyProtocol(new PrivAES192With3DESKeyExtension());
-        addPrivacyProtocol(new PrivAES256With3DESKeyExtension());
     }
 
     /**

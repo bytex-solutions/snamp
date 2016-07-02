@@ -222,11 +222,6 @@
   </dependencyManagement>
   <repositories>
     <repository>
-      <id>oosnmpRepo</id>
-      <name>OOSNMP.COM Repository</name>
-      <url>https://oosnmp.net/dist/release</url>
-    </repository>
-    <repository>
       <id>maven</id>
       <name>Central Maven Repository</name>
       <url>http://repo1.maven.org/maven2/</url>

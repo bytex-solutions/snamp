@@ -4,7 +4,8 @@ Upgrade of all SNAMP components and migration to Java 8:
 Change list:
 
 * SNAMP now requires at least Java 8. Java 7 is not supported anymore.
-*
+* Centralized configuration of parallelism using "snamp:thread-pool-*" shell commands.
+* Significant performance improvements.
 
 Updated components:
 
@@ -17,60 +18,27 @@ Updated components:
 * SNMP4J
 * ActiveMQ Runtime
 
-All SNAMP components are affected so you need to backup your configuration, install new SNAMP version and reload the configuration. 
+All SNAMP components are affected so you need to reconfigure SNAMP. It is not possible to restore configuration from backup.
 
-## SNAMP Platform 1.0.0
-First production release of SNAMP core components.
+## SNAMP Platform 1.2.0
+Centralized configuration of parallelism provided by the following commands:
 
-## JMS Resource Connector 1.0.0
-First production release of JMS Resource Connector with JMS/JNDI/AMQP support.
+* `snamp:thread-pool-add`
+* `snamp:thread-pool-remove`
+* `snamp:thread-pool-list`
+* `threadPool` configuration property represents a name of thread pool configured with `snamp:thread-pool-add` command and used by resource connector or adapter
 
-## SNMP Resource Connector 1.0.0
-First production release of SNMP Resource Connector with SNMPv2/SNMPv3 support.
+The following configuration parameters are no longer supported: `minPoolSize`, `maxPoolSize`, `queueSize`, `keepAliveTime` and `priority`.
 
-## JMX Resource Connector 1.0.0
-First production release of JMX Resource Connector.
+## SNMP Resource Adapter 1.2.0
+Remove support for nonstandard AES 192 and 256 using 3DES key extend algorithm.
 
-## RShell Resource Connector 1.0.0
-First production release of RShell Resource Connector with ssh/rsh/rexec support.
+Support for new authentication protocols: `hmac128-sha224`, `hmac192-sha256`, `hmac256-sha384`, `hmac384-sha512`.
 
-## Groovy Resource Connector 1.0.0
-First production release of Groovy Resource Connector.
+## SNMP Resource Connector 1.2.0
+Improved compliance with RFC 3412 Â§6.2.
 
-## Resource Aggregator 1.0.0
-First production release of Resource Aggregator.
+Support for new authentication protocols: `hmac128-sha224`, `hmac192-sha256`, `hmac256-sha384`, `hmac384-sha512`.
 
-## IBM WebSphere MQ Resource Connector 1.0.0
-First production release of WebSphere MQ Resource Connector.
-
-## Monitoring Data Acceptor 1.0.0
-First production release of MDA Resource Connector with HTTP and Thrift support.
-
-## JMX Resource Adapter 1.0.0
-First production release of JMX Resource Adapter.
-
-## SSH Resource Adapter 1.0.0
-First production release of SSH Resource Adapter.
-
-## HTTP Resource Adapter 1.0.0
-First production release of HTTP Resource Adapter.
-
-## XMPP Resource Adapter 1.0.0
-First production release of XMPP Resource Adapter.
-
-## Syslog Resource Adapter 1.0.0
-First production release of Syslog Resource Adapter.
-
-## Nagios Resource Adapter 1.0.0
-First production release of Nagios Resource Adapter.
-
-## Nagios Service Check Acceptor (NSCA) Adapter 1.0.0
-First production release of NSCA Resource Adapter.
-
-## Nagios Remote Data Processor (NRDP) Adapter 1.0.0
-First production release of NRDP Resource Adapter.
-
-## Dependencies
-Java SE 8
-Apache Karaf 3.0.7
-Hazelcast 3.6.3
+## RShell Resource Connector 1.2.0
+Nashorn is a primary JavaScript engine.

@@ -196,6 +196,10 @@ final class SecurityConfiguration {
                 case "md5":
                 case "md-5": setAuthenticationProtocol(AuthMD5.ID); return;
                 case "sha": setAuthenticationProtocol(AuthSHA.ID); return;
+                case "hmac128-sha224": setAuthenticationProtocol(AuthHMAC128SHA224.ID); return;
+                case "hmac192-sha256": setAuthenticationProtocol(AuthHMAC192SHA256.ID); return;
+                case "hmac256-sha384": setAuthenticationProtocol(AuthHMAC256SHA384.ID); return;
+                case "hmac384-sha512": setAuthenticationProtocol(AuthHMAC384SHA512.ID); return;
                 default:
                     //attempts to parse key-value pair in format
                     authenticationProtocol = new OID(protocol);

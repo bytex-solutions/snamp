@@ -1,6 +1,5 @@
 package com.bytex.snamp.testing.adapters.nsca;
 
-import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.adapters.ResourceAdapterClient;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
