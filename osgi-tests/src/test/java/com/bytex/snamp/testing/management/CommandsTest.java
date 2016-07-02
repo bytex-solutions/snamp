@@ -1,6 +1,7 @@
 package com.bytex.snamp.testing.management;
 
 import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.core.PlatformVersion;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.OperatingSystem;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
@@ -28,7 +29,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterCo
  */
 @SnampDependencies({SnampFeature.JMX_CONNECTOR, SnampFeature.GROOVY_ADAPTER})
 public final class CommandsTest extends AbstractSnampIntegrationTest {
-    private CharSequence runCommand(String command) throws Exception{
+    private Object runCommand(String command) throws Exception{
         final ServiceHolder<CommandProcessor> processorRef = ServiceHolder.tryCreate(getTestBundleContext(), CommandProcessor.class);
         assertNotNull(processorRef);
         // On windows we have path separator that conflicts with escape symbols
@@ -43,12 +44,20 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
              final OutputStream err = new FileOutputStream(errFile)) {
 
             final CommandSession session = processorRef.getService().createSession(input, new PrintStream(out), new PrintStream(err));
-            final CharSequence result = (CharSequence)session.execute(command);
+            final Object result = session.execute(command);
             session.close();
             return result;
         } finally {
             processorRef.release(getTestBundleContext());
         }
+    }
+
+    @Test
+    public void executeJavaScriptTest() throws Exception{
+        Object result = runCommand("snamp:script \"snamp.version;\"");
+        assertTrue(result instanceof PlatformVersion);
+        result = runCommand("snamp:script \"var config; snamp.configure(function(conf) { config = conf; return false; }); config; \"");
+        assertTrue(result instanceof AgentConfiguration);
     }
 
     @Test
@@ -58,7 +67,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
 
     @Test
     public void installedConnectorsTest() throws Exception {
-        final CharSequence result = runCommand("snamp:installed-connectors");
+        final CharSequence result = (CharSequence) runCommand("snamp:installed-connectors");
         assertTrue(result.toString().startsWith("JMX Connector"));
     }
 

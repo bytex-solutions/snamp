@@ -4,7 +4,8 @@ Upgrade of all SNAMP components and migration to Java 8:
 Change list:
 
 * SNAMP now requires at least Java 8. Java 7 is not supported anymore.
-* Centralized configuration of parallelism using "snamp:thread-pool-*" shell commands.
+* Centralized configuration of parallelism using `snamp:thread-pool-*` shell commands.
+* Configuration script written on JavaScript can be executed using `snamp:script` command.
 * Significant performance improvements.
 
 Updated components:
