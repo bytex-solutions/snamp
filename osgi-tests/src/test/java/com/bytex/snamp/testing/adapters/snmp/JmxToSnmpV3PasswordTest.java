@@ -1,6 +1,5 @@
 package com.bytex.snamp.testing.adapters.snmp;
 
-import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
 import com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;

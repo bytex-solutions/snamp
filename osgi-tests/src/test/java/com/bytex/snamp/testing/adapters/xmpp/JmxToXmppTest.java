@@ -1,6 +1,5 @@
 package com.bytex.snamp.testing.adapters.xmpp;
 
-import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.adapters.ResourceAdapterClient;
 import com.bytex.snamp.adapters.xmpp.client.XMPPClient;
@@ -22,7 +21,6 @@ import org.apache.vysper.xmpp.server.XMPPServer;
 import org.jivesoftware.smack.packet.Message;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
 
 import javax.management.AttributeChangeNotification;
 import javax.management.MBeanAttributeInfo;
