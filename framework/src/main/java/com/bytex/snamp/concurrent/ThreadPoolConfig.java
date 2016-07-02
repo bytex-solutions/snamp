@@ -16,7 +16,7 @@ public final class ThreadPoolConfig implements Serializable, Function<String, Ex
     /**
      * Default number of threads to keep in the pool.
      */
-    public static final int DEFAULT_MIN_POOL_SIZE = 1;
+    public static final int DEFAULT_MIN_POOL_SIZE = Math.min(2, Runtime.getRuntime().availableProcessors());
 
     /**
      * Default maximum number of threads to allow in the pool

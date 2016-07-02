@@ -8,7 +8,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.lang.invoke.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -56,6 +55,19 @@ public abstract class AbstractAggregator implements Aggregator {
         }
     }
 
+    private static final class MethodAggregationSupplier implements AggregationSupplier {
+        private final Method method;
+
+        private MethodAggregationSupplier(final Method m){
+            this.method = Objects.requireNonNull(m);
+        }
+
+        @Override
+        public Object get(final Aggregator owner) throws InvocationTargetException, IllegalAccessException {
+            return method.invoke(owner);
+        }
+    }
+
     private static final class AggregationNotFoundException extends Exception{
         private static final long serialVersionUID = -6675396043935484212L;
 
@@ -83,24 +95,11 @@ public abstract class AbstractAggregator implements Aggregator {
             return new FieldAggregationSupplier(fld);
         }
 
-        private static AggregationSupplier reflectMethod(final Method m) throws ReflectiveOperationException{
-            final MethodType invokedType = MethodType.methodType(AggregationSupplier.class);
-            final MethodHandles.Lookup lookup = MethodHandles.lookup();
-            try {
-                final CallSite site = LambdaMetafactory.metafactory(lookup, "get",
-                        invokedType,
-                        MethodType.methodType(Object.class, Aggregator.class),
-                        lookup.unreflect(m),
-                        MethodType.methodType(m.getReturnType(), m.getDeclaringClass()));
-                return (AggregationSupplier) site.getTarget().invoke();
-            } catch (final LambdaConversionException e) {
-                throw new ReflectiveOperationException(e);
-            } catch (final Throwable e) {
-                throw new InvocationTargetException(e);
-            }
+        private static AggregationSupplier reflectMethod(final Method m) {
+            return new MethodAggregationSupplier(m);
         }
 
-        private static AggregationSupplier load(final Class<?> inheritanceFrame, final Class<?> serviceType) throws ReflectiveOperationException {
+        private static AggregationSupplier load(final Class<?> inheritanceFrame, final Class<?> serviceType) {
             //iterates through fields
             for (final Field f : inheritanceFrame.getDeclaredFields())
                 if (f.isAnnotationPresent(Aggregation.class) && serviceType.isAssignableFrom(f.getType())) {
@@ -117,7 +116,7 @@ public abstract class AbstractAggregator implements Aggregator {
         }
 
         @Override
-        public AggregationSupplier load(final Class<?> serviceType) throws AggregationNotFoundException, ReflectiveOperationException {
+        public AggregationSupplier load(final Class<?> serviceType) throws AggregationNotFoundException {
             for (Class<?> inheritanceFrame = aggregatorType; !inheritanceFrame.equals(AbstractAggregator.class); inheritanceFrame = inheritanceFrame.getSuperclass()) {
                 final AggregationSupplier result = load(inheritanceFrame, serviceType);
                 if (result != null) return result;
