@@ -188,6 +188,6 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
     }
 
     protected static void setFeatureName(final FeatureConfiguration feature, final String name){
-        feature.getParameters().put(FeatureConfiguration.NAME_KEY, name);
+        feature.setAlternativeName(name);
     }
 }

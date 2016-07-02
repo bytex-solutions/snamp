@@ -29,7 +29,7 @@ public final class JavaScriptCommand extends OsgiCommandSupport implements Snamp
     @SpecialUse
     private String scriptOrFilePath;
 
-    @Option(name = "-f", aliases = {"--file", "--jsfile"}, description = "Path to JavaScript file")
+    @Option(name = "-f", aliases = {"--file", "--jsfile"}, description = "Interpret command argument as a path to file with script")
     @SpecialUse
     private boolean useFilePath;
 

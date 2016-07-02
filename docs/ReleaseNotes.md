@@ -12,7 +12,6 @@ Updated components:
 
 * Apache Karaf
 * Apache Decanter
-* Hazelcast
 * Google GSON
 * Groovy
 * Bouncy Castle
