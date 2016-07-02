@@ -1,5 +1,7 @@
 package com.bytex.snamp.testing.management;
 
+import com.bytex.snamp.concurrent.ThreadPoolConfig;
+import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.core.PlatformVersion;
 import com.bytex.snamp.core.ServiceHolder;
@@ -15,6 +17,8 @@ import org.junit.Test;
 
 import java.io.*;
 import java.time.temporal.ChronoUnit;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -58,6 +62,26 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
         assertTrue(result instanceof PlatformVersion);
         result = runCommand("snamp:script \"var config; snamp.configure(function(conf) { config = conf; return false; }); config; \"");
         assertTrue(result instanceof AgentConfiguration);
+    }
+
+    @Test
+    public void threadPoolConfigTest() throws Exception{
+        final Object result = runCommand("snamp:thread-pool-add -m 3 -M 5 -t 2000 tp1");
+        assertTrue(result instanceof CharSequence);
+        final ServiceHolder<ThreadPoolRepository> threadPoolRepo = ServiceHolder.tryCreate(getTestBundleContext(), ThreadPoolRepository.class);
+        assertNotNull(threadPoolRepo);
+        try{
+            final ThreadPoolConfig config = threadPoolRepo.get().getConfiguration("tp1");
+            assertTrue(config.isInfiniteQueue());
+            assertEquals(3, config.getMinPoolSize());
+            assertEquals(5, config.getMaxPoolSize());
+            assertEquals(2000, config.getKeepAliveTime().toMillis());
+            final ExecutorService executor = threadPoolRepo.get().getThreadPool("tp1", false);
+            final Future<Integer> task = executor.submit(() -> 10);
+            assertEquals(Integer.valueOf(10), task.get());
+        }   finally {
+            threadPoolRepo.release(getTestBundleContext());
+        }
     }
 
     @Test

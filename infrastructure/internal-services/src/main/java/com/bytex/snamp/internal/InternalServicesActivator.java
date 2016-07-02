@@ -9,6 +9,7 @@ import com.bytex.snamp.configuration.impl.PersistentConfigurationManager;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.security.LoginConfigurationManager;
+import com.bytex.snamp.security.auth.login.json.spi.JsonConfigurationSpi;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.hazelcast.core.HazelcastInstance;
@@ -153,7 +154,7 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
 
     @SpecialUse
     public InternalServicesActivator(){
-        this(new GsonBuilder().create());
+        this(JsonConfigurationSpi.init(new GsonBuilder()).create());
     }
 
     @Override

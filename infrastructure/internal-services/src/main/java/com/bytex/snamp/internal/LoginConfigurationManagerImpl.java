@@ -2,7 +2,6 @@ package com.bytex.snamp.internal;
 
 import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.core.ServiceHolder;
-import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.security.LoginConfigurationManager;
 import com.bytex.snamp.security.auth.login.json.JsonConfiguration;
 import com.google.common.collect.ImmutableList;
@@ -48,7 +47,7 @@ final class LoginConfigurationManagerImpl extends AbstractAggregator implements 
     public void dumpConfiguration(final Writer out) throws IOException {
         final JsonConfiguration config = new JsonConfiguration();
         try {
-            dumpConfiguration(Utils.getBundleContextOfObject(this), formatter, config);
+            dumpConfiguration(getContext(), formatter, config);
         } catch (final InvalidSyntaxException e) {
             throw new IOException(e);
         }

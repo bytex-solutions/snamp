@@ -7,7 +7,6 @@ import com.bytex.snamp.management.AbstractSnampManager;
 import com.bytex.snamp.security.LoginConfigurationManager;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
-import org.osgi.framework.ServiceReference;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -29,7 +28,7 @@ public final class SnampManagerImpl extends AbstractSnampManager {
          *
          * @param connectorName the connector name
          */
-        protected ResourceConnectorDescriptorImpl(final String connectorName) {
+        private ResourceConnectorDescriptorImpl(final String connectorName) {
             super(connectorName);
         }
     }
@@ -42,7 +41,7 @@ public final class SnampManagerImpl extends AbstractSnampManager {
          *
          * @param systemName the system name
          */
-        public ResourceAdapterDescriptorImpl(final String systemName) {
+        private ResourceAdapterDescriptorImpl(final String systemName) {
             super(systemName);
         }
     }
@@ -91,33 +90,29 @@ public final class SnampManagerImpl extends AbstractSnampManager {
     }
 
     public static void dumpJaasConfiguration(final BundleContext context, final Writer out) throws IOException {
-        final ServiceReference<LoginConfigurationManager> managerRef =
-                context.getServiceReference(LoginConfigurationManager.class);
-        if (managerRef == null) return;
-        final ServiceHolder<LoginConfigurationManager> manager = new ServiceHolder<>(context, managerRef);
-        try{
-            manager.get().dumpConfiguration(out);
-        } finally {
-            manager.release(context);
-        }
+        final ServiceHolder<LoginConfigurationManager> manager = ServiceHolder.tryCreate(context, LoginConfigurationManager.class);
+        if (manager != null)
+            try {
+                manager.get().dumpConfiguration(out);
+            } finally {
+                manager.release(context);
+            }
     }
 
     public static void saveJaasConfiguration(final BundleContext context, final Reader in) throws IOException {
-        final ServiceReference<LoginConfigurationManager> managerRef =
-                context.getServiceReference(LoginConfigurationManager.class);
-        if (managerRef == null) throw new RuntimeException("Cannot take LoginConfigurationManager reference");
-        final ServiceHolder<LoginConfigurationManager> manager = new ServiceHolder<>(context, managerRef);
-        try {
-            if (in == null)
-                manager.get().resetConfiguration();
-            else
-                manager.get().loadConfiguration(in);
-        } catch (final IOException e) {
-            throw e;
-        } catch (final Exception e) {
-            throw new IOException(e);
-        } finally {
-            manager.release(context);
-        }
+        final ServiceHolder<LoginConfigurationManager> manager = ServiceHolder.tryCreate(context, LoginConfigurationManager.class);
+        if (manager != null)
+            try {
+                if (in == null)
+                    manager.get().resetConfiguration();
+                else
+                    manager.get().loadConfiguration(in);
+            } catch (final IOException e) {
+                throw e;
+            } catch (final Exception e) {
+                throw new IOException(e);
+            } finally {
+                manager.release(context);
+            }
     }
 }
