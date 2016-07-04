@@ -8,13 +8,13 @@ import com.bytex.snamp.jmx.CompositeTypeBuilder;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.google.common.base.Splitter;
-import static com.google.common.base.Strings.isNullOrEmpty;
 import com.google.common.collect.ObjectArrays;
 
 import javax.management.Descriptor;
 import javax.management.openmbean.CompositeType;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
@@ -22,6 +22,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfigurati
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents basic configuration schema for all MDA connectors.
@@ -100,8 +101,9 @@ public abstract class MDAResourceConfigurationDescriptorProvider extends Configu
     }
 
     static long parseExpireTime(final Map<String, String> parameters){
+        final long MAX_EXPIRE_TIME = Duration.ofNanos(Long.MAX_VALUE).toMillis();
         if(parameters.containsKey(EXPIRE_TIME_PARAM))
-            return Integer.parseInt(parameters.get(EXPIRE_TIME_PARAM));
-        else return Long.MAX_VALUE;
+            return Math.min(MAX_EXPIRE_TIME, Long.parseLong(parameters.get(EXPIRE_TIME_PARAM)));
+        else return MAX_EXPIRE_TIME;
     }
 }

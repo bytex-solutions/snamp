@@ -173,7 +173,7 @@ public final class ArrayUtilsTest extends Assert {
 
     @Test
     public void arrayConstructorTest(){
-        Object arr = ArrayUtils.arrayConstructor(byte.class).apply(10);
-
+        final String[] arr = ArrayUtils.arrayConstructor(String.class).apply(10);
+        assertEquals(10, arr.length);
     }
 }
