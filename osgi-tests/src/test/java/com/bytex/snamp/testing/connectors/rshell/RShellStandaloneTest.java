@@ -12,7 +12,6 @@ import org.osgi.framework.BundleContext;
 
 import javax.management.JMException;
 import javax.management.openmbean.CompositeData;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
@@ -35,6 +34,11 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
                 PORT,
                 getPathToFileInProjectRoot(CERTIFICATE_FILE),
                 FINGERPRINT);
+    }
+
+    @Override
+    protected boolean enableRemoteDebugging() {
+        return false;
     }
 
     @Override

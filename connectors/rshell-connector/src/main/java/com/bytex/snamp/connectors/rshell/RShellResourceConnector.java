@@ -38,7 +38,7 @@ import static com.bytex.snamp.TypeTokens.safeCast;
 final class RShellResourceConnector extends AbstractManagedResourceConnector implements AttributeSupport {
     private static abstract class RShellAttributeInfo extends OpenMBeanAttributeInfoImpl {
         private static final long serialVersionUID = -403897890533078455L;
-        protected final XmlCommandLineToolProfile commandProfile;
+        final XmlCommandLineToolProfile commandProfile;
         private final Map<String, ?> parameters;
 
         private RShellAttributeInfo(final String attributeID,
@@ -291,8 +291,8 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
     @Aggregation
     private final RShellAttributes attributes;
 
-    RShellResourceConnector(final String resourceName,
-                            final RShellConnectionOptions connectionOptions) throws Exception {
+    private RShellResourceConnector(final String resourceName,
+                                    final RShellConnectionOptions connectionOptions) throws Exception {
         executionChannel = connectionOptions.createExecutionChannel();
         if(executionChannel == null)
             throw new InstantiationException(String.format("Unknown channel: %s", connectionOptions));

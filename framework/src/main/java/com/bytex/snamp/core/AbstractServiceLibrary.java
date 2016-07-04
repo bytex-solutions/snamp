@@ -5,7 +5,6 @@ import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.concurrent.LazyContainers;
 import com.bytex.snamp.concurrent.LazyValue;
-import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.osgi.framework.*;
@@ -16,8 +15,6 @@ import java.util.*;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**
  * Represents an activator for SNAMP-specific bundle which exposes a set of services.
@@ -105,6 +102,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      * @version 1.2
      */
     public enum ProvidedServiceState{
+
         /**
          * Service is not published.
          */
@@ -116,6 +114,11 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         PUBLISHED
     }
 
+    //service listener provided from specified bundle context
+    private interface BoundedServiceListener extends ServiceListener {
+        BundleContext getBundleContext();
+    }
+
     /**
      * Represents a holder for the provided service.
      * <p>
@@ -124,16 +127,16 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      * @param <S> Contract of the provided service.
      * @param <T> Implementation of the provided service.
      */
-    public static abstract class ProvidedService<S, T extends S> implements ServiceListener {
+    public static abstract class ProvidedService<S, T extends S> {
         /**
          * Represents service contract.
          */
         protected final Class<S> serviceContract;
         private final ImmutableList<RequiredService<?>> ownDependencies;
 
-        private ServiceRegistrationHolder<S, T> registration;
-        private ActivationPropertyReader properties;
-        private BundleContext bundleContext;
+        private volatile ServiceRegistrationHolder<S, T> registration;
+        private volatile ActivationPropertyReader properties;
+        private BoundedServiceListener dependencyTracker;
 
         /**
          * Initializes a new holder for the provided service.
@@ -147,14 +150,6 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             ownDependencies = ImmutableList.copyOf(dependencies);
             registration = null;
             properties = emptyActivationPropertyReader;
-        }
-
-        /**
-         * Returns the bundle that declares this service.
-         * @return The bundle that declares this service.
-         */
-        protected final Bundle getBundle(){
-            return Utils.getBundleContextOfObject(this).getBundle();
         }
 
         /**
@@ -193,7 +188,6 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                             logger.log(Level.SEVERE, String.format("Unable to cleanup service %s", serviceContract), e);
                         } finally {
                             registration = null;
-                            bundleContext = null;
                             logger.close();
                         }
                     }
@@ -207,7 +201,6 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                             logger.log(Level.SEVERE, String.format("Unable to activate %s service", serviceContract), e);
                             if (registration != null) registration.unregister();
                             registration = null;
-                            bundleContext = null;
                         } finally {
                             logger.close();
                         }
@@ -219,23 +212,8 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * Gets bundle context used in {@link #serviceChanged(ServiceEvent)}.
          * @return Bundle context used in {@link #serviceChanged(ServiceEvent)}.
          */
-        final synchronized BundleContext getBundleContext(){
-            if(registration != null)
-                return registration.getBundleContext();
-            else if(bundleContext != null)
-                return bundleContext;
-            else
-                return getBundleContextOfObject(this);
-        }
-
-        /**
-         * Receives notification that a service has had a lifecycle change.
-         *
-         * @param event The {@code ServiceEvent} object.
-         */
-        @Override
-        public final void serviceChanged(final ServiceEvent event) {
-            serviceChanged(getBundleContext(), event);
+        final BundleContext getBundleContext() {
+            return dependencyTracker.getBundleContext();
         }
 
         /**
@@ -255,23 +233,45 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                     activateService(identity, ownDependencies.toArray(new RequiredService<?>[ownDependencies.size()])),
                     identity,
                     context);
-            this.bundleContext = context;
         }
 
         /**
          * Determines whether the service activation and registration is allowed.
          * <p>
          *     In the default implementation this method always returns {@literal true}.
+         * @param context Bundle context that can be used to evaluate result of this method.
          * @return {@literal true}, if registration is allowed; otherwise, {@literal false}.
          */
         @MethodStub
-        protected boolean isActivationAllowed(){
+        protected boolean isActivationAllowed(final BundleContext context){
             return true;
         }
 
-        private void register(final BundleContext context, final ActivationPropertyReader properties) throws Exception {
+        private BoundedServiceListener createServiceListener(final BundleContext context){
+            return new BoundedServiceListener() {
+                private final String bundleName = context.getBundle().getSymbolicName();
+
+                @Override
+                public BundleContext getBundleContext() {
+                    return context;
+                }
+
+                @Override
+                public void serviceChanged(final ServiceEvent event) {
+                    ProvidedService.this.serviceChanged(getBundleContext(), event);
+                }
+
+                @Override
+                public String toString() { //for debugging purposes
+                    return String.format("DependencyTracker for '%s' from bundle '%s'", ProvidedService.this.serviceContract, bundleName);
+                }
+            };
+        }
+
+        private boolean register(final BundleContext context, final ActivationPropertyReader properties) throws Exception {
             this.properties = properties;
-            if(isActivationAllowed()) {
+            if(isActivationAllowed(context)) {
+                this.dependencyTracker = createServiceListener(context);
                 if (ownDependencies.isEmpty()) //instantiate and register service now because there are no dependencies
                     activateAndRegisterService(context);
                 else {
@@ -282,14 +282,18 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                             serviceChanged(context, new ServiceEvent(ServiceEvent.REGISTERED, serviceRef));
                     }
                     //dependency tracking required
-                    filter.applyServiceListener(context, this);
+                    filter.applyServiceListener(context, dependencyTracker);
                 }
+                return true;
             }
-            else this.properties = emptyActivationPropertyReader;
+            else {
+                this.properties = emptyActivationPropertyReader;
+                return false;
+            }
         }
 
-        private void unregister(final BundleContext context) throws Exception {
-            if (!ownDependencies.isEmpty()) context.removeServiceListener(this);
+        private synchronized void unregister(final BundleContext context) throws Exception {
+            if (!ownDependencies.isEmpty()) context.removeServiceListener(dependencyTracker);
             //cancels registration
             T serviceInstance = null;
             try {
@@ -313,6 +317,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                 for (final RequiredService<?> dependency : ownDependencies)
                     dependency.unbind(context);
                 properties = emptyActivationPropertyReader;
+                dependencyTracker = null;
             }
         }
 
@@ -555,10 +560,6 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                                           final BundleContext context) {
             serviceInstance = Objects.requireNonNull(service);
             registration = context.registerService(serviceContract, service, identity);
-        }
-
-        private BundleContext getBundleContext(){
-            return getReference().getBundle().getBundleContext();
         }
 
         @Override

@@ -3,6 +3,7 @@ package com.bytex.snamp.connectors.wmq;
 import com.ibm.mq.MQException;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
 import com.bytex.snamp.SpecialUse;
+import org.osgi.framework.BundleContext;
 
 import javax.management.openmbean.CompositeData;
 import java.beans.IntrospectionException;
@@ -86,7 +87,7 @@ public final class MQConnectorActivator extends ManagedResourceActivator<MQConne
         }
 
         @Override
-        protected boolean isActivationAllowed() {
+        protected boolean isActivationAllowed(final BundleContext context) {
             return isPrerequisitesOK();
         }
     }

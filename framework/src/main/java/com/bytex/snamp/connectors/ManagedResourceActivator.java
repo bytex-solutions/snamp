@@ -391,7 +391,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         }
 
         @Override
-        protected boolean isActivationAllowed() {
+        protected boolean isActivationAllowed(final BundleContext context) {
             return getActivationPropertyValue(PREREQUISITES_CHECK_HOLDER);
         }
 
@@ -1103,8 +1103,8 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @param connectionParameters The managed resource connection parameters.
      * @return A unique hash code generated from connection string and connection parameters.
      */
-    public static BigInteger computeConnectionParamsHashCode(final String connectionString,
-                                                             final Map<String, String> connectionParameters) {
+    static BigInteger computeConnectionParamsHashCode(final String connectionString,
+                                                      final Map<String, String> connectionParameters) {
         BigInteger result = toBigInteger(connectionString);
         for(final Map.Entry<String, String> entry: connectionParameters.entrySet()){
             result = result.xor(toBigInteger(entry.getKey()));
