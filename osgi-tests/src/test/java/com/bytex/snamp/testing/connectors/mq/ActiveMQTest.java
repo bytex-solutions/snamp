@@ -43,7 +43,7 @@ public final class ActiveMQTest extends AbstractMQConnectorTest {
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return true;
+        return false;
     }
 
     @Test
