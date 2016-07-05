@@ -26,7 +26,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.bytex.snamp.TypeTokens.safeCast;
+import static com.bytex.snamp.TypeTokens.cast;
 
 /**
  * Represents RShell resource connector.
@@ -133,7 +133,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
 
         @Override
         protected Object getValue(final CommandExecutionChannel channel, final Map<String, ?> channelParams) throws IOException, ScriptException, OpenDataException {
-            final List<? extends Map<String, ?>> rows = com.bytex.snamp.TypeTokens.safeCast(commandProfile.readFromChannel(channel, channelParams), TypeTokens.TABLE_TYPE_TOKEN);
+            final List<? extends Map<String, ?>> rows = cast(commandProfile.readFromChannel(channel, channelParams), TypeTokens.TABLE_TYPE_TOKEN);
             return rows != null ? convert(rows) : null;
         }
 
@@ -177,7 +177,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
 
         @Override
         protected CompositeData getValue(final CommandExecutionChannel channel, final Map<String, ?> channelParams) throws IOException, ScriptException, OpenDataException {
-            final Map<String, ?> dict = safeCast(commandProfile.readFromChannel(channel, channelParams), TypeTokens.DICTIONARY_TYPE_TOKEN);
+            final Map<String, ?> dict = cast(commandProfile.readFromChannel(channel, channelParams), TypeTokens.DICTIONARY_TYPE_TOKEN);
             return dict != null ? convert(dict) : null;
         }
     }
