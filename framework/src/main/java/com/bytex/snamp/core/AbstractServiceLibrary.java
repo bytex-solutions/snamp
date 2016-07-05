@@ -275,7 +275,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                 if (ownDependencies.isEmpty()) //instantiate and register service now because there are no dependencies
                     activateAndRegisterService(context);
                 else {
-                    final DependencyListeningFilter filter = new DependencyListeningFilter();
+                    final DependencyListeningFilterBuilder filter = new DependencyListeningFilterBuilder();
                     for (final RequiredService<?> dependency : ownDependencies) {
                         filter.append(dependency);
                         for (final ServiceReference<?> serviceRef : dependency.getCandidates(context))

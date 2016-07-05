@@ -340,7 +340,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
         }
     }
 
-    static final class DependencyListeningFilter {
+    static final class DependencyListeningFilterBuilder {
         private int appendCalledTimes = 0;
         private final StringBuilder filter = new StringBuilder(64);
 
@@ -752,7 +752,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
     public final void start(final BundleContext context) throws Exception {
         try (final LogicalOperation ignored = BundleLogicalOperation.startBundle(getLogger(), context)) {
             start(context, bundleLevelDependencies);
-            final DependencyListeningFilter filter = new DependencyListeningFilter();
+            final DependencyListeningFilterBuilder filter = new DependencyListeningFilterBuilder();
             //try to resolve bundle-level dependencies immediately
             for (final RequiredService<?> dependency : bundleLevelDependencies) {
                 filter.append(dependency);
