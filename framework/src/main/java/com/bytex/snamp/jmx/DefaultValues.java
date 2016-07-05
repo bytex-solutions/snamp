@@ -2,7 +2,6 @@ package com.bytex.snamp.jmx;
 
 import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 
 import javax.management.ObjectName;
 import javax.management.openmbean.*;
@@ -10,6 +9,8 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
 
@@ -77,17 +78,6 @@ public final class DefaultValues {
 
     }
 
-    public static CompositeData get(final CompositeType type) throws OpenDataException {
-        final Map<String, Object> items = Maps.newHashMapWithExpectedSize(type.keySet().size());
-        for (final String itemName : type.keySet()) {
-            final OpenType<?> itemType = type.getType(itemName);
-            if (itemType instanceof CompositeType)
-                items.put(itemName, get((CompositeType) itemType));
-            else items.put(itemName, get(itemType));
-        }
-        return new CompositeDataSupport(type, items);
-    }
-
     /**
      * Gets default value of the specified OpenType.
      * @param type OpenType instance. Cannot be {@literal null}.
@@ -95,9 +85,16 @@ public final class DefaultValues {
      * @return Default value of the specified type; or {@literal null}, if no default value is specified.
      */
     @SuppressWarnings("unchecked")
-    public static <T> T get(final OpenType<T> type){
-        return (T)values.get(type);
+    public static <T> T get(final OpenType<T> type) {
+        if (type instanceof CompositeType) {
+            final CompositeType ctype = (CompositeType) type;
+            final Map<String, Object> items = ctype.keySet().stream()
+                    .collect(Collectors.toMap(Function.identity(), itemName -> get(ctype.getType(itemName))));
+            try {
+                return (T) new CompositeDataSupport(ctype, items);
+            } catch (final OpenDataException e) {
+                throw new UncheckedOpenDataException(e);
+            }
+        } else return (T) values.get(type);
     }
-
-
 }

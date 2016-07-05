@@ -3,9 +3,11 @@ package com.bytex.snamp.jmx;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.management.openmbean.ArrayType;
-import javax.management.openmbean.OpenDataException;
-import javax.management.openmbean.SimpleType;
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
+import javax.management.openmbean.*;
+import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * @author Roman Sakno
@@ -28,5 +30,22 @@ public final class DefaultValuesTest extends Assert {
         assertTrue(array1.length == 0);
         final Short[] array2 = DefaultValues.get(new ArrayType<Short[]>(SimpleType.SHORT, false));
         assertTrue(array2.length == 0);
+    }
+
+    @Test
+    public void compositeTypeTest() throws OpenDataException, MalformedObjectNameException {
+        final CompositeType type = new CompositeTypeBuilder("Dummy", "DummyDesc")
+                .addItem("x", "dummy", SimpleType.STRING)
+                .addItem("y", "dummy", SimpleType.OBJECTNAME)
+                .addItem("z", "dummy", SimpleType.BIGDECIMAL)
+                .addItem("j", "dummy", SimpleType.DATE)
+                .addItem("i", "dummy", SimpleType.INTEGER)
+                .build();
+        final CompositeData data = DefaultValues.get(type);
+        assertEquals("", data.get("x"));
+        assertEquals(new ObjectName(""), data.get("y"));
+        assertEquals(BigDecimal.ZERO, data.get("z"));
+        assertEquals(new Date(0L), data.get("j"));
+        assertEquals(0, data.get("i"));
     }
 }

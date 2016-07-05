@@ -78,19 +78,8 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     protected AbstractAttributeRepository(final String resourceName,
                                           final Class<M> attributeMetadataType) {
         super(resourceName, attributeMetadataType);
-        attributes = createAttributes();
+        attributes = AbstractKeyedObjects.create(holder -> holder.getMetadata().getName());
         metrics = new AttributeMetricsWriter();
-    }
-
-    private static <M extends MBeanAttributeInfo> AbstractKeyedObjects<String, AttributeHolder<M>> createAttributes() {
-        return new AbstractKeyedObjects<String, AttributeHolder<M>>(10) {
-            private static final long serialVersionUID = 6284468803876344036L;
-
-            @Override
-            public String getKey(final AttributeHolder<M> holder) {
-                return holder.getMetadata().getName();
-            }
-        };
     }
 
     //this method should be called AFTER registering attribute in this manager

@@ -138,7 +138,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
                                              final Class<M> notifMetadataType,
                                              final LongCounter sequenceNumberGenerator) {
         super(resourceName, notifMetadataType);
-        notifications = createNotifications();
+        notifications = AbstractKeyedObjects.create(NotificationHolder::getNotifType);
         listeners = new NotificationListenerList();
         this.sequenceNumberGenerator = Objects.requireNonNull(sequenceNumberGenerator);
         metrics = new NotificationMetricsWriter();
@@ -161,17 +161,6 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     protected final long generateSequenceNumber(){
         return sequenceNumberGenerator.increment();
-    }
-
-    private static <M extends MBeanNotificationInfo> AbstractKeyedObjects<String, NotificationHolder<M>> createNotifications(){
-        return new AbstractKeyedObjects<String, NotificationHolder<M>>(10) {
-            private static final long serialVersionUID = 6753355822109787406L;
-
-            @Override
-            public String getKey(final NotificationHolder<M> holder) {
-                return holder.getNotifType();
-            }
-        };
     }
 
     /**

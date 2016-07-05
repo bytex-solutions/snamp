@@ -29,7 +29,7 @@ public abstract class AdvancedConfiguration extends Configuration implements Mul
     public final AppConfigurationEntry[] getAppConfigurationEntry(final String name) {
         if(containsKey(name)){
             final Collection<AppConfigurationEntry> result = get(name);
-            return result.isEmpty() ? null : result.toArray(new AppConfigurationEntry[result.size()]);
+            return result.isEmpty() ? null : result.stream().toArray(AppConfigurationEntry[]::new);
         }
         else return null;
     }

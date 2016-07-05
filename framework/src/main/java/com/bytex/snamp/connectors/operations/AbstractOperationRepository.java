@@ -233,19 +233,8 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
     protected AbstractOperationRepository(final String resourceName,
                                           final Class<M> metadataType) {
         super(resourceName, metadataType);
-        operations = createOperations();
+        operations = AbstractKeyedObjects.create(OperationHolder::getOperationName);
         metrics = new OperationMetricsWriter();
-    }
-
-    private static <M extends MBeanOperationInfo> KeyedObjects<String, OperationHolder<M>> createOperations(){
-        return new AbstractKeyedObjects<String, OperationHolder<M>>(10) {
-            private static final long serialVersionUID = 6753355822109787406L;
-
-            @Override
-            public String getKey(final OperationHolder<M> holder) {
-                return holder.getOperationName();
-            }
-        };
     }
 
     private void operationAdded(final M metadata){

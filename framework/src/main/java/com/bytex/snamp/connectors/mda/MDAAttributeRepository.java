@@ -9,7 +9,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
 import javax.management.InvalidAttributeValueException;
-import javax.management.openmbean.CompositeType;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
 import java.time.Duration;
@@ -90,11 +89,8 @@ public abstract class MDAAttributeRepository<M extends MDAAttributeInfo> extends
      * @param attributeType The name of the storage slot.
      * @return Default value of the storage slot.
      */
-    @SuppressWarnings("unchecked")
     protected <T> T getDefaultValue(final OpenType<T> attributeType) throws OpenDataException{
-        return attributeType instanceof CompositeType ?
-                (T)DefaultValues.get((CompositeType)attributeType) :
-                DefaultValues.get(attributeType);
+        return DefaultValues.get(attributeType);
     }
 
     /**

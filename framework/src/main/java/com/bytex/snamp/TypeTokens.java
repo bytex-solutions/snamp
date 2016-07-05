@@ -10,7 +10,7 @@ import com.google.common.reflect.TypeToken;
  */
 public final class TypeTokens {
     private TypeTokens(){
-
+        throw new InstantiationError();
     }
 
     /**
