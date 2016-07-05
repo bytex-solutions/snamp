@@ -9,12 +9,12 @@ import com.google.common.collect.Maps;
 import javax.management.*;
 import javax.management.openmbean.*;
 import java.lang.reflect.Method;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
+import static com.bytex.snamp.jmx.DescriptorUtils.DEFAULT_VALUE_FIELD;
 
 /**
  * Represents an abstract class for building Open MBeans.
@@ -178,19 +178,30 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
          * Describes parameter of the operation.
          * @param <T> Type of the parameter
          */
-        public static class TypedParameterInfo<T> extends OpenMBeanParameterInfoSupport {
-            private static final long serialVersionUID = -3343022428532139904L;
+        public static final class TypedParameterInfo<T> implements Supplier<OpenMBeanParameterInfoSupport>{
+            private final OpenMBeanParameterInfoSupport parameter;
             private final boolean nullable;
-            private final T defaultValue;
 
             public TypedParameterInfo(final String name,
                                       final String description,
                                       final OpenType<T> openType,
                                       final boolean nullable,
                                       final T defValue) {
-                super(name, description, openType);
+                final Map<String, Object> descriptor = new HashMap<>();
+                if(defValue != null)
+                    descriptor.put(DEFAULT_VALUE_FIELD, defValue);
+                this.parameter = new OpenMBeanParameterInfoSupport(name, description, openType, new ImmutableDescriptor(descriptor));
                 this.nullable = nullable;
-                this.defaultValue = defValue;
+            }
+
+            /**
+             * Gets MBean operation parameter.
+             *
+             * @return MBean operation parameter.
+             */
+            @Override
+            public OpenMBeanParameterInfoSupport get() {
+                return parameter;
             }
 
             public TypedParameterInfo(final String name,
@@ -211,19 +222,18 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
              *
              * @return {@literal true}, if this value of this parameter can be {@literal null}; otherwise, {@literal false}.
              */
-            public final boolean isNullable() {
+            public boolean isNullable() {
                 return nullable;
             }
 
-            @Override
-            public final T getDefaultValue() {
-                return defaultValue;
+            @SuppressWarnings("unchecked")
+            public T getDefaultValue() {
+                return (T)parameter.getDefaultValue();
             }
 
             @SuppressWarnings("unchecked")
-            @Override
-            public final OpenType<T> getOpenType() {
-                return (OpenType<T>) super.getOpenType();
+            public OpenType<T> getOpenType() {
+                return (OpenType<T>) parameter.getOpenType();
             }
 
             /**
@@ -232,17 +242,17 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
              * @return Actual value of this parameter.
              * @throws IllegalArgumentException Incorrect actual value of this parameter.
              */
-            public final T getArgument(final Map<String, ?> arguments) throws OperationArgumentException {
-                if (arguments.containsKey(getName())) {
+            public T getArgument(final Map<String, ?> arguments) throws OperationArgumentException {
+                if (arguments.containsKey(parameter.getName())) {
                     try {
-                        return cast(getOpenType(), arguments.get(getName()));
+                        return cast(getOpenType(), arguments.get(parameter.getName()));
                     } catch (final OpenDataException e) {
                         throw new OperationArgumentException(getOpenType(), e);
                     }
-                } else if (nullable || defaultValue != null)
-                    return defaultValue;
+                } else if (isNullable() || getDefaultValue() != null)
+                    return getDefaultValue();
                 else
-                    throw new OperationArgumentException(this);
+                    throw new OperationArgumentException(parameter);
             }
         }
 
@@ -256,6 +266,14 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
             super(operationName);
             this.returnType = returnType;
             this.parameters = ImmutableList.copyOf(parameters);
+        }
+
+        protected OpenOperation(final String operationName, final T returnType, final TypedParameterInfo<?>... parameters) {
+            this(operationName, returnType, Arrays.stream(parameters).map(TypedParameterInfo::get).toArray(OpenMBeanParameterInfo[]::new));
+        }
+
+        protected OpenOperation(final String operationName, final T returnType){
+            this(operationName, returnType, emptyArray(OpenMBeanParameterInfo[].class));
         }
 
         public abstract R invoke(final Map<String, ?> arguments) throws Exception;

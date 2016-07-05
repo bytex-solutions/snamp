@@ -54,7 +54,7 @@ abstract class AbstractSnampComponentParamValueOperation extends OpenMBean.OpenO
      */
     protected AbstractSnampComponentParamValueOperation(final AbstractSnampManager manager,
                                                         final String operationName,
-                                                        final OpenMBeanParameterInfo... parameters) throws OpenDataException {
+                                                        final TypedParameterInfo<?>... parameters) throws OpenDataException {
         super(operationName, new ArrayType<>(SimpleType.STRING, false), parameters);
         this.snampManager = Objects.requireNonNull(manager);
     }

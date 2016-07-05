@@ -473,11 +473,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
                 "password",
                 "localAddress",
                 "securityContext",
-                "queueSize",
-                "priority",
-                "keepAliveTime",
-                "minPoolSize",
-                "maxPoolSize",
+                "threadPool",
                 "smartMode"
         ));
     }

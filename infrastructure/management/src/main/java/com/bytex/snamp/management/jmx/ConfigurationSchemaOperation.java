@@ -101,7 +101,7 @@ abstract class ConfigurationSchemaOperation extends OpenMBean.OpenOperation<Comp
      */
     protected ConfigurationSchemaOperation(final AbstractSnampManager snampManager,
                                            final String operationName,
-                                           final OpenMBeanParameterInfo... parameters) {
+                                           final TypedParameterInfo<?>... parameters) {
         super(operationName, COMPONENT_CONFIG_SCHEMA, parameters);
         this.snampManager = Objects.requireNonNull(snampManager);
     }
