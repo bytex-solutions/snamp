@@ -19,7 +19,7 @@ public interface Consumer<T, E extends Throwable> {
      */
     void accept(final T value) throws E;
 
-    default <I> Consumer<I, E> changeConsumingType(final Function<I, T> transformation) throws E{
+    default <I> Consumer<? super I, E> changeConsumingType(final Function<? super I, ? extends T> transformation) throws E{
         return inp -> accept(transformation.apply(inp));
     }
 }

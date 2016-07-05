@@ -20,7 +20,7 @@ public interface SafeConsumer<T> extends Consumer<T, ExceptionPlaceholder>, java
     void accept(final T value);
 
     @Override
-    default <G> SafeConsumer<G> changeConsumingType(final Function<G, T> transformation){
+    default <G> SafeConsumer<? super G> changeConsumingType(final Function<? super G, ? extends T> transformation){
         return inp -> accept(transformation.apply(inp));
     }
 }
