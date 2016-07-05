@@ -2,10 +2,8 @@ package com.bytex.snamp;
 
 import com.google.common.collect.ObjectArrays;
 
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Array;
 import java.util.*;
-import java.util.function.Supplier;
 
 /**
  * Represents a list of weak references to event listeners.
@@ -18,14 +16,8 @@ import java.util.function.Supplier;
 @ThreadSafe
 public abstract class WeakEventListenerList<L extends EventListener, E extends EventObject> implements Collection<L> {
 
-    private static final class WeakEventListener<L extends EventListener> extends WeakReference<L> implements Supplier<L>, EventListener {
-        private WeakEventListener(final L listener) {
-            super(Objects.requireNonNull(listener));
-        }
-    }
-
     private static final WeakEventListener[] EMPTY_LISTENERS = new WeakEventListener[0];
-    private volatile WeakEventListener<L>[] listeners;
+    private volatile WeakEventListener<L, E>[] listeners;
 
     /**
      * Initializes a new empty list.
@@ -40,7 +32,7 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
      */
     @Override
     public final int size(){
-        final WeakEventListener<L>[] snapshot = listeners;
+        final EventListener[] snapshot = listeners;
         return snapshot == null ? 0 : snapshot.length;
     }
 
@@ -51,8 +43,11 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
      */
     @Override
     public final boolean isEmpty() {
-        final WeakEventListener<L>[] snapshot = listeners;
-        return snapshot == null || snapshot.length == 0;
+        return ArrayUtils.isNullOrEmpty(listeners);
+    }
+
+    private WeakEventListener<L, E> createWeakEventListener(final L listener){
+        return WeakEventListener.create(listener, this::invoke);
     }
 
     /**
@@ -64,16 +59,15 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
     @SuppressWarnings("unchecked")
     public final synchronized boolean add(final L listener) {
         if(listeners == null) listeners = EMPTY_LISTENERS;
-        final WeakEventListener<L>[] newSnapshot = new WeakEventListener[listeners.length + 1];
+        final WeakEventListener<L, E>[] newSnapshot = new WeakEventListener[listeners.length + 1];
         int outputIndex = 0;
         //remove dead references
-        for(final WeakEventListener<L> listenerRef: listeners)
+        for(final WeakEventListener<L, E> listenerRef: listeners)
             if (listenerRef.get() != null)
                 newSnapshot[outputIndex++] = listenerRef;
 
         //insert new element into the end of list
-        newSnapshot[outputIndex++] = new WeakEventListener<>(listener);
-
+        newSnapshot[outputIndex++] = createWeakEventListener(listener);
         this.listeners = Arrays.copyOf(newSnapshot, outputIndex);
         return true;
     }
@@ -87,11 +81,11 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
     public final synchronized boolean remove(final Object listener) {
         if (listeners == null) return false;
         @SuppressWarnings("unchecked")
-        final WeakEventListener<L>[] newSnapshot = new WeakEventListener[listeners.length];
+        final WeakEventListener<L, E>[] newSnapshot = new WeakEventListener[listeners.length];
         boolean result = false;
         int outputIndex = 0;
         //remove dead references or specified listener
-        for (final WeakEventListener<L> listenerRef : listeners) {
+        for (final WeakEventListener<L, E> listenerRef : listeners) {
             final L l = listenerRef.get();
             if (!result && Objects.equals(l, listener))
                 result = true;
@@ -104,10 +98,10 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
 
     @Override
     public final boolean contains(final Object listener) {
-        final WeakEventListener<L>[] snapshot = listeners;
-        if(snapshot == null) return false;
-        for(final WeakEventListener<L> listenerRef: snapshot)
-            if(Objects.equals(listener, listenerRef.get()))
+        final WeakEventListener<?, ?>[] snapshot = listeners;
+        if (snapshot == null) return false;
+        for (final WeakEventListener<?, ?> listenerRef : snapshot)
+            if (Objects.equals(listener, listenerRef.get()))
                 return true;
         return false;
     }
@@ -130,11 +124,11 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
      */
     @Override
     public final EventListener[] toArray() {
-        final WeakEventListener<L>[] snapshot = listeners;
-        if (snapshot == null) return ArrayUtils.emptyArray(EventListener[].class);
+        final WeakEventListener<L, ?>[] snapshot = listeners;
+        if (snapshot == null) return EMPTY_LISTENERS;
         final EventListener[] result = new EventListener[snapshot.length];
         int outputIndex = 0;
-        for (final WeakEventListener<L> listenerRef : snapshot) {
+        for (final WeakEventListener<L, ?> listenerRef : snapshot) {
             final L listener = listenerRef.get();
             if (listener != null) result[outputIndex++] = listener;
         }
@@ -143,7 +137,7 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
 
     @Override
     public final  <T> T[] toArray(T[] a) {
-        final WeakEventListener<L>[] snapshot = listeners;
+        final WeakEventListener<L, ?>[] snapshot = listeners;
         if(snapshot == null) return a;
         switch (a.length){
             default:
@@ -155,7 +149,7 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
             case 0:
                 a = ObjectArrays.newArray(a, snapshot.length);
                 int outputIndex = 0;
-                for (final WeakEventListener<L> listenerRef : snapshot) {
+                for (final WeakEventListener<L, ?> listenerRef : snapshot) {
                     final L listener = listenerRef.get();
                     if (listener != null) Array.set(a, outputIndex++, listener);
                 }
@@ -168,16 +162,16 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
     @Override
     public synchronized final boolean addAll(final Collection<? extends L> c) {
         if (listeners == null) listeners = EMPTY_LISTENERS;
-        final WeakEventListener<L>[] newSnapshot = new WeakEventListener[listeners.length + c.size()];
+        final WeakEventListener<L, E>[] newSnapshot = new WeakEventListener[listeners.length + c.size()];
         int outputIndex = 0;
         //remove dead references
-        for (final WeakEventListener<L> listenerRef : listeners)
+        for (final WeakEventListener<L, E> listenerRef : listeners)
             if (listenerRef.get() != null)
                 newSnapshot[outputIndex++] = listenerRef;
 
         //insert new elements into the end of list
         for (final L listener : c)
-            newSnapshot[outputIndex++] = new WeakEventListener<>(listener);
+            newSnapshot[outputIndex++] = createWeakEventListener(listener);
 
         this.listeners = Arrays.copyOf(newSnapshot, outputIndex);
         return true;
@@ -187,11 +181,11 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
     public synchronized final boolean removeAll(final Collection<?> c) {
         if (listeners == null) return false;
         @SuppressWarnings("unchecked")
-        final WeakEventListener<L>[] newSnapshot = new WeakEventListener[listeners.length];
+        final WeakEventListener<L, E>[] newSnapshot = new WeakEventListener[listeners.length];
         boolean result = false;
         int outputIndex = 0;
         //remove dead references or specified listener
-        for (final WeakEventListener<L> listenerRef : listeners) {
+        for (final WeakEventListener<L, E> listenerRef : listeners) {
             final L l = listenerRef.get();
             if (c.contains(l))
                 result = true;
@@ -206,11 +200,11 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
     public synchronized final boolean retainAll(final Collection<?> c) {
         if (listeners == null) return false;
         @SuppressWarnings("unchecked")
-        final WeakEventListener<L>[] newSnapshot = new WeakEventListener[listeners.length];
+        final WeakEventListener<L, E>[] newSnapshot = new WeakEventListener[listeners.length];
         boolean result = false;
         int outputIndex = 0;
         //remove dead references or specified listener
-        for (final WeakEventListener<L> listenerRef : listeners) {
+        for (final WeakEventListener<L, E> listenerRef : listeners) {
             final L l = listenerRef.get();
             if (c.contains(l))
                 newSnapshot[outputIndex++] = listenerRef;
@@ -222,10 +216,10 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
 
     @Override
     public final boolean containsAll(final Collection<?> c) {
-        final WeakEventListener<L>[] snapshot = listeners;
+        final WeakEventListener<L, ?>[] snapshot = listeners;
         if (snapshot == null) return c.size() == 0;
         int matched = 0;
-        for (final WeakEventListener<L> listenerRef : snapshot)
+        for (final WeakEventListener<L, ?> listenerRef : snapshot)
             for (final Object listener : c)
                 if (Objects.equals(listenerRef.get(), listener))
                     matched++;
@@ -234,22 +228,31 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
 
     /**
      * Invokes the specified listener.
-     * @param event An object to be passed into listener.
      * @param listener A listener to invoke.
+     * @param event An object to be passed into listener.
      */
-    protected abstract void invoke(final E event, final L listener);
+    protected abstract void invoke(final L listener, final E event);
 
     /**
      * Passes event object to all listeners in this list.
      * @param event An event object.
      */
     public final void fire(final E event) {
-        final WeakEventListener<L>[] snapshot = this.listeners;
+        final WeakEventListener<L, E>[] snapshot = this.listeners;
         if (snapshot != null)
-            for (final WeakEventListener<L> listenerRef : snapshot) {
-                final L listener = listenerRef.get();
-                if (listener != null) invoke(event, listener);
-            }
+            for (final WeakEventListener<L, E> listenerRef : snapshot)
+                listenerRef.invoke(event);
+    }
+
+    /**
+     * Passes event object to all listeners in parallel manner.
+     * @param event An event object.
+     * @since 1.2
+     */
+    public final void fireAsync(final E event) {
+        final WeakEventListener<L, E>[] snapshot = this.listeners;
+        if (snapshot != null)
+            Arrays.stream(snapshot).parallel().forEach(listener -> listener.invoke(event));
     }
 
     /**
@@ -259,7 +262,7 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
     public final synchronized void clear() {
         if (listeners == null) return;
         for (int index = 0; index < listeners.length; index++) {
-            final WeakEventListener<L> listenerRef = listeners[index];
+            final WeakEventListener<?, ?> listenerRef = listeners[index];
             listeners[index] = null;
             listenerRef.clear(); //help GC
         }
@@ -273,7 +276,7 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
      */
     @Override
     public final Iterator<L> iterator() {
-        final WeakEventListener<L>[] snapshot = listeners;
+        final WeakEventListener<L, ?>[] snapshot = listeners;
         return snapshot == null ?
                 ResettableIterator.of() :
                 Arrays.stream(snapshot).map(WeakEventListener::get).filter(listener -> listener != null).iterator();
@@ -281,7 +284,7 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
 
     @Override
     public String toString() {
-        final WeakEventListener<L>[] snapshot = listeners;
+        final WeakEventListener<?, ?>[] snapshot = listeners;
         return snapshot == null ? "[]" : Arrays.toString(snapshot);
     }
 }

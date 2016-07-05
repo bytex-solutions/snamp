@@ -114,10 +114,6 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         PUBLISHED
     }
 
-    //service listener provided from specified bundle context
-    private interface BoundedServiceListener extends ServiceListener {
-        BundleContext getBundleContext();
-    }
 
     /**
      * Represents a holder for the provided service.
@@ -127,7 +123,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      * @param <S> Contract of the provided service.
      * @param <T> Implementation of the provided service.
      */
-    public static abstract class ProvidedService<S, T extends S> {
+    public static abstract class ProvidedService<S, T extends S> implements ServiceListener {
         /**
          * Represents service contract.
          */
@@ -136,7 +132,10 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
 
         private volatile ServiceRegistrationHolder<S, T> registration;
         private volatile ActivationPropertyReader properties;
-        private BoundedServiceListener dependencyTracker;
+
+        //fields as a part of tuple because it has the same lifecycle in this instance
+        private WeakServiceListener dependencyTracker;   //weak reference to avoid leak of service listener inside of OSGi container
+        private BundleContext activationContext;
 
         /**
          * Initializes a new holder for the provided service.
@@ -209,11 +208,21 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         }
 
         /**
+         * Receives notification that a service has had a lifecycle change.
+         *
+         * @param event The {@code ServiceEvent} object.
+         */
+        @Override
+        public final void serviceChanged(final ServiceEvent event) {
+            serviceChanged(activationContext, event);
+        }
+
+        /**
          * Gets bundle context used in {@link #serviceChanged(ServiceEvent)}.
          * @return Bundle context used in {@link #serviceChanged(ServiceEvent)}.
          */
         final BundleContext getBundleContext() {
-            return dependencyTracker.getBundleContext();
+            return activationContext;
         }
 
         /**
@@ -247,32 +256,11 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             return true;
         }
 
-        private BoundedServiceListener createServiceListener(final BundleContext context){
-            return new BoundedServiceListener() {
-                private final String bundleName = context.getBundle().getSymbolicName();
-
-                @Override
-                public BundleContext getBundleContext() {
-                    return context;
-                }
-
-                @Override
-                public void serviceChanged(final ServiceEvent event) {
-                    ProvidedService.this.serviceChanged(getBundleContext(), event);
-                }
-
-                @Override
-                public String toString() { //for debugging purposes
-                    return String.format("DependencyTracker for '%s' from bundle '%s'", ProvidedService.this.serviceContract, bundleName);
-                }
-            };
-        }
-
         private boolean register(final BundleContext context, final ActivationPropertyReader properties) throws Exception {
             this.properties = properties;
             if(isActivationAllowed(context)) {
-                this.dependencyTracker = createServiceListener(context);
-                if (ownDependencies.isEmpty()) //instantiate and register service now because there are no dependencies
+                activationContext = context;
+                if (ownDependencies.isEmpty()) //instantiate and register service now because there are no dependencies, no dependency tracking is required
                     activateAndRegisterService(context);
                 else {
                     final DependencyListeningFilterBuilder filter = new DependencyListeningFilterBuilder();
@@ -282,7 +270,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                             serviceChanged(context, new ServiceEvent(ServiceEvent.REGISTERED, serviceRef));
                     }
                     //dependency tracking required
-                    filter.applyServiceListener(context, dependencyTracker);
+                    filter.applyServiceListener(context, dependencyTracker = new WeakServiceListener(this));
                 }
                 return true;
             }
@@ -293,15 +281,14 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         }
 
         private synchronized void unregister(final BundleContext context) throws Exception {
-            if (!ownDependencies.isEmpty()) context.removeServiceListener(dependencyTracker);
+            if(dependencyTracker != null) {
+                context.removeServiceListener(dependencyTracker);
+                dependencyTracker.clear();     //help GC
+            }
             //cancels registration
-            T serviceInstance = null;
+            final T serviceInstance = registration == null ? null : registration.get();
             try {
-                if (registration != null) {
-                    serviceInstance = registration.get();
-                    registration.unregister();
-                }
-                else serviceInstance = null;
+                registration.unregister();
             } catch (final IllegalStateException ignored) {
                 //unregister can throws this exception and it must be suppressed
             } finally {
@@ -314,10 +301,10 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                     cleanupService(serviceInstance, true);
             } finally {
                 //releases all dependencies
-                for (final RequiredService<?> dependency : ownDependencies)
-                    dependency.unbind(context);
+                ownDependencies.forEach(dependency -> dependency.unbind(context));
                 properties = emptyActivationPropertyReader;
                 dependencyTracker = null;
+                activationContext = null;
             }
         }
 

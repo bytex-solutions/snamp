@@ -18,7 +18,7 @@ public class MulticastNotificationListener implements NotificationListener {
         }
 
         @Override
-        protected void invoke(final NotificationEvent event, final NotificationListener listener) {
+        protected void invoke(final NotificationListener listener, final NotificationEvent event) {
             listener.handleNotification(event);
         }
     }
@@ -51,6 +51,6 @@ public class MulticastNotificationListener implements NotificationListener {
     @Override
     @Internal
     public final void handleNotification(final NotificationEvent event) {
-        listeners.fire(event);
+        listeners.fireAsync(event);
     }
 }

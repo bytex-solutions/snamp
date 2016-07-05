@@ -41,7 +41,7 @@
     <karaf.version>3.0.7</karaf.version>
     <aries.util.version>1.1.1</aries.util.version>
     <hawtio.version>1.4.55</hawtio.version>
-    <atmosphere.version>2.2.8</atmosphere.version>
+    <atmosphere.version>2.2.9</atmosphere.version>
     <aries.jndi.version>1.0.0</aries.jndi.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <snamp.connectors.jmx.version>1.2.0</snamp.connectors.jmx.version>

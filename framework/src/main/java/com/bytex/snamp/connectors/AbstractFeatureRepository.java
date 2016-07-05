@@ -29,7 +29,7 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
         }
 
         @Override
-        protected void invoke(final ResourceEvent event, final ResourceEventListener listener) {
+        protected void invoke(final ResourceEventListener listener, final ResourceEvent event) {
             listener.handle(event);
         }
     }

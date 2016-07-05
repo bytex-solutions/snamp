@@ -17,6 +17,7 @@ Updated components:
 * Bouncy Castle
 * SNMP4J
 * ActiveMQ Runtime
+* Atmosphere Framework
 
 All SNAMP components are affected so you need to reconfigure SNAMP. It is not possible to restore configuration from backup.
 

@@ -20,7 +20,7 @@ public final class WeakEventListenerListTest extends Assert {
     private static final class DummyEventListenerList extends WeakEventListenerList<DummyListener, EventObject>{
 
         @Override
-        protected void invoke(final EventObject event, final DummyListener listener) {
+        protected void invoke(final DummyListener listener, final EventObject event) {
             listener.invoke();
         }
     }
