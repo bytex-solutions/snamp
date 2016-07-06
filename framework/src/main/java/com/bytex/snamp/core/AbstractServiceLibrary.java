@@ -281,19 +281,22 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         }
 
         private synchronized void unregister(final BundleContext context) throws Exception {
-            if(dependencyTracker != null) {
+            if (dependencyTracker != null) {
                 context.removeServiceListener(dependencyTracker);
                 dependencyTracker.clear();     //help GC
             }
             //cancels registration
-            final T serviceInstance = registration == null ? null : registration.get();
-            try {
-                registration.unregister();
-            } catch (final IllegalStateException ignored) {
-                //unregister can throws this exception and it must be suppressed
-            } finally {
-                registration = null;
-            }
+            final T serviceInstance;
+            if (registration != null) {
+                serviceInstance = registration.get();
+                try {
+                    registration.unregister();
+                } catch (final IllegalStateException ignored) {
+                    //unregister can throws this exception and it must be suppressed
+                } finally {
+                    registration = null;
+                }
+            } else serviceInstance = null;
 
             //release service instance
             try {
