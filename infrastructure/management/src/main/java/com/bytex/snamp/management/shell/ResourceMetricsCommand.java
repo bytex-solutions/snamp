@@ -73,14 +73,17 @@ public final class ResourceMetricsCommand extends OsgiCommandSupport implements 
             appendln(output, "Number of invocations(%s %s): %s", "last", interval.name().toLowerCase(), metrics.getNumberOfInvocations(interval));
     }
 
+    private boolean showAll(){
+        return !(showAttributes | showNotifications | showOperations);
+    }
+
     private  CharSequence collectMetrics(final MetricsReader metrics) {
         final StringBuilder result = new StringBuilder();
-        final boolean showAll = !(showAttributes | showNotifications | showOperations);
-        if (showAttributes | showAll)
+        if (showAttributes | showAll())
             collectMetrics(metrics.queryObject(AttributeMetrics.class), result);
-        if (showNotifications | showAll)
+        if (showNotifications | showAll())
             collectMetrics(metrics.queryObject(NotificationMetrics.class), result);
-        if (showOperations | showAll)
+        if (showOperations | showAll())
             collectMetrics(metrics.queryObject(OperationMetrics.class), result);
         return result;
     }
@@ -91,11 +94,11 @@ public final class ResourceMetricsCommand extends OsgiCommandSupport implements 
     }
 
     private CharSequence resetMetrics(final MetricsReader metrics) {
-        if (showAttributes)
+        if (showAttributes | showAll())
             resetMetrics(metrics.queryObject(AttributeMetrics.class));
-        if (showOperations)
+        if (showOperations | showAll())
             resetMetrics(metrics.queryObject(OperationMetrics.class));
-        if (showNotifications)
+        if (showNotifications | showAll())
             resetMetrics(metrics.queryObject(NotificationMetrics.class));
         return "Metrics reset";
     }

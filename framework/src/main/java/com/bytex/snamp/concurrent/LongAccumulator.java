@@ -38,9 +38,9 @@ public abstract class LongAccumulator extends AbstractAccumulator {
     protected abstract long combine(final long current, final long newValue);
 
     private long updateImpl(final long value) {
-        long newValue;
+        long current, newValue;
         do {
-            final long current = CURRENT_VALUE_ACCESSOR.get(this);
+            current = CURRENT_VALUE_ACCESSOR.get(this);
             newValue = combine(current, value);
         } while (!CURRENT_VALUE_ACCESSOR.compareAndSet(this, current, newValue));
         return newValue;
