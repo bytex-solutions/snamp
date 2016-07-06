@@ -64,7 +64,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
             @Override
             public Metrics getMetrics(final Class<? extends MBeanFeatureInfo> featureType) {
                 for (final AbstractFeatureRepository<?> repository : repositories)
-                    if (repository.metadataType.equals(featureType))
+                    if (featureType.isAssignableFrom(repository.metadataType))
                         return repository.getMetrics();
                 return null;
             }

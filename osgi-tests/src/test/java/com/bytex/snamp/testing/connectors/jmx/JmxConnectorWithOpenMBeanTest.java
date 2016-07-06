@@ -6,6 +6,7 @@ import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.connectors.attributes.AttributeSupport;
+import com.bytex.snamp.connectors.metrics.*;
 import com.bytex.snamp.connectors.notifications.NotificationSupport;
 import com.bytex.snamp.connectors.notifications.SynchronizationListener;
 import com.bytex.snamp.connectors.operations.OperationSupport;
@@ -141,7 +142,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
 
     @Override
     protected boolean enableRemoteDebugging() {
-        return false;
+        return true;
     }
 
     @Test
@@ -216,6 +217,31 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
                 .put("col3", "descr", "Frank Underwood")
                 .build();
         testAttribute("6.1", TypeToken.of(CompositeData.class), dict, Objects::equals);
+    }
+
+    @Test
+    public void testForMetrics() throws Exception {
+        final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getTestBundleContext(), TEST_RESOURCE_NAME);
+        try{
+            final MetricsReader metrics = client.queryObject(MetricsReader.class);
+            assertNotNull(metrics);
+            assertTrue(metrics.getMetrics(MBeanAttributeInfo.class) instanceof AttributeMetrics);
+            assertTrue(metrics.getMetrics(MBeanNotificationInfo.class) instanceof NotificationMetrics);
+            assertTrue(metrics.getMetrics(MBeanOperationInfo.class) instanceof OperationMetrics);
+            assertNotNull(metrics.queryObject(AttributeMetrics.class));
+            assertNotNull(metrics.queryObject(NotificationMetrics.class));
+            assertNotNull(metrics.queryObject(OperationMetrics.class));
+            //read and write attributes
+            testForStringProperty();
+            //verify metrics
+            final AttributeMetrics attrMetrics = metrics.queryObject(AttributeMetrics.class);
+            assertTrue(attrMetrics.getNumberOfReads(MetricsInterval.HOUR) > 0);
+            assertTrue(attrMetrics.getNumberOfWrites(MetricsInterval.HOUR) > 0);
+            assertTrue(attrMetrics.getNumberOfReads() > 0);
+            assertTrue(attrMetrics.getNumberOfWrites() > 0);
+        } finally {
+            client.release(getTestBundleContext());
+        }
     }
 
     @Test
