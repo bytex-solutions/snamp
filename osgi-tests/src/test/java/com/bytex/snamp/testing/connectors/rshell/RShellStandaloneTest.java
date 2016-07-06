@@ -3,7 +3,9 @@ package com.bytex.snamp.testing.connectors.rshell;
 import com.bytex.snamp.concurrent.FutureThread;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
+import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.connectors.attributes.AttributeSupport;
+import com.bytex.snamp.connectors.metrics.*;
 import com.bytex.snamp.internal.OperatingSystem;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import org.junit.Assume;
@@ -11,6 +13,7 @@ import org.junit.Test;
 import org.osgi.framework.BundleContext;
 
 import javax.management.JMException;
+import javax.management.MBeanAttributeInfo;
 import javax.management.openmbean.CompositeData;
 import java.util.concurrent.ExecutionException;
 
@@ -71,6 +74,25 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
         }
         finally {
             releaseManagementConnector();
+        }
+    }
+
+    @Test
+    public void testForMetrics() throws Exception {
+        final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getTestBundleContext(), TEST_RESOURCE_NAME);
+        try{
+            final MetricsReader metrics = client.queryObject(MetricsReader.class);
+            assertNotNull(metrics);
+            assertTrue(metrics.getMetrics(MBeanAttributeInfo.class) instanceof AttributeMetrics);
+            assertNotNull(metrics.queryObject(AttributeMetrics.class));
+            //read and write attributes
+            readMemStatusAttribute();
+            //verify metrics
+            final AttributeMetrics attrMetrics = metrics.queryObject(AttributeMetrics.class);
+            assertTrue(attrMetrics.getNumberOfReads(MetricsInterval.HOUR) > 0);
+            assertTrue(attrMetrics.getNumberOfReads() > 0);
+        } finally {
+            client.release(getTestBundleContext());
         }
     }
 

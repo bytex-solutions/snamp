@@ -40,7 +40,10 @@ public final class ResourceMetricsCommand extends OsgiCommandSupport implements 
     private boolean resetMetrics;
 
     private static void collectMetrics(final AttributeMetrics metrics, final StringBuilder output) {
-        if(metrics == null) return;
+        if(metrics == null){
+            appendln(output, "No metrics for attributes");
+            return;
+        }
         appendln(output, "Total number of writes: %s", metrics.getNumberOfWrites());
         for (final MetricsInterval interval : MetricsInterval.values())
             appendln(output, "Number of writes(%s): %s", interval, metrics.getNumberOfWrites(interval));
@@ -51,14 +54,20 @@ public final class ResourceMetricsCommand extends OsgiCommandSupport implements 
     }
 
     private static void collectMetrics(final NotificationMetrics metrics, final StringBuilder output) {
-        if(metrics == null) return;
+        if(metrics == null) {
+            appendln(output, "No metrics for notifications");
+            return;
+        }
         appendln(output, "Total number of emitted notifications: %s", metrics.getNumberOfEmitted());
         for (final MetricsInterval interval : MetricsInterval.values())
             appendln(output, "Number of emitted notifications(%s %s): %s", "last", interval.name().toLowerCase(), metrics.getNumberOfEmitted(interval));
     }
 
     private static void collectMetrics(final OperationMetrics metrics, final StringBuilder output) {
-        if(metrics == null) return;
+        if(metrics == null) {
+            appendln(output, "No metrics for operations");
+            return;
+        }
         appendln(output, "Total number of invocations: %s", metrics.getNumberOfInvocations());
         for (final MetricsInterval interval : MetricsInterval.values())
             appendln(output, "Number of invocations(%s %s): %s", "last", interval.name().toLowerCase(), metrics.getNumberOfInvocations(interval));
@@ -66,11 +75,12 @@ public final class ResourceMetricsCommand extends OsgiCommandSupport implements 
 
     private  CharSequence collectMetrics(final MetricsReader metrics) {
         final StringBuilder result = new StringBuilder();
-        if (showAttributes)
+        final boolean showAll = !(showAttributes | showNotifications | showOperations);
+        if (showAttributes | showAll)
             collectMetrics(metrics.queryObject(AttributeMetrics.class), result);
-        if (showNotifications)
+        if (showNotifications | showAll)
             collectMetrics(metrics.queryObject(NotificationMetrics.class), result);
-        if (showOperations)
+        if (showOperations | showAll)
             collectMetrics(metrics.queryObject(OperationMetrics.class), result);
         return result;
     }
