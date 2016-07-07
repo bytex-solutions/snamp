@@ -42,7 +42,7 @@ public final class SummaryMetrics extends AbstractAggregator implements MetricsR
             return metrics != null ? fn.getMetric(metrics) : 0L;
         }
 
-        protected final long aggregateMetrics(final MetricFunction<? super M> reader) {
+        final long aggregateMetrics(final MetricFunction<? super M> reader) {
             long result = 0L;
             for (final ServiceReference<ManagedResourceConnector> connectorRef : ManagedResourceConnectorClient.getConnectors(context).values()) {
                 final ServiceHolder<ManagedResourceConnector> connector = new ServiceHolder<>(context, connectorRef);

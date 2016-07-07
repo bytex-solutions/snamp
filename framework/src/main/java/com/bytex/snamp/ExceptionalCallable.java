@@ -1,5 +1,9 @@
 package com.bytex.snamp;
 
+import java.lang.invoke.CallSite;
+import java.lang.invoke.LambdaMetafactory;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
@@ -22,13 +26,28 @@ public interface ExceptionalCallable<V, E extends Exception> extends Callable<V>
     @Override
     V call() throws E;
 
+    @SuppressWarnings("unchecked")
     static <V> ExceptionalCallable<V, ExceptionPlaceholder> fromSupplier(final Supplier<V> fn){
-        return new ExceptionalCallable<V, ExceptionPlaceholder>() { //DO NOT REPLACE WITH LAMDA!! Compiler can't understand this statement in lambda form
-            @Override
-            public V call() {
-                return fn.get();
-            }
-        };
+        final MethodType invokedType = MethodType.methodType(ExceptionalCallable.class, Supplier.class);
+        final MethodHandles.Lookup lookup = MethodHandles.lookup();
+        try {
+            final CallSite site = LambdaMetafactory.metafactory(lookup,
+                    "call",
+                    invokedType,
+                    MethodType.methodType(Object.class),
+                    lookup.findVirtual(Supplier.class, "get", MethodType.methodType(Object.class)),
+                    MethodType.methodType(Object.class));
+            return (ExceptionalCallable<V, ExceptionPlaceholder>) site.getTarget().invoke(fn);
+        } catch (final Throwable e) {
+            throw new AssertionError("Supplier should be reflect without exception", e);
+        }
+    }
+
+    static ExceptionalCallable<Void, ExceptionPlaceholder> fromRunnable(final Runnable fn) {
+        return fromSupplier(() -> {
+            fn.run();
+            return null;
+        });
     }
 
     static <V> ExceptionalCallable<V, Exception> fromCallable(final Callable<V> fn){

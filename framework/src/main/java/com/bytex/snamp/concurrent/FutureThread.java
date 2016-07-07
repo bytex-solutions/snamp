@@ -1,5 +1,7 @@
 package com.bytex.snamp.concurrent;
 
+import com.bytex.snamp.ExceptionalCallable;
+
 import java.util.concurrent.*;
 
 /**
@@ -93,6 +95,16 @@ public class FutureThread<V> extends Thread implements Future<V>{
         final FutureThread<V> future = new FutureThread<>(task);
         future.start();
         return future;
+    }
+
+    /**
+     * Executes a new task in the separated thread.
+     * @param task The task to apply in the separated thread.
+     * @return An object that represents the state of asynchronous computation.
+     * @since 1.2
+     */
+    public static FutureThread<Void> start(final Runnable task) {
+        return start(ExceptionalCallable.fromRunnable(task));
     }
 
     /**
