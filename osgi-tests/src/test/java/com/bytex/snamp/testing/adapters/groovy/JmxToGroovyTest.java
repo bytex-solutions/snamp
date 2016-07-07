@@ -1,6 +1,5 @@
 package com.bytex.snamp.testing.adapters.groovy;
 
-import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.adapters.ResourceAdapter;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.adapters.ResourceAdapterClient;
@@ -15,7 +14,6 @@ import com.bytex.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connectors.jmx.TestOpenMBean;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
 
 import javax.management.*;
 import java.io.File;

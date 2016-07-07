@@ -1,10 +1,8 @@
 package com.bytex.snamp;
 
-import com.google.common.collect.ObjectArrays;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;

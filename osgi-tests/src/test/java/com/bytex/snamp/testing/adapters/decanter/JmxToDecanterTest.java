@@ -1,6 +1,5 @@
 package com.bytex.snamp.testing.adapters.decanter;
 
-import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.testing.BundleExceptionCallable;
@@ -11,7 +10,6 @@ import com.bytex.snamp.testing.connectors.jmx.TestOpenMBean;
 import com.google.common.reflect.TypeToken;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;

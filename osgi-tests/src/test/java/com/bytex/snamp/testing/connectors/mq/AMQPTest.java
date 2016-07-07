@@ -1,7 +1,5 @@
 package com.bytex.snamp.testing.connectors.mq;
 
-import com.bytex.snamp.Consumer;
-import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
@@ -11,7 +9,6 @@ import org.junit.Test;
 import javax.jms.*;
 import javax.management.Notification;
 import javax.management.openmbean.CompositeData;
-
 import java.time.Duration;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
@@ -89,17 +86,14 @@ public final class AMQPTest extends AbstractMQConnectorTest {
             final Destination output = session.createQueue(QUEUE_NAME);
             final MessageProducer producer = session.createProducer(output);
             producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
-            final Notification notif = waitForNotification("mqn", new Consumer<ManagedResourceConnector, JMSException>() {
-                @Override
-                public void accept(final ManagedResourceConnector connector) throws JMSException {
-                    final TextMessage notif = session.createTextMessage();
-                    notif.setStringProperty("snampCategory", "mq-notification");
-                    notif.setStringProperty("snampMessage", "Frank Underwood");
-                    notif.setLongProperty("snampSequenceNumber", 90L);
-                    notif.setJMSType("notify");
-                    notif.setText("Payload");
-                    producer.send(notif);
-                }
+            final Notification notif = waitForNotification("mqn", connector -> {
+                final TextMessage notif1 = session.createTextMessage();
+                notif1.setStringProperty("snampCategory", "mq-notification");
+                notif1.setStringProperty("snampMessage", "Frank Underwood");
+                notif1.setLongProperty("snampSequenceNumber", 90L);
+                notif1.setJMSType("notify");
+                notif1.setText("Payload");
+                producer.send(notif1);
             }, Duration.ofSeconds(3));
             assertNotNull(notif);
             assertEquals("Frank Underwood", notif.getMessage());

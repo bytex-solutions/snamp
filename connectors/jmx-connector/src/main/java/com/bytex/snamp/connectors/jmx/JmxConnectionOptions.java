@@ -1,7 +1,6 @@
 package com.bytex.snamp.connectors.jmx;
 
 import com.bytex.snamp.Box;
-import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.internal.Utils;
 
 import javax.management.MalformedObjectNameException;
@@ -11,7 +10,6 @@ import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -31,15 +29,6 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
     private final long watchDogPeriod;
     private final boolean smartMode;
     private final ObjectName globalNamespace;
-
-    /**
-     * Initializes a new JMX connection parameters.
-     * @param connectionString JMX-compliant URL that identifies remote managed bean.
-     * @throws MalformedURLException The specified URL is not JMX-compliant.
-     */
-    JmxConnectionOptions(final String connectionString) throws MalformedURLException, MalformedObjectNameException {
-        this(connectionString, Collections.emptyMap());
-    }
 
     JmxConnectionOptions(final String connectionString, final Map<String, String> options) throws MalformedURLException, MalformedObjectNameException {
         super(connectionString);

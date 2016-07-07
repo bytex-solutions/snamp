@@ -1,7 +1,6 @@
 package com.bytex.snamp.testing.management;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.concurrent.SynchronizationEvent;
@@ -19,7 +18,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogService;
 

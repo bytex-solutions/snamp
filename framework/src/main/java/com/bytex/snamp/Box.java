@@ -5,8 +5,6 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
-
 /**
  * Represents simple container that holds mutable typed value.
  * @param <T> Type of the value in the container.
