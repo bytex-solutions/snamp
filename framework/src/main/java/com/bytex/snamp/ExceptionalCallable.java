@@ -1,11 +1,9 @@
 package com.bytex.snamp;
 
-import java.lang.invoke.CallSite;
-import java.lang.invoke.LambdaMetafactory;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
+import java.lang.invoke.*;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
+import static com.bytex.snamp.internal.Utils.interfaceStaticInitialize;
 
 /**
  * A task that returns a result and may throw an exception.
@@ -17,6 +15,18 @@ import java.util.function.Supplier;
  */
 @FunctionalInterface
 public interface ExceptionalCallable<V, E extends Exception> extends Callable<V> {
+    MethodHandle SUPPLIER_CONVERTER = interfaceStaticInitialize(() -> {
+        final MethodType invokedType = MethodType.methodType(ExceptionalCallable.class, Supplier.class);
+        final MethodHandles.Lookup lookup = MethodHandles.lookup();
+        final CallSite site = LambdaMetafactory.metafactory(lookup,
+                "call",
+                invokedType,
+                MethodType.methodType(Object.class),
+                lookup.findVirtual(Supplier.class, "get", MethodType.methodType(Object.class)),
+                MethodType.methodType(Object.class));
+        return site.getTarget();
+    });
+
     /**
      * Computes a result, or throws an exception if unable to do so.
      *
@@ -28,16 +38,8 @@ public interface ExceptionalCallable<V, E extends Exception> extends Callable<V>
 
     @SuppressWarnings("unchecked")
     static <V> ExceptionalCallable<V, ExceptionPlaceholder> fromSupplier(final Supplier<V> fn){
-        final MethodType invokedType = MethodType.methodType(ExceptionalCallable.class, Supplier.class);
-        final MethodHandles.Lookup lookup = MethodHandles.lookup();
         try {
-            final CallSite site = LambdaMetafactory.metafactory(lookup,
-                    "call",
-                    invokedType,
-                    MethodType.methodType(Object.class),
-                    lookup.findVirtual(Supplier.class, "get", MethodType.methodType(Object.class)),
-                    MethodType.methodType(Object.class));
-            return (ExceptionalCallable<V, ExceptionPlaceholder>) site.getTarget().invoke(fn);
+            return (ExceptionalCallable<V, ExceptionPlaceholder>) SUPPLIER_CONVERTER.invokeExact(fn);
         } catch (final Throwable e) {
             throw new AssertionError("Supplier should be reflect without exception", e);
         }
