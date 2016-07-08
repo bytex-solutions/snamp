@@ -188,11 +188,11 @@ public abstract class AbstractAggregator implements Aggregator {
             return this;
         }
 
-        public <T> AggregationBuilder fromSupplier(final Class<T> objectType, final Supplier<? extends T> supplier) {
+        public <T> AggregationBuilder addSupplier(final Class<T> objectType, final Supplier<? extends T> supplier) {
             return add(objectType, ExceptionalCallable.fromSupplier(supplier));
         }
 
-        public <T> AggregationBuilder fromValue(final Class<T> objectType, final T obj) {
+        public <T> AggregationBuilder addValue(final Class<T> objectType, final T obj) {
             if (obj == null) throw new NullPointerException("obj is null");
             return add(objectType, () -> obj);
         }

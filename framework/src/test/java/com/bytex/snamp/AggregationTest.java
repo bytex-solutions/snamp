@@ -76,8 +76,8 @@ public final class AggregationTest extends Assert {
     @Test
     public void composeTest() {
         final Aggregator aggregator1 = AbstractAggregator.builder()
-                .add(CharSequence.class, () -> "Frank Underwood")
-                .add(int[].class, () -> new int[]{42, 43})
+                .addSupplier(CharSequence.class, () -> "Frank Underwood")
+                .addValue(int[].class, new int[]{42, 43})
                 .build();
         final Aggregator aggregator2 = AbstractAggregator.builder()
                 .add(Long.class, () -> 56L)
@@ -97,8 +97,8 @@ public final class AggregationTest extends Assert {
                 .add(int[].class, () -> new int[]{42, 43})
                 .build();
         final Aggregator aggregator2 = AbstractAggregator.builder()
-                .add(Long.class, () -> 56L)
-                .add(Boolean.class, () -> true)
+                .addSupplier(Long.class, () -> 56L)
+                .addValue(Boolean.class, true)
                 .build();
         final Aggregator aggregator3 = AbstractAggregator.builder()
                 .add(BigInteger.class, () -> BigInteger.TEN)
