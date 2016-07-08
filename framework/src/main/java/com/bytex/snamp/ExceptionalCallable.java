@@ -38,6 +38,7 @@ public interface ExceptionalCallable<V, E extends Exception> extends Callable<V>
 
     @SuppressWarnings("unchecked")
     static <V> ExceptionalCallable<V, ExceptionPlaceholder> fromSupplier(final Supplier<V> fn){
+        if(fn == null) throw new NullPointerException("Supplier is null.");
         try {
             return (ExceptionalCallable<V, ExceptionPlaceholder>) SUPPLIER_CONVERTER.invokeExact(fn);
         } catch (final Throwable e) {

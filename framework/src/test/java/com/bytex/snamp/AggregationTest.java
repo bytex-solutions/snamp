@@ -4,6 +4,9 @@ import com.bytex.snamp.connectors.metrics.MetricsReader;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+
 /**
  * @author Roman Sakno
  */
@@ -11,16 +14,30 @@ public final class AggregationTest extends Assert {
     private interface SubInterface{
 
     }
+
     private static final class TestAggregator extends AbstractAggregator implements SubInterface {
+        private TestAggregator() {
+        }
+
+        @Override
+        protected void registerExtraAggregations(final AggregationBuilder customAggregations) {
+            customAggregations
+                    .add(BigInteger.class, () -> BigInteger.ONE)
+                    .add(BigDecimal.class, this::getDecimal);
+        }
+
+        private BigDecimal getDecimal(){
+            return BigDecimal.TEN;
+        }
 
         @Aggregation
         @SpecialUse
-        private final StringBuilder service1 = new StringBuilder("Hello, world!");
+        private StringBuilder service1 = new StringBuilder("Hello, world!");
 
         @Aggregation
         @SpecialUse
-        public Short[] getService2(){
-            return new Short[]{1, 2, 3};
+        public short[] getService2(){
+            return new short[]{1, 2, 3};
         }
     }
 
@@ -29,31 +46,24 @@ public final class AggregationTest extends Assert {
     public void serviceRetrievingTest() {
         final TestAggregator provider = new TestAggregator();
         assertNotNull(provider.queryObject(StringBuilder.class));
-        assertNotNull(provider.queryObject(Short[].class));
+        assertNotNull(provider.queryObject(short[].class));
         assertNotNull(provider.queryObject(SubInterface.class));
+        assertNotNull(provider.queryObject(BigInteger.class));
+        assertNotNull(provider.queryObject(BigDecimal.class));
         assertNull(provider.queryObject(MetricsReader.class));
     }
 
     @Test
     public void inlineAggregationTest(){
-        final Aggregator aggregator = AbstractAggregator.builder()
-                .<CharSequence>aggregate(CharSequence.class, () -> "Frank Underwood")
-                .aggregate(int[].class, new int[]{42, 43})
-                .build();
+        final Aggregator aggregator = AbstractAggregator.of( CharSequence.class, () -> "Frank Underwood", int[].class, () -> new int[]{42, 43});
         assertEquals("Frank Underwood", aggregator.queryObject(CharSequence.class));
         assertArrayEquals(new int[]{42, 43}, aggregator.queryObject(int[].class));
     }
 
     @Test
     public void composeTest(){
-        final Aggregator aggregator1 = AbstractAggregator.builder()
-                .<CharSequence>aggregate(CharSequence.class, () -> "Frank Underwood")
-                .aggregate(int[].class, new int[]{42, 43})
-                .build();
-        final Aggregator aggregator2 = AbstractAggregator.builder()
-                .aggregate(Long.class, 56L)
-                .<Boolean>aggregate(Boolean.class, () -> true)
-                .build();
+        final Aggregator aggregator1 = AbstractAggregator.of(CharSequence.class, () -> "Frank Underwood", int[].class, () -> new int[]{42, 43});
+        final Aggregator aggregator2 = AbstractAggregator.of(Long.class, () -> 56L, Boolean.class, () -> true);
         final Aggregator aggregator = Aggregator.compose(aggregator1, aggregator2);
         assertEquals("Frank Underwood", aggregator.queryObject(CharSequence.class));
         assertArrayEquals(new int[]{42, 43}, aggregator.queryObject(int[].class));

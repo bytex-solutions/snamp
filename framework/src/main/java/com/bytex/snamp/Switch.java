@@ -56,6 +56,21 @@ public class Switch<I, O> implements Function<I, O> {
                 }
             };
         }
+
+        public static <I, O> CaseStatement<I, O> create(final Predicate<? super I> condition,
+                                                        final Supplier<? extends O> action){
+            return new CaseStatement<I, O>() {
+                @Override
+                public boolean test(final I value) {
+                    return condition.test(value);
+                }
+
+                @Override
+                public O apply(final I value) {
+                    return action.get();
+                }
+            };
+        }
     }
 
     private CaseStatement<I, O> first;
@@ -82,6 +97,18 @@ public class Switch<I, O> implements Function<I, O> {
     @ThreadSafe(false)
     public final Switch<I, O> addCase(final Predicate<? super I> condition,
                         final Function<? super I, ? extends O> action) {
+        return addCase(CaseStatement.create(condition, action));
+    }
+
+    /**
+     * Adds a new case for this switch.
+     * @param condition The condition evaluator.
+     * @param action The action performed on input value.
+     * @return This object.
+     */
+    @ThreadSafe(false)
+    public final Switch<I, O> addCase(final Predicate<? super I> condition,
+                                      final Supplier<? extends O> action) {
         return addCase(CaseStatement.create(condition, action));
     }
 

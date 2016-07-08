@@ -3,6 +3,7 @@ package com.bytex.snamp;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableMap;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -11,9 +12,11 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Supplier;
+import java.util.function.*;
 
 /**
  * Represents a basic support for aggregation.
@@ -71,8 +74,8 @@ public abstract class AbstractAggregator implements Aggregator {
     private static final class AggregationNotFoundException extends Exception{
         private static final long serialVersionUID = -6675396043935484212L;
 
-        private AggregationNotFoundException(){
-
+        private AggregationNotFoundException(final Class<?> expectedType){
+            super(String.format("Type '%s' is not supported by aggregator", expectedType));
         }
     }
 
@@ -84,7 +87,7 @@ public abstract class AbstractAggregator implements Aggregator {
         }
     }
 
-    private static final class AggregationCacheLoader extends CacheLoader<Class<?>, AggregationSupplier>{
+    private static class AggregationCacheLoader extends CacheLoader<Class<?>, AggregationSupplier>{
         private final Class<? extends Aggregator> aggregatorType;
 
         private AggregationCacheLoader(final Class<? extends Aggregator> declaredType){
@@ -121,52 +124,92 @@ public abstract class AbstractAggregator implements Aggregator {
                 final AggregationSupplier result = load(inheritanceFrame, serviceType);
                 if (result != null) return result;
             }
-            throw new AggregationNotFoundException();
+            throw new AggregationNotFoundException(serviceType);
+        }
+    }
+
+    private static final class FastAggregationCacheLoader extends AggregationCacheLoader{
+        private final ImmutableMap<Class<?>, Callable<?>> predefinedSuppliers;
+
+        private FastAggregationCacheLoader(final Class<? extends Aggregator> declaredType,
+                                           final ImmutableMap<Class<?>, Callable<?>> predefinedSuppliers){
+            super(declaredType);
+            this.predefinedSuppliers = Objects.requireNonNull(predefinedSuppliers);
+        }
+
+        private static AggregationSupplier createAggregationSupplier(final Callable<?> provider) {
+            return owner -> {
+                try {
+                    return provider.call();
+                } catch (final Exception e) {
+                    throw new InvocationTargetException(e);
+                }
+            };
+        }
+
+        @Override
+        public AggregationSupplier load(final Class<?> serviceType) throws AggregationNotFoundException {
+            Callable<?> provider = null;
+            //check exact match
+            if (predefinedSuppliers.containsKey(serviceType)) {
+                provider = predefinedSuppliers.get(serviceType);
+            } else {    //find suitable class in the map
+                for (final Map.Entry<Class<?>, Callable<?>> entry : predefinedSuppliers.entrySet())
+                    if (serviceType.isAssignableFrom(entry.getKey())) {
+                        provider = entry.getValue();
+                        break;
+                    }
+            }
+            return provider == null ? super.load(serviceType) : createAggregationSupplier(provider);
         }
     }
 
     /**
-     * Represents aggregation builder.
+     * Represents builder for user-defined aggregations.
      * This class cannot be inherited or instantiated directly from your code.
+     * @since 1.2
      */
-    public static final class AggregationBuilder implements Supplier<AbstractAggregator>{
-        private AbstractAggregator aggregator;
+    protected static final class AggregationBuilder {
+        private final ImmutableMap.Builder<Class<?>, Callable<?>> aggregations;
 
         private AggregationBuilder(){
-
+            aggregations = ImmutableMap.builder();
         }
 
-        private static AbstractAggregator createAggregator(){
-            return new AbstractAggregator() {};
-        }
-
-        public <T> AggregationBuilder aggregate(final Class<T> objectType, final T obj) {
-            return this.<T>aggregate(objectType, () -> obj);
-        }
-
-        public <T> AggregationBuilder aggregate(final Class<T> objectType, final java.util.function.Supplier<T> factory){
-            if (aggregator == null)
-                aggregator = createAggregator();
-            aggregator.providers.put(objectType, aggregator -> factory.get());
+        public <T> AggregationBuilder add(final Class<T> objectType, final Callable<? extends T> supplier) {
+            aggregations.put(objectType, Objects.requireNonNull(supplier));
             return this;
         }
 
-        @Override
-        public AbstractAggregator get() {
-            final AbstractAggregator result = this.aggregator;
-            this.aggregator = null;
-            return result == null ? createAggregator() : result;
+        public <T> AggregationBuilder fromSupplier(final Class<T> objectType, final Supplier<? extends T> supplier) {
+            return add(objectType, ExceptionalCallable.fromSupplier(supplier));
         }
 
-        public AbstractAggregator build(){
-            return get();
+        public <T> AggregationBuilder fromValue(final Class<T> objectType, final T obj) {
+            if (obj == null) throw new NullPointerException("obj is null");
+            return add(objectType, () -> obj);
+        }
+
+        private AggregationCacheLoader build(final Class<? extends Aggregator> aggregatorClass) {
+            final ImmutableMap<Class<?>, Callable<?>> a = aggregations.build();
+            return a.isEmpty() ?
+                    new AggregationCacheLoader(aggregatorClass) :
+                    new FastAggregationCacheLoader(aggregatorClass, a);
         }
     }
 
     private final LoadingCache<Class<?>, AggregationSupplier> providers;
 
+    /**
+     * Initializes a new aggregator which uses reflection on the new instance to discover aggregated objects.
+     * <p>
+     *     A necessary program elements (fields, methods) should be marked with {@link Aggregation} annotation.
+     *  @see Aggregation
+     */
     protected AbstractAggregator() {
-        providers = CacheBuilder.newBuilder().build(new AggregationCacheLoader(getClass()));
+        final AggregationBuilder builder = new AggregationBuilder();
+        registerExtraAggregations(builder);
+        providers = CacheBuilder.newBuilder().build(builder.build(getClass()));
     }
 
     /**
@@ -209,6 +252,20 @@ public abstract class AbstractAggregator implements Aggregator {
         }
     }
 
+    public static <T1, T2> AbstractAggregator of(final Class<T1> firstType,
+                                                     final Callable<? extends T1> first,
+                                                     final Class<T2> secondType,
+                                                     final Callable<? extends T2> second) {
+        return new AbstractAggregator() {
+            @Override
+            protected void registerExtraAggregations(final AggregationBuilder customAggregations) {
+                customAggregations
+                        .add(firstType, first)
+                        .add(secondType, second);
+            }
+        };
+    }
+
     /**
      * Retrieves the aggregated object.
      *
@@ -220,13 +277,4 @@ public abstract class AbstractAggregator implements Aggregator {
     public <T> T queryObject(final Class<T> objectType) {
         return queryObject(objectType, null);
     }
-
-    /**
-     * Constructs a new aggregation builder.
-     * @return A new instance of the aggregation builder.
-     */
-    public static AggregationBuilder builder(){
-        return new AggregationBuilder();
-    }
-
 }
