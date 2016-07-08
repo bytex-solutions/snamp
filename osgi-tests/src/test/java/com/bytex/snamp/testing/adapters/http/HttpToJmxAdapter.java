@@ -172,11 +172,10 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
         final TabularData data = new TabularDataBuilder()
                 .setTypeName("SimpleTable", true)
                 .setTypeDescription("descr", true)
-                .columns()
-                .addColumn("col1", "desc", SimpleType.BOOLEAN, false)
-                .addColumn("col2", "desc", SimpleType.INTEGER, false)
-                .addColumn("col3", "desc", SimpleType.STRING, true)
-                .queryObject(TabularDataBuilder.class)
+                .declareColumns(columns -> columns
+                    .addColumn("col1", "desc", SimpleType.BOOLEAN, false)
+                    .addColumn("col2", "desc", SimpleType.INTEGER, false)
+                    .addColumn("col3", "desc", SimpleType.STRING, true))
                 .add(false, 2, "pp")
                 .build();
         final Gson formatter = JsonUtils.registerOpenTypeAdapters(new GsonBuilder()).create();

@@ -196,11 +196,10 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         final TabularData table = new TabularDataBuilder()
                 .setTypeName("Table", true)
                 .setTypeDescription("Dummy table", true)
-                .columns()
-                .addColumn("col1", "dummy column", SimpleType.BOOLEAN, false)
-                .addColumn("col2", "dummy column", SimpleType.INTEGER, false)
-                .addColumn("col3", "dummy column", SimpleType.STRING, true)
-                .queryObject(TabularDataBuilder.class)
+                .declareColumns(columns -> columns
+                        .addColumn("col1", "dummy column", SimpleType.BOOLEAN, false)
+                        .addColumn("col2", "dummy column", SimpleType.INTEGER, false)
+                        .addColumn("col3", "dummy column", SimpleType.STRING, true))
                 .add(true, 42, "Frank Underwood")
                 .add(true, 43, "Peter Russo")
                 .build();

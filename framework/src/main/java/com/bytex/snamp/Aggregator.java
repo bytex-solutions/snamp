@@ -26,39 +26,37 @@ package com.bytex.snamp;
  */
 public interface Aggregator {
     /**
+     * This object doesn't aggregate any other object.
+     * @since 1.2
+     */
+    Aggregator EMPTY = new Aggregator() {
+        @Override
+        public <T> T queryObject(final Class<T> objectType) {
+            return null;
+        }
+
+        @Override
+        public Aggregator compose(final Aggregator other) {
+            return other;
+        }
+    };
+
+    /**
      * Retrieves the aggregated object.
+     *
      * @param objectType Type of the requested object.
-     * @param <T> Type of the aggregated object.
+     * @param <T>        Type of the aggregated object.
      * @return An instance of the aggregated object; or {@literal null} if object is not available.
      */
     <T> T queryObject(final Class<T> objectType);
 
-    static Aggregator empty(){
+    default Aggregator compose(final Aggregator other) {
         return new Aggregator() {
             @Override
             public <T> T queryObject(final Class<T> objectType) {
-                return null;
+                final T obj = Aggregator.this.queryObject(objectType);
+                return obj == null ? other.queryObject(objectType) : obj;
             }
         };
-    }
-
-    static Aggregator compose(final Aggregator... values) {
-        switch (values.length) {
-            case 0:
-                return empty();
-            case 1:
-                return values[0];
-            default:
-                return new Aggregator() {
-                    @Override
-                    public <T> T queryObject(final Class<T> objectType) {
-                        for (final Aggregator a : values) {
-                            final T result = a.queryObject(objectType);
-                            if (result != null) return result;
-                        }
-                        return null;
-                    }
-                };
-        }
     }
 }

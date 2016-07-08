@@ -21,10 +21,9 @@ public final class TabularDataBuilderTest extends Assert {
     @Test
     public void buildTest() throws OpenDataException {
         final TabularData table = new TabularDataBuilder()
-                .columns()
-                .addColumn("intColumn", "descr", SimpleType.INTEGER, true)
-                .addColumn("stringColumn", "descr", SimpleType.STRING, false)
-                .queryObject(TabularDataBuilder.class)
+                .declareColumns(columns -> columns
+                        .addColumn("intColumn", "descr", SimpleType.INTEGER, true)
+                        .addColumn("stringColumn", "descr", SimpleType.STRING, false))
                 .setTypeName("table", true)
                 .setTypeDescription("test table", true)
                 .add(1, "First")

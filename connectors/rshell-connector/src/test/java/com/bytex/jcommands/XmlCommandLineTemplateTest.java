@@ -70,10 +70,9 @@ public final class XmlCommandLineTemplateTest extends Assert {
         final TabularData table = new TabularDataBuilder()
                 .setTypeName("table", true)
                 .setTypeDescription("Dummy descr", true)
-                .columns()
+                .declareColumns(columns -> columns
                 .addColumn("column1", "column1", SimpleType.STRING, true)
-                .addColumn("column2", "column2", SimpleType.INTEGER, false)
-                .queryObject(TabularDataBuilder.class)
+                .addColumn("column2", "column2", SimpleType.INTEGER, false))
                 .add("A", 42)
                 .add("B", 43)
                 .build();

@@ -136,11 +136,10 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
         final TabularData table = new TabularDataBuilder()
                 .setTypeName("SimpleTable", true)
                 .setTypeDescription("Test table", true)
-                .columns()
-                .addColumn("col1", "dummy item", SimpleType.BOOLEAN, false)
-                .addColumn("col2", "dummy item", SimpleType.INTEGER, false)
-                .addColumn("col3", "dummy item", SimpleType.STRING, true)
-                .queryObject(TabularDataBuilder.class)
+                .declareColumns(columns -> columns
+                    .addColumn("col1", "dummy item", SimpleType.BOOLEAN, false)
+                    .addColumn("col2", "dummy item", SimpleType.INTEGER, false)
+                    .addColumn("col3", "dummy item", SimpleType.STRING, true))
                 .add(true, 67, "Dostoevsky")
                 .add(false, 98, "Pushkin")
                 .build();

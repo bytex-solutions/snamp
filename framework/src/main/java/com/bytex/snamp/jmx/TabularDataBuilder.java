@@ -5,6 +5,7 @@ import com.google.common.collect.Maps;
 
 import javax.management.openmbean.*;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
@@ -15,12 +16,7 @@ import java.util.function.Supplier;
  */
 public class TabularDataBuilder extends LinkedList<CompositeData> implements Supplier<TabularData> {
     private static final long serialVersionUID = 6161683440252406652L;
-    private final TabularTypeBuilder columns;
-
-    public TabularDataBuilder(){
-        columns = new TabularTypeBuilder();
-        columns.setService(this);
-    }
+    private final TabularTypeBuilder columns = new TabularTypeBuilder();
 
     public final String getTypeName(){
         return columns.getTypeName();
@@ -68,20 +64,17 @@ public class TabularDataBuilder extends LinkedList<CompositeData> implements Sup
         return this;
     }
 
-    /**
-     * Returns builder for columns.
-     * @return The builder for columns.
-     */
-    public final TabularTypeBuilder columns(){
-        return columns;
+    public TabularDataBuilder declareColumns(final Consumer<? super TabularTypeBuilder> columnBuilder){
+        columnBuilder.accept(columns);
+        return this;
     }
 
     private TabularDataBuilder add(final Iterator<?> cells) throws OpenDataException {
-        final Iterator<String> columns = columns().iterator();
-        final Map<String, Object> row = Maps.newHashMapWithExpectedSize(columns().size());
+        final Iterator<String> columns = this.columns.iterator();
+        final Map<String, Object> row = Maps.newHashMapWithExpectedSize(this.columns.size());
         while (cells.hasNext() && columns.hasNext())
             row.put(columns.next(), cells.next());
-        add(columns().buildRow(row));
+        add(this.columns.buildRow(row));
         return this;
     }
 
