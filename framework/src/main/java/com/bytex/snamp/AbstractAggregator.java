@@ -176,7 +176,7 @@ public abstract class AbstractAggregator implements Aggregator {
      * This class cannot be inherited or instantiated directly from your code.
      * @since 1.2
      */
-    protected static final class AggregationBuilder implements Supplier<AbstractAggregator> {
+    public static final class AggregationBuilder implements Supplier<AbstractAggregator> {
         private final ImmutableMap.Builder<Class<?>, Callable<?>> aggregations;
 
         private AggregationBuilder() {

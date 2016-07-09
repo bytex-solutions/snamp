@@ -276,8 +276,8 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
             return result == null || result.isEmpty() ? "SNMP Object" : result;
         }
 
-        protected final InvalidAttributeValueException invalidAttribute(final Object value,
-                                                                        final Class<V> snmpType){
+        final InvalidAttributeValueException invalidAttribute(final Object value,
+                                                              final Class<V> snmpType){
             return new InvalidAttributeValueException(String.format("Unable convert %s to SNMP %s", value, snmpType));
         }
 

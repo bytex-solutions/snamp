@@ -1,7 +1,8 @@
 package com.bytex.snamp.adapters.ssh;
 
+import com.bytex.snamp.AbstractAggregator;
+import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.Switch;
 import com.bytex.snamp.concurrent.WriteOnceRef;
 import jline.console.ConsoleReader;
 import org.apache.sshd.common.Factory;
@@ -31,25 +32,30 @@ import java.util.regex.Pattern;
 final class ManagementShell implements Command, SessionAware {
     private static final Pattern COMMAND_DELIMITER = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
 
-    private static final class CommandExecutionContextImpl extends Switch<Class<?>, Object> implements CommandExecutionContext{
-        @SuppressWarnings("ResultOfMethodCallIgnored")
+    private static final class CommandExecutionContextImpl implements CommandExecutionContext{
+        private final Aggregator aggregator;
+
         private CommandExecutionContextImpl(final AdapterController controller,
                                             final ExecutorService executor){
-            super.equals(CONTROLLER, controller)
-                    .equals(EXECUTOR, executor);
+            aggregator = AbstractAggregator.builder()
+                    .addValue(CONTROLLER, controller)
+                    .addValue(EXECUTOR, executor)
+                    .build();
         }
 
-        @SuppressWarnings("ResultOfMethodCallIgnored")
         private CommandExecutionContextImpl(final AdapterController controller,
                                             final ExecutorService executor,
                                             final InputStream reader) {
-            this(controller, executor);
-            super.equals(INPUT_STREAM, reader);
+            aggregator = AbstractAggregator.builder()
+                    .addValue(CONTROLLER, controller)
+                    .addValue(EXECUTOR, executor)
+                    .addValue(INPUT_STREAM, reader)
+                    .build();
         }
 
         @Override
         public <T> T queryObject(final Class<T> objectType) {
-            return objectType.cast(apply(objectType));
+            return aggregator.queryObject(objectType);
         }
     }
 

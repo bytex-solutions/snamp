@@ -102,7 +102,7 @@ public final class SnampCoreMBean extends OpenMBean implements LogListener, Fram
         if(objectType == null) return null;
         else if(Objects.equals(objectType, Logger.class))
             return objectType.cast(getLogger());
-        else if(Objects.equals(objectType, LogListener.class))
+        else if(objectType.isInstance(this))
             return objectType.cast(this);
         else return null;
     }

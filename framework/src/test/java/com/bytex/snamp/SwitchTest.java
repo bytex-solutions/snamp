@@ -44,6 +44,7 @@ public final class SwitchTest extends Assert {
         final Executor exec = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         final boolean result = new Switch<Long, Boolean>()
                 .theSame(42L, Boolean.FALSE)
+                .addCase(value -> value.equals(41L), () -> Boolean.TRUE)
                 .equals(43L, Boolean.FALSE)
                 .equals(44L, Boolean.FALSE)
                 .equals(45L, Boolean.FALSE)
