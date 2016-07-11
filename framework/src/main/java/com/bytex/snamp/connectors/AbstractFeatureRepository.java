@@ -6,7 +6,6 @@ import com.bytex.snamp.WeakEventListenerList;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.connectors.metrics.Metrics;
 import com.bytex.snamp.io.IOUtils;
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -98,7 +97,7 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
     /**
      * Metadata of the resource feature stored in repository.
      */
-    protected final Class<F> metadataType;
+    final Class<F> metadataType;
     private final ResourceEventListenerList resourceEventListeners;
     private final String resourceName;
 
@@ -214,7 +213,7 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
         return Collections.emptyList();
     }
 
-    protected static  <F extends MBeanFeatureInfo> Iterator<F> iterator(final Iterable<? extends FeatureHolder<F>> holders){
-        return Iterators.transform(holders.iterator(), FeatureHolder::getMetadata);
+    protected static  <F extends MBeanFeatureInfo> Iterator<F> iterator(final Collection<? extends FeatureHolder<F>> holders){
+        return holders.stream().map(FeatureHolder::getMetadata).iterator();
     }
 }
