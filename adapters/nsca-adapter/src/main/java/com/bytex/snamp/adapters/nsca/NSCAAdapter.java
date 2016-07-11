@@ -1,5 +1,6 @@
 package com.bytex.snamp.adapters.nsca;
 
+import com.bytex.snamp.Consumer;
 import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.adapters.AbstractResourceAdapter;
 import com.bytex.snamp.adapters.NotificationEvent;
@@ -66,55 +67,60 @@ final class NSCAAdapter extends AbstractResourceAdapter {
                 checkSender.send(payload);
         }
 
+        private NotificationAccessor addNotificationImpl(final String resourceName,
+                                                     final MBeanNotificationInfo metadata){
+            final ResourceNotificationList<NSCANotificationAccessor> list;
+            if(notifications.containsKey(resourceName))
+                list = notifications.get(resourceName);
+            else notifications.put(resourceName, list = new ResourceNotificationList<>());
+            final NSCANotificationAccessor accessor;
+            list.put(accessor = new NSCANotificationAccessor(resourceName, metadata, this));
+            return accessor;
+        }
+
         private NotificationAccessor addNotification(final String resourceName,
                                                      final MBeanNotificationInfo metadata){
-            try(final LockScope ignored = beginWrite()){
-                final ResourceNotificationList<NSCANotificationAccessor> list;
-                if(notifications.containsKey(resourceName))
-                    list = notifications.get(resourceName);
-                else notifications.put(resourceName, list = new ResourceNotificationList<>());
-                final NSCANotificationAccessor accessor;
-                list.put(accessor = new NSCANotificationAccessor(resourceName, metadata, this));
-                return accessor;
-            }
+            return write(resourceName, metadata, this::addNotificationImpl);
+        }
+
+        private NotificationAccessor removeNotificationImpl(final String resourceName,
+                                                        final MBeanNotificationInfo metadata){
+            final ResourceNotificationList<NSCANotificationAccessor> list;
+            if(notifications.containsKey(resourceName))
+                list = notifications.get(resourceName);
+            else return null;
+            final NotificationAccessor accessor = list.remove(metadata);
+            if(list.isEmpty()) notifications.remove(resourceName);
+            return accessor;
         }
 
         private NotificationAccessor removeNotification(final String resourceName,
                                                         final MBeanNotificationInfo metadata){
-            try(final LockScope ignored = beginWrite()){
-                final ResourceNotificationList<NSCANotificationAccessor> list;
-                if(notifications.containsKey(resourceName))
-                    list = notifications.get(resourceName);
-                else return null;
-                final NotificationAccessor accessor = list.remove(metadata);
-                if(list.isEmpty()) notifications.remove(resourceName);
-                return accessor;
-            }
+            return write(resourceName, metadata, this::removeNotificationImpl);
         }
 
-        private Iterable<? extends NotificationAccessor> removeNotifications(final String resourceName){
-            try(final LockScope ignored = beginWrite()){
-                if(notifications.containsKey(resourceName))
-                    return notifications.remove(resourceName).values();
-                else return ImmutableList.of();
-            }
+        private Iterable<? extends NotificationAccessor> removeNotifications(final String resourceName) {
+            return write(resourceName, notifications,
+                    (resName, notifs) -> notifs.containsKey(resName) ? notifs.remove(resName).values() : ImmutableList.of());
         }
 
         private void clear() {
-            try (final LockScope ignored = beginWrite()) {
-                notifications.values().forEach(list -> list.values().forEach(NotificationAccessor::close));
-                notifications.clear();
-            }
+            write(notifications, notifs -> {
+                notifs.values().forEach(list -> list.values().forEach(NotificationAccessor::close));
+                notifs.clear();
+            });
             checkSender = null;
+        }
+
+        private <E extends Exception> void forEachNotificationImpl(final EntryReader<String, ? super NSCANotificationAccessor, E> notificationReader) throws E{
+            for (final ResourceNotificationList<NSCANotificationAccessor> list : notifications.values())
+                for (final NSCANotificationAccessor accessor : list.values())
+                    if (!notificationReader.read(accessor.resourceName, accessor)) return;
         }
 
         @Override
         public <E extends Exception> void forEachNotification(final EntryReader<String, ? super NSCANotificationAccessor, E> notificationReader) throws E {
-            try (final LockScope ignored = beginRead()) {
-                for (final ResourceNotificationList<NSCANotificationAccessor> list : notifications.values())
-                    for (final NSCANotificationAccessor accessor : list.values())
-                        if (!notificationReader.read(accessor.resourceName, accessor)) return;
-            }
+            read(notificationReader, (Consumer<EntryReader<String, ? super NSCANotificationAccessor,E>, E>) this::forEachNotificationImpl);
         }
     }
 

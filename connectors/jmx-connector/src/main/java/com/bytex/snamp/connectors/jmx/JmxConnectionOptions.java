@@ -78,8 +78,14 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
     public JMXConnector createConnection() throws IOException {
         //this string should be used in OSGi environment. Otherwise, JMX connector
         //will not resolve the JMX registry via JNDI
-        return Utils.withContextClassLoader(getClass().getClassLoader(), (IOExceptionCallable<JMXConnector>) () -> {
-            return JMXConnectorFactory.connect(JmxConnectionOptions.this, getJmxOptions()); //do not replace this anonymous class with lambda
-        });
+        try {
+            return Utils.withContextClassLoader(getClass().getClassLoader(), (IOExceptionCallable<JMXConnector>) () -> {
+                return JMXConnectorFactory.connect(JmxConnectionOptions.this, getJmxOptions()); //do not replace this anonymous class with lambda
+            });
+        } catch (final IOException e) {
+            throw e;
+        } catch (final Exception e){
+            throw new IOException(e);
+        }
     }
 }

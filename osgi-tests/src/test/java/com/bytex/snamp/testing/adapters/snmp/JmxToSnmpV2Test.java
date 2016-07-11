@@ -1,6 +1,5 @@
 package com.bytex.snamp.testing.adapters.snmp;
 
-import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.adapters.ResourceAdapter;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.adapters.ResourceAdapterClient;
@@ -127,10 +126,10 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
                 return null;
         }, TIMEOUT);
         //start connector, this causes attribute registration and SNMP adapter updating
-        syncWithAdapterUpdatedEvent(ADAPTER_NAME, ExceptionalCallable.fromCallable(() -> {
+        syncWithAdapterUpdatedEvent(ADAPTER_NAME, () -> {
                 startResourceConnector(getTestBundleContext());
                 return null;
-        }), TIMEOUT);
+        }, TIMEOUT);
         //check whether the attribute is accessible
         testForStringProperty();
         //now stops the connector again

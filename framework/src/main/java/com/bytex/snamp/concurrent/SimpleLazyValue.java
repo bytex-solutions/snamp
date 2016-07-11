@@ -1,9 +1,9 @@
 package com.bytex.snamp.concurrent;
 
 import com.bytex.snamp.Consumer;
-import com.bytex.snamp.ExceptionalCallable;
 
 import java.util.Objects;
+import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
 /**
@@ -40,7 +40,7 @@ final class SimpleLazyValue<V> implements LazyValue<V> {
     }
 
     @Override
-    public <E extends Exception> V get(final ExceptionalCallable<? extends V, E> activator) throws E {
+    public V get(final Callable<? extends V> activator) throws Exception {
         return isActivated() ? value : (value = activator.call());
     }
 

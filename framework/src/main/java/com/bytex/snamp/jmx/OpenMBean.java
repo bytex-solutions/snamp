@@ -446,7 +446,13 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
 
         @SuppressWarnings("unchecked")
         private Class<V> getJavaType() throws ClassNotFoundException {
-            return javaType.get(() -> (Class<V>) Class.forName(openType.getClassName()));
+            try {
+                return javaType.get(() -> (Class<V>) Class.forName(openType.getClassName()));
+            } catch (final ClassNotFoundException e) {
+                throw e;
+            } catch (final Exception e) {
+                throw new ClassNotFoundException(String.format("Unable to load class for type '%s'", openType), e);
+            }
         }
 
         /**

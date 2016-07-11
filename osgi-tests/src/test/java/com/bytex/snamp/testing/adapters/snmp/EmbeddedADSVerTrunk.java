@@ -21,7 +21,6 @@ package com.bytex.snamp.testing.adapters.snmp;
  */
 
 
-import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.internal.Utils;
 import org.apache.directory.api.ldap.model.entry.DefaultModification;
 import org.apache.directory.api.ldap.model.entry.Entry;
@@ -51,7 +50,11 @@ import org.apache.directory.server.ldap.LdapServer;
 import org.apache.directory.server.protocol.shared.transport.TcpTransport;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.Callable;
 
 
 /**
@@ -227,7 +230,7 @@ public class EmbeddedADSVerTrunk{
         final CacheService cacheService = new CacheService();
         //this line is necessary to valid loading of EHCACHE ReadWriteCopyStrategy
         //see CopyStrategyConfiguration, line 69
-        final Partition userPartition = Utils.withContextClassLoader(cacheService.getClass().getClassLoader(), ExceptionalCallable.fromCallable(() -> {
+        final Partition userPartition = Utils.withContextClassLoader(cacheService.getClass().getClassLoader(), (Callable<Partition>) () -> {
                 cacheService.initialize( service.getInstanceLayout() );
                 service.setCacheService( cacheService );
                 // first load the schema
@@ -261,7 +264,7 @@ public class EmbeddedADSVerTrunk{
                 // And start the service
                 service.startup();
                 return userPartition1;
-            }));
+            });
 
         // Inject the context entry for dc=foo,dc=com partition if it does not already exist
         try

@@ -1,9 +1,9 @@
 package com.bytex.snamp.concurrent;
 
 import com.bytex.snamp.Consumer;
-import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.ThreadSafe;
 
+import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
 /**
@@ -48,7 +48,7 @@ public interface LazyValue<V> extends Supplier<V> {
      *  If object is already activated then supplied activator will not be called.
      * @return An object stored in this container.
      */
-    <E extends Exception> V get(final ExceptionalCallable<? extends V, E> activator) throws E;
+    V get(final Callable<? extends V> activator) throws Exception;
 
     /**
      * Gets object stored in this container only if it is already instantiated.

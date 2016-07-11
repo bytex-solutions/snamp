@@ -1,9 +1,7 @@
 package com.bytex.snamp.connectors.attributes;
 
-import com.bytex.snamp.Box;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.ThreadSafe;
-import com.bytex.snamp.concurrent.WriteOnceRef;
 import com.bytex.snamp.connectors.AbstractFeatureRepository;
 import com.bytex.snamp.connectors.metrics.AttributeMetrics;
 import com.bytex.snamp.connectors.metrics.AttributeMetricsWriter;
@@ -25,9 +23,9 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.*;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -111,7 +109,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     @Override
     public final M[] getAttributeInfo() {
-        return read(() -> toArray(attributes.values()));
+        return read((Supplier<M[]>) () -> toArray(attributes.values()));
     }
 
     /**

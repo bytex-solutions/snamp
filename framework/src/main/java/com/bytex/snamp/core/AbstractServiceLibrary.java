@@ -1,6 +1,5 @@
 package com.bytex.snamp.core;
 
-import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.concurrent.LazyContainers;
@@ -12,6 +11,7 @@ import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedServiceFactory;
 
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -338,7 +338,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
     private static abstract class ManagedServiceFactoryImpl<TService> extends HashMap<String, TService> implements ManagedServiceFactory{
         private static final long serialVersionUID = 6353271076932722292L;
 
-        private synchronized <V, E extends Exception> V synchronizedInvoke(final ExceptionalCallable<V, E> action) throws E{
+        private synchronized <V> V synchronizedInvoke(final Callable<? extends V> action) throws Exception{
             return action.call();
         }
     }
@@ -522,7 +522,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          */
         @Override
         protected final void cleanupService(final ManagedServiceFactoryImpl<TService> serviceInstance, final boolean stopBundle) throws Exception {
-            serviceInstance.synchronizedInvoke((ExceptionalCallable<Void, Exception>) () -> {
+            serviceInstance.synchronizedInvoke(() -> {
                 try {
                     for (final TService service : serviceInstance.values())
                         dispose(service, stopBundle);

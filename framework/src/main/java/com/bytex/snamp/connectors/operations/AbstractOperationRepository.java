@@ -361,7 +361,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      */
     @Override
     public final M[] getOperationInfo() {
-        return read(() -> toArray(operations.values()));
+        return read((Supplier<M[]>) () -> toArray(operations.values()));
     }
 
     /**

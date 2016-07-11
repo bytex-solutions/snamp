@@ -189,7 +189,7 @@ public abstract class AbstractAggregator implements Aggregator {
         }
 
         public <T> AggregationBuilder addSupplier(final Class<T> objectType, final Supplier<? extends T> supplier) {
-            return add(objectType, ExceptionalCallable.fromSupplier(supplier));
+            return add(objectType, supplier::get);
         }
 
         public <T> AggregationBuilder addValue(final Class<T> objectType, final T obj) {

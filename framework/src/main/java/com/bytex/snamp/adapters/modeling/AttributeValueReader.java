@@ -1,11 +1,11 @@
 package com.bytex.snamp.adapters.modeling;
 
 import com.google.common.reflect.TypeToken;
-import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.jmx.WellKnownType;
 
 import javax.management.*;
 import javax.management.openmbean.OpenType;
+import java.util.concurrent.Callable;
 
 /**
  * Represents attribute value reader.
@@ -13,7 +13,19 @@ import javax.management.openmbean.OpenType;
  * @version 1.2
  * @since 1.0
  */
-interface AttributeValueReader extends ExceptionalCallable<Object, JMException> {
+interface AttributeValueReader extends Callable<Object> {
+    /**
+     * Alias for {@link #getValue()}
+     * @return The attribute value.
+     * @throws MBeanException Internal connector error.
+     * @throws AttributeNotFoundException This attribute is disconnected.
+     * @throws ReflectionException Internal connector error.
+     */
+    @Override
+    default Object call() throws MBeanException, AttributeNotFoundException, ReflectionException{
+        return getValue();
+    }
+
     /**
      * Gets attribute value.
      * @return The attribute value.
@@ -21,7 +33,7 @@ interface AttributeValueReader extends ExceptionalCallable<Object, JMException> 
      * @throws AttributeNotFoundException This attribute is disconnected.
      * @throws ReflectionException Internal connector error.
      */
-   Object getValue() throws MBeanException, AttributeNotFoundException, ReflectionException;
+    Object getValue() throws MBeanException, AttributeNotFoundException, ReflectionException;
 
         /**
          * Gets type of the attribute.

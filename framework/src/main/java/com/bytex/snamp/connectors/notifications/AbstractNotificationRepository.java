@@ -22,6 +22,7 @@ import java.util.LinkedList;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -204,7 +205,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
                               final Object userData) {
         if (isSuspended()) return; //check if events are suspended
 
-        final Collection<Notification> notifs = read(() -> notifications.values().stream()
+        final Collection<Notification> notifs = read((Supplier<Collection<Notification>>) () -> notifications.values().stream()
                 .filter(holder -> Objects.equals(NotificationDescriptor.getName(holder.getMetadata()), category))
                 .map(holder -> new NotificationBuilder()
                         .setTimeStamp(timeStamp)
@@ -391,7 +392,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     @Override
     public final M[] getNotificationInfo() {
-        return read(() -> toArray(notifications.values()));
+        return read((Supplier<M[]>) () -> toArray(notifications.values()));
     }
 
     @Override

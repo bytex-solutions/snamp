@@ -288,13 +288,13 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
 
     /**
      * Gets attribute value.
-     *
      * @return The attribute value.
-     * @throws javax.management.JMException Internal connector error.
+     * @throws javax.management.MBeanException Internal connector error.
      * @throws javax.management.AttributeNotFoundException This attribute is disconnected.
+     * @throws javax.management.ReflectionException Internal connector error.
      */
     @Override
-    public final Object call() throws JMException {
+    public final Object call() throws MBeanException, AttributeNotFoundException, ReflectionException {
         return getValue();
     }
 

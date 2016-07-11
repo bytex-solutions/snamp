@@ -17,7 +17,7 @@ public final class LazyValueTest extends Assert {
     }
 
     @Test
-    public void strongReferenceTest(){
+    public void strongReferenceTest() throws Exception{
         final LazyValue<BigInteger> lazy = LazyContainers.THREAD_SAFE.of(() -> BigInteger.TEN);
         assertFalse(lazy.isActivated());
         assertEquals(BigInteger.TEN, lazy.get());
@@ -30,7 +30,7 @@ public final class LazyValueTest extends Assert {
     }
 
     @Test
-    public void softReferenceTest(){
+    public void softReferenceTest() throws Exception{
         final LazyValue<BigInteger> lazy = LazyContainers.THREAD_SAFE_SOFT_REFERENCED.of(() -> BigInteger.TEN);
         assertFalse(lazy.isActivated());
         assertEquals(BigInteger.TEN, lazy.get());
@@ -43,7 +43,7 @@ public final class LazyValueTest extends Assert {
     }
 
     @Test
-    public void threadUnsafeTest(){
+    public void threadUnsafeTest() throws Exception{
         final LazyValue<BigInteger> lazy = LazyContainers.THREAD_UNSAFE.of(() -> BigInteger.TEN);
         assertFalse(lazy.isActivated());
         assertEquals(BigInteger.TEN, lazy.get());

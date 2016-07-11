@@ -1,7 +1,6 @@
 package com.bytex.snamp.internal;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.Internal;
 import com.google.common.base.Joiner;
 import org.osgi.framework.Bundle;
@@ -196,7 +195,15 @@ public final class Utils {
         return getProperty(dict, propertyKey, propertyType, (Supplier<V>) () -> defaultValue);
     }
 
-    public static <V, E extends Exception> V withContextClassLoader(final ClassLoader loader, final ExceptionalCallable<V, E> action) throws E{
+    public static <V> V withContextClassLoader(final ClassLoader loader, final Supplier<? extends V> action) {
+        try {
+            return withContextClassLoader(loader, (Callable<V>)action::get);
+        } catch (final Exception e) {
+            throw new AssertionError("Should never be happened", e);
+        }
+    }
+
+    public static <V> V withContextClassLoader(final ClassLoader loader, final Callable<? extends V> action) throws Exception {
         final Thread currentThread = Thread.currentThread();
         final ClassLoader previous = currentThread.getContextClassLoader();
         currentThread.setContextClassLoader(loader);

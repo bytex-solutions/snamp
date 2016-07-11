@@ -1,7 +1,5 @@
 package com.bytex.snamp.concurrent;
 
-import com.bytex.snamp.ExceptionalCallable;
-
 import java.util.concurrent.*;
 
 /**
@@ -104,7 +102,10 @@ public class FutureThread<V> extends Thread implements Future<V>{
      * @since 1.2
      */
     public static FutureThread<Void> start(final Runnable task) {
-        return start(ExceptionalCallable.fromRunnable(task));
+        return start(() -> {
+            task.run();
+            return null;
+        });
     }
 
     /**

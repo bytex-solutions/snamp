@@ -1,9 +1,9 @@
 package com.bytex.snamp.concurrent;
 
 import com.bytex.snamp.Consumer;
-import com.bytex.snamp.ExceptionalCallable;
 
 import java.util.Objects;
+import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
 /**
@@ -53,7 +53,7 @@ abstract class ThreadSafeLazyValue<V, C> implements LazyValue<V> {
         return localRef != null && unref(localRef) != null;
     }
 
-    private synchronized <E extends Exception> V callSync(final ExceptionalCallable<? extends V, E> activator) throws E {
+    private synchronized V callSync(final Callable<? extends V> activator) throws Exception {
         V value;
         if (ref == null || (value = unref(ref)) == null)
             ref = makeRef(value = activator.call());
@@ -61,15 +61,24 @@ abstract class ThreadSafeLazyValue<V, C> implements LazyValue<V> {
     }
 
     @Override
-    public final <E extends Exception> V get(final ExceptionalCallable<? extends V, E> activator) throws E {
+    public final V get(final Callable<? extends V> activator) throws Exception {
         final C localRef = ref;
         V value;
         return localRef == null || (value = unref(localRef)) == null ? callSync(activator) : value;
     }
 
+    private synchronized V getSync(){
+        V value;
+        if (ref == null || (value = unref(ref)) == null)
+            ref = makeRef(value = activator.get());
+        return value;
+    }
+
     @Override
     public final V get() {
-        return get(activator::get);
+        final C localRef = ref;
+        V value;
+        return localRef == null || (value = unref(localRef)) == null ? getSync() : value;
     }
 
     @Override

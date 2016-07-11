@@ -1,6 +1,5 @@
 package com.bytex.snamp.testing;
 
-import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.adapters.*;
 import com.bytex.snamp.concurrent.SynchronizationEvent;
@@ -18,9 +17,9 @@ import java.net.MalformedURLException;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
 import static com.bytex.snamp.configuration.ConfigurationManager.ConfigurationProcessor;
@@ -151,8 +150,8 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
     }
 
     protected static <V, E extends Exception> V syncWithAdapterStartedEvent(final String adapterName,
-                                                                          final ExceptionalCallable<V, E> handler,
-                                                                          final Duration timeout) throws E, TimeoutException, InterruptedException {
+                                                                          final Callable<? extends V> handler,
+                                                                          final Duration timeout) throws Exception {
         final AdapterStartedSynchronizationEvent synchronizer = new AdapterStartedSynchronizationEvent();
         ResourceAdapterClient.addEventListener(adapterName, synchronizer);
         try {
@@ -170,8 +169,8 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
     }
 
     protected static <V, E extends Exception> V syncWithAdapterUpdatedEvent(final String adapterName,
-                                                                            final ExceptionalCallable<V, E> handler,
-                                                                            final Duration timeout) throws E, TimeoutException, InterruptedException {
+                                                                            final Callable<? extends V> handler,
+                                                                            final Duration timeout) throws Exception {
         final AdapterUpdatedSynchronizationEvent synchronizer = new AdapterUpdatedSynchronizationEvent();
         ResourceAdapterClient.addEventListener(adapterName, synchronizer);
         try {

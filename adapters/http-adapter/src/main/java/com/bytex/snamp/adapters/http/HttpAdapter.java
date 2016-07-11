@@ -1,6 +1,8 @@
 package com.bytex.snamp.adapters.http;
 
+import com.bytex.snamp.Consumer;
 import com.bytex.snamp.EntryReader;
+import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.adapters.AbstractResourceAdapter;
 import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationListener;
@@ -180,64 +182,69 @@ final class HttpAdapter extends AbstractResourceAdapter {
             };
         }
 
+        private NotificationRouter addNotificationImpl(final String resourceName,
+                                                   final MBeanNotificationInfo metadata){
+            final NotificationBroadcaster broadcaster;
+            if (notifications.containsKey(resourceName))
+                broadcaster = notifications.get(resourceName);
+            else notifications.put(broadcaster = new NotificationBroadcaster(resourceName, FORMATTER));
+            return broadcaster.addNotification(metadata);
+        }
+
         private NotificationRouter addNotification(final String resourceName,
                                     final MBeanNotificationInfo metadata) {
-            try (final LockScope ignored = beginWrite()) {
-                final NotificationBroadcaster broadcaster;
-                if (notifications.containsKey(resourceName))
-                    broadcaster = notifications.get(resourceName);
-                else notifications.put(broadcaster = new NotificationBroadcaster(resourceName, FORMATTER));
-                return broadcaster.addNotification(metadata);
-            }
+            return write(resourceName, metadata, this::addNotificationImpl);
+        }
+
+        private <E extends Exception> void forEachNotificationImpl(final EntryReader<String, ? super HttpNotificationAccessor, E> notificationReader) throws E{
+            for (final NotificationBroadcaster broadcaster : notifications.values())
+                for (final HttpNotificationAccessor accessor : broadcaster.notifications.values())
+                    if(!notificationReader.read(broadcaster.resourceName, accessor))
+                        return;
         }
 
         @Override
         public <E extends Exception> void forEachNotification(final EntryReader<String, ? super HttpNotificationAccessor, E> notificationReader) throws E {
-            try (final LockScope ignored = beginRead()) {
-                for (final NotificationBroadcaster broadcaster : notifications.values())
-                    for (final HttpNotificationAccessor accessor : broadcaster.notifications.values())
-                        notificationReader.read(broadcaster.resourceName, accessor);
-            }
+            read(notificationReader, (Consumer<EntryReader<String, ? super HttpNotificationAccessor, E>, E>) this::forEachNotificationImpl);
         }
 
         @Override
         public NotificationBroadcaster getBroadcaster(final String resourceName) {
-            try (final LockScope ignored = beginRead()) {
-                return notifications.get(resourceName);
+            return read(resourceName, notifications::get);
+        }
+
+        private NotificationAccessor removeNotificationImpl(final String resourceName,
+                                                        final MBeanNotificationInfo metadata){
+            NotificationBroadcaster broadcaster;
+            if(notifications.containsKey(resourceName))
+                broadcaster = notifications.get(resourceName);
+            else return null;
+            final NotificationAccessor acessor = broadcaster.removeNotification(metadata);
+            if(broadcaster.isEmpty()) {
+                broadcaster = notifications.remove(resourceName);
+                broadcaster.destroy();
             }
+            return acessor;
         }
 
         private NotificationAccessor removeNotification(final String resourceName,
                                                         final MBeanNotificationInfo metadata) {
-            try(final LockScope ignored = beginWrite()){
-                NotificationBroadcaster broadcaster;
-                if(notifications.containsKey(resourceName))
-                    broadcaster = notifications.get(resourceName);
-                else return null;
-                final NotificationAccessor acessor = broadcaster.removeNotification(metadata);
-                if(broadcaster.isEmpty()) {
-                    broadcaster = notifications.remove(resourceName);
-                    broadcaster.destroy();
-                }
-                return acessor;
-            }
+            return write(resourceName, metadata, this::removeNotificationImpl);
         }
 
         private void clear() {
-            try(final LockScope ignored = beginWrite()){
-                notifications.clear();
-            }
+            write(notifications, (SafeConsumer<Map<?, ?>>)Map::clear);
         }
 
         private Collection<? extends NotificationAccessor> clear(final String resourceName) {
-            try(final LockScope ignored = beginWrite()){
-                if(notifications.containsKey(resourceName)){
-                    final NotificationBroadcaster broadcaster = notifications.remove(resourceName);
+            return write(resourceName, notifications, (resName, notifs) -> {
+                if(notifs.containsKey(resName)){
+                    final NotificationBroadcaster broadcaster = notifs.remove(resName);
                     broadcaster.destroy();
                     return broadcaster.notifications.values();
                 }
                 else return ImmutableList.of();
-            }
+            });
         }
     }
 

@@ -1,10 +1,13 @@
 package com.bytex.snamp.testing;
 
-import com.bytex.snamp.ExceptionalCallable;
 import org.osgi.framework.BundleException;
 
+import java.util.concurrent.Callable;
+
 /**
- * Represents variation of {@link ExceptionalCallable} with exception {@link BundleException}.
+ * Represents variation of {@link Callable} with exception {@link BundleException}.
  */
-public interface BundleExceptionCallable extends ExceptionalCallable<Void, BundleException> {
+public interface BundleExceptionCallable extends Callable<Void> {
+    @Override
+    Void call() throws BundleException;
 }
