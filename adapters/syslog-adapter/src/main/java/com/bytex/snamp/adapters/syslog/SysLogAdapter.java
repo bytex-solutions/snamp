@@ -7,7 +7,6 @@ import com.cloudbees.syslog.Severity;
 import com.cloudbees.syslog.SyslogMessage;
 import com.cloudbees.syslog.sender.SyslogMessageSender;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import com.bytex.snamp.adapters.*;
 import com.bytex.snamp.adapters.modeling.*;
@@ -18,8 +17,10 @@ import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanNotificationInfo;
 import java.io.CharArrayWriter;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static com.bytex.snamp.adapters.syslog.SysLogConfigurationDescriptor.createSender;
 import static com.bytex.snamp.adapters.syslog.SysLogConfigurationDescriptor.getPassiveCheckSendPeriod;
@@ -113,7 +114,7 @@ final class SysLogAdapter extends AbstractResourceAdapter {
             return write(resourceName, metadata, this::removeNotificationImpl);
         }
 
-        private Iterable<? extends NotificationAccessor> removeNotifications(final String resourceName) {
+        private Collection<? extends NotificationAccessor> removeNotifications(final String resourceName) {
             return write(resourceName, notifications, (resName, notifs) -> {
                 if (notifs.containsKey(resName))
                     return notifs.remove(resName).values();
@@ -152,9 +153,11 @@ final class SysLogAdapter extends AbstractResourceAdapter {
     }
 
     @Override
-    protected Iterable<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception {
-        return Iterables.concat(notifications.removeNotifications(resourceName),
-                attributes.clear(resourceName));
+    protected Stream<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception {
+        return Stream.concat(
+                notifications.removeNotifications(resourceName).stream(),
+                attributes.clear(resourceName).stream()
+        );
     }
 
     @SuppressWarnings("unchecked")

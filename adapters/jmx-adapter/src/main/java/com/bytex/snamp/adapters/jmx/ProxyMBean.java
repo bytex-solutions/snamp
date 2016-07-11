@@ -12,7 +12,6 @@ import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.management.OpenMBeanProvider;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
@@ -26,6 +25,7 @@ import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 /**
  * Represents proxy MBean that is used to expose attributes and notifications
@@ -191,9 +191,10 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
         listeners.clear();
     }
 
-    Iterable<? extends FeatureAccessor<?>> getAccessorsAndClose(){
-        final ImmutableList<? extends FeatureAccessor<?>> result =
-                ImmutableList.copyOf(Iterables.concat(attributes.values(), notifications.values()));
+    Stream<? extends FeatureAccessor<?>> getAccessorsAndClose(){
+        final ImmutableList<JmxAttributeAccessor> attributes = ImmutableList.copyOf(this.attributes.values());
+        final ImmutableList<JmxNotificationAccessor> notifications = ImmutableList.copyOf(this.notifications.values());
+        final Stream<? extends FeatureAccessor<?>> result = Stream.concat(attributes.stream(), notifications.stream());
         close();
         return result;
     }

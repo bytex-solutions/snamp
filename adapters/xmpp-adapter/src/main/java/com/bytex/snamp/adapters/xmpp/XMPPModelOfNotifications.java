@@ -8,6 +8,7 @@ import com.bytex.snamp.adapters.modeling.ResourceNotificationList;
 import com.bytex.snamp.EntryReader;
 
 import javax.management.MBeanNotificationInfo;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
@@ -64,7 +65,7 @@ final class XMPPModelOfNotifications extends MulticastNotificationListener imple
         }
     }
 
-    Iterable<XMPPNotificationAccessor> clear(final String resourceName){
+    Collection<XMPPNotificationAccessor> clear(final String resourceName){
         final Lock writeLock = lock.writeLock();
         writeLock.lock();
         try{

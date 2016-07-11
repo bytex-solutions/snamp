@@ -13,7 +13,6 @@ import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import org.osgi.framework.BundleContext;
 
 import javax.management.*;
@@ -22,6 +21,7 @@ import java.time.Duration;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Represents repository of t
@@ -49,7 +49,7 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
         private final Map<String, ResourceNotificationList<ScriptNotificationAccessor>> notifications =
                 new HashMap<>(10);
 
-        private Iterable<ScriptNotificationAccessor> clear(final String resourceName) {
+        private Collection<ScriptNotificationAccessor> clear(final String resourceName) {
             return write(resourceName, notifications, (resName, notifs) -> {
                 final ResourceNotificationList<ScriptNotificationAccessor> list = notifs.remove(resName);
                 return list != null ? list.values() : ImmutableList.of();
@@ -221,8 +221,11 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
         return attributes.addAttribute(resourceName, feature);
     }
 
-    Iterable<? extends FeatureAccessor<?>> clear(final String resourceName) {
-        return Iterables.concat(attributes.clear(resourceName), notifications.clear(resourceName));
+    Stream<? extends FeatureAccessor<?>> clear(final String resourceName) {
+        return Stream.concat(
+                attributes.clear(resourceName).stream(),
+                notifications.clear(resourceName).stream()
+        );
     }
 
     AttributeAccessor removeAttribute(final String resourceName, final MBeanAttributeInfo feature) {

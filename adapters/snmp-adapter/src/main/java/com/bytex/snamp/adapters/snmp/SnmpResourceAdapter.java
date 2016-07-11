@@ -7,7 +7,6 @@ import com.bytex.snamp.adapters.modeling.FeatureAccessor;
 import com.bytex.snamp.adapters.modeling.NotificationAccessor;
 import com.bytex.snamp.adapters.profiles.PolymorphicResourceAdapter;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import org.osgi.service.jndi.JNDIContextManager;
 import org.snmp4j.agent.DuplicateRegistrationException;
@@ -18,10 +17,12 @@ import javax.management.MBeanNotificationInfo;
 import javax.naming.NamingException;
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import static com.bytex.snamp.adapters.snmp.SnmpAdapterDescriptionProvider.isValidNotification;
 
@@ -156,18 +157,16 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
     }
 
     @Override
-    protected synchronized Iterable<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception {
-        final Iterable<? extends SnmpNotificationAcessor> notifs = notifications.removeAll(resourceName);
-        final Iterable<? extends SnmpAttributeAccessor> accessors = attributes.removeAll(resourceName);
+    protected synchronized Stream<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception {
+        final Collection<? extends SnmpNotificationAcessor> notifs = notifications.removeAll(resourceName);
+        final Collection<? extends SnmpAttributeAccessor> accessors = attributes.removeAll(resourceName);
         final SnmpAdapterUpdateManager updateManager = this.updateManager;
         if(updateManager != null){
             beginUpdate(updateManager, updateManager.getCallback());
-            for (final SnmpNotificationMapping mapping : notifs)
-                updateManager.unregisterNotificationTarget(mapping);
-            for (final SnmpAttributeAccessor mapping : accessors)
-                updateManager.unregisterManagedObject(mapping);
+            notifs.forEach(updateManager::unregisterNotificationTarget);
+            accessors.forEach(updateManager::unregisterManagedObject);
         }
-        return Iterables.concat(accessors, notifs);
+        return Stream.concat(accessors.stream(), notifs.stream());
     }
 
     private SnmpAttributeAccessor removeAttribute(final String resourceName,

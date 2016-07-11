@@ -6,7 +6,6 @@ import com.bytex.snamp.adapters.modeling.FeatureAccessor;
 import com.bytex.snamp.adapters.modeling.NotificationAccessor;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 
@@ -18,6 +17,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
@@ -82,10 +82,12 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
         }
 
         @Override
-        protected Iterable<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception {
+        protected Stream<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception {
             try {
-                return Iterables.concat(ImmutableList.copyOf(attributes),
-                        ImmutableList.copyOf(notifications));
+                return Stream.concat(
+                        ImmutableList.copyOf(attributes).stream(),
+                        ImmutableList.copyOf(notifications).stream()
+                );
             }
             finally {
                 attributes.clear();

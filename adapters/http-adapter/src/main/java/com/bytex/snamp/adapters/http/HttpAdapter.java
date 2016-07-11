@@ -12,7 +12,6 @@ import com.bytex.snamp.internal.KeyedObjects;
 import com.bytex.snamp.jmx.json.JsonUtils;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -36,6 +35,7 @@ import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 import static org.atmosphere.cpr.FrameworkConfig.ATMOSPHERE_CONFIG;
 
@@ -310,12 +310,12 @@ final class HttpAdapter extends AbstractResourceAdapter {
     }
 
     @Override
-    protected Iterable<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) {
+    protected Stream<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) {
         final Collection<? extends AttributeAccessor> attributes =
                 servletFactory.attributes.clear(resourceName);
         final Collection<? extends NotificationAccessor> notifications =
                 servletFactory.notifications.clear(resourceName);
-        return Iterables.concat(attributes, notifications);
+        return Stream.concat(attributes.stream(), notifications.stream());
     }
 
     @SuppressWarnings("unchecked")

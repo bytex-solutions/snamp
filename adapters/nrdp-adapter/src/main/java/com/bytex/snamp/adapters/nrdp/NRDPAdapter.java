@@ -12,17 +12,18 @@ import com.bytex.snamp.adapters.modeling.*;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanNotificationInfo;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Stream;
 
 /**
  * @author Roman Sakno
@@ -107,7 +108,7 @@ final class NRDPAdapter extends AbstractResourceAdapter {
             return write(resourceName, metadata, this::removeNotificationImpl);
         }
 
-        private Iterable<? extends NotificationAccessor> removeNotifications(final String resourceName){
+        private Collection<? extends NotificationAccessor> removeNotifications(final String resourceName){
             return write(resourceName, notifications,
                     (resName, notifs) -> notifs.containsKey(resName) ? notifs.remove(resName).values() : ImmutableList.of());
         }
@@ -161,9 +162,11 @@ final class NRDPAdapter extends AbstractResourceAdapter {
     }
 
     @Override
-    protected Iterable<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception {
-        return Iterables.concat(notifications.removeNotifications(resourceName),
-                attributes.clear(resourceName));
+    protected Stream<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception {
+        return Stream.concat(
+                notifications.removeNotifications(resourceName).stream(),
+                attributes.clear(resourceName).stream()
+        );
     }
 
     @SuppressWarnings("unchecked")

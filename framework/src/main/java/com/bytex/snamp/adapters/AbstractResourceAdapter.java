@@ -31,6 +31,7 @@ import java.time.Duration;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
@@ -318,14 +319,14 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * @param resourceName The name of the resource.
      * @return Read-only collection of features tracked by this resource adapter. Cannot be {@literal null}.
      */
-    protected abstract Iterable<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception;
+    protected abstract Stream<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception;
 
-    private Iterable<? extends FeatureAccessor<?>> removeAllFeaturesImpl(final String resourceName){
+    private Stream<? extends FeatureAccessor<?>> removeAllFeaturesImpl(final String resourceName){
         try {
             return removeAllFeatures(resourceName);
         } catch (final Exception e) {
             failedToRemoveFeatures(resourceName, e);
-            return ImmutableList.of();
+            return Stream.empty();
         }
     }
 

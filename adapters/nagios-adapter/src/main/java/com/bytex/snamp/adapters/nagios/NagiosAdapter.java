@@ -13,6 +13,7 @@ import javax.management.MBeanFeatureInfo;
 import javax.servlet.ServletException;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 /**
  * @author Roman Sakno
@@ -40,8 +41,8 @@ final class NagiosAdapter extends AbstractResourceAdapter {
     }
 
     @Override
-    protected Iterable<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) {
-        return service.clear(resourceName);
+    protected Stream<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) {
+        return service.clear(resourceName).stream();
     }
 
     @SuppressWarnings("unchecked")

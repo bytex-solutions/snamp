@@ -6,7 +6,6 @@ import com.bytex.snamp.adapters.modeling.FeatureAccessor;
 import com.bytex.snamp.adapters.modeling.NotificationSet;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.SmackException;
@@ -22,6 +21,7 @@ import javax.management.MBeanNotificationInfo;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * @author Roman Sakno
@@ -54,9 +54,11 @@ final class XMPPAdapter extends AbstractResourceAdapter {
     }
 
     @Override
-    protected Iterable<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) {
-        return Iterables.concat(chatBot.getAttributes().clear(resourceName),
-                chatBot.getNotifications().clear(resourceName));
+    protected Stream<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) {
+        return Stream.concat(
+                chatBot.getAttributes().clear(resourceName).stream(),
+                chatBot.getNotifications().clear(resourceName).stream()
+        );
     }
 
     @SuppressWarnings("unchecked")

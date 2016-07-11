@@ -1,8 +1,8 @@
 package com.bytex.snamp.adapters.decanter;
 
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.adapters.modeling.ModelOfNotifications;
-import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.adapters.modeling.ResourceFeatureList;
 import com.bytex.snamp.adapters.modeling.ResourceNotificationList;
 import com.google.common.collect.ImmutableList;

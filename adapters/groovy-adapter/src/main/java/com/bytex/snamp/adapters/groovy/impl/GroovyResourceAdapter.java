@@ -16,6 +16,7 @@ import javax.management.MBeanNotificationInfo;
 import java.io.IOException;
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 /**
  * Represents Groovy Resource Adapter.
@@ -69,7 +70,7 @@ final class GroovyResourceAdapter extends AbstractResourceAdapter {
      * @return Read-only collection of features tracked by this resource adapter. Cannot be {@literal null}.
      */
     @Override
-    protected Iterable<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception {
+    protected Stream<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception {
         return repository.clear(resourceName);
     }
 

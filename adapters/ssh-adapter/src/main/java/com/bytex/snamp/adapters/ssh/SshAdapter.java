@@ -97,7 +97,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
             return write(resourceName, metadata, this::addNotificationImpl);
         }
 
-        private Iterable<? extends NotificationAccessor> clear(final String resourceName) {
+        private Collection<? extends NotificationAccessor> clear(final String resourceName) {
             return write(resourceName, notifications, (resName, notifs) -> notifs.containsKey(resName) ?
                     notifs.remove(resName).values() :
                     ImmutableList.<SshNotificationAccessor>of());
@@ -474,8 +474,11 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
     }
 
     @Override
-    protected Iterable<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) {
-        return Iterables.concat(attributes.clear(resourceName), notifications.clear(resourceName));
+    protected Stream<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) {
+        return Stream.concat(
+                attributes.clear(resourceName).stream(),
+                notifications.clear(resourceName).stream()
+        );
     }
 
     @SuppressWarnings("unchecked")
