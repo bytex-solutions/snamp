@@ -18,7 +18,9 @@ import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionStage;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -254,6 +256,15 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
     protected void disableOperation(final M metadata){
     }
 
+    private OperationHolder<M> removeImpl(final String operationID){
+        final OperationHolder<M> holder = operations.get(operationID);
+        if(holder != null){
+            operationRemoved(holder.getMetadata());
+            operations.remove(operationID);
+        }
+        return holder;
+    }
+
     /**
      * Disables management operation.
      * @param operationID The custom-defined name of the operation.
@@ -261,14 +272,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      */
     @Override
     public final M remove(final String operationID) {
-        final OperationHolder<M> holder;
-        try (final LockScope ignored = beginWrite()) {
-            holder = operations.get(operationID);
-            if(holder != null){
-                operationRemoved(holder.getMetadata());
-                operations.remove(operationID);
-            }
-        }
+        final OperationHolder<M> holder = write(operationID, this::removeImpl);
         if(holder != null){
             disableOperation(holder.getMetadata());
             return holder.getMetadata();
@@ -279,6 +283,34 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
     protected abstract M enableOperation(final String userDefinedName,
                                          final OperationDescriptor descriptor) throws Exception;
 
+    private OperationHolder<M> enableOperationImpl(final String operationName,
+                                                   final Duration invocationTimeout,
+                                                   final CompositeData options) throws Exception {
+        OperationHolder<M> holder = operations.get(operationName);
+        if (holder != null)
+            if (holder.equals(operationName, options))
+                return holder;
+            else { //remove operation
+                operationRemoved(holder.getMetadata());
+                holder = operations.remove(operationName);
+                //and register again
+                disableOperation(holder.getMetadata());
+                final M metadata = enableOperation(operationName, new OperationDescriptor(invocationTimeout, options));
+                if (metadata != null) {
+                    operations.put(holder = new OperationHolder<>(metadata, operationName, options));
+                    operationAdded(holder.getMetadata());
+                }
+            }
+        else {
+            final M metadata = enableOperation(operationName, new OperationDescriptor(invocationTimeout, options));
+            if (metadata != null) {
+                operations.put(holder = new OperationHolder<>(metadata, operationName, options));
+                operationAdded(holder.getMetadata());
+            } else holder = null;
+        }
+        return holder;
+    }
+
     /**
      * Enables management operation.
      * @param operationName The name of the operation as it is declared in the resource.
@@ -288,34 +320,11 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      */
     public final M enableOperation(final String operationName,
                                    final Duration invocationTimeout,
-                                   final CompositeData options){
+                                   final CompositeData options) {
         OperationHolder<M> holder;
-        try(final LockScope ignored = beginWrite()){
-            holder = operations.get(operationName);
-            if(holder != null)
-                if(holder.equals(operationName, options))
-                    return holder.getMetadata();
-                else { //remove operation
-                    operationRemoved(holder.getMetadata());
-                    holder = operations.remove(operationName);
-                    //and register again
-                    disableOperation(holder.getMetadata());
-                    final M metadata = enableOperation(operationName, new OperationDescriptor(invocationTimeout, options));
-                    if (metadata != null) {
-                        operations.put(holder = new OperationHolder<>(metadata, operationName, options));
-                        operationAdded(holder.getMetadata());
-                    }
-                }
-            else {
-                final M metadata = enableOperation(operationName, new OperationDescriptor(invocationTimeout, options));
-                if(metadata != null) {
-                    operations.put(holder = new OperationHolder<>(metadata, operationName, options));
-                    operationAdded(holder.getMetadata());
-                }
-                else holder = null;
-            }
-        }
-        catch (final Exception e) {
+        try{
+            holder = writeInterruptibly((Callable<OperationHolder<M>>)() -> enableOperationImpl(operationName, invocationTimeout, options));
+        } catch (final Exception e) {
             failedToEnableOperation(operationName, e);
             holder = null;
         }
@@ -352,9 +361,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      */
     @Override
     public final M[] getOperationInfo() {
-        try(final LockScope ignored = beginRead()){
-            return toArray(operations.values());
-        }
+        return read(() -> toArray(operations.values()));
     }
 
     /**
@@ -365,10 +372,8 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      */
     @Override
     public final M getOperationInfo(final String operationID) {
-        try(final LockScope ignored = beginRead()){
-            final OperationHolder<M> holder = operations.get(operationID);
-            return holder != null ? holder.getMetadata() : null;
-        }
+        final OperationHolder<M> holder = read(operationID, operations::get);
+        return holder != null ? holder.getMetadata() : null;
     }
 
     /**
@@ -402,12 +407,14 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
     public final Object invoke(final String operationName,
                          final Object[] params,
                          final String[] signature) throws MBeanException, ReflectionException {
-        try (final LockScope ignored = beginRead()) {
-            final OperationHolder<M> holder = operations.get(operationName);
-            if (holder != null)
-                return invoke(holder, params);
-            else
-                throw new MBeanException(new IllegalArgumentException(String.format("Operation '%s' doesn't exist", operationName)));
+        try {
+            return readInterruptibly((Callable<Object>) () -> {
+                final OperationHolder<M> holder = operations.get(operationName);
+                if (holder != null)
+                    return invoke(holder, params);
+                else
+                    throw new MBeanException(new IllegalArgumentException(String.format("Operation '%s' doesn't exist", operationName)));
+            });
         } catch (final MBeanException | ReflectionException e) {
             throw e;
         } catch (final Exception e) {
@@ -417,18 +424,20 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
         }
     }
 
+    private void removeAllImpl(final KeyedObjects<String, OperationHolder<M>> operations){
+        for (final OperationHolder<M> holder : operations.values()) {
+            operationRemoved(holder.getMetadata());
+            disableOperation(holder.getMetadata());
+        }
+        operations.clear();
+    }
+
     /**
      * Disables all operation registered in this collection.
      * @param removeResourceListeners {@literal true} to remove all resource listeners; otherwise, {@literal false}.
      */
     public final void removeAll(final boolean removeResourceListeners) {
-        try (final LockScope ignored = beginWrite()) {
-            for (final OperationHolder<M> holder : operations.values()) {
-                operationRemoved(holder.getMetadata());
-                disableOperation(holder.getMetadata());
-            }
-            operations.clear();
-        }
+        write(operations, this::removeAllImpl);
         if (removeResourceListeners)
             removeAllResourceEventListeners();
     }
@@ -440,9 +449,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      */
     @Override
     public final ImmutableSet<String> getIDs() {
-        try(final LockScope ignored = beginRead()){
-            return ImmutableSet.copyOf(operations.keySet());
-        }
+        return read(operations, (Function<KeyedObjects<String,?>, ImmutableSet<String>>)  ops -> ImmutableSet.copyOf(ops.keySet()));
     }
 
     @Override
@@ -452,9 +459,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
 
     @Override
     public final int size() {
-        try (final LockScope ignored = beginWrite()) {
-            return operations.size();
-        }
+        return read(operations::size);
     }
 
     @Override

@@ -121,7 +121,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
             if (hasNoNotifications())
                 client.write(new ConsistentAction<SnmpClient, Void>() {
                     @Override
-                    public Void invoke(final SnmpClient client) {
+                    public Void apply(final SnmpClient client) {
                         client.addCommandResponder(SnmpNotificationRepository.this);
                         return null;
                     }
@@ -135,7 +135,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
                 try {
                     client.write(new ConsistentAction<SnmpClient, Void>() {
                         @Override
-                        public Void invoke(final SnmpClient client) {
+                        public Void apply(final SnmpClient client) {
                             client.removeCommandResponder(SnmpNotificationRepository.this);
                             return null;
                         }
@@ -645,7 +645,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         protected void setAttribute(final SnmpAttributeInfo attribute, final Object value) throws Exception {
             client.read(new Action<SnmpClient, Void, Exception>() {
                 @Override
-                public Void invoke(final SnmpClient client) throws Exception {
+                public Void apply(final SnmpClient client) throws Exception {
                     client.set(ImmutableMap.of(attribute.getAttributeID(), attribute.convert(value)),
                             attribute.getDescriptor().getReadWriteTimeout());
                     return null;
@@ -699,7 +699,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
             try {
                 return client.read(new Action<SnmpClient, List<SnmpAttributeInfo>, Exception>() {
                     @Override
-                    public LinkedList<SnmpAttributeInfo> invoke(final SnmpClient client) throws InterruptedException, ExecutionException, TimeoutException, OpenDataException {
+                    public LinkedList<SnmpAttributeInfo> apply(final SnmpClient client) throws InterruptedException, ExecutionException, TimeoutException, OpenDataException {
                         final LinkedList<SnmpAttributeInfo> result = new LinkedList<>();
                         for(final VariableBinding binding: client.walk(SnmpConnectorHelpers.getDiscoveryTimeout())){
                             final Map<String, String> parameters = new HashMap<>(5);
@@ -758,7 +758,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
     void listen() throws IOException{
         client.write(new Action<SnmpClient, Void, IOException>() {
             @Override
-            public Void invoke(final SnmpClient client) throws IOException {
+            public Void apply(final SnmpClient client) throws IOException {
                 client.listen();
                 return null;
             }
@@ -876,7 +876,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         notifications.close();
         client.write(new Action<SnmpClient, Void, IOException>() {
             @Override
-            public Void invoke(final SnmpClient client) throws IOException {
+            public Void apply(final SnmpClient client) throws IOException {
                 client.close();
                 return null;
             }

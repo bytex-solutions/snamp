@@ -1,14 +1,15 @@
 package com.bytex.snamp.adapters.modeling;
 
-import com.bytex.snamp.Consumer;
-import com.bytex.snamp.EntryReader;
-import com.bytex.snamp.ThreadSafe;
+import com.bytex.snamp.*;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
+import com.bytex.snamp.internal.KeyedObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 import javax.management.*;
 import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -47,7 +48,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
     @ThreadSafe
     public final TAccessor addAttribute(final String resourceName,
                                   final MBeanAttributeInfo metadata) throws Exception{
-        try(final LockScope ignored = beginWrite()){
+        return writeInterruptibly((Callable<TAccessor>) () -> {
             //find resource storage
             final ResourceAttributeList<TAccessor> list;
             if(attributes.containsKey(resourceName))
@@ -59,58 +60,80 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
                 accessor = list.get(metadata);
             else list.put(accessor = createAccessor(metadata));
             return accessor;
-        }
+        });
+    }
+
+    private TAccessor removeAttributeImpl(final String resourceName,
+                                          final MBeanAttributeInfo metadata){
+        final ResourceAttributeList<TAccessor> list;
+        if(attributes.containsKey(resourceName))
+            list = attributes.get(resourceName);
+        else return null;
+        final TAccessor accessor = list.remove(metadata);
+        if(list.isEmpty())
+            attributes.remove(resourceName);
+        return accessor;
     }
 
     @ThreadSafe
     public final TAccessor removeAttribute(final String resourceName,
                                            final MBeanAttributeInfo metadata){
-        try(final LockScope ignored = beginWrite()){
-            final ResourceAttributeList<TAccessor> list;
-            if(attributes.containsKey(resourceName))
-                list = attributes.get(resourceName);
-            else return null;
-            final TAccessor accessor = list.remove(metadata);
-            if(list.isEmpty())
-                attributes.remove(resourceName);
-            return accessor;
-        }
+        return write(resourceName, metadata, this::removeAttributeImpl);
     }
 
     protected final Object getAttributeValue(final String resourceName,
                                              final String attributeName) throws AttributeNotFoundException, ReflectionException, MBeanException {
-        try (final LockScope ignored = beginRead()) {
-            if (attributes.containsKey(resourceName))
-                return attributes.get(resourceName).getAttribute(attributeName);
-            else
-                throw new AttributeNotFoundException(String.format("Attribute %s in managed resource %s doesn't exist", attributeName, resourceName));
+        try {
+            return readInterruptibly((Callable<Object>) () -> {
+                if (attributes.containsKey(resourceName))
+                    return attributes.get(resourceName).getAttribute(attributeName);
+                else
+                    throw new AttributeNotFoundException(String.format("Attribute %s in managed resource %s doesn't exist", attributeName, resourceName));
+            });
+        } catch (final AttributeNotFoundException | ReflectionException | MBeanException e) {
+            throw e;
+        } catch (final Exception e) {
+            throw new ReflectionException(e);
         }
     }
 
     protected final void setAttributeValue(final String resourceName,
                                            final String attributeName,
                                            final Object value) throws AttributeNotFoundException, MBeanException, ReflectionException, InvalidAttributeValueException {
-        try (final LockScope ignored = beginRead()) {
-            if (attributes.containsKey(resourceName))
-                attributes.get(resourceName).setAttribute(attributeName, value);
-            else
-                throw new AttributeNotFoundException(String.format("Attribute %s in managed resource %s doesn't exist", attributeName, resourceName));
+        try {
+            readInterruptibly(value, val -> {
+                if (attributes.containsKey(resourceName))
+                    attributes.get(resourceName).setAttribute(attributeName, val);
+                else
+                    throw new AttributeNotFoundException(String.format("Attribute %s in managed resource %s doesn't exist", attributeName, resourceName));
+            });
+        } catch (final AttributeNotFoundException | MBeanException | ReflectionException | InvalidAttributeValueException e) {
+            throw e;
+        } catch (final Exception e) {
+            throw new ReflectionException(e);
         }
+    }
+
+    private <E extends Throwable> void processAttributeImpl(final String resourceName,
+                                                        final String attributeName,
+                                                        final Consumer<? super TAccessor, E> processor,
+                                                        final java.util.function.Consumer<Boolean> result) throws E{
+        final TAccessor accessor =  attributes.containsKey(resourceName)?
+                attributes.get(resourceName).get(attributeName):
+                null;
+        if(accessor != null){
+            processor.accept(accessor);
+            result.accept(true);
+        }
+        else result.accept(false);
     }
 
     public final <E extends Throwable> boolean processAttribute(final String resourceName,
                                           final String attributeName,
-                                          final Consumer<? super TAccessor, E> processor) throws E{
-        try(final LockScope ignored = beginRead()){
-            final TAccessor accessor =  attributes.containsKey(resourceName)?
-                    attributes.get(resourceName).get(attributeName):
-                    null;
-            if(accessor != null){
-                processor.accept(accessor);
-                return true;
-            }
-            else return false;
-        }
+                                          final Consumer<? super TAccessor, E> processor) throws E {
+        final Box<Boolean> result = new Box<>();
+        read(result, (Consumer<java.util.function.Consumer<Boolean>, E>) r -> processAttributeImpl(resourceName, attributeName, processor, r));
+        return result.get();
     }
 
     /**
@@ -119,31 +142,41 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
      */
     @ThreadSafe
     public final Set<String> getHostedResources(){
-        try(final LockScope ignored = beginRead()){
-            return attributes.keySet();
-        }
+        return read(attributes, (Function<Map<String, ?>, ImmutableSet<String>>) attrs -> ImmutableSet.copyOf(attrs.keySet()));
+    }
+
+    private static Set<String> getResourceAttributesImpl(final String resourceName,
+                                                     final Map<String, ? extends KeyedObjects<String, ?>> attributes) {
+        return attributes.containsKey(resourceName) ?
+                attributes.get(resourceName).keySet() :
+                ImmutableSet.of();
     }
 
     @ThreadSafe
     public final Set<String> getResourceAttributes(final String resourceName) {
-        try (final LockScope ignored = beginRead()) {
-            return attributes.containsKey(resourceName) ?
-                    attributes.get(resourceName).keySet() :
-                    ImmutableSet.of();
-        }
+        return read(resourceName, attributes, ModelOfAttributes::getResourceAttributesImpl);
+    }
+
+    private static <TAccessor extends AttributeAccessor> Collection<MBeanAttributeInfo> getResourceAttributesMetadataImpl(final String resourceName,
+                                                                                                                          final Map<String, ? extends KeyedObjects<String, TAccessor>> attributes) {
+        final KeyedObjects<String, TAccessor> resource = attributes.get(resourceName);
+        if (resource != null) {
+            return resource.values().stream()
+                    .map(FeatureAccessor::getMetadata)
+                    .collect(Collectors.toCollection(LinkedList::new));
+        } else return ImmutableList.of();
     }
 
     @ThreadSafe
     public final Collection<MBeanAttributeInfo> getResourceAttributesMetadata(final String resourceName){
-        try(final LockScope ignored = beginRead()){
-            final ResourceAttributeList<?> resource = attributes.get(resourceName);
-            if(resource != null){
-                return resource.values().stream()
-                        .map(FeatureAccessor::getMetadata)
-                        .collect(Collectors.toCollection(LinkedList::new));
-            }
-            else return ImmutableList.of();
-        }
+        return read(resourceName, attributes, ModelOfAttributes::getResourceAttributesMetadataImpl);
+    }
+
+    private static <TAccessor extends AttributeAccessor> Collection<TAccessor> clearImpl(final String resourceName,
+                                                                   final Map<String, ? extends KeyedObjects<String, TAccessor>> attributes){
+        return attributes.containsKey(resourceName) ?
+                attributes.remove(resourceName).values():
+                ImmutableList.of();
     }
 
     /**
@@ -152,12 +185,14 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
      * @return The read-only collection of removed attributes.
      */
     @ThreadSafe
-    public final Collection<TAccessor> clear(final String resourceName){
-        try(final LockScope ignored = beginWrite()){
-            return attributes.containsKey(resourceName) ?
-                    attributes.remove(resourceName).values():
-                    ImmutableList.of();
-        }
+    public final Collection<TAccessor> clear(final String resourceName) {
+        return write(resourceName, attributes, ModelOfAttributes::clearImpl);
+    }
+
+    private <E extends Exception> void forEachAttributeImpl(final EntryReader<String, ? super TAccessor, E> attributeReader) throws E{
+        for (final Map.Entry<String, ResourceAttributeList<TAccessor>> entry: attributes.entrySet())
+            for(final TAccessor accessor: entry.getValue().values())
+                if(!attributeReader.read(entry.getKey(), accessor)) return;
     }
 
     /**
@@ -166,12 +201,13 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
      * @param <E> Type of the exception that may be produced by reader.
      * @throws E Unable to process attribute.
      */
-    public final <E extends Exception> void forEachAttribute(final EntryReader<String, ? super TAccessor, E> attributeReader) throws E{
-        try(final LockScope ignored = beginRead()) {
-            for (final Map.Entry<String, ResourceAttributeList<TAccessor>> entry: attributes.entrySet())
-                for(final TAccessor accessor: entry.getValue().values())
-                    if(!attributeReader.read(entry.getKey(), accessor)) return;
-        }
+    public final <E extends Exception> void forEachAttribute(final EntryReader<String, ? super TAccessor, E> attributeReader) throws E {
+        read(attributeReader, (Consumer<EntryReader<String, ? super TAccessor, E>, E>) this::forEachAttributeImpl);
+    }
+
+    private static void clearImpl(final Map<String, ? extends ResourceFeatureList<?, ?>> attributes){
+        attributes.values().forEach(ResourceFeatureList::clear);
+        attributes.clear();
     }
 
     /**
@@ -179,9 +215,6 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
      */
     @ThreadSafe
     public final void clear(){
-        try(final LockScope ignored = beginWrite()){
-            attributes.values().forEach(ResourceFeatureList::clear);
-            attributes.clear();
-        }
+        write(attributes, (SafeConsumer<Map<String, ResourceAttributeList<TAccessor>>>) ModelOfAttributes::clearImpl);
     }
 }

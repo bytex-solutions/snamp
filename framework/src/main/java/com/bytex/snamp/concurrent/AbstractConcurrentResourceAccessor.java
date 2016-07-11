@@ -38,7 +38,7 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ReentrantRea
          * @return The value obtained from the specified resource.
          * @throws E An exception that can be raised by action.
          */
-        V invoke(final R resource) throws E;
+        V apply(final R resource) throws E;
     }
 
     /**
@@ -49,14 +49,14 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ReentrantRea
      * @since 1.0
      * @version 1.2
      */
-    public interface ConsistentAction<R, V> extends Action<R, V, ExceptionPlaceholder> {
+    public interface ConsistentAction<R, V> extends Action<R, V, ExceptionPlaceholder>, Function<R, V> {
         /**
          * Handles the resource.
          * @param resource The resource to handle.
          * @return The value obtained from the specified resource.
          */
         @Override
-        V invoke(final R resource);
+        V apply(final R resource);
     }
 
     /**
@@ -127,28 +127,11 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ReentrantRea
         final Lock rl = readLock();
         rl.lock();
         try{
-            return reader.invoke(getResource());
+            return reader.apply(getResource());
         }
         finally {
             rl.unlock();
         }
-    }
-
-    /**
-     * Provides inconsistent read on the resource.
-     * <p>
-     *    This operation acquires read lock (may be infinitely in time) on the resource.
-     * </p>
-     * @param reader The resource reader.
-     * @param <E> Type of the exception that can be raised by reader.
-     * @throws E Type of the exception that can be raised by reader.
-     * @since 1.2
-     */
-    public final <E extends Throwable> void consume(final Consumer<? super R, E> reader) throws E {
-        read((Action<R, Void, E>) resource -> {
-            reader.accept(resource);
-            return null;
-        });
     }
 
     /**
@@ -171,7 +154,7 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ReentrantRea
         else if(!rl.tryLock(readTimeout.toNanos(), TimeUnit.NANOSECONDS))
                 throw new TimeoutException(String.format("Read operation cannot be completed in %s time.", readTimeout));
         try{
-            return reader.invoke(getResource());
+            return reader.apply(getResource());
         }
         finally {
             rl.unlock();
@@ -222,49 +205,12 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ReentrantRea
         final Lock wl = writeLock();
         wl.lock();
         try{
-            return writer.invoke(getResource());
+            return writer.apply(getResource());
         }
         finally {
             wl.unlock();
         }
     }
-
-    /**
-     * Provides inconsistent write on the resource.
-     * <p>
-     *     This operation acquires write lock (may be infinitely in time) on the resource.
-     * </p>
-     * @param writer The resource writer.
-     * @param <E> An exception that can be raised by reader.
-     * @throws E An exception that can be raised by reader.
-     * @since 1.2
-     */
-    public final <E extends Throwable> void modify(final Consumer<? super R, E> writer) throws E{
-        write((Action<R, Void, E>) resource -> {
-            writer.accept(resource);
-            return null;
-        });
-    }
-
-    /**
-     * Provides inconsistent write on the resource.
-     * <p>
-     *     This operation acquires write lock on the resource.
-     * </p>
-     * @param writer The resource writer.
-     * @param <E> An exception that can be raised by reader.
-     * @throws E An exception that can be raised by reader.
-     * @throws TimeoutException Write lock cannot be acquired in the specified time.
-     * @throws InterruptedException Synchronization interrupted.
-     * @since 1.2
-     */
-    public final <E extends Throwable> void modify(final Consumer<? super R, E> writer, final Duration writeTimeout) throws E, TimeoutException, InterruptedException {
-        write((Action<R, Void, E>) resource -> {
-            writer.accept(resource);
-            return null;
-        }, writeTimeout);
-    }
-
     /**
      * Provides inconsistent write on the resource.
      * <p>
@@ -285,7 +231,7 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ReentrantRea
         else if(!wl.tryLock(writeTimeout.toNanos(), TimeUnit.NANOSECONDS))
                 throw new TimeoutException(String.format("Write operation cannot be completed in %s time.", writeTimeout));
         try{
-            return writer.invoke(getResource());
+            return writer.apply(getResource());
         }
         finally {
             wl.unlock();

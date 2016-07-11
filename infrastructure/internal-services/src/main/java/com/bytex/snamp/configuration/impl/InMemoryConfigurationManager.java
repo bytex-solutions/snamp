@@ -50,7 +50,10 @@ public final class InMemoryConfigurationManager extends AbstractAggregator imple
      */
     @Override
     public <E extends Throwable> void readConfiguration(final Consumer<? super AgentConfiguration, E> handler) throws E, IOException {
-        currentConfiguration.consume(handler);
+        currentConfiguration.read((Action<AgentConfiguration, Void, E>) config -> {
+            handler.accept(config);
+            return null;
+        });
     }
 
     /**

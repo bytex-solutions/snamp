@@ -2,6 +2,7 @@ package com.bytex.snamp.adapters.ssh;
 
 import com.bytex.snamp.Consumer;
 import com.bytex.snamp.EntryReader;
+import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.adapters.AbstractResourceAdapter;
 import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationEventBox;
@@ -52,13 +53,15 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
             mailbox = new NotificationEventBox(50);
         }
 
+        private <E extends Exception> void forEachNotificationImpl(final EntryReader<String, ? super SshNotificationAccessor, E> notificationReader) throws E{
+            for (final ResourceNotificationList<SshNotificationAccessor> list : notifications.values())
+                for (final SshNotificationAccessor accessor : list.values())
+                    if (!notificationReader.read(accessor.resourceName, accessor)) return;
+        }
+
         @Override
         public <E extends Exception> void forEachNotification(final EntryReader<String, ? super SshNotificationAccessor, E> notificationReader) throws E {
-            try (final LockScope ignored = beginRead()) {
-                for (final ResourceNotificationList<SshNotificationAccessor> list : notifications.values())
-                    for (final SshNotificationAccessor accessor : list.values())
-                        if (!notificationReader.read(accessor.resourceName, accessor)) return;
-            }
+            read(notificationReader, (Consumer<EntryReader<String,? super SshNotificationAccessor, E>, E>) this::forEachNotificationImpl);
         }
 
         private static Map<String, ResourceNotificationList<SshNotificationAccessor>> createNotifs(){
@@ -74,45 +77,47 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         }
 
         private void clear(){
-            try(final LockScope ignored = beginWrite()){
-                notifications.clear();
-            }
+            write(notifications, (SafeConsumer<Map<?, ?>>) Map::clear);
             mailbox.clear();
+        }
+
+        private NotificationAccessor addNotificationImpl(final String resourceName,
+                                                     final MBeanNotificationInfo metadata){
+            final ResourceNotificationList<SshNotificationAccessor> list;
+            if(notifications.containsKey(resourceName))
+                list = notifications.get(resourceName);
+            else notifications.put(resourceName, list = new ResourceNotificationList<>());
+            final SshNotificationAccessor accessor = new SshNotificationAccessor(metadata, mailbox, resourceName);
+            list.put(accessor);
+            return accessor;
         }
 
         private NotificationAccessor addNotification(final String resourceName,
                                                      final MBeanNotificationInfo metadata){
-            try(final LockScope ignored = beginWrite()){
-                final ResourceNotificationList<SshNotificationAccessor> list;
-                if(notifications.containsKey(resourceName))
-                    list = notifications.get(resourceName);
-                else notifications.put(resourceName, list = new ResourceNotificationList<>());
-                final SshNotificationAccessor accessor = new SshNotificationAccessor(metadata, mailbox, resourceName);
-                list.put(accessor);
-                return accessor;
-            }
+            return write(resourceName, metadata, this::addNotificationImpl);
         }
 
-        private Iterable<? extends NotificationAccessor> clear(final String resourceName){
-            try(final LockScope ignored = beginWrite()){
-                return notifications.containsKey(resourceName) ?
-                    notifications.remove(resourceName).values():
-                        ImmutableList.<SshNotificationAccessor>of();
-            }
+        private Iterable<? extends NotificationAccessor> clear(final String resourceName) {
+            return write(resourceName, notifications, (resName, notifs) -> notifs.containsKey(resName) ?
+                    notifs.remove(resName).values() :
+                    ImmutableList.<SshNotificationAccessor>of());
+        }
+
+        private NotificationAccessor removeNotificationImpl(final String resourceName,
+                                                        final MBeanNotificationInfo metadata){
+            final ResourceNotificationList<SshNotificationAccessor> list;
+            if(notifications.containsKey(resourceName))
+                list = notifications.get(resourceName);
+            else return null;
+            final NotificationAccessor result = list.remove(metadata);
+            if(list.isEmpty())
+                notifications.remove(resourceName);
+            return result;
         }
 
         private NotificationAccessor removeNotification(final String resourceName,
-                                                        final MBeanNotificationInfo metadata){
-            try(final LockScope ignored = beginWrite()){
-                final ResourceNotificationList<SshNotificationAccessor> list;
-                if(notifications.containsKey(resourceName))
-                    list = notifications.get(resourceName);
-                else return null;
-                final NotificationAccessor result = list.remove(metadata);
-                if(list.isEmpty())
-                    notifications.remove(resourceName);
-                return result;
-            }
+                                                        final MBeanNotificationInfo metadata) {
+            return write(resourceName, metadata, this::removeNotificationImpl);
         }
 
         private Notification poll(final ExpressionBasedDescriptorFilter filter) {

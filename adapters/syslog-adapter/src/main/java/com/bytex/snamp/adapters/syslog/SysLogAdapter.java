@@ -1,5 +1,7 @@
 package com.bytex.snamp.adapters.syslog;
 
+import com.bytex.snamp.Consumer;
+import com.bytex.snamp.SafeConsumer;
 import com.cloudbees.syslog.Facility;
 import com.cloudbees.syslog.Severity;
 import com.cloudbees.syslog.SyslogMessage;
@@ -44,13 +46,15 @@ final class SysLogAdapter extends AbstractResourceAdapter {
             this.notifications = new HashMap<>(10);
         }
 
+        private <E extends Exception> void forEachNotificationImpl(final EntryReader<String, ? super SysLogNotificationAccessor, E> notificationReader) throws E{
+            for(final ResourceNotificationList<SysLogNotificationAccessor> list: notifications.values())
+                for(final SysLogNotificationAccessor accessor: list.values())
+                    if(!notificationReader.read(accessor.resourceName, accessor)) return;
+        }
+
         @Override
         public <E extends Exception> void forEachNotification(final EntryReader<String, ? super SysLogNotificationAccessor, E> notificationReader) throws E {
-            try(final LockScope ignored = beginRead()){
-                for(final ResourceNotificationList<SysLogNotificationAccessor> list: notifications.values())
-                    for(final SysLogNotificationAccessor accessor: list.values())
-                        if(!notificationReader.read(accessor.resourceName, accessor)) return;
-            }
+            read(notificationReader, (Consumer<? super EntryReader<String,? super SysLogNotificationAccessor,E>, E>) this::forEachNotificationImpl);
         }
 
         private void setCheckSender(final ConcurrentSyslogMessageSender value){
@@ -77,44 +81,48 @@ final class SysLogAdapter extends AbstractResourceAdapter {
             }
         }
 
+        private NotificationAccessor addNotificationImpl(final String resourceName,
+                                             final MBeanNotificationInfo metadata) {
+            final ResourceNotificationList<SysLogNotificationAccessor> list;
+            if (notifications.containsKey(resourceName))
+                list = notifications.get(resourceName);
+            else notifications.put(resourceName, list = new ResourceNotificationList<>());
+            final SysLogNotificationAccessor accessor;
+            list.put(accessor = new SysLogNotificationAccessor(resourceName, metadata, this));
+            return accessor;
+        }
+
         private NotificationAccessor addNotification(final String resourceName,
-                                                     final MBeanNotificationInfo metadata){
-            try(final LockScope ignored = beginWrite()){
-                final ResourceNotificationList<SysLogNotificationAccessor> list;
-                if(notifications.containsKey(resourceName))
-                    list = notifications.get(resourceName);
-                else notifications.put(resourceName, list = new ResourceNotificationList<>());
-                final SysLogNotificationAccessor accessor;
-                list.put(accessor = new SysLogNotificationAccessor(resourceName, metadata, this));
-                return accessor;
-            }
+                                                     final MBeanNotificationInfo metadata) {
+            return write(resourceName, metadata, this::addNotificationImpl);
+        }
+
+        private NotificationAccessor removeNotificationImpl(final String resourceName,
+                                                        final MBeanNotificationInfo metadata){
+            final ResourceNotificationList<SysLogNotificationAccessor> list;
+            if(notifications.containsKey(resourceName))
+                list = notifications.get(resourceName);
+            else return null;
+            final NotificationAccessor accessor = list.remove(metadata);
+            if(list.isEmpty()) notifications.remove(resourceName);
+            return accessor;
         }
 
         private NotificationAccessor removeNotification(final String resourceName,
                                                         final MBeanNotificationInfo metadata){
-            try(final LockScope ignored = beginWrite()){
-                final ResourceNotificationList<SysLogNotificationAccessor> list;
-                if(notifications.containsKey(resourceName))
-                    list = notifications.get(resourceName);
-                else return null;
-                final NotificationAccessor accessor = list.remove(metadata);
-                if(list.isEmpty()) notifications.remove(resourceName);
-                return accessor;
-            }
+            return write(resourceName, metadata, this::removeNotificationImpl);
         }
 
-        private Iterable<? extends NotificationAccessor> removeNotifications(final String resourceName){
-            try(final LockScope ignored = beginWrite()){
-                if(notifications.containsKey(resourceName))
-                    return notifications.remove(resourceName).values();
+        private Iterable<? extends NotificationAccessor> removeNotifications(final String resourceName) {
+            return write(resourceName, notifications, (resName, notifs) -> {
+                if (notifs.containsKey(resName))
+                    return notifs.remove(resName).values();
                 else return ImmutableList.of();
-            }
+            });
         }
 
         private void clear() {
-            try (final LockScope ignored = beginWrite()) {
-                notifications.values().forEach(list -> list.values().forEach(NotificationAccessor::close));
-            }
+            write(notifications, (SafeConsumer<Map<String, ResourceNotificationList<SysLogNotificationAccessor>>>) notifs -> notifs.values().forEach(list -> list.values().forEach(NotificationAccessor::close)));
             final ConcurrentSyslogMessageSender sender = checkSender;
             if (sender != null)
                 sender.close();

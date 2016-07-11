@@ -146,7 +146,7 @@ public class ConcurrentResourceAccessor<R> extends AbstractConcurrentResourceAcc
         final WriteLock wl = writeLock();
         wl.lock();
         try{
-            setResource(newResource.invoke(getResource()));
+            setResource(newResource.apply(getResource()));
         }
         finally {
             wl.unlock();

@@ -132,7 +132,7 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
         if (properties == null) //remove all
             services.write(new ConsistentAction<Map<String, ExecutorService>, Void>() {
                 @Override
-                public Void invoke(final Map<String, ExecutorService> services) {
+                public Void apply(final Map<String, ExecutorService> services) {
                     services.clear();
                     return null;
                 }
@@ -162,7 +162,7 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
                 }
 
                 @Override
-                public Void invoke(final Map<String, ExecutorService> services) {
+                public Void apply(final Map<String, ExecutorService> services) {
                     removeThreadPools(services);
                     addThreadPools(services);
                     return null;
