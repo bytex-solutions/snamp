@@ -358,8 +358,11 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     protected abstract Object getAttribute(final M metadata) throws Exception;
 
-    private Object getAttribute(final AttributeHolder<M> holder) throws Exception {
-        return getAttribute(holder.getMetadata());
+    private Object getAttributeImpl(final String attributeName) throws Exception {
+        if (attributes.containsKey(attributeName))
+            return getAttribute(attributes.get(attributeName).getMetadata());
+        else
+            throw JMExceptionUtils.attributeNotFound(attributeName);
     }
 
     /**
@@ -375,12 +378,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     @Override
     public final Object getAttribute(final String attributeName) throws AttributeNotFoundException, MBeanException, ReflectionException {
         try {
-            return readInterruptibly((Callable<Object>) () -> {
-                if (attributes.containsKey(attributeName))
-                    return getAttribute(attributes.get(attributeName));
-                else
-                    throw JMExceptionUtils.attributeNotFound(attributeName);
-            });
+            return readInterruptibly((Callable<Object>) () -> getAttributeImpl(attributeName));
         } catch (final AttributeNotFoundException e) {
             throw e;
         } catch (final MBeanException | ReflectionException e) {
@@ -430,14 +428,9 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     protected abstract void setAttribute(final M attribute,
                                          final Object value) throws Exception;
 
-    private void setAttribute(final AttributeHolder<M> holder,
-                              final Object value) throws Exception {
-        setAttribute(holder.getMetadata(), value);
-    }
-
     private void setAttributeImpl(final Attribute attribute) throws Exception{
         if (attributes.containsKey(attribute.getName()))
-            setAttribute(attributes.get(attribute.getName()), attribute.getValue());
+            setAttribute(attributes.get(attribute.getName()).getMetadata(), attribute.getValue());
         else throw JMExceptionUtils.attributeNotFound(attribute.getName());
     }
 
