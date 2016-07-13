@@ -38,6 +38,21 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
      */
     protected abstract TAccessor createAccessor(final MBeanAttributeInfo metadata) throws Exception;
 
+    private TAccessor addAttributeImpl(final String resourceName,
+                                   final MBeanAttributeInfo metadata) throws Exception{
+        //find resource storage
+        final ResourceAttributeList<TAccessor> list;
+        if(attributes.containsKey(resourceName))
+            list = attributes.get(resourceName);
+        else attributes.put(resourceName, list = new ResourceAttributeList<>());
+        //find attribute
+        final TAccessor accessor;
+        if(list.containsKey(metadata))
+            accessor = list.get(metadata);
+        else list.put(accessor = createAccessor(metadata));
+        return accessor;
+    }
+
     /**
      * Registers a new attribute in this model.
      * @param resourceName The name of the managed resource.
@@ -48,19 +63,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
     @ThreadSafe
     public final TAccessor addAttribute(final String resourceName,
                                   final MBeanAttributeInfo metadata) throws Exception{
-        return writeInterruptibly((Callable<TAccessor>) () -> {
-            //find resource storage
-            final ResourceAttributeList<TAccessor> list;
-            if(attributes.containsKey(resourceName))
-                list = attributes.get(resourceName);
-            else attributes.put(resourceName, list = new ResourceAttributeList<>());
-            //find attribute
-            final TAccessor accessor;
-            if(list.containsKey(metadata))
-                accessor = list.get(metadata);
-            else list.put(accessor = createAccessor(metadata));
-            return accessor;
-        });
+        return writeInterruptibly((Callable<TAccessor>) () -> addAttributeImpl(resourceName, metadata));
     }
 
     private TAccessor removeAttributeImpl(final String resourceName,
@@ -83,13 +86,11 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
 
     protected final Object getAttributeValue(final String resourceName,
                                              final String attributeName) throws AttributeNotFoundException, ReflectionException, MBeanException {
-        try {
-            return readInterruptibly((Callable<Object>) () -> {
-                if (attributes.containsKey(resourceName))
-                    return attributes.get(resourceName).getAttribute(attributeName);
-                else
-                    throw new AttributeNotFoundException(String.format("Attribute %s in managed resource %s doesn't exist", attributeName, resourceName));
-            });
+        try (final SafeCloseable ignored = acquireReadLockInterruptibly(SingleResourceGroup.INSTANCE)) {
+            if (attributes.containsKey(resourceName))
+                return attributes.get(resourceName).getAttribute(attributeName);
+            else
+                throw new AttributeNotFoundException(String.format("Attribute %s in managed resource %s doesn't exist", attributeName, resourceName));
         } catch (final AttributeNotFoundException | ReflectionException | MBeanException e) {
             throw e;
         } catch (final Exception e) {
@@ -100,13 +101,11 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
     protected final void setAttributeValue(final String resourceName,
                                            final String attributeName,
                                            final Object value) throws AttributeNotFoundException, MBeanException, ReflectionException, InvalidAttributeValueException {
-        try {
-            readInterruptibly(value, val -> {
-                if (attributes.containsKey(resourceName))
-                    attributes.get(resourceName).setAttribute(attributeName, val);
-                else
-                    throw new AttributeNotFoundException(String.format("Attribute %s in managed resource %s doesn't exist", attributeName, resourceName));
-            });
+        try (final SafeCloseable ignored = acquireReadLockInterruptibly(SingleResourceGroup.INSTANCE)) {
+            if (attributes.containsKey(resourceName))
+                attributes.get(resourceName).setAttribute(attributeName, value);
+            else
+                throw new AttributeNotFoundException(String.format("Attribute %s in managed resource %s doesn't exist", attributeName, resourceName));
         } catch (final AttributeNotFoundException | MBeanException | ReflectionException | InvalidAttributeValueException e) {
             throw e;
         } catch (final Exception e) {
@@ -114,26 +113,18 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
         }
     }
 
-    private <E extends Throwable> void processAttributeImpl(final String resourceName,
-                                                        final String attributeName,
-                                                        final Consumer<? super TAccessor, E> processor,
-                                                        final java.util.function.Consumer<Boolean> result) throws E{
-        final TAccessor accessor =  attributes.containsKey(resourceName)?
-                attributes.get(resourceName).get(attributeName):
-                null;
-        if(accessor != null){
-            processor.accept(accessor);
-            result.accept(true);
-        }
-        else result.accept(false);
-    }
-
     public final <E extends Throwable> boolean processAttribute(final String resourceName,
                                           final String attributeName,
                                           final Consumer<? super TAccessor, E> processor) throws E {
-        final Box<Boolean> result = new Box<>();
-        read(result, (Consumer<java.util.function.Consumer<Boolean>, E>) r -> processAttributeImpl(resourceName, attributeName, processor, r));
-        return result.get();
+        try (final SafeCloseable ignored = acquireReadLock(SingleResourceGroup.INSTANCE)) {
+            final TAccessor accessor = attributes.containsKey(resourceName) ?
+                    attributes.get(resourceName).get(attributeName) :
+                    null;
+            if (accessor != null) {
+                processor.accept(accessor);
+                return true;
+            } else return false;
+        }
     }
 
     /**

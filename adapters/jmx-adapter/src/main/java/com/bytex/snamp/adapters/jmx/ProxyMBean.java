@@ -1,8 +1,8 @@
 package com.bytex.snamp.adapters.jmx;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.Box;
 import com.bytex.snamp.EntryReader;
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.adapters.modeling.*;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
@@ -457,28 +457,20 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     }
 
     <E extends Exception> boolean forEachAttribute(final EntryReader<String, ? super JmxAttributeAccessor, E> attributeReader) throws E {
-        final Box<Boolean> result = new Box<>();
-        read(MBeanResources.ATTRIBUTES, attributeReader, reader -> {
-            for(final JmxAttributeAccessor accessor: attributes.values())
-                if(!reader.read(resourceName, accessor)) {
-                    result.accept(false);
-                    return;
-                }
-            result.accept(true);
-        });
-        return result.get();
+        try (final SafeCloseable ignored = acquireReadLock(MBeanResources.ATTRIBUTES)) {
+            for (final JmxAttributeAccessor accessor : attributes.values())
+                if (!attributeReader.read(resourceName, accessor))
+                    return false;
+            return true;
+        }
     }
 
     <E extends Exception> boolean forEachNotification(final EntryReader<String, ? super JmxNotificationAccessor, E> notificationReader) throws E {
-        final Box<Boolean> result = new Box<>();
-        read(MBeanResources.NOTIFICATIONS, notificationReader, reader -> {
+        try(final SafeCloseable ignored = acquireReadLock(MBeanResources.NOTIFICATIONS)){
             for(final JmxNotificationAccessor accessor: notifications.values())
-                if(!notificationReader.read(resourceName, accessor)){
-                    result.accept(false);
-                    return;
-                }
-            result.accept(true);
-        });
-        return result.get();
+                if(!notificationReader.read(resourceName, accessor))
+                    return false;
+            return true;
+        }
     }
 }

@@ -1,16 +1,17 @@
 package com.bytex.snamp.adapters.syslog;
 
 import com.bytex.snamp.Consumer;
-import com.bytex.snamp.SafeConsumer;
+import com.bytex.snamp.EntryReader;
+import com.bytex.snamp.adapters.AbstractResourceAdapter;
+import com.bytex.snamp.adapters.NotificationEvent;
+import com.bytex.snamp.adapters.NotificationListener;
+import com.bytex.snamp.adapters.modeling.*;
 import com.cloudbees.syslog.Facility;
 import com.cloudbees.syslog.Severity;
 import com.cloudbees.syslog.SyslogMessage;
 import com.cloudbees.syslog.sender.SyslogMessageSender;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
-import com.bytex.snamp.adapters.*;
-import com.bytex.snamp.adapters.modeling.*;
-import com.bytex.snamp.EntryReader;
 
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
@@ -123,7 +124,10 @@ final class SysLogAdapter extends AbstractResourceAdapter {
         }
 
         private void clear() {
-            write(notifications, (SafeConsumer<Map<String, ResourceNotificationList<SysLogNotificationAccessor>>>) notifs -> notifs.values().forEach(list -> list.values().forEach(NotificationAccessor::close)));
+            write(notifications, notifs -> {
+                notifs.values().forEach(list -> list.values().forEach(NotificationAccessor::close));
+                notifs.clear();
+            });
             final ConcurrentSyslogMessageSender sender = checkSender;
             if (sender != null)
                 sender.close();

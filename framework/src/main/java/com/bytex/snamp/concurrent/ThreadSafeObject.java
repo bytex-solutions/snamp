@@ -1,6 +1,7 @@
 package com.bytex.snamp.concurrent;
 
 import com.bytex.snamp.Consumer;
+import com.bytex.snamp.SafeCloseable;
 import com.google.common.collect.ImmutableMap;
 
 import java.util.EnumSet;
@@ -77,10 +78,26 @@ public abstract class ThreadSafeObject {
             return writeLock ? lock.writeLock() : lock.readLock();
     }
 
-    private <E extends Throwable> Lock acquireLock(final Enum<?> resourceGroup, final boolean writeLock, final Consumer<? super Lock, E> locker) throws E {
+    private <E extends Throwable> SafeCloseable acquireLock(final Enum<?> resourceGroup, final boolean writeLock, final Consumer<? super Lock, E> locker) throws E {
         final Lock scope = getLock(resourceGroup, writeLock);
         locker.accept(scope);
-        return scope;
+        return scope::unlock;
+    }
+
+    protected final SafeCloseable acquireWriteLock(final Enum<?> resourceGroup){
+        return acquireLock(resourceGroup, true, Lock::lock);
+    }
+
+    protected final SafeCloseable acquireReadLock(final Enum<?> resourceGroup){
+        return acquireLock(resourceGroup, false, Lock::lock);
+    }
+
+    protected final SafeCloseable acquireWriteLockInterruptibly(final Enum<?> resourceGroup) throws InterruptedException {
+        return acquireLock(resourceGroup, true, Lock::lockInterruptibly);
+    }
+
+    protected final SafeCloseable acquireReadLockInterruptibly(final Enum<?> resourceGroup) throws InterruptedException {
+        return acquireLock(resourceGroup, false, Lock::lockInterruptibly);
     }
 
     //<editor-fold desc="write Supplier">
@@ -94,11 +111,8 @@ public abstract class ThreadSafeObject {
      * @return Result produced by action.
      */
     protected final <V> V write(final Enum<?> resourceGroup, final Supplier<? extends V> action) {
-        final Lock scope = acquireLock(resourceGroup, true, Lock::lock);
-        try {
+        try (final SafeCloseable ignored = acquireWriteLock(resourceGroup)) {
             return action.get();
-        } finally {
-            scope.unlock();
         }
     }
 
@@ -118,11 +132,8 @@ public abstract class ThreadSafeObject {
     //<editor-fold desc="write BooleanSupplier">
 
     protected final boolean write(final Enum<?> resourceGroup, final BooleanSupplier action) {
-        final Lock scope = acquireLock(resourceGroup, true, Lock::lock);
-        try {
+        try(final SafeCloseable ignored = acquireWriteLock(resourceGroup)){
             return action.getAsBoolean();
-        } finally {
-            scope.unlock();
         }
     }
 
@@ -135,11 +146,8 @@ public abstract class ThreadSafeObject {
     //<editor-fold desc="write IntSupplier">
 
     protected final int write(final Enum<?> resourceGroup, final IntSupplier action) {
-        final Lock scope = acquireLock(resourceGroup, true, Lock::lock);
-        try {
+        try(final SafeCloseable ignored = acquireWriteLock(resourceGroup)){
             return action.getAsInt();
-        } finally {
-            scope.unlock();
         }
     }
 
@@ -162,11 +170,8 @@ public abstract class ThreadSafeObject {
      * @return Result produced by action.
      */
     protected final <I, O> O write(final Enum<?> resourceGroup, final I input, final Function<? super I, ? extends O> action) {
-        final Lock scope = acquireLock(resourceGroup, true, Lock::lock);
-        try {
+        try(final SafeCloseable ignored = acquireWriteLock(resourceGroup)){
             return action.apply(input);
-        } finally {
-            scope.unlock();
         }
     }
 
@@ -188,11 +193,8 @@ public abstract class ThreadSafeObject {
     //<editor-fold desc="write Consumer">
 
     protected final <I, E extends Throwable> void write(final Enum<?> resourceGroup, final I input, final Consumer<? super I, E> action) throws E {
-        final Lock scope = acquireLock(resourceGroup, true, Lock::lock);
-        try {
-            action.accept(input);
-        } finally {
-            scope.unlock();
+        try(final SafeCloseable ignored = acquireWriteLock(resourceGroup)){
+             action.accept(input);
         }
     }
 
@@ -217,11 +219,8 @@ public abstract class ThreadSafeObject {
      * @return Result produced by action.
      */
     protected final <I1, I2, O> O write(final Enum<?> resourceGroup, final I1 input1, final I2 input2, final BiFunction<? super I1, ? super I2, ? extends O> action) {
-        final Lock scope = acquireLock(resourceGroup, true, Lock::lock);
-        try {
+        try(final SafeCloseable ignored = acquireWriteLock(resourceGroup)){
             return action.apply(input1, input2);
-        } finally {
-            scope.unlock();
         }
     }
 
@@ -245,11 +244,8 @@ public abstract class ThreadSafeObject {
     //<editor-fold desc="write Callable">
 
     protected final <V> V write(final Enum<?> resourceGroup, final Callable<? extends V> action) throws Exception {
-        final Lock scope = acquireLock(resourceGroup, true, Lock::lock);
-        try {
+        try(final SafeCloseable ignored = acquireWriteLock(resourceGroup)){
             return action.call();
-        } finally {
-            scope.unlock();
         }
     }
 
@@ -271,11 +267,8 @@ public abstract class ThreadSafeObject {
      * @throws InterruptedException This method was interrupted by another thread.
      */
     protected final <V> V writeInterruptibly(final Enum<?> resourceGroup, final Supplier<? extends V> action) throws InterruptedException {
-        final Lock scope = acquireLock(resourceGroup, true, Lock::lockInterruptibly);
-        try {
+        try(final SafeCloseable ignored = acquireWriteLockInterruptibly(resourceGroup)){
             return action.get();
-        } finally {
-            scope.unlock();
         }
     }
 
@@ -296,11 +289,8 @@ public abstract class ThreadSafeObject {
     //<editor-fold desc="writeInterruptibly BooleanSupplier">
 
     protected final boolean writeInterruptibly(final Enum<?> resourceGroup, final BooleanSupplier action) throws InterruptedException {
-        final Lock scope = acquireLock(resourceGroup, true, Lock::lockInterruptibly);
-        try {
+        try(final SafeCloseable ignored = acquireWriteLockInterruptibly(resourceGroup)){
             return action.getAsBoolean();
-        } finally {
-            scope.unlock();
         }
     }
 
@@ -313,11 +303,8 @@ public abstract class ThreadSafeObject {
     //<editor-fold desc="writeInterruptibly IntSupplier">
 
     protected final int writeInterruptibly(final Enum<?> resourceGroup, final IntSupplier action) throws InterruptedException {
-        final Lock scope = acquireLock(resourceGroup, true, Lock::lockInterruptibly);
-        try {
+        try(final SafeCloseable ignored = acquireWriteLockInterruptibly(resourceGroup)){
             return action.getAsInt();
-        } finally {
-            scope.unlock();
         }
     }
 
@@ -330,11 +317,8 @@ public abstract class ThreadSafeObject {
     //<editor-fold desc="writeInterruptibly Function">
 
     protected final <I, O> O writeInterruptibly(final Enum<?> resourceGroup, final I input, final Function<? super I, ? extends O> action) throws InterruptedException {
-        final Lock scope = acquireLock(resourceGroup, true, Lock::lockInterruptibly);
-        try {
+        try(final SafeCloseable ignored = acquireWriteLockInterruptibly(resourceGroup)){
             return action.apply(input);
-        } finally {
-            scope.unlock();
         }
     }
 
@@ -347,11 +331,8 @@ public abstract class ThreadSafeObject {
     //<editor-fold desc="writeInterruptibly Consumer">
 
     protected final <I, E extends Throwable> void writeInterruptibly(final Enum<?> resourceGroup, final I input, final Consumer<? super I, E> action) throws E, InterruptedException {
-        final Lock scope = acquireLock(resourceGroup, true, Lock::lockInterruptibly);
-        try {
+        try(final SafeCloseable ignored = acquireWriteLockInterruptibly(resourceGroup)){
             action.accept(input);
-        } finally {
-            scope.unlock();
         }
     }
 
@@ -364,11 +345,8 @@ public abstract class ThreadSafeObject {
     //<editor-fold desc="writeInterruptibly BiFunction">
 
     protected final <I1, I2, O> O writeInterruptibly(final Enum<?> resourceGroup, final I1 input1, final I2 input2, final BiFunction<? super I1, ? super I2, ? extends O> action) throws InterruptedException {
-        final Lock scope = acquireLock(resourceGroup, true, Lock::lockInterruptibly);
-        try {
+        try(final SafeCloseable ignored = acquireWriteLockInterruptibly(resourceGroup)){
             return action.apply(input1, input2);
-        } finally {
-            scope.unlock();
         }
     }
 
@@ -381,11 +359,8 @@ public abstract class ThreadSafeObject {
     //<editor-fold desc="writeInterruptibly Callable">
 
     protected final <V> V writeInterruptibly(final Enum<?> resourceGroup, final Callable<? extends V> action) throws Exception {
-        final Lock scope = acquireLock(resourceGroup, true, Lock::lockInterruptibly);
-        try {
+        try(final SafeCloseable ignored = acquireWriteLockInterruptibly(resourceGroup)){
             return action.call();
-        } finally {
-            scope.unlock();
         }
     }
 
@@ -406,11 +381,8 @@ public abstract class ThreadSafeObject {
      * @return Result produced by action.
      */
     protected final <V> V read(final Enum<?> resourceGroup, final Supplier<? extends V> action) {
-        final Lock scope = acquireLock(resourceGroup, false, Lock::lock);
-        try {
+        try(final SafeCloseable ignored = acquireReadLock(resourceGroup)){
             return action.get();
-        } finally {
-            scope.unlock();
         }
     }
 
@@ -430,11 +402,8 @@ public abstract class ThreadSafeObject {
     //<editor-fold desc="read BooleanSupplier">
 
     protected final boolean read(final Enum<?> resourceGroup, final BooleanSupplier action) {
-        final Lock scope = acquireLock(resourceGroup, false, Lock::lock);
-        try {
+        try(final SafeCloseable ignored = acquireReadLock(resourceGroup)){
             return action.getAsBoolean();
-        } finally {
-            scope.unlock();
         }
     }
 
@@ -447,11 +416,8 @@ public abstract class ThreadSafeObject {
     //<editor-fold desc="read IntSupplier">
 
     protected final int read(final Enum<?> resourceGroup, final IntSupplier action) {
-        final Lock scope = acquireLock(resourceGroup, false, Lock::lock);
-        try {
+        try(final SafeCloseable ignored = acquireReadLock(resourceGroup)){
             return action.getAsInt();
-        } finally {
-            scope.unlock();
         }
     }
 
@@ -474,11 +440,8 @@ public abstract class ThreadSafeObject {
      * @return Result produced by action.
      */
     protected final <I, O> O read(final Enum<?> resourceGroup, final I input, final Function<? super I, ? extends O> action) {
-        final Lock scope = acquireLock(resourceGroup, false, Lock::lock);
-        try {
+        try(final SafeCloseable ignored = acquireReadLock(resourceGroup)){
             return action.apply(input);
-        } finally {
-            scope.unlock();
         }
     }
 
@@ -500,11 +463,8 @@ public abstract class ThreadSafeObject {
     //<editor-fold desc="read Consumer">
 
     protected final <I, E extends Throwable> void read(final Enum<?> resourceGroup, final I input, final Consumer<? super I, E> action) throws E {
-        final Lock scope = acquireLock(resourceGroup, false, Lock::lock);
-        try {
+        try(final SafeCloseable ignored = acquireReadLock(resourceGroup)){
             action.accept(input);
-        } finally {
-            scope.unlock();
         }
     }
 
@@ -517,11 +477,8 @@ public abstract class ThreadSafeObject {
     //<editor-fold desc="read Callable">
 
     protected final <V> V read(final Enum<?> resourceGroup, final Callable<? extends V> action) throws Exception {
-        final Lock scope = acquireLock(resourceGroup, false, Lock::lock);
-        try {
+        try(final SafeCloseable ignored = acquireReadLock(resourceGroup)){
             return action.call();
-        } finally {
-            scope.unlock();
         }
     }
 
@@ -546,11 +503,8 @@ public abstract class ThreadSafeObject {
      * @return Result produced by action.
      */
     protected final <I1, I2, O> O read(final Enum<?> resourceGroup, final I1 input1, final I2 input2, final BiFunction<? super I1, ? super I2, ? extends O> action) {
-        final Lock scope = acquireLock(resourceGroup, false, Lock::lock);
-        try {
+        try(final SafeCloseable ignored = acquireReadLock(resourceGroup)){
             return action.apply(input1, input2);
-        } finally {
-            scope.unlock();
         }
     }
 
@@ -574,11 +528,8 @@ public abstract class ThreadSafeObject {
     //<editor-fold desc="readInterruptibly Supplier">
 
     protected final <V> V readInterruptibly(final Enum<?> resourceGroup, final Supplier<? extends V> action) throws InterruptedException {
-        final Lock scope = acquireLock(resourceGroup, false, Lock::lockInterruptibly);
-        try {
+        try(final SafeCloseable ignored = acquireReadLockInterruptibly(resourceGroup)){
             return action.get();
-        } finally {
-            scope.unlock();
         }
     }
 
@@ -591,11 +542,8 @@ public abstract class ThreadSafeObject {
     //<editor-fold desc="readInterruptibly BooleanSupplier">
 
     protected final boolean readInterruptibly(final Enum<?> resourceGroup, final BooleanSupplier action) throws InterruptedException {
-        final Lock scope = acquireLock(resourceGroup, false, Lock::lockInterruptibly);
-        try {
+        try(final SafeCloseable ignored = acquireReadLockInterruptibly(resourceGroup)){
             return action.getAsBoolean();
-        } finally {
-            scope.unlock();
         }
     }
 
@@ -608,11 +556,8 @@ public abstract class ThreadSafeObject {
     //<editor-fold desc="readInterruptibly IntSupplier">
 
     protected final int readInterruptibly(final Enum<?> resourceGroup, final IntSupplier action) throws InterruptedException {
-        final Lock scope = acquireLock(resourceGroup, false, Lock::lockInterruptibly);
-        try {
+        try(final SafeCloseable ignored = acquireReadLockInterruptibly(resourceGroup)){
             return action.getAsInt();
-        } finally {
-            scope.unlock();
         }
     }
 
@@ -625,11 +570,8 @@ public abstract class ThreadSafeObject {
     //<editor-fold desc="readInterruptibly Function">
 
     protected final <I, O> O readInterruptibly(final Enum<?> resourceGroup, final I input, final Function<? super I, ? extends O> action) throws InterruptedException {
-        final Lock scope = acquireLock(resourceGroup, false, Lock::lockInterruptibly);
-        try {
+        try(final SafeCloseable ignored = acquireReadLockInterruptibly(resourceGroup)){
             return action.apply(input);
-        } finally {
-            scope.unlock();
         }
     }
 
@@ -642,11 +584,8 @@ public abstract class ThreadSafeObject {
     //<editor-fold desc="readInterruptibly Consumer">
 
     protected final <I, E extends Throwable> void readInterruptibly(final Enum<?> resourceGroup, final I input, final Consumer<? super I, E> action) throws E, InterruptedException {
-        final Lock scope = acquireLock(resourceGroup, false, Lock::lockInterruptibly);
-        try {
+        try(final SafeCloseable ignored = acquireReadLockInterruptibly(resourceGroup)){
             action.accept(input);
-        } finally {
-            scope.unlock();
         }
     }
 
@@ -659,11 +598,8 @@ public abstract class ThreadSafeObject {
     //<editor-fold desc="readInterruptibly Callable">
 
     protected final <V> V readInterruptibly(final Enum<?> resourceGroup, final Callable<? extends V> action) throws Exception {
-        final Lock scope = acquireLock(resourceGroup, false, Lock::lockInterruptibly);
-        try {
+        try(final SafeCloseable ignored = acquireReadLockInterruptibly(resourceGroup)){
             return action.call();
-        } finally {
-            scope.unlock();
         }
     }
 
@@ -676,11 +612,8 @@ public abstract class ThreadSafeObject {
     //<editor-fold desc="readInterruptibly BiFunction">
 
     protected final <I1, I2, O> O readInterruptibly(final Enum<?> resourceGroup, final I1 input1, final I2 input2, final BiFunction<? super I1, ? super I2, ? extends O> action) throws InterruptedException {
-        final Lock scope = acquireLock(resourceGroup, false, Lock::lockInterruptibly);
-        try {
+        try(final SafeCloseable ignored = acquireReadLockInterruptibly(resourceGroup)){
             return action.apply(input1, input2);
-        } finally {
-            scope.unlock();
         }
     }
 

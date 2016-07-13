@@ -377,8 +377,8 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     @Override
     public final Object getAttribute(final String attributeName) throws AttributeNotFoundException, MBeanException, ReflectionException {
-        try {
-            return readInterruptibly((Callable<Object>) () -> getAttributeImpl(attributeName));
+        try(final SafeCloseable ignored = acquireReadLockInterruptibly(SingleResourceGroup.INSTANCE)) {
+            return getAttributeImpl(attributeName);
         } catch (final AttributeNotFoundException e) {
             throw e;
         } catch (final MBeanException | ReflectionException e) {

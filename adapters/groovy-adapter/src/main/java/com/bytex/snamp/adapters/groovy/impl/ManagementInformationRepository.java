@@ -2,6 +2,7 @@ package com.bytex.snamp.adapters.groovy.impl;
 
 import com.bytex.snamp.Consumer;
 import com.bytex.snamp.EntryReader;
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.adapters.groovy.AttributesRootAPI;
 import com.bytex.snamp.adapters.groovy.EventsRootAPI;
@@ -19,7 +20,6 @@ import javax.management.*;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.*;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -66,7 +66,7 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
         private NotificationRouter put(final String resourceName,
                                               final MBeanNotificationInfo metadata,
                                               final NotificationListener listener) {
-            return write((Supplier<NotificationRouter>) () -> {
+            try(final SafeCloseable ignored = acquireWriteLock(SingleResourceGroup.INSTANCE)){
                 final ResourceNotificationList<ScriptNotificationAccessor> list;
                 if (notifications.containsKey(resourceName))
                     list = notifications.get(resourceName);
@@ -74,7 +74,7 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
                 final ScriptNotificationAccessor result = new ScriptNotificationAccessor(resourceName, metadata, listener);
                 list.put(result);
                 return result;
-            });
+            }
         }
 
         private ScriptNotificationAccessor removeImpl(final String resourceName,
@@ -93,7 +93,7 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
 
         private Collection<MBeanNotificationInfo> getNotifications(final String resourceName) {
             return read(resourceName, notifications, (resName, notifs) -> {
-                final ResourceNotificationList<?> list = notifs.get(resourceName);
+                final ResourceNotificationList<?> list = notifs.get(resName);
                 if (list != null) {
                     return list.values().stream()
                             .map(FeatureAccessor::getMetadata)
