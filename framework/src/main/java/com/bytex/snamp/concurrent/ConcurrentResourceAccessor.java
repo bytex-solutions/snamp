@@ -1,9 +1,7 @@
 package com.bytex.snamp.concurrent;
 
-import com.bytex.snamp.ExceptionPlaceholder;
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.Wrapper;
-
-import java.util.function.Supplier;
 
 /**
  * Provides thread-safe access to the thread-unsafe resource.
@@ -51,14 +49,14 @@ public class ConcurrentResourceAccessor<R> extends AbstractConcurrentResourceAcc
     /**
      * Represents coordinated resource.
      */
-    private final VolatileBox<R> resource;
+    private R resource;
 
     /**
      * Initializes a new thread safe container for the specified resource.
      * @param resource The resource to hold. May be {@literal null}.
      */
     public ConcurrentResourceAccessor(final R resource){
-        this.resource = new VolatileBox<>(resource);
+        this.resource = resource;
     }
 
     /**
@@ -68,67 +66,7 @@ public class ConcurrentResourceAccessor<R> extends AbstractConcurrentResourceAcc
      */
     @Override
     protected final R getResource() {
-        return resource.get();
-    }
-
-    /**
-     * Reads the current resource and set a new resource.
-     * @param newResource A new instance of the resource.
-     * @return Existed resource.
-     */
-    protected final R getAndSetResource(final R newResource){
-        return resource.getAndSet(newResource);
-    }
-
-    /**
-     * Sets resource in thread unsafe manner.
-     * @param resource The resource to set.
-     */
-    protected final void setResource(final R resource){
-        this.resource.set(resource);
-    }
-
-    /**
-     * Changes the resource.
-     * <p>
-     *     This operation acquires write-lock on the resource.
-     * </p>
-     * @param newResource A new instance of the resource.
-     */
-    public final void changeResource(final R newResource){
-        changeResource(() -> newResource);
-    }
-
-    /**
-     * Changes the resource.
-     * <p>
-     *   This operation acquires write-lock on the resource.
-     * </p>
-     * @param newResource The factory of the new resource. Cannot be {@literal null}.
-     * @throws IllegalArgumentException newResource is {@literal null}.
-     */
-    public final void changeResource(final Supplier<? extends R> newResource){
-        if(newResource == null) throw new IllegalArgumentException("newResource is null.");
-        final WriteLock wl = writeLock();
-        wl.lock();
-        try{
-            setResource(newResource.get());
-        }
-        finally {
-            wl.unlock();
-        }
-    }
-
-    /**
-     * Changes the resource.
-     * <p>
-     *   This operation acquires write-lock on the resource.
-     * </p>
-     * @param newResource The factory of the new resource. Cannot be {@literal null}.
-     * @throws IllegalArgumentException newResource is {@literal null}.
-     */
-    public final void changeResource(final ConsistentAction<R, R> newResource) {
-        changeResource((Action<R, R, ExceptionPlaceholder>) newResource);
+        return resource;
     }
 
     /**
@@ -141,15 +79,10 @@ public class ConcurrentResourceAccessor<R> extends AbstractConcurrentResourceAcc
      * @throws E An exception thrown by resource setter. The original resource remain unchanged.
      * @since 1.2
      */
-    public final <E extends Throwable> void changeResource(final Action<R, R, E> newResource) throws E{
-        if(newResource == null) throw new IllegalArgumentException("newResource is null.");
-        final WriteLock wl = writeLock();
-        wl.lock();
-        try{
-            setResource(newResource.apply(getResource()));
-        }
-        finally {
-            wl.unlock();
+    public final <E extends Throwable> void changeResource(final Action<R, R, E> newResource) throws E {
+        if (newResource == null) throw new IllegalArgumentException("newResource is null.");
+        try (final SafeCloseable ignored = acquireWriteLock(SingleResourceGroup.INSTANCE)) {
+            resource = newResource.apply(resource);
         }
     }
 }

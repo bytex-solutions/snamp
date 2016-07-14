@@ -3,17 +3,19 @@ package com.bytex.snamp.concurrent;
 import com.google.common.base.Stopwatch;
 
 import java.time.Duration;
+import java.util.Objects;
 import java.util.concurrent.*;
 
 /**
  * Represents synchronization primitive based on looping using
  * the custom condition.
+ * This class cannot be inherited.
  * @param <T> Type of the spinning result.
  * @author Roman Sakno
  * @version 1.2
  * @since 1.0
  */
-public abstract class SpinWait<T> implements Future<T> {
+public class SpinWait<T> implements Future<T> {
     private enum SpinState {
         ACTIVE(false),
         CANCELLED(true),
@@ -29,32 +31,28 @@ public abstract class SpinWait<T> implements Future<T> {
 
     private final long delayMillis;
     private final VolatileBox<SpinState> state;
+    private final Callable<? extends T> spin;
     private volatile Object result;
 
     /**
      * Represents default value of the spin delay.
      */
-    protected static final Duration DEFAULT_SPIN_DELAY = Duration.ofMillis(1);
+    static final Duration DEFAULT_SPIN_DELAY = Duration.ofMillis(1);
 
-    protected SpinWait(final Duration spinDelay){
+    SpinWait(final Callable<? extends T> spin, final Duration spinDelay){
         this.delayMillis = spinDelay.toMillis();
         state = new VolatileBox<>(SpinState.ACTIVE);
         result = null;
+        this.spin = Objects.requireNonNull(spin);
     }
 
-    protected SpinWait(){
-        this(DEFAULT_SPIN_DELAY);
+    public static <T> SpinWait<T> create(final Callable<? extends T> spin){
+        return new SpinWait<>(spin, DEFAULT_SPIN_DELAY);
     }
 
-    /**
-     * Gets an object used as indicator to break the spinning.
-     * <p>
-     *     Spinning will continue until this method return not {@literal null}.
-     * </p>
-     * @return An object used as indicator to break the spinning.
-     * @throws Throwable An error occurred during execution of single spin action.
-     */
-    protected abstract T spin() throws Throwable;
+    public static <T> SpinWait<T> create(final Callable<? extends T> spin, final Duration spinDelay){
+        return new SpinWait<>(spin, spinDelay);
+    }
 
     @SuppressWarnings("unchecked")
     private T checkState() throws ExecutionException, CancellationException{
@@ -71,7 +69,7 @@ public abstract class SpinWait<T> implements Future<T> {
         while (!state.get().isDone) {
             final T result;
             try {
-                result = spin();
+                result = spin.call();
             } catch (final Throwable e) {
                 if (state.compareAndSet(SpinState.ACTIVE, SpinState.FAILED))
                     this.result = e;
@@ -100,7 +98,6 @@ public abstract class SpinWait<T> implements Future<T> {
      * @throws InterruptedException  if the current thread was interrupted
      *                               while waiting
      * @throws TimeoutException      if the wait timed out
-     * @see #spin()
      */
     @Override
     public final T get(final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
@@ -112,15 +109,14 @@ public abstract class SpinWait<T> implements Future<T> {
      *
      * @return The event data.
      * @throws InterruptedException Waiting thread is aborted.
-     * @throws ExecutionException Method {@link #spin()} raises an exception.
-     * @see #spin()
+     * @throws ExecutionException Spin method raises an exception.
      */
     @Override
     public final T get() throws InterruptedException, ExecutionException {
         while (!state.get().isDone) {
             final T result;
             try {
-                result = spin();
+                result = spin.call();
             } catch (final Throwable e) {
                 if (state.compareAndSet(SpinState.ACTIVE, SpinState.FAILED))
                     this.result = e;
@@ -172,4 +168,6 @@ public abstract class SpinWait<T> implements Future<T> {
     public final boolean isDone() {
         return state.get().isDone;
     }
+
+
 }

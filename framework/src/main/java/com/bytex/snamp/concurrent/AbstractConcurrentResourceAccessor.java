@@ -1,13 +1,12 @@
 package com.bytex.snamp.concurrent;
 
-import com.bytex.snamp.Consumer;
 import com.bytex.snamp.ExceptionPlaceholder;
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.Wrapper;
 
+import java.io.Serializable;
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.locks.*;
 import java.util.function.Function;
 
 /**
@@ -20,7 +19,7 @@ import java.util.function.Function;
  * @since 1.0
  * @version 1.2
  */
-public abstract class AbstractConcurrentResourceAccessor<R> extends ReentrantReadWriteLock implements Wrapper<R> {
+public abstract class AbstractConcurrentResourceAccessor<R> extends ThreadSafeObject implements Wrapper<R>, Serializable {
     private static final long serialVersionUID = -7263363564614921684L;
 
     /**
@@ -72,8 +71,11 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ReentrantRea
      * @return The resource processing result.
      */
     @Override
-    public <RESULT> RESULT apply(final Function<R, RESULT> handler){
-        return handler != null ? handler.apply(getResource()) : null;
+    public <RESULT> RESULT apply(final Function<R, RESULT> handler) {
+        if (handler == null) return null;
+        try (final SafeCloseable ignored = acquireReadLock(SingleResourceGroup.INSTANCE)) {
+            return handler.apply(getResource());
+        }
     }
 
     /**
@@ -81,35 +83,6 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ReentrantRea
      * @return The resource to synchronize.
      */
     protected abstract R getResource();
-
-    /**
-     * Provides consistent read on the resource.
-     * <p>
-     *     This operation acquires read lock (may be infinitely in time) on the resource.
-     * </p>
-     * @param reader The resource reader.
-     * @param <V> Type of the resource reading value operation.
-     * @return The value obtained from the resource.
-     */
-    public final <V> V read(final ConsistentAction<? super R, ? extends V> reader){
-        return read((Action<? super R, ? extends V, ExceptionPlaceholder>)reader);
-    }
-
-    /**
-     * Provides consistent read on the resource.
-     * <p>
-     *     This operation acquires read lock on the resource.
-     * </p>
-     * @param reader The resource reader.
-     * @param readTimeout Timeout value used for acquiring read lock.
-     * @param <V> Type of the resource reading value operation.
-     * @return The value obtained from the resource.
-     * @throws TimeoutException Read lock cannot be acquired in the specified time.
-     * @throws InterruptedException Synchronization interrupted.
-     */
-    public final <V> V read(final ConsistentAction<? super R, ? extends V> reader, final Duration readTimeout) throws TimeoutException, InterruptedException {
-        return read((Action<? super R, ? extends V, ExceptionPlaceholder>)reader, readTimeout);
-    }
 
     /**
      * Provides inconsistent read on the resource.
@@ -122,15 +95,10 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ReentrantRea
      * @return The reading operation result.
      * @throws E Type of the exception that can be raised by reader.
      */
-    public final <V, E extends Throwable> V read(final Action<? super R, ? extends V, E> reader) throws E{
-        if(reader == null) return null;
-        final Lock rl = readLock();
-        rl.lock();
-        try{
+    public final <V, E extends Throwable> V read(final Action<? super R, ? extends V, E> reader) throws E {
+        if (reader == null) return null;
+        try (final SafeCloseable ignored = acquireReadLock(SingleResourceGroup.INSTANCE)) {
             return reader.apply(getResource());
-        }
-        finally {
-            rl.unlock();
         }
     }
 
@@ -149,44 +117,9 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ReentrantRea
      */
     public final <V, E extends Throwable> V read(final Action<? super R, ? extends V, E> reader, final Duration readTimeout) throws E, TimeoutException, InterruptedException {
         if(reader == null) return null;
-        final Lock rl = readLock();
-        if(readTimeout == null) rl.lockInterruptibly();
-        else if(!rl.tryLock(readTimeout.toNanos(), TimeUnit.NANOSECONDS))
-                throw new TimeoutException(String.format("Read operation cannot be completed in %s time.", readTimeout));
-        try{
+        try(final SafeCloseable ignored = acquireReadLockInterruptibly(SingleResourceGroup.INSTANCE, readTimeout)){
             return reader.apply(getResource());
         }
-        finally {
-            rl.unlock();
-        }
-    }
-
-    /**
-     * Provides consistent write on the resource.
-     * <p>
-     *     This operation acquires write lock (may be infinitely in time) on the resource.
-     * </p>
-     * @param writer The resource writer.
-     * @param <O> Type of the resource writing operation.
-     * @return The value obtained from the resource.
-     */
-    public final <O> O write(final ConsistentAction<R, O> writer){
-        return write((Action<R, O, ExceptionPlaceholder>)writer);
-    }
-
-    /**
-     * Provides consistent write on the resource.
-     * <p>
-     *     This operation acquires write lock on the resource.
-     * </p>
-     * @param writer The resource writer.
-     * @param <O> Type of the resource writing operation.
-     * @return The value obtained from the resource.
-     * @throws TimeoutException Write lock cannot be acquired in the specified time.
-     * @throws InterruptedException Synchronization interrupted.
-     */
-    public final <O> O write(final ConsistentAction<? super R, ? extends O> writer, final Duration writeTimeout) throws TimeoutException, InterruptedException {
-        return write((Action<? super R, ? extends O, ExceptionPlaceholder>)writer, writeTimeout);
     }
 
     /**
@@ -202,13 +135,8 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ReentrantRea
      */
     public final <O, E extends Throwable> O write(final Action<? super R, ? extends O, E> writer) throws E{
         if(writer == null) return null;
-        final Lock wl = writeLock();
-        wl.lock();
-        try{
+        try(final SafeCloseable ignored = acquireWriteLock(SingleResourceGroup.INSTANCE)){
             return writer.apply(getResource());
-        }
-        finally {
-            wl.unlock();
         }
     }
     /**
@@ -226,15 +154,8 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ReentrantRea
      */
     public final <O, E extends Throwable> O write(final Action<? super R, ? extends O, E> writer, final Duration writeTimeout) throws E, TimeoutException, InterruptedException {
         if(writer == null) return null;
-        final Lock wl = writeLock();
-        if(writeTimeout == null) wl.lockInterruptibly();
-        else if(!wl.tryLock(writeTimeout.toNanos(), TimeUnit.NANOSECONDS))
-                throw new TimeoutException(String.format("Write operation cannot be completed in %s time.", writeTimeout));
-        try{
+        try(final SafeCloseable ignored = acquireWriteLockInterruptibly(SingleResourceGroup.INSTANCE, writeTimeout)){
             return writer.apply(getResource());
-        }
-        finally {
-            wl.unlock();
         }
     }
 }

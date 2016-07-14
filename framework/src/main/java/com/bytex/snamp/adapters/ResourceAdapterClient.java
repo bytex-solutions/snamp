@@ -35,21 +35,6 @@ import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfigurati
  * @since 1.0
  */
 public final class ResourceAdapterClient extends ServiceHolder<ResourceAdapter> {
-    private static final class ResourceAdapterServiceWait extends SpinWait<ServiceReference<ResourceAdapter>>{
-        private final BundleContext context;
-        private final String instanceName;
-
-        private ResourceAdapterServiceWait(final BundleContext context,
-                                           final String instanceName){
-            this.context = Objects.requireNonNull(context);
-            this.instanceName = Objects.requireNonNull(instanceName);
-        }
-
-        @Override
-        protected ServiceReference<ResourceAdapter> spin() {
-            return getResourceAdapter(context, instanceName);
-        }
-    }
 
     /**
      * Initializes a new client of the adapter instance.
@@ -65,7 +50,13 @@ public final class ResourceAdapterClient extends ServiceHolder<ResourceAdapter> 
     public ResourceAdapterClient(final BundleContext context,
                                  final String instanceName,
                                  final Duration instanceTimeout) throws TimeoutException, InterruptedException, ExecutionException{
-        super(context, new ResourceAdapterServiceWait(context, instanceName).get(instanceTimeout.toNanos(), TimeUnit.NANOSECONDS));
+        super(context, waitResourceAdapter(context, instanceName, instanceTimeout));
+    }
+
+    private static ServiceReference<ResourceAdapter> waitResourceAdapter(final BundleContext context,
+                                                                         final String instanceName,
+                                                                         final Duration instanceTimeout) throws InterruptedException, ExecutionException, TimeoutException {
+        return SpinWait.create(() -> getResourceAdapter(context, instanceName)).get(instanceTimeout.toNanos(), TimeUnit.NANOSECONDS);
     }
 
     private static ServiceReference<ResourceAdapter> getResourceAdapterAndCheck(final BundleContext context,

@@ -98,24 +98,14 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
     private static void waitForConnector(final Duration timeout,
                                   final String resourceName,
                                   final BundleContext context) throws TimeoutException, InterruptedException, ExecutionException {
-        final Future<ServiceReference<ManagedResourceConnector>> awaitor = new SpinWait<ServiceReference<ManagedResourceConnector>>() {
-            @Override
-            protected ServiceReference<ManagedResourceConnector> spin() {
-                return ManagedResourceConnectorClient.getResourceConnector(context, resourceName);
-            }
-        };
+        final Future<ServiceReference<ManagedResourceConnector>> awaitor = SpinWait.create(() -> ManagedResourceConnectorClient.getResourceConnector(context, resourceName));
         awaitor.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
     }
 
     private static void waitForNoConnector(final Duration timeout,
                                            final String resourceName,
                                            final BundleContext context) throws TimeoutException, InterruptedException, ExecutionException {
-        final Future<?> awaitor = new SpinWait<Object>() {
-            @Override
-            protected Object spin() {
-                return ManagedResourceConnectorClient.getResourceConnector(context, resourceName) != null ? null : new Object();
-            }
-        };
+        final Future<?> awaitor = SpinWait.create(() -> ManagedResourceConnectorClient.getResourceConnector(context, resourceName) != null ? null : new Object());
         awaitor.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
     }
 

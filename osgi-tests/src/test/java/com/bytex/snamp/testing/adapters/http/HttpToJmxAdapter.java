@@ -2,6 +2,7 @@ package com.bytex.snamp.testing.adapters.http;
 
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.adapters.ResourceAdapterClient;
+import com.bytex.snamp.concurrent.ConditionWait;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.jmx.CompositeDataBuilder;
@@ -204,7 +205,7 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
                 .transport(transport);
         final Socket sock = client.create();
         final NotificationReceiver receiver = new NotificationReceiver(10, formatter);
-        final CollectionSizeAwaitor awaitor = new CollectionSizeAwaitor(receiver, 3);
+        final ConditionWait awaitor = ConditionWait.create(receiver, col -> col.size() < 3);
         sock.on("message", receiver).open(requestBuilder.build());
         try{
             //force attribute change

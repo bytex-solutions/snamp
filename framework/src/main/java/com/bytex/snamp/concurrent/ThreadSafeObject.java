@@ -4,8 +4,11 @@ import com.bytex.snamp.Consumer;
 import com.bytex.snamp.SafeCloseable;
 import com.google.common.collect.ImmutableMap;
 
+import java.time.Duration;
 import java.util.EnumSet;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -65,6 +68,7 @@ public abstract class ThreadSafeObject {
 
     /**
      * Initializes a new thread-safe object in which all fields represents the single resource.
+     * @see SingleResourceGroup
      */
     protected ThreadSafeObject() {
         this(SingleResourceGroup.class);
@@ -78,26 +82,74 @@ public abstract class ThreadSafeObject {
             return writeLock ? lock.writeLock() : lock.readLock();
     }
 
-    private <E extends Throwable> SafeCloseable acquireLock(final Enum<?> resourceGroup, final boolean writeLock, final Consumer<? super Lock, E> locker) throws E {
-        final Lock scope = getLock(resourceGroup, writeLock);
-        locker.accept(scope);
-        return scope::unlock;
+    private static SafeCloseable getLockScope(final Lock lock){
+        return lock::unlock;
     }
 
+    private <E extends Throwable> SafeCloseable acquireLock(final Enum<?> resourceGroup, final boolean writeLock, final Consumer<? super Lock, E> locker) throws E {
+        final Lock lock = getLock(resourceGroup, writeLock);
+        locker.accept(lock);
+        return getLockScope(lock);
+    }
+
+    private SafeCloseable acquireLock(final Enum<?> resourceGroup, final boolean writeLock, final Duration timeout) throws InterruptedException, TimeoutException {
+        final Lock lock = getLock(resourceGroup, writeLock);
+        if (lock.tryLock(timeout.toNanos(), TimeUnit.NANOSECONDS))
+            return getLockScope(lock);
+        else
+            throw new TimeoutException(String.format("Lock cannot be acquired after '%s'", timeout));
+    }
+
+    /**
+     * Acquires the write lock.
+     * <p>If the lock is not available then the current thread becomes
+     * disabled for thread scheduling purposes and lies dormant until the
+     * lock has been acquired.
+     * @param resourceGroup Resource group identifier. Cannot be {@literal null}.
+     * @return An object that can be used to release lock only.
+     */
     protected final SafeCloseable acquireWriteLock(final Enum<?> resourceGroup){
         return acquireLock(resourceGroup, true, Lock::lock);
     }
 
+    /**
+     * Acquires the read lock.
+     * <p>If the lock is not available then the current thread becomes
+     * disabled for thread scheduling purposes and lies dormant until the
+     * lock has been acquired.
+     * @param resourceGroup Resource group identifier. Cannot be {@literal null}.
+     * @return An object that can be used to release lock only.
+     */
     protected final SafeCloseable acquireReadLock(final Enum<?> resourceGroup){
         return acquireLock(resourceGroup, false, Lock::lock);
     }
 
+    /**
+     * Acquires the write lock unless the current thread is {@linkplain Thread#interrupt interrupted}.
+     * @param resourceGroup Resource group identifier. Cannot be {@literal null}.
+     * @return An object that can be used to release lock only.
+     * @throws InterruptedException if the current thread is interrupted while acquiring the lock
+     */
     protected final SafeCloseable acquireWriteLockInterruptibly(final Enum<?> resourceGroup) throws InterruptedException {
         return acquireLock(resourceGroup, true, Lock::lockInterruptibly);
     }
 
+    protected final SafeCloseable acquireWriteLockInterruptibly(final Enum<?> resourceGroup, final Duration timeout) throws InterruptedException, TimeoutException {
+        return timeout == null ? acquireWriteLockInterruptibly(resourceGroup) : acquireLock(resourceGroup, true, timeout);
+    }
+
+    /**
+     * Acquires the read lock unless the current thread is {@linkplain Thread#interrupt interrupted}.
+     * @param resourceGroup Resource group identifier. Cannot be {@literal null}.
+     * @return An object that can be used to release lock only.
+     * @throws InterruptedException if the current thread is interrupted while acquiring the lock
+     */
     protected final SafeCloseable acquireReadLockInterruptibly(final Enum<?> resourceGroup) throws InterruptedException {
         return acquireLock(resourceGroup, false, Lock::lockInterruptibly);
+    }
+
+    protected final SafeCloseable acquireReadLockInterruptibly(final Enum<?> resourceGroup, final Duration timeout) throws InterruptedException, TimeoutException {
+        return timeout == null ? acquireReadLockInterruptibly(resourceGroup) : acquireLock(resourceGroup, false, timeout);
     }
 
     //<editor-fold desc="write Supplier">

@@ -130,12 +130,9 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
     @Override
     public void updated(final Dictionary<String, ?> properties) throws ConfigurationException {
         if (properties == null) //remove all
-            services.write(new ConsistentAction<Map<String, ExecutorService>, Void>() {
-                @Override
-                public Void apply(final Map<String, ExecutorService> services) {
-                    services.clear();
-                    return null;
-                }
+            services.write((ConsistentAction<Map<String, ExecutorService>, Void>) svcs -> {
+                svcs.clear();
+                return null;
             });
         else    //merge with runtime collection of thread pools
             services.write(new ConsistentAction<Map<String, ExecutorService>, Void>() {
@@ -173,9 +170,9 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
     @Override
     public void close() {
         defaultPool.terminate();
-        services.write(svcs -> {
-            svcs.values().forEach(ExecutorService::shutdown);
-            svcs.clear();
+        services.write(services -> {
+            services.values().forEach(ExecutorService::shutdown);
+            services.clear();
             return null;
         });
     }

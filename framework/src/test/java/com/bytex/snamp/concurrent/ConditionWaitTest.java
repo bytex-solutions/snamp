@@ -16,7 +16,7 @@ public class ConditionWaitTest extends Assert {
     public void simpleTest() throws Exception{
         final long EXPECTED_VALUE = 10L;
         final AtomicLong counter = new AtomicLong(0L);
-        final ConditionWait condition = ConditionWait.create(counter1 -> counter1.getAndIncrement() >= EXPECTED_VALUE, counter);
+        final ConditionWait condition = ConditionWait.create(counter, counter1 -> counter1.getAndIncrement() >= EXPECTED_VALUE);
         final Object result;
         assertNotNull(result = condition.get(5, TimeUnit.MINUTES));
         assertEquals(result, condition.get());

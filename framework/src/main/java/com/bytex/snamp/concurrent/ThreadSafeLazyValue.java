@@ -53,7 +53,7 @@ abstract class ThreadSafeLazyValue<V, C> implements LazyValue<V> {
         return localRef != null && unref(localRef) != null;
     }
 
-    private synchronized V callSync(final Callable<? extends V> activator) throws Exception {
+    private synchronized V getSync(final Callable<? extends V> activator) throws Exception {
         V value;
         if (ref == null || (value = unref(ref)) == null)
             ref = makeRef(value = activator.call());
@@ -64,7 +64,7 @@ abstract class ThreadSafeLazyValue<V, C> implements LazyValue<V> {
     public final V get(final Callable<? extends V> activator) throws Exception {
         final C localRef = ref;
         V value;
-        return localRef == null || (value = unref(localRef)) == null ? callSync(activator) : value;
+        return localRef == null || (value = unref(localRef)) == null ? getSync(activator) : value;
     }
 
     private synchronized V getSync(){

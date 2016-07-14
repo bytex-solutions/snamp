@@ -10,8 +10,6 @@ import java.io.IOException;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
-import static com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor.Action;
-
 /**
  * Represents in-memory configuration manager.
  * This class cannot be inherited.
@@ -34,7 +32,7 @@ public final class InMemoryConfigurationManager extends AbstractAggregator imple
      */
     @Override
     public <E extends Throwable> void processConfiguration(final ConfigurationProcessor<E> handler) throws E, IOException {
-        currentConfiguration.changeResource((Action<SerializableAgentConfiguration, SerializableAgentConfiguration, E>) config -> {
+        currentConfiguration.changeResource(config -> {
             final SerializableAgentConfiguration copy = config.clone();
             return handler.process(copy) ? copy : config;
         });
@@ -50,7 +48,7 @@ public final class InMemoryConfigurationManager extends AbstractAggregator imple
      */
     @Override
     public <E extends Throwable> void readConfiguration(final Consumer<? super AgentConfiguration, E> handler) throws E, IOException {
-        currentConfiguration.read((Action<AgentConfiguration, Void, E>) config -> {
+        currentConfiguration.read(config -> {
             handler.accept(config);
             return null;
         });

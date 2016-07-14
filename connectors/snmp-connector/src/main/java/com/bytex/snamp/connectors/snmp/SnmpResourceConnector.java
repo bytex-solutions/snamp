@@ -37,7 +37,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor.Action;
 import static com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor.ConsistentAction;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration.AUTOMATICALLY_ADDED_KEY;
 import static com.bytex.snamp.connectors.snmp.SnmpConnectorDescriptionProvider.*;
@@ -119,12 +118,9 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
             final SnmpNotificationInfo result = new SnmpNotificationInfo(category, metadata);
             //enable for a first time only
             if (hasNoNotifications())
-                client.write(new ConsistentAction<SnmpClient, Void>() {
-                    @Override
-                    public Void apply(final SnmpClient client) {
-                        client.addCommandResponder(SnmpNotificationRepository.this);
-                        return null;
-                    }
+                client.write((ConsistentAction<SnmpClient, Void>) client -> {
+                    client.addCommandResponder(this);
+                    return null;
                 });
             return result;
         }
@@ -133,12 +129,9 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         protected void disableNotifications(final SnmpNotificationInfo metadata) {
             if (hasNoNotifications())
                 try {
-                    client.write(new ConsistentAction<SnmpClient, Void>() {
-                        @Override
-                        public Void apply(final SnmpClient client) {
-                            client.removeCommandResponder(SnmpNotificationRepository.this);
-                            return null;
-                        }
+                    client.write((ConsistentAction<SnmpClient, Void>) client -> {
+                        client.removeCommandResponder(this);
+                        return null;
                     });
                 } catch (final Exception e) {
                     logger.log(Level.WARNING, String.format("Subscription to SNMP event %s failed",
@@ -581,7 +574,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         @Override
         protected SnmpAttributeInfo connectAttribute(final String attributeName, final AttributeDescriptor descriptor) throws Exception {
             final Duration responseTimeout = SnmpConnectorDescriptionProvider.getResponseTimeout(descriptor);
-            final Variable value = client.read((Action<SnmpClient, Variable, Exception>) client -> client.get(new OID(descriptor.getName(attributeName)), responseTimeout));
+            final Variable value = client.read(client -> client.get(new OID(descriptor.getName(attributeName)), responseTimeout));
             if(value == null) throw JMExceptionUtils.attributeNotFound(descriptor.getName(attributeName));
             else switch (value.getSyntax()){
                 case SMIConstants.SYNTAX_INTEGER32:
@@ -619,8 +612,8 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         @SuppressWarnings("unchecked")
         @Override
         protected Object getAttribute(final SnmpAttributeInfo metadata) throws Exception {
-            return client.read((Action<SnmpClient, Object, Exception>) client1 -> {
-                final Variable attribute = client1.get(metadata.getAttributeID(), metadata.getDescriptor().getReadWriteTimeout());
+            return client.read(client -> {
+                final Variable attribute = client.get(metadata.getAttributeID(), metadata.getDescriptor().getReadWriteTimeout());
                 switch (attribute.getSyntax()){
                     case SMIConstants.EXCEPTION_END_OF_MIB_VIEW:
                     case SMIConstants.EXCEPTION_NO_SUCH_INSTANCE:
@@ -643,13 +636,10 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
          */
         @Override
         protected void setAttribute(final SnmpAttributeInfo attribute, final Object value) throws Exception {
-            client.read(new Action<SnmpClient, Void, Exception>() {
-                @Override
-                public Void apply(final SnmpClient client) throws Exception {
-                    client.set(ImmutableMap.of(attribute.getAttributeID(), attribute.convert(value)),
-                            attribute.getDescriptor().getReadWriteTimeout());
-                    return null;
-                }
+            client.read(client -> {
+                client.set(ImmutableMap.of(attribute.getAttributeID(), attribute.convert(value)),
+                        attribute.getDescriptor().getReadWriteTimeout());
+                return null;
             });
         }
 
@@ -694,26 +684,25 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
             return featureType.isAssignableFrom(FEATURE_TYPE);
         }
 
+        private List<SnmpAttributeInfo> expandImpl(final SnmpClient client) throws InterruptedException, ExecutionException, TimeoutException, OpenDataException {
+            final LinkedList<SnmpAttributeInfo> result = new LinkedList<>();
+            for (final VariableBinding binding : client.walk(SnmpConnectorHelpers.getDiscoveryTimeout())) {
+                final Map<String, String> parameters = new HashMap<>(5);
+                parameters.put(AUTOMATICALLY_ADDED_KEY, Boolean.TRUE.toString());
+                if (binding.getVariable() instanceof OctetString)
+                    parameters.put(SNMP_CONVERSION_FORMAT_PARAM, OctetStringConversionFormat.adviceFormat((OctetString) binding.getVariable()));
+                final SnmpAttributeInfo attr = addAttribute(binding.getOid().toDottedString(),
+                        AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.TIMEOUT_FOR_SMART_MODE,
+                        CompositeDataUtils.create(parameters, SimpleType.STRING));
+                if (attr != null) result.add(attr);
+            }
+            return result;
+        }
+
         @Override
         public List<SnmpAttributeInfo> expand() {
             try {
-                return client.read(new Action<SnmpClient, List<SnmpAttributeInfo>, Exception>() {
-                    @Override
-                    public LinkedList<SnmpAttributeInfo> apply(final SnmpClient client) throws InterruptedException, ExecutionException, TimeoutException, OpenDataException {
-                        final LinkedList<SnmpAttributeInfo> result = new LinkedList<>();
-                        for(final VariableBinding binding: client.walk(SnmpConnectorHelpers.getDiscoveryTimeout())){
-                            final Map<String, String> parameters = new HashMap<>(5);
-                            parameters.put(AUTOMATICALLY_ADDED_KEY, Boolean.TRUE.toString());
-                            if(binding.getVariable() instanceof OctetString)
-                                parameters.put(SNMP_CONVERSION_FORMAT_PARAM, OctetStringConversionFormat.adviceFormat((OctetString) binding.getVariable()));
-                            final SnmpAttributeInfo attr = addAttribute(binding.getOid().toDottedString(),
-                                    AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.TIMEOUT_FOR_SMART_MODE,
-                                    CompositeDataUtils.create(parameters, SimpleType.STRING));
-                            if(attr != null) result.add(attr);
-                        }
-                        return result;
-                    }
-                });
+                return client.read(this::expandImpl);
             } catch (final Exception e) {
                 failedToExpand(logger, Level.WARNING, e);
                 return Collections.emptyList();
@@ -755,13 +744,10 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         return assembleMetricsReader(attributes, notifications);
     }
 
-    void listen() throws IOException{
-        client.write(new Action<SnmpClient, Void, IOException>() {
-            @Override
-            public Void apply(final SnmpClient client) throws IOException {
-                client.listen();
-                return null;
-            }
+    void listen() throws IOException {
+        client.write(client -> {
+            client.listen();
+            return null;
         });
     }
 
@@ -874,12 +860,9 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         super.close();
         attributes.close();
         notifications.close();
-        client.write(new Action<SnmpClient, Void, IOException>() {
-            @Override
-            public Void apply(final SnmpClient client) throws IOException {
+        client.write(client -> {
                 client.close();
                 return null;
-            }
         });
     }
 
