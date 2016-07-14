@@ -174,9 +174,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             //test notifications
             assertTrue(connection.getMBeanInfo(commonsObj).getNotifications().length > 0);
             final SynchronizationEvent<Notification> syncEvent = new SynchronizationEvent<>(true);
-            connection.addNotificationListener(commonsObj, (notification, handback) -> {
-                syncEvent.fire(notification);
-            }, null, null);
+            connection.addNotificationListener(commonsObj, (notification, handback) -> syncEvent.fire(notification), null, null);
             final String eventPayload = "Hello, world!";
             logger.log(LogService.LOG_ERROR, eventPayload);
             Notification notif = syncEvent.getAwaitor().get(3, TimeUnit.SECONDS);

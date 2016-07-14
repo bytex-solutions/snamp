@@ -31,18 +31,17 @@ public final class ConfigurationDiffEngine {
                 .filter(adapterInstance -> !target.containsKey(adapterInstance.getKey()))
                 .map(adapterInstance -> new RemoveResourceAdapterPatchImpl(adapterInstance.getKey(), adapterInstance.getValue()))
                 .collect(Collectors.toList()));
-        target.entrySet().stream()
-                .forEach(adapterInstance -> {
-                    //compute gaps between two resource adapters
-                    if (baseline.containsKey(adapterInstance.getKey())) {
-                        final ResourceAdapterConfiguration targetConfig = adapterInstance.getValue();
-                        if (!AbstractAgentConfiguration.equals(targetConfig, baseline.get(adapterInstance.getKey())))
-                            output.add(new UpdateResourceAdapterInstancePatchImpl(adapterInstance.getKey(), targetConfig));
-                    }
-                    //compute gaps for adapters that should be added to the baseline config
-                    else
-                        output.add(new AddResourceAdapterPatchIml(adapterInstance.getKey(), adapterInstance.getValue()));
-                });
+        target.entrySet().forEach(adapterInstance -> {
+            //compute gaps between two resource adapters
+            if (baseline.containsKey(adapterInstance.getKey())) {
+                final ResourceAdapterConfiguration targetConfig = adapterInstance.getValue();
+                if (!AbstractAgentConfiguration.equals(targetConfig, baseline.get(adapterInstance.getKey())))
+                    output.add(new UpdateResourceAdapterInstancePatchImpl(adapterInstance.getKey(), targetConfig));
+            }
+            //compute gaps for adapters that should be added to the baseline config
+            else
+                output.add(new AddResourceAdapterPatchIml(adapterInstance.getKey(), adapterInstance.getValue()));
+        });
     }
 
     private static void computeResourcesGap(final Collection<ConfigurationPatch> output,

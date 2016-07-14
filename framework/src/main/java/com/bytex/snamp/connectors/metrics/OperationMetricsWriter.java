@@ -22,7 +22,7 @@ public final class OperationMetricsWriter implements OperationMetrics {
 
     public void update(){
         totalInvocations.incrementAndGet();
-        statOfInvocations.values().stream().forEach(accumulator -> accumulator.update(1L));
+        statOfInvocations.values().forEach(accumulator -> accumulator.update(1L));
     }
 
     @Override

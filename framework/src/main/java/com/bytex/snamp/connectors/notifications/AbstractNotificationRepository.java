@@ -179,7 +179,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     protected final void fire(final NotificationCollector sender) {
         //collect notifications
         read(notifications, n -> {
-            notifications.values().stream().forEach(holder -> sender.process(holder.getMetadata()));
+            notifications.values().forEach(holder -> sender.process(holder.getMetadata()));
             return null;
         });
         //send notifications

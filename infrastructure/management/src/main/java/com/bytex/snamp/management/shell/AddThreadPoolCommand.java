@@ -1,5 +1,6 @@
 package com.bytex.snamp.management.shell;
 
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.ThreadPoolConfig;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import org.apache.karaf.shell.commands.Argument;
@@ -14,22 +15,28 @@ import org.apache.karaf.shell.commands.Option;
         description = "Register a new thread pool")
 public final class AddThreadPoolCommand extends AbstractThreadPoolCommand {
     @Argument(index = 0, name = "name", required = true, description = "Name of the thread pool to register")
+    @SpecialUse
     private String poolName = "";
 
     @Option(name = "-m", aliases = "--minPoolSize", description = "A number of threads to keep in the pool")
+    @SpecialUse
     private int minPoolSize = ThreadPoolConfig.DEFAULT_MIN_POOL_SIZE;
 
     @Option(name = "-M", aliases = "--maxPoolSize", description = "Maximum number of threads to allow in the pool")
+    @SpecialUse
     private int maxPoolSize = ThreadPoolConfig.DEFAULT_MAX_POOL_SIZE;
 
     @Option(name = "-p", aliases = "--priority", description = "Priority of thread in the pool: 1-10")
+    @SpecialUse
     private int threadPriority = ThreadPoolConfig.DEFAULT_PRIORITY;
 
     @Option(name = "-t", aliases = "--keepAliveTime", description = "When the number of threads is greater than the minimum, this is the maximum time (in millis) that excess idle threads\n" +
             " will wait for new tasks before terminating")
+    @SpecialUse
     private long keepAliveTime = ThreadPoolConfig.DEFAULT_KEEP_ALIVE_TIME.toMillis();
 
     @Option(name = "-q", aliases = "--queueSize", description = "Maximum number of scheduled tasks waiting in the queue. -1 for infinite queue")
+    @SpecialUse
     private int queueSize = ThreadPoolConfig.INFINITE_QUEUE_SIZE;
 
     @Override

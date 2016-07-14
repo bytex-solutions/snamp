@@ -37,7 +37,7 @@ public final class AttributeMetricsWriter implements AttributeMetrics {
      */
     public void updateWrites(){
         totalWrites.incrementAndGet();
-        statForWrites.values().stream().forEach(accumulator -> accumulator.update(1L));
+        statForWrites.values().forEach(accumulator -> accumulator.update(1L));
     }
 
     /**
