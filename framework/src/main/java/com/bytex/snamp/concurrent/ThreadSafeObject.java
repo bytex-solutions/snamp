@@ -74,30 +74,26 @@ public abstract class ThreadSafeObject {
         this(SingleResourceGroup.class);
     }
 
-    private Lock getLock(final Enum<?> group, final boolean writeLock) {
-        final ReadWriteLock lock = resourceGroups.get(group);
-        if (lock == null)
-            throw new IllegalArgumentException(String.format("Resource group %s is not defined.", group));
-        else
-            return writeLock ? lock.writeLock() : lock.readLock();
-    }
-
-    private static SafeCloseable getLockScope(final Lock lock){
+    private <E extends Throwable> SafeCloseable acquireLock(final Enum<?> resourceGroup, final boolean writeLock, final Consumer<? super Lock, E> locker) throws E {
+        final ReadWriteLock lockSupport = resourceGroups.get(resourceGroup);
+        if (lockSupport == null)
+            throw new IllegalArgumentException(String.format("Resource group %s is not defined.", resourceGroup));
+        final Lock lock = writeLock ? lockSupport.writeLock() : lockSupport.readLock();
+        locker.accept(lock);
         return lock::unlock;
     }
 
-    private <E extends Throwable> SafeCloseable acquireLock(final Enum<?> resourceGroup, final boolean writeLock, final Consumer<? super Lock, E> locker) throws E {
-        final Lock lock = getLock(resourceGroup, writeLock);
-        locker.accept(lock);
-        return getLockScope(lock);
-    }
-
     private SafeCloseable acquireLock(final Enum<?> resourceGroup, final boolean writeLock, final Duration timeout) throws InterruptedException, TimeoutException {
-        final Lock lock = getLock(resourceGroup, writeLock);
-        if (lock.tryLock(timeout.toNanos(), TimeUnit.NANOSECONDS))
-            return getLockScope(lock);
-        else
-            throw new TimeoutException(String.format("Lock cannot be acquired after '%s'", timeout));
+        try {
+            return acquireLock(resourceGroup, writeLock, lock -> {
+                if (!lock.tryLock(timeout.toNanos(), TimeUnit.NANOSECONDS))
+                    throw new TimeoutException(String.format("Lock cannot be acquired after '%s'", timeout));
+            });
+        } catch (final InterruptedException | TimeoutException | RuntimeException e) {
+            throw e;
+        } catch (final Exception e) {
+            throw new AssertionError("Unexpected exception", e);    //should never be happened
+        }
     }
 
     /**
