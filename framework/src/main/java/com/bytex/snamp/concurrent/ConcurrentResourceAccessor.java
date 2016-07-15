@@ -1,6 +1,6 @@
 package com.bytex.snamp.concurrent;
 
-import com.bytex.snamp.SafeCloseable;
+import com.bytex.snamp.Consumer;
 import com.bytex.snamp.Wrapper;
 
 /**
@@ -69,6 +69,10 @@ public class ConcurrentResourceAccessor<R> extends AbstractConcurrentResourceAcc
         return resource;
     }
 
+    private <E extends Throwable> void changeResourceImpl(final Action<R, R, E> newResource) throws E{
+        resource = newResource.apply(resource);
+    }
+
     /**
      * Changes the resource. This operation may fail.
      * <p>
@@ -81,8 +85,6 @@ public class ConcurrentResourceAccessor<R> extends AbstractConcurrentResourceAcc
      */
     public final <E extends Throwable> void changeResource(final Action<R, R, E> newResource) throws E {
         if (newResource == null) throw new IllegalArgumentException("newResource is null.");
-        try (final SafeCloseable ignored = acquireWriteLock(SingleResourceGroup.INSTANCE)) {
-            resource = newResource.apply(resource);
-        }
+        write(newResource, (Consumer<Action<R, R, E>, E>) this::changeResourceImpl);
     }
 }
