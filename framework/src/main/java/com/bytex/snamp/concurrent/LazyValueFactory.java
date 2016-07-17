@@ -8,7 +8,7 @@ import java.util.function.Supplier;
  * @since 1.2
  * @version 1.2
  */
-public enum LazyContainers {
+public enum LazyValueFactory {
     THREAD_UNSAFE{
         @Override
         public <V> SimpleLazyValue<V> of(final Supplier<V> activator) {

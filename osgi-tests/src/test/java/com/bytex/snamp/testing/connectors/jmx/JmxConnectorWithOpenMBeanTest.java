@@ -1,14 +1,14 @@
 package com.bytex.snamp.testing.connectors.jmx;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.connectors.attributes.AttributeSupport;
 import com.bytex.snamp.connectors.metrics.*;
+import com.bytex.snamp.connectors.notifications.Mailbox;
+import com.bytex.snamp.connectors.notifications.MailboxFactory;
 import com.bytex.snamp.connectors.notifications.NotificationSupport;
-import com.bytex.snamp.connectors.notifications.SynchronizationListener;
 import com.bytex.snamp.connectors.operations.OperationSupport;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.CompositeDataBuilder;
@@ -29,10 +29,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
@@ -120,22 +117,20 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         assertNotNull(notificationSupport);
         assertNotNull(attributeSupport);
         assertEquals(2, notificationSupport.getNotificationInfo().length);
-        final SynchronizationListener listener1 = new SynchronizationListener("19.1");
-        final SynchronizationListener listener2 = new SynchronizationListener("20.1");
+        final Mailbox listener1 = MailboxFactory.newMailbox("19.1");
+        final Mailbox listener2 = MailboxFactory.newMailbox("20.1");
         notificationSupport.addNotificationListener(listener1, listener1, null);
         notificationSupport.addNotificationListener(listener2, listener2, null);
-        final Future<Notification> awaitor1 = listener1.getAwaitor();
-        final Future<Notification> awaitor2 = listener2.getAwaitor();
         //force property changing
         attributeSupport.setAttribute(new Attribute("1.0", "Frank Underwood"));
-        final Notification notif1 = awaitor1.get(5, TimeUnit.SECONDS);
+        final Notification notif1 = listener1.poll(5, TimeUnit.SECONDS);
         assertNotNull(notif1);
         assertEquals("Property string is changed", notif1.getMessage());
         assertTrue(notif1.getUserData() instanceof CompositeData);
         final CompositeData attachment = (CompositeData)notif1.getUserData();
         assertEquals("string", attachment.get("attributeName"));
         assertEquals(String.class.getName(), attachment.get("attributeType"));
-        final Notification notif2 = awaitor2.get(5, TimeUnit.SECONDS);
+        final Notification notif2 = listener2.poll(5, TimeUnit.SECONDS);
         assertNotNull(notif2);
         assertEquals("Property changed", notif2.getMessage());
     }
@@ -155,24 +150,22 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         assertNotNull(notificationSupport);
         assertNotNull(attributeSupport);
         assertEquals(2, notificationSupport.getNotificationInfo().length);
-        final SynchronizationListener listener1 = new SynchronizationListener("19.1");
-        final SynchronizationListener listener2 = new SynchronizationListener("20.1");
+        final Mailbox listener1 = MailboxFactory.newMailbox("19.1");
+        final Mailbox listener2 = MailboxFactory.newMailbox("20.1");
         notificationSupport.addNotificationListener(listener1, listener1, null);
         notificationSupport.addNotificationListener(listener2, listener2, null);
-        final Future<Notification> awaitor1 = listener1.getAwaitor();
-        final Future<Notification> awaitor2 = listener2.getAwaitor();
         //simulate connection abort
         assertEquals("OK", ManagedResourceConnectorClient.invokeMaintenanceAction(getTestBundleContext(), CONNECTOR_NAME, "simulateConnectionAbort", null, null).get(3, TimeUnit.SECONDS));
         //force property changing
         attributeSupport.setAttribute(new Attribute("1.0", "Frank Underwood"));
-        final Notification notif1 = awaitor1.get(5, TimeUnit.SECONDS);
+        final Notification notif1 = listener1.poll(5, TimeUnit.SECONDS);
         assertNotNull(notif1);
         assertEquals("Property string is changed", notif1.getMessage());
         assertTrue(notif1.getUserData() instanceof CompositeData);
         final CompositeData attachment = (CompositeData)notif1.getUserData();
         assertEquals("string", attachment.get("attributeName"));
         assertEquals(String.class.getName(), attachment.get("attributeType"));
-        final Notification notif2 = awaitor2.get(5, TimeUnit.SECONDS);
+        final Notification notif2 = listener2.poll(5, TimeUnit.SECONDS);
         assertNotNull(notif2);
         assertEquals("Property changed", notif2.getMessage());
     }
@@ -282,21 +275,21 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
     @Test
     public void testForResourceConnectorListener() throws Exception {
         final BundleContext context = getTestBundleContext();
-        final SynchronizationEvent<Boolean> unregistered = new SynchronizationEvent<>(false);
-        final SynchronizationEvent<Boolean> registered = new SynchronizationEvent<>(false);
+        final CompletableFuture<Boolean> unregistered = new CompletableFuture<>();
+        final CompletableFuture<Boolean> registered = new CompletableFuture<>();
         ManagedResourceConnectorClient.addResourceListener(context, event -> {
             switch (event.getType()){
                 case ServiceEvent.UNREGISTERING:
-                    unregistered.fire(Utils.isInstanceOf(event.getServiceReference(), ManagedResourceConnector.class));
+                    unregistered.complete(Utils.isInstanceOf(event.getServiceReference(), ManagedResourceConnector.class));
                     return;
                 case ServiceEvent.REGISTERED:
-                    registered.fire(Utils.isInstanceOf(event.getServiceReference(), ManagedResourceConnector.class));
+                    registered.complete(Utils.isInstanceOf(event.getServiceReference(), ManagedResourceConnector.class));
             }
         });
         stopResourceConnector(context);
         startResourceConnector(context);
-        assertTrue(unregistered.getAwaitor().get(2, TimeUnit.SECONDS));
-        assertTrue(registered.getAwaitor().get(2, TimeUnit.SECONDS));
+        assertTrue(unregistered.get(2, TimeUnit.SECONDS));
+        assertTrue(registered.get(2, TimeUnit.SECONDS));
     }
 
     @Test

@@ -11,14 +11,14 @@ import java.math.BigInteger;
 public final class LazyValueTest extends Assert {
     @Test(expected = IllegalStateException.class)
     public void illegalStateTest(){
-        final LazyValue<BigInteger> lazy = LazyContainers.THREAD_SAFE.of(() -> BigInteger.TEN);
+        final LazyValue<BigInteger> lazy = LazyValueFactory.THREAD_SAFE.of(() -> BigInteger.TEN);
         assertFalse(lazy.isActivated());
         lazy.getIfActivated();
     }
 
     @Test
     public void strongReferenceTest() throws Exception{
-        final LazyValue<BigInteger> lazy = LazyContainers.THREAD_SAFE.of(() -> BigInteger.TEN);
+        final LazyValue<BigInteger> lazy = LazyValueFactory.THREAD_SAFE.of(() -> BigInteger.TEN);
         assertFalse(lazy.isActivated());
         assertEquals(BigInteger.TEN, lazy.get());
         assertTrue(lazy.isActivated());
@@ -31,7 +31,7 @@ public final class LazyValueTest extends Assert {
 
     @Test
     public void softReferenceTest() throws Exception{
-        final LazyValue<BigInteger> lazy = LazyContainers.THREAD_SAFE_SOFT_REFERENCED.of(() -> BigInteger.TEN);
+        final LazyValue<BigInteger> lazy = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(() -> BigInteger.TEN);
         assertFalse(lazy.isActivated());
         assertEquals(BigInteger.TEN, lazy.get());
         assertTrue(lazy.isActivated());
@@ -44,7 +44,7 @@ public final class LazyValueTest extends Assert {
 
     @Test
     public void threadUnsafeTest() throws Exception{
-        final LazyValue<BigInteger> lazy = LazyContainers.THREAD_UNSAFE.of(() -> BigInteger.TEN);
+        final LazyValue<BigInteger> lazy = LazyValueFactory.THREAD_UNSAFE.of(() -> BigInteger.TEN);
         assertFalse(lazy.isActivated());
         assertEquals(BigInteger.TEN, lazy.get());
         assertTrue(lazy.isActivated());

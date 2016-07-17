@@ -1,7 +1,7 @@
 package com.bytex.snamp.adapters.groovy.dsl;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.concurrent.LazyContainers;
+import com.bytex.snamp.concurrent.LazyValueFactory;
 import com.bytex.snamp.concurrent.LazyValue;
 import groovy.lang.GroovyObjectSupport;
 
@@ -26,7 +26,7 @@ public final class GroovyResourceAttribute extends GroovyObjectSupport {
         this.attributes = attributes;
         this.attributeName = attributeName;
         this.resourceName = resourceName;
-        this.metadataCache = LazyContainers.THREAD_SAFE_SOFT_REFERENCED.of(() ->
+        this.metadataCache = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(() ->
                 attributes.getAttributesMetadata(resourceName).stream()
                         .filter(metadata -> attributeName.equals(metadata.getName()))
                         .map(GroovyFeatureMetadata::new)

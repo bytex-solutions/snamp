@@ -1,6 +1,6 @@
 package com.bytex.snamp.connectors.mq;
 
-import com.bytex.snamp.concurrent.LazyContainers;
+import com.bytex.snamp.concurrent.LazyValueFactory;
 import com.bytex.snamp.concurrent.LazyValue;
 import com.bytex.snamp.connectors.ManagedResourceDescriptionProvider;
 import com.bytex.snamp.connectors.mda.MDAResourceConfigurationDescriptorProvider;
@@ -62,7 +62,7 @@ public final class MQResourceConnectorDescriptionProvider extends MDAResourceCon
         }
     }
 
-    private static final LazyValue<MQResourceConnectorDescriptionProvider> INSTANCE = LazyContainers.THREAD_SAFE.of(MQResourceConnectorDescriptionProvider::new);
+    private static final LazyValue<MQResourceConnectorDescriptionProvider> INSTANCE = LazyValueFactory.THREAD_SAFE.of(MQResourceConnectorDescriptionProvider::new);
 
     private MQResourceConnectorDescriptionProvider() {
         super(new MQConnectorConfigurationDescriptor(),

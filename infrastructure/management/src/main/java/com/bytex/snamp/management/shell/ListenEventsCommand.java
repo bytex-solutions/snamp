@@ -3,7 +3,8 @@ package com.bytex.snamp.management.shell;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
-import com.bytex.snamp.connectors.notifications.NotificationBox;
+import com.bytex.snamp.connectors.notifications.Mailbox;
+import com.bytex.snamp.connectors.notifications.MailboxFactory;
 import com.bytex.snamp.connectors.notifications.NotificationSupport;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
@@ -71,7 +72,7 @@ public final class ListenEventsCommand extends OsgiCommandSupport implements Sna
             return;
         }
         output.println("Press CTRL+C to stop listening");
-        final NotificationBox mailbox = new NotificationBox(capacity);
+        final Mailbox mailbox = MailboxFactory.newFixedSizeMailbox(capacity);
         notifSupport.addNotificationListener(mailbox, new AllowedCategories(categories), null);
         try{
             while (true){

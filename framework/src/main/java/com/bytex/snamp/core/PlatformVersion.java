@@ -1,6 +1,6 @@
 package com.bytex.snamp.core;
 
-import com.bytex.snamp.concurrent.LazyContainers;
+import com.bytex.snamp.concurrent.LazyValueFactory;
 import com.bytex.snamp.concurrent.LazyValue;
 import com.bytex.snamp.io.IOUtils;
 import org.osgi.framework.Version;
@@ -16,7 +16,7 @@ import java.io.InputStream;
  * @since 1.0
  */
 public final class PlatformVersion extends Version {
-    private static final LazyValue<PlatformVersion> CURRENT_VERSION = LazyContainers.THREAD_SAFE_SOFT_REFERENCED.of(PlatformVersion::getCurrentVersionImpl);
+    private static final LazyValue<PlatformVersion> CURRENT_VERSION = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(PlatformVersion::getCurrentVersionImpl);
 
     private PlatformVersion(final String version){
         super(version);

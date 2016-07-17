@@ -2,7 +2,6 @@ package com.bytex.snamp.testing;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.adapters.*;
-import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import org.junit.After;
@@ -18,6 +17,7 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -42,21 +42,21 @@ import static com.bytex.snamp.configuration.ConfigurationManager.ConfigurationPr
 @ImportPackages("com.bytex.snamp;version=\"[1.0,2)\"")
 public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTest {
 
-    private static final class AdapterStartedSynchronizationEvent extends SynchronizationEvent<ResourceAdapter> implements ResourceAdapterEventListener {
+    private static final class AdapterStartedSynchronizationEvent extends CompletableFuture<ResourceAdapter> implements ResourceAdapterEventListener {
 
         @Override
         public void handle(final ResourceAdapterEvent e) {
             if(e instanceof ResourceAdapterStartedEvent)
-                fire(e.getSource());
+                complete(e.getSource());
         }
     }
 
-    private static final class AdapterUpdatedSynchronizationEvent extends SynchronizationEvent<ResourceAdapter> implements ResourceAdapterEventListener{
+    private static final class AdapterUpdatedSynchronizationEvent extends CompletableFuture<ResourceAdapter> implements ResourceAdapterEventListener{
 
         @Override
         public void handle(final ResourceAdapterEvent e) {
             if(e instanceof ResourceAdapterUpdatedEvent)
-                fire(e.getSource());
+                complete(e.getSource());
         }
     }
     private static final EnvironmentBuilder SNAMP_ENV_BUILDER = new EnvironmentBuilder() {
@@ -149,14 +149,14 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
         afterCleanupTest(getTestBundleContext());
     }
 
-    protected static <V, E extends Exception> V syncWithAdapterStartedEvent(final String adapterName,
-                                                                          final Callable<? extends V> handler,
-                                                                          final Duration timeout) throws Exception {
+    protected static <V> V syncWithAdapterStartedEvent(final String adapterName,
+                                                       final Callable<? extends V> handler,
+                                                       final Duration timeout) throws Exception {
         final AdapterStartedSynchronizationEvent synchronizer = new AdapterStartedSynchronizationEvent();
         ResourceAdapterClient.addEventListener(adapterName, synchronizer);
         try {
             final V result = handler.call();
-            synchronizer.getAwaitor().get(timeout.toNanos(), TimeUnit.NANOSECONDS);
+            assertNotNull(synchronizer.get(timeout.toNanos(), TimeUnit.NANOSECONDS));
             return result;
         }
         catch (final ExecutionException e){
@@ -168,14 +168,14 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected static <V, E extends Exception> V syncWithAdapterUpdatedEvent(final String adapterName,
-                                                                            final Callable<? extends V> handler,
-                                                                            final Duration timeout) throws Exception {
+    protected static <V> V syncWithAdapterUpdatedEvent(final String adapterName,
+                                                       final Callable<? extends V> handler,
+                                                       final Duration timeout) throws Exception {
         final AdapterUpdatedSynchronizationEvent synchronizer = new AdapterUpdatedSynchronizationEvent();
         ResourceAdapterClient.addEventListener(adapterName, synchronizer);
         try {
             final V result = handler.call();
-            synchronizer.getAwaitor().get(timeout.toNanos(), TimeUnit.NANOSECONDS);
+            assertNotNull(synchronizer.get(timeout.toNanos(), TimeUnit.NANOSECONDS));
             return result;
         } catch (final ExecutionException e){
             fail(e.getCause().getMessage());

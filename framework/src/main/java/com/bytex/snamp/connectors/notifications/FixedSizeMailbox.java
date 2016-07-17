@@ -1,7 +1,6 @@
 package com.bytex.snamp.connectors.notifications;
 
 import javax.management.Notification;
-import javax.management.NotificationListener;
 import java.util.concurrent.ArrayBlockingQueue;
 
 /**
@@ -10,14 +9,14 @@ import java.util.concurrent.ArrayBlockingQueue;
  * @version 1.2
  * @since 1.0
  */
-public class NotificationBox extends ArrayBlockingQueue<Notification> implements NotificationListener {
+final class FixedSizeMailbox extends ArrayBlockingQueue<Notification> implements Mailbox {
     private static final long serialVersionUID = 7011237951803102271L;
 
     /**
      * Initializes a new mailbox.
      * @param maxCapacity The capacity of the new mailbox.
      */
-    public NotificationBox(final int maxCapacity){
+    FixedSizeMailbox(final int maxCapacity){
         super(maxCapacity);
     }
 

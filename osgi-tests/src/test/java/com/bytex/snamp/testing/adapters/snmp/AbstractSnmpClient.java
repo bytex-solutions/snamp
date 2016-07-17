@@ -1,6 +1,5 @@
 package com.bytex.snamp.testing.adapters.snmp;
 
-import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.testing.SnmpTable;
 import com.google.common.collect.ImmutableList;
 import org.snmp4j.*;
@@ -19,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
@@ -143,7 +143,7 @@ abstract class AbstractSnmpClient implements SnmpClient {
      * @return
      */
     public final Future<SnmpNotification> addNotificationListener(final OID notificationID){
-        final SynchronizationEvent<SnmpNotification> signaller = new SynchronizationEvent<>();
+        final CompletableFuture<SnmpNotification> signaller = new CompletableFuture<>();
         snmp.addCommandResponder(event -> {
             final PDU p = event.getPDU();
             if(p.getVariableBindings().size() == 0) return;
@@ -156,10 +156,10 @@ abstract class AbstractSnmpClient implements SnmpClient {
                         notif.put(binding);
                     }
                 if(notif != null && notif.size() > 0)
-                    signaller.fire(notif);
+                    signaller.complete(notif);
             }
         });
-        return signaller.getAwaitor();
+        return signaller;
     }
 
     /**

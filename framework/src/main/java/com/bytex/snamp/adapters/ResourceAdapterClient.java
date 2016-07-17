@@ -19,7 +19,6 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -56,7 +55,7 @@ public final class ResourceAdapterClient extends ServiceHolder<ResourceAdapter> 
     private static ServiceReference<ResourceAdapter> waitResourceAdapter(final BundleContext context,
                                                                          final String instanceName,
                                                                          final Duration instanceTimeout) throws InterruptedException, ExecutionException, TimeoutException {
-        return SpinWait.create(() -> getResourceAdapter(context, instanceName)).get(instanceTimeout.toNanos(), TimeUnit.NANOSECONDS);
+        return SpinWait.spinUntilNull(context, instanceName, ResourceAdapterClient::getResourceAdapter, instanceTimeout);
     }
 
     private static ServiceReference<ResourceAdapter> getResourceAdapterAndCheck(final BundleContext context,

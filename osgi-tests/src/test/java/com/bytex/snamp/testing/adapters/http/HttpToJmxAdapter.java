@@ -2,13 +2,16 @@ package com.bytex.snamp.testing.adapters.http;
 
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.adapters.ResourceAdapterClient;
-import com.bytex.snamp.concurrent.ConditionWait;
+import com.bytex.snamp.concurrent.SpinWait;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.bytex.snamp.jmx.TabularDataBuilder;
 import com.bytex.snamp.jmx.json.JsonUtils;
-import com.bytex.snamp.testing.*;
+import com.bytex.snamp.testing.BundleExceptionCallable;
+import com.bytex.snamp.testing.ImportPackages;
+import com.bytex.snamp.testing.SnampDependencies;
+import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connectors.jmx.TestOpenMBean;
 import com.google.gson.Gson;
@@ -32,9 +35,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.time.Duration;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
@@ -54,13 +56,11 @@ import static com.bytex.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
 @ImportPackages({"com.bytex.snamp.jmx.json;version=\"[1.0,2)\"",
         "org.atmosphere.wasync;version=\"[2.0.0,3)\""})
 public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBean> {
-    private static final class NotificationReceiver extends ArrayBlockingQueue<JsonElement> implements Function<String>{
+    private static final class NotificationReceiver extends LinkedBlockingQueue<JsonElement> implements Function<String>{
         private static final long serialVersionUID = 2056675059549300951L;
         private final Gson formatter;
 
-        private NotificationReceiver(final int capacity,
-                                    final Gson formatter) {
-            super(capacity);
+        private NotificationReceiver(final Gson formatter) {
             this.formatter = formatter;
         }
 
@@ -204,16 +204,15 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
                 //.trackMessageLength(true)
                 .transport(transport);
         final Socket sock = client.create();
-        final NotificationReceiver receiver = new NotificationReceiver(10, formatter);
-        final ConditionWait awaitor = ConditionWait.create(receiver, col -> col.size() < 3);
+        final NotificationReceiver receiver = new NotificationReceiver(formatter);
         sock.on("message", receiver).open(requestBuilder.build());
         try{
             //force attribute change
             testStringAttribute();
             //wait for notifications
-            assertNotNull(awaitor.get(3, TimeUnit.SECONDS));
-        } catch (final InterruptedException | TimeoutException | ExecutionException e) {
-            fail(e.getMessage());
+            SpinWait.spinUntil(() -> receiver.size() < 1, Duration.ofSeconds(3));
+        } catch (final InterruptedException | TimeoutException e) {
+            fail(String.format("Invalid message count: %s", receiver.size()));
         } finally {
             sock.close();
         }

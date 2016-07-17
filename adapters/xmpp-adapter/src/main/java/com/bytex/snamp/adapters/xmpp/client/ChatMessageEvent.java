@@ -1,10 +1,10 @@
 package com.bytex.snamp.adapters.xmpp.client;
 
-import com.bytex.snamp.concurrent.SynchronizationEvent;
 import org.jivesoftware.smack.chat.Chat;
 import org.jivesoftware.smack.chat.ChatMessageListener;
 import org.jivesoftware.smack.packet.Message;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
 
 /**
@@ -12,11 +12,10 @@ import java.util.regex.Pattern;
  * @version 1.2
  * @since 1.0
  */
-final class ChatMessageEvent extends SynchronizationEvent<Message> implements ChatMessageListener {
+final class ChatMessageEvent extends CompletableFuture<Message> implements ChatMessageListener {
     private final Pattern filter;
 
     ChatMessageEvent(final String filter){
-        super(false);
         this.filter = Pattern.compile(filter);
     }
 
@@ -24,7 +23,7 @@ final class ChatMessageEvent extends SynchronizationEvent<Message> implements Ch
         if(message.getBody() == null) return false;
         else if(filter.matcher(message.getBody()).matches()) return false;
         else {
-            fire(message);
+            complete(message);
             return true;
         }
     }

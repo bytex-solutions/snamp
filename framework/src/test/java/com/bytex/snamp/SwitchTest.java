@@ -16,7 +16,6 @@ public final class SwitchTest extends Assert {
 
     @Test
     public void simpleTest(){
-        @SuppressWarnings("ConstantConditions")
         final boolean result = new Switch<Long, Boolean>()
                 .equals(42L, Boolean.FALSE)
                 .equals(43L, Boolean.TRUE)

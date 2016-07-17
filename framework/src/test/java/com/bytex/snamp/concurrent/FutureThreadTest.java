@@ -45,9 +45,8 @@ public final class FutureThreadTest extends Assert {
     @Test(expected = CancellationException.class)
     public void taskCancellationTest() throws InterruptedException, ExecutionException {
         final FutureThread<String> longRunning = new FutureThread<>(() -> {
-            while (!Thread.currentThread().isInterrupted())
-                Thread.yield();
-            return "interrupted";
+            while (true)
+                Thread.sleep(100);
         });
         longRunning.start();
         Thread.sleep(100);

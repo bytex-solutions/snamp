@@ -2,7 +2,6 @@ package com.bytex.snamp.testing.connectors.snmp;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.concurrent.Repeater;
-import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
@@ -39,6 +38,7 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
@@ -318,14 +318,14 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
             final NotificationSupport notifications = connector.queryObject(NotificationSupport.class);
             assertNotNull(notifications);
             assertNotNull(notifications.getNotificationInfo("snmp-notif"));
-            final SynchronizationEvent<Notification> trap = new SynchronizationEvent<>(false);
-            notifications.addNotificationListener((notification, handback) -> trap.fire(notification), null, null);
+            final CompletableFuture<Notification> trap = new CompletableFuture<>();
+            notifications.addNotificationListener((notification, handback) -> trap.complete(notification), null, null);
             //obtain client addresses
             final Address[] addresses = connector.queryObject(Address[].class);
             assertNotNull(addresses);
             assertEquals(1, addresses.length);
             assertTrue(addresses[0] instanceof UdpAddress);
-            final Notification n = trap.getAwaitor().get(6, TimeUnit.SECONDS);
+            final Notification n = trap.get(6, TimeUnit.SECONDS);
             assertNotNull(n);
             assertEquals("Hello, world! - 42", n.getMessage());
             assertEquals(0L, n.getSequenceNumber());

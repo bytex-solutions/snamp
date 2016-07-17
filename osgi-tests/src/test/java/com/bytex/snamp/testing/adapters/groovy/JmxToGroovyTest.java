@@ -3,7 +3,6 @@ package com.bytex.snamp.testing.adapters.groovy;
 import com.bytex.snamp.adapters.ResourceAdapter;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.adapters.ResourceAdapterClient;
-import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.io.Communicator;
 import com.bytex.snamp.jmx.WellKnownType;
@@ -20,6 +19,7 @@ import java.io.File;
 import java.math.BigInteger;
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Predicate;
@@ -91,9 +91,9 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     public void notificationTest() throws ExecutionException, TimeoutException, InterruptedException {
         final Communicator channel = Communicator.getSession(COMMUNICATION_CHANNEL);
         final String MESSAGE = "changeStringAttributeSilent";
-        final SynchronizationEvent<?> awaitor = channel.registerMessageSynchronizer(MESSAGE);
+        final Future<?> awaitor = channel.registerMessageSynchronizer(MESSAGE);
         channel.post(MESSAGE);
-        final Object notification = awaitor.getAwaitor().get(3, TimeUnit.SECONDS);
+        final Object notification = awaitor.get(3, TimeUnit.SECONDS);
         assertTrue(notification instanceof Notification);
     }
 

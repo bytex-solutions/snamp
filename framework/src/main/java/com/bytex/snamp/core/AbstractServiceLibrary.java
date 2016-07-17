@@ -2,7 +2,7 @@ package com.bytex.snamp.core;
 
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.ThreadSafe;
-import com.bytex.snamp.concurrent.LazyContainers;
+import com.bytex.snamp.concurrent.LazyValueFactory;
 import com.bytex.snamp.concurrent.LazyValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -362,7 +362,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          */
         protected DynamicServiceManager(final RequiredService<?>... dependencies) {
             super(ManagedServiceFactory.class, dependencies);
-            factoryPID = LazyContainers.THREAD_SAFE.of(this::getFactoryPIDImpl);
+            factoryPID = LazyValueFactory.THREAD_SAFE.of(this::getFactoryPIDImpl);
         }
 
         private String getFactoryPIDImpl(){

@@ -70,7 +70,7 @@ public final class XMPPClient implements Closeable {
         }
         final Message responseMsg;
         try{
-            responseMsg = response.getAwaitor().get(responseTimeout.toNanos(), TimeUnit.NANOSECONDS);
+            responseMsg = response.get(responseTimeout.toNanos(), TimeUnit.NANOSECONDS);
         }
         finally {
             chat.removeMessageListener(response);
@@ -78,17 +78,21 @@ public final class XMPPClient implements Closeable {
         return responseMsg.getBody();
     }
 
-    public Future<Message> waitMessage(final String ignoreFilter) throws IOException {
-        if (chat == null) throw new IOException("Chat doesn't exist");
-        final ChatMessageEvent response = new ChatMessageEvent(ignoreFilter);
-        chat.addMessageListener(new ChatMessageListener() {
+    private ChatMessageListener createMessageListener(final ChatMessageEvent response){
+        return new ChatMessageListener() {
             @Override
             public void processMessage(final Chat chat, final Message message) {
                 if (response.processMessage(message))
                     chat.removeMessageListener(this);
             }
-        });
-        return response.getAwaitor();
+        };
+    }
+
+    public Future<Message> waitMessage(final String ignoreFilter) throws IOException {
+        if (chat == null) throw new IOException("Chat doesn't exist");
+        final ChatMessageEvent response = new ChatMessageEvent(ignoreFilter);
+        chat.addMessageListener(createMessageListener(response));
+        return response;
     }
 
     public boolean endChat(){

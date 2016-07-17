@@ -3,7 +3,7 @@ package com.bytex.snamp.adapters.modeling;
 import com.bytex.snamp.Consumer;
 import com.bytex.snamp.TypeTokens;
 import com.bytex.snamp.concurrent.LazyValue;
-import com.bytex.snamp.concurrent.LazyContainers;
+import com.bytex.snamp.concurrent.LazyValueFactory;
 import com.bytex.snamp.connectors.FeatureModifiedEvent;
 import com.bytex.snamp.connectors.attributes.AttributeAddedEvent;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
@@ -58,8 +58,8 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
     public AttributeAccessor(final MBeanAttributeInfo metadata) {
         super(metadata);
         attributeSupport = null;
-        wellKnownType = LazyContainers.THREAD_SAFE_SOFT_REFERENCED.of(() -> AttributeDescriptor.getType(getMetadata()));
-        openType = LazyContainers.THREAD_SAFE_SOFT_REFERENCED.of(() -> AttributeDescriptor.getOpenType(getMetadata()));
+        wellKnownType = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(() -> AttributeDescriptor.getType(getMetadata()));
+        openType = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(() -> AttributeDescriptor.getOpenType(getMetadata()));
     }
 
     /**

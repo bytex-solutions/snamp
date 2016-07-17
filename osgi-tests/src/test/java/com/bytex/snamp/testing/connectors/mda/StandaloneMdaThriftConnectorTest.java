@@ -1,7 +1,8 @@
 package com.bytex.snamp.testing.connectors.mda;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.connectors.notifications.NotificationBox;
+import com.bytex.snamp.connectors.notifications.Mailbox;
+import com.bytex.snamp.connectors.notifications.MailboxFactory;
 import com.bytex.snamp.connectors.notifications.NotificationSupport;
 import com.bytex.snamp.io.Buffers;
 import com.google.common.collect.ImmutableList;
@@ -149,7 +150,7 @@ public final class StandaloneMdaThriftConnectorTest extends AbstractMdaConnector
     @Test
     public void notificationTest() throws IOException, TException, TimeoutException, InterruptedException {
         final NotificationSupport notifications = getManagementConnector().queryObject(NotificationSupport.class);
-        final NotificationBox mailbox = new NotificationBox(2);
+        final Mailbox mailbox = MailboxFactory.newFixedSizeMailbox(2);
         try {
             notifications.addNotificationListener(mailbox, null, null);
         } finally {

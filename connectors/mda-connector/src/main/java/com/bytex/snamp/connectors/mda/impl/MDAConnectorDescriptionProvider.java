@@ -1,6 +1,6 @@
 package com.bytex.snamp.connectors.mda.impl;
 
-import com.bytex.snamp.concurrent.LazyContainers;
+import com.bytex.snamp.concurrent.LazyValueFactory;
 import com.bytex.snamp.concurrent.LazyValue;
 import com.bytex.snamp.connectors.mda.MDAResourceConfigurationDescriptorProvider;
 
@@ -38,7 +38,7 @@ public final class MDAConnectorDescriptionProvider extends MDAResourceConfigurat
         }
     }
 
-    private static final LazyValue<MDAConnectorDescriptionProvider> INSTANCE = LazyContainers.THREAD_SAFE.of(MDAConnectorDescriptionProvider::new);
+    private static final LazyValue<MDAConnectorDescriptionProvider> INSTANCE = LazyValueFactory.THREAD_SAFE.of(MDAConnectorDescriptionProvider::new);
 
     private MDAConnectorDescriptionProvider(){
         super(new AttributeConfigurationDescriptorImpl(),

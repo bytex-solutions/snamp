@@ -1,7 +1,7 @@
 package com.bytex.snamp.adapters.nsca;
 
 import com.bytex.snamp.adapters.ResourceAdapterDescriptionProvider;
-import com.bytex.snamp.concurrent.LazyContainers;
+import com.bytex.snamp.concurrent.LazyValueFactory;
 import com.bytex.snamp.concurrent.LazyValue;
 import com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
@@ -73,7 +73,7 @@ final class NSCAAdapterConfigurationDescriptor extends ConfigurationEntityDescri
                     PASSIVE_CHECK_SEND_PERIOD_PARAM);
         }
     }
-    private static final LazyValue<NSCAAdapterConfigurationDescriptor> INSTANCE = LazyContainers.THREAD_SAFE.of(NSCAAdapterConfigurationDescriptor::new);
+    private static final LazyValue<NSCAAdapterConfigurationDescriptor> INSTANCE = LazyValueFactory.THREAD_SAFE.of(NSCAAdapterConfigurationDescriptor::new);
 
     private NSCAAdapterConfigurationDescriptor() {
         super(new ResourceAdapterConfigurationInfo(),

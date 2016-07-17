@@ -4,8 +4,9 @@ import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
+import com.bytex.snamp.connectors.notifications.Mailbox;
+import com.bytex.snamp.connectors.notifications.MailboxFactory;
 import com.bytex.snamp.connectors.notifications.NotificationSupport;
-import com.bytex.snamp.connectors.notifications.SynchronizationListener;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
@@ -16,7 +17,6 @@ import javax.management.Notification;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.TabularData;
 import java.util.Collection;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -99,10 +99,9 @@ public final class GroovyConnectorTest extends AbstractGroovyConnectorTest {
         try{
             final NotificationSupport notificationSupport = groovyConnector.queryObject(NotificationSupport.class);
             assertNotNull(notificationSupport);
-            final SynchronizationListener listener = new SynchronizationListener("Event");
-            final Future<Notification> awaitor = listener.getAwaitor();
+            final Mailbox listener = MailboxFactory.newMailbox(n -> n.getType().equals("Event"));
             notificationSupport.addNotificationListener(listener, listener, null);
-            final Notification notif = awaitor.get(2, TimeUnit.SECONDS);
+            final Notification notif = listener.poll(2, TimeUnit.SECONDS);
             assertNotNull(notif);
             assertEquals("Dummy event", notif.getMessage());
         }

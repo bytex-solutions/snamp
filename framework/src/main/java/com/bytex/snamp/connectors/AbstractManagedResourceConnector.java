@@ -3,7 +3,7 @@ package com.bytex.snamp.connectors;
 import com.bytex.snamp.Descriptive;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.ThreadSafe;
-import com.bytex.snamp.concurrent.LazyContainers;
+import com.bytex.snamp.concurrent.LazyValueFactory;
 import com.bytex.snamp.concurrent.LazyValue;
 import com.bytex.snamp.connectors.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connectors.attributes.AttributeSupport;
@@ -41,7 +41,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
     private final LazyValue<MetricsReader> metrics;
 
     protected AbstractManagedResourceConnector() {
-        metrics = LazyContainers.THREAD_SAFE_SOFT_REFERENCED.of(this::createMetricsReader);
+        metrics = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(this::createMetricsReader);
     }
 
     private static IllegalStateFlag createConnectorStateFlag(){

@@ -2,7 +2,6 @@ package com.bytex.snamp.testing.adapters.jmx;
 
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.adapters.ResourceAdapterClient;
-import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.metrics.MetricsReader;
@@ -31,10 +30,7 @@ import java.math.BigInteger;
 import java.time.Duration;
 import java.util.Hashtable;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 import static com.bytex.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
 import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
@@ -155,27 +151,24 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
             final ObjectName resourceObjectName = createObjectName();
             assertNotNull(connection.getMBeanInfo(resourceObjectName));
             assertNotNull(connection.getMBeanInfo(resourceObjectName).getAttributes().length > 0);
-            final SynchronizationEvent<Notification> attributeChangedEvent = new SynchronizationEvent<>();
-            final SynchronizationEvent<Notification> testEvent = new SynchronizationEvent<>();
-            final SynchronizationEvent<Notification> eventWithAttachmentHolder = new SynchronizationEvent<>();
+            final CompletableFuture<Notification> attributeChangedEvent = new CompletableFuture<>();
+            final CompletableFuture<Notification> testEvent = new CompletableFuture<>();
+            final CompletableFuture<Notification> eventWithAttachmentHolder = new CompletableFuture<>();
             connection.addNotificationListener(resourceObjectName, (notification, handback) -> {
                 switch (notification.getType()){
                     case "19.1":
-                        attributeChangedEvent.fire(notification); return;
+                        attributeChangedEvent.complete(notification); return;
                     case "21.1":
-                        eventWithAttachmentHolder.fire(notification); return;
+                        eventWithAttachmentHolder.complete(notification); return;
                     case "20.1":
-                        testEvent.fire(notification);
+                        testEvent.complete(notification);
                 }
             }, null, null);
-            final Future<Notification> attributeChangedEventAwaitor = attributeChangedEvent.getAwaitor();
-            final Future<Notification> testEventAwaitor = testEvent.getAwaitor();
-            final Future<Notification> eventWithAttachmentHolderAwaitor = eventWithAttachmentHolder.getAwaitor();
             //force attribute change
             connection.setAttribute(resourceObjectName, attr);
-            assertNotNull(attributeChangedEventAwaitor.get(10, TimeUnit.SECONDS));
-            assertNotNull(testEventAwaitor.get(10, TimeUnit.SECONDS));
-            final Notification withAttachment = eventWithAttachmentHolderAwaitor.get(10, TimeUnit.SECONDS);
+            assertNotNull(attributeChangedEvent.get(10, TimeUnit.SECONDS));
+            assertNotNull(testEvent.get(10, TimeUnit.SECONDS));
+            final Notification withAttachment = eventWithAttachmentHolder.get(10, TimeUnit.SECONDS);
             assertNotNull(withAttachment);
             assertNotNull(withAttachment.getUserData() instanceof TabularData);
         }

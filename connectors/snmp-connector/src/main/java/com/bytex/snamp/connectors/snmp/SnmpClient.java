@@ -1,10 +1,8 @@
 package com.bytex.snamp.connectors.snmp;
 
 import com.bytex.snamp.Aggregator;
-import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.AbstractFuture;
 import org.snmp4j.*;
 import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.event.ResponseListener;
@@ -34,18 +32,15 @@ import java.util.stream.Collectors;
 abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
     private static final AtomicInteger engineBoots = new AtomicInteger(0);
 
-    private static final class SnmpResponseListener extends SynchronizationEvent<ResponseEvent> implements ResponseListener {
-        private SnmpResponseListener() {
-            super(false);
-        }
+    private static final class SnmpResponseListener extends CompletableFuture<ResponseEvent> implements ResponseListener {
 
         @Override
         public void onResponse(final ResponseEvent event) {
-            fire(event);
+            complete(event);
         }
     }
 
-    private static final class SnmpTreeListener extends AbstractFuture<Collection<VariableBinding>> implements TreeListener {
+    private static final class SnmpTreeListener extends CompletableFuture<Collection<VariableBinding>> implements TreeListener {
         private final Collection<VariableBinding> bindings;
 
         private SnmpTreeListener(final int capacity) {
@@ -71,7 +66,7 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
             else if (event.isError()) {
                 Exception e = event.getException();
                 if(e == null) e = new IOException(event.getErrorMessage());
-                setException(e);
+                completeExceptionally(e);
                 return false;
             }
             return true;
@@ -93,10 +88,10 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
             else if (event.isError()) {
                 Exception e = event.getException();
                 if(e == null) e = new IOException(event.getErrorMessage());
-                setException(e);
+                completeExceptionally(e);
                 return;
             }
-            set(bindings);
+            complete(bindings);
         }
 
         /**
@@ -234,7 +229,7 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
     private ResponseEvent send(final PDU data, final Duration timeout) throws IOException, TimeoutException, InterruptedException, ExecutionException {
         final SnmpResponseListener listener = new SnmpResponseListener();
         send(data, createTarget(timeout), null, listener);
-        return waitForResponseEvent(listener.getAwaitor(), timeout);
+        return waitForResponseEvent(listener, timeout);
     }
 
     private static OID prepareOidForGetBulk(final OID oid) {

@@ -2,7 +2,7 @@ package com.bytex.snamp.adapters.snmp;
 
 
 import com.bytex.snamp.adapters.ResourceAdapterDescriptionProvider;
-import com.bytex.snamp.concurrent.LazyContainers;
+import com.bytex.snamp.concurrent.LazyValueFactory;
 import com.bytex.snamp.concurrent.LazyValue;
 import com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
@@ -131,7 +131,7 @@ public final class SnmpAdapterDescriptionProvider extends ConfigurationEntityDes
         }
     }
 
-    private static final LazyValue<SnmpAdapterDescriptionProvider> INSTANCE = LazyContainers.THREAD_SAFE.of(SnmpAdapterDescriptionProvider::new);
+    private static final LazyValue<SnmpAdapterDescriptionProvider> INSTANCE = LazyValueFactory.THREAD_SAFE.of(SnmpAdapterDescriptionProvider::new);
 
     private SnmpAdapterDescriptionProvider(){
         super(new ResourceAdapterConfigurationInfo(), new AttributeConfigurationInfo(), new EventConfigurationInfo());

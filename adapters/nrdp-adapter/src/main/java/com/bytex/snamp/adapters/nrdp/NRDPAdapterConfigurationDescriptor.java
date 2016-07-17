@@ -2,7 +2,7 @@ package com.bytex.snamp.adapters.nrdp;
 
 import ch.shamu.jsendnrdp.NRDPServerConnectionSettings;
 import com.bytex.snamp.adapters.ResourceAdapterDescriptionProvider;
-import com.bytex.snamp.concurrent.LazyContainers;
+import com.bytex.snamp.concurrent.LazyValueFactory;
 import com.bytex.snamp.concurrent.LazyValue;
 import com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
@@ -71,7 +71,7 @@ final class NRDPAdapterConfigurationDescriptor extends ConfigurationEntityDescri
         }
     }
 
-    private static final LazyValue<NRDPAdapterConfigurationDescriptor> INSTANCE = LazyContainers.THREAD_SAFE.of(NRDPAdapterConfigurationDescriptor::new);
+    private static final LazyValue<NRDPAdapterConfigurationDescriptor> INSTANCE = LazyValueFactory.THREAD_SAFE.of(NRDPAdapterConfigurationDescriptor::new);
 
     private NRDPAdapterConfigurationDescriptor() {
         super(new ResourceAdapterConfigurationInfo(),

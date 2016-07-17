@@ -1,7 +1,7 @@
 package com.bytex.snamp.jmx;
 
 import com.bytex.snamp.MethodStub;
-import com.bytex.snamp.concurrent.LazyContainers;
+import com.bytex.snamp.concurrent.LazyValueFactory;
 import com.bytex.snamp.concurrent.LazyValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
@@ -348,7 +348,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
         protected OpenAttribute(final String attributeName, final T openType){
             super(attributeName);
             this.openType = openType;
-            javaType = LazyContainers.THREAD_SAFE.of(() -> null);
+            javaType = LazyValueFactory.THREAD_SAFE.of(() -> null);
             owner = new ThreadLocal<>();
         }
 
