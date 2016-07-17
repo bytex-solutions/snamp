@@ -32,6 +32,10 @@ public class VolatileBox<T> extends AtomicReference<T> implements Wrapper<T>, Su
         this(null);
     }
 
+    public final boolean hasValue(){
+        return get() != null;
+    }
+
     /**
      * Performs this operation on the given argument.
      *

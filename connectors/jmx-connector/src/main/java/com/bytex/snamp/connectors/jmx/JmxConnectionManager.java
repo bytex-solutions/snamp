@@ -3,6 +3,7 @@ package com.bytex.snamp.connectors.jmx;
 import com.bytex.snamp.Internal;
 import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.concurrent.Repeater;
+import com.bytex.snamp.concurrent.VolatileBox;
 
 import javax.management.JMException;
 import javax.management.MBeanServerConnection;
@@ -73,7 +74,7 @@ final class JmxConnectionManager implements AutoCloseable {
         private final Lock writeLock;
         private final ConnectionHolder connectionHolder;
         private final List<ConnectionEstablishedEventHandler> reconnectionHandlers;
-        private final AtomicReference<IOException> problem;
+        private final VolatileBox<IOException> problem;
         private final Logger logger;
 
         private ConnectionWatchDog(final Duration period,
@@ -85,7 +86,7 @@ final class JmxConnectionManager implements AutoCloseable {
             this.writeLock = Objects.requireNonNull(writeLock);
             this.connectionHolder = connection;
             this.reconnectionHandlers = new Vector<>(4);
-            this.problem = new AtomicReference<>(null);
+            this.problem = new VolatileBox<>();
         }
 
         /**
@@ -101,7 +102,7 @@ final class JmxConnectionManager implements AutoCloseable {
         @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
         private void reportProblemAndWait(final IOException e) throws InterruptedException {
             reportProblem(problem, e);
-            while (problem.get() != null)
+            while (problem.hasValue())
                 Thread.sleep(1);
         }
 
@@ -123,7 +124,13 @@ final class JmxConnectionManager implements AutoCloseable {
          */
         @Override
         protected void doAction() {
-            writeLock.lock();
+            //attempts to lock
+            try {
+                writeLock.lockInterruptibly();
+            } catch (final InterruptedException ignored) {
+                return;       //thread is interrupted, just leave this method without any additional actions
+            }
+
             try {
                 @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
                 final IOException problem = this.problem.get();
@@ -178,7 +185,7 @@ final class JmxConnectionManager implements AutoCloseable {
     }
 
     @ThreadSafe
-    <T> T handleConnection(final MBeanServerConnectionHandler<T> handler) throws Exception {
+    <T> T handleConnection(final MBeanServerConnectionHandler<T> handler) throws InterruptedException, JMException, IOException {
         readLock.lockInterruptibly();
         try {
             if (connectionHolder.isInitialized()) {
@@ -223,7 +230,7 @@ final class JmxConnectionManager implements AutoCloseable {
             }
     }
 
-    ObjectName resolveName(final ObjectName name) throws Exception {
+    ObjectName resolveName(final ObjectName name) throws InterruptedException, JMException, IOException {
         return handleConnection(connection -> {
             final Set<ObjectInstance> beans = connection.queryMBeans(name, null);
             return beans.size() > 0 ? beans.iterator().next().getObjectName() : null;

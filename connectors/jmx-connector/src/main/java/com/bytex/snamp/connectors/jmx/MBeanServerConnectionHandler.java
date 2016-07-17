@@ -9,6 +9,7 @@ import java.util.EventListener;
  * Represents Management Bean connection handler.
  * @param <T> Type of the connection handling result.
  */
+@FunctionalInterface
 interface MBeanServerConnectionHandler<T> extends EventListener {
     /**
      * Extracts object from the connection,
