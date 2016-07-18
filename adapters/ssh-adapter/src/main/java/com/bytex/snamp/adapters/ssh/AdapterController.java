@@ -1,6 +1,6 @@
 package com.bytex.snamp.adapters.ssh;
 
-import com.bytex.snamp.Consumer;
+import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.jmx.ExpressionBasedDescriptorFilter;
 
 import javax.management.Notification;
@@ -29,7 +29,7 @@ public interface AdapterController {
 
     <E extends Exception> boolean processAttribute(final String resourceName,
                                                    final String attributeID,
-                                                   final Consumer<? super SshAttributeMapping, E> handler) throws E;
+                                                   final Acceptor<? super SshAttributeMapping, E> handler) throws E;
 
     Notification poll(final ExpressionBasedDescriptorFilter filter);
 

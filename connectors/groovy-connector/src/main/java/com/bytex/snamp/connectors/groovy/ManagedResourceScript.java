@@ -1,7 +1,7 @@
 package com.bytex.snamp.connectors.groovy;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.Consumer;
+import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.Repeater;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
@@ -36,7 +36,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
  */
 abstract class ManagedResourceScript extends Script implements ManagedResourceScriptBase {
 
-    private static abstract class NotificationOperation<E extends JMException> implements Consumer<ManagedResourceConnector, E> {
+    private static abstract class NotificationOperation<E extends JMException> implements Acceptor<ManagedResourceConnector, E> {
         protected abstract void accept(final NotificationSupport connector) throws E;
 
         @Override
@@ -108,7 +108,7 @@ abstract class ManagedResourceScript extends Script implements ManagedResourceSc
         }
     }
 
-    private static abstract class AttributeOperation<E extends JMException> implements Consumer<ManagedResourceConnector, E> {
+    private static abstract class AttributeOperation<E extends JMException> implements Acceptor<ManagedResourceConnector, E> {
         private final String attributeName;
 
         private AttributeOperation(final String name) {
@@ -160,7 +160,7 @@ abstract class ManagedResourceScript extends Script implements ManagedResourceSc
         }
     }
 
-    private static final class AttributeValueWriter extends Attribute implements Consumer<ManagedResourceConnector, JMException> {
+    private static final class AttributeValueWriter extends Attribute implements Acceptor<ManagedResourceConnector, JMException> {
         private static final long serialVersionUID = 2544352906527154257L;
 
         private AttributeValueWriter(final String name, final Object value) {
@@ -238,11 +238,11 @@ abstract class ManagedResourceScript extends Script implements ManagedResourceSc
     }
 
     private static <E extends Throwable> void processResourceConnector(final String resourceName,
-                                                                       final Consumer<ManagedResourceConnector, E> consumer) throws E, InstanceNotFoundException {
+                                                                       final Acceptor<ManagedResourceConnector, E> acceptor) throws E, InstanceNotFoundException {
         final BundleContext context = getBundleContext();
         final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(context, resourceName);
         try {
-            consumer.accept(client.getService());
+            acceptor.accept(client.getService());
         } finally {
             client.release(context);
         }

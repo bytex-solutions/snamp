@@ -2,6 +2,7 @@ package com.bytex.snamp;
 
 import java.io.Serializable;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -12,7 +13,7 @@ import java.util.function.Supplier;
  * @version 1.2
  * @since 1.0
  */
-public class Box<T> implements Wrapper<T>, Supplier<T>, SafeConsumer<T>, Cloneable, Serializable{
+public class Box<T> implements Wrapper<T>, Supplier<T>, Consumer<T>, Acceptor<T, ExceptionPlaceholder>, Cloneable, Serializable{
     private static final long serialVersionUID = -3932725773035687013L;
     private T value;
 

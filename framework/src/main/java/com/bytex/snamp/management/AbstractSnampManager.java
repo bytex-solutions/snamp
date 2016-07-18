@@ -1,7 +1,7 @@
 package com.bytex.snamp.management;
 
 import com.bytex.snamp.Aggregator;
-import com.bytex.snamp.Consumer;
+import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.adapters.ResourceAdapter;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.adapters.ResourceAdapterClient;
@@ -93,7 +93,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
          * @see com.bytex.snamp.management.Maintainable
          */
         @Override
-        public <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Consumer<S, E> serviceInvoker) throws E {
+        public <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Acceptor<S, E> serviceInvoker) throws E {
             final BundleContext context = getItselfContext();
             final Bundle bnd = context.getBundle(getBundleID());
             boolean result = false;
@@ -200,7 +200,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
          * @see com.bytex.snamp.management.Maintainable
          */
         @Override
-        public final  <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Consumer<S, E> serviceInvoker) throws E {
+        public final  <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Acceptor<S, E> serviceInvoker) throws E {
             ServiceReference<S> ref = null;
             try {
                 ref = ResourceAdapterClient.getServiceReference(getItselfContext(), getSystemName(), null, serviceType);
@@ -315,7 +315,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
          * @see com.bytex.snamp.management.Maintainable
          */
         @Override
-        public final  <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Consumer<S, E> serviceInvoker) throws E {
+        public final  <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Acceptor<S, E> serviceInvoker) throws E {
             ServiceReference<S> ref = null;
             try {
                 ref = ManagedResourceConnectorClient.getServiceReference(getItselfContext(), getSystemName(), null, serviceType);

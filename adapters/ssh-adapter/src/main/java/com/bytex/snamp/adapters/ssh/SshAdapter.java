@@ -1,8 +1,7 @@
 package com.bytex.snamp.adapters.ssh;
 
-import com.bytex.snamp.Consumer;
+import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.EntryReader;
-import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.adapters.AbstractResourceAdapter;
 import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationEventBox;
@@ -11,7 +10,10 @@ import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.jmx.ExpressionBasedDescriptorFilter;
 import com.bytex.snamp.jmx.TabularDataUtils;
 import com.bytex.snamp.jmx.WellKnownType;
-import com.google.common.collect.*;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Multimap;
 import org.apache.sshd.SshServer;
 import org.apache.sshd.common.KeyPairProvider;
 import org.apache.sshd.server.Command;
@@ -61,7 +63,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
         @Override
         public <E extends Exception> void forEachNotification(final EntryReader<String, ? super SshNotificationAccessor, E> notificationReader) throws E {
-            read(notificationReader, (Consumer<EntryReader<String,? super SshNotificationAccessor, E>, E>) this::forEachNotificationImpl);
+            readAccept(notificationReader, this::forEachNotificationImpl);
         }
 
         private static Map<String, ResourceNotificationList<SshNotificationAccessor>> createNotifs(){
@@ -77,7 +79,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         }
 
         private void clear(){
-            write(notifications, (SafeConsumer<Map<?, ?>>) Map::clear);
+            writeAccept(notifications, Map::clear);
             mailbox.clear();
         }
 
@@ -94,11 +96,11 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
         private NotificationAccessor addNotification(final String resourceName,
                                                      final MBeanNotificationInfo metadata){
-            return write(resourceName, metadata, this::addNotificationImpl);
+            return writeApply(resourceName, metadata, this::addNotificationImpl);
         }
 
         private Collection<? extends NotificationAccessor> clear(final String resourceName) {
-            return write(resourceName, notifications, (resName, notifs) -> notifs.containsKey(resName) ?
+            return writeApply(resourceName, notifications, (resName, notifs) -> notifs.containsKey(resName) ?
                     notifs.remove(resName).values() :
                     ImmutableList.<SshNotificationAccessor>of());
         }
@@ -117,7 +119,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
         private NotificationAccessor removeNotification(final String resourceName,
                                                         final MBeanNotificationInfo metadata) {
-            return write(resourceName, metadata, this::removeNotificationImpl);
+            return writeApply(resourceName, metadata, this::removeNotificationImpl);
         }
 
         private Notification poll(final ExpressionBasedDescriptorFilter filter) {
@@ -454,7 +456,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
     @Override
     public <E extends Exception> boolean processAttribute(final String resourceName,
                                                           final String attributeID,
-                                                          final Consumer<? super SshAttributeMapping, E> handler) throws E {
+                                                          final Acceptor<? super SshAttributeMapping, E> handler) throws E {
         return attributes.processAttribute(resourceName, attributeID, handler);
     }
 

@@ -1,7 +1,6 @@
 package com.bytex.snamp.testing.management;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.connectors.notifications.Mailbox;
@@ -110,7 +109,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             final TabularData attrs =
                     (TabularData)connection.invoke(commonsObj, "getAvailableAttributes", new Object[]{TEST_RESOURCE_NAME}, new String[]{String.class.getName()});
             assertFalse(attrs.isEmpty());
-            TabularDataUtils.forEachRow(attrs, (SafeConsumer<CompositeData>) row -> {
+            TabularDataUtils.forEachRow(attrs, row -> {
                 assertTrue(row.get("description") instanceof String);
                 assertTrue(row.get("parameters") instanceof TabularData);
                 assertTrue(row.get("type") instanceof String);
@@ -129,7 +128,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             final TabularData attrs =
                     (TabularData)connection.invoke(commonsObj, "getBindingOfAttributes", new Object[]{ADAPTER_INSTANCE_NAME}, new String[]{String.class.getName()});
             assertFalse(attrs.isEmpty());
-            TabularDataUtils.forEachRow(attrs, (SafeConsumer<CompositeData>) row -> {
+            TabularDataUtils.forEachRow(attrs, row -> {
                 assertTrue(row.get("resourceName") instanceof String);
                 assertTrue(row.get("name") instanceof String);
                 assertTrue(row.get("mappedType") instanceof String);

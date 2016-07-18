@@ -1,7 +1,7 @@
 package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.AbstractAggregator;
-import com.bytex.snamp.Consumer;
+import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.concurrent.ConcurrentResourceAccessor;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
@@ -47,7 +47,7 @@ public final class InMemoryConfigurationManager extends AbstractAggregator imple
      * @since 1.2
      */
     @Override
-    public <E extends Throwable> void readConfiguration(final Consumer<? super AgentConfiguration, E> handler) throws E, IOException {
+    public <E extends Throwable> void readConfiguration(final Acceptor<? super AgentConfiguration, E> handler) throws E, IOException {
         currentConfiguration.read(config -> {
             handler.accept(config);
             return null;

@@ -1,6 +1,5 @@
 package com.bytex.snamp.connectors.notifications;
 
-import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.jmx.JMExceptionUtils;
@@ -44,7 +43,7 @@ public class NotificationListenerList extends ThreadSafeObject implements Notifi
     public final void addNotificationListener(final NotificationListener listener,
                                         final NotificationFilter filter,
                                         final Object handback) throws IllegalArgumentException {
-        write(new NotificationListenerHolder(listener, filter, handback), (SafeConsumer<NotificationListenerHolder>) listeners::add);
+        writeAccept(new NotificationListenerHolder(listener, filter, handback), listeners::add);
     }
 
     private void removeNotificationListenerImpl(final NotificationListener listener) throws ListenerNotFoundException{
@@ -74,7 +73,7 @@ public class NotificationListenerList extends ThreadSafeObject implements Notifi
      */
     public final void removeNotificationListener(final NotificationListener listener)
             throws ListenerNotFoundException {
-        write(listener, this::removeNotificationListenerImpl);
+        writeAccept(listener, this::removeNotificationListenerImpl);
     }
 
     /**
@@ -114,19 +113,19 @@ public class NotificationListenerList extends ThreadSafeObject implements Notifi
      */
     @Override
     public final void handleNotification(final Notification notification, final Object handback) {
-        read(listeners, (SafeConsumer<Iterable<NotificationListenerHolder>>) l -> l.forEach(holder -> handleNotification(holder, intercept(notification), handback)));
+        readAccept(listeners, l -> l.forEach(holder -> handleNotification(holder, intercept(notification), handback)));
     }
 
     public final void handleNotification(final NotificationListenerInvoker invoker,
                                       final Notification notification,
                                       final Object handback) {
-        read(listeners, (SafeConsumer<Iterable<NotificationListenerHolder>>) list -> invoker.invoke(notification, handback, list));
+        readAccept(listeners, list -> invoker.invoke(notification, handback, list));
     }
 
     /**
      * Removes all listeners from this list.
      */
     public final void clear() {
-        write(listeners, (SafeConsumer<List<?>>) List::clear);
+        writeAccept(listeners, List::clear);
     }
 }

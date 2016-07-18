@@ -1,10 +1,12 @@
 package com.bytex.snamp.jmx;
 
-import com.bytex.snamp.SafeConsumer;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.management.openmbean.*;
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.SimpleType;
+import javax.management.openmbean.TabularData;
+import javax.management.openmbean.TabularType;
 
 /**
  * @author Roman Sakno
@@ -31,7 +33,7 @@ public final class TabularDataBuilderRowFillTest extends Assert {
                 .flush()
                 .get();
         assertEquals(2, data.size());
-        TabularDataUtils.forEachRow(data, (SafeConsumer<CompositeData>) value -> {
+        TabularDataUtils.forEachRow(data, value -> {
             assertEquals(2, value.getCompositeType().keySet().size());
             assertTrue(value.get("column1") instanceof String);
             assertNotNull(value.get("column2") instanceof Boolean);

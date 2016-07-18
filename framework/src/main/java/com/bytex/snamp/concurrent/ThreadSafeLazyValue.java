@@ -1,6 +1,6 @@
 package com.bytex.snamp.concurrent;
 
-import com.bytex.snamp.Consumer;
+import com.bytex.snamp.Acceptor;
 
 import java.util.Objects;
 import java.util.concurrent.Callable;
@@ -26,7 +26,7 @@ abstract class ThreadSafeLazyValue<V, C> implements LazyValue<V> {
     abstract C makeRef(final V value);
 
     @Override
-    public final synchronized <G extends Throwable> void reset(final Consumer<? super V, G> cleanup) throws G {
+    public final synchronized <G extends Throwable> void reset(final Acceptor<? super V, G> cleanup) throws G {
         if (ref != null) {
             try {
                 final V value = unref(ref);

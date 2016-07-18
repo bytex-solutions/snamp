@@ -1,7 +1,6 @@
 package com.bytex.snamp.configuration;
 
-import com.bytex.snamp.Box;
-import com.bytex.snamp.Consumer;
+import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.core.ServiceHolder;
 
@@ -53,12 +52,7 @@ public interface ConfigurationManager extends FrameworkService {
      * @throws IOException Unrecoverable exception thrown by configuration infrastructure.
      * @since 1.2
      */
-    default <E extends Throwable> void readConfiguration(final Consumer<? super AgentConfiguration, E> handler) throws E, IOException{
-        processConfiguration(config -> {
-            handler.accept(config);
-            return false;
-        });
-    }
+    <E extends Throwable> void readConfiguration(final Acceptor<? super AgentConfiguration, E> handler) throws E, IOException;
 
     /**
      * Read SNAMP configuration and transform it into custom object.
@@ -67,11 +61,7 @@ public interface ConfigurationManager extends FrameworkService {
      * @throws IOException Unrecoverable exception thrown by configuration infrastructure.
      * @since 1.2
      */
-    default <O> O transformConfiguration(final Function<? super AgentConfiguration, O> handler) throws IOException {
-        final Box<O> result = new Box<>();
-        readConfiguration(result.changeConsumingType(handler));
-        return result.get();
-    }
+    <O> O transformConfiguration(final Function<? super AgentConfiguration, O> handler) throws IOException;
 
     /**
      * Creates a new instance of entity configuration.

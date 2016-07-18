@@ -18,9 +18,7 @@ import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionStage;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -272,7 +270,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      */
     @Override
     public final M remove(final String operationID) {
-        final OperationHolder<M> holder = write(operationID, this::removeImpl);
+        final OperationHolder<M> holder = writeApply(operationID, this::removeImpl);
         if(holder != null){
             disableOperation(holder.getMetadata());
             return holder.getMetadata();
@@ -323,7 +321,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
                                    final CompositeData options) {
         OperationHolder<M> holder;
         try{
-            holder = writeInterruptibly((Callable<OperationHolder<M>>)() -> enableOperationImpl(operationName, invocationTimeout, options));
+            holder = writeCallInterruptibly(() -> enableOperationImpl(operationName, invocationTimeout, options));
         } catch (final Exception e) {
             failedToEnableOperation(operationName, e);
             holder = null;
@@ -361,7 +359,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      */
     @Override
     public final M[] getOperationInfo() {
-        return read((Supplier<M[]>) () -> toArray(operations.values()));
+        return readSupply(() -> toArray(operations.values()));
     }
 
     /**
@@ -372,7 +370,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      */
     @Override
     public final M getOperationInfo(final String operationID) {
-        final OperationHolder<M> holder = read(operationID, operations::get);
+        final OperationHolder<M> holder = readApply(operationID, operations::get);
         return holder != null ? holder.getMetadata() : null;
     }
 
@@ -408,7 +406,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
                          final Object[] params,
                          final String[] signature) throws MBeanException, ReflectionException {
         try {
-            return readInterruptibly((Callable<Object>) () -> {
+            return readCallInterruptibly(() -> {
                 final OperationHolder<M> holder = operations.get(operationName);
                 if (holder != null)
                     return invoke(holder, params);
@@ -437,7 +435,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      * @param removeResourceListeners {@literal true} to remove all resource listeners; otherwise, {@literal false}.
      */
     public final void removeAll(final boolean removeResourceListeners) {
-        write(operations, this::removeAllImpl);
+        writeAccept(operations, this::removeAllImpl);
         if (removeResourceListeners)
             removeAllResourceEventListeners();
     }
@@ -449,7 +447,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      */
     @Override
     public final ImmutableSet<String> getIDs() {
-        return read(operations, (Function<KeyedObjects<String,?>, ImmutableSet<String>>)  ops -> ImmutableSet.copyOf(ops.keySet()));
+        return readApply(operations, ops -> ImmutableSet.copyOf(ops.keySet()));
     }
 
     @Override
@@ -459,7 +457,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
 
     @Override
     public final int size() {
-        return read(operations::size);
+        return readSupply(operations::size);
     }
 
     @Override

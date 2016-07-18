@@ -1,8 +1,7 @@
 package com.bytex.snamp.connectors.jmx;
 
-import com.bytex.snamp.SafeConsumer;
-import com.bytex.snamp.concurrent.LazyValueFactory;
 import com.bytex.snamp.concurrent.LazyValue;
+import com.bytex.snamp.concurrent.LazyValueFactory;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
@@ -24,6 +23,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration.AUTOMATICALLY_ADDED_KEY;
@@ -179,7 +179,7 @@ final class JmxConnectorDescriptionProvider extends ConfigurationEntityDescripti
         return parameters.containsKey(OBJECT_NAME_PROPERTY) ? new ObjectName(parameters.get(OBJECT_NAME_PROPERTY)) : null;
     }
 
-    void parseUserNameAndPassword(final Map<String, String> parameters, final SafeConsumer<? super String> userName, final SafeConsumer<? super String> password){
+    void parseUserNameAndPassword(final Map<String, String> parameters, final Consumer<? super String> userName, final Consumer<? super String> password){
         if(parameters.containsKey(JMX_LOGIN) && parameters.containsKey(JMX_PASSWORD)){
             userName.accept(parameters.get(JMX_LOGIN));
             password.accept(parameters.get(JMX_PASSWORD));

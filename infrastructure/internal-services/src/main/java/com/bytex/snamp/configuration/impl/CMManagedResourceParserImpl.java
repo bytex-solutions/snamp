@@ -137,7 +137,7 @@ final class CMManagedResourceParserImpl implements CMManagedResourceParser {
 
     private static <E extends Exception> void forEachResource(final ConfigurationAdmin admin,
                                                               final String filter,
-                                                              final Consumer<Configuration, E> reader) throws E, IOException, InvalidSyntaxException {
+                                                              final Acceptor<Configuration, E> reader) throws E, IOException, InvalidSyntaxException {
         final Configuration[] configs = admin.listConfigurations(filter);
         if (configs != null && configs.length > 0)
             for (final Configuration config : configs)

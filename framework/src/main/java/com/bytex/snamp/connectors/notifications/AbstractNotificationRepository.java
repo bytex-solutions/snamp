@@ -16,13 +16,7 @@ import com.google.common.collect.Lists;
 import javax.management.*;
 import javax.management.openmbean.CompositeData;
 import java.math.BigInteger;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Objects;
-import java.util.concurrent.Callable;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -178,8 +172,8 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     protected final void fire(final NotificationCollector sender) {
         //collect notifications
-        read(notifications, n -> {
-            notifications.values().forEach(holder -> sender.process(holder.getMetadata()));
+        readApply(notifications, sender, (n, s) -> {
+            n.values().forEach(holder -> s.process(holder.getMetadata()));
             return null;
         });
         //send notifications
@@ -205,7 +199,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
                               final Object userData) {
         if (isSuspended()) return; //check if events are suspended
 
-        final Collection<Notification> notifs = read((Supplier<Collection<Notification>>) () -> notifications.values().stream()
+        final Collection<Notification> notifs = readApply(notifications, n -> n.values().stream()
                 .filter(holder -> Objects.equals(NotificationDescriptor.getName(holder.getMetadata()), category))
                 .map(holder -> new NotificationBuilder()
                         .setTimeStamp(timeStamp)
@@ -216,7 +210,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
                         .setUserData(userData)
                         .get()
                 ).
-                        collect(Collectors.toCollection(() -> Lists.newArrayListWithExpectedSize(notifications.size()))));
+                        collect(Collectors.toCollection(() -> Lists.newArrayListWithExpectedSize(n.size()))));
         //fire listeners
         fireListeners(notifs);
     }
@@ -287,7 +281,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     public final M enableNotifications(final String category, final CompositeData options) {
         NotificationHolder<M> holder;
         try{
-            holder = writeInterruptibly((Callable<NotificationHolder<M>>) () -> enableNotificationsImpl(category, options));
+            holder = writeCallInterruptibly(() -> enableNotificationsImpl(category, options));
         } catch (final Exception e){
             failedToEnableNotifications(category, e);
             holder = null;
@@ -312,7 +306,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     @Override
     public final M remove(final String category) {
-        final NotificationHolder<M> holder = write(category, this::removeImpl);
+        final NotificationHolder<M> holder = writeApply(this, category, AbstractNotificationRepository::removeImpl);
         if (holder != null) {
             disableNotifications(holder.getMetadata());
             return holder.getMetadata();
@@ -326,7 +320,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     @Override
     public final ImmutableSet<String> getIDs() {
-        return read(notifications, (Function<KeyedObjects<String, ?>, ImmutableSet<String>>) notifs -> ImmutableSet.copyOf(notifs.keySet()));
+        return readApply(notifications, notifs -> ImmutableSet.copyOf(notifs.keySet()));
     }
 
     /**
@@ -334,7 +328,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      * @return {@literal true}, if all notifications disabled; otherwise, {@literal false}.
      */
     protected final boolean hasNoNotifications() {
-        return read(notifications::isEmpty);
+        return readSupply(notifications::isEmpty);
     }
 
     @MethodStub
@@ -392,12 +386,12 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     @Override
     public final M[] getNotificationInfo() {
-        return read((Supplier<M[]>) () -> toArray(notifications.values()));
+        return readSupply(() -> toArray(notifications.values()));
     }
 
     @Override
     public final M getNotificationInfo(final String category) {
-        final NotificationHolder<M> holder = read(category, notifications::get);
+        final NotificationHolder<M> holder = readApply(notifications, category, Map::get);
         return holder != null ? holder.getMetadata() : null;
     }
 
@@ -439,7 +433,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     public final void removeAll(final boolean removeNotificationListeners,
                                 final boolean removeResourceEventListeners) {
-        write(notifications, this::removeAllImpl);
+        writeAccept(notifications, this::removeAllImpl);
         if (removeNotificationListeners)
             listeners.clear();
         if (removeResourceEventListeners)
@@ -453,7 +447,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
 
     @Override
     public final int size() {
-        return read(notifications::size);
+        return readSupply(notifications::size);
     }
 
     @Override

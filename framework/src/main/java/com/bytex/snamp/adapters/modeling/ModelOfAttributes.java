@@ -8,8 +8,6 @@ import com.google.common.collect.ImmutableSet;
 
 import javax.management.*;
 import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -63,7 +61,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
     @ThreadSafe
     public final TAccessor addAttribute(final String resourceName,
                                   final MBeanAttributeInfo metadata) throws Exception{
-        return writeInterruptibly((Callable<TAccessor>) () -> addAttributeImpl(resourceName, metadata));
+        return writeCallInterruptibly(() -> addAttributeImpl(resourceName, metadata));
     }
 
     private TAccessor removeAttributeImpl(final String resourceName,
@@ -81,7 +79,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
     @ThreadSafe
     public final TAccessor removeAttribute(final String resourceName,
                                            final MBeanAttributeInfo metadata){
-        return write(resourceName, metadata, this::removeAttributeImpl);
+        return writeApply(resourceName, metadata, this::removeAttributeImpl);
     }
 
     protected final Object getAttributeValue(final String resourceName,
@@ -115,7 +113,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
 
     public final <E extends Throwable> boolean processAttribute(final String resourceName,
                                           final String attributeName,
-                                          final Consumer<? super TAccessor, E> processor) throws E {
+                                          final Acceptor<? super TAccessor, E> processor) throws E {
         try (final SafeCloseable ignored = acquireReadLock(SingleResourceGroup.INSTANCE)) {
             final TAccessor accessor = attributes.containsKey(resourceName) ?
                     attributes.get(resourceName).get(attributeName) :
@@ -133,7 +131,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
      */
     @ThreadSafe
     public final Set<String> getHostedResources(){
-        return read(attributes, (Function<Map<String, ?>, ImmutableSet<String>>) attrs -> ImmutableSet.copyOf(attrs.keySet()));
+        return readApply(attributes, attrs -> ImmutableSet.copyOf(attrs.keySet()));
     }
 
     private static Set<String> getResourceAttributesImpl(final String resourceName,
@@ -145,7 +143,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
 
     @ThreadSafe
     public final Set<String> getResourceAttributes(final String resourceName) {
-        return read(resourceName, attributes, ModelOfAttributes::getResourceAttributesImpl);
+        return readApply(resourceName, attributes, ModelOfAttributes::getResourceAttributesImpl);
     }
 
     private static <TAccessor extends AttributeAccessor> Collection<MBeanAttributeInfo> getResourceAttributesMetadataImpl(final String resourceName,
@@ -160,7 +158,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
 
     @ThreadSafe
     public final Collection<MBeanAttributeInfo> getResourceAttributesMetadata(final String resourceName){
-        return read(resourceName, attributes, ModelOfAttributes::getResourceAttributesMetadataImpl);
+        return readApply(resourceName, attributes, ModelOfAttributes::getResourceAttributesMetadataImpl);
     }
 
     private static <TAccessor extends AttributeAccessor> Collection<TAccessor> clearImpl(final String resourceName,
@@ -177,7 +175,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
      */
     @ThreadSafe
     public final Collection<TAccessor> clear(final String resourceName) {
-        return write(resourceName, attributes, ModelOfAttributes::clearImpl);
+        return writeApply(resourceName, attributes, ModelOfAttributes::clearImpl);
     }
 
     private <E extends Exception> void forEachAttributeImpl(final EntryReader<String, ? super TAccessor, E> attributeReader) throws E{
@@ -193,7 +191,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
      * @throws E Unable to process attribute.
      */
     public final <E extends Exception> void forEachAttribute(final EntryReader<String, ? super TAccessor, E> attributeReader) throws E {
-        read(attributeReader, (Consumer<EntryReader<String, ? super TAccessor, E>, E>) this::forEachAttributeImpl);
+        readAccept(attributeReader, this::forEachAttributeImpl);
     }
 
     private static void clearImpl(final Map<String, ? extends ResourceFeatureList<?, ?>> attributes){
@@ -206,6 +204,6 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
      */
     @ThreadSafe
     public final void clear(){
-        write(attributes, (SafeConsumer<Map<String, ResourceAttributeList<TAccessor>>>) ModelOfAttributes::clearImpl);
+        writeAccept(attributes, ModelOfAttributes::clearImpl);
     }
 }

@@ -1,7 +1,7 @@
 package com.bytex.snamp.adapters.snmp;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.Consumer;
+import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.adapters.snmp.helpers.OctetStringHelper;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 import com.bytex.snamp.connectors.notifications.Severity;
@@ -95,7 +95,7 @@ final class SnmpNotification extends HashMap<OID, Variable> {
     private static <E extends Exception> void forEachVariable(final CompositeData attachment,
                                                               final DescriptorRead options,
                                                               final SnmpTypeMapper typeMapper,
-                                                              final Consumer<VariableBinding, E> handler) throws E {
+                                                              final Acceptor<VariableBinding, E> handler) throws E {
         int index = 0;
         for(final String itemName: attachment.getCompositeType().keySet()){
             final WellKnownType itemType = WellKnownType.getType(attachment.getCompositeType().getType(itemName));
@@ -109,7 +109,7 @@ final class SnmpNotification extends HashMap<OID, Variable> {
     private static <E extends Exception> void iterateOverArray(final Object array,
                                                                final DescriptorRead options,
                                                                final SnmpTypeMapper typeMapper,
-                                                               final Consumer<VariableBinding, E> handler) throws E{
+                                                               final Acceptor<VariableBinding, E> handler) throws E{
         final WellKnownType elementType = WellKnownType.getType(array.getClass().getComponentType());
         if(elementType == null || !elementType.isPrimitive()) return;
         final SnmpType snmpType = typeMapper.apply(elementType);
@@ -122,7 +122,7 @@ final class SnmpNotification extends HashMap<OID, Variable> {
     private static <E extends Exception> void forEachVariable(final TabularData attachment,
                                                               final DescriptorRead options,
                                                               final SnmpTypeMapper typeMapper,
-                                                              final Consumer<VariableBinding, E> handler) throws E{
+                                                              final Acceptor<VariableBinding, E> handler) throws E{
         final MutableInteger rowIndex = new MutableInteger(0);
         TabularDataUtils.forEachRow(attachment, value -> {
             int columnIndex = 0;
@@ -137,7 +137,7 @@ final class SnmpNotification extends HashMap<OID, Variable> {
     private static <E extends Exception> void forEachVariable(final Object attachment,
                                                               final DescriptorRead options,
                                                               final SnmpTypeMapper typeMapper,
-                                                              final Consumer<VariableBinding, E> handler) throws E{
+                                                              final Acceptor<VariableBinding, E> handler) throws E{
         if(attachment instanceof CompositeData)
             forEachVariable((CompositeData)attachment, options, typeMapper, handler);
         else if(ArrayUtils.isArray(attachment))

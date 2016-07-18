@@ -1,18 +1,19 @@
 package com.bytex.snamp.jmx;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
+import com.bytex.snamp.Acceptor;
+import com.bytex.snamp.Box;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.bytex.snamp.Box;
-import com.bytex.snamp.Consumer;
-import com.bytex.snamp.SafeConsumer;
 
 import javax.management.openmbean.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Provides helper methods that allows to create and
@@ -76,7 +77,7 @@ public final class TabularDataUtils {
         return result;
     }
 
-    public static <E extends Throwable> void forEachRow(final TabularData table, final Consumer<CompositeData, E> rowReader) throws E{
+    public static <E extends Throwable> void forEachRow(final TabularData table, final Acceptor<CompositeData, E> rowReader) throws E{
         for(final Object row: table.values())
             if(row instanceof CompositeData)
                 rowReader.accept((CompositeData)row);
@@ -93,7 +94,7 @@ public final class TabularDataUtils {
             throw new OpenDataException("Incorrect type for key/value pairs " + type);
     }
 
-    private static void getKeyValueColumn(final TabularType type, final SafeConsumer<String> keyColumn, final SafeConsumer<String> valueColumn){
+    private static void getKeyValueColumn(final TabularType type, final Consumer<String> keyColumn, final Consumer<String> valueColumn){
         for (final String keyName : type.getRowType().keySet())
             if (type.getIndexNames().contains(keyName))
                 keyColumn.accept(keyName);
@@ -116,7 +117,7 @@ public final class TabularDataUtils {
         return result;
     }
 
-    public static Map<?, ?> makeKeyValuePairs(final TabularData table) throws OpenDataException{
+    public static Map<?, ?> makeKeyValuePairs(final TabularData table) throws OpenDataException {
         checkKeyValuePairType(table.getTabularType());
         final Box<String> keyColumn = new Box<>("");
         final Box<String> valueColumn = new Box<>("");
@@ -124,14 +125,10 @@ public final class TabularDataUtils {
         assert !isNullOrEmpty(keyColumn.get()) : keyColumn;
         assert !isNullOrEmpty(valueColumn.get()) : valueColumn;
         final Map<Object, Object> result = Maps.newHashMapWithExpectedSize(table.size());
-        forEachRow(table, new SafeConsumer<CompositeData>() {
-            private final String keyColumnName = keyColumn.get();
-            private final String valueColumnName = valueColumn.get();
-
-            @Override
-            public void accept(final CompositeData row) {
-                result.put(row.get(keyColumnName), row.get(valueColumnName));
-            }
+        forEachRow(table, row -> {
+            final String keyColumnName = keyColumn.get();
+            final String valueColumnName = valueColumn.get();
+            result.put(row.get(keyColumnName), row.get(valueColumnName));
         });
         return result;
     }

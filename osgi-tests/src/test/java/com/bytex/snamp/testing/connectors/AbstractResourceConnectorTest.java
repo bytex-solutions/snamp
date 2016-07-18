@@ -1,6 +1,6 @@
 package com.bytex.snamp.testing.connectors;
 
-import com.bytex.snamp.Consumer;
+import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.TypeTokens;
 import com.bytex.snamp.concurrent.SpinWait;
 import com.bytex.snamp.configuration.AgentConfiguration;
@@ -279,7 +279,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
     }
 
     protected final <E extends Throwable> Notification waitForNotification(final String listID,
-                                                     final Consumer<ManagedResourceConnector, E> sender,
+                                                     final Acceptor<ManagedResourceConnector, E> sender,
                                                                            final Duration timeout) throws E, InterruptedException, ExecutionException, TimeoutException {
         final Mailbox listener = MailboxFactory.newMailbox(listID);
         final ManagedResourceConnector connector = getManagementConnector();

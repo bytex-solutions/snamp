@@ -2,7 +2,7 @@ package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.Box;
-import com.bytex.snamp.Consumer;
+import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
@@ -98,7 +98,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
      * @since 1.2
      */
     @Override
-    public <E extends Throwable> void readConfiguration(final Consumer<? super AgentConfiguration, E> handler) throws E, IOException {
+    public <E extends Throwable> void readConfiguration(final Acceptor<? super AgentConfiguration, E> handler) throws E, IOException {
         //reading configuration doesn't require exclusive lock
         processConfiguration(config -> {
             handler.accept(config);

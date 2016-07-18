@@ -3,7 +3,6 @@ package com.bytex.snamp.adapters.nrdp;
 import ch.shamu.jsendnrdp.NRDPServerConnectionSettings;
 import ch.shamu.jsendnrdp.domain.NagiosCheckResult;
 import ch.shamu.jsendnrdp.domain.State;
-import com.bytex.snamp.Consumer;
 import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.adapters.AbstractResourceAdapter;
 import com.bytex.snamp.adapters.NotificationEvent;
@@ -56,7 +55,7 @@ final class NRDPAdapter extends AbstractResourceAdapter {
 
         @Override
         public <E extends Exception> void forEachNotification(final EntryReader<String, ? super NRDPNotificationAccessor, E> notificationReader) throws E {
-            read(notificationReader, (Consumer<EntryReader<String, ? super NRDPNotificationAccessor, E>, E>) this::forEachNotificationImpl);
+            readAccept(notificationReader, this::forEachNotificationImpl);
         }
 
         private void setCheckSender(final ConcurrentPassiveCheckSender value){
@@ -89,7 +88,7 @@ final class NRDPAdapter extends AbstractResourceAdapter {
 
         private NotificationAccessor addNotification(final String resourceName,
                                                      final MBeanNotificationInfo metadata){
-            return write(resourceName, metadata, this::addNotificationImpl);
+            return writeApply(resourceName, metadata, this::addNotificationImpl);
         }
 
         private NotificationAccessor removeNotificationImpl(final String resourceName,
@@ -105,16 +104,16 @@ final class NRDPAdapter extends AbstractResourceAdapter {
 
         private NotificationAccessor removeNotification(final String resourceName,
                                                         final MBeanNotificationInfo metadata){
-            return write(resourceName, metadata, this::removeNotificationImpl);
+            return writeApply(resourceName, metadata, this::removeNotificationImpl);
         }
 
         private Collection<? extends NotificationAccessor> removeNotifications(final String resourceName){
-            return write(resourceName, notifications,
+            return writeApply(resourceName, notifications,
                     (resName, notifs) -> notifs.containsKey(resName) ? notifs.remove(resName).values() : ImmutableList.of());
         }
 
         private void clear() {
-            write(notifications, notifs -> {
+            writeAccept(notifications, notifs -> {
                 notifs.values().forEach(list -> list.values().forEach(NotificationAccessor::close));
                 notifs.clear();
             });

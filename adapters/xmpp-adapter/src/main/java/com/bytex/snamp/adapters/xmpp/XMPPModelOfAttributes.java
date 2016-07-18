@@ -1,7 +1,7 @@
 package com.bytex.snamp.adapters.xmpp;
 
-import com.bytex.snamp.Consumer;
-import com.bytex.snamp.SafeConsumer;
+import com.bytex.snamp.Acceptor;
+import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.adapters.modeling.ModelOfAttributes;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.jmx.TabularDataUtils;
@@ -15,6 +15,7 @@ import javax.management.openmbean.TabularData;
 import java.nio.*;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
@@ -23,7 +24,7 @@ import java.util.stream.Stream;
  * @since 1.0
  */
 final class XMPPModelOfAttributes extends ModelOfAttributes<XMPPAttributeAccessor> implements AttributeReader, AttributeWriter {
-    private static final class Reader implements Consumer<XMPPAttributeAccessor, JMException>{
+    private static final class Reader implements Acceptor<XMPPAttributeAccessor, JMException> {
         private final AttributeValueFormat format;
         private String output;
         private final Collection<ExtensionElement> extras;
@@ -47,7 +48,7 @@ final class XMPPModelOfAttributes extends ModelOfAttributes<XMPPAttributeAccesso
         }
     }
 
-    private static final class OptionsPrinter implements SafeConsumer<XMPPAttributeAccessor> {
+    private static final class OptionsPrinter implements Consumer<XMPPAttributeAccessor>, Acceptor<XMPPAttributeAccessor, ExceptionPlaceholder> {
         private final boolean withNames;
         private final boolean details;
         private final StringBuilder result;
@@ -78,7 +79,7 @@ final class XMPPModelOfAttributes extends ModelOfAttributes<XMPPAttributeAccesso
         }
     }
 
-    private static final class Writer implements Consumer<XMPPAttributeAccessor, JMException>{
+    private static final class Writer implements Acceptor<XMPPAttributeAccessor, JMException> {
         private final String value;
 
         private Writer(final String val){

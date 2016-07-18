@@ -1,9 +1,11 @@
 package com.bytex.snamp.concurrent;
 
-import com.bytex.snamp.SafeConsumer;
+import com.bytex.snamp.Acceptor;
+import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.Wrapper;
 
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -14,7 +16,7 @@ import java.util.function.Supplier;
  * @version 1.2
  * @since 1.0
  */
-public class VolatileBox<T> extends AtomicReference<T> implements Wrapper<T>, Supplier<T>, SafeConsumer<T> {
+public class VolatileBox<T> extends AtomicReference<T> implements Wrapper<T>, Supplier<T>, Consumer<T>, Acceptor<T, ExceptionPlaceholder> {
     private static final long serialVersionUID = 7192489973282984448L;
 
     /**

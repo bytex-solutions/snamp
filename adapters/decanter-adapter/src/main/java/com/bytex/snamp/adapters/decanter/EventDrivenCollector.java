@@ -1,6 +1,5 @@
 package com.bytex.snamp.adapters.decanter;
 
-import com.bytex.snamp.Consumer;
 import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.adapters.modeling.ModelOfNotifications;
@@ -43,7 +42,7 @@ final class EventDrivenCollector extends ModelOfNotifications<DecanterNotificati
     }
 
     DecanterNotificationAccessor addNotification(final String resourceName, final MBeanNotificationInfo metadata) {
-        return write(ResourceGroups.RESOURCES, resourceName, metadata, this::addNotificationImpl);
+        return writeApply(ResourceGroups.RESOURCES, resourceName, metadata, this::addNotificationImpl);
     }
 
     private DecanterNotificationAccessor removeNotificationImpl(final String resourceName, final MBeanNotificationInfo metadata){
@@ -58,18 +57,18 @@ final class EventDrivenCollector extends ModelOfNotifications<DecanterNotificati
     }
 
     DecanterNotificationAccessor removeNotification(final String resourceName, final MBeanNotificationInfo metadata) {
-        return write(ResourceGroups.RESOURCES, resourceName, metadata, this::removeNotificationImpl);
+        return writeApply(ResourceGroups.RESOURCES, resourceName, metadata, this::removeNotificationImpl);
     }
 
     Collection<DecanterNotificationAccessor> clear(final String resourceName) {
-        return write(ResourceGroups.RESOURCES, resourceName, resources, (resName, res) -> res.containsKey(resName) ?
+        return writeApply(ResourceGroups.RESOURCES, resourceName, resources, (resName, res) -> res.containsKey(resName) ?
                 res.remove(resName).values() :
                 ImmutableList.of());
     }
 
     @Override
     public void close(){
-        write(ResourceGroups.RESOURCES, resources, res -> {
+        writeAccept(ResourceGroups.RESOURCES, resources, res -> {
             res.values().forEach(ResourceFeatureList::clear);
             res.clear();
         });
@@ -83,6 +82,6 @@ final class EventDrivenCollector extends ModelOfNotifications<DecanterNotificati
 
     @Override
     public <E extends Exception> void forEachNotification(final EntryReader<String, ? super DecanterNotificationAccessor, E> notificationReader) throws E {
-        read(ResourceGroups.RESOURCES, notificationReader, (Consumer<EntryReader<String, ? super DecanterNotificationAccessor, E>, E>) this::forEachNotificationImpl);
+        readAccept(ResourceGroups.RESOURCES, notificationReader, this::forEachNotificationImpl);
     }
 }

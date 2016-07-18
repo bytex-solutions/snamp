@@ -208,11 +208,11 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     }
 
     NotificationAccessor addNotification(final MBeanNotificationInfo metadata){
-        return write(MBeanResources.NOTIFICATIONS, metadata, this::addNotificationImpl);
+        return writeApply(MBeanResources.NOTIFICATIONS, metadata, this::addNotificationImpl);
     }
 
     NotificationAccessor removeNotification(final MBeanNotificationInfo metadata) {
-        return write(MBeanResources.NOTIFICATIONS, metadata, (Function<MBeanNotificationInfo, NotificationAccessor>) notifications::remove);
+        return writeApply(MBeanResources.NOTIFICATIONS, metadata, (Function<MBeanNotificationInfo, NotificationAccessor>) notifications::remove);
     }
 
     private AttributeAccessor addAttributeImpl(final MBeanAttributeInfo metadata){
@@ -257,11 +257,11 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     }
 
     AttributeAccessor addAttribute(final MBeanAttributeInfo metadata){
-        return write(MBeanResources.ATTRIBUTES, metadata, this::addAttributeImpl);
+        return writeApply(MBeanResources.ATTRIBUTES, this, metadata, ProxyMBean::addAttributeImpl);
     }
 
     AttributeAccessor removeAttribute(final MBeanAttributeInfo metadata){
-        return write(MBeanResources.ATTRIBUTES, metadata, (Function<MBeanAttributeInfo, AttributeAccessor>) attributes::remove);
+        return writeApply(MBeanResources.ATTRIBUTES, attributes, metadata, ResourceAttributeList::remove);
     }
 
     /**
@@ -276,7 +276,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     @Override
     public Object getAttribute(final String attributeName) throws AttributeNotFoundException, ReflectionException, MBeanException {
         try {
-            return readInterruptibly(MBeanResources.ATTRIBUTES, (Callable<Object>) () -> attributes.getAttribute(attributeName));
+            return readCallInterruptibly(MBeanResources.ATTRIBUTES, () -> attributes.getAttribute(attributeName));
         } catch (final AttributeNotFoundException | ReflectionException | MBeanException e) {
             throw e;
         } catch (final Exception e) {
@@ -300,7 +300,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     @Override
     public void setAttribute(final Attribute attributeHolder) throws AttributeNotFoundException, ReflectionException, InvalidAttributeValueException, MBeanException {
         try {
-            readInterruptibly(MBeanResources.ATTRIBUTES, attributeHolder, this::setAttributeImpl);
+            readAcceptInterruptibly(MBeanResources.ATTRIBUTES, attributeHolder, this::setAttributeImpl);
         } catch (final AttributeNotFoundException | ReflectionException | InvalidAttributeValueException | MBeanException e) {
             throw e;
         } catch (final Exception e) {
@@ -373,16 +373,16 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     }
 
     private OpenMBeanAttributeInfo[] getAttributeInfo() {
-        return read(MBeanResources.ATTRIBUTES, attributes,
-                (Function<ResourceAttributeList<JmxAttributeAccessor>, OpenMBeanAttributeInfo[]>) attrs -> attrs.values().stream()
+        return readApply(MBeanResources.ATTRIBUTES, attributes,
+                attrs -> attrs.values().stream()
                         .map(JmxAttributeAccessor::cloneMetadata)
                         .toArray(OpenMBeanAttributeInfo[]::new));
     }
 
     @Override
     public MBeanNotificationInfo[] getNotificationInfo() {
-        return read(MBeanResources.NOTIFICATIONS, notifications,
-                (Function<ResourceNotificationList<JmxNotificationAccessor>, MBeanNotificationInfo[]>) notifs -> notifs.values().stream()
+        return readApply(MBeanResources.NOTIFICATIONS, notifications,
+                notifs -> notifs.values().stream()
                         .map(JmxNotificationAccessor::cloneMetadata)
                         .toArray(MBeanNotificationInfo[]::new));
     }

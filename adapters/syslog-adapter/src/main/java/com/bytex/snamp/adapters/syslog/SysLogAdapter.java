@@ -1,6 +1,5 @@
 package com.bytex.snamp.adapters.syslog;
 
-import com.bytex.snamp.Consumer;
 import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.adapters.AbstractResourceAdapter;
 import com.bytex.snamp.adapters.NotificationEvent;
@@ -56,7 +55,7 @@ final class SysLogAdapter extends AbstractResourceAdapter {
 
         @Override
         public <E extends Exception> void forEachNotification(final EntryReader<String, ? super SysLogNotificationAccessor, E> notificationReader) throws E {
-            read(notificationReader, (Consumer<? super EntryReader<String,? super SysLogNotificationAccessor,E>, E>) this::forEachNotificationImpl);
+            readAccept(notificationReader, this::forEachNotificationImpl);
         }
 
         private void setCheckSender(final ConcurrentSyslogMessageSender value){
@@ -96,7 +95,7 @@ final class SysLogAdapter extends AbstractResourceAdapter {
 
         private NotificationAccessor addNotification(final String resourceName,
                                                      final MBeanNotificationInfo metadata) {
-            return write(resourceName, metadata, this::addNotificationImpl);
+            return writeApply(resourceName, metadata, this::addNotificationImpl);
         }
 
         private NotificationAccessor removeNotificationImpl(final String resourceName,
@@ -112,11 +111,11 @@ final class SysLogAdapter extends AbstractResourceAdapter {
 
         private NotificationAccessor removeNotification(final String resourceName,
                                                         final MBeanNotificationInfo metadata){
-            return write(resourceName, metadata, this::removeNotificationImpl);
+            return writeApply(resourceName, metadata, this::removeNotificationImpl);
         }
 
         private Collection<? extends NotificationAccessor> removeNotifications(final String resourceName) {
-            return write(resourceName, notifications, (resName, notifs) -> {
+            return writeApply(resourceName, notifications, (resName, notifs) -> {
                 if (notifs.containsKey(resName))
                     return notifs.remove(resName).values();
                 else return ImmutableList.of();
@@ -124,7 +123,7 @@ final class SysLogAdapter extends AbstractResourceAdapter {
         }
 
         private void clear() {
-            write(notifications, notifs -> {
+            writeAccept(notifications, notifs -> {
                 notifs.values().forEach(list -> list.values().forEach(NotificationAccessor::close));
                 notifs.clear();
             });

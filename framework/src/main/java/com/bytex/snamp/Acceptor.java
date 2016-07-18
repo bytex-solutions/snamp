@@ -8,10 +8,10 @@ import java.util.function.Function;
  * @param <E> Type of the exception that occurred in the operation.
  * @author Roman Sakno
  * @version 1.2
- * @since 1.0
+ * @since 1.2
  */
 @FunctionalInterface
-public interface Consumer<T, E extends Throwable> {
+public interface Acceptor<T, E extends Throwable> {
     /**
      * Performs this operation on the given argument.
      * @param value The value to process.
@@ -19,7 +19,7 @@ public interface Consumer<T, E extends Throwable> {
      */
     void accept(final T value) throws E;
 
-    default <I> Consumer<? super I, E> changeConsumingType(final Function<? super I, ? extends T> transformation) throws E{
+    default <I> Acceptor<? super I, E> changeConsumingType(final Function<? super I, ? extends T> transformation) throws E{
         return inp -> accept(transformation.apply(inp));
     }
 }

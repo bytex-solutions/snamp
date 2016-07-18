@@ -22,10 +22,12 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.*;
-import java.util.function.Function;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -99,7 +101,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     @ThreadSafe
     @Override
     public final int size() {
-        return read(attributes::size);
+        return readSupply(attributes::size);
     }
 
     /**
@@ -109,7 +111,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     @Override
     public final M[] getAttributeInfo() {
-        return read((Supplier<M[]>) () -> toArray(attributes.values()));
+        return readSupply(() -> toArray(attributes.values()));
     }
 
     /**
@@ -120,7 +122,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     @Override
     public final M getAttributeInfo(final String attributeName) {
-        final AttributeHolder<M> holder = read(attributeName, attributes::get);
+        final AttributeHolder<M> holder = readApply(attributes, attributeName, Map::get);
         return holder != null ? holder.getMetadata() : null;
     }
 
@@ -316,7 +318,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
                                 final CompositeData options) {
         AttributeHolder<M> holder;
         try {
-            holder = writeInterruptibly((Callable<AttributeHolder<M>>) () -> addAttributeImpl(attributeName, readWriteTimeout, options));
+            holder = writeCallInterruptibly(() -> addAttributeImpl(attributeName, readWriteTimeout, options));
         } catch (final Exception e) {
             failedToConnectAttribute(attributeName, e);
             holder = null;
@@ -448,7 +450,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     @Override
     public final void setAttribute(final Attribute attribute) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
         try {
-            readInterruptibly(attribute, this::setAttributeImpl);
+            readAcceptInterruptibly(attribute, this::setAttributeImpl);
         } catch (final AttributeNotFoundException e) {
             throw e;
         } catch (final InvalidAttributeValueException | MBeanException | ReflectionException e) {
@@ -516,7 +518,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     @Override
     public final M remove(final String attributeID) {
-        final AttributeHolder<M> holder = write(attributeID, this::removeImpl);
+        final AttributeHolder<M> holder = writeApply(this, attributeID, AbstractAttributeRepository::removeImpl);
         if (holder != null) {
             disconnectAttribute(holder.getMetadata());
             return holder.getMetadata();
@@ -537,7 +539,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      * @param removeAttributeEventListeners {@literal true} to remove all attribute listeners; otherwise, {@literal false}.
      */
     public final void removeAll(final boolean removeAttributeEventListeners) {
-        write(attributes, this::removeAllImpl);
+        writeAccept(attributes, this::removeAllImpl);
         if (removeAttributeEventListeners)
             super.removeAllResourceEventListeners();
     }
@@ -549,7 +551,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     @Override
     public final ImmutableSet<String> getIDs() {
-        return read(attributes, (Function<KeyedObjects<String, ?>, ImmutableSet<String>>)  attrs -> ImmutableSet.copyOf(attrs.keySet()));
+        return readApply(attributes, attrs -> ImmutableSet.copyOf(attrs.keySet()));
     }
 
     /**

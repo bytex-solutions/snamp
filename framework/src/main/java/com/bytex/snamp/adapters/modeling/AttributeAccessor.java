@@ -1,6 +1,6 @@
 package com.bytex.snamp.adapters.modeling;
 
-import com.bytex.snamp.Consumer;
+import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.TypeTokens;
 import com.bytex.snamp.concurrent.LazyValue;
 import com.bytex.snamp.concurrent.LazyValueFactory;
@@ -28,7 +28,7 @@ import java.text.ParseException;
  * @since 1.0
  * @version 1.2
  */
-public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> implements AttributeValueReader, Consumer<Object, JMException> {
+public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> implements AttributeValueReader, Acceptor<Object, JMException> {
     /**
      * Represents an exception that can be produced by attribute interceptor.
      * @author Roman Sakno

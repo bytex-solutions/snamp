@@ -1,8 +1,7 @@
 package com.bytex.snamp.configuration.impl;
 
+import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.Box;
-import com.bytex.snamp.Consumer;
-import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.configuration.internal.CMResourceAdapterParser;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.Maps;
@@ -84,7 +83,7 @@ final class CMResourceAdapterParserImpl implements CMResourceAdapterParser {
 
     private static <E extends Exception> void forEachAdapter(final ConfigurationAdmin admin,
                                                              final String filter,
-                                                             final Consumer<Configuration, E> reader) throws E, IOException, InvalidSyntaxException {
+                                                             final Acceptor<Configuration, E> reader) throws E, IOException, InvalidSyntaxException {
         final Configuration[] configs = admin.listConfigurations(filter);
         if(configs != null && configs.length > 0)
             for(final Configuration config: configs)
@@ -94,7 +93,7 @@ final class CMResourceAdapterParserImpl implements CMResourceAdapterParser {
     void readAdapters(final ConfigurationAdmin admin,
                                      final Map<String, SerializableResourceAdapterConfiguration> output) throws IOException {
         try {
-            forEachAdapter(admin, ALL_ADAPTERS_QUERY, (SafeConsumer<Configuration>) config -> {
+            forEachAdapter(admin, ALL_ADAPTERS_QUERY, config -> {
                 final String adapterInstanceName = getAdapterInstanceName(config.getProperties());
                 final SerializableResourceAdapterConfiguration adapter = parse(config);
                 output.put(adapterInstanceName, adapter);

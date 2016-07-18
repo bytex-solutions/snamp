@@ -1,6 +1,6 @@
 package com.bytex.snamp.concurrent;
 
-import com.bytex.snamp.Consumer;
+import com.bytex.snamp.Acceptor;
 
 import java.util.Objects;
 import java.util.concurrent.Callable;
@@ -20,7 +20,7 @@ final class SimpleLazyValue<V> implements LazyValue<V> {
     }
 
     @Override
-    public <G extends Throwable> void reset(final Consumer<? super V, G> cleaner) throws G {
+    public <G extends Throwable> void reset(final Acceptor<? super V, G> cleaner) throws G {
         if (value != null)
             try {
                 cleaner.accept(value);

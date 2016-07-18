@@ -1,6 +1,6 @@
 package com.bytex.snamp.concurrent;
 
-import com.bytex.snamp.Consumer;
+import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.ThreadSafe;
 
 import java.util.concurrent.Callable;
@@ -20,7 +20,7 @@ public interface LazyValue<V> extends Supplier<V> {
      * @param cleaner Cleanup code use to destroy object inside of this container.
      * @throws G Cleanup code causes an exception. But container must provide guarantees that a reference to encapsulated object will be released.
      */
-    <G extends Throwable> void reset(final Consumer<? super V, G> cleaner) throws G;
+    <G extends Throwable> void reset(final Acceptor<? super V, G> cleaner) throws G;
 
     /**
      * Releases encapsulated object.

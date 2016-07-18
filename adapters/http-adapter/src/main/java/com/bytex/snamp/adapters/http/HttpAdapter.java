@@ -1,8 +1,6 @@
 package com.bytex.snamp.adapters.http;
 
-import com.bytex.snamp.Consumer;
 import com.bytex.snamp.EntryReader;
-import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.adapters.AbstractResourceAdapter;
 import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationListener;
@@ -193,7 +191,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
 
         private NotificationRouter addNotification(final String resourceName,
                                     final MBeanNotificationInfo metadata) {
-            return write(resourceName, metadata, this::addNotificationImpl);
+            return writeApply(resourceName, metadata, this::addNotificationImpl);
         }
 
         private <E extends Exception> void forEachNotificationImpl(final EntryReader<String, ? super HttpNotificationAccessor, E> notificationReader) throws E{
@@ -205,12 +203,12 @@ final class HttpAdapter extends AbstractResourceAdapter {
 
         @Override
         public <E extends Exception> void forEachNotification(final EntryReader<String, ? super HttpNotificationAccessor, E> notificationReader) throws E {
-            read(notificationReader, (Consumer<EntryReader<String, ? super HttpNotificationAccessor, E>, E>) this::forEachNotificationImpl);
+            readAccept(notificationReader, this::forEachNotificationImpl);
         }
 
         @Override
         public NotificationBroadcaster getBroadcaster(final String resourceName) {
-            return read(resourceName, notifications::get);
+            return readApply(notifications, resourceName, KeyedObjects::get);
         }
 
         private NotificationAccessor removeNotificationImpl(final String resourceName,
@@ -229,15 +227,15 @@ final class HttpAdapter extends AbstractResourceAdapter {
 
         private NotificationAccessor removeNotification(final String resourceName,
                                                         final MBeanNotificationInfo metadata) {
-            return write(resourceName, metadata, this::removeNotificationImpl);
+            return writeApply(resourceName, metadata, this::removeNotificationImpl);
         }
 
         private void clear() {
-            write(notifications, (SafeConsumer<Map<?, ?>>)Map::clear);
+            writeAccept(notifications, KeyedObjects::clear);
         }
 
         private Collection<? extends NotificationAccessor> clear(final String resourceName) {
-            return write(resourceName, notifications, (resName, notifs) -> {
+            return writeApply(resourceName, notifications, (resName, notifs) -> {
                 if(notifs.containsKey(resName)){
                     final NotificationBroadcaster broadcaster = notifs.remove(resName);
                     broadcaster.destroy();
