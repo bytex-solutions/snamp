@@ -89,9 +89,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
                 return attributes.get(resourceName).getAttribute(attributeName);
             else
                 throw new AttributeNotFoundException(String.format("Attribute %s in managed resource %s doesn't exist", attributeName, resourceName));
-        } catch (final AttributeNotFoundException | ReflectionException | MBeanException e) {
-            throw e;
-        } catch (final Exception e) {
+        } catch (final InterruptedException e) {
             throw new ReflectionException(e);
         }
     }
@@ -104,9 +102,7 @@ public abstract class ModelOfAttributes<TAccessor extends AttributeAccessor> ext
                 attributes.get(resourceName).setAttribute(attributeName, value);
             else
                 throw new AttributeNotFoundException(String.format("Attribute %s in managed resource %s doesn't exist", attributeName, resourceName));
-        } catch (final AttributeNotFoundException | MBeanException | ReflectionException | InvalidAttributeValueException e) {
-            throw e;
-        } catch (final Exception e) {
+        } catch (final InterruptedException e) {
             throw new ReflectionException(e);
         }
     }

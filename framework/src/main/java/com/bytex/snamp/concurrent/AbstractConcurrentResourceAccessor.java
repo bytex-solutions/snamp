@@ -67,11 +67,11 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ThreadSafeOb
     /**
      * Provides unsafe access to the resource.
      * @param handler The wrapped object handler.
-     * @param <RESULT> Type of the resource processing result.
+     * @param <O> Type of the resource processing result.
      * @return The resource processing result.
      */
     @Override
-    public <RESULT> RESULT apply(final Function<R, RESULT> handler) {
+    public <O> O apply(final Function<R, O> handler) {
         if (handler == null) return null;
         try (final SafeCloseable ignored = acquireReadLock(SingleResourceGroup.INSTANCE)) {
             return handler.apply(getResource());
