@@ -1,7 +1,6 @@
 package com.bytex.snamp.adapters;
 
 import com.bytex.snamp.EntryReader;
-import com.bytex.snamp.concurrent.SpinWait;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.core.FrameworkService;
@@ -25,6 +24,7 @@ import java.util.stream.Collectors;
 
 import static com.bytex.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
 import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfiguration;
+import static com.bytex.snamp.concurrent.SpinWait.spinUntilNull;
 
 /**
  * Represents a client of resource connector that can be used by adapter consumers.
@@ -48,14 +48,8 @@ public final class ResourceAdapterClient extends ServiceHolder<ResourceAdapter> 
 
     public ResourceAdapterClient(final BundleContext context,
                                  final String instanceName,
-                                 final Duration instanceTimeout) throws TimeoutException, InterruptedException, ExecutionException{
-        super(context, waitResourceAdapter(context, instanceName, instanceTimeout));
-    }
-
-    private static ServiceReference<ResourceAdapter> waitResourceAdapter(final BundleContext context,
-                                                                         final String instanceName,
-                                                                         final Duration instanceTimeout) throws InterruptedException, ExecutionException, TimeoutException {
-        return SpinWait.spinUntilNull(context, instanceName, ResourceAdapterClient::getResourceAdapter, instanceTimeout);
+                                 final Duration instanceTimeout) throws TimeoutException, InterruptedException, ExecutionException {
+        super(context, spinUntilNull(context, instanceName, ResourceAdapterClient::getResourceAdapter, instanceTimeout));
     }
 
     private static ServiceReference<ResourceAdapter> getResourceAdapterAndCheck(final BundleContext context,

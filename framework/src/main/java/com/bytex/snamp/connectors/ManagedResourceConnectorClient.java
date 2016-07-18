@@ -17,13 +17,16 @@ import org.osgi.framework.*;
 
 import javax.management.*;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
 import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfiguration;
+import static com.bytex.snamp.concurrent.SpinWait.spinUntilNull;
 
 /**
  * Represents a client of resource connector that can be used by resource consumers.
@@ -42,6 +45,12 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
     public ManagedResourceConnectorClient(final BundleContext context,
                                           final String resourceName) throws InstanceNotFoundException {
         super(context, getResourceConnectorAndCheck(context, resourceName));
+    }
+
+    public ManagedResourceConnectorClient(final BundleContext context,
+                                          final String resourceName,
+                                          final Duration instanceTimeout) throws TimeoutException, InterruptedException {
+        super(context, spinUntilNull(context, resourceName, ManagedResourceConnectorClient::getResourceConnector, instanceTimeout));
     }
 
     private static ServiceReference<ManagedResourceConnector> getResourceConnectorAndCheck(final BundleContext context,
