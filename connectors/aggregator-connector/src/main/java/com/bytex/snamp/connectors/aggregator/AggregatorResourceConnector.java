@@ -19,7 +19,6 @@ import javax.management.InstanceNotFoundException;
 import javax.management.JMException;
 import javax.management.MBeanNotificationInfo;
 import javax.management.openmbean.CompositeData;
-import java.beans.IntrospectionException;
 import java.time.Duration;
 import java.util.Set;
 import java.util.logging.Level;
@@ -164,7 +163,7 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
     private final NotificationSender sender;
 
     AggregatorResourceConnector(final String resourceName,
-                                final Duration notificationFrequency) throws IntrospectionException {
+                                final Duration notificationFrequency) {
         attributes = new AttributeAggregationRepository(resourceName);
         notifications = new NotificationAggregationRepository(resourceName, Utils.getBundleContextOfObject(this));
         sender = new NotificationSender(notificationFrequency, notifications);
