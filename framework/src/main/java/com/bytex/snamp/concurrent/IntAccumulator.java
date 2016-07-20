@@ -2,7 +2,6 @@ package com.bytex.snamp.concurrent;
 
 import com.bytex.snamp.SpecialUse;
 
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.function.IntBinaryOperator;
 
@@ -13,31 +12,27 @@ import java.util.function.IntBinaryOperator;
  * @version 1.2
  * @since 1.0
  */
-public final class IntAccumulator extends AbstractAccumulator {
+public abstract class IntAccumulator extends AbstractAccumulator {
     private static final AtomicIntegerFieldUpdater<IntAccumulator> CURRENT_VALUE_ACCESSOR =
             AtomicIntegerFieldUpdater.newUpdater(IntAccumulator.class, "current");
     private static final long serialVersionUID = 5460812167708036224L;
     @SpecialUse
     private volatile int current;
     private final int initialValue;
-    private final IntBinaryOperator accumulator;
 
     /**
      * Initializes a new accumulator of {@literal int} values.
      * @param initialValue The initial value of this accumulator.
      * @param ttl Time-to-live of the value in this accumulator, in millis.
-     * @param accumulator A side-effect-free function used to accumulate two {@code int}s. Cannot be {@literal null}.
      */
-    public IntAccumulator(final int initialValue,
-                             final long ttl,
-                             final IntBinaryOperator accumulator){
+    protected IntAccumulator(final int initialValue,
+                             final long ttl){
         super(ttl);
         this.current = this.initialValue = initialValue;
-        this.accumulator = Objects.requireNonNull(accumulator);
     }
 
     @Override
-    public synchronized void reset(){
+    public final synchronized void reset(){
         super.reset();
         CURRENT_VALUE_ACCESSOR.set(this, initialValue);
     }
@@ -48,14 +43,38 @@ public final class IntAccumulator extends AbstractAccumulator {
     }
 
     /**
+     * Atomically adds the given value to the current value.
+     *
+     * @param delta The value to add.
+     * @return The updated value.
+     * @since 1.2
+     */
+    protected final int addAndGet(final int delta){
+        return CURRENT_VALUE_ACCESSOR.addAndGet(this, delta);
+    }
+
+    /**
+     * Atomically combines a new value with existing using given function.
+     * @param operator A side-effect-free function used to combine two values. Cannot be {@literal null}.
+     * @param newValue The value passed from {@link #update(int)} method.
+     * @return The updated value.
+     * @since 1.2
+     */
+    protected final int accumulateAndGet(final IntBinaryOperator operator, final int newValue){
+        return CURRENT_VALUE_ACCESSOR.accumulateAndGet(this, newValue, operator);
+    }
+
+    protected abstract int accumulate(final int value);
+
+    /**
      * Updates this accumulator.
      * @param value A new value to be combined with existing accumulator value.
      * @return Modified accumulator value.
      */
-    public int update(final int value){
+    public final int update(final int value){
         if(isExpired())
             resetIfExpired();   //double check required
-        return CURRENT_VALUE_ACCESSOR.accumulateAndGet(this, value, accumulator);
+        return accumulate(value);
     }
 
     /**
@@ -63,7 +82,7 @@ public final class IntAccumulator extends AbstractAccumulator {
      * @return Value of this accumulator
      */
     @Override
-    public long longValue() {
+    public final long longValue() {
         return intValue();
     }
 
@@ -75,7 +94,7 @@ public final class IntAccumulator extends AbstractAccumulator {
      * to type <code>int</code>.
      */
     @Override
-    public int intValue() {
+    public final int intValue() {
         if(isExpired())
             resetIfExpired();   //double check required
         return CURRENT_VALUE_ACCESSOR.get(this);
@@ -89,7 +108,7 @@ public final class IntAccumulator extends AbstractAccumulator {
      * to type <code>float</code>.
      */
     @Override
-    public float floatValue() {
+    public final float floatValue() {
         return intValue();
     }
 
@@ -101,15 +120,33 @@ public final class IntAccumulator extends AbstractAccumulator {
      * to type <code>double</code>.
      */
     @Override
-    public double doubleValue() {
+    public final double doubleValue() {
         return intValue();
     }
 
+    public static IntAccumulator create(final int initialValue, final long ttl, final IntBinaryOperator accumulator){
+        return new IntAccumulator(initialValue, ttl) {
+            private static final long serialVersionUID = -3940528661924869135L;
+
+            @Override
+            protected int accumulate(final int value) {
+                return accumulateAndGet(accumulator, value);
+            }
+        };
+    }
+
     public static IntAccumulator peak(final int initialValue, final long ttl){
-        return new IntAccumulator(initialValue, ttl, Math::max);
+        return create(initialValue, ttl, Math::max);
     }
 
     public static IntAccumulator adder(final int initialValue, final long ttl) {
-        return new IntAccumulator(initialValue, ttl, (current, value) -> current + value);
+        return new IntAccumulator(initialValue, ttl) {
+            private static final long serialVersionUID = -3865229366760307254L;
+
+            @Override
+            protected int accumulate(final int delta) {
+                return addAndGet(delta);
+            }
+        };
     }
 }

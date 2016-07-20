@@ -24,7 +24,11 @@ abstract class AbstractAccumulator extends Number {
         timer = System.currentTimeMillis();
     }
 
-    final boolean isExpired() {
+    /**
+     * Determines whether the value in this accumulator is expired.
+     * @return {@literal true}, if value is expired; otherwise, {@literal false}.
+     */
+    protected final boolean isExpired() {
         return System.currentTimeMillis() - timer > timeToLive;
     }
 }
