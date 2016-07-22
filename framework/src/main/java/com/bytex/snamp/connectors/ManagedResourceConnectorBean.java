@@ -801,11 +801,11 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         }
     }
 
-    @Aggregation
+    @Aggregation(cached = true)
     private final JavaBeanAttributeRepository attributes;
-    @Aggregation
+    @Aggregation(cached = true)
     private final JavaBeanNotificationRepository notifications;
-    @Aggregation
+    @Aggregation(cached = true)
     private final JavaBeanOperationRepository operations;
 
     /**

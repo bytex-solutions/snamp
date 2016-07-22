@@ -721,13 +721,13 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
             setValue(connectionManager, getAlias(), namespace, value);
         }
     }
-    @Aggregation
+    @Aggregation(cached = true)
     private final JmxNotificationRepository notifications;
-    @Aggregation
+    @Aggregation(cached = true)
     private final JmxAttributeRepository attributes;
-    @Aggregation
+    @Aggregation(cached = true)
     private final JmxConnectionManager connectionManager;
-    @Aggregation
+    @Aggregation(cached = true)
     private final JmxOperationRepository operations;
     private final boolean smartMode;
 

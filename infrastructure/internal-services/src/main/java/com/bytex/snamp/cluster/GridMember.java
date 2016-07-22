@@ -135,7 +135,7 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
      * @return The logger associated with this service.
      */
     @Override
-    @Aggregation
+    @Aggregation(cached = true)
     public Logger getLogger() {
         return logger;
     }

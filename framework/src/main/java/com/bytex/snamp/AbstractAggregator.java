@@ -9,10 +9,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Map;
@@ -49,29 +46,27 @@ public abstract class AbstractAggregator implements Aggregator {
         Object get(final Aggregator owner) throws ReflectiveOperationException;
     }
 
-    private static final class FieldAggregationSupplier implements AggregationSupplier {
-        private final Field field;
+    private static final class CachedAggregationSupplier implements AggregationSupplier{
+        private volatile Object supplierOrCachedObject;
 
-        private FieldAggregationSupplier(final Field fld){
-            this.field = Objects.requireNonNull(fld);
+        private CachedAggregationSupplier(final AggregationSupplier supplier){
+            this.supplierOrCachedObject = Objects.requireNonNull(supplier);
+        }
+
+        private synchronized Object cacheAndGet(final Aggregator owner) throws ReflectiveOperationException{
+            if(supplierOrCachedObject instanceof AggregationSupplier)
+                supplierOrCachedObject = ((AggregationSupplier) supplierOrCachedObject).get(owner);
+            return supplierOrCachedObject;
         }
 
         @Override
-        public Object get(final Aggregator owner) throws IllegalAccessException {
-            return field.get(owner);
-        }
-    }
-
-    private static final class MethodAggregationSupplier implements AggregationSupplier {
-        private final Method method;
-
-        private MethodAggregationSupplier(final Method m){
-            this.method = Objects.requireNonNull(m);
+        public Object get(final Aggregator owner) throws ReflectiveOperationException {
+            return supplierOrCachedObject instanceof AggregationSupplier ? cacheAndGet(owner) : supplierOrCachedObject;
         }
 
         @Override
-        public Object get(final Aggregator owner) throws InvocationTargetException, IllegalAccessException {
-            return method.invoke(owner);
+        public String toString() {
+            return supplierOrCachedObject.toString();
         }
     }
 
@@ -103,30 +98,39 @@ public abstract class AbstractAggregator implements Aggregator {
             this.aggregatorType = declaredType;
         }
 
-        private static AggregationSupplier reflectField(final Field fld){
-            return new FieldAggregationSupplier(fld);
+        private static void setAccessibleIfNecessary(final AccessibleObject obj) {
+            if (!obj.isAccessible())
+                AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
+                    obj.setAccessible(true);
+                    return null;
+                });
         }
 
-        private static AggregationSupplier reflectMethod(final Method m) {
-            return new MethodAggregationSupplier(m);
+        private static boolean isCached(final AnnotatedElement element){
+            return element.getAnnotation(Aggregation.class).cached();
         }
 
-        private static <A extends AccessibleObject> A setAccessibleIfNecessary(final A obj) {
-            return obj.isAccessible() ? obj : AccessController.doPrivileged((PrivilegedAction<A>) () -> {
-                obj.setAccessible(true);
-                return obj;
-            });
+        private static AggregationSupplier reflectField(final Field f){
+            setAccessibleIfNecessary(f);
+            final AggregationSupplier supplier = f::get;
+            return (f.getModifiers() & Modifier.FINAL) != 0 || isCached(f) ? new CachedAggregationSupplier(supplier) : supplier;
+        }
+
+        private static AggregationSupplier reflectMethod(final Method m){
+            setAccessibleIfNecessary(m);
+            final AggregationSupplier supplier = m::invoke;
+            return isCached(m) ? new CachedAggregationSupplier(supplier) : supplier;
         }
 
         private static AggregationSupplier load(final Class<?> inheritanceFrame, final Class<?> serviceType) {
             //iterates through fields
             for (final Field f : inheritanceFrame.getDeclaredFields())
                 if (f.isAnnotationPresent(Aggregation.class) && serviceType.isAssignableFrom(f.getType()))
-                    return reflectField(setAccessibleIfNecessary(f));
+                    return reflectField(f);
             //iterates through methods
             for (final Method m : inheritanceFrame.getDeclaredMethods())
                 if (m.isAnnotationPresent(Aggregation.class) && serviceType.isAssignableFrom(m.getReturnType()))
-                    return reflectMethod(setAccessibleIfNecessary(m));
+                    return reflectMethod(m);
             return null;
         }
 
@@ -250,6 +254,11 @@ public abstract class AbstractAggregator implements Aggregator {
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.METHOD, ElementType.FIELD})
     protected @interface Aggregation{
+        /**
+         * Determines whether the aggregation element can be cached.
+         * @return {@literal true}, if element can be cached; otherwise, {@literal false}.
+         */
+        boolean cached() default false;
     }
 
     protected final <T> T queryObject(final Class<T> objectType, final Aggregator fallback) {

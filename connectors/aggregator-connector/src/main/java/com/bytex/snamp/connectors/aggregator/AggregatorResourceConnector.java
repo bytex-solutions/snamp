@@ -156,9 +156,9 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
         }
     }
 
-    @Aggregation
+    @Aggregation(cached = true)
     private final AttributeAggregationRepository attributes;
-    @Aggregation
+    @Aggregation(cached = true)
     private final NotificationAggregationRepository notifications;
     private final NotificationSender sender;
 

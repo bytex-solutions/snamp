@@ -288,7 +288,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
     }
 
     private final CommandExecutionChannel executionChannel;
-    @Aggregation
+    @Aggregation(cached = true)
     private final RShellAttributes attributes;
 
     private RShellResourceConnector(final String resourceName,

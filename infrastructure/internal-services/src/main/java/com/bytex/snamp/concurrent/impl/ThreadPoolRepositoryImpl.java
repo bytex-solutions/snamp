@@ -117,7 +117,7 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
     }
 
     @Override
-    @Aggregation
+    @Aggregation(cached = true)
     public Logger getLogger() {
         return logger;
     }

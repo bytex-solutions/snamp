@@ -124,11 +124,11 @@ public final class SummaryMetrics extends AbstractAggregator implements MetricsR
         }
     }
 
-    @Aggregation
+    @Aggregation(cached = true)
     private final SummaryAttributeMetrics attributes;
-    @Aggregation
+    @Aggregation(cached = true)
     private final SummaryNotificationMetrics notifications;
-    @Aggregation
+    @Aggregation(cached = true)
     private final SummaryOperationMetrics operations;
 
     public SummaryMetrics(final BundleContext context){

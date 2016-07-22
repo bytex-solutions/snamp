@@ -14,8 +14,6 @@ import com.bytex.snamp.connectors.notifications.*;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
-import com.google.common.base.Splitter;
-import com.google.common.base.StandardSystemProperty;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
 import org.osgi.framework.BundleContext;
@@ -261,17 +259,11 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
     }
 
     private static final String RESOURCE_NAME_VAR = ManagedResourceScriptBase.RESOURCE_NAME_VAR;
-    @Aggregation
+    @Aggregation(cached = true)
     private final GroovyAttributeRepository attributes;
-    private static final Splitter PATH_SPLITTER;
     private final ManagedResourceInfo groovyConnector;
-    @Aggregation
+    @Aggregation(cached = true)
     private final GroovyNotificationRepository events;
-
-    static {
-        final String pathSeparator = StandardSystemProperty.PATH_SEPARATOR.value();
-        PATH_SPLITTER = Splitter.on(isNullOrEmpty(pathSeparator) ? ":" : pathSeparator);
-    }
 
     static Properties toProperties(final Map<String, String> params){
         final Properties props = new Properties();
@@ -301,7 +293,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         return assembleMetricsReader(attributes, events);
     }
 
-    static Logger getLoggerImpl(){
+    private static Logger getLoggerImpl(){
         return ResourceConnectorInfo.getLogger();
     }
 

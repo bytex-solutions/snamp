@@ -6,12 +6,13 @@ import com.bytex.snamp.connectors.mda.MDAAttributeRepository;
 import com.bytex.snamp.connectors.mda.MDANotificationRepository;
 import com.bytex.snamp.connectors.mq.MQResourceConnectorDescriptionProvider;
 import com.bytex.snamp.internal.Utils;
-import static com.google.common.base.Strings.isNullOrEmpty;
 
 import javax.jms.*;
 import java.io.IOException;
 import java.util.Map;
 import java.util.logging.Level;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * @author Roman Sakno
@@ -56,7 +57,7 @@ final class JMSDataAcceptor extends DataAcceptor implements ExceptionListener {
      * @return Repository of attributes.
      */
     @Override
-    @Aggregation
+    @Aggregation(cached = true)
     protected MDAAttributeRepository<?> getAttributes() {
         return attributes;
     }
@@ -67,7 +68,7 @@ final class JMSDataAcceptor extends DataAcceptor implements ExceptionListener {
      * @return Repository of notifications metadata.
      */
     @Override
-    @Aggregation
+    @Aggregation(cached = true)
     protected MDANotificationRepository getNotifications() {
         return notifications;
     }

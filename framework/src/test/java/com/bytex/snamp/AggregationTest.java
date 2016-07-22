@@ -20,7 +20,7 @@ public final class AggregationTest extends Assert {
 
         private TestAggregator() {
             fallback = builder()
-                    .add(BigInteger.class, () -> BigInteger.ONE)
+                    .addValue(BigInteger.class, BigInteger.ONE)
                     .add(BigDecimal.class, this::getDecimal)
                     .build();
         }

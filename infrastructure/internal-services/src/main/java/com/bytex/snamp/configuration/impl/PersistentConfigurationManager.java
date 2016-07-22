@@ -29,9 +29,9 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     private final ConfigurationAdmin admin;
     private final Logger logger;
     private final ReadWriteLock configurationLock;
-    @Aggregation
+    @Aggregation(cached = true)
     private final CMManagedResourceParserImpl resourceParser;
-    @Aggregation
+    @Aggregation(cached = true)
     private final CMResourceAdapterParserImpl adapterParser;
 
     /**

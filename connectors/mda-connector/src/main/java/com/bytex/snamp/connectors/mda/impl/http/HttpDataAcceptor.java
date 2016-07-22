@@ -56,13 +56,13 @@ public final class HttpDataAcceptor extends DataAcceptor {
     }
 
     @Override
-    @Aggregation
+    @Aggregation(cached = true)
     protected HttpAttributeRepository getAttributes() {
         return attributes;
     }
 
     @Override
-    @Aggregation
+    @Aggregation(cached = true)
     protected HttpNotificationRepository getNotifications() {
         return notifications;
     }

@@ -719,9 +719,9 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         }
     }
 
-    @Aggregation
+    @Aggregation(cached = true)
     private final SnmpAttributeRepository attributes;
-    @Aggregation
+    @Aggregation(cached = true)
     private final SnmpNotificationRepository notifications;
     private final AbstractConcurrentResourceAccessor<SnmpClient> client;
     private final boolean smartMode;

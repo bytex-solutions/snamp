@@ -283,7 +283,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      * @return Connector metrics.
      * @throws IllegalStateException This connector is closed.
      */
-    @Aggregation
+    @Aggregation(cached = true)
     @SpecialUse
     public final MetricsReader getMetrics(){
         verifyClosedState();
