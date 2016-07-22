@@ -9,9 +9,12 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Callable;
@@ -108,19 +111,22 @@ public abstract class AbstractAggregator implements Aggregator {
             return new MethodAggregationSupplier(m);
         }
 
+        private static <A extends AccessibleObject> A setAccessibleIfNecessary(final A obj) {
+            return obj.isAccessible() ? obj : AccessController.doPrivileged((PrivilegedAction<A>) () -> {
+                obj.setAccessible(true);
+                return obj;
+            });
+        }
+
         private static AggregationSupplier load(final Class<?> inheritanceFrame, final Class<?> serviceType) {
             //iterates through fields
             for (final Field f : inheritanceFrame.getDeclaredFields())
-                if (f.isAnnotationPresent(Aggregation.class) && serviceType.isAssignableFrom(f.getType())) {
-                    if (!f.isAccessible()) f.setAccessible(true);
-                    return reflectField(f);
-                }
+                if (f.isAnnotationPresent(Aggregation.class) && serviceType.isAssignableFrom(f.getType()))
+                    return reflectField(setAccessibleIfNecessary(f));
             //iterates through methods
             for (final Method m : inheritanceFrame.getDeclaredMethods())
-                if (m.isAnnotationPresent(Aggregation.class) && serviceType.isAssignableFrom(m.getReturnType())) {
-                    if (!m.isAccessible()) m.setAccessible(true);
-                    return reflectMethod(m);
-                }
+                if (m.isAnnotationPresent(Aggregation.class) && serviceType.isAssignableFrom(m.getReturnType()))
+                    return reflectMethod(setAccessibleIfNecessary(m));
             return null;
         }
 
