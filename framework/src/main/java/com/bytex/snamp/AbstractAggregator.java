@@ -46,6 +46,28 @@ public abstract class AbstractAggregator implements Aggregator {
         Object get(final Aggregator owner) throws ReflectiveOperationException;
     }
 
+    private static final class CallableAggregationSupplier implements AggregationSupplier{
+        private final Callable<?> callable;
+
+        private CallableAggregationSupplier(final Callable<?> c){
+            this.callable = Objects.requireNonNull(c);
+        }
+
+        @Override
+        public Object get(final Aggregator owner) throws InvocationTargetException {
+            try {
+                return callable.call();
+            } catch (final Exception e) {
+                throw new InvocationTargetException(e);
+            }
+        }
+
+        @Override
+        public String toString() {
+            return callable.toString();
+        }
+    }
+
     private static final class CachedAggregationSupplier implements AggregationSupplier{
         private volatile Object supplierOrCachedObject;
 
@@ -75,6 +97,11 @@ public abstract class AbstractAggregator implements Aggregator {
 
         private AggregationNotFoundException(final Class<?> expectedType){
             super(String.format("Type '%s' is not supported by aggregator", expectedType));
+        }
+
+        @Override
+        public Throwable fillInStackTrace() {     //do not collect stacktrace information to increase performance
+            return this;
         }
     }
 
@@ -110,10 +137,10 @@ public abstract class AbstractAggregator implements Aggregator {
             return element.getAnnotation(Aggregation.class).cached();
         }
 
-        private static AggregationSupplier reflectField(final Field f){
+        private static AggregationSupplier reflectField(final Field f) {
             setAccessibleIfNecessary(f);
             final AggregationSupplier supplier = f::get;
-            return (f.getModifiers() & Modifier.FINAL) != 0 || isCached(f) ? new CachedAggregationSupplier(supplier) : supplier;
+            return Modifier.isFinal(f.getModifiers()) || isCached(f) ? new CachedAggregationSupplier(supplier) : supplier;
         }
 
         private static AggregationSupplier reflectMethod(final Method m){
@@ -140,6 +167,30 @@ public abstract class AbstractAggregator implements Aggregator {
                 final AggregationSupplier result = load(inheritanceFrame, serviceType);
                 if (result != null) return result;
             }
+            //detect whether the requested type is implemented by aggregator itself
+            if (serviceType.isAssignableFrom(aggregatorType))
+                return owner -> owner;
+            throw new AggregationNotFoundException(serviceType);
+        }
+    }
+
+    private static final class SingleTypeCacheLoader extends AggregationCacheLoader {
+        private final Class<?> expectedType;
+        private final CallableAggregationSupplier supplier;
+
+        private SingleTypeCacheLoader(final Class<?> type, final Callable<?> callable) {
+            this.expectedType = Objects.requireNonNull(type);
+            this.supplier = new CallableAggregationSupplier(callable);
+        }
+
+        private SingleTypeCacheLoader(final Map.Entry<Class<?>, Callable<?>> entry){
+            this(entry.getKey(), entry.getValue());
+        }
+
+        @Override
+        public AggregationSupplier load(final Class<?> serviceType) throws AggregationNotFoundException {
+            if (serviceType.isAssignableFrom(expectedType))
+                return supplier;
             throw new AggregationNotFoundException(serviceType);
         }
     }
@@ -151,33 +202,17 @@ public abstract class AbstractAggregator implements Aggregator {
             this.predefinedSuppliers = Objects.requireNonNull(predefinedSuppliers);
         }
 
-        private static AggregationSupplier createAggregationSupplier(final Callable<?> provider) {
-            return owner -> {
-                try {
-                    return provider.call();
-                } catch (final Exception e) {
-                    throw new InvocationTargetException(e);
-                }
-            };
-        }
-
         @Override
         public AggregationSupplier load(final Class<?> serviceType) throws AggregationNotFoundException {
-            Callable<?> provider = null;
             //check exact match
-            if (predefinedSuppliers.containsKey(serviceType)) {
-                provider = predefinedSuppliers.get(serviceType);
-            } else {    //find suitable class in the map
+            Callable<?> provider = predefinedSuppliers.get(serviceType);
+            if (provider == null) {   //find suitable class in the map
                 for (final Map.Entry<Class<?>, Callable<?>> entry : predefinedSuppliers.entrySet())
-                    if (serviceType.isAssignableFrom(entry.getKey())) {
-                        provider = entry.getValue();
-                        break;
-                    }
-            }
-            if(provider == null)
-                throw new AggregationNotFoundException(serviceType);
-            else
-                return createAggregationSupplier(provider);
+                    if (serviceType.isAssignableFrom(entry.getKey()))
+                        return new CallableAggregationSupplier(entry.getValue());
+            } else
+                return new CallableAggregationSupplier(provider);
+            throw new AggregationNotFoundException(serviceType);
         }
     }
 
@@ -186,7 +221,7 @@ public abstract class AbstractAggregator implements Aggregator {
      * This class cannot be inherited or instantiated directly from your code.
      * @since 1.2
      */
-    public static final class AggregationBuilder implements Supplier<AbstractAggregator> {
+    public static final class AggregationBuilder implements Supplier<Aggregator> {
         private final ImmutableMap.Builder<Class<?>, Callable<?>> aggregations;
 
         private AggregationBuilder() {
@@ -207,17 +242,28 @@ public abstract class AbstractAggregator implements Aggregator {
             return add(objectType, () -> obj);
         }
 
-        private static AbstractAggregator build(final ImmutableMap<Class<?>, Callable<?>> aggregations){
-            return new AbstractAggregator(type -> new FastAggregationCacheLoader(aggregations)) {
+        private static <I> AbstractAggregator createAnonymousAggregator(final I input, final Function<? super I, ? extends AggregationCacheLoader> loaderFactory){
+            return new AbstractAggregator(type -> loaderFactory.apply(input)) {
             };
         }
 
+        private static Aggregator build(final ImmutableMap<Class<?>, Callable<?>> aggregations) {
+            switch (aggregations.size()) {
+                case 0:
+                    return EMPTY;
+                case 1:
+                    return createAnonymousAggregator(aggregations.entrySet().iterator().next(), SingleTypeCacheLoader::new);
+                default:
+                    return createAnonymousAggregator(aggregations, FastAggregationCacheLoader::new);
+            }
+        }
+
         @Override
-        public AbstractAggregator get() {
+        public Aggregator get() {
             return build(aggregations.build());
         }
 
-        public AbstractAggregator build() {
+        public Aggregator build() {
             return get();
         }
     }
@@ -267,7 +313,7 @@ public abstract class AbstractAggregator implements Aggregator {
             return objectType.cast(providers.get(objectType).get(this));
         } catch (final ExecutionException e) {
             if (e.getCause() instanceof AggregationNotFoundException)
-                return objectType.isInstance(this) ? objectType.cast(this) : fallback.queryObject(objectType);
+                return fallback.queryObject(objectType);
             else
                 throw new AggregationException(e.getCause());
         } catch (final ReflectiveOperationException | ClassCastException e) {

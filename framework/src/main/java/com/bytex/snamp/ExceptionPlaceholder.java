@@ -14,4 +14,9 @@ public final class ExceptionPlaceholder extends RuntimeException {
     private ExceptionPlaceholder(){
         throw new InstantiationError("Exception placeholder cannot be instantiated");
     }
+
+    @Override
+    public Throwable fillInStackTrace() {
+        return this;
+    }
 }
