@@ -100,7 +100,7 @@ public abstract class AbstractAggregator implements Aggregator {
         }
 
         @Override
-        public Throwable fillInStackTrace() {     //do not collect stacktrace information to increase performance
+        public AggregationNotFoundException fillInStackTrace() {     //do not collect stacktrace information to increase performance
             return this;
         }
     }
