@@ -2,6 +2,7 @@ package com.bytex.snamp.connectors;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.ThreadSafe;
+import com.bytex.snamp.WeakEventListener;
 import com.bytex.snamp.WeakEventListenerList;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.connectors.metrics.Metrics;
@@ -21,10 +22,26 @@ import java.util.*;
  * @version 1.2
  */
 public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> extends ThreadSafeObject implements Iterable<F> {
+    private static final class WeakResourceEventListener extends WeakEventListener<ResourceEventListener, ResourceEvent> implements ResourceEventListener{
+        private WeakResourceEventListener(final ResourceEventListener listener) {
+            super(listener);
+        }
+
+        @Override
+        protected void invoke(final ResourceEventListener listener, final ResourceEvent event) {
+            listener.handle(event);
+        }
+
+        @Override
+        public void handle(final ResourceEvent event) {
+            invoke(event);
+        }
+    }
 
     private static final class ResourceEventListenerList extends WeakEventListenerList<ResourceEventListener, ResourceEvent> {
-        private ResourceEventListenerList() {
-            super(ResourceEventListener::handle);
+        @Override
+        protected WeakResourceEventListener createWeakEventListener(final ResourceEventListener listener) {
+            return new WeakResourceEventListener(listener);
         }
     }
 

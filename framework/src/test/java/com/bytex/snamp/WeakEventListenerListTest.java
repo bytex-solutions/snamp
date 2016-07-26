@@ -18,8 +18,9 @@ public final class WeakEventListenerListTest extends Assert {
     }
 
     private static final class DummyEventListenerList extends WeakEventListenerList<DummyListener, EventObject>{
-        private DummyEventListenerList(){
-            super((l, e) -> l.invoke());
+        @Override
+        protected WeakEventListener<DummyListener, EventObject> createWeakEventListener(final DummyListener listener) {
+            return WeakEventListener.create(listener, (l, e) -> l.invoke());
         }
     }
 

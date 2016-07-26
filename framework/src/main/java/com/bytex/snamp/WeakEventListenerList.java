@@ -15,19 +15,16 @@ import java.util.function.BiConsumer;
  * @since 1.0
  */
 @ThreadSafe
-public class WeakEventListenerList<L extends EventListener, E extends EventObject> implements Collection<L> {
+public abstract class WeakEventListenerList<L extends EventListener, E extends EventObject> implements Collection<L> {
 
     private static final WeakEventListener[] EMPTY_LISTENERS = new WeakEventListener[0];
     private volatile WeakEventListener<L, E>[] listeners;
-    private final BiConsumer<? super L, ? super E> listenerInvoker;
 
     /**
      * Initializes a new empty list.
-     * @param listenerInvoker A function used to invoke listener. Cannot be {@literal null}.
      */
-    public WeakEventListenerList(final BiConsumer<? super L, ? super E> listenerInvoker){
+    protected WeakEventListenerList(){
         listeners = null;
-        this.listenerInvoker = Objects.requireNonNull(listenerInvoker);
     }
 
     /**
@@ -50,9 +47,13 @@ public class WeakEventListenerList<L extends EventListener, E extends EventObjec
         return ArrayUtils.isNullOrEmpty(listeners);
     }
 
-    private WeakEventListener<L, E> createWeakEventListener(final L listener){
-        return WeakEventListener.create(listener, listenerInvoker);
-    }
+    /**
+     * Creates a new weak reference to the event listener.
+     * @param listener A listener to be wrapped into weak reference. Cannot be {@literal null}.
+     * @return A weak reference to the event listener.
+     * @since 1.2
+     */
+    protected abstract WeakEventListener<L, E> createWeakEventListener(final L listener);
 
     /**
      * Adds a new weak reference to the specified listener.
@@ -283,5 +284,14 @@ public class WeakEventListenerList<L extends EventListener, E extends EventObjec
     public String toString() {
         final WeakEventListener<?, ?>[] snapshot = listeners;
         return snapshot == null ? "[]" : Arrays.toString(snapshot);
+    }
+
+    public static <L extends EventListener, E extends EventObject> WeakEventListenerList<L, E> create(final BiConsumer<? super L, ? super E> listenerInvoker){
+        return new WeakEventListenerList<L, E>() {
+            @Override
+            protected WeakEventListener<L, E> createWeakEventListener(final L listener) {
+                return WeakEventListener.create(listener, listenerInvoker);
+            }
+        };
     }
 }
