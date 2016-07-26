@@ -1,6 +1,5 @@
 package com.bytex.snamp.concurrent;
 
-import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.Wrapper;
 
@@ -38,24 +37,6 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ThreadSafeOb
          * @throws E An exception that can be raised by action.
          */
         V apply(final R resource) throws E;
-    }
-
-    /**
-     * Represents resource action that cannot throws an exception during execution.
-     * @param <R> Type of the resource to handle.
-     * @param <V> Type of the resource handling.
-     * @author Roman Sakno
-     * @since 1.0
-     * @version 1.2
-     */
-    public interface ConsistentAction<R, V> extends Action<R, V, ExceptionPlaceholder>, Function<R, V> {
-        /**
-         * Handles the resource.
-         * @param resource The resource to handle.
-         * @return The value obtained from the specified resource.
-         */
-        @Override
-        V apply(final R resource);
     }
 
     /**

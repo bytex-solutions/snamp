@@ -1,5 +1,6 @@
 package com.bytex.snamp.concurrent.impl;
 
+import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.concurrent.ConcurrentResourceAccessor;
 import com.bytex.snamp.concurrent.ThreadPoolConfig;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
@@ -17,8 +18,7 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import static com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor.ConsistentAction;
+import static com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor.Action;
 
 /**
  * Provides default implementation of {@link ThreadPoolRepository} system service.
@@ -46,7 +46,7 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
             case DEFAULT_POOL:
                 return defaultPool;
             default:
-                return services.read(svcs -> svcs.containsKey(name) ? svcs.get(name): defaultPool);
+                return services.read(services -> services.containsKey(name) ? services.get(name): defaultPool);
         }
     }
 
@@ -54,12 +54,12 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
     public ExecutorService registerThreadPool(final String name, final ThreadPoolConfig config) {
         if (DEFAULT_POOL.equals(name))
             throw new IllegalArgumentException("Default thread pool is already registered");
-        final ExecutorService executor = services.write( svcs -> {
-            if (svcs.containsKey(name))
+        final ExecutorService executor = services.write(services -> {
+            if (services.containsKey(name))
                 throw new IllegalArgumentException(String.format("Thread pool '%s' is already registered", name));
-            final ExecutorService executor1 = config.createExecutorService(name);
-            svcs.put(name, executor1);
-            return executor1;
+            final ExecutorService result = config.createExecutorService(name);
+            services.put(name, result);
+            return result;
         });
         //persist configuration
         try {
@@ -93,8 +93,8 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
     @Override
     public boolean unregisterThreadPool(final String name, final boolean shutdown) {
         if (DEFAULT_POOL.equals(name)) return false;
-        final boolean success = services.write(svcs -> {
-            final ExecutorService executor = svcs.remove(name);
+        final boolean success = services.write(services -> {
+            final ExecutorService executor = services.remove(name);
             if (executor != null) {
                 if (shutdown) executor.shutdown();
                 return true;
@@ -103,7 +103,7 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
         if (success) {
             try {
                 final Configuration persistentConfig = configAdmin.getConfiguration(PID);
-                final Dictionary<String, Object> configuredServices = persistentConfig.getProperties();
+                final Dictionary<String, ?> configuredServices = persistentConfig.getProperties();
                 if (configuredServices != null) {
                     configuredServices.remove(name);
                     persistentConfig.update(configuredServices);
@@ -124,18 +124,18 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
 
     @Override
     public Iterator<String> iterator() {
-        return services.read(svcs -> ImmutableSet.copyOf(svcs.keySet()).iterator());
+        return services.read(services -> ImmutableSet.copyOf(services.keySet()).iterator());
     }
 
     @Override
     public void updated(final Dictionary<String, ?> properties) throws ConfigurationException {
         if (properties == null) //remove all
-            services.write((ConsistentAction<Map<String, ExecutorService>, Void>) svcs -> {
-                svcs.clear();
+            services.write(services -> {
+                services.clear();
                 return null;
             });
         else    //merge with runtime collection of thread pools
-            services.write(new ConsistentAction<Map<String, ExecutorService>, Void>() {
+            services.write(new Action<Map<String, ExecutorService>, Void, ExceptionPlaceholder>() {
                 private void removeThreadPools(final Map<String, ExecutorService> services) {
                     ImmutableSet.copyOf(services.keySet()).stream().filter(poolName -> properties.get(poolName) == null).forEach(services::remove);
                 }

@@ -37,7 +37,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor.ConsistentAction;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration.AUTOMATICALLY_ADDED_KEY;
 import static com.bytex.snamp.connectors.snmp.SnmpConnectorDescriptionProvider.*;
 
@@ -118,7 +117,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
             final SnmpNotificationInfo result = new SnmpNotificationInfo(category, metadata);
             //enable for a first time only
             if (hasNoNotifications())
-                client.write((ConsistentAction<SnmpClient, Void>) client -> {
+                client.write(client -> {
                     client.addCommandResponder(this);
                     return null;
                 });
@@ -129,7 +128,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         protected void disableNotifications(final SnmpNotificationInfo metadata) {
             if (hasNoNotifications())
                 try {
-                    client.write((ConsistentAction<SnmpClient, Void>) client -> {
+                    client.write(client -> {
                         client.removeCommandResponder(this);
                         return null;
                     });
