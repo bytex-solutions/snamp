@@ -7,6 +7,7 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 /**
  * Represents a list of weak references to event listeners.
@@ -310,6 +311,42 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
             listenerRef.clear(); //help GC
         }
         listeners = null;
+    }
+
+    /**
+     * Returns a sequential {@code Stream} with this collection as its source.
+     *
+     * @return a sequential {@code Stream} over the elements in this collection
+     * @since 1.2
+     */
+    @Override
+    public final Stream<L> stream() {
+        final WeakEventListener<L, E>[] snapshot = listeners;
+        return snapshot == null ? Stream.empty() : Arrays.stream(snapshot).map(WeakEventListener::get).filter(Objects::nonNull);
+    }
+
+    /**
+     * Returns a possibly parallel {@code Stream} with this collection as its
+     * source.  It is allowable for this method to return a sequential stream.
+     *
+     * @return a possibly parallel {@code Stream} over the elements in this
+     * collection
+     * @since 1.2
+     */
+    @Override
+    public final Stream<L> parallelStream() {
+        return stream().parallel();
+    }
+
+    /**
+     * Creates a {@link Spliterator} over the elements in this collection.
+     *
+     * @return a {@code Spliterator} over the elements in this collection
+     * @since 1.2
+     */
+    @Override
+    public final Spliterator<L> spliterator() {
+        return stream().spliterator();
     }
 
     /**
