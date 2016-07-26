@@ -12,14 +12,9 @@ import com.bytex.snamp.adapters.NotificationListener;
  * @since 1.0
  */
 public class MulticastNotificationListener implements NotificationListener {
-    private static final class NotificationListenerList extends WeakEventListenerList<NotificationListener, NotificationEvent>{
-        private NotificationListenerList(){
-
-        }
-
-        @Override
-        protected void invoke(final NotificationListener listener, final NotificationEvent event) {
-            listener.handleNotification(event);
+    private static final class NotificationListenerList extends WeakEventListenerList<NotificationListener, NotificationEvent> {
+        private NotificationListenerList() {
+            super(NotificationListener::handleNotification);
         }
     }
 

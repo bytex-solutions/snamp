@@ -4,6 +4,7 @@ import com.google.common.collect.ObjectArrays;
 
 import java.lang.reflect.Array;
 import java.util.*;
+import java.util.function.BiConsumer;
 
 /**
  * Represents a list of weak references to event listeners.
@@ -14,16 +15,19 @@ import java.util.*;
  * @since 1.0
  */
 @ThreadSafe
-public abstract class WeakEventListenerList<L extends EventListener, E extends EventObject> implements Collection<L> {
+public class WeakEventListenerList<L extends EventListener, E extends EventObject> implements Collection<L> {
 
     private static final WeakEventListener[] EMPTY_LISTENERS = new WeakEventListener[0];
     private volatile WeakEventListener<L, E>[] listeners;
+    private final BiConsumer<? super L, ? super E> listenerInvoker;
 
     /**
      * Initializes a new empty list.
+     * @param listenerInvoker A function used to invoke listener. Cannot be {@literal null}.
      */
-    protected WeakEventListenerList(){
+    public WeakEventListenerList(final BiConsumer<? super L, ? super E> listenerInvoker){
         listeners = null;
+        this.listenerInvoker = Objects.requireNonNull(listenerInvoker);
     }
 
     /**
@@ -47,7 +51,7 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
     }
 
     private WeakEventListener<L, E> createWeakEventListener(final L listener){
-        return WeakEventListener.create(listener, this::invoke);
+        return WeakEventListener.create(listener, listenerInvoker);
     }
 
     /**
@@ -225,13 +229,6 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
                     matched++;
         return matched >= c.size();
     }
-
-    /**
-     * Invokes the specified listener.
-     * @param listener A listener to invoke.
-     * @param event An object to be passed into listener.
-     */
-    protected abstract void invoke(final L listener, final E event);
 
     /**
      * Passes event object to all listeners in this list.

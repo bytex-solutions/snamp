@@ -24,12 +24,7 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
 
     private static final class ResourceEventListenerList extends WeakEventListenerList<ResourceEventListener, ResourceEvent> {
         private ResourceEventListenerList() {
-
-        }
-
-        @Override
-        protected void invoke(final ResourceEventListener listener, final ResourceEvent event) {
-            listener.handle(event);
+            super(ResourceEventListener::handle);
         }
     }
 

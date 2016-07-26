@@ -47,11 +47,11 @@ public abstract class WeakEventListener<L extends EventListener, E extends Event
      */
     protected abstract void invoke(final L listener, final E event);
 
-    public static <L extends EventListener, E extends EventObject> WeakEventListener<L, E> create(final L listener, final BiConsumer<L, E> handler){
+    public static <L extends EventListener, E extends EventObject> WeakEventListener<L, E> create(final L listener, final BiConsumer<? super L, ? super E> handler){
         return new WeakEventListener<L, E>(listener) {
             @Override
             protected void invoke(final L listener, final E event) {
-                handler.accept(listener,event);
+                handler.accept(listener, event);
             }
         };
     }
