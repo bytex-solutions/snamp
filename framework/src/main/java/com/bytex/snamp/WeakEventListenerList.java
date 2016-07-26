@@ -5,6 +5,8 @@ import com.google.common.collect.ObjectArrays;
 import java.lang.reflect.Array;
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * Represents a list of weak references to event listeners.
@@ -25,6 +27,63 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
      */
     protected WeakEventListenerList(){
         listeners = null;
+    }
+
+    /**
+     * Performs the given action for each element of the {@code Iterable}
+     * until all elements have been processed or the action throws an
+     * exception.  Unless otherwise specified by the implementing class,
+     * actions are performed in the order of iteration (if an iteration order
+     * is specified).  Exceptions thrown by the action are relayed to the
+     * caller.
+     *
+     * @param action The action to be performed for each element
+     * @throws NullPointerException if the specified action is null
+     * @since 1.2
+     */
+    @Override
+    public final void forEach(final Consumer<? super L> action) {
+        final WeakEventListener<L, E>[] snapshot = listeners;
+        if (snapshot != null)
+            for (final WeakEventListener<L, E> listenerRef : snapshot) {
+                final L listener = listenerRef.get();
+                if (listener != null)
+                    action.accept(listener);
+            }
+    }
+
+    /**
+     * Removes all of the elements of this collection that satisfy the given
+     * predicate.  Errors or runtime exceptions thrown during iteration or by
+     * the predicate are relayed to the caller.
+     *
+     * @param filter a predicate which returns {@code true} for elements to be
+     *               removed
+     * @return {@code true} if any elements were removed
+     * @throws NullPointerException          if the specified filter is null
+     * @throws UnsupportedOperationException if elements cannot be removed
+     *                                       from this collection.  Implementations may throw this exception if a
+     *                                       matching element cannot be removed or if, in general, removal is not
+     *                                       supported.
+     * @since 1.2
+     */
+    @Override
+    public final synchronized boolean removeIf(final Predicate<? super L> filter) {
+        if (listeners == null) return false;
+        @SuppressWarnings("unchecked")
+        final WeakEventListener<L, E>[] newSnapshot = new WeakEventListener[listeners.length];
+        boolean result = false;
+        int outputIndex = 0;
+        //remove dead references or specified listener
+        for (final WeakEventListener<L, E> listenerRef : listeners) {
+            final L l = listenerRef.get();
+            if (!result && filter.test(l))
+                result = true;
+            else if (l != null)
+                newSnapshot[outputIndex++] = listenerRef;
+        }
+        this.listeners = outputIndex == 0 ? null : Arrays.copyOf(newSnapshot, outputIndex);
+        return result;
     }
 
     /**
@@ -83,22 +142,8 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
      * @return {@literal true}, if listener is removed successfully; otherwise, {@literal false}.
      */
     @Override
-    public final synchronized boolean remove(final Object listener) {
-        if (listeners == null) return false;
-        @SuppressWarnings("unchecked")
-        final WeakEventListener<L, E>[] newSnapshot = new WeakEventListener[listeners.length];
-        boolean result = false;
-        int outputIndex = 0;
-        //remove dead references or specified listener
-        for (final WeakEventListener<L, E> listenerRef : listeners) {
-            final L l = listenerRef.get();
-            if (!result && Objects.equals(l, listener))
-                result = true;
-            else if (l != null)
-                newSnapshot[outputIndex++] = listenerRef;
-        }
-        this.listeners = outputIndex == 0 ? null : Arrays.copyOf(newSnapshot, outputIndex);
-        return result;
+    public final boolean remove(final Object listener) {
+        return removeIf(listener::equals);
     }
 
     @Override
@@ -277,7 +322,7 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
         final WeakEventListener<L, ?>[] snapshot = listeners;
         return snapshot == null ?
                 ResettableIterator.of() :
-                Arrays.stream(snapshot).map(WeakEventListener::get).filter(listener -> listener != null).iterator();
+                Arrays.stream(snapshot).map(WeakEventListener::get).filter(Objects::nonNull).iterator();
     }
 
     @Override

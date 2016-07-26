@@ -713,7 +713,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
 
     public final void sendNotification(final String name, final Object eventObject){
         notifications.stream()
-                .filter(n -> Objects.equals(name, n.name))
+                .filter(n -> n.name.equals(name))
                 .forEach(n -> sendNotification(n.createNotificationUnsafe(OpenMBean.this, eventObject)));
     }
 

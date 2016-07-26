@@ -39,7 +39,7 @@ final class SnmpDiscoveryService {
                     }
                     return config;
                 })
-                .filter(config -> config != null)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toCollection(LinkedList::new));
     }
 
