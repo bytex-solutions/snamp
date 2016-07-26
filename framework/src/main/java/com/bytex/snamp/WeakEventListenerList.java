@@ -322,7 +322,16 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
     @Override
     public final Stream<L> stream() {
         final WeakEventListener<L, E>[] snapshot = listeners;
-        return snapshot == null ? Stream.empty() : Arrays.stream(snapshot).map(WeakEventListener::get).filter(Objects::nonNull);
+        if (snapshot == null) return Stream.empty();
+        switch (snapshot.length) {
+            default:
+                return Arrays.stream(snapshot).map(WeakEventListener::get).filter(Objects::nonNull);
+            case 0:
+                return Stream.empty();
+            case 1:
+                final L listener = snapshot[0].get();
+                return listener == null ? Stream.empty() : Stream.of(listener);
+        }
     }
 
     /**
