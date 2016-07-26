@@ -25,6 +25,19 @@ public final class WeakEventListenerListTest extends Assert {
     }
 
     @Test
+    public void streamTest(){
+        final DummyEventListenerList listeners = new DummyEventListenerList();
+        final DummyListener listener = () -> {
+        };
+        listeners.add(listener);
+        listeners.add(listener);
+        final DummyListener[] array = listeners.stream().toArray(DummyListener[]::new);
+        assertEquals(2, array.length);
+        assertEquals(listener, array[0]);
+        assertEquals(listener, array[1]);
+    }
+
+    @Test
     public void toArrayTest(){
         final DummyEventListenerList listeners = new DummyEventListenerList();
         final DummyListener listener = () -> {
