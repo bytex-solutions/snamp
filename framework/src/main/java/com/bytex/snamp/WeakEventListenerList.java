@@ -20,15 +20,18 @@ import java.util.stream.StreamSupport;
  */
 @ThreadSafe
 public abstract class WeakEventListenerList<L extends EventListener, E extends EventObject> implements Collection<L> {
-
-    private static final WeakEventListener[] EMPTY_LISTENERS = new WeakEventListener[0];
     private volatile WeakEventListener<L, E>[] listeners;
 
     /**
      * Initializes a new empty list.
      */
     protected WeakEventListenerList(){
-        listeners = EMPTY_LISTENERS;
+        listeners = emptyListeners();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <L extends EventListener, E extends EventObject> WeakEventListener<L, E>[] emptyListeners(){
+        return ArrayUtils.emptyArray(WeakEventListener[].class);
     }
 
     /**
@@ -82,7 +85,7 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
             else if (l != null)
                 newSnapshot[outputIndex++] = listenerRef;
         }
-        this.listeners = outputIndex == 0 ? EMPTY_LISTENERS : Arrays.copyOf(newSnapshot, outputIndex);
+        this.listeners = outputIndex == 0 ? emptyListeners() : Arrays.copyOf(newSnapshot, outputIndex);
         return result;
     }
 
@@ -235,7 +238,7 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
             else if (l != null)
                 newSnapshot[outputIndex++] = listenerRef;
         }
-        this.listeners = outputIndex == 0 ? EMPTY_LISTENERS : Arrays.copyOf(newSnapshot, outputIndex);
+        this.listeners = outputIndex == 0 ? emptyListeners() : Arrays.copyOf(newSnapshot, outputIndex);
         return result;
     }
 
@@ -252,7 +255,7 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
                 newSnapshot[outputIndex++] = listenerRef;
             else result |= l != null;
         }
-        this.listeners = outputIndex == 0 ? EMPTY_LISTENERS : Arrays.copyOf(newSnapshot, outputIndex);
+        this.listeners = outputIndex == 0 ? emptyListeners() : Arrays.copyOf(newSnapshot, outputIndex);
         return result;
     }
 
@@ -298,7 +301,7 @@ public abstract class WeakEventListenerList<L extends EventListener, E extends E
             listeners[index] = null;
             listenerRef.clear(); //help GC
         }
-        listeners = EMPTY_LISTENERS;
+        listeners = emptyListeners();
     }
 
     private Stream<L> stream(final boolean parallel) {
