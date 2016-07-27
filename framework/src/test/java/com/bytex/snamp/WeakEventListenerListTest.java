@@ -58,7 +58,7 @@ public final class WeakEventListenerListTest extends Assert {
         final DummyListener[] array = listeners.toArray(new DummyListener[3]);
         assertEquals(listener, array[0]);
         assertEquals(listener, array[1]);
-        assertEquals(null, array[2]);
+        assertNull(array[2]);
     }
 
     @Test
