@@ -242,9 +242,13 @@ public abstract class AbstractAggregator implements Aggregator {
             return add(objectType, () -> obj);
         }
 
-        private static <I> AbstractAggregator createAnonymousAggregator(final I input, final Function<? super I, ? extends AggregationCacheLoader> loaderFactory){
-            return new AbstractAggregator(type -> loaderFactory.apply(input)) {
-            };
+        private static <I> AbstractAggregator createAnonymousAggregator(final I input, final Function<? super I, ? extends AggregationCacheLoader> loaderFactory) {
+            final class DynamicAggregator extends AbstractAggregator {
+                private DynamicAggregator(final I input, final Function<? super I, ? extends AggregationCacheLoader> loaderFactory) {
+                    super(type -> loaderFactory.apply(input));
+                }
+            }
+            return new DynamicAggregator(input, loaderFactory);
         }
 
         private static Aggregator build(final ImmutableMap<Class<?>, Callable<?>> aggregations) {
@@ -327,13 +331,21 @@ public abstract class AbstractAggregator implements Aggregator {
 
     @Override
     public final AbstractAggregator compose(final Aggregator other) {
-        return new AbstractAggregator() {
+        final class AggregatorComposition extends AbstractAggregator {
+            private final Aggregator other;
+
+            private AggregatorComposition(final Aggregator other) {
+                this.other = Objects.requireNonNull(other);
+            }
+
             @Override
             public <T> T queryObject(final Class<T> objectType) {
                 final T obj = AbstractAggregator.this.queryObject(objectType);
                 return obj == null ? other.queryObject(objectType) : obj;
             }
-        };
+        }
+
+        return new AggregatorComposition(other);
     }
 
     /**

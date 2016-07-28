@@ -1,6 +1,8 @@
 package com.bytex.snamp;
 
 
+import java.util.Objects;
+
 /**
  * Represents an object that aggregates another objects.<br/>
  * <p>
@@ -51,12 +53,20 @@ public interface Aggregator {
     <T> T queryObject(final Class<T> objectType);
 
     default Aggregator compose(final Aggregator other) {
-        return new Aggregator() {
+        final class AggregatorComposition implements Aggregator {
+            private final Aggregator other;
+
+            private AggregatorComposition(final Aggregator other) {
+                this.other = Objects.requireNonNull(other);
+            }
+
             @Override
             public <T> T queryObject(final Class<T> objectType) {
                 final T obj = Aggregator.this.queryObject(objectType);
                 return obj == null ? other.queryObject(objectType) : obj;
             }
-        };
+        }
+
+        return new AggregatorComposition(other);
     }
 }
