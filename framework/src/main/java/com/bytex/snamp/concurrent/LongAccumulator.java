@@ -149,13 +149,19 @@ public abstract class LongAccumulator extends AbstractAccumulator {
     }
 
     public static LongAccumulator adder(final long initialValue, final long ttl) {
-        return new LongAccumulator(initialValue, ttl) {
-            private static final long serialVersionUID = -1097924045061377035L;
+        final class Adder extends LongAccumulator{
+            private static final long serialVersionUID = 8583924012634668053L;
+
+            private Adder(final long initialValue, final long ttl){
+                super(initialValue, ttl);
+            }
 
             @Override
             protected long accumulate(final long delta) {
                 return addAndGet(delta);
             }
-        };
+        }
+
+        return new Adder(initialValue, ttl);
     }
 }

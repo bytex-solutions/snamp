@@ -140,13 +140,19 @@ public abstract class IntAccumulator extends AbstractAccumulator {
     }
 
     public static IntAccumulator adder(final int initialValue, final long ttl) {
-        return new IntAccumulator(initialValue, ttl) {
-            private static final long serialVersionUID = -3865229366760307254L;
+        final class Adder extends IntAccumulator{
+            private static final long serialVersionUID = 8155999174928846425L;
+
+            private Adder(final int initialValue, final long ttl){
+                super(initialValue, ttl);
+            }
 
             @Override
             protected int accumulate(final int delta) {
                 return addAndGet(delta);
             }
-        };
+        }
+
+        return new Adder(initialValue, ttl);
     }
 }
