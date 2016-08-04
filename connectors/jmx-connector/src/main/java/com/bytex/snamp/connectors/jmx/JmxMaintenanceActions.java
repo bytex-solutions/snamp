@@ -30,7 +30,7 @@ enum JmxMaintenanceActions implements MaintenanceActionInfo {
      * @return The description of this action.
      */
     @Override
-    public final String getDescription(final Locale loc) {
+    public final String toString(final Locale loc) {
         return "";
     }
 }

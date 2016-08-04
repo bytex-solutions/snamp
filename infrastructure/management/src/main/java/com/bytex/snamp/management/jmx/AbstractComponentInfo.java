@@ -79,7 +79,7 @@ abstract class AbstractComponentInfo extends OpenMBean.OpenOperation<CompositeDa
                 "Version", Objects.toString(component.getVersion(), "0.0"),
                 "State", component.getState(),
                 "DisplayName", component.getName(loc),
-                "Description", component.getDescription(loc)
+                "Description", component.toString(loc)
             )
         );
     }

@@ -157,7 +157,7 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
         }
 
         @Override
-        public final String getDescription(final Locale loc) {
+        public final String toString(final Locale loc) {
             return getParameterDescription(parameterName, loc);
         }
 

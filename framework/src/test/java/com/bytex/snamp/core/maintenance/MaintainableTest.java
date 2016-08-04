@@ -47,7 +47,7 @@ public final class MaintainableTest extends Assert {
          * @return The description of this action.
          */
         @Override
-        public String getDescription(final Locale loc) {
+        public String toString(final Locale loc) {
             return String.format("%s description", name);
         }
     }

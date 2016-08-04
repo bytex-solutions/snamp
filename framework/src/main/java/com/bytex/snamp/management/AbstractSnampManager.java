@@ -117,7 +117,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
          * @return The localized description of this object.
          */
         @Override
-        public String getDescription(final Locale locale) {
+        public String toString(final Locale locale) {
             return getItselfContext().
                     getBundle(getBundleID()).
                     getHeaders(locale != null ? locale.toString() : null).
@@ -222,7 +222,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
          * @return The localized description of this object.
          */
         @Override
-        public String getDescription(final Locale locale) {
+        public String toString(final Locale locale) {
             return ResourceAdapterClient.getDescription(getItselfContext(), getSystemName(), locale);
         }
 
@@ -293,7 +293,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
          * @return The localized description of this object.
          */
         @Override
-        public String getDescription(final Locale locale) {
+        public String toString(final Locale locale) {
             return ManagedResourceConnectorClient.getDescription(getItselfContext(), getSystemName(), locale);
         }
 

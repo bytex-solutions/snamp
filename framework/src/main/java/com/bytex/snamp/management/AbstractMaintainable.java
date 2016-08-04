@@ -325,7 +325,7 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
      * @throws java.util.NoSuchElementException Action with the specified name doesn't exist.
      */
     public static <T extends Enum<T> & MaintenanceActionInfo> String getActionDescription(final Set<T> actions, final String actionName, final Locale loc){
-        return getAction(actions, actionName).getDescription(loc);
+        return getAction(actions, actionName).toString(loc);
     }
 
     /**

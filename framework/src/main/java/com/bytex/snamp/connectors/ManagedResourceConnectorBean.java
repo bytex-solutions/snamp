@@ -1,7 +1,7 @@
 package com.bytex.snamp.connectors;
 
 import com.bytex.snamp.AbstractAggregator;
-import com.bytex.snamp.Descriptive;
+import com.bytex.snamp.Localizable;
 import com.bytex.snamp.configuration.ConfigParameters;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.connectors.attributes.*;
@@ -87,7 +87,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * @since 1.0
      * @version 1.2
      */
-    protected interface ManagementNotificationType<T> extends Descriptive{
+    protected interface ManagementNotificationType<T> extends Localizable {
         /**
          * Gets user data type.
          * @return The user data type; or {@literal} null if user data is not supported.
@@ -115,7 +115,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         }
 
         @Override
-        public String getDescription(final Locale locale) {
+        public String toString(final Locale locale) {
             return getCategory();
         }
     }
@@ -702,7 +702,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                     .findFirst()
                     .orElseGet(() -> null);
             if (type != null) {
-                String description = type.getDescription(Locale.getDefault());
+                String description = type.toString(Locale.getDefault());
                 if (description == null || description.isEmpty()) {
                     description = metadata.getDescription();
                     if (description == null || description.isEmpty())

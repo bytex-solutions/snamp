@@ -29,7 +29,7 @@ public final class InstalledComponentsCommand extends OsgiCommandSupport impleme
     private static void writeComponent(final SnampComponentDescriptor component, final StringBuilder output) {
         appendln(output, "%s. Description: %s. Version: %s. State: %s",
                 component.getName(null),
-                component.getDescription(null),
+                component.toString(null),
                 component.getVersion(),
                 getStateString(component));
     }

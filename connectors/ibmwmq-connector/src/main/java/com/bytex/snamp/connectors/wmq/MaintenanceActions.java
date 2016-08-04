@@ -15,7 +15,7 @@ enum MaintenanceActions implements MaintenanceActionInfo {
     MQ_INSTALLED {
 
         @Override
-        public String getDescription(final Locale locale) {
+        public String toString(final Locale locale) {
             return "Determines whether WebSphere MQ installed into OSGi correctly";
         }
 

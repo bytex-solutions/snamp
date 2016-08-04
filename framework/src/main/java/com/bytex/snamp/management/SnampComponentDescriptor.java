@@ -1,7 +1,7 @@
 package com.bytex.snamp.management;
 
 import com.bytex.snamp.Acceptor;
-import com.bytex.snamp.Descriptive;
+import com.bytex.snamp.Localizable;
 import com.bytex.snamp.core.SupportService;
 import org.osgi.framework.Version;
 
@@ -14,7 +14,7 @@ import java.util.Map;
  * @version 1.2
  * @since 1.0
  */
-public interface SnampComponentDescriptor extends Descriptive, Map<String, String> {
+public interface SnampComponentDescriptor extends Localizable, Map<String, String> {
     /**
      * Represents name of the property that contains connector name.
      */

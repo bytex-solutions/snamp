@@ -49,7 +49,7 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
             }
 
             @Override
-            public String getDescription(final Locale locale) {
+            public String toString(final Locale locale) {
                 return "None";
             }
         }

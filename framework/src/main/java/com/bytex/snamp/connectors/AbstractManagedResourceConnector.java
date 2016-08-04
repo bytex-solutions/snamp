@@ -1,6 +1,6 @@
 package com.bytex.snamp.connectors;
 
-import com.bytex.snamp.Descriptive;
+import com.bytex.snamp.Localizable;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.ThreadSafe;
 import com.bytex.snamp.concurrent.LazyValueFactory;
@@ -36,7 +36,7 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
  * @since 1.0
  * @version 1.2
  */
-public abstract class AbstractManagedResourceConnector extends AbstractFrameworkService implements ManagedResourceConnector, Descriptive {
+public abstract class AbstractManagedResourceConnector extends AbstractFrameworkService implements ManagedResourceConnector, Localizable {
     private final IllegalStateFlag closed = createConnectorStateFlag();
     private final LazyValue<MetricsReader> metrics;
 
@@ -221,7 +221,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      * @return The localized description of this connector.
      */
     @Override
-    public String getDescription(final Locale locale) {
+    public String toString(final Locale locale) {
         return getClassName();
     }
 
@@ -299,7 +299,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
     @Override
     public final MBeanInfo getMBeanInfo() {
         return new MBeanInfo(getClassName(),
-                getDescription(Locale.getDefault()),
+                toString(Locale.getDefault()),
                 getAttributeInfo(),
                 emptyArray(MBeanConstructorInfo[].class),
                 getOperationInfo(),

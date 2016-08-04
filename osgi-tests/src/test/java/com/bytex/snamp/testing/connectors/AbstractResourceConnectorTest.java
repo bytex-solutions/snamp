@@ -249,7 +249,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
             final ConfigurationEntityDescription.ParameterDescription param =
                     description.getParameterDescriptor(paramName);
             assertNotNull(param);
-            assertFalse("Invalid param description " + paramName, param.getDescription(null).isEmpty());
+            assertFalse("Invalid param description " + paramName, param.toString(null).isEmpty());
             if(parameters.contains(paramName))
                 matches += 1;
         }

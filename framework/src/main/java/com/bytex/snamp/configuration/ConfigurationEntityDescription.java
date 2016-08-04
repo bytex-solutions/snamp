@@ -1,6 +1,6 @@
 package com.bytex.snamp.configuration;
 
-import com.bytex.snamp.Descriptive;
+import com.bytex.snamp.Localizable;
 
 import java.util.Collection;
 import java.util.Locale;
@@ -49,7 +49,7 @@ public interface ConfigurationEntityDescription<T extends EntityConfiguration> e
      * @since 1.0
      * @version 1.2
      */
-    interface ParameterDescription extends Descriptive {
+    interface ParameterDescription extends Localizable {
         /**
          * Gets the name of this parameter.
          * @return The name of this parameter.

@@ -121,7 +121,7 @@ abstract class ConfigurationSchemaOperation extends OpenMBean.OpenOperation<Comp
                 final Map<String, Object> parameter = new HashMap<>();
                 final ConfigurationEntityDescription.ParameterDescription descriptor = description.getParameterDescriptor(parameterName);
                 parameter.put(DEFAULT_VALUE, descriptor.getDefaultValue(loc));
-                parameter.put(DESCRIPTION, descriptor.getDescription(loc));
+                parameter.put(DESCRIPTION, descriptor.toString(loc));
                 parameter.put(INPUT_PATTERN, descriptor.getValuePattern(loc));
                 parameter.put(REQUIRED, descriptor.isRequired());
                 parameter.put(SUGGESTIONS_SUPPORTED, description instanceof SelectableAdapterParameterDescriptor || description instanceof SelectableConnectorParameterDescriptor);

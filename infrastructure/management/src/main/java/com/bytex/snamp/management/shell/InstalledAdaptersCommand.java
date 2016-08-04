@@ -27,7 +27,7 @@ public final class InstalledAdaptersCommand extends OsgiCommandSupport implement
         appendln(output, "%s. Name: %s. Description: %s. Version: %s. State: %s",
                 component.getName(null),
                 component.get(SnampComponentDescriptor.ADAPTER_SYSTEM_NAME_PROPERTY),
-                component.getDescription(null),
+                component.toString(null),
                 component.getVersion(),
                 getStateString(component));
     }

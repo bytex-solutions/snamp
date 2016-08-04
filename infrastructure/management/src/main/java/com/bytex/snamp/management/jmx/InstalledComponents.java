@@ -66,7 +66,7 @@ final class InstalledComponents extends OpenMBean.OpenAttribute<TabularData, Tab
     private CompositeData createRow(final SnampComponentDescriptor component) throws OpenDataException {
         final Map<String, Object> row = Maps.newHashMapWithExpectedSize(INSTALLED_COMPONENT.keySet().size());
         row.put(NAME_COLUMN, component.getName(null));
-        row.put(DESCRIPTION_COLUMN, component.getDescription(null));
+        row.put(DESCRIPTION_COLUMN, component.toString(null));
         row.put(VERSION_COLUMN, Objects.toString(component.getVersion(), "0.0"));
         row.put(BUNDLE_STATE_COLUMN, component.getState());
         row.put(IS_MANAGEABLE_COLUMN, false);
