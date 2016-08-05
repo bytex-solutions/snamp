@@ -1,4 +1,4 @@
-package com.bytex.snamp.connectors.mda.impl.gauges;
+package com.bytex.snamp.connectors.mda.impl.measurement;
 
 import com.bytex.snamp.Localizable;
 
@@ -20,6 +20,10 @@ public interface Axis<V extends Comparable<V>> {
         LEGAL_VALUES
     }
 
+    /**
+     * Gets unit of measurement.
+     * @return Unit of measurement.
+     */
     Localizable getUnit();
 
     boolean hasOption(final Option opt);
@@ -30,7 +34,7 @@ public interface Axis<V extends Comparable<V>> {
 
     /**
      * Gets predefined set of values.
-     * @return Immutable set of predefined values. If result is instance of {@link SortedSet} then values are sorted in natural ordering; {@link Set} for unsorted collection
+     * @return Immutable set of predefined values. If result is instance of {@link SortedSet} then values are sorted in natural order; {@link Set} for unsorted collection
      * @throws UnsupportedOperationException Predefined values are not supported by this axis.
      */
     Set<? extends V> getValues() throws UnsupportedOperationException;

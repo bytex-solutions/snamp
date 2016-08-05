@@ -30,14 +30,6 @@ public interface ThreadPoolRepository extends SupportService, ManagedService, It
     ExecutorService getThreadPool(final String name, final boolean useDefaultIfNotExists);
 
     /**
-     * Unregister thread pool.
-     * @param name The name of thread pool to unregister.
-     * @param shutdown {@literal true} to shutdown thread pool; {@literal false} to reuse thread pool after de-registration
-     * @return {@literal true} if thread pool is unregistered successfully; otherwise, {@literal false}.
-     */
-    boolean unregisterThreadPool(final String name, final boolean shutdown);
-
-    /**
      * Obtains thread pool by its name.
      * @param context The context of caller bundle. Cannot be {@literal null}.
      * @param name The name of thread pool.

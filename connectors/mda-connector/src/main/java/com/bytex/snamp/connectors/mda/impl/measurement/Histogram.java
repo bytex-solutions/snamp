@@ -1,4 +1,4 @@
-package com.bytex.snamp.connectors.mda.impl.gauges;
+package com.bytex.snamp.connectors.mda.impl.measurement;
 
 import java.util.Iterator;
 

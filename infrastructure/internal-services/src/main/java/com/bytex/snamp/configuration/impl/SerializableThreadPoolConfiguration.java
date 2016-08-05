@@ -1,8 +1,6 @@
 package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.concurrent.GroupedThreadFactory;
-import com.bytex.snamp.concurrent.impl.ThreadPoolRepositoryImpl;
 import com.bytex.snamp.configuration.ThreadPoolConfiguration;
 
 import java.io.IOException;
@@ -10,14 +8,14 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.time.Duration;
 import java.util.Objects;
-import java.util.concurrent.*;
 
 /**
- * Represents configuration of the thread pool.
+ * Represents serializable configuration of the thread pool.
  * @since 2.0
  * @version 2.0
  */
 final class SerializableThreadPoolConfiguration extends AbstractEntityConfiguration implements ThreadPoolConfiguration {
+    private static final long serialVersionUID = 8726763924738566197L;
     private int threadPriority;
     private int minPoolSize;
     private int maxPoolSize;

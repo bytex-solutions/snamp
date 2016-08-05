@@ -1,5 +1,5 @@
 package com.bytex.snamp.configuration.impl;
 
-abstract class Resettable {
-    abstract void reset();
+interface Resettable {
+    void reset();
 }

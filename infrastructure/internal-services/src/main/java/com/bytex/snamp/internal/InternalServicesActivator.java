@@ -128,14 +128,14 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
     private static final class ThreadPoolRepositoryProvider extends ProvidedService<ThreadPoolRepository, ThreadPoolRepositoryImpl> {
 
         private ThreadPoolRepositoryProvider() {
-            super(ThreadPoolRepository.class, new SimpleDependency<>(ConfigurationAdmin.class));
+            super(ThreadPoolRepository.class);
         }
 
         @SuppressWarnings("unchecked")
         @Override
         protected ThreadPoolRepositoryImpl activateService(final Map<String, Object> identity, RequiredService<?>... dependencies) throws Exception {
             identity.put(Constants.SERVICE_PID, ThreadPoolRepositoryImpl.PID);
-            return new ThreadPoolRepositoryImpl(getDependency(RequiredServiceAccessor.class, ConfigurationAdmin.class, dependencies));
+            return new ThreadPoolRepositoryImpl();
         }
 
         @Override

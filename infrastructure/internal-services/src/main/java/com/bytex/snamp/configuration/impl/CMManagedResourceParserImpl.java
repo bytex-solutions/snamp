@@ -1,6 +1,10 @@
 package com.bytex.snamp.configuration.impl;
 
-import com.bytex.snamp.*;
+import com.bytex.snamp.Acceptor;
+import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.Box;
+import com.bytex.snamp.SerializableMap;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.internal.CMManagedResourceParser;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
@@ -19,8 +23,6 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Map;
 
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
-
 import static com.bytex.snamp.configuration.impl.SerializableManagedResourceConfiguration.*;
 
 /**
@@ -28,7 +30,7 @@ import static com.bytex.snamp.configuration.impl.SerializableManagedResourceConf
  * @version 1.0
  * @since 1.0
  */
-final class CMManagedResourceParserImpl implements CMManagedResourceParser {
+final class CMManagedResourceParserImpl extends AbstractConfigurationParser<SerializableManagedResourceConfiguration> implements CMManagedResourceParser {
     private static final TypeToken<SerializableMap<String, SerializableAttributeConfiguration>> ATTRS_MAP_TYPE = new TypeToken<SerializableMap<String, SerializableAttributeConfiguration>>() {};
     private static final TypeToken<SerializableMap<String, SerializableEventConfiguration>> EVENTS_MAP_TYPE = new TypeToken<SerializableMap<String, SerializableEventConfiguration>>() {};
     private static final TypeToken<SerializableMap<String, SerializableOperationConfiguration>> OPS_MAP_TYPE = new TypeToken<SerializableMap<String, SerializableOperationConfiguration>>() {};
@@ -144,6 +146,7 @@ final class CMManagedResourceParserImpl implements CMManagedResourceParser {
                 reader.accept(config);
     }
 
+    @Override
     void removeAll(final ConfigurationAdmin admin) throws IOException {
         try {
             forEachResource(admin, ALL_CONNECTORS_QUERY, Configuration::delete);
@@ -152,7 +155,8 @@ final class CMManagedResourceParserImpl implements CMManagedResourceParser {
         }
     }
 
-    void readResources(final ConfigurationAdmin admin,
+    @Override
+    void fill(final ConfigurationAdmin admin,
                                       final Map<String, SerializableManagedResourceConfiguration> output) throws IOException {
         try {
             forEachResource(admin, ALL_CONNECTORS_QUERY, config -> {
@@ -240,6 +244,7 @@ final class CMManagedResourceParserImpl implements CMManagedResourceParser {
         }
     }
 
+    @Override
     void saveChanges(final SerializableAgentConfiguration config,
                      final ConfigurationAdmin admin) throws IOException {
         //remove all unnecessary resources
@@ -254,9 +259,8 @@ final class CMManagedResourceParserImpl implements CMManagedResourceParser {
             throw new IOException(e);
         }
         //save each modified resource
-        config.modifiedResources((resourceName, resource) -> {
-            if (resource.isModified())
-                serialize(resourceName, resource, admin);
+        config.getEntities(SerializableManagedResourceConfiguration.class).modifiedEntries((resourceName, resource) -> {
+            serialize(resourceName, resource, admin);
             return true;
         });
     }

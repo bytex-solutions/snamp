@@ -2,6 +2,7 @@ package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.Box;
+import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
 import com.bytex.snamp.configuration.internal.CMResourceAdapterParser;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.Maps;
@@ -16,14 +17,12 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Map;
 
-import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
-
 /**
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-final class CMResourceAdapterParserImpl implements CMResourceAdapterParser {
+final class CMResourceAdapterParserImpl extends AbstractConfigurationParser<SerializableResourceAdapterConfiguration> implements CMResourceAdapterParser {
     private static final String ADAPTER_PID_TEMPLATE = "com.bytex.snamp.adapters.%s";
     private static final String ADAPTER_INSTANCE_NAME_PROPERTY = "$adapterInstanceName$";
     private static final String ALL_ADAPTERS_QUERY = String.format("(%s=%s)", Constants.SERVICE_PID, String.format(ADAPTER_PID_TEMPLATE, "*"));
@@ -89,7 +88,8 @@ final class CMResourceAdapterParserImpl implements CMResourceAdapterParser {
                 reader.accept(config);
     }
 
-    void readAdapters(final ConfigurationAdmin admin,
+    @Override
+    void fill(final ConfigurationAdmin admin,
                                      final Map<String, SerializableResourceAdapterConfiguration> output) throws IOException {
         try {
             forEachAdapter(admin, ALL_ADAPTERS_QUERY, config -> {
@@ -102,6 +102,7 @@ final class CMResourceAdapterParserImpl implements CMResourceAdapterParser {
         }
     }
 
+    @Override
     void removeAll(final ConfigurationAdmin admin) throws IOException {
         try {
             forEachAdapter(admin, ALL_ADAPTERS_QUERY, Configuration::delete);
@@ -167,6 +168,7 @@ final class CMResourceAdapterParserImpl implements CMResourceAdapterParser {
         }
     }
 
+    @Override
     void saveChanges(final SerializableAgentConfiguration config,
               final ConfigurationAdmin admin) throws IOException {
         //remove all unnecessary adapters
@@ -181,9 +183,8 @@ final class CMResourceAdapterParserImpl implements CMResourceAdapterParser {
             throw new IOException(e);
         }
         //save each modified adapter
-        config.modifiedAdapters((adapterInstance, adapter) -> {
-            if ( adapter.isModified())
-                serialize(adapterInstance, adapter, admin);
+        config.getEntities(SerializableResourceAdapterConfiguration.class).modifiedEntries((adapterInstance, adapter) -> {
+            serialize(adapterInstance, adapter, admin);
             return true;
         });
     }

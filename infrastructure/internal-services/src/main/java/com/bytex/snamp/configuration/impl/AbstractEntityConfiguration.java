@@ -5,12 +5,13 @@ import com.bytex.snamp.SerializableMap;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.Map;
 import java.util.function.*;
 
 /**
- * Created by Роман on 04.08.2016.
+ * Represents abstract class for all serializable configuration entities.
  */
-abstract class AbstractEntityConfiguration extends Resettable implements SerializableEntityConfiguration {
+abstract class AbstractEntityConfiguration implements Resettable, SerializableEntityConfiguration {
     private static final long serialVersionUID = -8455277079119895844L;
     private transient boolean modified;
     private final ModifiableParameters parameters;
@@ -29,7 +30,7 @@ abstract class AbstractEntityConfiguration extends Resettable implements Seriali
     }
 
     @Override
-    final void reset() {
+    public final void reset() {
         modified = false;
         parameters.reset();
         resetAdditionally();
@@ -60,6 +61,12 @@ abstract class AbstractEntityConfiguration extends Resettable implements Seriali
     final <P> void setParameter(final String key, final P value, final Function<? super P, String> converter){
         parameters.put(key, converter.apply(value));
         markAsModified();
+    }
+
+    @Override
+    public final void setParameters(final Map<String, String> value) {
+        parameters.clear();
+        parameters.putAll(value);
     }
 
     void resetAdditionally() {

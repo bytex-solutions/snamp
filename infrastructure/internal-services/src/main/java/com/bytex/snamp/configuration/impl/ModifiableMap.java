@@ -10,7 +10,7 @@ import java.io.ObjectOutput;
 import java.util.Map;
 
 
-abstract class ModifiableMap<K, V> extends ForwardingMap<K, V> implements Externalizable, Modifiable, SerializableMap<K, V> {
+abstract class ModifiableMap<K, V> extends ForwardingMap<K, V> implements Externalizable, Modifiable, Resettable, SerializableMap<K, V> {
     private static final long serialVersionUID = -8689048750446731607L;
     private transient boolean modified = false;
 
@@ -43,7 +43,8 @@ abstract class ModifiableMap<K, V> extends ForwardingMap<K, V> implements Extern
         super.putAll(map);
     }
 
-    void reset() {
+    @Override
+    public void reset() {
         modified = false;
     }
 

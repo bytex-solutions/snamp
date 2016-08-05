@@ -1,10 +1,15 @@
 package com.bytex.snamp.configuration.impl;
 
-import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.*;
+import com.bytex.snamp.configuration.AbstractAgentConfiguration;
+import com.bytex.snamp.configuration.EntityConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
 
-import java.io.*;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 /**
  * Represents in-memory agent configuration that can be stored as serialized Java object.
@@ -48,14 +53,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
     private void reset(){
         adapters.reset();
         resources.reset();
-    }
-
-    <E extends Exception> void modifiedResources(final EntryReader<String, ? super SerializableManagedResourceConfiguration, E> handler) throws E{
-        resources.modifiedEntries(handler);
-    }
-
-    <E extends Exception> void modifiedAdapters(final EntryReader<String, ? super SerializableResourceAdapterConfiguration, E> handler) throws E{
-        adapters.modifiedEntries(handler);
+        threadPools.reset();
     }
 
     /**
@@ -79,6 +77,8 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
         adapters.writeExternal(out);
         //write connectors
         resources.writeExternal(out);
+        //write thread pools
+        threadPools.writeExternal(out);
     }
 
     /**
@@ -103,6 +103,8 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
         adapters.readExternal(in);
         //read connectors
         resources.readExternal(in);
+        //read thread pools
+        threadPools.readExternal(in);
     }
 
     /**
@@ -110,7 +112,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
      * @return {@literal true}, if this configuration is empty; otherwise, {@literal false}.
      */
     boolean isEmpty(){
-        return adapters.isEmpty() && resources.isEmpty();
+        return adapters.isEmpty() && resources.isEmpty() && threadPools.isEmpty();
     }
 
     @SuppressWarnings("unchecked")
@@ -121,9 +123,15 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
             result = resources;
         else if (entityType.isAssignableFrom(SerializableResourceAdapterConfiguration.class))
             result = adapters;
+        else if(entityType.isAssignableFrom(SerializableThreadPoolConfiguration.class))
+            result = threadPools;
         else
             result = null;
         return result;
+    }
+
+    ConfigurationEntityRegistry<SerializableThreadPoolConfiguration> getThreadPools(){
+        return threadPools;
     }
 
     ConfigurationEntityRegistry<SerializableResourceAdapterConfiguration> getResourceAdapters() {
@@ -149,6 +157,8 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
             return entityType.cast(resources.getOrAdd(entityID));
         else if (entityType.isAssignableFrom(SerializableResourceAdapterConfiguration.class))
             return entityType.cast(adapters.getOrAdd(entityID));
+        else if(entityType.isAssignableFrom(SerializableThreadPoolConfiguration.class))
+            return entityType.cast(threadPools.getOrAdd(entityID));
         else
             return null;
     }
@@ -173,16 +183,18 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
      * @return A new instance of entity configuration; or {@literal null}, if entity is not supported.
      */
     public static  <E extends EntityConfiguration> E newEntityConfiguration(final Class<E> entityType) {
-        if(entityType.isAssignableFrom(SerializableManagedResourceConfiguration.class))
+        if (entityType.isAssignableFrom(SerializableManagedResourceConfiguration.class))
             return entityType.cast(new SerializableManagedResourceConfiguration());
-        else if(entityType.isAssignableFrom(SerializableResourceAdapterConfiguration.class))
+        else if (entityType.isAssignableFrom(SerializableResourceAdapterConfiguration.class))
             return entityType.cast(new SerializableResourceAdapterConfiguration());
-        else if(entityType.isAssignableFrom(SerializableManagedResourceConfiguration.SerializableAttributeConfiguration.class))
+        else if (entityType.isAssignableFrom(SerializableManagedResourceConfiguration.SerializableAttributeConfiguration.class))
             return entityType.cast(new SerializableManagedResourceConfiguration.SerializableAttributeConfiguration());
-        else if(entityType.isAssignableFrom(SerializableManagedResourceConfiguration.SerializableEventConfiguration.class))
+        else if (entityType.isAssignableFrom(SerializableManagedResourceConfiguration.SerializableEventConfiguration.class))
             return entityType.cast(new SerializableManagedResourceConfiguration.SerializableEventConfiguration());
-        else if(entityType.isAssignableFrom(SerializableManagedResourceConfiguration.SerializableOperationConfiguration.class))
+        else if (entityType.isAssignableFrom(SerializableManagedResourceConfiguration.SerializableOperationConfiguration.class))
             return entityType.cast(new SerializableManagedResourceConfiguration.SerializableOperationConfiguration());
+        else if (entityType.isAssignableFrom(SerializableThreadPoolConfiguration.class))
+            return entityType.cast(new SerializableThreadPoolConfiguration());
         else return null;
     }
 }

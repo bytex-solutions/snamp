@@ -2,27 +2,21 @@ package com.bytex.snamp.concurrent.impl;
 
 import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.concurrent.ConcurrentResourceAccessor;
-import com.bytex.snamp.concurrent.GroupedThreadFactory;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.configuration.ThreadPoolConfiguration;
+import com.bytex.snamp.configuration.impl.CMThreadPoolParser;
 import com.bytex.snamp.core.AbstractFrameworkService;
-import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.io.IOUtils;
 import com.google.common.collect.ImmutableSet;
-import org.osgi.service.cm.Configuration;
-import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.cm.ConfigurationException;
-import org.osgi.service.cm.ConfigurationListener;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import static com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor.Action;
-import static com.bytex.snamp.configuration.ThreadPoolConfiguration.*;
 
 /**
  * Provides default implementation of {@link ThreadPoolRepository} system service.
@@ -31,7 +25,7 @@ import static com.bytex.snamp.configuration.ThreadPoolConfiguration.*;
  * @version 1.0
  */
 public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService implements ThreadPoolRepository, Closeable {
-    public static final String PID = "com.bytex.snamp.concurrency.threadPools";
+    public static final String PID = CMThreadPoolParser.PID;
 
     private final ConcurrentResourceAccessor<Map<String, ConfiguredThreadPool>> threadPools =
             new ConcurrentResourceAccessor<>(new HashMap<>());
@@ -69,8 +63,9 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
                 return null;
             });
         else    //merge with runtime collection of thread pools
-            threadPools.write(new Action<Map<String, ExecutorService>, Void, ExceptionPlaceholder>() {
-                private void removeThreadPools(final Map<String, ExecutorService> services) {
+            threadPools.write(new Action<Map<String, ConfiguredThreadPool>, Void, ExceptionPlaceholder>() {
+
+                private void removeThreadPools(final Map<String, ? extends ExecutorService> services) {
                     ImmutableSet.copyOf(services.keySet()).stream().filter(poolName -> properties.get(poolName) == null).forEach(poolName -> {
                         final ExecutorService threadPool = services.remove(poolName);
                         if(threadPool != null)
@@ -78,26 +73,31 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
                     });
                 }
 
-                private void addThreadPools(final Map<String, ExecutorService> services) {
+                private void addThreadPools(final Map<String, ConfiguredThreadPool> services) {
                     final Enumeration<String> keys = properties.keys();
                     while (keys.hasMoreElements()) {
                         final String poolName = keys.nextElement();
-                        if (!services.containsKey(poolName)) {
-                            final byte[] serializedConfig = Utils.getProperty(properties, poolName, byte[].class, (byte[]) null);
-                            final ThreadPoolConfig config;
-                            try {
-                                config = IOUtils.deserialize(serializedConfig, ThreadPoolConfig.class, getClass().getClassLoader());
-                            } catch (final IOException e) {
-                                logger.log(Level.SEVERE, "Unable to read thread pool config");
-                                continue;
-                            }
-                            services.put(poolName, config.createExecutorService(poolName));
+                        if (poolName.equals(DEFAULT_POOL)) continue;
+                        //deserialize configuration
+                        final ThreadPoolConfiguration offeredConfig;
+                        try {
+                            offeredConfig = CMThreadPoolParser.deserialize(poolName, properties, getClass().getClassLoader());
+                        } catch (final IOException e) {
+                            logger.log(Level.SEVERE, "Unable to read thread pool config");
+                            continue;
                         }
+                        //if exists then compare and merge
+                        if (services.containsKey(poolName)) {
+                            final ConfiguredThreadPool actualConfig = services.get(poolName);
+                            if (!actualConfig.equals(offeredConfig))    //replace with a new thread pool
+                                actualConfig.shutdown();
+                        }
+                        services.put(poolName, new ConfiguredThreadPool(offeredConfig, poolName));
                     }
                 }
 
                 @Override
-                public Void apply(final Map<String, ExecutorService> services) {
+                public Void apply(final Map<String, ConfiguredThreadPool> services) {
                     removeThreadPools(services);
                     addThreadPools(services);
                     return null;
