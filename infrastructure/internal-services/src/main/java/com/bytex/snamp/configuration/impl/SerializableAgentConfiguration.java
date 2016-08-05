@@ -267,6 +267,13 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
             resetAdditionally();
         }
 
+        @Override
+        public final void setParameters(final Map<String, String> value) {
+            parameters.clear();
+            parameters.putAll(value);
+            markAsModified();
+        }
+
         void resetAdditionally(){
 
         }
