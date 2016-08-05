@@ -1,8 +1,8 @@
 package com.bytex.snamp.connectors.modbus;
 
 import com.ghgande.j2mod.modbus.Modbus;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 

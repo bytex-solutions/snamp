@@ -2,7 +2,7 @@ package com.bytex.snamp.connectors.snmp;
 
 import com.bytex.snamp.concurrent.LazyValueFactory;
 import com.bytex.snamp.concurrent.LazyValue;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import com.bytex.snamp.connectors.ManagedResourceDescriptionProvider;
@@ -19,7 +19,7 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.*;
 
 /**
  * Represents SNMP connector configuration descriptor.

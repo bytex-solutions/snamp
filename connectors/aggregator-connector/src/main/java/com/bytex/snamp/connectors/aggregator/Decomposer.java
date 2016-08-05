@@ -7,7 +7,7 @@ import javax.management.openmbean.InvalidKeyException;
 import javax.management.openmbean.SimpleType;
 import java.util.Objects;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 
 /**
  * @author Roman Sakno

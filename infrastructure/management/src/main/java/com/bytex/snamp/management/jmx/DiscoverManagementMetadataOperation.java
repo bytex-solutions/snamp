@@ -1,6 +1,6 @@
 package com.bytex.snamp.management.jmx;
 
-import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.connectors.discovery.DiscoveryService;
 import com.bytex.snamp.jmx.CompositeTypeBuilder;
 import com.bytex.snamp.jmx.OpenMBean;
@@ -82,13 +82,13 @@ final class DiscoverManagementMetadataOperation extends OpenMBean.OpenOperation<
         connector.invokeSupportService(DiscoveryService.class, input -> {
             @SuppressWarnings("unchecked")
             final DiscoveryService.DiscoveryResult metadata = input.discover(connectionString, connectionOptions,
-                    AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class,
-                    AgentConfiguration.ManagedResourceConfiguration.EventConfiguration.class);
+                    ManagedResourceConfiguration.AttributeConfiguration.class,
+                    ManagedResourceConfiguration.EventConfiguration.class);
             // Attributes
-            final Collection<AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> attributes =
-                    metadata.getSubResult(AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class);
+            final Collection<ManagedResourceConfiguration.AttributeConfiguration> attributes =
+                    metadata.getSubResult(ManagedResourceConfiguration.AttributeConfiguration.class);
             final List<CompositeData> attributesData = Lists.newArrayListWithExpectedSize(attributes.size());
-            for (AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration attribute: attributes) {
+            for (ManagedResourceConfiguration.AttributeConfiguration attribute: attributes) {
                 final Map<String, Object> attrMap = new HashMap<>();
                 // append the r/w timeout
                 if (attribute.getReadWriteTimeout() != null)
@@ -109,10 +109,10 @@ final class DiscoverManagementMetadataOperation extends OpenMBean.OpenOperation<
                 attributesData.add(ATTRIBUTE_METADATA_BUILDER.build(attrMap));
             }
             // Events
-            final Collection<AgentConfiguration.ManagedResourceConfiguration.EventConfiguration> events =
-                    metadata.getSubResult(AgentConfiguration.ManagedResourceConfiguration.EventConfiguration.class);
+            final Collection<ManagedResourceConfiguration.EventConfiguration> events =
+                    metadata.getSubResult(ManagedResourceConfiguration.EventConfiguration.class);
             final List<CompositeData> eventsData = Lists.newArrayListWithExpectedSize(events.size());
-            for (AgentConfiguration.ManagedResourceConfiguration.EventConfiguration event: events) {
+            for (ManagedResourceConfiguration.EventConfiguration event: events) {
                 final Map<String, Object> eventMap = new HashMap<>();
                 //read other properties
                 final TabularDataBuilderRowFill builder = new TabularDataBuilderRowFill(SIMPLE_MAP_TYPE);

@@ -17,7 +17,7 @@ import java.net.HttpURLConnection;
 import java.net.PasswordAuthentication;
 import java.net.URL;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import static com.bytex.snamp.jmx.json.JsonUtils.toJsonObject;
 import static com.bytex.snamp.testing.connectors.jmx.AbstractJmxConnectorTest.JMX_LOGIN;
 import static com.bytex.snamp.testing.connectors.jmx.AbstractJmxConnectorTest.JMX_PASSWORD;

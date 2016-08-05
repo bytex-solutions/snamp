@@ -5,16 +5,14 @@ import com.bytex.snamp.Localizable;
 import java.util.Collection;
 import java.util.Locale;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfiguration;
-
 /**
  * Represents description of the SNAMP plugin configuration model.
  * <p>
  *     This interface provides description of additional configuration properties that can be obtained
- *     via {@link com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration#getParameters()},
- *     {@link com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration#getParameters()},
- *     {@link com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration#getParameters()}
- *     or {@link com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration#getParameters()}.
+ *     via {@link ResourceAdapterConfiguration#getParameters()},
+ *     {@link ManagedResourceConfiguration#getParameters()},
+ *     {@link ManagedResourceConfiguration.AttributeConfiguration#getParameters()}
+ *     or {@link ManagedResourceConfiguration.EventConfiguration#getParameters()}.
  *     Each element of the collection represents parameter name and this collection is read-only.
  * </p>
  * @author Roman Sakno
@@ -96,10 +94,10 @@ public interface ConfigurationEntityDescription<T extends EntityConfiguration> e
     /**
      * Returns a type of the configuration entity.
      * @return A type of the configuration entity.
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration
+     * @see ResourceAdapterConfiguration
+     * @see ManagedResourceConfiguration
+     * @see ManagedResourceConfiguration.EventConfiguration
+     * @see ManagedResourceConfiguration.AttributeConfiguration
      */
     Class<T> getEntityType();
 

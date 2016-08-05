@@ -5,7 +5,7 @@ import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription
 
 import java.util.Map;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 
 /**
  * @author Roman Sakno

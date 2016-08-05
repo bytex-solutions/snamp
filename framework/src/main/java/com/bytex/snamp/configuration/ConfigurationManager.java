@@ -66,13 +66,13 @@ public interface ConfigurationManager extends FrameworkService {
     /**
      * Creates a new instance of entity configuration.
      * @param context Class loader of caller code. Cannot be {@literal null}.
-     * @param entityType Type of entity. Can be {@link AgentConfiguration.ManagedResourceConfiguration},
-     *                  {@link AgentConfiguration.ResourceAdapterConfiguration}. {@link AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration}, {@link AgentConfiguration.ManagedResourceConfiguration.EventConfiguration}, {@link AgentConfiguration.ManagedResourceConfiguration.OperationConfiguration}.
+     * @param entityType Type of entity. Can be {@link ManagedResourceConfiguration},
+     *                  {@link ResourceAdapterConfiguration}. {@link ManagedResourceConfiguration.AttributeConfiguration}, {@link ManagedResourceConfiguration.EventConfiguration}, {@link ManagedResourceConfiguration.OperationConfiguration}.
      * @param <E> Type of requested entity.
      * @return A new instance of entity configuration; or {@literal null}, if entity is not supported.
      * @since 1.2
      */
-    static <E extends AgentConfiguration.EntityConfiguration> E createEntityConfiguration(final ClassLoader context, final Class<E> entityType){
+    static <E extends EntityConfiguration> E createEntityConfiguration(final ClassLoader context, final Class<E> entityType){
         final ServiceHolder<ConfigurationManager> manager = ServiceHolder.tryCreate(context, ConfigurationManager.class);
         if(manager != null)
             try{

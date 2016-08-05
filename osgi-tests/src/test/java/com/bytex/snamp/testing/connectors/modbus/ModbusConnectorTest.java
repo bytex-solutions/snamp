@@ -1,8 +1,8 @@
 package com.bytex.snamp.testing.connectors.modbus;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.configuration.AgentConfiguration;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.bytex.snamp.connectors.modbus.transport.ModbusSlave;
 import com.bytex.snamp.connectors.modbus.transport.ModbusTransportType;
 import com.google.common.collect.ImmutableSet;
@@ -13,7 +13,7 @@ import org.osgi.framework.BundleContext;
 import javax.management.JMException;
 import java.net.URISyntaxException;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
+import com.bytex.snamp.configuration.EntityMap;
 
 /**
  * @author Roman Sakno
@@ -102,7 +102,7 @@ public final class ModbusConnectorTest extends AbstractModbusConnectorTest {
 
     @Test
     public void configurationDescriptionTest(){
-        testConfigurationDescriptor(AgentConfiguration.ManagedResourceConfiguration.class, ImmutableSet.of(
+        testConfigurationDescriptor(ManagedResourceConfiguration.class, ImmutableSet.of(
                 "connectionTimeout",
                 "retryCount"
         ));

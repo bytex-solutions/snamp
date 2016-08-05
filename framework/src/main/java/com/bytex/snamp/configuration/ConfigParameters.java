@@ -6,10 +6,8 @@ import com.bytex.snamp.jmx.AbstractCompositeData;
 import javax.management.openmbean.SimpleType;
 import java.util.Map;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfiguration;
-
 /**
- * Represents a copy of configuration entity parameters (obtained from {@link com.bytex.snamp.configuration.AgentConfiguration.EntityConfiguration#getParameters()}
+ * Represents a copy of configuration entity parameters (obtained from {@link EntityConfiguration#getParameters()}
  * wrapped into {@link javax.management.openmbean.CompositeData}.
  * This class cannot be inherited.
  * @author Roman Sakno

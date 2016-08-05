@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 
 import static com.bytex.snamp.connectors.aggregator.AggregatorConnectorConfiguration.getForeignAttributeName;
 import static com.bytex.snamp.connectors.aggregator.AggregatorConnectorConfiguration.getSourceManagedResource;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
 
 /**
  * @author Roman Sakno

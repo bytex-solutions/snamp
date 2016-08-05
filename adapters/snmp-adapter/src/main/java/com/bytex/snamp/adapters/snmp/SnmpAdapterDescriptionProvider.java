@@ -4,7 +4,7 @@ package com.bytex.snamp.adapters.snmp;
 import com.bytex.snamp.adapters.ResourceAdapterDescriptionProvider;
 import com.bytex.snamp.concurrent.LazyValueFactory;
 import com.bytex.snamp.concurrent.LazyValue;
-import com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
+import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import org.snmp4j.SNMP4JSettings;
@@ -18,9 +18,9 @@ import java.text.ParseException;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration.THREAD_POOL_KEY;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
+import static com.bytex.snamp.configuration.ResourceAdapterConfiguration.THREAD_POOL_KEY;
 import static com.bytex.snamp.jmx.DescriptorUtils.getField;
 import static com.bytex.snamp.jmx.DescriptorUtils.hasField;
 

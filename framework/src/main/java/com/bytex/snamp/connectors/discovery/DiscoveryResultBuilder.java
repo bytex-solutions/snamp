@@ -2,10 +2,10 @@ package com.bytex.snamp.connectors.discovery;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.OperationConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration.FeatureConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration.OperationConfiguration;
 
 import java.util.Collection;
 import java.util.Map;

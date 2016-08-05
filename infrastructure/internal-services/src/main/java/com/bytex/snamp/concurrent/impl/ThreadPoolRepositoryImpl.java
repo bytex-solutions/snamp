@@ -2,8 +2,9 @@ package com.bytex.snamp.concurrent.impl;
 
 import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.concurrent.ConcurrentResourceAccessor;
-import com.bytex.snamp.concurrent.ThreadPoolConfig;
+import com.bytex.snamp.concurrent.GroupedThreadFactory;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
+import com.bytex.snamp.configuration.ThreadPoolConfiguration;
 import com.bytex.snamp.core.AbstractFrameworkService;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
@@ -11,14 +12,17 @@ import com.google.common.collect.ImmutableSet;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.cm.ConfigurationException;
+import org.osgi.service.cm.ConfigurationListener;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import static com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor.Action;
+import static com.bytex.snamp.configuration.ThreadPoolConfiguration.*;
 
 /**
  * Provides default implementation of {@link ThreadPoolRepository} system service.
@@ -29,91 +33,55 @@ import static com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor.Acti
 public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService implements ThreadPoolRepository, Closeable {
     public static final String PID = "com.bytex.snamp.concurrency.threadPools";
 
-    private final ConcurrentResourceAccessor<Map<String, ExecutorService>> services =
+    private final ConcurrentResourceAccessor<Map<String, ExecutorService>> threadPools =
             new ConcurrentResourceAccessor<>(new HashMap<>());
 
+    private final ExecutorService defaultThreadPool = createThreadPool(DEFAULT_MIN_POOL_SIZE, DEFAULT_MAX_POOL_SIZE, DEFAULT_KEEP_ALIVE_TIME, INFINITE_QUEUE_SIZE, DEFAULT_THREAD_PRIORITY, "SnampThread");
     private final Logger logger = Logger.getLogger("SnampThreadPoolRepository");
-    private final DefaultThreadPool defaultPool = new DefaultThreadPool();
-    private final ConfigurationAdmin configAdmin;
 
-    public ThreadPoolRepositoryImpl(final ConfigurationAdmin configAdmin){
-        this.configAdmin = Objects.requireNonNull(configAdmin);
+    public static ExecutorService createThreadPool(final int minPoolSize,
+                                                          final int maxPoolSize,
+                                                          final Duration keepAliveTime,
+                                                          final int queueSize,
+                                                          final int threadPriority,
+                                                          final String threadGroup){
+        final GroupedThreadFactory threadFactory = new GroupedThreadFactory(threadGroup, threadPriority);
+        final BlockingQueue<Runnable> taskQueue;
+        final int corePoolSize;
+        if (queueSize == INFINITE_QUEUE_SIZE) {
+                /*
+                    Using an unbounded queue  will cause new tasks to wait in the queue when all corePoolSize
+                    threads are busy. Thus, no more than corePoolSize threads will ever be created.
+                 */
+            if (maxPoolSize == Integer.MAX_VALUE) {
+                taskQueue = new SynchronousQueue<>();
+                corePoolSize = minPoolSize;
+            } else {
+                taskQueue = new LinkedBlockingQueue<>();
+                corePoolSize = maxPoolSize;
+            }
+        } else {
+            taskQueue = maxPoolSize == Integer.MAX_VALUE ?
+                    new SynchronousQueue<>() :
+                    new ArrayBlockingQueue<>(queueSize);
+            corePoolSize = minPoolSize;
+        }
+        return new ThreadPoolExecutor(corePoolSize,
+                maxPoolSize,
+                keepAliveTime.toMillis(),
+                TimeUnit.MILLISECONDS,
+                taskQueue,
+                threadFactory);
     }
 
     @Override
     public ExecutorService getThreadPool(final String name, final boolean useDefaultIfNotExists) {
         switch (name) {
             case DEFAULT_POOL:
-                return defaultPool;
+                return defaultThreadPool;
             default:
-                return services.read(services -> services.containsKey(name) ? services.get(name): defaultPool);
+                return threadPools.read(services -> services.containsKey(name) ? services.get(name): defaultThreadPool);
         }
-    }
-
-    @Override
-    public ExecutorService registerThreadPool(final String name, final ThreadPoolConfig config) {
-        if (DEFAULT_POOL.equals(name))
-            throw new IllegalArgumentException("Default thread pool is already registered");
-        final ExecutorService executor = services.write(services -> {
-            if (services.containsKey(name))
-                throw new IllegalArgumentException(String.format("Thread pool '%s' is already registered", name));
-            final ExecutorService result = config.createExecutorService(name);
-            services.put(name, result);
-            return result;
-        });
-        //persist configuration
-        try {
-            final Configuration persistentConfig = configAdmin.getConfiguration(PID);
-            Dictionary<String, Object> configuredServices = persistentConfig.getProperties();
-            if (configuredServices == null) configuredServices = new Hashtable<>();
-            configuredServices.put(name, IOUtils.serialize(config));
-            persistentConfig.update(configuredServices);
-        } catch (final IOException e) {
-            logger.log(Level.SEVERE, "Unable to persist thread pool configuration", e);
-        }
-        return executor;
-    }
-
-    @Override
-    public ThreadPoolConfig getConfiguration(final String name) {
-        if (DEFAULT_POOL.equals(name))
-            return DefaultThreadPool.getConfig();
-        try {
-            final Configuration persistentConfig = configAdmin.getConfiguration(PID);
-            final Dictionary<String, Object> configuredServices = persistentConfig.getProperties();
-            if (configuredServices == null) return null;
-            final byte[] serializedConfig = Utils.getProperty(configuredServices, name, byte[].class, (byte[]) null);
-            return IOUtils.deserialize(serializedConfig, ThreadPoolConfig.class, getClass().getClassLoader());
-        } catch (final IOException e) {
-            logger.log(Level.SEVERE, String.format("Unable to read '%s' thread pool configuration", name), e);
-            return null;
-        }
-    }
-
-    @Override
-    public boolean unregisterThreadPool(final String name, final boolean shutdown) {
-        if (DEFAULT_POOL.equals(name)) return false;
-        final boolean success = services.write(services -> {
-            final ExecutorService executor = services.remove(name);
-            if (executor != null) {
-                if (shutdown) executor.shutdown();
-                return true;
-            } else return false;
-        });
-        if (success) {
-            try {
-                final Configuration persistentConfig = configAdmin.getConfiguration(PID);
-                final Dictionary<String, ?> configuredServices = persistentConfig.getProperties();
-                if (configuredServices != null) {
-                    configuredServices.remove(name);
-                    persistentConfig.update(configuredServices);
-                }
-            } catch (final IOException e) {
-                logger.log(Level.SEVERE, String.format("Unable to persist '%s' thread pool configuration", name), e);
-                return false;
-            }
-        }
-        return success;
     }
 
     @Override
@@ -124,18 +92,18 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
 
     @Override
     public Iterator<String> iterator() {
-        return services.read(services -> ImmutableSet.copyOf(services.keySet()).iterator());
+        return threadPools.read(services -> ImmutableSet.copyOf(services.keySet()).iterator());
     }
 
     @Override
     public void updated(final Dictionary<String, ?> properties) throws ConfigurationException {
         if (properties == null) //remove all
-            services.write(services -> {
+            threadPools.write(services -> {
                 services.clear();
                 return null;
             });
         else    //merge with runtime collection of thread pools
-            services.write(new Action<Map<String, ExecutorService>, Void, ExceptionPlaceholder>() {
+            threadPools.write(new Action<Map<String, ExecutorService>, Void, ExceptionPlaceholder>() {
                 private void removeThreadPools(final Map<String, ExecutorService> services) {
                     ImmutableSet.copyOf(services.keySet()).stream().filter(poolName -> properties.get(poolName) == null).forEach(services::remove);
                 }
@@ -169,8 +137,8 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
 
     @Override
     public void close() {
-        defaultPool.terminate();
-        services.write(services -> {
+        defaultThreadPool.shutdown();
+        threadPools.write(services -> {
             services.values().forEach(ExecutorService::shutdown);
             services.clear();
             return null;

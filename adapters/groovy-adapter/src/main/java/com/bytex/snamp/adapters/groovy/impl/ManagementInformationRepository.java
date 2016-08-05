@@ -8,7 +8,7 @@ import com.bytex.snamp.adapters.groovy.EventsRootAPI;
 import com.bytex.snamp.adapters.groovy.ResourceAttributesAnalyzer;
 import com.bytex.snamp.adapters.groovy.dsl.GroovyManagementModel;
 import com.bytex.snamp.adapters.modeling.*;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;

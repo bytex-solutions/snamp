@@ -1,9 +1,9 @@
 package com.bytex.snamp.testing.adapters.jmx;
 
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
-import com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
-import com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
+import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
 import com.bytex.snamp.internal.OperatingSystem;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.bytex.snamp.scripting.OSGiScriptEngineManager;

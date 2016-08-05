@@ -1,7 +1,8 @@
 package com.bytex.snamp.connectors.discovery;
 
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.google.common.collect.ImmutableSet;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration.FeatureConfiguration;
 import com.bytex.snamp.core.SupportService;
 
 import java.util.Collection;
@@ -72,22 +73,22 @@ public interface DiscoveryService extends SupportService {
      * Attempts to discover collection of managed entities (such as attributes or notifications)
      * using managed resource connection string.
      * <p>
-     *     Do not add elements from the returned collection directly in {@link com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration#getFeatures(Class)}
+     *     Do not add elements from the returned collection directly in {@link ManagedResourceConfiguration#getFeatures(Class)}
      *     result set, use the following algorithm:
      *     <ul>
-     *         <li>Create a new managed entity with {@link com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration#getFeatures(Class)} method.</li>
-     *         <li>Use {@link com.bytex.snamp.configuration.AbstractAgentConfiguration#copy(com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration, com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration)}
-     *         or {@link com.bytex.snamp.configuration.AbstractAgentConfiguration#copy(com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration, com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration)} method
+     *         <li>Create a new managed entity with {@link ManagedResourceConfiguration#getFeatures(Class)} method.</li>
+     *         <li>Use {@link com.bytex.snamp.configuration.AbstractAgentConfiguration#copy(ManagedResourceConfiguration.AttributeConfiguration, ManagedResourceConfiguration.AttributeConfiguration)}
+     *         or {@link com.bytex.snamp.configuration.AbstractAgentConfiguration#copy(ManagedResourceConfiguration.EventConfiguration, ManagedResourceConfiguration.EventConfiguration)} method
      *         to copy managed entity returned by this method into the newly created entity.</li>
      *     </ul>
      * @param connectionString Managed resource connection string.
-     * @param connectionOptions Managed resource connection options (see {@link com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration#getConnectionString()}).
-     * @param entityType Type of the managed entity (see {@link com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration#getParameters()}).
+     * @param connectionOptions Managed resource connection options (see {@link ManagedResourceConfiguration#getConnectionString()}).
+     * @param entityType Type of the managed entity (see {@link ManagedResourceConfiguration#getParameters()}).
      * @param <T> Type of the managed entity.
      * @return A collection of discovered entities; or empty collection if no entities
      * was detected.
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration
+     * @see ManagedResourceConfiguration.AttributeConfiguration
+     * @see ManagedResourceConfiguration.EventConfiguration
      */
     <T extends FeatureConfiguration> Collection<T> discover(final String connectionString,
                   final Map<String, String> connectionOptions,
@@ -96,7 +97,7 @@ public interface DiscoveryService extends SupportService {
     /**
      * Attempts to discover collection of managed entities in batch manner.
      * @param connectionString Managed resource connection string.
-     * @param connectionOptions Managed resource connection options (see {@link com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration#getConnectionString()}).
+     * @param connectionOptions Managed resource connection options (see {@link ManagedResourceConfiguration#getConnectionString()}).
      * @param entityTypes An array of requested entity types.
      * @return Discovery result.
      */

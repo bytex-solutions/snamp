@@ -26,7 +26,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 
 /**
  * Represents an abstract class for all Groovy-bases scenarios.

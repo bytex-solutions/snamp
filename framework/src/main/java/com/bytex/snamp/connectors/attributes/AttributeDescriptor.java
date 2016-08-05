@@ -1,7 +1,8 @@
 package com.bytex.snamp.connectors.attributes;
 
-import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigParameters;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
 import com.bytex.snamp.connectors.ConfigurationEntityRuntimeMetadata;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.WellKnownType;
@@ -18,7 +19,7 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.connectors.attributes.AttributeSupport.*;
 import static com.bytex.snamp.jmx.CompositeDataUtils.fillMap;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -92,10 +93,10 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
      * Returns a type of the configuration entity.
      *
      * @return A type of the configuration entity.
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration
+     * @see ResourceAdapterConfiguration
+     * @see ManagedResourceConfiguration
+     * @see ManagedResourceConfiguration.EventConfiguration
+     * @see ManagedResourceConfiguration.AttributeConfiguration
      */
     @Override
     public final Class<AttributeConfiguration> getEntityType() {
@@ -206,7 +207,7 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
      */
     @Override
     public final boolean isAutomaticallyAdded(){
-        return hasField(AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration.AUTOMATICALLY_ADDED_KEY);
+        return hasField(ManagedResourceConfiguration.FeatureConfiguration.AUTOMATICALLY_ADDED_KEY);
     }
 
     public final String getName(final String defName){

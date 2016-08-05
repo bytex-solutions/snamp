@@ -16,8 +16,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Map;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
-import static com.bytex.snamp.configuration.impl.SerializableAgentConfiguration.SerializableResourceAdapterConfiguration;
+import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
 
 /**
  * @author Roman Sakno

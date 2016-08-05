@@ -11,9 +11,9 @@ import javax.management.Notification;
 import javax.management.openmbean.CompositeData;
 import java.time.Duration;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
+import com.bytex.snamp.configuration.EntityMap;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
 
 /**
  * Before running this test you need to install RabbitMQ locally. On Debian use the following steps:

@@ -1,6 +1,6 @@
 package com.bytex.snamp.management.jmx;
 
-import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
 import com.bytex.snamp.management.AbstractSnampManager;
 import com.bytex.snamp.management.SnampComponentDescriptor;
 
@@ -37,6 +37,6 @@ final class SuggestAdapterParameterValuesOperation extends AbstractSnampComponen
         final SnampComponentDescriptor adapter = snampManager.getResourceAdapter(adapterName);
         if (adapter == null) throw new IllegalArgumentException(String.format("Adapter %s doesn't exist", adapterName));
         else return getSnampComponentSuggestedValue(adapter, parameterName, locale,
-                AgentConfiguration.ResourceAdapterConfiguration.class, tabularData);
+                ResourceAdapterConfiguration.class, tabularData);
     }
 }

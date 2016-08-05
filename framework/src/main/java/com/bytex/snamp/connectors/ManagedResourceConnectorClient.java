@@ -1,8 +1,8 @@
 package com.bytex.snamp.connectors;
 
 import com.bytex.snamp.Aggregator;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration.FeatureConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.configuration.ConfigurationManager;
@@ -25,7 +25,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
-import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfiguration;
+
+import com.bytex.snamp.configuration.EntityConfiguration;
 import static com.bytex.snamp.concurrent.SpinWait.spinUntilNull;
 
 /**

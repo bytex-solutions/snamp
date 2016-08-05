@@ -5,7 +5,7 @@ import org.apache.karaf.shell.commands.Command;
 
 import java.util.Map;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import static com.bytex.snamp.management.shell.Utils.appendln;
 
 /**

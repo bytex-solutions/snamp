@@ -32,9 +32,9 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
+import com.bytex.snamp.configuration.EntityMap;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
 
 /**
  * Represents SNMPv3 connector test.

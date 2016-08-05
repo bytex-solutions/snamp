@@ -10,8 +10,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.FeatureConfiguration;
 
 /**
  * @author Roman Sakno

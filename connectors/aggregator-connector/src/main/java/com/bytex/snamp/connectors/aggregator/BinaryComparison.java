@@ -4,7 +4,7 @@ import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 
 import javax.management.openmbean.SimpleType;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 
 /**
  * Compares two foreign attributes

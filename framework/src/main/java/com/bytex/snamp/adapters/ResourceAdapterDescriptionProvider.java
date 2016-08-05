@@ -2,12 +2,13 @@ package com.bytex.snamp.adapters;
 
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
+import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
 import com.bytex.snamp.internal.Utils;
 
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration.THREAD_POOL_KEY;
+import static com.bytex.snamp.configuration.ResourceAdapterConfiguration.THREAD_POOL_KEY;
 import static com.bytex.snamp.internal.Utils.getProperty;
 
 /**
@@ -17,7 +18,7 @@ import static com.bytex.snamp.internal.Utils.getProperty;
  */
 public interface ResourceAdapterDescriptionProvider extends ConfigurationEntityDescriptionProvider {
     /**
-     * Default value of {@link com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration#THREAD_POOL_KEY}
+     * Default value of {@link ResourceAdapterConfiguration#THREAD_POOL_KEY}
      * configuration property.
      */
     String DEFAULT_THREAD_POOL_VALUE = ThreadPoolRepository.DEFAULT_POOL;

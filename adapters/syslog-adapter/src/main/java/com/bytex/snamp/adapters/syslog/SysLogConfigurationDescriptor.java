@@ -3,7 +3,7 @@ package com.bytex.snamp.adapters.syslog;
 import com.cloudbees.syslog.Facility;
 import com.cloudbees.syslog.MessageFormat;
 import com.cloudbees.syslog.sender.SyslogMessageSender;
-import com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
+import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
@@ -12,8 +12,8 @@ import javax.management.Descriptor;
 import java.time.Duration;
 import java.util.Map;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
 import static com.bytex.snamp.jmx.DescriptorUtils.getField;
 
 /**

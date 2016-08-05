@@ -4,7 +4,7 @@ import ch.shamu.jsendnrdp.NRDPServerConnectionSettings;
 import com.bytex.snamp.adapters.ResourceAdapterDescriptionProvider;
 import com.bytex.snamp.concurrent.LazyValueFactory;
 import com.bytex.snamp.concurrent.LazyValue;
-import com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
+import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import com.bytex.snamp.jmx.DescriptorUtils;
@@ -13,9 +13,9 @@ import javax.management.Descriptor;
 import java.time.Duration;
 import java.util.Map;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration.THREAD_POOL_KEY;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
+import static com.bytex.snamp.configuration.ResourceAdapterConfiguration.THREAD_POOL_KEY;
 import static com.bytex.snamp.jmx.DescriptorUtils.*;
 import static com.google.common.base.Strings.nullToEmpty;
 

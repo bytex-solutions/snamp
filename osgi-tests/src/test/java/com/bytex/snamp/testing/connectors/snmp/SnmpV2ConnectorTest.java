@@ -2,9 +2,9 @@ package com.bytex.snamp.testing.connectors.snmp;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.concurrent.Repeater;
-import com.bytex.snamp.configuration.AgentConfiguration;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.connectors.notifications.NotificationSupport;
@@ -41,7 +41,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
+import com.bytex.snamp.configuration.EntityMap;
 
 /**
  * Represents SNMPv2 connector test with local SNMP agent.
@@ -463,7 +463,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
                 "messageTemplate",
                 "severity"
         ));
-        testConfigurationDescriptor(AgentConfiguration.ManagedResourceConfiguration.class, ImmutableSet.of(
+        testConfigurationDescriptor(ManagedResourceConfiguration.class, ImmutableSet.of(
                 "community",
                 "engineID",
                 "userName",

@@ -7,8 +7,8 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
 
 /**
  * Configures resource event.
@@ -35,7 +35,7 @@ public final class ConfigEventCommand extends ConfigurationCommand {
     @Override
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
         if(configuration.getEntities(ManagedResourceConfiguration.class).containsKey(resourceName)){
-            final AgentConfiguration.ManagedResourceConfiguration resource = configuration.getEntities(ManagedResourceConfiguration.class).get(resourceName);
+            final ManagedResourceConfiguration resource = configuration.getEntities(ManagedResourceConfiguration.class).get(resourceName);
             final EventConfiguration event = resource.getFeatures(EventConfiguration.class).getOrAdd(category);
             if(!ArrayUtils.isNullOrEmpty(parameters))
                 for(final String param: parameters) {

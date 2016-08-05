@@ -3,7 +3,7 @@ package com.bytex.snamp.management.shell;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import org.apache.karaf.shell.commands.Command;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
+import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
 import static com.bytex.snamp.management.shell.Utils.appendln;
 
 /**

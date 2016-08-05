@@ -2,7 +2,7 @@ package com.bytex.snamp.testing.management;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
-import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.connectors.notifications.Mailbox;
 import com.bytex.snamp.connectors.notifications.MailboxFactory;
 import com.bytex.snamp.io.IOUtils;
@@ -37,9 +37,10 @@ import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
+import com.bytex.snamp.configuration.EntityMap;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
+
+import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
 import static com.bytex.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
 
 
@@ -702,7 +703,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
 
     @Override
     protected void fillAdapters(final EntityMap<? extends ResourceAdapterConfiguration> adapters) {
-        final AgentConfiguration.ResourceAdapterConfiguration snmpAdapter = adapters.getOrAdd(ADAPTER_INSTANCE_NAME);
+        final ResourceAdapterConfiguration snmpAdapter = adapters.getOrAdd(ADAPTER_INSTANCE_NAME);
         snmpAdapter.setAdapterName(ADAPTER_NAME);
         snmpAdapter.getParameters().put("port", SNMP_PORT);
         snmpAdapter.getParameters().put("host", SNMP_HOST);
@@ -712,7 +713,7 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
 
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
-        AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration attribute = attributes.getOrAdd("1.0");
+        ManagedResourceConfiguration.AttributeConfiguration attribute = attributes.getOrAdd("1.0");
         setFeatureName(attribute, "string");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.1.0");

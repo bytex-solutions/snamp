@@ -4,8 +4,9 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
+
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 
 /**
  * Deletes configuration parameter from attribute.

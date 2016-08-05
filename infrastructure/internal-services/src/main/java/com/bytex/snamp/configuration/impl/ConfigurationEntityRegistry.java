@@ -1,0 +1,83 @@
+package com.bytex.snamp.configuration.impl;
+
+import com.bytex.snamp.EntryReader;
+import com.bytex.snamp.configuration.EntityConfiguration;
+import com.bytex.snamp.configuration.EntityMap;
+
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.util.HashMap;
+
+
+abstract class ConfigurationEntityRegistry<E extends EntityConfiguration> extends ModifiableMap<String, E> implements EntityMap<E> {
+    private static final long serialVersionUID = -3859844548619883398L;
+    private final HashMap<String, E> entities;
+
+    ConfigurationEntityRegistry() {
+        entities = new HashMap<>(10);
+    }
+
+    final <ERROR extends Exception> void modifiedEntries(final EntryReader<String, ? super E, ERROR> reader) throws ERROR {
+        for (final Entry<String, E> e : entrySet()) {
+            final E entity = e.getValue();
+            final String name = e.getKey();
+            if (entity instanceof Modifiable && ((Modifiable) entity).isModified())
+                if (!reader.read(name, entity)) break;
+        }
+    }
+
+    @Override
+    public final E getOrAdd(final String entityID) {
+        final E result;
+        if (containsKey(entityID))
+            result = get(entityID);
+        else {
+            result = createEntity();
+            put(entityID, result);
+        }
+        return result;
+    }
+
+    @Override
+    protected final void writeValue(final E value, final ObjectOutput out) throws IOException {
+        out.writeObject(value);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    protected final E readValue(final ObjectInput out) throws IOException, ClassNotFoundException {
+        return (E) out.readObject();
+    }
+
+    @Override
+    protected final HashMap<String, E> delegate() {
+        return entities;
+    }
+
+    @Override
+    public final boolean isModified() {
+        if (super.isModified()) return true;
+        else for (final EntityConfiguration entity : values())
+            if (entity instanceof Modifiable && ((Modifiable) entity).isModified()) return true;
+        return false;
+    }
+
+    @Override
+    public final void reset() {
+        super.reset();
+        values().stream().filter(entity -> entity instanceof Resettable).forEach(entity -> ((Resettable) entity).reset());
+    }
+
+    @Override
+    protected final void writeKey(final String key, final ObjectOutput out) throws IOException {
+        out.writeUTF(key);
+    }
+
+    @Override
+    protected final String readKey(final ObjectInput out) throws IOException {
+        return out.readUTF();
+    }
+
+    protected abstract E createEntity();
+}

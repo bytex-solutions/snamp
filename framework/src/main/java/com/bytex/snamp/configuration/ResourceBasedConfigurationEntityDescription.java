@@ -6,7 +6,6 @@ import com.google.common.collect.ImmutableSet;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfiguration;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
@@ -62,10 +61,10 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
      * Returns a type of the configuration entity.
      *
      * @return A type of the configuration entity.
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration
+     * @see ResourceAdapterConfiguration
+     * @see ManagedResourceConfiguration
+     * @see ManagedResourceConfiguration.EventConfiguration
+     * @see ManagedResourceConfiguration.AttributeConfiguration
      */
     @Override
     public final Class<T> getEntityType() {

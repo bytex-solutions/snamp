@@ -2,6 +2,7 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 
@@ -21,7 +22,7 @@ public final class DeleteAdapterInstanceCommand extends ConfigurationCommand {
 
     @Override
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
-        if(configuration.getEntities(AgentConfiguration.ResourceAdapterConfiguration.class).remove(instanceName) == null){
+        if(configuration.getEntities(ResourceAdapterConfiguration.class).remove(instanceName) == null){
             output.append("Instance doesn't exist");
             return false;
         }

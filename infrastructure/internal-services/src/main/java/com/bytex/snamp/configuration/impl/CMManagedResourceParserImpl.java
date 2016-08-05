@@ -19,9 +19,9 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Map;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
-import static com.bytex.snamp.configuration.impl.SerializableAgentConfiguration.SerializableManagedResourceConfiguration;
-import static com.bytex.snamp.configuration.impl.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.*;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+
+import static com.bytex.snamp.configuration.impl.SerializableManagedResourceConfiguration.*;
 
 /**
  * @author Roman Sakno

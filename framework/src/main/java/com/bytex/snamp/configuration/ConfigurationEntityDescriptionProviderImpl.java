@@ -1,7 +1,6 @@
 package com.bytex.snamp.configuration;
 
 import com.bytex.snamp.AbstractAggregator;
-import com.bytex.snamp.configuration.AgentConfiguration.EntityConfiguration;
 
 import java.util.Arrays;
 import java.util.Collection;

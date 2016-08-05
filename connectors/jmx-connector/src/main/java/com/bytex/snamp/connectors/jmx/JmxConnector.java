@@ -3,7 +3,7 @@ package com.bytex.snamp.connectors.jmx;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.GroupedThreadFactory;
-import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
 import com.bytex.snamp.connectors.attributes.AbstractAttributeRepository;
@@ -215,7 +215,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
                                                 final Collection<JmxOperationInfo> output) throws JMException, IOException {
                         for (final MBeanOperationInfo operationInfo : connection.getMBeanInfo(objectName).getOperations()) {
                             final JmxOperationInfo op = enableOperation(operationInfo.getName(),
-                                    AgentConfiguration.ManagedResourceConfiguration.OperationConfiguration.TIMEOUT_FOR_SMART_MODE,
+                                    ManagedResourceConfiguration.OperationConfiguration.TIMEOUT_FOR_SMART_MODE,
                                     toConfigurationParameters(globalObjectName));
                             if (op != null) output.add(op);
                         }
@@ -381,7 +381,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
                                                 final Collection<JmxAttributeInfo> output) throws JMException, IOException{
                         for(final MBeanAttributeInfo attributeInfo: connection.getMBeanInfo(objectName).getAttributes()){
                             final JmxAttributeInfo attr = addAttribute(attributeInfo.getName(),
-                                    AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.TIMEOUT_FOR_SMART_MODE,
+                                    ManagedResourceConfiguration.AttributeConfiguration.TIMEOUT_FOR_SMART_MODE,
                                     toConfigurationParameters(globalObjectName));
                             if(attr != null) output.add(attr);
                         }

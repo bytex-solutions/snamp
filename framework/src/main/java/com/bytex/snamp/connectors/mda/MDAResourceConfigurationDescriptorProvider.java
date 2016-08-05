@@ -18,10 +18,10 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
+import com.bytex.snamp.configuration.EntityConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**

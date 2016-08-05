@@ -1,6 +1,6 @@
 package com.bytex.snamp.configuration.impl;
 
-import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.EntityConfiguration;
 
 import java.io.IOException;
 
@@ -22,10 +22,10 @@ abstract class PersistentConfigurationException extends IOException {
     /**
      * Represents type of the configuration entity that cannot be restored from storage.
      */
-    final Class<? extends AgentConfiguration.EntityConfiguration> entityType;
+    final Class<? extends EntityConfiguration> entityType;
 
     PersistentConfigurationException(final String pid,
-                                     final Class<? extends AgentConfiguration.EntityConfiguration> entityType,
+                                     final Class<? extends EntityConfiguration> entityType,
                                      final Throwable e){
         super(String.format("Unable to read SNAMP %s configuration", pid), e);
         this.persistenceID = pid;

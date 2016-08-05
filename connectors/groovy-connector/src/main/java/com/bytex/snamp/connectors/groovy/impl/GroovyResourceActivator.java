@@ -15,7 +15,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.FeatureConfiguration;
 
 
 /**

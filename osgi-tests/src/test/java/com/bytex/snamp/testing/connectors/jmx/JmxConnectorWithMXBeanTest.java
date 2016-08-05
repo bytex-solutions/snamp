@@ -1,7 +1,7 @@
 package com.bytex.snamp.testing.connectors.jmx;
 
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.OperationConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration.OperationConfiguration;
 import com.bytex.snamp.connectors.operations.OperationSupport;
 import com.google.common.reflect.TypeToken;
 import org.junit.Test;
@@ -16,7 +16,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.util.Objects;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
+import com.bytex.snamp.configuration.EntityMap;
 
 /**
  * @author Roman Sakno

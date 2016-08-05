@@ -1,7 +1,9 @@
 package com.bytex.snamp.testing.adapters.snmp;
 
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
-import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
 import com.bytex.snamp.connectors.notifications.Severity;
 import com.bytex.snamp.testing.BundleExceptionCallable;
 import com.bytex.snamp.testing.SnampDependencies;
@@ -35,7 +37,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.*;
 import static com.bytex.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
 
 /**
@@ -339,7 +340,7 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
 
     @Override
     protected void fillAdapters(final EntityMap<? extends ResourceAdapterConfiguration> adapters) {
-        final AgentConfiguration.ResourceAdapterConfiguration snmpAdapter = adapters.getOrAdd("test-snmp");
+        final ResourceAdapterConfiguration snmpAdapter = adapters.getOrAdd("test-snmp");
         snmpAdapter.setAdapterName(ADAPTER_NAME);
         snmpAdapter.getParameters().put("port", SNMP_PORT);
         snmpAdapter.getParameters().put("host", SNMP_HOST);
@@ -357,7 +358,7 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
 
     @Override
     protected void fillEvents(final EntityMap<? extends ManagedResourceConfiguration.EventConfiguration> events) {
-        AgentConfiguration.ManagedResourceConfiguration.EventConfiguration event = events.getOrAdd("19.1");
+        ManagedResourceConfiguration.EventConfiguration event = events.getOrAdd("19.1");
         setFeatureName(event, AttributeChangeNotification.ATTRIBUTE_CHANGE);
         event.getParameters().put("severity", "notice");
         event.getParameters().put("objectName", BEAN_NAME);
@@ -376,7 +377,7 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
 
     @Override
     protected void fillAttributes(final EntityMap<? extends ManagedResourceConfiguration.AttributeConfiguration> attributes) {
-        AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration attribute = attributes.getOrAdd("1.0");
+        ManagedResourceConfiguration.AttributeConfiguration attribute = attributes.getOrAdd("1.0");
         setFeatureName(attribute, "string");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.1.0");

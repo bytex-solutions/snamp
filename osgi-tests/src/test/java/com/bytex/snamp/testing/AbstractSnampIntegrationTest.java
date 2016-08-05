@@ -21,7 +21,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.FeatureConfiguration;
 import static com.bytex.snamp.configuration.ConfigurationManager.ConfigurationProcessor;
 
 /**

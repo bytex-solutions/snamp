@@ -1,6 +1,6 @@
 package com.bytex.snamp.management.jmx;
 
-import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.management.AbstractSnampManager;
 import com.bytex.snamp.management.SnampComponentDescriptor;
 
@@ -36,6 +36,6 @@ final class SuggestConnectorEventParameterValuesOperation extends AbstractSnampC
         final SnampComponentDescriptor connector = snampManager.getResourceConnector(connectorName);
         if (connector == null) throw new IllegalArgumentException(String.format("Connector %s doesn't exist", connectorName));
         else return getSnampComponentSuggestedValue(connector, parameterName, locale,
-                AgentConfiguration.ManagedResourceConfiguration.EventConfiguration.class, tabularData);
+                ManagedResourceConfiguration.EventConfiguration.class, tabularData);
     }
 }

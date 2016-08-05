@@ -5,8 +5,8 @@ import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
 import org.junit.Test;
-import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 
 /**
  * @author Roman Sakno

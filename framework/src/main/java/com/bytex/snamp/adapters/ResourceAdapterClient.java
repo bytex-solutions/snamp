@@ -23,7 +23,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.bytex.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
-import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfiguration;
+
+import com.bytex.snamp.configuration.EntityConfiguration;
 import static com.bytex.snamp.concurrent.SpinWait.spinUntilNull;
 
 /**

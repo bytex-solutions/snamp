@@ -1,7 +1,7 @@
 package com.bytex.snamp.testing.connectors.groovy;
 
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connectors.AbstractResourceConnectorTest;
@@ -10,7 +10,7 @@ import com.google.common.collect.ImmutableMap;
 import java.io.File;
 import java.util.Map;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
+import com.bytex.snamp.configuration.EntityMap;
 
 /**
  * @author Roman Sakno

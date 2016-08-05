@@ -5,7 +5,7 @@ import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription
 
 import javax.management.Descriptor;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
+import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
 import static com.bytex.snamp.jmx.DescriptorUtils.getField;
 import static com.bytex.snamp.jmx.DescriptorUtils.hasField;
 

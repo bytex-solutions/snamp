@@ -2,14 +2,15 @@ package com.bytex.snamp.connectors;
 
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.internal.Utils;
 
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.SMART_MODE_KEY;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.THREAD_POOL_KEY;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.SMART_MODE_KEY;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.THREAD_POOL_KEY;
 import static com.bytex.snamp.internal.Utils.getProperty;
 
 /**
@@ -22,13 +23,13 @@ import static com.bytex.snamp.internal.Utils.getProperty;
  */
 public interface ManagedResourceDescriptionProvider extends ConfigurationEntityDescriptionProvider {
     /**
-     * Default value of {@link com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration#SMART_MODE_KEY}
+     * Default value of {@link ManagedResourceConfiguration#SMART_MODE_KEY}
      * configuration property.
      */
     boolean DEFAULT_SMART_MODE_VALUE = false;
 
     /**
-     * Default value of {@link com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration#THREAD_POOL_KEY}
+     * Default value of {@link ManagedResourceConfiguration#THREAD_POOL_KEY}
      * configuration property.
      */
     String DEFAULT_THREAD_POOL_VALUE = ThreadPoolRepository.DEFAULT_POOL;

@@ -1,9 +1,9 @@
 package com.bytex.snamp.management.jmx;
 
 import com.bytex.snamp.adapters.SelectableAdapterParameterDescriptor;
-import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
+import com.bytex.snamp.configuration.EntityConfiguration;
 import com.bytex.snamp.jmx.OpenMBean;
 import com.bytex.snamp.management.AbstractSnampManager;
 import com.bytex.snamp.management.SnampComponentDescriptor;
@@ -72,7 +72,7 @@ abstract class AbstractSnampComponentParamValueOperation extends OpenMBean.OpenO
      */
     protected final String[] getSnampComponentSuggestedValue(final SnampComponentDescriptor snampComponentDescriptor,
                                                              final String parameterName, final String locale,
-                                                             final Class<? extends AgentConfiguration.EntityConfiguration> configurationEntity,
+                                                             final Class<? extends EntityConfiguration> configurationEntity,
                                                              final Map<String, String> tabularData) throws Exception {
 
         final List<String> result = new LinkedList<>();

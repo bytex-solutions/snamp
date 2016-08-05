@@ -1,6 +1,7 @@
 package com.bytex.snamp.connectors;
 
 import com.bytex.snamp.configuration.ConfigurationEntityDescription.ParameterDescription;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 
 import java.util.Locale;
 import java.util.Map;
@@ -16,8 +17,8 @@ public interface SelectableConnectorParameterDescriptor extends ParameterDescrip
 
     /**
      * Suggests the values of the configuration parameter.
-     * @param connectionString The connection string that identifies the resource (see {@link com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration#getConnectionString()}).
-     * @param connectionOptions Additional connection options (see {@link com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration#getConnectionString()}).
+     * @param connectionString The connection string that identifies the resource (see {@link ManagedResourceConfiguration#getConnectionString()}).
+     * @param connectionOptions Additional connection options (see {@link ManagedResourceConfiguration#getConnectionString()}).
      * @param loc Target localization of the suggested values.
      * @return An array of parameter suggested values.
      * @throws java.lang.Exception Unable to suggest parameter values.

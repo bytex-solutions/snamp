@@ -1,7 +1,7 @@
 package com.bytex.snamp.testing.connectors.jmx;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.connectors.attributes.AttributeSupport;
@@ -31,8 +31,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.*;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
+import com.bytex.snamp.configuration.EntityMap;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.*;
 
 /**
  * @author Roman Sakno
@@ -294,7 +294,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
 
     @Test
     public void testForAttributeConfigDescription(){
-        testConfigurationDescriptor(AgentConfiguration.ManagedResourceConfiguration.class, ImmutableSet.of(
+        testConfigurationDescriptor(ManagedResourceConfiguration.class, ImmutableSet.of(
             "login",
                 "password",
                 "connectionCheckPeriod",

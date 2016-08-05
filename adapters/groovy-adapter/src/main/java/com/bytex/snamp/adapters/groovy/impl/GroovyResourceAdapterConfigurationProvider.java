@@ -5,7 +5,8 @@ import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription
 import com.bytex.snamp.io.IOUtils;
 
 import java.util.Map;
-import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
+
+import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
 
 /**
  * Represents configuration descriptor of Groovy Resource Adapter.

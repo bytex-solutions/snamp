@@ -1,7 +1,7 @@
 package com.bytex.snamp.configuration.diff;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
-import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
 
 /**
  * @author Roman Sakno

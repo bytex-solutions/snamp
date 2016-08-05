@@ -6,7 +6,7 @@ import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription
 import javax.management.Descriptor;
 import java.util.Objects;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.jmx.DescriptorUtils.*;
 
 /**

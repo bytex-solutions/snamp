@@ -1,6 +1,5 @@
 package com.bytex.snamp.testing.concurrent;
 
-import com.bytex.snamp.concurrent.ThreadPoolConfig;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.core.ServiceHolder;

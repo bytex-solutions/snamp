@@ -5,7 +5,7 @@ import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import javax.management.openmbean.SimpleType;
 import java.util.Objects;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 
 /**
  * Represents proxy attribute that exposes value of the foreign attribute as a string.

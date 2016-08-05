@@ -2,7 +2,7 @@ package com.bytex.snamp.connectors.attributes;
 
 import javax.management.*;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfiguration;
+import com.bytex.snamp.configuration.EntityConfiguration;
 
 /**
  * Represents support for management attributes.

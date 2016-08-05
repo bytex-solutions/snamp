@@ -5,7 +5,7 @@ import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import javax.management.openmbean.SimpleType;
 import java.math.BigDecimal;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 
 /**
  * Represents an attribute which compares the foreign attribute with user defined value.

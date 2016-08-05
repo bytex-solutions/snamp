@@ -1,9 +1,9 @@
 package com.bytex.snamp.testing.connectors.mq;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.configuration.AgentConfiguration;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
 import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -20,7 +20,7 @@ import java.math.BigInteger;
 import java.time.Duration;
 import java.util.Date;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
+import com.bytex.snamp.configuration.EntityMap;
 
 
 /**
@@ -218,7 +218,7 @@ public final class ActiveMQTest extends AbstractMQConnectorTest {
                 "dictionaryItemTypes",
                 "dictionaryName"
         ));
-        testConfigurationDescriptor(AgentConfiguration.ManagedResourceConfiguration.class, ImmutableSet.of(
+        testConfigurationDescriptor(ManagedResourceConfiguration.class, ImmutableSet.of(
                 "expirationTime",
                 "userName",
                 "password",

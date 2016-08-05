@@ -3,11 +3,10 @@ package com.bytex.snamp.testing.connectors;
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.TypeTokens;
 import com.bytex.snamp.concurrent.SpinWait;
-import com.bytex.snamp.configuration.AgentConfiguration;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.OperationConfiguration;
-import com.bytex.snamp.configuration.ConfigurationEntityDescription;
+import com.bytex.snamp.configuration.*;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration.OperationConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
@@ -38,8 +37,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
-
-import static com.bytex.snamp.configuration.AgentConfiguration.*;
 
 /**
  * Represents an abstract class for all integration tests that checks management connectors.
@@ -265,16 +262,16 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         testConfigurationDescriptor(description, ImmutableSet.copyOf(parameters));
     }
 
-    protected static <E extends AgentConfiguration.EntityConfiguration> void testConfigurationDescriptor(final BundleContext context,
-                                                                                                          final String connectorType,
-                                                                                                          final Class<E> entityType,
-                                                                                                          final Set<String> parameters) {
+    protected static <E extends EntityConfiguration> void testConfigurationDescriptor(final BundleContext context,
+                                                                                      final String connectorType,
+                                                                                      final Class<E> entityType,
+                                                                                      final Set<String> parameters) {
         final ConfigurationEntityDescription<?> description = ManagedResourceConnectorClient.getConfigurationEntityDescriptor(context, connectorType, entityType);
         testConfigurationDescriptor(description, parameters);
     }
 
-    protected final <E extends AgentConfiguration.EntityConfiguration> void testConfigurationDescriptor(final Class<E> entityType,
-                                                                                                        final Set<String> parameters){
+    protected final <E extends EntityConfiguration> void testConfigurationDescriptor(final Class<E> entityType,
+                                                                                     final Set<String> parameters){
         testConfigurationDescriptor(getTestBundleContext(), connectorType, entityType, parameters);
     }
 

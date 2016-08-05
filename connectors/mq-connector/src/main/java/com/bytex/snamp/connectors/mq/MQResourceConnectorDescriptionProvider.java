@@ -10,7 +10,7 @@ import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
 import java.util.Map;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.THREAD_POOL_KEY;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.THREAD_POOL_KEY;
 
 /**
  * @author Roman Sakno

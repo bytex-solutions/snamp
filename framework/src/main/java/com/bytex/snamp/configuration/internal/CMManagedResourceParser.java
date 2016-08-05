@@ -5,8 +5,8 @@ import java.io.IOException;
 import java.util.Dictionary;
 import java.util.Map;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.*;
 
 /**
  * Provides parsing of managed resource configuration from data provided by {@link org.osgi.service.cm.Configuration}.

@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.time.temporal.ChronoUnit;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.impl.SerializableAgentConfiguration.newEntityConfiguration;
 
 /**

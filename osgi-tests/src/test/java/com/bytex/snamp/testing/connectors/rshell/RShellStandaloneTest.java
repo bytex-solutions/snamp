@@ -1,7 +1,7 @@
 package com.bytex.snamp.testing.connectors.rshell;
 
 import com.bytex.snamp.concurrent.FutureThread;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.connectors.attributes.AttributeSupport;
@@ -17,7 +17,7 @@ import javax.management.MBeanAttributeInfo;
 import javax.management.openmbean.CompositeData;
 import java.util.concurrent.ExecutionException;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
+import com.bytex.snamp.configuration.EntityMap;
 
 /**
  * @author Roman Sakno

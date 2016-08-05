@@ -9,8 +9,8 @@ import org.apache.karaf.shell.commands.Option;
 
 import java.time.temporal.ChronoUnit;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.OperationConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.OperationConfiguration;
 
 /**
  * Configures operation.

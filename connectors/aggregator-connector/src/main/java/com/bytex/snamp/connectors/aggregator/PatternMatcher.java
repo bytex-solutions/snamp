@@ -6,7 +6,7 @@ import javax.management.openmbean.SimpleType;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 
 /**
  * Represents regular expression computation.

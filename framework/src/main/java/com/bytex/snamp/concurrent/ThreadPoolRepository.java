@@ -30,22 +30,6 @@ public interface ThreadPoolRepository extends SupportService, ManagedService, It
     ExecutorService getThreadPool(final String name, final boolean useDefaultIfNotExists);
 
     /**
-     * Register a new thread pool with the specified configuration.
-     * @param name The name of registered thread pool.
-     * @param config Thread pool configuration.
-     * @return Instantiated thread pool.
-     * @throws IllegalArgumentException Service with specified name is already registered.
-     */
-    ExecutorService registerThreadPool(final String name, final ThreadPoolConfig config);
-
-    /**
-     * Gets configuration of thread pool.
-     * @param name The name of thread pool.
-     * @return Private copy of thread pool configuration; or {@literal null}, if it doesn't exist.
-     */
-    ThreadPoolConfig getConfiguration(final String name);
-
-    /**
      * Unregister thread pool.
      * @param name The name of thread pool to unregister.
      * @param shutdown {@literal true} to shutdown thread pool; {@literal false} to reuse thread pool after de-registration

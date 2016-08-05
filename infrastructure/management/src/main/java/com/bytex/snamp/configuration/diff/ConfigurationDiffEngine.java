@@ -2,13 +2,13 @@ package com.bytex.snamp.configuration.diff;
 
 import com.bytex.snamp.configuration.AbstractAgentConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
 
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static com.bytex.snamp.configuration.AgentConfiguration.*;
 
 /**
  * Provides a methods for computing diffs between target and baseline configuration,

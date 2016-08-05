@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.*;
 import static com.bytex.snamp.connectors.jmx.JmxConnectorDescriptionProvider.OBJECT_NAME_PROPERTY;
 
 /**

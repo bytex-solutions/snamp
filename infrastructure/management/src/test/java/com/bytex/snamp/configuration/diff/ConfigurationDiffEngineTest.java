@@ -8,8 +8,9 @@ import org.junit.Test;
 
 import java.time.temporal.ChronoUnit;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+
+import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
 
 /**
  * @author Roman Sakno

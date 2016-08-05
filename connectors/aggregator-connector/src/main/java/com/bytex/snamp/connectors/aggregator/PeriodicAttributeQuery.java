@@ -7,7 +7,7 @@ import javax.management.AttributeNotFoundException;
 import javax.management.JMException;
 import java.util.logging.Logger;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
 
 /**
  * @author Roman Sakno

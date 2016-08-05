@@ -2,7 +2,7 @@ package com.bytex.snamp.connectors.jmx;
 
 import com.bytex.snamp.concurrent.LazyValue;
 import com.bytex.snamp.concurrent.LazyValueFactory;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import com.bytex.snamp.connectors.ManagedResourceDescriptionProvider;
@@ -25,8 +25,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration.AUTOMATICALLY_ADDED_KEY;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.*;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.FeatureConfiguration.AUTOMATICALLY_ADDED_KEY;
 
 /**
  * Represents JMX connector configuration descriptor.

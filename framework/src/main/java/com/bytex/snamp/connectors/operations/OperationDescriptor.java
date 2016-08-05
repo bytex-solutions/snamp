@@ -1,7 +1,7 @@
 package com.bytex.snamp.connectors.operations;
 
-import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigParameters;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.connectors.ConfigurationEntityRuntimeMetadata;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.WellKnownType;
@@ -17,7 +17,7 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.OperationConfiguration;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.OperationConfiguration;
 import static com.bytex.snamp.connectors.operations.OperationSupport.*;
 import static com.bytex.snamp.jmx.CompositeDataUtils.fillMap;
 
@@ -144,14 +144,14 @@ public class OperationDescriptor extends ImmutableDescriptor implements Configur
      */
     @Override
     public final boolean isAutomaticallyAdded(){
-        return hasField(AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration.AUTOMATICALLY_ADDED_KEY);
+        return hasField(ManagedResourceConfiguration.FeatureConfiguration.AUTOMATICALLY_ADDED_KEY);
     }
 
     /**
      * Gets alternative name of the feature.
      *
      * @return Alternative name of the feature.
-     * @see AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration#NAME_KEY
+     * @see ManagedResourceConfiguration.FeatureConfiguration#NAME_KEY
      */
     @Override
     public final String getAlternativeName() {

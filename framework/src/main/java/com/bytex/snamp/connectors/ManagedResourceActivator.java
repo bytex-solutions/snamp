@@ -25,7 +25,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.*;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
@@ -728,7 +728,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
     /**
      * Represents a simple implementation of configuration description service manager based
-     * on provided array of descriptions for each {@link com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration}.
+     * on provided array of descriptions for each {@link ManagedResourceConfiguration.FeatureConfiguration}.
      * @author Roman Sakno
      * @since 1.0
      * @version 1.2

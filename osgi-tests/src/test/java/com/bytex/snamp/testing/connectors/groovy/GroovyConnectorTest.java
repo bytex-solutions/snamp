@@ -1,7 +1,7 @@
 package com.bytex.snamp.testing.connectors.groovy;
 
-import com.bytex.snamp.configuration.AgentConfiguration;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.connectors.notifications.Mailbox;
@@ -121,7 +121,7 @@ public final class GroovyConnectorTest extends AbstractGroovyConnectorTest {
 
     @Test
     public void configurationDescriptionTest() {
-        testConfigurationDescriptor(AgentConfiguration.ManagedResourceConfiguration.class, ImmutableSet.of(
+        testConfigurationDescriptor(ManagedResourceConfiguration.class, ImmutableSet.of(
                 "initScript",
                 "groovy.warnings",
                 "groovy.source.encoding",

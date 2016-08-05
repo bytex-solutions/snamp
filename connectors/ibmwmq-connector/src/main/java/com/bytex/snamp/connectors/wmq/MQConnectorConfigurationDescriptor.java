@@ -1,9 +1,9 @@
 package com.bytex.snamp.connectors.wmq;
 
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.SMART_MODE_KEY;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.SMART_MODE_KEY;
 
 import java.net.URI;
 import java.util.Map;

@@ -2,7 +2,7 @@ package com.bytex.snamp.connectors.jmx;
 
 import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.concurrent.FutureThread;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration.FeatureConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;

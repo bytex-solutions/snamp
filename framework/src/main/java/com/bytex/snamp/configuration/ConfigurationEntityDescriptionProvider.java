@@ -2,8 +2,6 @@ package com.bytex.snamp.configuration;
 
 import com.bytex.snamp.core.SupportService;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfiguration;
-
 /**
  * Represents configuration description provider.
  * <p>
@@ -17,7 +15,7 @@ public interface ConfigurationEntityDescriptionProvider extends SupportService {
 
     /**
      * Retrieves configuration description for the specified configuration element type.
-     * @param <T> Type of the configuration entity, such as {@link com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration}.
+     * @param <T> Type of the configuration entity, such as {@link ManagedResourceConfiguration.AttributeConfiguration}.
      * @param configurationEntity Type of the configuration element.
      * @return The description of the configuration element; or {@literal null}, if description is not available.
      */

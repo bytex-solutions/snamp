@@ -1,7 +1,7 @@
 package com.bytex.snamp.connectors.attributes;
 
 import com.bytex.snamp.configuration.ConfigParameters;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.impl.SerializableAgentConfiguration.newEntityConfiguration;
 
 import org.junit.Assert;

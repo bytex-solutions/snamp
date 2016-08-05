@@ -2,7 +2,7 @@ package com.bytex.snamp.connectors.snmp;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
-import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration.FeatureConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
 import org.snmp4j.log.OSGiLogFactory;
 import org.snmp4j.smi.GenericAddress;

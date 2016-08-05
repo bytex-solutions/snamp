@@ -3,9 +3,7 @@ package com.bytex.snamp.management.jmx;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.Box;
 import com.bytex.snamp.adapters.SelectableAdapterParameterDescriptor;
-import com.bytex.snamp.configuration.AgentConfiguration;
-import com.bytex.snamp.configuration.ConfigurationEntityDescription;
-import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connectors.SelectableConnectorParameterDescriptor;
 import com.bytex.snamp.jmx.CompositeTypeBuilder;
 import com.bytex.snamp.jmx.OpenMBean;
@@ -146,10 +144,10 @@ abstract class ConfigurationSchemaOperation extends OpenMBean.OpenOperation<Comp
                                                         final Locale loc) throws OpenDataException {
         return COMPONENT_CONFIG_SCHEMA_BUILDER.build(
                 ImmutableMap.of(
-                    MANAGED_RESOURCE_PARAMS, getConfigurationSchema(schemaProvider.getDescription(AgentConfiguration.ManagedResourceConfiguration.class), loc),
-                    RESOURCE_ADAPTER_PARAMS, getConfigurationSchema(schemaProvider.getDescription(AgentConfiguration.ResourceAdapterConfiguration.class), loc),
-                    ATTRIBUTE_PARAMS, getConfigurationSchema(schemaProvider.getDescription(AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class), loc),
-                    EVENT_PARAMS, getConfigurationSchema(schemaProvider.getDescription(AgentConfiguration.ManagedResourceConfiguration.EventConfiguration.class), loc)
+                    MANAGED_RESOURCE_PARAMS, getConfigurationSchema(schemaProvider.getDescription(ManagedResourceConfiguration.class), loc),
+                    RESOURCE_ADAPTER_PARAMS, getConfigurationSchema(schemaProvider.getDescription(ResourceAdapterConfiguration.class), loc),
+                    ATTRIBUTE_PARAMS, getConfigurationSchema(schemaProvider.getDescription(ManagedResourceConfiguration.AttributeConfiguration.class), loc),
+                    EVENT_PARAMS, getConfigurationSchema(schemaProvider.getDescription(ManagedResourceConfiguration.EventConfiguration.class), loc)
                 )
         );
     }

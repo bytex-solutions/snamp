@@ -9,8 +9,8 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Map;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
+import com.bytex.snamp.configuration.EntityConfiguration;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.*;
 
 /**
  * Represents an abstract class for initialization script.

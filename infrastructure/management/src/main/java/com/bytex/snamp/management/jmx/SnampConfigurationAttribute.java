@@ -20,9 +20,10 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+
+import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.*;
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 import static com.bytex.snamp.jmx.CompositeDataUtils.getLong;
 import static com.bytex.snamp.jmx.CompositeDataUtils.getString;
@@ -121,10 +122,10 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
      * @return TabularData object
      * @throws OpenDataException
      */
-    private static TabularData parseConnectorAttributes(final Map<String, ? extends AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> map)
+    private static TabularData parseConnectorAttributes(final Map<String, ? extends ManagedResourceConfiguration.AttributeConfiguration> map)
             throws OpenDataException {
         final TabularDataBuilderRowFill builder = new TabularDataBuilderRowFill(CONNECTOR_ATTRIBUTE_MAP_TYPE);
-        for (final Map.Entry<String, ? extends AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> attribute : map.entrySet()) {
+        for (final Map.Entry<String, ? extends ManagedResourceConfiguration.AttributeConfiguration> attribute : map.entrySet()) {
             builder.newRow()
                     .cell("Name", attribute.getKey())
                     .cell("Attribute", ATTRIBUTE_METADATA_BUILDER.build(
@@ -144,10 +145,10 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
      * @return TabularData object
      * @throws OpenDataException
      */
-    private static TabularData parseConnectorEvents(final Map<String, ? extends AgentConfiguration.ManagedResourceConfiguration.EventConfiguration> map)
+    private static TabularData parseConnectorEvents(final Map<String, ? extends ManagedResourceConfiguration.EventConfiguration> map)
             throws OpenDataException {
         final TabularDataBuilderRowFill builder = new TabularDataBuilderRowFill(CONNECTOR_EVENT_MAP_TYPE);
-        for (final Map.Entry<String, ? extends AgentConfiguration.ManagedResourceConfiguration.EventConfiguration> event : map.entrySet()) {
+        for (final Map.Entry<String, ? extends ManagedResourceConfiguration.EventConfiguration> event : map.entrySet()) {
             builder.newRow()
                     .cell("Category", event.getKey())
                     .cell("Event", EVENT_METADATA_BUILDER.build(
@@ -176,8 +177,8 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
     private static CompositeData snampConfigurationToJMX(final AgentConfiguration configuration) throws OpenDataException {
         // adapter parsing
         final TabularDataBuilderRowFill builderAdapter = new TabularDataBuilderRowFill(ADAPTER_MAP_TYPE);
-        final Map<String, ? extends AgentConfiguration.ResourceAdapterConfiguration> adapterMapConfig = configuration.getEntities(ResourceAdapterConfiguration.class);
-        for (final Map.Entry<String, ? extends AgentConfiguration.ResourceAdapterConfiguration> adapter : adapterMapConfig.entrySet()) {
+        final Map<String, ? extends ResourceAdapterConfiguration> adapterMapConfig = configuration.getEntities(ResourceAdapterConfiguration.class);
+        for (final Map.Entry<String, ? extends ResourceAdapterConfiguration> adapter : adapterMapConfig.entrySet()) {
             builderAdapter.newRow()
                     .cell("UserDefinedName", adapter.getKey())
                     .cell("Adapter", ADAPTER_METADATA_BUILDER.build(
@@ -191,8 +192,8 @@ final class SnampConfigurationAttribute  extends OpenMBean.OpenAttribute<Composi
 
         // connector parsing
         final TabularDataBuilderRowFill builderConnector = new TabularDataBuilderRowFill(CONNECTOR_MAP_TYPE);
-        final Map<String, ? extends AgentConfiguration.ManagedResourceConfiguration> connectors = configuration.getEntities(ManagedResourceConfiguration.class);
-        for (final Map.Entry<String, ? extends AgentConfiguration.ManagedResourceConfiguration> connector : connectors.entrySet()) {
+        final Map<String, ? extends ManagedResourceConfiguration> connectors = configuration.getEntities(ManagedResourceConfiguration.class);
+        for (final Map.Entry<String, ? extends ManagedResourceConfiguration> connector : connectors.entrySet()) {
             builderConnector.newRow()
                     .cell("UserDefinedName", connector.getKey())
                     .cell("Connector", CONNECTOR_METADATA_BUILDER.build(

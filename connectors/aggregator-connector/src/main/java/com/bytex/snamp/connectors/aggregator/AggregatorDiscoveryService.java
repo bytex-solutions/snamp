@@ -2,7 +2,7 @@ package com.bytex.snamp.connectors.aggregator;
 
 import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.configuration.AbstractAgentConfiguration;
-import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.connectors.discovery.DiscoveryResultBuilder;
 import com.bytex.snamp.connectors.discovery.DiscoveryService;
 import com.google.common.collect.ImmutableList;
@@ -10,7 +10,7 @@ import com.google.common.collect.ImmutableList;
 import java.util.*;
 import java.util.logging.Logger;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.*;
 
 /**
  * @author Roman Sakno
@@ -46,7 +46,7 @@ final class AggregatorDiscoveryService extends AbstractAggregator implements Dis
      * Attempts to discover collection of managed entities (such as attributes or notifications)
      * using managed resource connection string.
      * <p/>
-     * Do not add elements from the returned collection directly in {@link AgentConfiguration.ManagedResourceConfiguration#getFeatures(Class)}
+     * Do not add elements from the returned collection directly in {@link ManagedResourceConfiguration#getFeatures(Class)}
      * result set, use the following algorithm:
      * <ul>
      * <li>Use {@link AbstractAgentConfiguration#copy(AttributeConfiguration, AttributeConfiguration)}
@@ -55,8 +55,8 @@ final class AggregatorDiscoveryService extends AbstractAggregator implements Dis
      * </ul>
      *
      * @param connectionString  Managed resource connection string.
-     * @param connectionOptions Managed resource connection options (see {@link AgentConfiguration.ManagedResourceConfiguration#getConnectionString()}).
-     * @param entityType        Type of the managed entity (see {@link AgentConfiguration.ManagedResourceConfiguration#getParameters()}).
+     * @param connectionOptions Managed resource connection options (see {@link ManagedResourceConfiguration#getConnectionString()}).
+     * @param entityType        Type of the managed entity (see {@link ManagedResourceConfiguration#getParameters()}).
      * @return A collection of discovered entities; or empty collection if no entities
      * was detected.
      * @see AttributeConfiguration
@@ -76,7 +76,7 @@ final class AggregatorDiscoveryService extends AbstractAggregator implements Dis
      * Attempts to discover collection of managed entities in batch manner.
      *
      * @param connectionString  Managed resource connection string.
-     * @param connectionOptions Managed resource connection options (see {@link AgentConfiguration.ManagedResourceConfiguration#getConnectionString()}).
+     * @param connectionOptions Managed resource connection options (see {@link ManagedResourceConfiguration#getConnectionString()}).
      * @param entityTypes       An array of requested entity types.
      * @return Discovery result.
      */

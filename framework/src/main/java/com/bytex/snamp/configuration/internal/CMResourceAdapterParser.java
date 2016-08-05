@@ -3,7 +3,7 @@ package com.bytex.snamp.configuration.internal;
 import java.util.Dictionary;
 import java.util.Map;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
+import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
 
 /**
  * Provides parsing of resource adapter configuration from data provided by {@link org.osgi.service.cm.Configuration}.
