@@ -33,46 +33,12 @@ import static com.bytex.snamp.configuration.ThreadPoolConfiguration.*;
 public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService implements ThreadPoolRepository, Closeable {
     public static final String PID = "com.bytex.snamp.concurrency.threadPools";
 
-    private final ConcurrentResourceAccessor<Map<String, ExecutorService>> threadPools =
+    private final ConcurrentResourceAccessor<Map<String, ConfiguredThreadPool>> threadPools =
             new ConcurrentResourceAccessor<>(new HashMap<>());
 
-    private final ExecutorService defaultThreadPool = createThreadPool(DEFAULT_MIN_POOL_SIZE, DEFAULT_MAX_POOL_SIZE, DEFAULT_KEEP_ALIVE_TIME, INFINITE_QUEUE_SIZE, DEFAULT_THREAD_PRIORITY, "SnampThread");
+    private final ExecutorService defaultThreadPool = new ConfiguredThreadPool(DefaultThreadPoolConfiguration.getInstance(), "SnampThread");
     private final Logger logger = Logger.getLogger("SnampThreadPoolRepository");
 
-    public static ExecutorService createThreadPool(final int minPoolSize,
-                                                          final int maxPoolSize,
-                                                          final Duration keepAliveTime,
-                                                          final int queueSize,
-                                                          final int threadPriority,
-                                                          final String threadGroup){
-        final GroupedThreadFactory threadFactory = new GroupedThreadFactory(threadGroup, threadPriority);
-        final BlockingQueue<Runnable> taskQueue;
-        final int corePoolSize;
-        if (queueSize == INFINITE_QUEUE_SIZE) {
-                /*
-                    Using an unbounded queue  will cause new tasks to wait in the queue when all corePoolSize
-                    threads are busy. Thus, no more than corePoolSize threads will ever be created.
-                 */
-            if (maxPoolSize == Integer.MAX_VALUE) {
-                taskQueue = new SynchronousQueue<>();
-                corePoolSize = minPoolSize;
-            } else {
-                taskQueue = new LinkedBlockingQueue<>();
-                corePoolSize = maxPoolSize;
-            }
-        } else {
-            taskQueue = maxPoolSize == Integer.MAX_VALUE ?
-                    new SynchronousQueue<>() :
-                    new ArrayBlockingQueue<>(queueSize);
-            corePoolSize = minPoolSize;
-        }
-        return new ThreadPoolExecutor(corePoolSize,
-                maxPoolSize,
-                keepAliveTime.toMillis(),
-                TimeUnit.MILLISECONDS,
-                taskQueue,
-                threadFactory);
-    }
 
     @Override
     public ExecutorService getThreadPool(final String name, final boolean useDefaultIfNotExists) {
@@ -105,7 +71,11 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
         else    //merge with runtime collection of thread pools
             threadPools.write(new Action<Map<String, ExecutorService>, Void, ExceptionPlaceholder>() {
                 private void removeThreadPools(final Map<String, ExecutorService> services) {
-                    ImmutableSet.copyOf(services.keySet()).stream().filter(poolName -> properties.get(poolName) == null).forEach(services::remove);
+                    ImmutableSet.copyOf(services.keySet()).stream().filter(poolName -> properties.get(poolName) == null).forEach(poolName -> {
+                        final ExecutorService threadPool = services.remove(poolName);
+                        if(threadPool != null)
+                            threadPool.shutdown();
+                    });
                 }
 
                 private void addThreadPools(final Map<String, ExecutorService> services) {
@@ -139,7 +109,7 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
     public void close() {
         defaultThreadPool.shutdown();
         threadPools.write(services -> {
-            services.values().forEach(ExecutorService::shutdown);
+            services.values().forEach(ConfiguredThreadPool::shutdown);
             services.clear();
             return null;
         });

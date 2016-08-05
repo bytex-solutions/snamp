@@ -10,7 +10,7 @@ import static com.bytex.snamp.internal.Utils.interfaceStaticInitialize;
  * @since 2.0
  * @version 2.0
  */
-public interface ThreadPoolConfiguration extends EntityConfiguration, Function<String, ExecutorService> {
+public interface ThreadPoolConfiguration extends EntityConfiguration {
     /**
      * Default maximum number of threads to allow in the pool
      */
@@ -57,12 +57,4 @@ public interface ThreadPoolConfiguration extends EntityConfiguration, Function<S
     int getThreadPriority();
 
     void setThreadPriority(final int value);
-
-    /**
-     * Creates a new instance of {@link ExecutorService} using this configuration.
-     * @param threadGroup Name of threads in the thread pool.
-     * @return A new instance of the thread pool.
-     */
-    @Override
-    ExecutorService apply(final String threadGroup);
 }

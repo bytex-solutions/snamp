@@ -34,11 +34,6 @@ final class SerializableThreadPoolConfiguration extends AbstractEntityConfigurat
     }
 
     @Override
-    public ExecutorService apply(final String threadGroup) {
-        return ThreadPoolRepositoryImpl.createThreadPool(minPoolSize, maxPoolSize, keepAliveTime, queueSize, threadPriority, threadGroup);
-    }
-
-    @Override
     public void writeExternal(final ObjectOutput out) throws IOException {
         out.writeInt(minPoolSize);
         out.writeInt(maxPoolSize);
@@ -111,5 +106,24 @@ final class SerializableThreadPoolConfiguration extends AbstractEntityConfigurat
     public void setQueueSize(final int value){
         queueSize = value;
         markAsModified();
+    }
+
+    @Override
+    public int hashCode() {
+        return getParameters().hashCode() ^ (keepAliveTime.hashCode() << 1) ^ (minPoolSize << 2) ^ (maxPoolSize << 3) ^ (threadPriority << 4) ^ (queueSize << 5);
+    }
+
+    private boolean equals(final ThreadPoolConfiguration other){
+        return minPoolSize == other.getMinPoolSize() &&
+                maxPoolSize == other.getMaxPoolSize() &&
+                threadPriority == other.getThreadPriority() &&
+                keepAliveTime.equals(other.getKeepAliveTime()) &&
+                queueSize == other.getQueueSize() &&
+                getParameters().equals(other.getParameters());
+    }
+
+    @Override
+    public boolean equals(final Object other) {
+        return other instanceof ThreadPoolConfiguration && equals((ThreadPoolConfiguration) other);
     }
 }
