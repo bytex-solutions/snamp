@@ -1,10 +1,10 @@
 package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
-import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
 
 /**
  * Deletes configuration parameter of the adapter instance.
@@ -15,7 +15,7 @@ import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
 @Command(scope = SnampShellCommand.SCOPE,
     name = "delete-adapter-param",
     description = "Delete configuration parameter of the adapter instance")
-public final class DeleteAdapterParameterCommand extends ConfigurationCommand {
+public final class DeleteAdapterParameterCommand extends ConfigurationCommand<ResourceAdapterConfiguration> {
     @Argument(name = "instanceName", index = 0, required = true, description = "Name of the adapter instance to modify")
     @SpecialUse
     private String instanceName = "";
@@ -24,10 +24,14 @@ public final class DeleteAdapterParameterCommand extends ConfigurationCommand {
     @SpecialUse
     private String paramName = "";
 
+    public DeleteAdapterParameterCommand(){
+        super(ResourceAdapterConfiguration.class);
+    }
+
     @Override
-    boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
-        if(configuration.getEntities(ResourceAdapterConfiguration.class).containsKey(instanceName)){
-            configuration.getEntities(ResourceAdapterConfiguration.class).get(instanceName).getParameters().remove(paramName);
+    boolean doExecute(final EntityMap<? extends ResourceAdapterConfiguration> configuration, final StringBuilder output) {
+        if(configuration.containsKey(instanceName)){
+            configuration.get(instanceName).getParameters().remove(paramName);
             output.append("Instance modified successfully");
             return true;
         }

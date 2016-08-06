@@ -2,14 +2,14 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 
 import java.time.temporal.ChronoUnit;
 
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 
 /**
@@ -21,7 +21,7 @@ import static com.bytex.snamp.configuration.ManagedResourceConfiguration.Attribu
 @Command(scope = SnampShellCommand.SCOPE,
     description = "Configure attribute of the managed resource",
     name = "configure-attribute")
-public final class ConfigAttributeCommand extends ConfigurationCommand {
+public final class ConfigAttributeCommand extends ConfigurationCommand<ManagedResourceConfiguration> {
     private static final long INFINITE_TIMEOUT = -1;
 
     @SpecialUse
@@ -40,10 +40,14 @@ public final class ConfigAttributeCommand extends ConfigurationCommand {
     @Option(name = "-p", aliases = {"-param", "--parameter"}, multiValued = true, description = "Configuration parameters in the form of key=value")
     private String[] parameters = ArrayUtils.emptyArray(String[].class);
 
+    public ConfigAttributeCommand(){
+        super(ManagedResourceConfiguration.class);
+    }
+
     @Override
-    boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
-        if (configuration.getEntities(ManagedResourceConfiguration.class).containsKey(resourceName)) {
-            final ManagedResourceConfiguration resource = configuration.getEntities(ManagedResourceConfiguration.class).get(resourceName);
+    boolean doExecute(final EntityMap<? extends ManagedResourceConfiguration> configuration, final StringBuilder output) {
+        if (configuration.containsKey(resourceName)) {
+            final ManagedResourceConfiguration resource = configuration.get(resourceName);
             final AttributeConfiguration attribute = resource.getFeatures(AttributeConfiguration.class).getOrAdd(name);
             if (readWriteTimeout > INFINITE_TIMEOUT)
                 attribute.setReadWriteTimeout(readWriteTimeout, ChronoUnit.MILLIS);

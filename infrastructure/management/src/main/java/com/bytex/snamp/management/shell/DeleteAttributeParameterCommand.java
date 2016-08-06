@@ -1,12 +1,12 @@
 package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 
 /**
  * Deletes configuration parameter from attribute.
@@ -17,7 +17,7 @@ import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 @Command(scope = SnampShellCommand.SCOPE,
     name = "delete-attribute-param",
     description = "Delete configuration parameter from attribute")
-public final class DeleteAttributeParameterCommand extends ConfigurationCommand {
+public final class DeleteAttributeParameterCommand extends ConfigurationCommand<ManagedResourceConfiguration> {
     @SpecialUse
     @Argument(index = 0, name = "resourceName", required = true, description = "Name of resource to modify")
     private String resourceName = "";
@@ -30,11 +30,15 @@ public final class DeleteAttributeParameterCommand extends ConfigurationCommand 
     @Argument(index = 2, name = "parameter", required = true, description = "Name of parameter to remove")
     private String paramName = "";
 
+    public DeleteAttributeParameterCommand(){
+        super(ManagedResourceConfiguration.class);
+    }
+
     @Override
-    boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
-        if(configuration.getEntities(ManagedResourceConfiguration.class).containsKey(resourceName))
-            if(configuration.getEntities(ManagedResourceConfiguration.class).get(resourceName).getFeatures(AttributeConfiguration.class).containsKey(userDefinedName)){
-                configuration.getEntities(ManagedResourceConfiguration.class)
+    boolean doExecute(final EntityMap<? extends ManagedResourceConfiguration> configuration, final StringBuilder output) {
+        if(configuration.containsKey(resourceName))
+            if(configuration.get(resourceName).getFeatures(AttributeConfiguration.class).containsKey(userDefinedName)){
+                configuration
                         .get(resourceName)
                         .getFeatures(AttributeConfiguration.class)
                         .get(userDefinedName)

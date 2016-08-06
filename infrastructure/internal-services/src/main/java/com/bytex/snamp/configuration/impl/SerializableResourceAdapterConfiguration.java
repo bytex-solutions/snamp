@@ -1,7 +1,6 @@
 package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.AbstractAgentConfiguration;
 import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
 
 import java.io.IOException;
@@ -14,7 +13,7 @@ import java.io.ObjectOutput;
  * @since 1.2
  * @version 1.2
  */
-public final class SerializableResourceAdapterConfiguration extends AbstractEntityConfiguration implements ResourceAdapterConfiguration {
+final class SerializableResourceAdapterConfiguration extends AbstractEntityConfiguration implements ResourceAdapterConfiguration {
     private static final byte FORMAT_VERSION = 1;
     private static final long serialVersionUID = 7926704115151740217L;
     private String adapterName;
@@ -48,8 +47,8 @@ public final class SerializableResourceAdapterConfiguration extends AbstractEnti
         this.adapterName = adapterName != null ? adapterName : "";
     }
 
-    boolean equals(final ResourceAdapterConfiguration other){
-        return AbstractAgentConfiguration.equals(this, other);
+    private boolean equals(final ResourceAdapterConfiguration other){
+        return getParameters().equals(other.getParameters());
     }
 
     @Override

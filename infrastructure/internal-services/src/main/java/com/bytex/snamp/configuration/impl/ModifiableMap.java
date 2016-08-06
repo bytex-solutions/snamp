@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Map;
+import java.util.Objects;
 
 
 abstract class ModifiableMap<K, V> extends ForwardingMap<K, V> implements Externalizable, Modifiable, Resettable, SerializableMap<K, V> {
@@ -74,5 +75,24 @@ abstract class ModifiableMap<K, V> extends ForwardingMap<K, V> implements Extern
             if (key != null && value != null)
                 put(key, value);
         }
+    }
+
+    private boolean equals(final Map<?, ?> other) {
+        if (this == other) return true;
+        else if (size() == other.size()) {
+            for (final Map.Entry<K, ?> entry1 : entrySet())
+                if (!Objects.equals(entry1.getValue(), other.get(entry1.getKey()))) return false;
+            return true;
+        } else return false;
+    }
+
+    @Override
+    public final boolean equals(final Object other) {
+        return other instanceof Map<?, ?> && equals((Map<?, ?>)other);
+    }
+
+    @Override
+    public final int hashCode() {
+        return delegate().hashCode();
     }
 }

@@ -1,7 +1,6 @@
 package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.AbstractAgentConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 
@@ -130,7 +129,8 @@ final class SerializableManagedResourceConfiguration extends AbstractEntityConfi
         }
 
         private boolean equals(final OperationConfiguration other){
-            return AbstractAgentConfiguration.equals(this, other);
+            return getParameters().equals(other.getParameters()) &&
+                    Objects.equals(timeout, other.getInvocationTimeout());
         }
 
         @Override
@@ -190,7 +190,7 @@ final class SerializableManagedResourceConfiguration extends AbstractEntityConfi
         }
 
         private boolean equals(final EventConfiguration other) {
-            return AbstractAgentConfiguration.equals(this, other);
+            return getParameters().equals(other.getParameters());
         }
 
         @Override
@@ -281,7 +281,8 @@ final class SerializableManagedResourceConfiguration extends AbstractEntityConfi
         }
 
         private boolean equals(final AttributeConfiguration other){
-            return AbstractAgentConfiguration.equals(this, other);
+            return Objects.equals(readWriteTimeout, other.getReadWriteTimeout()) &&
+                    getParameters().equals(other.getParameters());
         }
 
         @Override
@@ -492,14 +493,19 @@ final class SerializableManagedResourceConfiguration extends AbstractEntityConfi
         return super.isModified() || attributes.isModified() || events.isModified();
     }
 
-    private boolean equalsImpl(final ManagedResourceConfiguration other){
-        return AbstractAgentConfiguration.equals(this, other);
+    private boolean equals(final ManagedResourceConfiguration other){
+        return Objects.equals(getConnectionString(),  other.getConnectionString()) &&
+                Objects.equals(getConnectionType(), other.getConnectionType()) &&
+                attributes.equals(other.getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class)) &&
+                events.equals(other.getFeatures(ManagedResourceConfiguration.EventConfiguration.class)) &&
+                operations.equals(other.getFeatures(ManagedResourceConfiguration.OperationConfiguration.class)) &&
+                getParameters().equals(other.getParameters());
     }
 
     @Override
     public boolean equals(final Object other) {
         return other instanceof ManagedResourceConfiguration &&
-                equalsImpl((ManagedResourceConfiguration)other);
+                equals((ManagedResourceConfiguration)other);
     }
 
     @Override

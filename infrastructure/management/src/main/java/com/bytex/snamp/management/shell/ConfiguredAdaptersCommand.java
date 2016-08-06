@@ -1,9 +1,9 @@
 package com.bytex.snamp.management.shell;
 
-import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
 import org.apache.karaf.shell.commands.Command;
 
-import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
 import static com.bytex.snamp.management.shell.Utils.appendln;
 
 /**
@@ -15,11 +15,14 @@ import static com.bytex.snamp.management.shell.Utils.appendln;
 @Command(scope = SnampShellCommand.SCOPE,
         name = "adapter-instances",
         description = "List of configured adapter instances")
-public final class ConfiguredAdaptersCommand extends ConfigurationCommand {
+public final class ConfiguredAdaptersCommand extends ConfigurationCommand<ResourceAdapterConfiguration> {
+    public ConfiguredAdaptersCommand(){
+        super(ResourceAdapterConfiguration.class);
+    }
 
     @Override
-    boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
-        configuration.getEntities(ResourceAdapterConfiguration.class).entrySet().forEach(adapter -> appendln(output, "Instance: %s. Adapter: %s", adapter.getKey(), adapter.getValue().getAdapterName()));
+    boolean doExecute(final EntityMap<? extends ResourceAdapterConfiguration> configuration, final StringBuilder output) {
+        configuration.entrySet().forEach(adapter -> appendln(output, "Instance: %s. Adapter: %s", adapter.getKey(), adapter.getValue().getAdapterName()));
         return false;
     }
 }

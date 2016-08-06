@@ -1,7 +1,7 @@
 package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
@@ -15,14 +15,18 @@ import org.apache.karaf.shell.commands.Command;
 @Command(scope = SnampShellCommand.SCOPE,
     name = "delete-adapter",
     description = "Delete adapter instance from configuration")
-public final class DeleteAdapterInstanceCommand extends ConfigurationCommand {
+public final class DeleteAdapterInstanceCommand extends ConfigurationCommand<ResourceAdapterConfiguration> {
     @Argument(index = 0, name = "instanceName", required = true, description = "The name of the adapter instance to remove")
     @SpecialUse
     private String instanceName = "";
 
+    public DeleteAdapterInstanceCommand(){
+        super(ResourceAdapterConfiguration.class);
+    }
+
     @Override
-    boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
-        if(configuration.getEntities(ResourceAdapterConfiguration.class).remove(instanceName) == null){
+    boolean doExecute(final EntityMap<? extends ResourceAdapterConfiguration> configuration, final StringBuilder output) {
+        if(configuration.remove(instanceName) == null){
             output.append("Instance doesn't exist");
             return false;
         }

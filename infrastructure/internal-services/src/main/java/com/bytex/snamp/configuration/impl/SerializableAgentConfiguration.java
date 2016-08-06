@@ -1,10 +1,7 @@
 package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.AbstractAgentConfiguration;
-import com.bytex.snamp.configuration.EntityConfiguration;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
-import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
+import com.bytex.snamp.configuration.*;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -144,26 +141,6 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
     }
 
     /**
-     * Obtain configuration of SNAMP entity or register new.
-     *
-     * @param entityType Type of entity. You can use {@link ManagedResourceConfiguration} or {@link ResourceAdapterConfiguration} as entities.
-     * @param entityID   Entity ID.
-     * @return An instance of existing entity or newly created entity. {@literal null}, if entity type is not supported by SNAMP configuration subsystem.
-     * @since 1.2
-     */
-    @Override
-    public <E extends EntityConfiguration> E getOrRegisterEntity(final Class<E> entityType, final String entityID) {
-        if (entityType.isAssignableFrom(SerializableManagedResourceConfiguration.class))
-            return entityType.cast(resources.getOrAdd(entityID));
-        else if (entityType.isAssignableFrom(SerializableResourceAdapterConfiguration.class))
-            return entityType.cast(adapters.getOrAdd(entityID));
-        else if(entityType.isAssignableFrom(SerializableThreadPoolConfiguration.class))
-            return entityType.cast(threadPools.getOrAdd(entityID));
-        else
-            return null;
-    }
-
-    /**
      * Creates a new instance of entity configuration.
      *
      * @param entityType Type of entity. Can be {@link ManagedResourceConfiguration},
@@ -196,5 +173,21 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
         else if (entityType.isAssignableFrom(SerializableThreadPoolConfiguration.class))
             return entityType.cast(new SerializableThreadPoolConfiguration());
         else return null;
+    }
+
+    private boolean equals(final AgentConfiguration other) {
+        return adapters.equals(other.getEntities(ResourceAdapterConfiguration.class)) &&
+                resources.equals(other.getEntities(ManagedResourceConfiguration.class)) &&
+                threadPools.equals(other.getEntities(ThreadPoolConfiguration.class));
+    }
+
+    @Override
+    public boolean equals(final Object other) {
+        return other instanceof AgentConfiguration && equals((AgentConfiguration)other);
+    }
+
+    @Override
+    public int hashCode() {
+        return adapters.hashCode() ^ (resources.hashCode() << 1) ^ (threadPools.hashCode() << 2);
     }
 }

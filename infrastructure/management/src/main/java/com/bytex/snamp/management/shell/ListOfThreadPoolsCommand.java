@@ -1,6 +1,7 @@
 package com.bytex.snamp.management.shell;
 
-import com.bytex.snamp.concurrent.ThreadPoolRepository;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.ThreadPoolConfiguration;
 import org.apache.karaf.shell.commands.Command;
 
 /**
@@ -12,7 +13,7 @@ import org.apache.karaf.shell.commands.Command;
 public final class ListOfThreadPoolsCommand extends AbstractThreadPoolCommand {
 
     private static void printThreadPoolConfig(final String name,
-                                              final ThreadPoolConfig config,
+                                              final ThreadPoolConfiguration config,
                                               final StringBuilder output) {
         output
                 .append(name).append(System.lineSeparator())
@@ -20,16 +21,16 @@ public final class ListOfThreadPoolsCommand extends AbstractThreadPoolCommand {
                 .append(String.format("MaxPoolSize: %s", config.getMaxPoolSize())).append(System.lineSeparator())
                 .append(String.format("KeepAliveTime: %s", config.getKeepAliveTime())).append(System.lineSeparator())
                 .append(String.format("Threads Priority: %s", config.getThreadPriority())).append(System.lineSeparator())
-                .append(String.format("Queue Size: %s", config.isInfiniteQueue() ? "UNBOUNDED" : config.getQueueSize())).append(System.lineSeparator());
+                .append(String.format("Queue Size: %s", config.getQueueSize() == ThreadPoolConfiguration.INFINITE_QUEUE_SIZE ? "UNBOUNDED" : config.getQueueSize())).append(System.lineSeparator());
     }
 
     @Override
-    void doExecute(final ThreadPoolRepository repository, final StringBuilder output) {
-        printThreadPoolConfig(ThreadPoolRepository.DEFAULT_POOL, repository.getConfiguration(ThreadPoolRepository.DEFAULT_POOL), output);
+    boolean doExecute(final EntityMap<? extends ThreadPoolConfiguration> configuration, final StringBuilder output) {
         output.append(System.lineSeparator());
-        for(final String name: repository) {
-            printThreadPoolConfig(name, repository.getConfiguration(name), output);
+        configuration.entrySet().forEach(entry -> {
+            printThreadPoolConfig(entry.getKey(), entry.getValue(), output);
             output.append(System.lineSeparator());
-        }
+        });
+        return false;
     }
 }

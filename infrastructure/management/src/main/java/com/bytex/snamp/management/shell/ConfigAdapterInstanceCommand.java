@@ -2,12 +2,12 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 
-import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
@@ -19,7 +19,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 @Command(scope = SnampShellCommand.SCOPE,
     name = "configure-adapter",
     description = "Configure new or existing adapter instance")
-public final class ConfigAdapterInstanceCommand extends ConfigurationCommand {
+public final class ConfigAdapterInstanceCommand extends ConfigurationCommand<ResourceAdapterConfiguration> {
     @Argument(name = "instanceName", index = 0, required = true, description = "Name of the adapter instance")
     @SpecialUse
     private String instanceName = "";
@@ -32,10 +32,14 @@ public final class ConfigAdapterInstanceCommand extends ConfigurationCommand {
     @SpecialUse
     private String[] parameters = ArrayUtils.emptyArray(String[].class);
 
+    public ConfigAdapterInstanceCommand(){
+        super(ResourceAdapterConfiguration.class);
+    }
+
     @Override
-    boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
+    boolean doExecute(final EntityMap<? extends ResourceAdapterConfiguration> configuration, final StringBuilder output) {
         if (isNullOrEmpty(instanceName)) return false;
-        final ResourceAdapterConfiguration adapter = configuration.getOrRegisterEntity(ResourceAdapterConfiguration.class, instanceName);
+        final ResourceAdapterConfiguration adapter = configuration.getOrAdd(instanceName);
         //setup system name
         if (!isNullOrEmpty(systemName))
             adapter.setAdapterName(systemName);

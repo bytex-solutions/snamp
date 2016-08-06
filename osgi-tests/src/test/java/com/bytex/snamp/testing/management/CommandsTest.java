@@ -1,7 +1,7 @@
 package com.bytex.snamp.testing.management;
 
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
-import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.core.PlatformVersion;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.OperatingSystem;
@@ -19,11 +19,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
-
-import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
 
 /**
  * Shell commands test.
@@ -68,11 +65,14 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
     public void threadPoolConfigTest() throws Exception{
         final Object result = runCommand("snamp:thread-pool-add -m 3 -M 5 -t 2000 tp1");
         assertTrue(result instanceof CharSequence);
+        Thread.sleep(1000); //adding thread pool is async operation
         final ServiceHolder<ThreadPoolRepository> threadPoolRepo = ServiceHolder.tryCreate(getTestBundleContext(), ThreadPoolRepository.class);
+        final ServiceHolder<ConfigurationManager> configManager = ServiceHolder.tryCreate(getTestBundleContext(), ConfigurationManager.class);
         assertNotNull(threadPoolRepo);
+        assertNotNull(configManager);
         try{
-            final ThreadPoolConfig config = threadPoolRepo.get().getConfiguration("tp1");
-            assertTrue(config.isInfiniteQueue());
+            final ThreadPoolConfiguration config = configManager.get().transformConfiguration(cfg -> cfg.getEntities(ThreadPoolConfiguration.class).get("tp1"));
+            assertEquals(ThreadPoolConfiguration.INFINITE_QUEUE_SIZE, config.getQueueSize());
             assertEquals(3, config.getMinPoolSize());
             assertEquals(5, config.getMaxPoolSize());
             assertEquals(2000, config.getKeepAliveTime().toMillis());
@@ -80,6 +80,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
             final Future<Integer> task = executor.submit(() -> 10);
             assertEquals(Integer.valueOf(10), task.get());
         }   finally {
+            configManager.release(getTestBundleContext());
             threadPoolRepo.release(getTestBundleContext());
         }
     }

@@ -13,6 +13,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -111,6 +112,14 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
         threadPools.write(services -> {
             services.values().forEach(ConfiguredThreadPool::shutdown);
             services.clear();
+            return null;
+        });
+    }
+
+    @Override
+    public void forEach(final Consumer<? super String> action) {
+        threadPools.read(pools -> {
+            pools.keySet().forEach(action);
             return null;
         });
     }

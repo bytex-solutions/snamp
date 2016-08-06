@@ -1,7 +1,6 @@
 package com.bytex.snamp.configuration;
 
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Represents a base class for custom agent configuration holders.
@@ -55,9 +54,7 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
      */
     public static void copy(final ManagedResourceConfiguration.AttributeConfiguration source, final ManagedResourceConfiguration.AttributeConfiguration dest){
         dest.setReadWriteTimeout(source.getReadWriteTimeout());
-        final Map<String, String> additionalElements = dest.getParameters();
-        additionalElements.clear();
-        additionalElements.putAll(source.getParameters());
+        dest.setParameters(source.getParameters());
     }
 
     /**
@@ -66,16 +63,12 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
      * @param dest The event to fill.
      */
     public static void copy(final ManagedResourceConfiguration.EventConfiguration source, final ManagedResourceConfiguration.EventConfiguration dest){
-        final Map<String, String> additionalElements = dest.getParameters();
-        additionalElements.clear();
-        additionalElements.putAll(source.getParameters());
+        dest.setParameters(source.getParameters());
     }
 
     public static void copy(final ManagedResourceConfiguration.OperationConfiguration source, final ManagedResourceConfiguration.OperationConfiguration dest){
         dest.setInvocationTimeout(source.getInvocationTimeout());
-        final Map<String, String> additionalElements = dest.getParameters();
-        additionalElements.clear();
-        additionalElements.putAll(source.getParameters());
+        dest.setParameters(source.getParameters());
     }
 
     private static void copyAttributes(final Map<String, ? extends ManagedResourceConfiguration.AttributeConfiguration> input,
@@ -115,13 +108,20 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         }
     }
 
+    public static void copy(final ThreadPoolConfiguration input, final ThreadPoolConfiguration output){
+        output.setParameters(input.getParameters());
+        output.setQueueSize(input.getQueueSize());
+        output.setKeepAliveTime(input.getKeepAliveTime());
+        output.setMaxPoolSize(input.getMaxPoolSize());
+        output.setMinPoolSize(input.getMinPoolSize());
+        output.setThreadPriority(input.getThreadPriority());
+    }
+
     public static void copy(final ManagedResourceConfiguration input, final ManagedResourceConfiguration output){
         output.setConnectionString(input.getConnectionString());
         output.setConnectionType(input.getConnectionType());
         //import additional elements
-        final Map<String, String> additionalElements = output.getParameters();
-        additionalElements.clear();
-        additionalElements.putAll(input.getParameters());
+        output.setParameters(input.getParameters());
         //import managementAttributes
         copyAttributes(input.getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class),
                 output.getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class)
@@ -136,9 +136,7 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
 
     public static void copy(final ResourceAdapterConfiguration input, final ResourceAdapterConfiguration output){
         output.setAdapterName(input.getAdapterName());
-        final Map<String, String> additionalElements = output.getParameters();
-        additionalElements.clear();
-        additionalElements.putAll(input.getParameters());
+        output.setParameters(input.getParameters());
     }
 
     private static <T extends EntityConfiguration> void copy(final Map<String, ? extends T> input,
@@ -177,74 +175,9 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         copy(input.getEntities(ManagedResourceConfiguration.class),
                 output.getEntities(ManagedResourceConfiguration.class),
                 (ConfigurationEntityCopier<ManagedResourceConfiguration>) AbstractAgentConfiguration::copy);
-    }
-
-    /**
-     * Determines whether the attribute descriptors are structurally equal.
-     * @param attr1 The first attribute descriptor to compare.
-     * @param attr2 The second attribute descriptor to compare.
-     * @return {@literal true}, if both descriptors are structurally equal; otherwise, {@literal false}.
-     */
-    public static boolean equals(final ManagedResourceConfiguration.AttributeConfiguration attr1, final ManagedResourceConfiguration.AttributeConfiguration attr2){
-        return attr1 == attr2 ||
-                !(attr1 == null || attr2 == null) &&
-                        Objects.equals(attr1.getReadWriteTimeout(), attr2.getReadWriteTimeout()) &&
-                        equals(attr1.getParameters(), attr2.getParameters());
-    }
-
-    public static boolean equals(final ManagedResourceConfiguration.EventConfiguration event1, final ManagedResourceConfiguration.EventConfiguration event2){
-        return event1 == event2 ||
-                !(event1 == null || event2 == null) &&
-                        equals(event1.getParameters(), event2.getParameters());
-    }
-
-    public static boolean equals(final ManagedResourceConfiguration.OperationConfiguration op1, final ManagedResourceConfiguration.OperationConfiguration op2){
-        return op1 == op2 ||
-                !(op1 == null || op2 == null) &&
-                        Objects.equals(op1.getInvocationTimeout(), op2.getInvocationTimeout()) &&
-                        equals(op1.getParameters(), op2.getParameters());
-    }
-
-    private static boolean equals(final Map<String, ?> obj1, final Map<String, ?> obj2){
-        if(obj1 == obj2) return true;
-        else if(obj1 == null || obj2 == null) return false;
-        else if(obj1.size() == obj2.size()){
-            for(final Map.Entry<String, ?> entry1: obj1.entrySet())
-                if(!Objects.equals(entry1.getValue(), obj2.get(entry1.getKey()))) return false;
-            return true;
-        }
-        else return false;
-    }
-
-    /**
-     * Determines whether the two configurations are structurally equal.
-     * @param obj1 The first configuration to compare.
-     * @param obj2 The second configuration to compare.
-     * @return {@literal true}, if configurations are structurally equal; otherwise, {@literal false}.
-     */
-    public static boolean equals(final AgentConfiguration obj1, final AgentConfiguration obj2){
-        return obj1 == obj2 ||
-                !(obj1 == null || obj2 == null) &&
-                        equals(obj1.getEntities(ResourceAdapterConfiguration.class), obj2.getEntities(ResourceAdapterConfiguration.class)) &&
-                        equals(obj1.getEntities(ManagedResourceConfiguration.class), obj2.getEntities(ManagedResourceConfiguration.class));
-    }
-
-    public static boolean equals(final ResourceAdapterConfiguration adapter1, final ResourceAdapterConfiguration adapter2){
-        if(adapter1 == null) return adapter2 == null;
-        else
-            return adapter2 != null &&
-                    Objects.equals(adapter1.getAdapterName(), adapter2.getAdapterName()) &&
-                    equals(adapter1.getParameters(), adapter2.getParameters());
-    }
-
-    public static boolean equals(final ManagedResourceConfiguration resource1, final ManagedResourceConfiguration resource2){
-        if(resource1 == null) return resource2 == null;
-        else return resource2 != null &&
-                Objects.equals(resource1.getConnectionString(),  resource2.getConnectionString()) &&
-                Objects.equals(resource1.getConnectionType(), resource2.getConnectionType()) &&
-                Objects.equals(resource1.getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class), resource2.getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class)) &&
-                Objects.equals(resource1.getFeatures(ManagedResourceConfiguration.EventConfiguration.class), resource2.getFeatures(ManagedResourceConfiguration.EventConfiguration.class)) &&
-                Objects.equals(resource1.getFeatures(ManagedResourceConfiguration.OperationConfiguration.class), resource2.getFeatures(ManagedResourceConfiguration.OperationConfiguration.class)) &&
-                equals(resource1.getParameters(), resource2.getParameters());
+        //import thread pools
+        copy(input.getEntities(ThreadPoolConfiguration.class),
+                output.getEntities(ThreadPoolConfiguration.class),
+                (ConfigurationEntityCopier<ThreadPoolConfiguration>) AbstractAgentConfiguration::copy);
     }
 }
