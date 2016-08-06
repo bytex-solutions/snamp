@@ -55,9 +55,7 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
      */
     public static void copy(final ManagedResourceConfiguration.AttributeConfiguration source, final ManagedResourceConfiguration.AttributeConfiguration dest){
         dest.setReadWriteTimeout(source.getReadWriteTimeout());
-        final Map<String, String> additionalElements = dest.getParameters();
-        additionalElements.clear();
-        additionalElements.putAll(source.getParameters());
+        dest.setParameters(source.getParameters());
     }
 
     /**
@@ -66,16 +64,12 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
      * @param dest The event to fill.
      */
     public static void copy(final ManagedResourceConfiguration.EventConfiguration source, final ManagedResourceConfiguration.EventConfiguration dest){
-        final Map<String, String> additionalElements = dest.getParameters();
-        additionalElements.clear();
-        additionalElements.putAll(source.getParameters());
+        dest.setParameters(source.getParameters());
     }
 
     public static void copy(final ManagedResourceConfiguration.OperationConfiguration source, final ManagedResourceConfiguration.OperationConfiguration dest){
         dest.setInvocationTimeout(source.getInvocationTimeout());
-        final Map<String, String> additionalElements = dest.getParameters();
-        additionalElements.clear();
-        additionalElements.putAll(source.getParameters());
+        dest.setParameters(source.getParameters());
     }
 
     private static void copyAttributes(final Map<String, ? extends ManagedResourceConfiguration.AttributeConfiguration> input,
