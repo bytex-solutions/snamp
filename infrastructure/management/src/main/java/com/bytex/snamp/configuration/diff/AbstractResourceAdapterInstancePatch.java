@@ -20,12 +20,12 @@ abstract class AbstractResourceAdapterInstancePatch implements ResourceAdapterIn
     }
 
     @Override
-    public final ResourceAdapterConfiguration getAdapter() {
+    public final ResourceAdapterConfiguration getEntity() {
         return adapterConfig;
     }
 
     @Override
-    public final String getAdapterInstanceName() {
+    public final String getEntityID() {
         return adapterInstance;
     }
 

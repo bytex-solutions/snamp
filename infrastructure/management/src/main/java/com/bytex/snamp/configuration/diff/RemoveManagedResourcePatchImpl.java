@@ -16,6 +16,6 @@ final class RemoveManagedResourcePatchImpl extends AbstractManagedResourcePatch 
 
     @Override
     protected void applyTo(final EntityMap<? extends ManagedResourceConfiguration> baseline) {
-        baseline.remove(getResourceName());
+        baseline.remove(getEntityID());
     }
 }

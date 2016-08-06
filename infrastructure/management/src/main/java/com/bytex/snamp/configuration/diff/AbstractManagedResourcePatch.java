@@ -20,12 +20,12 @@ abstract class AbstractManagedResourcePatch implements ManagedResourcePatch {
     }
 
     @Override
-    public final String getResourceName() {
+    public final String getEntityID() {
         return resourceName;
     }
 
     @Override
-    public final ManagedResourceConfiguration getResource() {
+    public final ManagedResourceConfiguration getEntity() {
         return resourceConfig;
     }
 

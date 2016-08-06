@@ -16,6 +16,6 @@ final class RemoveResourceAdapterPatchImpl extends AbstractResourceAdapterInstan
 
     @Override
     protected void applyTo(final EntityMap<? extends ResourceAdapterConfiguration> adapters) {
-        adapters.remove(getAdapterInstanceName());
+        adapters.remove(getEntityID());
     }
 }

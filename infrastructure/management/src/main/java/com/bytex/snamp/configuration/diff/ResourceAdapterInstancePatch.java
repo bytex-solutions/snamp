@@ -7,7 +7,5 @@ import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
  * @version 1.2
  * @since 1.0
  */
-public interface ResourceAdapterInstancePatch extends ConfigurationPatch {
-    ResourceAdapterConfiguration getAdapter();
-    String getAdapterInstanceName();
+public interface ResourceAdapterInstancePatch extends EntityConfigurationPatch<ResourceAdapterConfiguration> {
 }

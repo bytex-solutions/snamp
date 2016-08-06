@@ -1,12 +1,12 @@
 package com.bytex.snamp.configuration.diff;
 
-import com.bytex.snamp.configuration.*;
+import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
+import com.bytex.snamp.configuration.ThreadPoolConfiguration;
 
-import java.util.Collection;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -61,11 +61,20 @@ public final class ConfigurationDiffEngine {
     }
 
     private static Stream<ConfigurationPatch> computeThreadPoolGap(final Map<String, ? extends ThreadPoolConfiguration> target,
-                                                                   final Map<String, ? extends ThreadPoolConfiguration> baseline){
+                                                                   final Map<String, ? extends ThreadPoolConfiguration> baseline) {
         Stream<ConfigurationPatch> result = baseline.entrySet()
                 .stream()
                 .filter(tp -> !target.containsKey(tp.getKey()))
-                .map()
+                .map(threadPool -> new RemoveThreadPoolPatchImpl(threadPool.getKey(), threadPool.getValue()));
+
+        result = Stream.concat(result, target.entrySet().stream().map(threadPool -> {
+                    if (baseline.containsKey(threadPool.getKey())) {
+                        final ThreadPoolConfiguration targetConfig = threadPool.getValue();
+                        return targetConfig.equals(baseline.get(threadPool.getKey())) ? null : new UpdateThreadPoolPatchImpl(threadPool.getKey(), targetConfig);
+                    } else return new AddThreadPoolPatchImpl(threadPool.getKey(), threadPool.getValue());
+                }).filter(Objects::nonNull)
+        );
+        return result;
     }
 
     /**

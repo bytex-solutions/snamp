@@ -17,7 +17,7 @@ final class AddResourceAdapterPatchIml extends AbstractResourceAdapterInstancePa
 
     @Override
     protected void applyTo(final EntityMap<? extends ResourceAdapterConfiguration> adapters) {
-        AbstractAgentConfiguration.copy(getAdapter(),
-                adapters.getOrAdd(getAdapterInstanceName()));
+        AbstractAgentConfiguration.copy(getEntity(),
+                adapters.getOrAdd(getEntityID()));
     }
 }

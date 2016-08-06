@@ -17,7 +17,6 @@ final class AddManagedResourcePatchImpl extends AbstractManagedResourcePatch imp
 
     @Override
     protected void applyTo(final EntityMap<? extends ManagedResourceConfiguration> baseline) {
-        AbstractAgentConfiguration.copy(getResource(),
-                baseline.getOrAdd(getResourceName()));
+        AbstractAgentConfiguration.copy(getEntity(), baseline.getOrAdd(getEntityID()));
     }
 }

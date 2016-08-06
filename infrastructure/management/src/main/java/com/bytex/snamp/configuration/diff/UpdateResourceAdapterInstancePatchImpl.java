@@ -17,9 +17,7 @@ final class UpdateResourceAdapterInstancePatchImpl extends AbstractResourceAdapt
 
     @Override
     protected void applyTo(final EntityMap<? extends ResourceAdapterConfiguration> adapters) {
-        ResourceAdapterConfiguration baselineConfig = adapters.get(getAdapterInstanceName());
-        if (baselineConfig == null)
-            baselineConfig = adapters.getOrAdd(getAdapterInstanceName());
-        AbstractAgentConfiguration.copy(getAdapter(), baselineConfig);
+        ResourceAdapterConfiguration baselineConfig = adapters.getOrAdd(getEntityID());
+        AbstractAgentConfiguration.copy(getEntity(), baselineConfig);
     }
 }
