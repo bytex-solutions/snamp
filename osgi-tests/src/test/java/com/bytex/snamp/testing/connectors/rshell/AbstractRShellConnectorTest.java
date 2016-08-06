@@ -1,15 +1,11 @@
 package com.bytex.snamp.testing.connectors.rshell;
 
-import com.google.common.collect.ImmutableMap;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connectors.AbstractResourceConnectorTest;
+import com.google.common.collect.ImmutableMap;
 import org.apache.sshd.SshServer;
-import org.apache.sshd.server.Command;
-import org.apache.sshd.server.CommandFactory;
-import org.apache.sshd.server.PasswordAuthenticator;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
-import org.apache.sshd.server.session.ServerSession;
 import org.apache.sshd.server.shell.ProcessShellFactory;
 import org.osgi.framework.BundleContext;
 
@@ -17,7 +13,7 @@ import java.util.Objects;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @SnampDependencies(SnampFeature.RSHELL_CONNECTOR)
@@ -65,19 +61,11 @@ public abstract class AbstractRShellConnectorTest extends AbstractResourceConnec
         final SshServer server = this.server = SshServer.setUpDefaultServer();
         server.setPort(port);
         server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(certificateFile));
-        server.setPasswordAuthenticator(new PasswordAuthenticator() {
-            @Override
-            public boolean authenticate(final String username, final String pwd, final ServerSession session) {
-                return Objects.equals(username, sshUserName) &&
-                        Objects.equals(password, pwd);
-            }
-        });
-        server.setCommandFactory(new CommandFactory() {
-            @Override
-            public Command createCommand(final String command) {
-                final ProcessShellFactory factory = new ProcessShellFactory(command.split(" "));
-                return factory.create();
-            }
+        server.setPasswordAuthenticator((username, pwd, session) -> Objects.equals(username, sshUserName) &&
+                Objects.equals(password, pwd));
+        server.setCommandFactory(command -> {
+            final ProcessShellFactory factory = new ProcessShellFactory(command.split(" "));
+            return factory.create();
         });
         server.start();
     }

@@ -2,8 +2,8 @@ package com.bytex.snamp.concurrent;
 
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.ThreadSafe;
-import com.bytex.snamp.TimeSpan;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
@@ -13,14 +13,14 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * Represents lightweight timer that is used to repeat some action in time.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public abstract class Repeater implements AutoCloseable, Runnable {
     /**
      * Represents state of this timer.
      * @author Roman Sakno
-     * @version 1.0
+     * @version 1.2
      * @since 1.0
      */
     public enum RepeaterState {
@@ -53,7 +53,7 @@ public abstract class Repeater implements AutoCloseable, Runnable {
     private static final AtomicLong THREAD_COUNTER = new AtomicLong(0L);
     private RepeaterState state;
     private Throwable exception;
-    private final TimeSpan period;
+    private final Duration period;
     private RepeaterThread repeatThread;
     private final Lock monitor;
 
@@ -62,7 +62,7 @@ public abstract class Repeater implements AutoCloseable, Runnable {
      * @param period Time between successive task executions. Cannot be {@literal null}.
      * @throws java.lang.IllegalArgumentException period is {@literal null}.
      */
-    protected Repeater(final TimeSpan period){
+    protected Repeater(final Duration period){
         if(period == null) throw new IllegalArgumentException("period is null.");
         this.state = RepeaterState.STOPPED;
         this.period = period;
@@ -76,7 +76,7 @@ public abstract class Repeater implements AutoCloseable, Runnable {
      * @param period Time between successive task executions, in millis.
      */
     protected Repeater(final long period){
-        this(TimeSpan.ofMillis(period));
+        this(Duration.ofMillis(period));
     }
 
     /**
@@ -99,7 +99,7 @@ public abstract class Repeater implements AutoCloseable, Runnable {
      * Returns time between successive task executions.
      * @return Time between successive task executions.
      */
-    public final TimeSpan getPeriod(){
+    public final Duration getPeriod(){
         return period;
     }
 
@@ -193,9 +193,9 @@ public abstract class Repeater implements AutoCloseable, Runnable {
         private RepeaterThreadImpl(final RepeaterWorker worker,
                                    final String threadName,
                                    final int priority,
-                                   final TimeSpan period){
+                                   final Duration period){
             super(worker, threadName);
-            this.period = period.convert(TimeUnit.MILLISECONDS).duration;
+            this.period = period.toMillis();
             setDaemon(true);
             setPriority(priority);
             setUncaughtExceptionHandler(worker);
@@ -273,15 +273,15 @@ public abstract class Repeater implements AutoCloseable, Runnable {
     }
 
     @ThreadSafe(false)
-    private boolean tryStop(final long timeout) throws TimeoutException, InterruptedException{
+    private boolean tryStop(final long timeoutMillis) throws TimeoutException, InterruptedException{
         switch (state) {
             case STOPPING:
-                join(repeatThread, timeout);
+                join(repeatThread, timeoutMillis);
                 break;
             case STARTED:
                 repeatThread.interrupt();
                 state = RepeaterState.STOPPING;
-                join(repeatThread, timeout);
+                join(repeatThread, timeoutMillis);
                 break;
             default:
                 return false;
@@ -313,7 +313,7 @@ public abstract class Repeater implements AutoCloseable, Runnable {
      * @throws TimeoutException The last executed action is not completed in the specified time.
      * @throws InterruptedException The blocked thread is interrupted.
      */
-    public final void stop(final TimeSpan timeout) throws TimeoutException, InterruptedException {
+    public final void stop(final Duration timeout) throws TimeoutException, InterruptedException {
         stop(timeout.toMillis());
     }
 
@@ -344,7 +344,7 @@ public abstract class Repeater implements AutoCloseable, Runnable {
      * @throws TimeoutException The last executed action is not completed in the specified time.
      * @throws InterruptedException The blocked thread is interrupted.
      */
-    public final void close(final TimeSpan timeout) throws TimeoutException, InterruptedException{
+    public final void close(final Duration timeout) throws TimeoutException, InterruptedException{
         close(timeout.toMillis());
     }
 

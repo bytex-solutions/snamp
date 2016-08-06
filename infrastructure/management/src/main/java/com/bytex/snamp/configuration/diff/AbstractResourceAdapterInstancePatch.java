@@ -1,12 +1,12 @@
 package com.bytex.snamp.configuration.diff;
 
-import com.bytex.snamp.configuration.AbstractAgentConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration;
-import com.bytex.snamp.configuration.AgentConfiguration.*;
+import com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
+import com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 abstract class AbstractResourceAdapterInstancePatch implements ResourceAdapterInstancePatch {
@@ -38,6 +38,6 @@ abstract class AbstractResourceAdapterInstancePatch implements ResourceAdapterIn
      */
     @Override
     public final void applyTo(final AgentConfiguration baseline) {
-        applyTo(baseline.getResourceAdapters());
+        applyTo(baseline.getEntities(ResourceAdapterConfiguration.class));
     }
 }

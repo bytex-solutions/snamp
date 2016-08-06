@@ -1,6 +1,6 @@
 package com.bytex.snamp.connectors.mda.impl.thrift;
 
-import com.bytex.snamp.Consumer;
+import com.bytex.snamp.Acceptor;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TMessage;
 import org.apache.thrift.protocol.TMessageType;
@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 /**
  * Represents Thrift message type.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 enum MessageType {
@@ -65,7 +65,7 @@ enum MessageType {
      * @return Message type.
      * @throws E Unable to set entity name.
      */
-    static <E extends Throwable> MessageType get(final TMessage message, final Consumer<String, E> entityName) throws E{
+    static <E extends Throwable> MessageType get(final TMessage message, final Acceptor<String, E> entityName) throws E{
         if (message.name.startsWith(GETTER_MESSAGE)) {
             entityName.accept(GETTER_PREFIX.matcher(message.name).replaceFirst(""));
             return GET_ATTRIBUTE;

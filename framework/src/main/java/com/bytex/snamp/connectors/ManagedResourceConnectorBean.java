@@ -2,8 +2,8 @@ package com.bytex.snamp.connectors;
 
 import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.Descriptive;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.configuration.ConfigParameters;
+import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.connectors.attributes.*;
 import com.bytex.snamp.connectors.discovery.DiscoveryResultBuilder;
 import com.bytex.snamp.connectors.discovery.DiscoveryService;
@@ -14,13 +14,11 @@ import com.bytex.snamp.connectors.operations.OperationDescriptor;
 import com.bytex.snamp.connectors.operations.OperationSupport;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.core.LongCounter;
-import com.bytex.snamp.internal.Utils;
+import static com.bytex.snamp.internal.Utils.*;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 import com.bytex.snamp.jmx.WellKnownType;
-import com.google.common.base.Predicate;
-import com.google.common.base.Strings;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.osgi.framework.BundleContext;
 
@@ -34,11 +32,15 @@ import java.lang.invoke.MethodHandles;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.lang.reflect.UndeclaredThrowableException;
+import java.time.Duration;
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.bytex.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.*;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
+
 
 /**
  * Represents SNAMP in-process management connector that exposes
@@ -73,7 +75,7 @@ import static com.bytex.snamp.configuration.SerializableAgentConfiguration.Seria
  *     }</pre>
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  */
 public abstract class ManagedResourceConnectorBean extends AbstractManagedResourceConnector
         implements NotificationSupport, AttributeSupport, OperationSupport {
@@ -83,7 +85,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * @param <T> Well-known type of the user data to be associated with each notification.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     protected interface ManagementNotificationType<T> extends Descriptive{
         /**
@@ -109,7 +111,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
 
         @Override
         public String getCategory() {
-            return null;
+            return "";
         }
 
         @Override
@@ -135,7 +137,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * @param <T> JMX-compliant type.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     protected interface ManagementAttributeMarshaller<T> extends OpenTypeProvider<T>{
         /**
@@ -184,7 +186,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * Marks getter or setter as a management attribute.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.METHOD)
@@ -309,7 +311,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                     description = name = Integer.toString(i);
                 else {
                     name = metadata.name();
-                    description = Strings.isNullOrEmpty(metadata.description()) ?
+                    description = isNullOrEmpty(metadata.description()) ?
                             Integer.toString(i) :
                             metadata.description();
                 }
@@ -355,19 +357,27 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             throw new MBeanException(new IllegalArgumentException(String.format("Operation '%s' doesn't exist", descriptor.getName(operationName))));
         }
 
+        private ClassLoader getConnectorClassLoader(){
+            return connectorRef.get().getClass().getClassLoader();
+        }
+
         @Override
         public Collection<JavaBeanOperationInfo> expand() {
             final List<JavaBeanOperationInfo> result = new LinkedList<>();
-            for(final MethodDescriptor method: operations)
-                if(method.getMethod().isAnnotationPresent(ManagementOperation.class)){
-                    final SerializableOperationConfiguration config = new SerializableOperationConfiguration();
-                    config.setAlternativeName(method.getName());
-                    config.setAutomaticallyAdded(true);
-                    final JavaBeanOperationInfo operation = enableOperation(method.getName(),
-                            OperationConfiguration.TIMEOUT_FOR_SMART_MODE,
-                            new ConfigParameters(config));
-                    if(operation != null) result.add(operation);
-                }
+            operations.stream()
+                    .filter(method -> method.getMethod().isAnnotationPresent(ManagementOperation.class))
+                    .forEach(method -> {
+                        final OperationConfiguration config =
+                                ConfigurationManager.createEntityConfiguration(getConnectorClassLoader(), OperationConfiguration.class);
+                        if(config != null) {
+                            config.setAlternativeName(method.getName());
+                            config.setAutomaticallyAdded(true);
+                            final JavaBeanOperationInfo operation = enableOperation(method.getName(),
+                                    OperationConfiguration.TIMEOUT_FOR_SMART_MODE,
+                                    new ConfigParameters(config));
+                            if (operation != null) result.add(operation);
+                        }
+            });
             return result;
         }
 
@@ -397,12 +407,12 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * This class cannot be inherited or instantiated directly in your code.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     private static class JavaBeanAttributeInfo extends CustomAttributeInfo implements AttributeDescriptorRead{
         private static final long serialVersionUID = -5047097712279607039L;
-        private final MethodHandle getter;
-        private final MethodHandle setter;
+        private final Supplier<?> getter;
+        private final Consumer setter;
 
         /**
          * Represents attribute formatter.
@@ -432,43 +442,25 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                     throw new ReflectionException(e);
                 }
             else formatter = new DefaultManagementAttributeMarshaller();
-            final MethodHandles.Lookup lookup = MethodHandles.publicLookup();
+            final MethodHandles.Lookup lookup = MethodHandles.lookup();
             try{
-                this.setter = setter != null ? lookup.unreflect(setter).bindTo(owner): null;
-                this.getter = getter != null ? lookup.unreflect(getter).bindTo(owner): null;
-            } catch (final IllegalAccessException e) {
+                this.setter = setter != null ? reflectSetter(lookup, owner, setter): null;
+                this.getter = getter != null ? reflectGetter(lookup, owner, getter): null;
+            } catch (final ReflectiveOperationException e) {
                 throw new ReflectionException(e);
             }
         }
 
         final Object getValue() throws ReflectionException {
             if (getter != null)
-                try {
-                    return formatter.toJmxValue(getter.invoke(), this);
-                } catch (final Exception e) {
-                    throw new ReflectionException(e);
-                } catch (final Error e) {
-                    throw e;
-                } catch (final Throwable e) {
-                    throw new ReflectionException(new UndeclaredThrowableException(e));
-                }
+                return formatter.toJmxValue(getter.get(), this);
             else throw new ReflectionException(new UnsupportedOperationException("Attribute is write-only"));
         }
 
         @SuppressWarnings("unchecked")
         final void setValue(final Object value) throws ReflectionException, InvalidAttributeValueException {
             if (setter != null)
-                try {
-                    setter.invoke(formatter.fromJmxValue(value, this));
-                } catch (final IllegalArgumentException e) {
-                    throw new InvalidAttributeValueException(e.getMessage());
-                } catch (final Exception e) {
-                    throw new ReflectionException(e);
-                } catch (final Error e) {
-                    throw e;
-                } catch (final Throwable e) {
-                    throw new ReflectionException(new UndeclaredThrowableException(e));
-                }
+                setter.accept(formatter.fromJmxValue(value, this));
             else throw new ReflectionException(new UnsupportedOperationException("Attribute is read-only"));
         }
 
@@ -619,18 +611,26 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             throw JMExceptionUtils.attributeNotFound(descriptor.getName(attributeName));
         }
 
+        private ClassLoader getConnectorClassLoader(){
+            return connectorRef.get().getClass().getClassLoader();
+        }
+
         @Override
         public Collection<JavaBeanAttributeInfo> expand() {
             final List<JavaBeanAttributeInfo> result = new LinkedList<>();
-            for (final PropertyDescriptor property : properties)
-                if (!isReservedProperty(property)) {
-                    final SerializableAttributeConfiguration config = new SerializableAttributeConfiguration();
-                    config.setAlternativeName(property.getName());
-                    config.setAutomaticallyAdded(true);
-                    final JavaBeanAttributeInfo attr =
-                            addAttribute(property.getName(), AttributeConfiguration.TIMEOUT_FOR_SMART_MODE, new ConfigParameters(config));
-                    if (attr != null) result.add(attr);
-                }
+            properties.stream()
+                    .filter(property -> !isReservedProperty(property))
+                    .forEach(property -> {
+                        final AttributeConfiguration config =
+                                ConfigurationManager.createEntityConfiguration(getConnectorClassLoader(), AttributeConfiguration.class);
+                        if(config != null) {
+                            config.setAlternativeName(property.getName());
+                            config.setAutomaticallyAdded(true);
+                            final JavaBeanAttributeInfo attr =
+                                    addAttribute(property.getName(), AttributeConfiguration.TIMEOUT_FOR_SMART_MODE, new ConfigParameters(config));
+                            if (attr != null) result.add(attr);
+                        }
+            });
             return result;
         }
 
@@ -697,12 +697,10 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         protected CustomNotificationInfo enableNotifications(final String category,
                                                              final NotificationDescriptor metadata) throws IllegalArgumentException {
             //find the suitable notification type
-            final ManagementNotificationType<?> type = Iterables.find(notifTypes, new Predicate<ManagementNotificationType<?>>() {
-                @Override
-                public boolean apply(final ManagementNotificationType<?> type) {
-                    return Objects.equals(type.getCategory(), metadata.getName(category));
-                }
-            });
+            final ManagementNotificationType<?> type = notifTypes.stream()
+                    .filter(type1 -> Objects.equals(type1.getCategory(), metadata.getName(category)))
+                    .findFirst()
+                    .orElseGet(() -> null);
             if (type != null) {
                 String description = type.getDescription(Locale.getDefault());
                 if (description == null || description.isEmpty()) {
@@ -730,7 +728,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * supplied through reflection of the bean.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     public static abstract class BeanDiscoveryService extends AbstractAggregator implements DiscoveryService{
         private final Collection<? extends ManagementNotificationType<?>> notifications;
@@ -742,6 +740,10 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             this.notifications = Objects.requireNonNull(notifications);
         }
 
+        private ClassLoader getConnectorClassLoader(){
+            return beanMetadata.getBeanDescriptor().getBeanClass().getClassLoader();
+        }
+
         protected BeanDiscoveryService(final Class<? extends ManagedResourceConnectorBean> connectorType) throws IntrospectionException {
             this(connectorType, EnumSet.noneOf(EmptyManagementNotificationType.class));
         }
@@ -751,23 +753,27 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             this(getBeanInfo(connectorType), notifications);
         }
 
-        private static Collection<AttributeConfiguration> discoverAttributes(final PropertyDescriptor[] properties) {
+        private Collection<AttributeConfiguration> discoverAttributes(final PropertyDescriptor[] properties) {
             final Collection<AttributeConfiguration> result = Lists.newArrayListWithExpectedSize(properties.length);
             for (final PropertyDescriptor descriptor : properties)
                 if (!isReservedProperty(descriptor)) {
-                    final SerializableAttributeConfiguration attribute = new SerializableAttributeConfiguration();
-                    attribute.setAlternativeName(descriptor.getName());
-                    result.add(attribute);
+                    final AttributeConfiguration attribute = ConfigurationManager.createEntityConfiguration(getConnectorClassLoader(), AttributeConfiguration.class);
+                    if(attribute != null) {
+                        attribute.setAlternativeName(descriptor.getName());
+                        result.add(attribute);
+                    }
                 }
             return result;
         }
 
-        private static Collection<EventConfiguration> discoverNotifications(final Collection<? extends ManagementNotificationType<?>> notifications){
+        private Collection<EventConfiguration> discoverNotifications(final Collection<? extends ManagementNotificationType<?>> notifications){
             final Collection<EventConfiguration> result = Lists.newArrayListWithExpectedSize(notifications.size());
             for(final ManagementNotificationType<?> notifType: notifications) {
-                final SerializableEventConfiguration event = new SerializableEventConfiguration();
-                event.setAlternativeName(notifType.getCategory());
-                result.add(event);
+                final EventConfiguration event = ConfigurationManager.createEntityConfiguration(getConnectorClassLoader(), EventConfiguration.class);
+                if(event != null) {
+                    event.setAlternativeName(notifType.getCategory());
+                    result.add(event);
+                }
             }
             return result;
         }
@@ -790,17 +796,16 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                                         final Map<String, String> connectionOptions,
                                         final Class<? extends FeatureConfiguration>... entityTypes) {
             final DiscoveryResultBuilder result = new DiscoveryResultBuilder();
-            for(final Class<? extends FeatureConfiguration> type: entityTypes)
-                result.importFeatures(this, connectionString, connectionOptions, type);
+            Arrays.stream(entityTypes).forEach(type -> result.importFeatures(this, connectionString, connectionOptions, type));
             return result.get();
         }
     }
 
-    @Aggregation
+    @Aggregation(cached = true)
     private final JavaBeanAttributeRepository attributes;
-    @Aggregation
+    @Aggregation(cached = true)
     private final JavaBeanNotificationRepository notifications;
-    @Aggregation
+    @Aggregation(cached = true)
     private final JavaBeanOperationRepository operations;
 
     /**
@@ -828,7 +833,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                 getLogger());
         notifications = new JavaBeanNotificationRepository(resourceName,
                 notifTypes,
-                Utils.getBundleContextOfObject(this),
+                getBundleContextOfObject(this),
                 getLogger());
         operations = new<ManagedResourceConnectorBean> JavaBeanOperationRepository(resourceName,
                 this,
@@ -952,14 +957,14 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * @return The description of the attribute.
      */
     public final MBeanAttributeInfo addAttribute(final String attributeName,
-                                                 final TimeSpan readWriteTimeout,
+                                                 final Duration readWriteTimeout,
                                                  final CompositeData options) {
         verifyClosedState();
         return attributes.addAttribute(attributeName, readWriteTimeout, options);
     }
 
     public final MBeanOperationInfo enableOperation(final String operationName,
-                                                    final TimeSpan invocationTimeout,
+                                                    final Duration invocationTimeout,
                                                     final CompositeData options){
         verifyClosedState();
         return operations.enableOperation(operationName, invocationTimeout, options);
@@ -1110,9 +1115,9 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
     @SuppressWarnings("unchecked")
     @Override
     public <F extends MBeanFeatureInfo> Collection<? extends F> expand(final Class<F> featureType) {
-        if (attributes.canExpandWith(featureType))
+        if (JavaBeanAttributeRepository.canExpandWith(featureType))
             return (Collection<F>) attributes.expand();
-        else if(operations.canExpandWith(featureType))
+        else if(JavaBeanOperationRepository.canExpandWith(featureType))
             return (Collection<F>) operations.expand();
         else return Collections.emptyList();
     }

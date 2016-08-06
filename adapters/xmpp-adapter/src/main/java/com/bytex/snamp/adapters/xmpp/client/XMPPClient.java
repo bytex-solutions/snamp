@@ -1,6 +1,5 @@
 package com.bytex.snamp.adapters.xmpp.client;
 
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.xmpp.XMPPAdapterConfigurationProvider;
 import com.bytex.snamp.configuration.AbsentConfigurationParameterException;
 import org.jivesoftware.smack.AbstractXMPPConnection;
@@ -15,16 +14,18 @@ import org.jivesoftware.smack.packet.Presence;
 import java.io.Closeable;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
  * Represents simple XMPP client that can be used in integration tests.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class XMPPClient implements Closeable {
@@ -58,7 +59,7 @@ public final class XMPPClient implements Closeable {
 
     public String sendMessage(final String message,
                               final String ignoreFilter,
-                              final TimeSpan responseTimeout) throws IOException, TimeoutException, InterruptedException, ExecutionException {
+                              final Duration responseTimeout) throws IOException, TimeoutException, InterruptedException, ExecutionException {
         if(chat == null) throw new IOException("Chat doesn't exist");
         final ChatMessageEvent response = new ChatMessageEvent(ignoreFilter);
         chat.addMessageListener(response);
@@ -69,7 +70,7 @@ public final class XMPPClient implements Closeable {
         }
         final Message responseMsg;
         try{
-            responseMsg = response.getAwaitor().get(responseTimeout.duration, responseTimeout.unit);
+            responseMsg = response.get(responseTimeout.toNanos(), TimeUnit.NANOSECONDS);
         }
         finally {
             chat.removeMessageListener(response);
@@ -77,17 +78,21 @@ public final class XMPPClient implements Closeable {
         return responseMsg.getBody();
     }
 
-    public Future<Message> waitMessage(final String ignoreFilter) throws IOException {
-        if (chat == null) throw new IOException("Chat doesn't exist");
-        final ChatMessageEvent response = new ChatMessageEvent(ignoreFilter);
-        chat.addMessageListener(new ChatMessageListener() {
+    private ChatMessageListener createMessageListener(final ChatMessageEvent response){
+        return new ChatMessageListener() {
             @Override
             public void processMessage(final Chat chat, final Message message) {
                 if (response.processMessage(message))
                     chat.removeMessageListener(this);
             }
-        });
-        return response.getAwaitor();
+        };
+    }
+
+    public Future<Message> waitMessage(final String ignoreFilter) throws IOException {
+        if (chat == null) throw new IOException("Chat doesn't exist");
+        final ChatMessageEvent response = new ChatMessageEvent(ignoreFilter);
+        chat.addMessageListener(createMessageListener(response));
+        return response;
     }
 
     public boolean endChat(){
@@ -113,6 +118,9 @@ public final class XMPPClient implements Closeable {
                 connection.disconnect(new Presence(Presence.Type.unavailable));
             } catch (final SmackException.NotConnectedException e) {
                 throw new IOException(e);
+            }
+            finally {
+                chat = null;
             }
         }
     }

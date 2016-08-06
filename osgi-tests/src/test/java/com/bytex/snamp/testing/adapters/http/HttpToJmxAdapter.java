@@ -1,17 +1,14 @@
 package com.bytex.snamp.testing.adapters.http;
 
-import com.bytex.snamp.ExceptionPlaceholder;
-import com.bytex.snamp.ExceptionalCallable;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.adapters.ResourceAdapterClient;
+import com.bytex.snamp.concurrent.SpinWait;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
-import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.bytex.snamp.jmx.TabularDataBuilder;
 import com.bytex.snamp.jmx.json.JsonUtils;
-import com.bytex.snamp.testing.CollectionSizeAwaitor;
+import com.bytex.snamp.testing.BundleExceptionCallable;
 import com.bytex.snamp.testing.ImportPackages;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
@@ -37,9 +34,9 @@ import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.util.concurrent.ArrayBlockingQueue;
+import java.time.Duration;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
@@ -52,20 +49,18 @@ import static com.bytex.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @SnampDependencies({SnampFeature.HTTP_ADAPTER, SnampFeature.WRAPPED_LIBS})
 @ImportPackages({"com.bytex.snamp.jmx.json;version=\"[1.0,2)\"",
         "org.atmosphere.wasync;version=\"[2.0.0,3)\""})
 public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBean> {
-    private static final class NotificationReceiver extends ArrayBlockingQueue<JsonElement> implements Function<String>{
+    private static final class NotificationReceiver extends LinkedBlockingQueue<JsonElement> implements Function<String>{
         private static final long serialVersionUID = 2056675059549300951L;
         private final Gson formatter;
 
-        private NotificationReceiver(final int capacity,
-                                    final Gson formatter) {
-            super(capacity);
+        private NotificationReceiver(final Gson formatter) {
             this.formatter = formatter;
         }
 
@@ -124,17 +119,14 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
 
     @Test
     public void startStopTest() throws Exception {
-        final TimeSpan TIMEOUT = TimeSpan.ofSeconds(15);
+        final Duration TIMEOUT = Duration.ofSeconds(15);
         //stop adapter and connector
         ResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
         stopResourceConnector(getTestBundleContext());
         //start empty adapter
-        syncWithAdapterStartedEvent(ADAPTER_NAME, new ExceptionalCallable<Void, BundleException>() {
-            @Override
-            public Void call() throws BundleException {
+        syncWithAdapterStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
                 ResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
                 return null;
-            }
         }, TIMEOUT);
         //start connector, this causes attribute registration and SNMP adapter restarting,
         //waiting is not required because HTTP adapter supports hot reconfiguring
@@ -181,11 +173,10 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
         final TabularData data = new TabularDataBuilder()
                 .setTypeName("SimpleTable", true)
                 .setTypeDescription("descr", true)
-                .columns()
-                .addColumn("col1", "desc", SimpleType.BOOLEAN, false)
-                .addColumn("col2", "desc", SimpleType.INTEGER, false)
-                .addColumn("col3", "desc", SimpleType.STRING, true)
-                .queryObject(TabularDataBuilder.class)
+                .declareColumns(columns -> columns
+                    .addColumn("col1", "desc", SimpleType.BOOLEAN, false)
+                    .addColumn("col2", "desc", SimpleType.INTEGER, false)
+                    .addColumn("col3", "desc", SimpleType.STRING, true))
                 .add(false, 2, "pp")
                 .build();
         final Gson formatter = JsonUtils.registerOpenTypeAdapters(new GsonBuilder()).create();
@@ -213,16 +204,15 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
                 //.trackMessageLength(true)
                 .transport(transport);
         final Socket sock = client.create();
-        final NotificationReceiver receiver = new NotificationReceiver(10, formatter);
-        final CollectionSizeAwaitor awaitor = new CollectionSizeAwaitor(receiver, 3);
+        final NotificationReceiver receiver = new NotificationReceiver(formatter);
         sock.on("message", receiver).open(requestBuilder.build());
         try{
             //force attribute change
             testStringAttribute();
             //wait for notifications
-            assertNotNull(awaitor.get(3, TimeUnit.SECONDS));
-        } catch (final InterruptedException | TimeoutException | ExecutionException e) {
-            fail(e.getMessage());
+            SpinWait.spinUntil(() -> receiver.size() < 1, Duration.ofSeconds(3));
+        } catch (final InterruptedException | TimeoutException e) {
+            fail(String.format("Invalid message count: %s", receiver.size()));
         } finally {
             sock.close();
         }
@@ -258,13 +248,10 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
-        syncWithAdapterStartedEvent(ADAPTER_NAME, new ExceptionalCallable<Void, BundleException>() {
-            @Override
-            public Void call() throws BundleException {
+        syncWithAdapterStartedEvent(ADAPTER_NAME, (BundleExceptionCallable)() -> {
                 ResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
                 return null;
-            }
-        }, TimeSpan.ofSeconds(15));
+        }, Duration.ofSeconds(15));
     }
 
     @Override
@@ -275,15 +262,10 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
 
     @Test
     public void attributeBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
-        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
+        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, Duration.ofSeconds(2));
         try {
-            assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new EntryReader<String, FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
-                @Override
-                public boolean read(final String resourceName, final FeatureBindingInfo<MBeanAttributeInfo> bindingInfo) {
-                    return bindingInfo.getProperty("path") instanceof String &&
-                            bindingInfo.getProperty(FeatureBindingInfo.MAPPED_TYPE) instanceof String;
-                }
-            }));
+            assertTrue(client.forEachFeature(MBeanAttributeInfo.class, (resourceName, bindingInfo) -> bindingInfo.getProperty("path") instanceof String &&
+                    bindingInfo.getProperty(FeatureBindingInfo.MAPPED_TYPE) instanceof String));
         } finally {
             client.release(getTestBundleContext());
         }
@@ -291,14 +273,9 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
 
     @Test
     public void notificationBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
-        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
+        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, Duration.ofSeconds(2));
         try {
-            assertTrue(client.forEachFeature(MBeanNotificationInfo.class, new EntryReader<String, FeatureBindingInfo<MBeanNotificationInfo>, ExceptionPlaceholder>() {
-                @Override
-                public boolean read(final String resourceName, final FeatureBindingInfo<MBeanNotificationInfo> bindingInfo) {
-                    return bindingInfo.getProperty("path") instanceof String;
-                }
-            }));
+            assertTrue(client.forEachFeature(MBeanNotificationInfo.class, (resourceName, bindingInfo) -> bindingInfo.getProperty("path") instanceof String));
         } finally {
             client.release(getTestBundleContext());
         }

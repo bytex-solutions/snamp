@@ -1,7 +1,6 @@
 package com.bytex.snamp.connectors.jmx;
 
 import com.bytex.snamp.AbstractAggregator;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.FutureThread;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
@@ -19,6 +18,7 @@ import javax.management.openmbean.CompositeData;
 import javax.management.remote.JMXConnector;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
@@ -30,15 +30,12 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 /**
  * Represents bundle activator for JMX connector.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class JmxConnectorBundleActivator extends ManagedResourceActivator<JmxConnector> {
 
     private static final class JmxMaintenanceService extends AbstractAggregator implements Maintainable{
-
-        private JmxMaintenanceService(){
-        }
 
         /**
          * Returns read-only map of maintenance actions.
@@ -83,7 +80,7 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
                     @Override
                     public String call() throws IOException, InterruptedException{
                         for(final ServiceReference<ManagedResourceConnector> ref: connectors.values())
-                            if(Objects.equals(getConnectorType(ref), JmxConnector.getType()))
+                            if(Objects.equals(ManagedResourceConnector.getResourceConnectorType(ref.getBundle()), JmxConnector.getType()))
                                 try{
                                     final ManagedResourceConnector connector = context.getService(ref);
                                     connector.queryObject(JmxConnectionManager.class).simulateConnectionAbort();
@@ -139,7 +136,7 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
         @Override
         protected boolean addAttribute(final JmxConnector connector,
                                     final String attributeName,
-                                    final TimeSpan readWriteTimeout,
+                                    final Duration readWriteTimeout,
                                     final CompositeData options) {
             return connector.addAttribute(attributeName, readWriteTimeout, options);
         }
@@ -154,7 +151,7 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
         @Override
         protected boolean enableOperation(final JmxConnector connector,
                                        final String operationName,
-                                       final TimeSpan invocationTimeout,
+                                       final Duration invocationTimeout,
                                        final CompositeData options) {
             return connector.enableOperation(operationName, invocationTimeout, options);
         }
@@ -186,10 +183,10 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
     @SpecialUse
     public JmxConnectorBundleActivator() {
         super(new JmxConnectorFactory(),
-                new ConfigurationEntityDescriptionManager<JmxConnectorConfigurationDescriptor>() {
+                new ConfigurationEntityDescriptionManager<JmxConnectorDescriptionProvider>() {
                     @Override
-                    protected JmxConnectorConfigurationDescriptor createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
-                        return new JmxConnectorConfigurationDescriptor();
+                    protected JmxConnectorDescriptionProvider createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
+                        return JmxConnectorDescriptionProvider.getInstance();
                     }
                 },
                 new JmxMaintenanceServiceManager(),
@@ -204,7 +201,7 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
                     protected <T extends FeatureConfiguration> Collection<T> getManagementInformation(final Class<T> entityType,
                                                                                                final JMXConnector connection,
                                                                                                final RequiredService<?>... dependencies) throws JMException, IOException {
-                        return JmxDiscoveryService.discover(connection, entityType);
+                        return JmxDiscoveryService.discover(getClass().getClassLoader(), connection, entityType);
                     }
                 });
     }

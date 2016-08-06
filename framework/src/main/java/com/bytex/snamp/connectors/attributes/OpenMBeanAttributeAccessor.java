@@ -4,18 +4,16 @@ import com.google.common.collect.ImmutableSet;
 
 import javax.management.openmbean.OpenMBeanAttributeInfo;
 import javax.management.openmbean.OpenType;
-import java.util.Objects;
 import java.util.Set;
 
 /**
  * Represents attribute of JMX open type that provides read/write methods.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public abstract class OpenMBeanAttributeAccessor<T> extends OpenMBeanAttributeInfoImpl implements OpenMBeanAttributeInfo, AttributeDescriptorRead {
     private static final long serialVersionUID = 9200767724267121006L;
-    private final AttributeDescriptor descriptor;
 
     protected OpenMBeanAttributeAccessor(final String attributeID,
                                          final String description,
@@ -27,7 +25,6 @@ public abstract class OpenMBeanAttributeAccessor<T> extends OpenMBeanAttributeIn
                 description,
                 specifier,
                 descriptor);
-        this.descriptor = Objects.requireNonNull(descriptor);
     }
 
     /**

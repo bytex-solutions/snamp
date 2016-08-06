@@ -20,7 +20,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfigurati
  *     </ul>
  * </p>
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public interface AttributeSupport {
@@ -32,7 +32,7 @@ public interface AttributeSupport {
 
     /**
      * The name of the field in {@link javax.management.Descriptor} which
-     * contains {@link com.bytex.snamp.TimeSpan} value.
+     * contains {@link java.time.Duration} value.
      */
     String READ_WRITE_TIMEOUT_FIELD = "readWriteTimeout";
 

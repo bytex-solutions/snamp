@@ -9,7 +9,7 @@ import java.util.Map;
  * <p>
  *     The map represented by this profile is read-only.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public interface ResourceAdapterProfile extends Map<String, String>, Aggregator, Cloneable {

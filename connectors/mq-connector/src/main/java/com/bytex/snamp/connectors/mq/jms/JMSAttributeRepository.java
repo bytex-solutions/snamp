@@ -7,7 +7,7 @@ import com.bytex.snamp.connectors.mda.MDAAttributeRepository;
 import com.bytex.snamp.connectors.mq.JMSExceptionUtils;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
-import com.google.common.base.Strings;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 import javax.jms.*;
 import javax.management.openmbean.OpenDataException;
@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class JMSAttributeRepository extends MDAAttributeRepository<MDAAttributeInfo> {
@@ -42,7 +42,7 @@ final class JMSAttributeRepository extends MDAAttributeRepository<MDAAttributeIn
                     final boolean isTopicOutput) throws JMSException {
         this.session = session;
         //setup output queue
-        if (Strings.isNullOrEmpty(outputQueue)) return;
+        if (isNullOrEmpty(outputQueue)) return;
         final Destination outputDestination = isTopicOutput ?
                 session.createTopic(outputQueue) :
                 session.createQueue(outputQueue);
@@ -51,10 +51,10 @@ final class JMSAttributeRepository extends MDAAttributeRepository<MDAAttributeIn
 
     void setAttribute(final Message message) throws JMSException{
         final String storageKey = converter.getStorageKey(message);
-        if(Strings.isNullOrEmpty(storageKey))
+        if(isNullOrEmpty(storageKey))
             throw new JMSException("storageKey is not defined");
         OpenType<?> attributeType = getAttributeType(storageKey);
-        if (Strings.isNullOrEmpty(storageKey) || attributeType == null) return;
+        if (isNullOrEmpty(storageKey) || attributeType == null) return;
         final Object value;
         try {
             value = converter.deserialize(message, attributeType);

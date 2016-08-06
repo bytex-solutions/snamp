@@ -1,8 +1,8 @@
 package com.bytex.snamp.connectors.mda;
 
 import com.bytex.snamp.ThreadSafe;
-import com.bytex.snamp.TimeSpan;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * Represents simple thread-safe timer.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @ThreadSafe
@@ -69,7 +69,7 @@ final class SimpleTimer extends AtomicLong implements AccessTimer {
      */
     @SuppressWarnings("NullableProblems")
     @Override
-    public int compareTo(final TimeSpan interval) {
-        return checkInterval(interval.duration, interval.unit);
+    public int compareTo(final Duration interval) {
+        return checkInterval(interval.toNanos(), TimeUnit.NANOSECONDS);
     }
 }

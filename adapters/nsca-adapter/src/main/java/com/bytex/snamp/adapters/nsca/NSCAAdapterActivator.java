@@ -7,7 +7,7 @@ import com.bytex.snamp.SpecialUse;
  * Represents activator of Nagios adapter.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  */
 public final class NSCAAdapterActivator extends ResourceAdapterActivator<NSCAAdapter> {
     private static final class NSCAResourceAdapterFactory implements ResourceAdapterFactory<NSCAAdapter>{
@@ -24,7 +24,7 @@ public final class NSCAAdapterActivator extends ResourceAdapterActivator<NSCAAda
 
         @Override
         protected NSCAAdapterConfigurationDescriptor createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
-            return new NSCAAdapterConfigurationDescriptor();
+            return NSCAAdapterConfigurationDescriptor.getInstance();
         }
     }
 

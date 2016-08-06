@@ -8,17 +8,17 @@ import java.util.Map;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 abstract class UnaryAttributeAggregation<T> extends AbstractAttributeAggregation<T> {
     private static final long serialVersionUID = 8188453369203515353L;
     private final String foreignAttribute;
 
-    protected UnaryAttributeAggregation(final String attributeID,
-                                        final String description,
-                                        final OpenType<T> attributeType,
-                                        final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException {
+    UnaryAttributeAggregation(final String attributeID,
+                              final String description,
+                              final OpenType<T> attributeType,
+                              final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException {
         super(attributeID, description, attributeType, descriptor);
         foreignAttribute = AggregatorConnectorConfiguration.getForeignAttributeName(descriptor);
     }
@@ -28,7 +28,7 @@ abstract class UnaryAttributeAggregation<T> extends AbstractAttributeAggregation
         parameters.put(AggregatorConnectorConfiguration.FOREIGN_ATTRIBUTE_PARAM, "");
     }
 
-    public final String getOperandAttribute(){
+    private String getOperandAttribute(){
         return foreignAttribute;
     }
 

@@ -1,7 +1,7 @@
 package com.bytex.snamp.connectors.notifications;
 
-import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.ThreadSafe;
+import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 
 import javax.management.ListenerNotFoundException;
@@ -17,7 +17,7 @@ import java.util.List;
  * <p>
  *     This class is thread-safe.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @ThreadSafe
@@ -43,9 +43,17 @@ public class NotificationListenerList extends ThreadSafeObject implements Notifi
     public final void addNotificationListener(final NotificationListener listener,
                                         final NotificationFilter filter,
                                         final Object handback) throws IllegalArgumentException {
-        try(final LockScope ignored = beginWrite()){
-            listeners.add(new NotificationListenerHolder(listener, filter, handback));
-        }
+        writeAccept(new NotificationListenerHolder(listener, filter, handback), listeners::add);
+    }
+
+    private void removeNotificationListenerImpl(final NotificationListener listener) throws ListenerNotFoundException{
+        final Iterator<NotificationListenerHolder> listeners = this.listeners.iterator();
+        boolean removed = false;
+        while (listeners.hasNext())
+            if(removed |= listeners.next().equals(listener))
+                listeners.remove();
+        if(!removed)
+            throw JMExceptionUtils.listenerNotFound(listener);
     }
 
     /**
@@ -64,16 +72,8 @@ public class NotificationListenerList extends ThreadSafeObject implements Notifi
      * @see javax.management.NotificationEmitter#removeNotificationListener
      */
     public final void removeNotificationListener(final NotificationListener listener)
-            throws ListenerNotFoundException{
-        try(final LockScope ignored = beginWrite()){
-            final Iterator<NotificationListenerHolder> listeners = this.listeners.iterator();
-            boolean removed = false;
-            while (listeners.hasNext())
-                if(removed |= listeners.next().equals(listener))
-                    listeners.remove();
-            if(!removed)
-                throw JMExceptionUtils.listenerNotFound(listener);
-        }
+            throws ListenerNotFoundException {
+        writeAccept(listener, this::removeNotificationListenerImpl);
     }
 
     /**
@@ -113,26 +113,19 @@ public class NotificationListenerList extends ThreadSafeObject implements Notifi
      */
     @Override
     public final void handleNotification(final Notification notification, final Object handback) {
-        try(final LockScope ignored = beginRead()){
-            for(final NotificationListenerHolder holder: listeners)
-                handleNotification(holder, intercept(notification), handback);
-        }
+        readAccept(listeners, l -> l.forEach(holder -> handleNotification(holder, intercept(notification), handback)));
     }
 
     public final void handleNotification(final NotificationListenerInvoker invoker,
                                       final Notification notification,
-                                      final Object handback){
-        try(final LockScope ignored = beginRead()) {
-            invoker.invoke(notification, handback, listeners);
-        }
+                                      final Object handback) {
+        readAccept(listeners, list -> invoker.invoke(notification, handback, list));
     }
 
     /**
      * Removes all listeners from this list.
      */
     public final void clear() {
-        try(final LockScope ignored = beginWrite()){
-            listeners.clear();
-        }
+        writeAccept(listeners, List::clear);
     }
 }

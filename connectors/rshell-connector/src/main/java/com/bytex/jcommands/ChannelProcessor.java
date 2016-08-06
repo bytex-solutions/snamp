@@ -8,7 +8,7 @@ import java.util.Map;
  * @param <O> Type of the processing result.
  * @param <E> Type of the exception that can be thrown by processor.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public interface ChannelProcessor<I, O, E extends Exception> {

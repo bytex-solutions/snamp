@@ -7,7 +7,7 @@ import org.osgi.service.http.HttpService;
 /**
  * Represents bundle activator for REST adapter.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class HttpAdapterActivator extends ResourceAdapterActivator<HttpAdapter> {
@@ -22,6 +22,7 @@ public final class HttpAdapterActivator extends ResourceAdapterActivator<HttpAda
 
     private static final class RestAdapterFactory implements ResourceAdapterFactory<HttpAdapter>{
 
+        @SuppressWarnings("unchecked")
         @Override
         public HttpAdapter createAdapter(final String adapterInstance,
                                          final RequiredService<?>... dependencies) throws Exception {

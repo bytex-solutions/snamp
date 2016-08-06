@@ -1,15 +1,16 @@
 package com.bytex.snamp.connectors.groovy.impl;
 
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
 import com.bytex.snamp.connectors.groovy.ManagedResourceInfo;
 import com.bytex.snamp.connectors.groovy.ManagedResourceScriptEngine;
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.io.IOUtils;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
 
 import javax.management.openmbean.CompositeData;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -19,7 +20,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class GroovyResourceActivator extends ManagedResourceActivator<GroovyResourceConnector> {
@@ -28,7 +29,7 @@ public final class GroovyResourceActivator extends ManagedResourceActivator<Groo
         @Override
         protected boolean addAttribute(final GroovyResourceConnector connector,
                                     final String attributeName,
-                                    final TimeSpan readWriteTimeout,
+                                    final Duration readWriteTimeout,
                                     final CompositeData options) {
             return connector.addAttribute(attributeName, readWriteTimeout, options);
         }
@@ -39,7 +40,7 @@ public final class GroovyResourceActivator extends ManagedResourceActivator<Groo
         }
 
         @Override
-        protected boolean enableOperation(final GroovyResourceConnector connector, final String operationName, final TimeSpan timeout, final CompositeData options) {
+        protected boolean enableOperation(final GroovyResourceConnector connector, final String operationName, final Duration timeout, final CompositeData options) {
             //not supported
             return false;
         }
@@ -74,7 +75,7 @@ public final class GroovyResourceActivator extends ManagedResourceActivator<Groo
         protected ManagedResourceInfo createManagementInformationProvider(final String connectionString,
                                                                            final Map<String, String> connectionOptions,
                                                                            final RequiredService<?>... dependencies) throws IOException, ResourceException, ScriptException {
-            final String[] paths = GroovyResourceConnector.getPaths(connectionString);
+            final String[] paths = IOUtils.splitPath(connectionString);
             final ManagedResourceScriptEngine engine = new ManagedResourceScriptEngine(
                     getClass().getClassLoader(),
                     GroovyResourceConnector.toProperties(connectionOptions),

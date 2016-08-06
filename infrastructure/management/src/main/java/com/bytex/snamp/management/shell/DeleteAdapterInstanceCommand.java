@@ -8,7 +8,7 @@ import org.apache.karaf.shell.commands.Command;
 /**
  * Deletes adapter instance.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
@@ -21,7 +21,7 @@ public final class DeleteAdapterInstanceCommand extends ConfigurationCommand {
 
     @Override
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
-        if(configuration.getResourceAdapters().remove(instanceName) == null){
+        if(configuration.getEntities(AgentConfiguration.ResourceAdapterConfiguration.class).remove(instanceName) == null){
             output.append("Instance doesn't exist");
             return false;
         }

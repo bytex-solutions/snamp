@@ -1,6 +1,5 @@
 package com.bytex.snamp.connectors.discovery;
 
-import com.google.common.base.Supplier;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -10,6 +9,7 @@ import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfigura
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static com.bytex.snamp.connectors.discovery.DiscoveryService.DiscoveryResult;
 
@@ -17,7 +17,7 @@ import static com.bytex.snamp.connectors.discovery.DiscoveryService.DiscoveryRes
  * Represents builder of {@link DiscoveryResult} object.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class DiscoveryResultBuilder implements Supplier<DiscoveryResult> {

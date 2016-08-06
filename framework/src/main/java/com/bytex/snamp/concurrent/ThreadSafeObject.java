@@ -1,13 +1,18 @@
 package com.bytex.snamp.concurrent;
 
+import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.TimeSpan;
 import com.google.common.collect.ImmutableMap;
 
+import java.time.Duration;
 import java.util.EnumSet;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.*;
 
 /**
  * Represents an abstract class for all thread-safe objects.
@@ -16,88 +21,15 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  *     the access to the fields. The fields may be grouped into the sections
  *     with individual read/write locks.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public abstract class ThreadSafeObject {
     /**
-     * Represents lock scope.
-     * @author Roman Sakno
-     * @version 1.0
-     * @since 1.0
-     */
-    public interface LockScope extends SafeCloseable, Lock {
-        /**
-         * Releases the lock.
-         */
-        @Override
-        void close();
-    }
-
-    private static final class ReadLockScope extends ReentrantReadWriteLock.ReadLock implements LockScope{
-        private static final long serialVersionUID = -4674488641147301623L;
-
-        private ReadLockScope(final ReentrantReadWriteLock lock) {
-            super(lock);
-        }
-
-        @Override
-        public void close() {
-            unlock();
-        }
-    }
-
-    private static final class WriteLockScope extends ReentrantReadWriteLock.WriteLock implements LockScope{
-        private static final long serialVersionUID = 8930001265056640152L;
-
-        private WriteLockScope(final ReentrantReadWriteLock lock) {
-            super(lock);
-        }
-
-        @Override
-        public void close() {
-            unlock();
-        }
-    }
-
-    private interface ReadWriteLockSlim extends ReadWriteLock{
-        @SuppressWarnings("NullableProblems")
-        @Override
-        LockScope readLock();
-
-        @SuppressWarnings("NullableProblems")
-        @Override
-        LockScope writeLock();
-    }
-
-    private static final class ReentrantReadWriteLockSlim implements ReadWriteLockSlim{
-        private final ReadLockScope readLock;
-        private final WriteLockScope writeLock;
-
-        private ReentrantReadWriteLockSlim(){
-            final ReentrantReadWriteLock reentrantLock = new ReentrantReadWriteLock();
-            readLock = new ReadLockScope(reentrantLock);
-            writeLock = new WriteLockScope(reentrantLock);
-        }
-
-        @SuppressWarnings("NullableProblems")
-        @Override
-        public ReadLockScope readLock() {
-            return readLock;
-        }
-
-        @SuppressWarnings("NullableProblems")
-        @Override
-        public WriteLockScope writeLock() {
-            return writeLock;
-        }
-    }
-
-    /**
      * Represents an enum that describes the single resource group.
      *
      * @author Roman Sakno
-     * @version 1.0
+     * @version 1.2
      * @since 1.0
      */
     protected enum SingleResourceGroup {
@@ -107,19 +39,19 @@ public abstract class ThreadSafeObject {
         INSTANCE
     }
 
-    private final ImmutableMap<Enum<?>, ReadWriteLockSlim> resourceGroups;
+    private final ImmutableMap<Enum<?>, ReadWriteLock> resourceGroups;
 
     private ThreadSafeObject(final EnumSet<?> groups) {
         switch (groups.size()) {
             case 0:
                 throw new IllegalArgumentException("Empty resource groups");
             case 1:
-                resourceGroups = ImmutableMap.<Enum<?>, ReadWriteLockSlim>of(groups.iterator().next(), new ReentrantReadWriteLockSlim());
+                resourceGroups = ImmutableMap.of(groups.iterator().next(), new ReentrantReadWriteLock());
                 break;
             default:
-                final ImmutableMap.Builder<Enum<?>, ReadWriteLockSlim> builder = ImmutableMap.builder();
+                final ImmutableMap.Builder<Enum<?>, ReadWriteLock> builder = ImmutableMap.builder();
                 for (final Enum<?> g : groups)
-                    builder.put(g, new ReentrantReadWriteLockSlim());
+                    builder.put(g, new ReentrantReadWriteLock());
                 resourceGroups = builder.build();
         }
     }
@@ -128,7 +60,7 @@ public abstract class ThreadSafeObject {
      * Initializes a new thread-safe object.
      *
      * @param resourceGroupDef The type of the enum which represents a set of field groups.
-     * @param <G> Enum definition.
+     * @param <G>              Enum definition.
      */
     protected <G extends Enum<G>> ThreadSafeObject(final Class<G> resourceGroupDef) {
         this(EnumSet.allOf(resourceGroupDef));
@@ -136,132 +68,606 @@ public abstract class ThreadSafeObject {
 
     /**
      * Initializes a new thread-safe object in which all fields represents the single resource.
+     * @see SingleResourceGroup
      */
     protected ThreadSafeObject() {
         this(SingleResourceGroup.class);
     }
 
-    private static IllegalArgumentException createInvalidSectionException(final Enum<?> unknownSection) {
-        return new IllegalArgumentException(String.format("Resource group %s is not defined.", unknownSection));
+    private <E extends Throwable> SafeCloseable acquireLock(final Enum<?> resourceGroup, final boolean writeLock, final Acceptor<? super Lock, E> locker) throws E {
+        final ReadWriteLock lockSupport = resourceGroups.get(resourceGroup);
+        if (lockSupport == null)
+            throw new IllegalArgumentException(String.format("Resource group %s is not defined.", resourceGroup));
+        final Lock lock = writeLock ? lockSupport.writeLock() : lockSupport.readLock();
+        locker.accept(lock);
+        return lock::unlock;
     }
 
-    private LockScope getWriteLock(final Enum<?> group) {
-        final ReadWriteLockSlim lock = resourceGroups.get(group);
-        if (lock == null)
-            throw createInvalidSectionException(group);
-        else return lock.writeLock();
-    }
-
-    private LockScope getReadLock(final Enum<?> group) {
-        final ReadWriteLockSlim lock = resourceGroups.get(group);
-        if (lock == null)
-            throw createInvalidSectionException(group);
-        else return lock.readLock();
+    private SafeCloseable acquireLock(final Enum<?> resourceGroup, final boolean writeLock, final Duration timeout) throws InterruptedException, TimeoutException {
+        try {
+            return acquireLock(resourceGroup, writeLock, lock -> {
+                if (!lock.tryLock(timeout.toNanos(), TimeUnit.NANOSECONDS))
+                    throw new TimeoutException(String.format("Lock cannot be acquired after '%s'", timeout));
+            });
+        } catch (final InterruptedException | TimeoutException | RuntimeException e) {
+            throw e;
+        } catch (final Exception e) {
+            throw new AssertionError("Unexpected exception", e);    //should never be happened
+        }
     }
 
     /**
-     * Acquires write lock for the specified resource group.
+     * Acquires the write lock.
+     * <p>If the lock is not available then the current thread becomes
+     * disabled for thread scheduling purposes and lies dormant until the
+     * lock has been acquired.
+     * @param resourceGroup Resource group identifier. Cannot be {@literal null}.
+     * @return An object that can be used to release lock only.
+     */
+    protected final SafeCloseable acquireWriteLock(final Enum<?> resourceGroup){
+        return acquireLock(resourceGroup, true, Lock::lock);
+    }
+
+    /**
+     * Acquires the read lock.
+     * <p>If the lock is not available then the current thread becomes
+     * disabled for thread scheduling purposes and lies dormant until the
+     * lock has been acquired.
+     * @param resourceGroup Resource group identifier. Cannot be {@literal null}.
+     * @return An object that can be used to release lock only.
+     */
+    protected final SafeCloseable acquireReadLock(final Enum<?> resourceGroup){
+        return acquireLock(resourceGroup, false, Lock::lock);
+    }
+
+    /**
+     * Acquires the write lock unless the current thread is {@linkplain Thread#interrupt interrupted}.
+     * @param resourceGroup Resource group identifier. Cannot be {@literal null}.
+     * @return An object that can be used to release lock only.
+     * @throws InterruptedException if the current thread is interrupted while acquiring the lock
+     */
+    protected final SafeCloseable acquireWriteLockInterruptibly(final Enum<?> resourceGroup) throws InterruptedException {
+        return acquireLock(resourceGroup, true, Lock::lockInterruptibly);
+    }
+
+    protected final SafeCloseable acquireWriteLockInterruptibly(final Enum<?> resourceGroup, final Duration timeout) throws InterruptedException, TimeoutException {
+        return timeout == null ? acquireWriteLockInterruptibly(resourceGroup) : acquireLock(resourceGroup, true, timeout);
+    }
+
+    /**
+     * Acquires the read lock unless the current thread is {@linkplain Thread#interrupt interrupted}.
+     * @param resourceGroup Resource group identifier. Cannot be {@literal null}.
+     * @return An object that can be used to release lock only.
+     * @throws InterruptedException if the current thread is interrupted while acquiring the lock
+     */
+    protected final SafeCloseable acquireReadLockInterruptibly(final Enum<?> resourceGroup) throws InterruptedException {
+        return acquireLock(resourceGroup, false, Lock::lockInterruptibly);
+    }
+
+    protected final SafeCloseable acquireReadLockInterruptibly(final Enum<?> resourceGroup, final Duration timeout) throws InterruptedException, TimeoutException {
+        return timeout == null ? acquireReadLockInterruptibly(resourceGroup) : acquireLock(resourceGroup, false, timeout);
+    }
+
+    //<editor-fold desc="write Supplier">
+
+    /**
+     * Executes action inside of exclusive lock.
      *
-     * @param resourceGroup The identifier of the resource group to lock.
-     * @return An object that can be used to control lock scope.
-     * @throws java.lang.IllegalArgumentException The specified resource group is not defined in this object.
+     * @param resourceGroup The identifier of the resource group to lock. Cannot be {@literal null}.
+     * @param action        Action to execute inside of exclusive lock. Cannot be {@literal null}.
+     * @param <V>           Type of result produced by action.
+     * @return Result produced by action.
      */
-    protected final LockScope beginWrite(final Enum<?> resourceGroup) {
-        final LockScope scope = getWriteLock(resourceGroup);
-        scope.lock();
-        return scope;
-    }
-
-    protected final boolean tryBeginWrite(final Enum<?> resourceGroup, final TimeSpan timeout) throws InterruptedException {
-        return getWriteLock(resourceGroup).tryLock(timeout.duration, timeout.unit);
-    }
-
-    protected final boolean tryBeginWrite(final TimeSpan timeout) throws InterruptedException {
-        return tryBeginWrite(SingleResourceGroup.INSTANCE, timeout);
+    protected final <V> V writeSupply(final Enum<?> resourceGroup, final Supplier<? extends V> action) {
+        try (final SafeCloseable ignored = acquireWriteLock(resourceGroup)) {
+            return action.get();
+        }
     }
 
     /**
-     * Acquires write lock for the singleton resource group.
-     * @return An object that can be used to control lock scope.
-     * @throws java.lang.IllegalArgumentException This class is not instantiated with {@link #ThreadSafeObject()} constructor.
-     * @see ThreadSafeObject.SingleResourceGroup
-     */
-    protected final LockScope beginWrite() {
-        return beginWrite(SingleResourceGroup.INSTANCE);
-    }
-
-    /**
-     * Acquires write lock for the specified resource group.
+     * Executes action inside of exclusive lock on default resource group.
      *
-     * @param resourceGroup The identifier of the resource group to lock.
-     * @return An object that can be used to control lock scope.
-     * @throws java.lang.InterruptedException     The waiting thread will be interrupted by another thread.
-     * @throws java.lang.IllegalArgumentException The specified resource group is not defined in this object.
+     * @param action Action to execute inside of exclusive lock. Cannot be {@literal null}.
+     * @param <V>    Type of result produced by action.
+     * @return Result produced by action.
      */
-    protected final LockScope beginWriteInterruptibly(final Enum<?> resourceGroup) throws InterruptedException {
-        final LockScope scope = getWriteLock(resourceGroup);
-        scope.lockInterruptibly();
-        return scope;
+    protected final <V> V writeSupply(final Supplier<? extends V> action) {
+        return writeSupply(SingleResourceGroup.INSTANCE, action);
     }
 
-    /**
-     * Acquires write lock for the singleton resource group.
-     * @return An object that can be used to control lock scope.
-     * @throws java.lang.InterruptedException     The waiting thread will be interrupted by another thread.
-     * @throws java.lang.IllegalArgumentException This class is not instantiated with {@link #ThreadSafeObject()} constructor.
-     */
-    protected final LockScope beginWriteInterruptibly() throws InterruptedException {
-        return beginWriteInterruptibly(SingleResourceGroup.INSTANCE);
+    //</editor-fold>
+
+    //<editor-fold desc="write BooleanSupplier">
+
+    protected final boolean writeSupply(final Enum<?> resourceGroup, final BooleanSupplier action) {
+        try(final SafeCloseable ignored = acquireWriteLock(resourceGroup)){
+            return action.getAsBoolean();
+        }
     }
 
+    protected final boolean writeSupply(final BooleanSupplier action) {
+        return writeSupply(SingleResourceGroup.INSTANCE, action);
+    }
+
+    //</editor-fold>
+
+    //<editor-fold desc="write IntSupplier">
+
+    protected final int writeSupply(final Enum<?> resourceGroup, final IntSupplier action) {
+        try(final SafeCloseable ignored = acquireWriteLock(resourceGroup)){
+            return action.getAsInt();
+        }
+    }
+
+    protected final int writeSupply(final IntSupplier action) {
+        return writeSupply(SingleResourceGroup.INSTANCE, action);
+    }
+
+    //</editor-fold>
+
+    //<editor-fold desc="write Function">
+
     /**
-     * Releases write lock associated with the specified resource group.
+     * Executes action inside of exclusive lock.
      *
-     * @param resourceGroup The identifier of the resource group to unlock.
-     * @throws java.lang.IllegalArgumentException The specified resource group is not defined in this object.
+     * @param resourceGroup The identifier of the resource group to lock. Cannot be {@literal null}.
+     * @param input         An object to be passed into the action.
+     * @param action        Action to execute inside of exclusive lock. Cannot be {@literal null}.
+     * @param <I>           Type of input to be passed into the action.
+     * @param <O>           Type of result produced by action.
+     * @return Result produced by action.
      */
-    protected final void endWrite(final Enum<?> resourceGroup) {
-        getWriteLock(resourceGroup).unlock();
+    protected final <I, O> O writeApply(final Enum<?> resourceGroup, final I input, final Function<? super I, ? extends O> action) {
+        try(final SafeCloseable ignored = acquireWriteLock(resourceGroup)){
+            return action.apply(input);
+        }
     }
 
-    protected final void endWrite() {
-        endWrite(SingleResourceGroup.INSTANCE);
+    /**
+     * Executes action inside of exclusive lock on default resource group.
+     *
+     * @param input  An object to be passed into the action.
+     * @param action Action to execute inside of exclusive lock. Cannot be {@literal null}.
+     * @param <I>    Type of input to be passed into the action.
+     * @param <O>    Type of result produced by action.
+     * @return Result produced by action.
+     */
+    protected final <I, O> O writeApply(final I input, final Function<? super I, ? extends O> action) {
+        return writeApply(SingleResourceGroup.INSTANCE, input, action);
     }
 
-    protected final LockScope beginRead(final Enum<?> resourceGroup) {
-        final LockScope scope = getReadLock(resourceGroup);
-        scope.lock();
-        return scope;
+    //</editor-fold>
+
+    //<editor-fold desc="write Consumer">
+
+    protected final <I, E extends Throwable> void writeAccept(final Enum<?> resourceGroup, final I input, final Acceptor<? super I, E> action) throws E {
+        try(final SafeCloseable ignored = acquireWriteLock(resourceGroup)){
+             action.accept(input);
+        }
     }
 
-    protected final boolean tryBeginRead(final Enum<?> resourceGroup, final TimeSpan timeout) throws InterruptedException {
-        return getReadLock(resourceGroup).tryLock(timeout.duration, timeout.unit);
+    protected final <I, E extends Throwable> void writeAccept(final I input, final Acceptor<? super I, E> action) throws E {
+        writeAccept(SingleResourceGroup.INSTANCE, input, action);
     }
 
-    protected final boolean tryBeginRead(final TimeSpan timeout) throws InterruptedException {
-        return tryBeginRead(SingleResourceGroup.INSTANCE, timeout);
+    //</editor-fold>
+
+    //<editor-fold desc="write BiFunction">
+
+    /**
+     * Executes action inside of exclusive lock.
+     *
+     * @param resourceGroup The identifier of the resource group to lock. Cannot be {@literal null}.
+     * @param input1        The first object to be passed into the action.
+     * @param input2        The second object to be passed into the action.
+     * @param action        Action to execute inside of exclusive lock. Cannot be {@literal null}.
+     * @param <I1>          Type of the first input to be passed into the action.
+     * @param <I2>          Type of the second input to be passed into the action.
+     * @param <O>           Type of result produced by action.
+     * @return Result produced by action.
+     */
+    protected final <I1, I2, O> O writeApply(final Enum<?> resourceGroup, final I1 input1, final I2 input2, final BiFunction<? super I1, ? super I2, ? extends O> action) {
+        try(final SafeCloseable ignored = acquireWriteLock(resourceGroup)){
+            return action.apply(input1, input2);
+        }
     }
 
-    protected final LockScope beginRead() {
-        return beginRead(SingleResourceGroup.INSTANCE);
+    /**
+     * Executes action inside of exclusive lock on default resource group.
+     *
+     * @param input1 The first object to be passed into the action.
+     * @param input2 The second object to be passed into the action.
+     * @param action Action to execute inside of exclusive lock. Cannot be {@literal null}.
+     * @param <I1>   Type of the first input to be passed into the action.
+     * @param <I2>   Type of the second input to be passed into the action.
+     * @param <O>    Type of result produced by action.
+     * @return Result produced by action.
+     */
+    protected final <I1, I2, O> O writeApply(final I1 input1, final I2 input2, final BiFunction<? super I1, ? super I2, ? extends O> action) {
+        return writeApply(SingleResourceGroup.INSTANCE, input1, input2, action);
     }
 
-    protected final LockScope beginReadInterruptibly(final Enum<?> resourceGroup) throws InterruptedException {
-        final LockScope scope = getReadLock(resourceGroup);
-        scope.lockInterruptibly();
-        return scope;
+    //</editor-fold>
+
+    //<editor-fold desc="write Callable">
+
+    protected final <V> V writeCall(final Enum<?> resourceGroup, final Callable<? extends V> action) throws Exception {
+        try(final SafeCloseable ignored = acquireWriteLock(resourceGroup)){
+            return action.call();
+        }
     }
 
-    protected final LockScope beginReadInterruptibly() throws InterruptedException {
-        return beginReadInterruptibly(SingleResourceGroup.INSTANCE);
+    protected final <V> V writeCall(final Callable<? extends V> action) throws Exception {
+        return writeCall(SingleResourceGroup.INSTANCE, action);
     }
 
-    protected final void endRead(final Enum<?> resourceGroup) {
-        getReadLock(resourceGroup).unlock();
+    //</editor-fold>
+
+    //<editor-fold desc="writeInterruptibly Supplier">
+
+    /**
+     * Executes action inside of exclusive lock.
+     *
+     * @param resourceGroup The identifier of the resource group to lock. Cannot be {@literal null}.
+     * @param action        Action to execute inside of exclusive lock. Cannot be {@literal null}.
+     * @param <V>           Type of result produced by action.
+     * @return Result produced by action.
+     * @throws InterruptedException This method was interrupted by another thread.
+     */
+    protected final <V> V writeSupplyInterruptibly(final Enum<?> resourceGroup, final Supplier<? extends V> action) throws InterruptedException {
+        try(final SafeCloseable ignored = acquireWriteLockInterruptibly(resourceGroup)){
+            return action.get();
+        }
     }
 
-    protected final void endRead() {
-        endRead(SingleResourceGroup.INSTANCE);
+    /**
+     * Executes action inside of exclusive lock on default resource group.
+     *
+     * @param action Action to execute inside of exclusive lock. Cannot be {@literal null}.
+     * @param <V>    Type of result produced by action.
+     * @return Result produced by action.
+     * @throws InterruptedException This method was interrupted by another thread.
+     */
+    protected final <V> V writeSupplyInterruptibly(final Supplier<? extends V> action) throws InterruptedException {
+        return writeSupplyInterruptibly(SingleResourceGroup.INSTANCE, action);
     }
 
+    //</editor-fold>
+
+    //<editor-fold desc="writeInterruptibly BooleanSupplier">
+
+    protected final boolean writeSupplyInterruptibly(final Enum<?> resourceGroup, final BooleanSupplier action) throws InterruptedException {
+        try(final SafeCloseable ignored = acquireWriteLockInterruptibly(resourceGroup)){
+            return action.getAsBoolean();
+        }
+    }
+
+    protected final boolean writeSupplyInterruptibly(final BooleanSupplier action) throws InterruptedException {
+        return writeSupplyInterruptibly(SingleResourceGroup.INSTANCE, action);
+    }
+
+    //</editor-fold>
+
+    //<editor-fold desc="writeInterruptibly IntSupplier">
+
+    protected final int writeSupplyInterruptibly(final Enum<?> resourceGroup, final IntSupplier action) throws InterruptedException {
+        try(final SafeCloseable ignored = acquireWriteLockInterruptibly(resourceGroup)){
+            return action.getAsInt();
+        }
+    }
+
+    protected final int writeSupplyInterruptibly(final IntSupplier action) throws InterruptedException {
+        return writeSupplyInterruptibly(SingleResourceGroup.INSTANCE, action);
+    }
+
+    //</editor-fold>
+
+    //<editor-fold desc="writeInterruptibly Function">
+
+    protected final <I, O> O writeSupplyInterruptibly(final Enum<?> resourceGroup, final I input, final Function<? super I, ? extends O> action) throws InterruptedException {
+        try(final SafeCloseable ignored = acquireWriteLockInterruptibly(resourceGroup)){
+            return action.apply(input);
+        }
+    }
+
+    protected final <I, O> O writeSupplyInterruptibly(final I input, final Function<? super I, ? extends O> action) throws InterruptedException {
+        return writeSupplyInterruptibly(SingleResourceGroup.INSTANCE, input, action);
+    }
+
+    //</editor-fold>
+
+    //<editor-fold desc="writeInterruptibly Consumer">
+
+    protected final <I, E extends Throwable> void writeAcceptInterruptibly(final Enum<?> resourceGroup, final I input, final Acceptor<? super I, E> action) throws E, InterruptedException {
+        try(final SafeCloseable ignored = acquireWriteLockInterruptibly(resourceGroup)){
+            action.accept(input);
+        }
+    }
+
+    protected final <I, E extends Throwable> void writeAcceptInterruptibly(final I input, final Acceptor<? super I, E> action) throws E, InterruptedException {
+        writeAcceptInterruptibly(SingleResourceGroup.INSTANCE, input, action);
+    }
+
+    //</editor-fold>
+
+    //<editor-fold desc="writeInterruptibly BiFunction">
+
+    protected final <I1, I2, O> O writeApplyInterruptibly(final Enum<?> resourceGroup, final I1 input1, final I2 input2, final BiFunction<? super I1, ? super I2, ? extends O> action) throws InterruptedException {
+        try(final SafeCloseable ignored = acquireWriteLockInterruptibly(resourceGroup)){
+            return action.apply(input1, input2);
+        }
+    }
+
+    protected final <I1, I2, O> O writeApplyInterruptibly(final I1 input1, final I2 input2, final BiFunction<? super I1, ? super I2, ? extends O> action) throws InterruptedException {
+        return writeApplyInterruptibly(SingleResourceGroup.INSTANCE, input1, input2, action);
+    }
+
+    //</editor-fold>
+
+    //<editor-fold desc="writeInterruptibly Callable">
+
+    protected final <V> V writeCallInterruptibly(final Enum<?> resourceGroup, final Callable<? extends V> action) throws Exception {
+        try(final SafeCloseable ignored = acquireWriteLockInterruptibly(resourceGroup)){
+            return action.call();
+        }
+    }
+
+    protected final <V> V writeCallInterruptibly(final Callable<? extends V> action) throws Exception {
+        return writeCallInterruptibly(SingleResourceGroup.INSTANCE, action);
+    }
+
+    //</editor-fold>
+
+    //<editor-fold desc="read Supplier">
+
+    /**
+     * Executes action inside of read lock.
+     *
+     * @param resourceGroup The identifier of the resource group to lock. Cannot be {@literal null}.
+     * @param action        Action to execute inside of read lock. Cannot be {@literal null}.
+     * @param <V>           Type of result produced by action.
+     * @return Result produced by action.
+     */
+    protected final <V> V readSupply(final Enum<?> resourceGroup, final Supplier<? extends V> action) {
+        try(final SafeCloseable ignored = acquireReadLock(resourceGroup)){
+            return action.get();
+        }
+    }
+
+    /**
+     * Executes action inside of read lock on default resource group.
+     *
+     * @param action Action to execute inside of exclusive lock. Cannot be {@literal null}.
+     * @param <V>    Type of result produced by action.
+     * @return Result produced by action.
+     */
+    protected final <V> V readSupply(final Supplier<? extends V> action) {
+        return readSupply(SingleResourceGroup.INSTANCE, action);
+    }
+
+    //</editor-fold>
+
+    //<editor-fold desc="read BooleanSupplier">
+
+    protected final boolean readSupply(final Enum<?> resourceGroup, final BooleanSupplier action) {
+        try(final SafeCloseable ignored = acquireReadLock(resourceGroup)){
+            return action.getAsBoolean();
+        }
+    }
+
+    protected final boolean readSupply(final BooleanSupplier action) {
+        return readSupply(SingleResourceGroup.INSTANCE, action);
+    }
+
+    //</editor-fold>
+
+    //<editor-fold desc="read IntSupplier">
+
+    protected final int readSupply(final Enum<?> resourceGroup, final IntSupplier action) {
+        try(final SafeCloseable ignored = acquireReadLock(resourceGroup)){
+            return action.getAsInt();
+        }
+    }
+
+    protected final int readSupply(final IntSupplier action) {
+        return readSupply(SingleResourceGroup.INSTANCE, action);
+    }
+
+    //</editor-fold>
+
+    //<editor-fold desc="read Function">
+
+    /**
+     * Executes action inside of read lock.
+     *
+     * @param resourceGroup The identifier of the resource group to lock. Cannot be {@literal null}.
+     * @param input         An object to be passed into the action.
+     * @param action        Action to execute inside of read lock. Cannot be {@literal null}.
+     * @param <I>           Type of input to be passed into the action.
+     * @param <O>           Type of result produced by action.
+     * @return Result produced by action.
+     */
+    protected final <I, O> O readApply(final Enum<?> resourceGroup, final I input, final Function<? super I, ? extends O> action) {
+        try(final SafeCloseable ignored = acquireReadLock(resourceGroup)){
+            return action.apply(input);
+        }
+    }
+
+    /**
+     * Executes action inside of read lock on default resource group.
+     *
+     * @param input  An object to be passed into the action.
+     * @param action Action to execute inside of read lock. Cannot be {@literal null}.
+     * @param <I>    Type of input to be passed into the action.
+     * @param <O>    Type of result produced by action.
+     * @return Result produced by action.
+     */
+    protected final <I, O> O readApply(final I input, final Function<? super I, ? extends O> action) {
+        return readApply(SingleResourceGroup.INSTANCE, input, action);
+    }
+
+    //</editor-fold>
+
+    //<editor-fold desc="read Consumer">
+
+    protected final <I, E extends Throwable> void readAccept(final Enum<?> resourceGroup, final I input, final Acceptor<? super I, E> action) throws E {
+        try(final SafeCloseable ignored = acquireReadLock(resourceGroup)){
+            action.accept(input);
+        }
+    }
+
+    protected final <I, E extends Throwable> void readAccept(final I input, final Acceptor<? super I, E> action) throws E {
+        readAccept(SingleResourceGroup.INSTANCE, input, action);
+    }
+
+    //</editor-fold>
+
+    //<editor-fold desc="read Callable">
+
+    protected final <V> V readCall(final Enum<?> resourceGroup, final Callable<? extends V> action) throws Exception {
+        try(final SafeCloseable ignored = acquireReadLock(resourceGroup)){
+            return action.call();
+        }
+    }
+
+    protected final <V> V readCall(final Callable<? extends V> action) throws Exception {
+        return readCall(SingleResourceGroup.INSTANCE, action);
+    }
+
+    //</editor-fold>
+
+    //<editor-fold desc="read BiFunction">
+
+    /**
+     * Executes action inside of read lock.
+     *
+     * @param resourceGroup The identifier of the resource group to lock. Cannot be {@literal null}.
+     * @param input1        The first object to be passed into the action.
+     * @param input2        The second object to be passed into the action.
+     * @param action        Action to execute inside of read lock. Cannot be {@literal null}.
+     * @param <I1>          Type of the first input to be passed into the action.
+     * @param <I2>          Type of the second input to be passed into the action.
+     * @param <O>           Type of result produced by action.
+     * @return Result produced by action.
+     */
+    protected final <I1, I2, O> O readApply(final Enum<?> resourceGroup, final I1 input1, final I2 input2, final BiFunction<? super I1, ? super I2, ? extends O> action) {
+        try(final SafeCloseable ignored = acquireReadLock(resourceGroup)){
+            return action.apply(input1, input2);
+        }
+    }
+
+    /**
+     * Executes action inside of read lock on default resource group.
+     *
+     * @param input1 The first object to be passed into the action.
+     * @param input2 The second object to be passed into the action.
+     * @param action Action to execute inside of read lock. Cannot be {@literal null}.
+     * @param <I1>   Type of the first input to be passed into the action.
+     * @param <I2>   Type of the second input to be passed into the action.
+     * @param <O>    Type of result produced by action.
+     * @return Result produced by action.
+     */
+    protected final <I1, I2, O> O readApply(final I1 input1, final I2 input2, final BiFunction<? super I1, ? super I2, ? extends O> action) {
+        return readApply(SingleResourceGroup.INSTANCE, input1, input2, action);
+    }
+
+    //</editor-fold>
+
+    //<editor-fold desc="readInterruptibly Supplier">
+
+    protected final <V> V readSupplyInterruptibly(final Enum<?> resourceGroup, final Supplier<? extends V> action) throws InterruptedException {
+        try(final SafeCloseable ignored = acquireReadLockInterruptibly(resourceGroup)){
+            return action.get();
+        }
+    }
+
+    protected final <V> V readSupplyInterruptibly(final Supplier<? extends V> action) throws InterruptedException {
+        return readSupplyInterruptibly(SingleResourceGroup.INSTANCE, action);
+    }
+
+    //</editor-fold>
+
+    //<editor-fold desc="readInterruptibly BooleanSupplier">
+
+    protected final boolean readSupplyInterruptibly(final Enum<?> resourceGroup, final BooleanSupplier action) throws InterruptedException {
+        try(final SafeCloseable ignored = acquireReadLockInterruptibly(resourceGroup)){
+            return action.getAsBoolean();
+        }
+    }
+
+    protected final boolean readSupplyInterruptibly(final BooleanSupplier action) throws InterruptedException {
+        return readSupplyInterruptibly(SingleResourceGroup.INSTANCE, action);
+    }
+
+    //</editor-fold>
+
+    //<editor-fold desc="readInterruptibly IntSupplier">
+
+    protected final int readSupplyInterruptibly(final Enum<?> resourceGroup, final IntSupplier action) throws InterruptedException {
+        try(final SafeCloseable ignored = acquireReadLockInterruptibly(resourceGroup)){
+            return action.getAsInt();
+        }
+    }
+
+    protected final int readSupplyInterruptibly(final IntSupplier action) throws InterruptedException {
+        return readSupplyInterruptibly(SingleResourceGroup.INSTANCE, action);
+    }
+
+    //</editor-fold>
+
+    //<editor-fold desc="readInterruptibly Function">
+
+    protected final <I, O> O readApplyInterruptibly(final Enum<?> resourceGroup, final I input, final Function<? super I, ? extends O> action) throws InterruptedException {
+        try(final SafeCloseable ignored = acquireReadLockInterruptibly(resourceGroup)){
+            return action.apply(input);
+        }
+    }
+
+    protected final <I, O> O readApplyInterruptibly(final I input, final Function<? super I, ? extends O> action) throws InterruptedException {
+        return readApplyInterruptibly(SingleResourceGroup.INSTANCE, input, action);
+    }
+
+    //</editor-fold>
+
+    //<editor-fold desc="readInterruptibly Consumer">
+
+    protected final <I, E extends Throwable> void readAcceptInterruptibly(final Enum<?> resourceGroup, final I input, final Acceptor<? super I, E> action) throws E, InterruptedException {
+        try(final SafeCloseable ignored = acquireReadLockInterruptibly(resourceGroup)){
+            action.accept(input);
+        }
+    }
+
+    protected final <I, E extends Throwable> void readAcceptInterruptibly(final I input, final Acceptor<? super I, E> action) throws E, InterruptedException {
+        readAcceptInterruptibly(SingleResourceGroup.INSTANCE, input, action);
+    }
+
+    //</editor-fold>
+
+    //<editor-fold desc="readInterruptibly Callable">
+
+    protected final <V> V readCallInterruptibly(final Enum<?> resourceGroup, final Callable<? extends V> action) throws Exception {
+        try(final SafeCloseable ignored = acquireReadLockInterruptibly(resourceGroup)){
+            return action.call();
+        }
+    }
+
+    protected final <V> V readCallInterruptibly(final Callable<? extends V> action) throws Exception {
+        return readCallInterruptibly(SingleResourceGroup.INSTANCE, action);
+    }
+
+    //</editor-fold>
+
+    //<editor-fold desc="readInterruptibly BiFunction">
+
+    protected final <I1, I2, O> O readApplyInterruptibly(final Enum<?> resourceGroup, final I1 input1, final I2 input2, final BiFunction<? super I1, ? super I2, ? extends O> action) throws InterruptedException {
+        try(final SafeCloseable ignored = acquireReadLockInterruptibly(resourceGroup)){
+            return action.apply(input1, input2);
+        }
+    }
+
+    protected final <I1, I2, O> O readApplyInterruptibly(final I1 input1, final I2 input2, final BiFunction<? super I1, ? super I2, ? extends O> action) throws InterruptedException {
+        return readApplyInterruptibly(SingleResourceGroup.INSTANCE, input1, input2, action);
+    }
+
+    //</editor-fold>
 }

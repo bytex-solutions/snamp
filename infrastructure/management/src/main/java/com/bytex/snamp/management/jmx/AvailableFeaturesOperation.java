@@ -6,31 +6,31 @@ import com.bytex.snamp.jmx.KeyValueTypeBuilder;
 import com.bytex.snamp.jmx.TabularDataUtils;
 import org.osgi.framework.BundleContext;
 
-import javax.management.*;
-import javax.management.openmbean.*;
+import javax.management.DescriptorRead;
+import javax.management.InstanceNotFoundException;
+import javax.management.MBeanFeatureInfo;
+import javax.management.MBeanInfo;
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.SimpleType;
+import javax.management.openmbean.TabularData;
+import javax.management.openmbean.TabularType;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
-import static com.bytex.snamp.jmx.OpenMBean.OpenOperation;
 import static com.bytex.snamp.jmx.DescriptorUtils.toMap;
+import static com.bytex.snamp.jmx.OpenMBean.OpenOperation;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 abstract class AvailableFeaturesOperation<F extends MBeanFeatureInfo> extends OpenOperation<TabularData, TabularType> {
-    protected static final TabularType PARAMETERS_TYPE = Utils.interfaceStaticInitialize(new Callable<TabularType>() {
-        @Override
-        public TabularType call() throws Exception {
-            return new KeyValueTypeBuilder<String, String>()
-                    .setTypeName("FeatureConfigParameters")
-                    .setTypeDescription("A set of configuration parameters")
-                    .setKeyColumn("parameter", "Parameter name", SimpleType.STRING)
-                    .setValueColumn("value", "Parameter value", SimpleType.STRING)
-                    .build();
-        }
-    });
+    protected static final TabularType PARAMETERS_TYPE = Utils.interfaceStaticInitialize(() -> new KeyValueTypeBuilder<String, String>()
+            .setTypeName("FeatureConfigParameters")
+            .setTypeDescription("A set of configuration parameters")
+            .setKeyColumn("parameter", "Parameter name", SimpleType.STRING)
+            .setValueColumn("value", "Parameter value", SimpleType.STRING)
+            .build());
 
     private static final TypedParameterInfo<String> RESOURCE_NAME_PARAM =
             new TypedParameterInfo<>("resourceName", "Name of the resource", SimpleType.STRING, false);

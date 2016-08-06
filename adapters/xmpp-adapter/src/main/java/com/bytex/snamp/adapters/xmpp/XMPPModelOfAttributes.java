@@ -1,16 +1,11 @@
 package com.bytex.snamp.adapters.xmpp;
 
-import com.bytex.snamp.io.IOUtils;
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Collections2;
-import com.bytex.snamp.Consumer;
-import com.bytex.snamp.SafeConsumer;
+import com.bytex.snamp.Acceptor;
+import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.adapters.modeling.ModelOfAttributes;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.jmx.TabularDataUtils;
 import com.bytex.snamp.jmx.WellKnownType;
-import com.bytex.snamp.jmx.json.JsonSerializerFunction;
 import org.jivesoftware.smack.packet.ExtensionElement;
 
 import javax.management.JMException;
@@ -20,14 +15,16 @@ import javax.management.openmbean.TabularData;
 import java.nio.*;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class XMPPModelOfAttributes extends ModelOfAttributes<XMPPAttributeAccessor> implements AttributeReader, AttributeWriter {
-    private static final class Reader implements Consumer<XMPPAttributeAccessor, JMException>{
+    private static final class Reader implements Acceptor<XMPPAttributeAccessor, JMException> {
         private final AttributeValueFormat format;
         private String output;
         private final Collection<ExtensionElement> extras;
@@ -51,7 +48,7 @@ final class XMPPModelOfAttributes extends ModelOfAttributes<XMPPAttributeAccesso
         }
     }
 
-    private static final class OptionsPrinter implements SafeConsumer<XMPPAttributeAccessor> {
+    private static final class OptionsPrinter implements Consumer<XMPPAttributeAccessor>, Acceptor<XMPPAttributeAccessor, ExceptionPlaceholder> {
         private final boolean withNames;
         private final boolean details;
         private final StringBuilder result;
@@ -65,12 +62,14 @@ final class XMPPModelOfAttributes extends ModelOfAttributes<XMPPAttributeAccesso
         @Override
         public void accept(final XMPPAttributeAccessor accessor) {
             if (withNames)
-                IOUtils.appendln(result, "ID: %s NAME: %s CAN_READ: %s CAN_WRITE %s",
-                        accessor.getName(),
-                        accessor.getOriginalName(),
-                        accessor.canRead(),
-                        accessor.canWrite());
-            else IOUtils.appendln(result, accessor.getName());
+                result.append(String.format("ID: %s NAME: %s CAN_READ: %s CAN_WRITE %s",
+                            accessor.getName(),
+                            accessor.getOriginalName(),
+                            accessor.canRead(),
+                            accessor.canWrite()));
+            else
+                result.append(accessor.getName());
+            result.append(System.lineSeparator());
             if (details) accessor.printOptions(result);
         }
 
@@ -80,7 +79,7 @@ final class XMPPModelOfAttributes extends ModelOfAttributes<XMPPAttributeAccesso
         }
     }
 
-    private static final class Writer implements Consumer<XMPPAttributeAccessor, JMException>{
+    private static final class Writer implements Acceptor<XMPPAttributeAccessor, JMException> {
         private final String value;
 
         private Writer(final String val){
@@ -128,7 +127,7 @@ final class XMPPModelOfAttributes extends ModelOfAttributes<XMPPAttributeAccesso
     }
 
     private static abstract class AbstractBufferAttribute<B extends Buffer> extends XMPPAttributeAccessor {
-        protected static final char WHITESPACE = ' ';
+        static final char WHITESPACE = ' ';
         private final Class<B> bufferType;
 
         private AbstractBufferAttribute(final MBeanAttributeInfo metadata,
@@ -241,7 +240,9 @@ final class XMPPModelOfAttributes extends ModelOfAttributes<XMPPAttributeAccesso
             final CompositeData value = getValue(CompositeData.class);
             final StringBuilder result = new StringBuilder(64);
             for (final String key : value.getCompositeType().keySet())
-                IOUtils.appendln(result, "%s = %s", key, FORMATTER.toJson(value.get(key)));
+                result
+                        .append(String.format("%s = %s", key, FORMATTER.toJson(value.get(key))))
+                        .append(System.lineSeparator());
             return result.toString();
         }
     }
@@ -251,15 +252,10 @@ final class XMPPModelOfAttributes extends ModelOfAttributes<XMPPAttributeAccesso
             super(metadata);
         }
 
-        private static String joinString(final Collection<?> values,
+        private static String joinString(final Stream<String> values,
                                          final String format,
                                          final String separator) {
-            return Joiner.on(separator).join(Collections2.transform(values, new Function<Object, String>() {
-                @Override
-                public String apply(final Object input) {
-                    return String.format(format, input);
-                }
-            }));
+            return String.join(separator, (CharSequence[]) values.map(input -> String.format(format, input)).toArray(String[]::new));
         }
 
         @Override
@@ -269,16 +265,9 @@ final class XMPPModelOfAttributes extends ModelOfAttributes<XMPPAttributeAccesso
             final String COLUMN_SEPARATOR = "\t";
             final String ITEM_FORMAT = "%-10s";
             //print column first
-            result.append(joinString(data.getTabularType().getRowType().keySet(), ITEM_FORMAT, COLUMN_SEPARATOR));
+            result.append(joinString(data.getTabularType().getRowType().keySet().stream(), ITEM_FORMAT, COLUMN_SEPARATOR));
             //print rows
-            TabularDataUtils.forEachRow(data, new SafeConsumer<CompositeData>() {
-                @SuppressWarnings("unchecked")
-                @Override
-                public void accept(final CompositeData row) {
-                    final Collection<?> values = Collections2.transform(row.values(), new JsonSerializerFunction(FORMATTER));
-                    result.append(joinString(values, ITEM_FORMAT, COLUMN_SEPARATOR));
-                }
-            });
+            TabularDataUtils.forEachRow(data, row -> result.append(joinString(row.values().stream().map(FORMATTER::toJson), ITEM_FORMAT, COLUMN_SEPARATOR)));
             return result.toString();
         }
     }

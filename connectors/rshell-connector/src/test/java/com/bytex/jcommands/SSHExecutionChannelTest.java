@@ -7,11 +7,7 @@ import com.bytex.jcommands.impl.XmlParsingResultType;
 import com.bytex.snamp.internal.OperatingSystem;
 import com.google.common.collect.ImmutableMap;
 import org.apache.sshd.SshServer;
-import org.apache.sshd.server.Command;
-import org.apache.sshd.server.CommandFactory;
-import org.apache.sshd.server.PasswordAuthenticator;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
-import org.apache.sshd.server.session.ServerSession;
 import org.apache.sshd.server.shell.ProcessShellFactory;
 import org.junit.*;
 
@@ -22,7 +18,7 @@ import java.util.Objects;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class SSHExecutionChannelTest extends Assert {
@@ -35,20 +31,9 @@ public final class SSHExecutionChannelTest extends Assert {
         server = SshServer.setUpDefaultServer();
         server.setPort(PORT);
         server.setKeyPairProvider(new SimpleGeneratorHostKeyProvider(System.getProperty("ssh-cert-file", "hostkey.ser")));
-        server.setPasswordAuthenticator(new PasswordAuthenticator() {
-            @Override
-            public boolean authenticate(final String username, final String password, final ServerSession session) {
-                return Objects.equals(username, USER_NAME) &&
-                        Objects.equals(password, PASSWORD);
-            }
-        });
-        server.setCommandFactory(new CommandFactory() {
-            @Override
-            public Command createCommand(final String command) {
-                final ProcessShellFactory factory = new ProcessShellFactory(command.split(" "));
-                return factory.create();
-            }
-        });
+        server.setPasswordAuthenticator((username, password, session) -> Objects.equals(username, USER_NAME) &&
+                Objects.equals(password, PASSWORD));
+        server.setCommandFactory(command -> new ProcessShellFactory(command.split(" ")).create());
     }
 
     @Before
@@ -79,14 +64,14 @@ public final class SSHExecutionChannelTest extends Assert {
         template.getCommandOutputParser().addParsingRule("[a-z]+");
         template.getCommandOutputParser().addParsingRule("[a-z]+");
         template.getCommandOutputParser().addParsingRule("[a-z]+");
-        template.getCommandOutputParser().addParsingRule("[a-z]+");
+        template.getCommandOutputParser().addParsingRule("[a-z]+(/[a-z]+)?");
         template.getCommandOutputParser().addParsingRule("[a-z]+");
         template.getCommandOutputParser().addParsingRule("[a-zA-Z]+\\:");
         template.getCommandOutputParser().addDictionaryEntryRule("total", "[0-9]+", XmlParsingResultType.INTEGER);
         template.getCommandOutputParser().addDictionaryEntryRule("used", "[0-9]+", XmlParsingResultType.INTEGER);
         template.getCommandOutputParser().addDictionaryEntryRule("free", "[0-9]+", XmlParsingResultType.INTEGER);
         assertNotNull(channel);
-        final Object memStatus = channel.exec(template, Collections.<String, Object>emptyMap());
+        final Object memStatus = channel.exec(template, Collections.emptyMap());
         assertTrue(memStatus instanceof Map);
         assertEquals(3, ((Map)memStatus).size());
         assertTrue(((Map)memStatus).get("total") instanceof Integer);

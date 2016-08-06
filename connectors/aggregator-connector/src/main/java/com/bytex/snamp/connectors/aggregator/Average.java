@@ -3,11 +3,12 @@ package com.bytex.snamp.connectors.aggregator;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 
 import javax.management.openmbean.SimpleType;
-import static com.bytex.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration;
+
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class Average extends UnaryAttributeAggregation<Double> {
@@ -40,8 +41,8 @@ final class Average extends UnaryAttributeAggregation<Double> {
         return sum / count;
     }
 
-    static SerializableAttributeConfiguration getConfiguratoin() {
-        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration();
+    static AttributeConfiguration getConfiguration() {
+        final AttributeConfiguration result = createAttributeConfiguration(Average.class.getClassLoader());
         result.setAlternativeName(NAME);
         fillParameters(result.getParameters());
         return result;

@@ -7,7 +7,7 @@ import org.osgi.service.log.LogService;
 /**
  * The type Log event notification.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class LogEventNotification extends OpenMBean.OpenNotification<LogEntry> {
@@ -15,22 +15,22 @@ final class LogEventNotification extends OpenMBean.OpenNotification<LogEntry> {
     /**
      * The constant ERROR_NOTIF_TYPE.
      */
-    public static final String ERROR_NOTIF_TYPE = "com.bytex.snamp.monitoring.error";
+    private static final String ERROR_NOTIF_TYPE = "com.bytex.snamp.monitoring.error";
 
     /**
      * The constant WARNING_NOTIF_TYPE.
      */
-    public static final String WARNING_NOTIF_TYPE  ="com.bytex.snamp.monitoring.warning";
+    private static final String WARNING_NOTIF_TYPE  ="com.bytex.snamp.monitoring.warning";
 
     /**
      * The constant INFO_NOTIF_TYPE.
      */
-    public static final String INFO_NOTIF_TYPE  = "com.bytex.snamp.monitoring.info";
+    private static final String INFO_NOTIF_TYPE  = "com.bytex.snamp.monitoring.info";
 
     /**
      * The constant DEBUG_NOTIF_TYPE.
      */
-    public static final String DEBUG_NOTIF_TYPE = "com.bytex.snamp.monitoring.debug";
+    private static final String DEBUG_NOTIF_TYPE = "com.bytex.snamp.monitoring.debug";
 
     /**
      * Instantiates a new Log event notification.

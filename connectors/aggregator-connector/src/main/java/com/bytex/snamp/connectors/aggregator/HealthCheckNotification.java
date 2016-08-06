@@ -6,11 +6,12 @@ import com.bytex.snamp.internal.Utils;
 
 import javax.management.JMException;
 import java.util.logging.Logger;
-import static com.bytex.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableEventConfiguration;
+
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class HealthCheckNotification extends AbstractAggregatorNotification {
@@ -33,8 +34,8 @@ final class HealthCheckNotification extends AbstractAggregatorNotification {
         }
     }
 
-    static SerializableEventConfiguration getConfiguration() {
-        final SerializableEventConfiguration result = new SerializableEventConfiguration();
+    static EventConfiguration getConfiguration() {
+        final EventConfiguration result = createEventConfiguration(HealthCheckNotification.class.getClassLoader());
         result.setAlternativeName(CATEGORY);
         result.getParameters().put(AggregatorConnectorConfiguration.SOURCE_PARAM, "");
         result.getParameters().put(AggregatorConnectorConfiguration.FOREIGN_ATTRIBUTE_PARAM, "");

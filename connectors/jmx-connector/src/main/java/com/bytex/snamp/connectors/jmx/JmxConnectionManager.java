@@ -1,15 +1,19 @@
 package com.bytex.snamp.connectors.jmx;
 
-import com.bytex.snamp.concurrent.Repeater;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.Internal;
 import com.bytex.snamp.ThreadSafe;
+import com.bytex.snamp.concurrent.Repeater;
+import com.bytex.snamp.concurrent.VolatileBox;
 
-import javax.management.*;
+import javax.management.JMException;
+import javax.management.MBeanServerConnection;
+import javax.management.ObjectInstance;
+import javax.management.ObjectName;
 import javax.management.remote.JMXConnectionNotification;
 import javax.management.remote.JMXConnector;
 import java.io.Closeable;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -24,7 +28,7 @@ import java.util.logging.Logger;
  * Represents JMX connectionHolder manager that provides reliable access to
  * MBean Server connectionHolder. This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @Internal
@@ -70,10 +74,10 @@ final class JmxConnectionManager implements AutoCloseable {
         private final Lock writeLock;
         private final ConnectionHolder connectionHolder;
         private final List<ConnectionEstablishedEventHandler> reconnectionHandlers;
-        private final AtomicReference<IOException> problem;
+        private final VolatileBox<IOException> problem;
         private final Logger logger;
 
-        private ConnectionWatchDog(final TimeSpan period,
+        private ConnectionWatchDog(final Duration period,
                                    final ConnectionHolder connection,
                                    final Lock writeLock,
                                    final Logger logger) {
@@ -82,7 +86,7 @@ final class JmxConnectionManager implements AutoCloseable {
             this.writeLock = Objects.requireNonNull(writeLock);
             this.connectionHolder = connection;
             this.reconnectionHandlers = new Vector<>(4);
-            this.problem = new AtomicReference<>(null);
+            this.problem = new VolatileBox<>();
         }
 
         /**
@@ -98,7 +102,7 @@ final class JmxConnectionManager implements AutoCloseable {
         @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
         private void reportProblemAndWait(final IOException e) throws InterruptedException {
             reportProblem(problem, e);
-            while (problem.get() != null)
+            while (problem.hasValue())
                 Thread.sleep(1);
         }
 
@@ -115,24 +119,18 @@ final class JmxConnectionManager implements AutoCloseable {
                 }
         }
 
-        private static NotificationListener createConnectionTracker(final AtomicReference<IOException> problemHolder) {
-            return new NotificationListener() {
-                @Override
-                public void handleNotification(final Notification notification, final Object handback) {
-                    if (notification instanceof JMXConnectionNotification &&
-                            (Objects.equals(notification.getType(), JMXConnectionNotification.NOTIFS_LOST) ||
-                                    Objects.equals(notification.getType(), JMXConnectionNotification.FAILED)))
-                        reportProblem(problemHolder, new IOException(notification.getMessage()));
-                }
-            };
-        }
-
         /**
          * Provides some periodical action.
          */
         @Override
         protected void doAction() {
-            writeLock.lock();
+            //attempts to lock
+            try {
+                writeLock.lockInterruptibly();
+            } catch (final InterruptedException ignored) {
+                return;       //thread is interrupted, just leave this method without any additional actions
+            }
+
             try {
                 @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
                 final IOException problem = this.problem.get();
@@ -140,7 +138,12 @@ final class JmxConnectionManager implements AutoCloseable {
                 if (problem != null) { //we have a network problem, force reconnection
                     final JMXConnector connector = connectionHolder.createConnection();
                     server = connector.getMBeanServerConnection();
-                    connector.addConnectionNotificationListener(createConnectionTracker(this.problem), null, null);
+                    connector.addConnectionNotificationListener((notification, handback) -> {
+                        if (notification instanceof JMXConnectionNotification &&
+                                (Objects.equals(notification.getType(), JMXConnectionNotification.NOTIFS_LOST) ||
+                                        Objects.equals(notification.getType(), JMXConnectionNotification.FAILED)))
+                            reportProblem(this.problem, new IOException(notification.getMessage()));
+                    }, null, null);
                 } else return;//no problem, return from method
                 //notify about new connection
                 onReconnection(server);
@@ -158,7 +161,7 @@ final class JmxConnectionManager implements AutoCloseable {
     private final ConnectionHolder connectionHolder;
     private final ConnectionWatchDog watchDog;
     private final Lock readLock;
-    private final TimeSpan watchPeriod;
+    private final Duration watchPeriod;
 
     JmxConnectionManager(final JmxConnectionFactory connectionString,
                          final long watchDogPeriod,
@@ -166,7 +169,7 @@ final class JmxConnectionManager implements AutoCloseable {
         final ReentrantReadWriteLock coordinator = new ReentrantReadWriteLock();
         this.readLock = coordinator.readLock();
         connectionHolder = new ConnectionHolder(connectionString);
-        watchDog = new ConnectionWatchDog(this.watchPeriod = TimeSpan.ofMillis(watchDogPeriod), connectionHolder, coordinator.writeLock(), logger);
+        watchDog = new ConnectionWatchDog(this.watchPeriod = Duration.ofMillis(watchDogPeriod), connectionHolder, coordinator.writeLock(), logger);
         //staring the watch dog
         watchDog.run();
     }
@@ -182,7 +185,7 @@ final class JmxConnectionManager implements AutoCloseable {
     }
 
     @ThreadSafe
-    <T> T handleConnection(final MBeanServerConnectionHandler<T> handler) throws Exception {
+    <T> T handleConnection(final MBeanServerConnectionHandler<T> handler) throws InterruptedException, JMException, IOException {
         readLock.lockInterruptibly();
         try {
             if (connectionHolder.isInitialized()) {
@@ -227,13 +230,10 @@ final class JmxConnectionManager implements AutoCloseable {
             }
     }
 
-    ObjectName resolveName(final ObjectName name) throws Exception {
-        return handleConnection(new MBeanServerConnectionHandler<ObjectName>() {
-            @Override
-            public ObjectName handle(final MBeanServerConnection connection) throws IOException, JMException {
-                final Set<ObjectInstance> beans = connection.queryMBeans(name, null);
-                return beans.size() > 0 ? beans.iterator().next().getObjectName() : null;
-            }
+    ObjectName resolveName(final ObjectName name) throws InterruptedException, JMException, IOException {
+        return handleConnection(connection -> {
+            final Set<ObjectInstance> beans = connection.queryMBeans(name, null);
+            return beans.size() > 0 ? beans.iterator().next().getObjectName() : null;
         });
     }
 

@@ -1,29 +1,29 @@
 package com.bytex.snamp.management.jmx;
 
 
-import com.google.common.collect.Maps;
 import com.bytex.snamp.adapters.ResourceAdapterClient;
-import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.KeyValueTypeBuilder;
 import com.bytex.snamp.jmx.TabularDataBuilderRowFill;
 import com.bytex.snamp.jmx.TabularDataUtils;
+import com.google.common.collect.Maps;
 import org.osgi.framework.BundleContext;
 
 import javax.management.JMException;
 import javax.management.MBeanFeatureInfo;
-import javax.management.openmbean.*;
-
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.SimpleType;
+import javax.management.openmbean.TabularData;
+import javax.management.openmbean.TabularType;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.Callable;
 
-import static com.bytex.snamp.jmx.OpenMBean.OpenOperation;
 import static com.bytex.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
+import static com.bytex.snamp.jmx.OpenMBean.OpenOperation;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 abstract class AbstractBindingInfoOperation<F extends MBeanFeatureInfo> extends OpenOperation<TabularData, TabularType> {
@@ -35,17 +35,12 @@ abstract class AbstractBindingInfoOperation<F extends MBeanFeatureInfo> extends 
             SimpleType.STRING,
             false
     );
-    protected static final TabularType DETAILS_TYPE = Utils.interfaceStaticInitialize(new Callable<TabularType>() {
-        @Override
-        public TabularType call() throws Exception {
-            return new KeyValueTypeBuilder<String, String>()
-                    .setTypeName("FeatureBindingDetails")
-                    .setTypeDescription("A set of configuration parameters")
-                    .setKeyColumn("parameter", "Parameter name", SimpleType.STRING)
-                    .setValueColumn("value", "Parameter value", SimpleType.STRING)
-                    .build();
-        }
-    });
+    protected static final TabularType DETAILS_TYPE = Utils.interfaceStaticInitialize(() -> new KeyValueTypeBuilder<String, String>()
+            .setTypeName("FeatureBindingDetails")
+            .setTypeDescription("A set of configuration parameters")
+            .setKeyColumn("parameter", "Parameter name", SimpleType.STRING)
+            .setValueColumn("value", "Parameter value", SimpleType.STRING)
+            .build());
 
     private final Class<F> featureType;
 
@@ -67,23 +62,20 @@ abstract class AbstractBindingInfoOperation<F extends MBeanFeatureInfo> extends 
     }
 
     protected abstract void fillRow(final TabularDataBuilderRowFill.RowBuilder row,
-                                    final FeatureBindingInfo<F> bindingInfo) throws OpenDataException;
+                                    final FeatureBindingInfo<F> bindingInfo);
 
     private TabularData invoke(final BundleContext context,
                                      final String instanceName) throws JMException {
         final ResourceAdapterClient client = new ResourceAdapterClient(context, instanceName);
         try {
             final TabularDataBuilderRowFill result = new TabularDataBuilderRowFill(returnType);
-            client.forEachFeature(featureType, new EntryReader<String, FeatureBindingInfo<F>, OpenDataException>() {
-                @Override
-                public boolean read(final String resourceName, final FeatureBindingInfo<F> bindingInfo) throws OpenDataException {
-                    final TabularDataBuilderRowFill.RowBuilder row = result.newRow()
-                            .cell(RESOURCE_NAME_COLUMN, resourceName)
-                            .cell(DETAILS_COLUMN, toTabularData(bindingInfo));
-                    fillRow(row, bindingInfo);
-                    row.flush();
-                    return true;
-                }
+            client.forEachFeature(featureType, (resourceName, bindingInfo) -> {
+                final TabularDataBuilderRowFill.RowBuilder row = result.newRow()
+                        .cell(RESOURCE_NAME_COLUMN, resourceName)
+                        .cell(DETAILS_COLUMN, toTabularData(bindingInfo));
+                fillRow(row, bindingInfo);
+                row.flush();
+                return true;
             });
             return result.get();
         }

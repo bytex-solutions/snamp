@@ -1,6 +1,6 @@
 package com.bytex.snamp.management.shell;
 
-import com.google.common.base.Strings;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -9,7 +9,7 @@ import java.util.Objects;
 /**
  * Represents parameter/value pair.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class StringKeyValue implements Map.Entry<String, String>, Serializable {
@@ -24,7 +24,7 @@ final class StringKeyValue implements Map.Entry<String, String>, Serializable {
     }
 
     static StringKeyValue parse(final String pair){
-        if(Strings.isNullOrEmpty(pair)) return null;
+        if(isNullOrEmpty(pair)) return null;
         final int index = pair.indexOf('=');
         return index > 0 ?
                 new StringKeyValue(pair.substring(0, index), pair.substring(index + 1)):

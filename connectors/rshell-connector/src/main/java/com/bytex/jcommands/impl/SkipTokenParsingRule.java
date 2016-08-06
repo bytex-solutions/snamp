@@ -6,7 +6,7 @@ import javax.xml.bind.annotation.*;
  * Represents parsing for the placeholder.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @XmlType(name = "SkipTokenParsingRule", namespace = XmlConstants.NAMESPACE)

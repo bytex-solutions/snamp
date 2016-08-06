@@ -12,7 +12,7 @@ import java.util.Arrays;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class JsonUtils {

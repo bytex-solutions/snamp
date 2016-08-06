@@ -1,18 +1,20 @@
 package com.bytex.snamp.jmx;
 
 import com.bytex.snamp.MethodStub;
-import com.google.common.base.Supplier;
+import com.bytex.snamp.concurrent.LazyValueFactory;
+import com.bytex.snamp.concurrent.LazyValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 
 import javax.management.*;
 import javax.management.openmbean.*;
 import java.lang.reflect.Method;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
+import static com.bytex.snamp.jmx.DescriptorUtils.DEFAULT_VALUE_FIELD;
 
 /**
  * Represents an abstract class for building Open MBeans.
@@ -27,7 +29,7 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
  *     </ul>
  * </p>
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public abstract class OpenMBean extends NotificationBroadcasterSupport implements DynamicMBean {
@@ -37,7 +39,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
      * @param <T> Type of the provided MBean feature.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      * @see OpenMBean.OpenNotification
      * @see OpenMBean.OpenOperation
      * @see OpenMBean.OpenAttribute
@@ -77,7 +79,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
      * @param <N> Type of the native notification.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     public static abstract class OpenNotification<N> extends OpenMBeanElement<MBeanNotificationInfo>{
         private final String[] types;
@@ -121,7 +123,6 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
          * @param eventObject The native notification to parse.
          * @return The additional notification payload.
          */
-        @SuppressWarnings("UnusedParameters")
         @MethodStub
         protected Object getUserData(final N eventObject){
             return null;
@@ -177,19 +178,30 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
          * Describes parameter of the operation.
          * @param <T> Type of the parameter
          */
-        public static class TypedParameterInfo<T> extends OpenMBeanParameterInfoSupport {
-            private static final long serialVersionUID = -3343022428532139904L;
+        public static final class TypedParameterInfo<T> implements Supplier<OpenMBeanParameterInfoSupport>{
+            private final OpenMBeanParameterInfoSupport parameter;
             private final boolean nullable;
-            private final T defaultValue;
 
             public TypedParameterInfo(final String name,
                                       final String description,
                                       final OpenType<T> openType,
                                       final boolean nullable,
                                       final T defValue) {
-                super(name, description, openType);
+                final Map<String, Object> descriptor = new HashMap<>();
+                if(defValue != null)
+                    descriptor.put(DEFAULT_VALUE_FIELD, defValue);
+                this.parameter = new OpenMBeanParameterInfoSupport(name, description, openType, new ImmutableDescriptor(descriptor));
                 this.nullable = nullable;
-                this.defaultValue = defValue;
+            }
+
+            /**
+             * Gets MBean operation parameter.
+             *
+             * @return MBean operation parameter.
+             */
+            @Override
+            public OpenMBeanParameterInfoSupport get() {
+                return parameter;
             }
 
             public TypedParameterInfo(final String name,
@@ -210,19 +222,18 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
              *
              * @return {@literal true}, if this value of this parameter can be {@literal null}; otherwise, {@literal false}.
              */
-            public final boolean isNullable() {
+            public boolean isNullable() {
                 return nullable;
             }
 
-            @Override
-            public final T getDefaultValue() {
-                return defaultValue;
+            @SuppressWarnings("unchecked")
+            public T getDefaultValue() {
+                return (T)parameter.getDefaultValue();
             }
 
             @SuppressWarnings("unchecked")
-            @Override
-            public final OpenType<T> getOpenType() {
-                return (OpenType<T>) super.getOpenType();
+            public OpenType<T> getOpenType() {
+                return (OpenType<T>) parameter.getOpenType();
             }
 
             /**
@@ -231,17 +242,17 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
              * @return Actual value of this parameter.
              * @throws IllegalArgumentException Incorrect actual value of this parameter.
              */
-            public final T getArgument(final Map<String, ?> arguments) throws OperationArgumentException {
-                if (arguments.containsKey(getName())) {
+            public T getArgument(final Map<String, ?> arguments) throws OperationArgumentException {
+                if (arguments.containsKey(parameter.getName())) {
                     try {
-                        return cast(getOpenType(), arguments.get(getName()));
+                        return cast(getOpenType(), arguments.get(parameter.getName()));
                     } catch (final OpenDataException e) {
                         throw new OperationArgumentException(getOpenType(), e);
                     }
-                } else if (nullable || defaultValue != null)
-                    return defaultValue;
+                } else if (isNullable() || getDefaultValue() != null)
+                    return getDefaultValue();
                 else
-                    throw new OperationArgumentException(this);
+                    throw new OperationArgumentException(parameter);
             }
         }
 
@@ -255,6 +266,14 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
             super(operationName);
             this.returnType = returnType;
             this.parameters = ImmutableList.copyOf(parameters);
+        }
+
+        protected OpenOperation(final String operationName, final T returnType, final TypedParameterInfo<?>... parameters) {
+            this(operationName, returnType, Arrays.stream(parameters).map(TypedParameterInfo::get).toArray(OpenMBeanParameterInfo[]::new));
+        }
+
+        protected OpenOperation(final String operationName, final T returnType){
+            this(operationName, returnType, emptyArray(OpenMBeanParameterInfo[].class));
         }
 
         public abstract R invoke(final Map<String, ?> arguments) throws Exception;
@@ -318,7 +337,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
          * Represents type of the attribute.
          */
         protected final T openType;
-        private volatile Class<V> javaType;
+        private final LazyValue<Class<V>> javaType;
         private final ThreadLocal<OpenMBean> owner;
 
         /**
@@ -329,7 +348,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
         protected OpenAttribute(final String attributeName, final T openType){
             super(attributeName);
             this.openType = openType;
-            javaType = null;
+            javaType = LazyValueFactory.THREAD_SAFE.of(() -> null);
             owner = new ThreadLocal<>();
         }
 
@@ -426,14 +445,14 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
         }
 
         @SuppressWarnings("unchecked")
-        private synchronized Class<V> getJavaTypeSync() throws ClassNotFoundException{
-            if(javaType == null)
-                javaType = (Class<V>)Class.forName(openType.getClassName());
-            return javaType;
-        }
-
         private Class<V> getJavaType() throws ClassNotFoundException {
-            return javaType == null ? getJavaTypeSync() : javaType;
+            try {
+                return javaType.get(() -> (Class<V>) Class.forName(openType.getClassName()));
+            } catch (final ClassNotFoundException e) {
+                throw e;
+            } catch (final Exception e) {
+                throw new ClassNotFoundException(String.format("Unable to load class for type '%s'", openType), e);
+            }
         }
 
         /**
@@ -687,15 +706,15 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
     }
 
     protected final <N> void sendNotification(final Class<? extends OpenNotification<N>> notifType, final N eventObject){
-        for(final OpenNotification<?> n: notifications)
-            if(notifType.isInstance(n))
-                sendNotification(notifType.cast(n).createNotification(this, eventObject));
+        notifications.stream()
+                .filter(notifType::isInstance)
+                .forEach(n -> sendNotification(notifType.cast(n).createNotification(OpenMBean.this, eventObject)));
     }
 
     public final void sendNotification(final String name, final Object eventObject){
-        for(final OpenNotification<?> n: notifications)
-            if(Objects.equals(name, n.name))
-                sendNotification(n.createNotificationUnsafe(this, eventObject));
+        notifications.stream()
+                .filter(n -> n.name.equals(name))
+                .forEach(n -> sendNotification(n.createNotificationUnsafe(OpenMBean.this, eventObject)));
     }
 
     /**

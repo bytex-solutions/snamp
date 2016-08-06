@@ -13,7 +13,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfigurati
  * wrapped into {@link javax.management.openmbean.CompositeData}.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class ConfigParameters extends AbstractCompositeData<String> {
@@ -52,7 +52,7 @@ public final class ConfigParameters extends AbstractCompositeData<String> {
      * @return An empty set of configuration parameters.
      */
     public static ConfigParameters empty(){
-        return new ConfigParameters(ImmutableMap.<String, String>of());
+        return new ConfigParameters(ImmutableMap.of());
     }
 
     /**

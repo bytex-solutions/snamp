@@ -4,20 +4,19 @@ import com.bytex.snamp.configuration.AbsentConfigurationParameterException;
 import com.bytex.snamp.connectors.mda.DataAcceptor;
 import com.bytex.snamp.connectors.mda.MDAAttributeRepository;
 import com.bytex.snamp.connectors.mda.MDANotificationRepository;
-import com.bytex.snamp.connectors.mq.MQResourceConnectorConfigurationDescriptor;
+import com.bytex.snamp.connectors.mq.MQResourceConnectorDescriptionProvider;
 import com.bytex.snamp.internal.Utils;
-import com.google.common.base.Strings;
-import com.google.common.base.Supplier;
 
 import javax.jms.*;
 import java.io.IOException;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class JMSDataAcceptor extends DataAcceptor implements ExceptionListener {
@@ -36,18 +35,17 @@ final class JMSDataAcceptor extends DataAcceptor implements ExceptionListener {
     JMSDataAcceptor(final String resourceName,
                     final Map<String, String> parameters,
                     final JMSDataConverter converter,
-                    final Supplier<ExecutorService> threadPoolFactory,
                     final ConnectionFactory factory) throws JMSException, AbsentConfigurationParameterException {
         dataConverter = converter;
-        jmsConnection = MQResourceConnectorConfigurationDescriptor.createConnection(factory, parameters);
-        queueName = MQResourceConnectorConfigurationDescriptor.getInputQueueName(parameters);
-        isTopic = MQResourceConnectorConfigurationDescriptor.isInputTopic(parameters);
-        messageSelector = MQResourceConnectorConfigurationDescriptor.getMessageSelector(parameters);
-        outputQueueName = MQResourceConnectorConfigurationDescriptor.getOutputQueueName(parameters);
-        isTopicOutput = MQResourceConnectorConfigurationDescriptor.isOutputTopic(parameters);
+        jmsConnection = MQResourceConnectorDescriptionProvider.getInstance().createConnection(factory, parameters);
+        queueName = MQResourceConnectorDescriptionProvider.getInstance().getInputQueueName(parameters);
+        isTopic = MQResourceConnectorDescriptionProvider.getInstance().isInputTopic(parameters);
+        messageSelector = MQResourceConnectorDescriptionProvider.getInstance().getMessageSelector(parameters);
+        outputQueueName = MQResourceConnectorDescriptionProvider.getInstance().getOutputQueueName(parameters);
+        isTopicOutput = MQResourceConnectorDescriptionProvider.getInstance().isOutputTopic(parameters);
         attributes = new JMSAttributeRepository(resourceName, converter, getLogger());
         notifications = new JMSNotificationRepository(resourceName,
-                threadPoolFactory.get(),
+                MQResourceConnectorDescriptionProvider.getInstance().parseThreadPool(parameters),
                 converter,
                 Utils.getBundleContextOfObject(this),
                 getLogger());
@@ -59,7 +57,7 @@ final class JMSDataAcceptor extends DataAcceptor implements ExceptionListener {
      * @return Repository of attributes.
      */
     @Override
-    @Aggregation
+    @Aggregation(cached = true)
     protected MDAAttributeRepository<?> getAttributes() {
         return attributes;
     }
@@ -70,7 +68,7 @@ final class JMSDataAcceptor extends DataAcceptor implements ExceptionListener {
      * @return Repository of notifications metadata.
      */
     @Override
-    @Aggregation
+    @Aggregation(cached = true)
     protected MDANotificationRepository getNotifications() {
         return notifications;
     }
@@ -91,7 +89,7 @@ final class JMSDataAcceptor extends DataAcceptor implements ExceptionListener {
                     outputQueueName,
                     isTopicOutput);
             final Destination dest = isTopic ? jmsSession.createTopic(queueName) : jmsSession.createQueue(queueName);
-            final MessageConsumer consumer = Strings.isNullOrEmpty(messageSelector) ?
+            final MessageConsumer consumer = isNullOrEmpty(messageSelector) ?
                     jmsSession.createConsumer(dest) :
                     jmsSession.createConsumer(dest, messageSelector);
             consumer.setMessageListener(new JMSMessageListener(attributes, notifications, dataConverter, getLogger()));

@@ -1,14 +1,13 @@
 package com.bytex.snamp.connectors;
 
+import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.ThreadSafe;
+import com.bytex.snamp.WeakEventListener;
 import com.bytex.snamp.WeakEventListenerList;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.connectors.metrics.Metrics;
 import com.bytex.snamp.io.IOUtils;
-import com.google.common.base.Function;
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
-import com.google.common.collect.ObjectArrays;
 import com.google.common.collect.Sets;
 
 import javax.management.MBeanFeatureInfo;
@@ -20,18 +19,29 @@ import java.util.*;
  * @param <F> Type of the features managed by repository.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  */
 public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> extends ThreadSafeObject implements Iterable<F> {
-
-    private static final class ResourceEventListenerList extends WeakEventListenerList<ResourceEventListener, ResourceEvent> {
-        private ResourceEventListenerList() {
-
+    private static final class WeakResourceEventListener extends WeakEventListener<ResourceEventListener, ResourceEvent> implements ResourceEventListener{
+        private WeakResourceEventListener(final ResourceEventListener listener) {
+            super(listener);
         }
 
         @Override
-        protected void invoke(final ResourceEvent event, final ResourceEventListener listener) {
+        protected void invoke(final ResourceEventListener listener, final ResourceEvent event) {
             listener.handle(event);
+        }
+
+        @Override
+        public void handle(final ResourceEvent event) {
+            invoke(event);
+        }
+    }
+
+    private static final class ResourceEventListenerList extends WeakEventListenerList<ResourceEventListener, ResourceEvent> {
+        @Override
+        protected WeakResourceEventListener createWeakEventListener(final ResourceEventListener listener) {
+            return new WeakResourceEventListener(listener);
         }
     }
 
@@ -40,7 +50,7 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
      * @param <F> Type of the managed resource feature.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     protected static abstract class FeatureHolder<F extends MBeanFeatureInfo>{
         private final F metadata;
@@ -99,7 +109,7 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
     /**
      * Metadata of the resource feature stored in repository.
      */
-    protected final Class<F> metadataType;
+    final Class<F> metadataType;
     private final ResourceEventListenerList resourceEventListeners;
     private final String resourceName;
 
@@ -150,11 +160,7 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
     }
 
     protected final F[] toArray(final Collection<? extends FeatureHolder<F>> features) {
-        final F[] result = ObjectArrays.newArray(metadataType, features.size());
-        int index = 0;
-        for(final FeatureHolder<F> holder: features)
-            result[index++] = holder.getMetadata();
-        return result;
+        return features.stream().map(FeatureHolder::getMetadata).toArray(ArrayUtils.arrayConstructor(metadataType));
     }
 
     protected final void removeAllResourceEventListeners() {
@@ -219,12 +225,7 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
         return Collections.emptyList();
     }
 
-    protected static  <F extends MBeanFeatureInfo> Iterator<F> iterator(final Iterable<? extends FeatureHolder<F>> holders){
-        return Iterators.transform(holders.iterator(), new Function<FeatureHolder<F>, F>() {
-            @Override
-            public F apply(final FeatureHolder<F> input) {
-                return input.getMetadata();
-            }
-        });
+    protected static  <F extends MBeanFeatureInfo> Iterator<F> iterator(final Collection<? extends FeatureHolder<F>> holders){
+        return holders.stream().map(FeatureHolder::getMetadata).iterator();
     }
 }

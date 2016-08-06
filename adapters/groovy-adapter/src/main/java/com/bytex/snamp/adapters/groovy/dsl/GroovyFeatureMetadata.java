@@ -10,7 +10,7 @@ import static com.bytex.snamp.jmx.DescriptorUtils.*;
 /**
  * Represents Groovy-compliant wrapper for {@link MBeanFeatureInfo} class and its derivatives.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 class GroovyFeatureMetadata<F extends MBeanFeatureInfo> extends GroovyObjectSupport {

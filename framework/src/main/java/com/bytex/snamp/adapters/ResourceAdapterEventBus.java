@@ -2,20 +2,21 @@ package com.bytex.snamp.adapters;
 
 import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.Internal;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.GroupedThreadFactory;
 import com.bytex.snamp.EntryReader;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
 import java.lang.ref.WeakReference;
+import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class ResourceAdapterEventBus {
@@ -32,21 +33,12 @@ final class ResourceAdapterEventBus {
             this.event = event;
         }
 
-        private static Runnable eventWithListener(final ResourceAdapterEvent event, final ResourceAdapterEventListener listener) {
-            return new Runnable() {
-                @Override
-                public void run() {
-                    listener.handle(event);
-                }
-            };
-        }
-
         @Override
         public boolean read(final String adapterName, final ResourceAdapterEventListener listener) {
             if (Objects.equals(this.adapterName, adapterName))
                 if (EVENT_EXECUTOR.isTerminated())
                     listener.handle(event);
-                else EVENT_EXECUTOR.execute(eventWithListener(event, listener));
+                else EVENT_EXECUTOR.execute(() -> listener.handle(event));
             return true;
         }
     }
@@ -58,9 +50,9 @@ final class ResourceAdapterEventBus {
     }
 
     @Internal
-    static boolean disableAsyncMode(final TimeSpan terminationTimeout) throws InterruptedException {
+    static boolean disableAsyncMode(final Duration terminationTimeout) throws InterruptedException {
         EVENT_EXECUTOR.shutdown();
-        return EVENT_EXECUTOR.awaitTermination(terminationTimeout.duration, terminationTimeout.unit);
+        return EVENT_EXECUTOR.awaitTermination(terminationTimeout.toNanos(), TimeUnit.NANOSECONDS);
     }
 
     static boolean addEventListener(final String adapterName,

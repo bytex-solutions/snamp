@@ -1,6 +1,5 @@
 package com.bytex.snamp.connectors.groovy;
 
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.internal.OperatingSystem;
 import com.google.common.base.Strings;
@@ -9,12 +8,14 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.time.temporal.ChronoUnit;
 
-import static com.bytex.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.bytex.snamp.configuration.impl.SerializableAgentConfiguration.newEntityConfiguration;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class ManagedResourceScriptEngineTest extends Assert {
@@ -33,9 +34,10 @@ public final class ManagedResourceScriptEngineTest extends Assert {
 
     @Test
     public void dummyAttributeTest() throws Exception {
-        final SerializableAttributeConfiguration config = new SerializableAttributeConfiguration();
-        config.setParameter("configParam", "Hello, world!");
-        config.setReadWriteTimeout(TimeSpan.ofSeconds(2));
+        final AttributeConfiguration config = newEntityConfiguration(AttributeConfiguration.class);
+        assertNotNull(config);
+        config.getParameters().put("configParam", "Hello, world!");
+        config.setReadWriteTimeout(2, ChronoUnit.SECONDS);
 
         final AttributeAccessor scr = engine.loadAttribute("DummyAttribute", new AttributeDescriptor(config));
         assertEquals(ManagedResourceAttributeScript.INT32, scr.type());

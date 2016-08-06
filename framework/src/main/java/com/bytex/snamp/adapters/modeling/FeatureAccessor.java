@@ -3,13 +3,13 @@ package com.bytex.snamp.adapters.modeling;
 import com.bytex.snamp.Internal;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.connectors.FeatureModifiedEvent;
-import com.google.common.base.Supplier;
 
 import javax.management.Descriptor;
 import javax.management.DescriptorRead;
 import javax.management.MBeanFeatureInfo;
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 /**
  * Represents an abstract class for all managed resource feature accessor.

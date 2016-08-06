@@ -13,7 +13,7 @@ import java.util.Set;
  * Additional service that can be exposed by {@link com.bytex.snamp.connectors.ManagedResourceActivator}
  * class that provides discovery method for management attributes or notifications.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public interface DiscoveryService extends SupportService {
@@ -21,7 +21,7 @@ public interface DiscoveryService extends SupportService {
      * Represents result of batch discovery operation.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     interface DiscoveryResult{
         /**
@@ -40,7 +40,7 @@ public interface DiscoveryService extends SupportService {
      * Represents an empty discovery result.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     final class EmptyDiscoveryResult implements DiscoveryResult{
         private final Set<Class<? extends FeatureConfiguration>> entities;

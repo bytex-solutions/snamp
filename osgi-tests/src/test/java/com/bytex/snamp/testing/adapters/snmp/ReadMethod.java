@@ -1,6 +1,7 @@
 package com.bytex.snamp.testing.adapters.snmp;
 
 import org.snmp4j.PDU;
+import org.snmp4j.Target;
 import org.snmp4j.smi.OID;
 import org.snmp4j.util.DefaultPDUFactory;
 import org.snmp4j.util.PDUFactory;
@@ -24,7 +25,12 @@ enum ReadMethod{
     }
 
     PDUFactory createPduFactory(){
-        return new DefaultPDUFactory(method);
+        return new DefaultPDUFactory(method) {
+            @Override
+            public PDU createPDU(final Target target) {
+                return createPDU(target, getPduType());
+            }
+        };
     }
 
     void prepareOIDs(final OID[] oids) {

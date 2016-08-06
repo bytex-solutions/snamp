@@ -15,7 +15,7 @@ import java.util.Objects;
 /**
  * Parses string to one of the JMX Open simple types.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  * @see javax.management.openmbean.SimpleType
  */

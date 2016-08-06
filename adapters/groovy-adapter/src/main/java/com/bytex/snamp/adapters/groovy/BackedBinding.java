@@ -10,7 +10,7 @@ import java.util.Objects;
  * Represents the variable bindings with fallback parent bindings.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class BackedBinding extends Binding {

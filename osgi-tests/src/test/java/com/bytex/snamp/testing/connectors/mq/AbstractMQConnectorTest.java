@@ -1,6 +1,6 @@
 package com.bytex.snamp.testing.connectors.mq;
 
-import com.bytex.snamp.Consumer;
+import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.connectors.mq.jms.QueueClient;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
@@ -14,7 +14,7 @@ import java.util.Map;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @SnampDependencies(SnampFeature.MQ_CONNECTOR)
@@ -56,7 +56,7 @@ public abstract class AbstractMQConnectorTest extends AbstractResourceConnectorT
         jmsConnection = null;
     }
 
-    protected final <E extends Throwable> void runTest(final Consumer<Session, E> testBody) throws JMSException, E {
+    protected final <E extends Throwable> void runTest(final Acceptor<Session, E> testBody) throws JMSException, E {
         final Session session = getJmsConnection().createSession(false, Session.AUTO_ACKNOWLEDGE);
         try{
             testBody.accept(session);

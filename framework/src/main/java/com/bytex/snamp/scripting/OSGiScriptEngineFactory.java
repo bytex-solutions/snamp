@@ -1,13 +1,12 @@
 package com.bytex.snamp.scripting;
 
-import com.bytex.snamp.ExceptionPlaceholder;
-import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.internal.Utils;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 /**
  * This is a wrapper class for the ScriptEngineFactory class that deals with context class loader issues
@@ -79,14 +78,17 @@ final class OSGiScriptEngineFactory implements ScriptEngineFactory{
     }
 
     @Override
-    public ScriptEngine getScriptEngine() {
-        return contextClassLoader != null ?
-                Utils.withContextClassLoader(contextClassLoader, new ExceptionalCallable<ScriptEngine, ExceptionPlaceholder>() {
-                    @Override
-                    public ScriptEngine call() {
-                        return factory.getScriptEngine();
-                    }
-                }) :
-                factory.getScriptEngine();
+    public ForwardingScriptEngine getScriptEngine() {
+        return new ForwardingScriptEngine() {
+            @Override
+            protected ScriptEngine delegate() {
+                return Utils.withContextClassLoader(contextClassLoader, (Supplier<ScriptEngine>) factory::getScriptEngine);
+            }
+
+            @Override
+            public OSGiScriptEngineFactory getFactory() {
+                return OSGiScriptEngineFactory.this;
+            }
+        };
     }
 }

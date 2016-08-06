@@ -1,7 +1,5 @@
 package com.bytex.snamp.jmx;
 
-import com.google.common.base.Predicate;
-import com.google.common.base.Supplier;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -12,17 +10,17 @@ import javax.management.openmbean.*;
 import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.nio.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Describes a well-known type that should be supported by
  * resource connector and understood by resource adapter.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Class<?>> {
@@ -472,7 +470,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
      *      otherwise, {@literal false}.
      */
     @Override
-    public boolean apply(final Object value){
+    public boolean test(final Object value){
         return isInstance(value);
     }
 
@@ -583,57 +581,29 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
     }
 
     private static EnumSet<WellKnownType> filterTypes(final Predicate<WellKnownType> filter){
-        final WellKnownType[] allTypes = values();
-        final Collection<WellKnownType> types = new ArrayList<>(allTypes.length);
-        for(final WellKnownType t: allTypes)
-            if(filter.apply(t))
-                types.add(t);
-        return EnumSet.copyOf(types);
+        return EnumSet.copyOf(Arrays.stream(values())
+                .filter(filter)
+                .collect(Collectors.toList()));
     }
 
     public static EnumSet<WellKnownType> getPrimitiveTypes(){
-        return filterTypes(new Predicate<WellKnownType>() {
-            @Override
-            public boolean apply(final WellKnownType input) {
-                return input.isPrimitive();
-            }
-        });
+        return filterTypes(WellKnownType::isPrimitive);
     }
 
     public static EnumSet<WellKnownType> getOpenTypes(){
-        return filterTypes(new Predicate<WellKnownType>() {
-            @Override
-            public boolean apply(final WellKnownType input) {
-                return input.isOpenType();
-            }
-        });
+        return filterTypes(WellKnownType::isOpenType);
     }
 
     public static EnumSet<WellKnownType> getArrayTypes(){
-        return filterTypes(new Predicate<WellKnownType>() {
-            @Override
-            public boolean apply(final WellKnownType input) {
-                return input.isArray();
-            }
-        });
+        return filterTypes(WellKnownType::isArray);
     }
 
     public static EnumSet<WellKnownType> getArrayOpenTypes(){
-        return filterTypes(new Predicate<WellKnownType>() {
-            @Override
-            public boolean apply(final WellKnownType input) {
-                return input.isOpenType() && input.isArray();
-            }
-        });
+        return filterTypes(input -> input.isOpenType() && input.isArray());
     }
 
     public static EnumSet<WellKnownType> getBufferTypes(){
-        return filterTypes(new Predicate<WellKnownType>() {
-            @Override
-            public boolean apply(final WellKnownType input) {
-                return input.isBuffer();
-            }
-        });
+        return filterTypes(WellKnownType::isBuffer);
     }
 
     public static WellKnownType getType(final Type t){

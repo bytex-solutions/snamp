@@ -1,12 +1,12 @@
 package com.bytex.snamp.management.jmx;
 
 import com.bytex.snamp.ArrayUtils;
-import com.google.common.base.MoreObjects;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.TabularDataBuilderRowFill;
 import com.bytex.snamp.jmx.TabularTypeBuilder;
 import com.bytex.snamp.jmx.WellKnownType;
+import static com.google.common.base.MoreObjects.firstNonNull;
 
 import javax.management.MBeanInfo;
 import javax.management.MBeanNotificationInfo;
@@ -14,11 +14,10 @@ import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.SimpleType;
 import javax.management.openmbean.TabularData;
 import javax.management.openmbean.TabularType;
-import java.util.concurrent.Callable;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class AvailableEventsOperation extends AvailableFeaturesOperation<MBeanNotificationInfo> {
@@ -30,20 +29,15 @@ final class AvailableEventsOperation extends AvailableFeaturesOperation<MBeanNot
     private static final String CATEGORY_COLUMN = "category";
     private static final String SEVERITY_COLUMN = "severity";
 
-    private static final TabularType RETURN_TYPE = Utils.interfaceStaticInitialize(new Callable<TabularType>() {
-        @Override
-        public TabularType call() throws OpenDataException {
-            return new TabularTypeBuilder()
-                    .setTypeName("AvailableNotifications", true)
-                    .setDescription("A set of available notifications", true)
-                    .addColumn(DESCRIPTION_COLUMN, "Description of the event", SimpleType.STRING, false)
-                    .addColumn(PARAMETERS_COLUMN, "Configuration parameters", PARAMETERS_TYPE, false)
-                    .addColumn(ATTACHMENT_TYPE_COLUMN, "Type of the notification attachment", SimpleType.STRING, false)
-                    .addColumn(CATEGORY_COLUMN, "Category of the event", SimpleType.STRING, true)
-                    .addColumn(SEVERITY_COLUMN, "Severity of the notification", SimpleType.STRING, false)
-                    .build();
-        }
-    });
+    private static final TabularType RETURN_TYPE = Utils.interfaceStaticInitialize(() -> new TabularTypeBuilder()
+            .setTypeName("AvailableNotifications", true)
+            .setDescription("A set of available notifications", true)
+            .addColumn(DESCRIPTION_COLUMN, "Description of the event", SimpleType.STRING, false)
+            .addColumn(PARAMETERS_COLUMN, "Configuration parameters", PARAMETERS_TYPE, false)
+            .addColumn(ATTACHMENT_TYPE_COLUMN, "Type of the notification attachment", SimpleType.STRING, false)
+            .addColumn(CATEGORY_COLUMN, "Category of the event", SimpleType.STRING, true)
+            .addColumn(SEVERITY_COLUMN, "Severity of the notification", SimpleType.STRING, false)
+            .build());
 
     AvailableEventsOperation() {
         super(NAME, RETURN_TYPE);
@@ -56,7 +50,7 @@ final class AvailableEventsOperation extends AvailableFeaturesOperation<MBeanNot
         row
                 .cell(CATEGORY_COLUMN, ArrayUtils.getFirst(notificationInfo.getNotifTypes(), ""))
                 .cell(PARAMETERS_COLUMN, toTabularData(notificationInfo))
-                .cell(DESCRIPTION_COLUMN, MoreObjects.firstNonNull(description, ""))
+                .cell(DESCRIPTION_COLUMN, firstNonNull(description, ""))
                 .cell(ATTACHMENT_TYPE_COLUMN, attachmentType == null ? "" : attachmentType.getDisplayName())
                 .cell(SEVERITY_COLUMN, NotificationDescriptor.getSeverity(notificationInfo).toString())
                 .flush();

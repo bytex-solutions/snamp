@@ -12,7 +12,7 @@ import static com.bytex.snamp.testing.adapters.snmp.SnmpHelpers.DateTimeFormatte
 /**
  * Represents SNMP notification with attachments.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class SnmpNotification extends HashMap<OID, Variable> {
@@ -52,7 +52,7 @@ final class SnmpNotification extends HashMap<OID, Variable> {
      * Returns an array of variable bindings associated with this message.
      * @return An array of variable bindings associated with this message.
      */
-    public final VariableBinding[] getBindings(){
+    public VariableBinding[] getBindings(){
         final VariableBinding[] result = new VariableBinding[size()];
         int i = 0;
         for(final OID id: keySet())
@@ -60,7 +60,7 @@ final class SnmpNotification extends HashMap<OID, Variable> {
         return result;
     }
 
-    public final String getMessage(){
+    public String getMessage(){
         return containsKey(messageId) ? get(messageId).toString() : null;
     }
 
@@ -68,19 +68,19 @@ final class SnmpNotification extends HashMap<OID, Variable> {
         return Severity.resolve(value.toInt());
     }
 
-    public final Severity getSeverity(){
+    public Severity getSeverity(){
         return containsKey(severityId) ? getSeverity((Integer32)get(severityId)) : Severity.UNKNOWN;
     }
 
-    public final long getSequenceNumber(){
+    public long getSequenceNumber(){
         return containsKey(sequenceNumberId) ? get(sequenceNumberId).toLong() : -1L;
     }
 
-    public final Date getTimeStamp(final DateTimeFormatter formatter) throws ParseException {
+    public Date getTimeStamp(final DateTimeFormatter formatter) throws ParseException {
         return containsKey(timeStampId) ? formatter.convert(((OctetString)get(timeStampId)).toByteArray()) : null;
     }
 
-    public final String getCategory() {
+    public String getCategory() {
         return containsKey(categoryId) ? get(categoryId).toString() : null;
     }
 

@@ -1,6 +1,5 @@
 package com.bytex.snamp.management;
 
-import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.core.SupportService;
 
 import java.util.Collection;
@@ -8,7 +7,7 @@ import java.util.Collection;
 /**
  * Represents SNAMP monitor and manager.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public interface SnampManager extends SupportService {

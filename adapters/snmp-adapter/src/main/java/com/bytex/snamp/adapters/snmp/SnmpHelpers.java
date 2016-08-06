@@ -3,39 +3,36 @@ package com.bytex.snamp.adapters.snmp;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.io.IOUtils;
 import com.google.common.primitives.Shorts;
-import org.snmp4j.SNMP4JSettings;
 import org.snmp4j.agent.MOAccess;
 import org.snmp4j.agent.mo.MOAccessImpl;
 import org.snmp4j.agent.mo.MOColumn;
 import org.snmp4j.agent.mo.MOTable;
-import org.snmp4j.smi.AssignableFromByteArray;
 import org.snmp4j.smi.OID;
-import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.Variable;
 
 import javax.management.MBeanAttributeInfo;
 import javax.management.openmbean.ArrayType;
 import java.io.*;
 import java.lang.reflect.Array;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
+import static com.bytex.snamp.adapters.snmp.helpers.OctetStringHelper.SNMP_ENCODING;
 
 /**
  * @author Roman Sakno
  */
 final class SnmpHelpers {
     private static final String AUTO_PREFIX_PROPERTY = "com.bytex.snamp.adapters.snmp.oidPrefix";
-    static final Charset SNMP_ENCODING = StandardCharsets.UTF_8;
+
     private static final TimeZone ZERO_TIME_ZONE = new SimpleTimeZone(0, "UTC");
     private static final AtomicInteger POSTFIX_COUNTER = new AtomicInteger(1);
 
@@ -43,13 +40,7 @@ final class SnmpHelpers {
 
     }
 
-    static OctetString toOctetString(final String value) {
-        return new OctetString(value.getBytes(SNMP_ENCODING));
-    }
 
-    static String toString(final AssignableFromByteArray value){
-        return new String(value.toByteArray(), SNMP_ENCODING);
-    }
 
     static byte toByte(final long value){
         if(value > Byte.MAX_VALUE)
@@ -368,12 +359,12 @@ final class SnmpHelpers {
         log(lvl, message, new Object[]{arg0, arg1, arg2}, e);
     }
 
-    static OID generateOID(final OID prefix){
+    private static OID generateOID(final OID prefix){
         return new OID(prefix).append(POSTFIX_COUNTER.getAndIncrement()).append(0);
     }
 
-    static OID generateOID() throws ParseException {
-        final OID prefix = new OID(SNMP4JSettings.getOIDTextFormat().parse(System.getProperty(AUTO_PREFIX_PROPERTY, "1.1")));
+    static final Supplier<OID> OID_GENERATOR = () -> {
+        final OID prefix = new OID(new OID(System.getProperty(AUTO_PREFIX_PROPERTY, "1.1")));
         return generateOID(prefix);
-    }
+    };
 }

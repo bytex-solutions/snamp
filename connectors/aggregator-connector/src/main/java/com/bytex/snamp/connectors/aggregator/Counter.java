@@ -4,12 +4,13 @@ import com.bytex.snamp.concurrent.LongAccumulator;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 
 import javax.management.openmbean.SimpleType;
-import static com.bytex.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration;
+
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 
 /**
  * Represents counter.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class Counter extends UnaryAttributeAggregation<Long> {
@@ -31,8 +32,8 @@ final class Counter extends UnaryAttributeAggregation<Long> {
         return accumulator.update(NumberUtils.toLong(value));
     }
 
-    static SerializableAttributeConfiguration getConfiguration() {
-        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration();
+    static AttributeConfiguration getConfiguration() {
+        final AttributeConfiguration result = createAttributeConfiguration(Counter.class.getClassLoader());
         result.setAlternativeName(NAME);
         fillParameters(result.getParameters());
         return result;

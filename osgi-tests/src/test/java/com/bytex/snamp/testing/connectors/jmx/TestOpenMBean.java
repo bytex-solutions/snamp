@@ -2,14 +2,14 @@ package com.bytex.snamp.testing.connectors.jmx;
 
 
 import com.bytex.snamp.concurrent.Repeater;
-import com.bytex.snamp.TimeSpan;
+import com.google.common.collect.ImmutableMap;
 
 import javax.management.*;
 import javax.management.openmbean.*;
 import javax.management.timer.TimerNotification;
 import java.math.BigInteger;
+import java.time.Duration;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -157,33 +157,33 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
         aFloat = 0F;
         aDate = new Date();
         try{
-            dictionary = new CompositeDataSupport((CompositeType)DICTIONARY_PROPERTY.getOpenType(), new HashMap<String, Object>() {{
-                put("col1", true);
-                put("col2", 10);
-                put("col3", "abc");
-            }});
+            dictionary = new CompositeDataSupport((CompositeType)DICTIONARY_PROPERTY.getOpenType(), ImmutableMap.of(
+                "col1", true,
+                "col2", 10,
+                "col3", "abc"
+            ));
             table = new TabularDataSupport((TabularType)TABLE_PROPERTY.getOpenType());
-            table.put(new CompositeDataSupport((CompositeType)DICTIONARY_PROPERTY.getOpenType(), new HashMap<String, Object>() {{
-                put("col1", true);
-                put("col2", 1050);
-                put("col3", "Hello, world!");
-            }}));
-            table.put(new CompositeDataSupport((CompositeType)DICTIONARY_PROPERTY.getOpenType(), new HashMap<String, Object>() {{
-                put("col1", false);
-                put("col2", 42);
-                put("col3", "Ciao, monde!");
-            }}));
-            table.put(new CompositeDataSupport((CompositeType)DICTIONARY_PROPERTY.getOpenType(), new HashMap<String, Object>() {{
-                put("col1", true);
-                put("col2", 1);
-                put("col3", "Luke Skywalker");
-            }}));
+            table.put(new CompositeDataSupport((CompositeType)DICTIONARY_PROPERTY.getOpenType(), ImmutableMap.of(
+                "col1", true,
+                "col2", 1050,
+                "col3", "Hello, world!"
+            )));
+            table.put(new CompositeDataSupport((CompositeType)DICTIONARY_PROPERTY.getOpenType(), ImmutableMap.of(
+                "col1", false,
+                "col2", 42,
+                "col3", "Ciao, monde!"
+            )));
+            table.put(new CompositeDataSupport((CompositeType)DICTIONARY_PROPERTY.getOpenType(), ImmutableMap.of(
+                "col1", true,
+                "col2", 1,
+                "col3", "Luke Skywalker"
+            )));
         }
         catch (final OpenDataException ignored){
 
         }
         if(generateNotifs){
-            final Repeater generator = new Repeater(TimeSpan.ofSeconds(2)) {
+            final Repeater generator = new Repeater(Duration.ofSeconds(2)) {
                 @Override
                 protected void doAction() {
                     propertyChanged("ATTR", STRING_PROPERTY.getType(), "previous", "next");

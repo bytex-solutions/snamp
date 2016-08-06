@@ -2,22 +2,24 @@ package com.bytex.snamp.connectors.metrics;
 
 import com.bytex.snamp.concurrent.LongAccumulator;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * Represents time interval for metrics.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public enum MetricsInterval {
-    SECOND(1000L),
-    MINUTE(60L * 1000L),
-    HOUR(60L * 60L * 1000L),
-    DAY(24L * 60L * 60L * 1000L);
+    SECOND(1, TimeUnit.SECONDS),
+    MINUTE(1, TimeUnit.MINUTES),
+    HOUR(1, TimeUnit.HOURS),
+    DAY(1, TimeUnit.DAYS);
 
     private final long timeToLive;
 
-    MetricsInterval(final long ttlInMillis){
-        this.timeToLive = ttlInMillis;
+    MetricsInterval(final long amount, final TimeUnit unit){
+        this.timeToLive = unit.toMillis(amount);
     }
 
     final LongAccumulator createAccumulator(){

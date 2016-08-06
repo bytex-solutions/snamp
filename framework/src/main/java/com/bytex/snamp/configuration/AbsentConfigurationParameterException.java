@@ -3,7 +3,7 @@ package com.bytex.snamp.configuration;
 /**
  * Indicating that the required parameter is not defined in the configuration.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class AbsentConfigurationParameterException extends Exception {

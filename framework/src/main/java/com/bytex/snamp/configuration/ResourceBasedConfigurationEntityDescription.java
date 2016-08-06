@@ -4,13 +4,15 @@ import com.bytex.snamp.ResourceReader;
 import com.google.common.collect.ImmutableSet;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfiguration;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents resource-based configuration entity descriptor.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class ResourceBasedConfigurationEntityDescription<T extends EntityConfiguration> extends ResourceReader implements ConfigurationEntityDescription<T> {
@@ -29,7 +31,7 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
                                                         final ImmutableSet<String> parameters){
         super(baseName);
         this.entityType = Objects.requireNonNull(entityType);
-        this.parameters = parameters == null ? ImmutableSet.<String>of() : parameters;
+        this.parameters = parameters == null ? ImmutableSet.of() : parameters;
     }
 
     /**
@@ -102,12 +104,9 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
 
     private Collection<String> getRelatedParameters(final String parameterName, final String relationPostfix){
         final String params = getString(parameterName + relationPostfix, null, "");
-        if(params == null || params.isEmpty()) return Collections.emptyList();
-        final String[] values =  params.split(",");
-        final Collection<String> result = new ArrayList<>(values.length);
-        for(final String p: values)
-            result.add(p.trim());
-        return result;
+        if(isNullOrEmpty(params)) return Collections.emptyList();
+        final String[] values = params.split(",");
+        return Arrays.stream(values).map(String::trim).collect(Collectors.toList());
     }
 
     /**
@@ -139,7 +138,7 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
      * Represents parameter descriptor.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     protected class ParameterDescriptionImpl implements ParameterDescription{
         private final String parameterName;

@@ -1,38 +1,35 @@
 package com.bytex.snamp.connectors.mda.impl.thrift;
 
 import com.bytex.snamp.connectors.mda.DataAcceptorFactory;
-import com.bytex.snamp.connectors.mda.impl.MDAThreadPoolConfig;
+import com.bytex.snamp.connectors.mda.impl.MDAConnectorDescriptionProvider;
+import org.apache.thrift.transport.TTransportException;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.*;
 import java.util.Map;
-
-import static com.bytex.snamp.connectors.mda.impl.MDAResourceConfigurationDescriptorProviderImpl.parseSocketTimeout;
 
 /**
  * Represents factory of {@link ThriftDataAcceptor} class.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class ThriftDataAcceptorFactory implements DataAcceptorFactory {
     private static final String THRIFT_SCHEME = "thrift";
 
-    ThriftDataAcceptor create(final String resourceName,
-                        final URI connectionString,
-                        final Map<String, String> parameters) throws Exception {
+    private static ThriftDataAcceptor create(final String resourceName,
+                                             final URI connectionString,
+                                             final Map<String, String> parameters) throws UnknownHostException, TTransportException {
+        final MDAConnectorDescriptionProvider configurationParser = MDAConnectorDescriptionProvider.getInstance();
         return new ThriftDataAcceptor(resourceName,
                 new InetSocketAddress(InetAddress.getByName(connectionString.getHost()), connectionString.getPort()),
-                parseSocketTimeout(parameters),
-                new MDAThreadPoolConfig(resourceName, parameters));
+                configurationParser.parseSocketTimeout(parameters),
+                () -> configurationParser.parseThreadPool(parameters));
     }
 
     @Override
     public ThriftDataAcceptor create(final String resourceName,
-                                     final String connectionString,
-                                     final Map<String, String> parameters) throws Exception {
+                                             final String connectionString,
+                                             final Map<String, String> parameters) throws UnknownHostException, TTransportException, URISyntaxException {
         return create(resourceName, new URI(connectionString), parameters);
     }
 

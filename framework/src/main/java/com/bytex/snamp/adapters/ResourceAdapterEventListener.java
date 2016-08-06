@@ -5,7 +5,7 @@ import java.util.EventListener;
 /**
  * Represents listener for events related to resource adapters.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  * @see ResourceAdapterClient#addEventListener(String, ResourceAdapterEventListener)
  * @see ResourceAdapterClient#removeEventListener(String, ResourceAdapterEventListener)

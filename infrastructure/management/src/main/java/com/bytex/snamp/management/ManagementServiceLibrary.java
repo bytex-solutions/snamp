@@ -2,13 +2,10 @@ package com.bytex.snamp.management;
 
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.core.AbstractServiceLibrary;
-import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.ExposedServiceHandler;
-import com.bytex.snamp.core.cluster.GridMember;
 import com.bytex.snamp.management.jmx.SnampClusterNodeMBean;
 import com.bytex.snamp.management.jmx.SnampCoreMBean;
 import com.bytex.snamp.management.jmx.SnampManagerImpl;
-import com.hazelcast.core.HazelcastInstance;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogEntry;
@@ -25,31 +22,14 @@ import java.util.Objects;
  * Represents activator for SNAMP Management Library.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class ManagementServiceLibrary extends AbstractServiceLibrary {
     private static final String USE_PLATFORM_MBEAN_FRAMEWORK_PROPERTY = "com.bytex.snamp.management.usePlatformMBean";
     private static final ActivationProperty<Boolean> usePlatformMBeanProperty = defineActivationProperty(Boolean.class, false);
 
-    private static final class ClusterMemberProvider extends ProvidedService<ClusterMember, GridMember>{
-        private ClusterMemberProvider(){
-            super(ClusterMember.class, new SimpleDependency<>(HazelcastInstance.class));
-        }
 
-        @Override
-        protected GridMember activateService(final Map<String, Object> identity,
-                                              final RequiredService<?>... dependencies) {
-            final HazelcastInstance hazelcast =
-                    getDependency(RequiredServiceAccessor.class, HazelcastInstance.class, dependencies);
-            return new GridMember(hazelcast);
-        }
-
-        @Override
-        protected void cleanupService(final GridMember node, final boolean stopBundle) throws InterruptedException {
-            node.close();
-        }
-    }
 
     private static final class SnampManagerProvider extends ProvidedService<SnampManager, SnampManagerImpl>{
 
@@ -73,7 +53,7 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
     private static final class LogReaderServiceDependency extends RequiredServiceAccessor<LogReaderService>{
         private final LogListener listener;
 
-        protected LogReaderServiceDependency(final LogListener listener) {
+        private LogReaderServiceDependency(final LogListener listener) {
             super(LogReaderService.class);
             this.listener = listener;
         }
@@ -177,8 +157,7 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
     public ManagementServiceLibrary() throws InvalidSyntaxException {
         super(new SnampManagerProvider(),
                 new SnampClusterNodeMBeanProvider(),
-                new SnampCoreMBeanProvider(),
-                new ClusterMemberProvider());
+                new SnampCoreMBeanProvider());
         this.listener = new LogEntryRouter();
     }
 

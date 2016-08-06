@@ -1,15 +1,14 @@
 package com.bytex.snamp.core;
 
 import com.bytex.snamp.*;
-import com.bytex.snamp.io.IOUtils;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
-import com.bytex.snamp.MethodStub;
 import org.osgi.framework.*;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 import static com.bytex.snamp.internal.Utils.isInstanceOf;
@@ -17,12 +16,12 @@ import static com.bytex.snamp.internal.Utils.isInstanceOf;
 /**
  * Represents an abstract for all SNAMP-specific bundle activators.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public abstract class AbstractBundleActivator implements BundleActivator, ServiceListener {
 
-    final static class BundleLogicalOperation extends RichLogicalOperation {
+    private final static class BundleLogicalOperation extends RichLogicalOperation {
         static final String BUNDLE_NAME_PROPERTY = "bundleName";
 
         private BundleLogicalOperation(final Logger logger,
@@ -51,7 +50,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @param <T> Type of the activation property.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     protected interface ActivationProperty<T> extends Attribute<T>{
         /**
@@ -74,7 +73,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @param <T> Type of the property.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     protected interface NamedActivationProperty<T> extends ActivationProperty<T>{
         /**
@@ -91,7 +90,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * </p>
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     protected interface ActivationPropertyPublisher{
         /**
@@ -112,7 +111,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * </p>
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     protected interface ActivationPropertyReader extends AttributeReader{
         /**
@@ -196,7 +195,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
             for(final ActivationProperty<?> prop: keySet())
                 if(propertyType.isInstance(prop)){
                     final P candidate = propertyType.cast(prop);
-                    if(filter.apply(candidate)) return candidate;
+                    if(filter.test(candidate)) return candidate;
                 }
             return null;
         }
@@ -207,7 +206,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @param <S> Type of the required service.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     public static abstract class RequiredService<S> {
         private final Class<S> dependencyContract;
@@ -341,12 +340,12 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
         }
     }
 
-    static final class DependencyListeningFilter {
+    static final class DependencyListeningFilterBuilder {
         private int appendCalledTimes = 0;
         private final StringBuilder filter = new StringBuilder(64);
 
         void append(final RequiredService<?> dependency){
-            IOUtils.append(filter, "(%s=%s)", Constants.OBJECTCLASS, dependency.dependencyContract.getName());
+            filter.append(String.format("(%s=%s)", Constants.OBJECTCLASS, dependency.dependencyContract.getName()));
             appendCalledTimes += 1;
         }
 
@@ -373,7 +372,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @param <S> Contract of the required service.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     public static abstract class RequiredServiceAccessor<S> extends RequiredService<S>{
         private S serviceInstance;
@@ -428,7 +427,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @param <S> Type of the required service contract.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     public static final class SimpleDependency<S> extends RequiredServiceAccessor<S>{
         /**
@@ -462,7 +461,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * </p>
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
      protected enum ActivationState {
         /**
@@ -753,7 +752,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
     public final void start(final BundleContext context) throws Exception {
         try (final LogicalOperation ignored = BundleLogicalOperation.startBundle(getLogger(), context)) {
             start(context, bundleLevelDependencies);
-            final DependencyListeningFilter filter = new DependencyListeningFilter();
+            final DependencyListeningFilterBuilder filter = new DependencyListeningFilterBuilder();
             //try to resolve bundle-level dependencies immediately
             for (final RequiredService<?> dependency : bundleLevelDependencies) {
                 filter.append(dependency);
@@ -766,8 +765,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
     }
 
     private static void unregister(final BundleContext context, final Collection<RequiredService<?>> dependencies){
-        for(final RequiredService<?> dependency: dependencies)
-            dependency.unbind(context);
+        dependencies.forEach(dependency -> dependency.unbind(context));
     }
 
     private void deactivateInternal(final BundleContext context, final ActivationPropertyReader activationProperties) throws Exception {
@@ -913,11 +911,9 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
 
             @Override
             public Enumeration<Object> elements() {
-                final String[] properties = reference.getPropertyKeys();
-                final List<Object> values = new ArrayList<>(properties.length);
-                for(final String p: properties)
-                    values.add(reference.getProperty(p));
-                return Collections.enumeration(values);
+                return Collections.enumeration(Arrays.stream(reference.getPropertyKeys())
+                        .map(reference::getProperty)
+                        .collect(Collectors.toList()));
             }
 
             public Object get(final String key){

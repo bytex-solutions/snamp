@@ -4,11 +4,12 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
+import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 
 /**
  * Deletes configuration parameter of the adapter instance.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
@@ -25,8 +26,8 @@ public final class DeleteAdapterParameterCommand extends ConfigurationCommand {
 
     @Override
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
-        if(configuration.getResourceAdapters().containsKey(instanceName)){
-            configuration.getResourceAdapters().get(instanceName).getParameters().remove(paramName);
+        if(configuration.getEntities(ResourceAdapterConfiguration.class).containsKey(instanceName)){
+            configuration.getEntities(ResourceAdapterConfiguration.class).get(instanceName).getParameters().remove(paramName);
             output.append("Instance modified successfully");
             return true;
         }

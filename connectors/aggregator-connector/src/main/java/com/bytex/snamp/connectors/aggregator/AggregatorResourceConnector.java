@@ -1,6 +1,5 @@
 package com.bytex.snamp.connectors.aggregator;
 
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.Repeater;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
@@ -20,7 +19,7 @@ import javax.management.InstanceNotFoundException;
 import javax.management.JMException;
 import javax.management.MBeanNotificationInfo;
 import javax.management.openmbean.CompositeData;
-import java.beans.IntrospectionException;
+import java.time.Duration;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,7 +28,7 @@ import java.util.logging.Logger;
  * Represents an aggregator of other managed resources.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class AggregatorResourceConnector extends AbstractManagedResourceConnector implements AttributeSupport {
@@ -145,7 +144,7 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
     private static final class NotificationSender extends Repeater{
         private final NotificationAggregationRepository notifications;
 
-        private NotificationSender(final TimeSpan period,
+        private NotificationSender(final Duration period,
                                    final NotificationAggregationRepository notifs) {
             super(period);
             this.notifications = notifs;
@@ -157,14 +156,14 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
         }
     }
 
-    @Aggregation
+    @Aggregation(cached = true)
     private final AttributeAggregationRepository attributes;
-    @Aggregation
+    @Aggregation(cached = true)
     private final NotificationAggregationRepository notifications;
     private final NotificationSender sender;
 
     AggregatorResourceConnector(final String resourceName,
-                                final TimeSpan notificationFrequency) throws IntrospectionException {
+                                final Duration notificationFrequency) {
         attributes = new AttributeAggregationRepository(resourceName);
         notifications = new NotificationAggregationRepository(resourceName, Utils.getBundleContextOfObject(this));
         sender = new NotificationSender(notificationFrequency, notifications);
@@ -198,7 +197,7 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
         removeResourceEventListener(listener, attributes, notifications);
     }
 
-    boolean addAttribute(final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+    boolean addAttribute(final String attributeName, final Duration readWriteTimeout, final CompositeData options) {
         return attributes.addAttribute(attributeName, readWriteTimeout, options) != null;
     }
 

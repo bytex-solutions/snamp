@@ -1,11 +1,11 @@
 package com.bytex.snamp.connectors.aggregator;
 
-import com.google.common.collect.ImmutableList;
 import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.configuration.AbstractAgentConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.connectors.discovery.DiscoveryResultBuilder;
 import com.bytex.snamp.connectors.discovery.DiscoveryService;
+import com.google.common.collect.ImmutableList;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -14,20 +14,20 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class AggregatorDiscoveryService extends AbstractAggregator implements DiscoveryService {
 
     private static Collection<AttributeConfiguration> discoverAttributes(){
-        return ImmutableList.<AttributeConfiguration>of(
+        return ImmutableList.of(
             PatternMatcher.getConfiguration(),
                 UnaryComparison.getConfiguration(),
                 BinaryComparison.getConfiguration(),
                 BinaryPercent.getConfiguration(),
                 UnaryPercent.getConfiguration(),
                 Counter.getConfiguration(),
-                Average.getConfiguratoin() ,
+                Average.getConfiguration(),
                 Peak.getConfiguration(),
                 Decomposer.getConfiguration(),
                 Stringifier.getConfiguration(),
@@ -36,7 +36,7 @@ final class AggregatorDiscoveryService extends AbstractAggregator implements Dis
     }
 
     private static Collection<EventConfiguration> discoverEvents(){
-        return ImmutableList.<EventConfiguration>of(
+        return ImmutableList.of(
             PeriodicAttributeQuery.getConfiguration(),
             HealthCheckNotification.getConfiguration()
         );
@@ -49,7 +49,6 @@ final class AggregatorDiscoveryService extends AbstractAggregator implements Dis
      * Do not add elements from the returned collection directly in {@link AgentConfiguration.ManagedResourceConfiguration#getFeatures(Class)}
      * result set, use the following algorithm:
      * <ul>
-     * <li>Create a new managed entity with {@link AgentConfiguration.ManagedResourceConfiguration#registerFeature(Class)} method.</li>
      * <li>Use {@link AbstractAgentConfiguration#copy(AttributeConfiguration, AttributeConfiguration)}
      * or {@link AbstractAgentConfiguration#copy(EventConfiguration, EventConfiguration)} method
      * to copy managed entity returned by this method into the newly created entity.</li>
@@ -85,8 +84,7 @@ final class AggregatorDiscoveryService extends AbstractAggregator implements Dis
     @Override
     public final DiscoveryResult discover(final String connectionString, final Map<String, String> connectionOptions, final Class<? extends FeatureConfiguration>... entityTypes) {
         final DiscoveryResultBuilder result = new DiscoveryResultBuilder();
-        for(final Class<? extends FeatureConfiguration> type: entityTypes)
-            result.importFeatures(this, connectionString, connectionOptions, type);
+        Arrays.stream(entityTypes).forEach(type -> result.importFeatures(this, connectionString, connectionOptions, type));
         return result.get();
     }
 

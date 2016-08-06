@@ -1,7 +1,9 @@
 package com.bytex.snamp.adapters.modeling;
 
-import com.bytex.snamp.Consumer;
+import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.TypeTokens;
+import com.bytex.snamp.concurrent.LazyValue;
+import com.bytex.snamp.concurrent.LazyValueFactory;
 import com.bytex.snamp.connectors.FeatureModifiedEvent;
 import com.bytex.snamp.connectors.attributes.AttributeAddedEvent;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
@@ -24,14 +26,14 @@ import java.text.ParseException;
  *     This accessor can be used for retrieving and changing value of the attribute.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  */
-public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> implements AttributeValueReader, Consumer<Object, JMException> {
+public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> implements AttributeValueReader, Acceptor<Object, JMException> {
     /**
      * Represents an exception that can be produced by attribute interceptor.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     public static class InterceptionException extends ReflectionException{
         private static final long serialVersionUID = 8373399508228810347L;
@@ -46,8 +48,8 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
     }
 
     private AttributeSupport attributeSupport;
-    private volatile WellKnownType wellKnownType;
-    private volatile OpenType<?> openType;
+    private final LazyValue<WellKnownType> wellKnownType;
+    private final LazyValue<OpenType<?>> openType;
 
     /**
      * Initializes a new attribute accessor.
@@ -56,6 +58,8 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
     public AttributeAccessor(final MBeanAttributeInfo metadata) {
         super(metadata);
         attributeSupport = null;
+        wellKnownType = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(() -> AttributeDescriptor.getType(getMetadata()));
+        openType = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(() -> AttributeDescriptor.getOpenType(getMetadata()));
     }
 
     /**
@@ -99,8 +103,8 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
     @Override
     public final void close() {
         attributeSupport = null;
-        wellKnownType = null;
-        openType = null;
+        wellKnownType.reset();
+        openType.reset();
     }
 
     /**
@@ -111,32 +115,20 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
         return getMetadata().getName();
     }
 
-    private synchronized WellKnownType getTypeImpl(){
-        if(wellKnownType == null)
-            wellKnownType = AttributeDescriptor.getType(getMetadata());
-        return wellKnownType;
-    }
-
     /**
      * Gets type of this attribute.
      * @return The type of this attribute.
      */
     public final WellKnownType getType(){
-        return wellKnownType == null ? getTypeImpl() : wellKnownType;
-    }
-
-    private synchronized OpenType<?> getOpenTypeImpl(){
-        if(openType == null)
-            openType = AttributeDescriptor.getOpenType(getMetadata());
-        return openType;
+        return wellKnownType.get();
     }
 
     /**
      * Gets JMX Open Type of this attribute.
      * @return The type of this attribute.
      */
-    public final OpenType<?> getOpenType(){
-        return openType == null ? getOpenTypeImpl() : openType;
+    public final OpenType<?> getOpenType() {
+        return openType.get();
     }
 
     /**
@@ -296,13 +288,13 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
 
     /**
      * Gets attribute value.
-     *
      * @return The attribute value.
-     * @throws javax.management.JMException Internal connector error.
+     * @throws javax.management.MBeanException Internal connector error.
      * @throws javax.management.AttributeNotFoundException This attribute is disconnected.
+     * @throws javax.management.ReflectionException Internal connector error.
      */
     @Override
-    public final Object call() throws JMException {
+    public final Object call() throws MBeanException, AttributeNotFoundException, ReflectionException {
         return getValue();
     }
 
@@ -326,11 +318,7 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
         final BigDecimal maxValue = toBigDecimal(DescriptorUtils.getRawMaxValue(getMetadata().getDescriptor()),
                 format);
         final BigDecimal actualValue = toBigDecimal(value, format);
-        if(minValue != null && actualValue.compareTo(minValue) <= 0)
-            return false;
-        else if(maxValue != null && actualValue.compareTo(maxValue) >= 0)
-            return false;
-        else return true;
+        return !(minValue != null && actualValue.compareTo(minValue) <= 0) && !(maxValue != null && actualValue.compareTo(maxValue) >= 0);
     }
 
     public static int removeAll(final Iterable<? extends AttributeAccessor> attributes,

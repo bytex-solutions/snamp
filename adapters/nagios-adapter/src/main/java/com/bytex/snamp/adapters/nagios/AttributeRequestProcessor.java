@@ -1,14 +1,17 @@
 package com.bytex.snamp.adapters.nagios;
 
-import com.google.common.base.Supplier;
-import com.bytex.snamp.SafeConsumer;
+import com.bytex.snamp.Acceptor;
+import com.bytex.snamp.ExceptionPlaceholder;
+
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
-final class AttributeRequestProcessor implements SafeConsumer<NagiosAttributeAccessor>, Supplier<NagiosPluginOutput> {
+final class AttributeRequestProcessor implements Consumer<NagiosAttributeAccessor>, Acceptor<NagiosAttributeAccessor, ExceptionPlaceholder>, Supplier<NagiosPluginOutput> {
     private NagiosPluginOutput output;
 
     @Override

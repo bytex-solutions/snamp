@@ -2,7 +2,6 @@ package com.bytex.snamp.adapters.nsca;
 
 import com.bytex.snamp.adapters.modeling.AttributeAccessor;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.jsendnsca.core.MessagePayload;
 
@@ -13,6 +12,7 @@ import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 
 import static com.bytex.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
 import static com.bytex.snamp.adapters.nsca.NSCAAdapterConfigurationDescriptor.getServiceName;
@@ -28,7 +28,7 @@ final class NSCAAttributeAccessor extends AttributeAccessor implements FeatureBi
         super(metadata);
     }
 
-    MessagePayload getMessage(final String host) {
+    private MessagePayload getMessage(final String host) {
         final MessagePayload payload = new MessagePayload();
         payload.setHostname(host);
         payload.setServiceName(getServiceName(getMetadata().getDescriptor(),

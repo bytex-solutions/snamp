@@ -1,35 +1,33 @@
 package com.bytex.snamp.testing;
 
-import com.bytex.snamp.Consumer;
-import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.*;
-import com.bytex.snamp.concurrent.SynchronizationEvent;
 import com.bytex.snamp.configuration.AgentConfiguration;
-import com.bytex.snamp.configuration.PersistentConfigurationManager;
-import com.bytex.snamp.configuration.SerializableAgentConfiguration;
+import com.bytex.snamp.configuration.ConfigurationManager;
 import org.junit.After;
 import org.junit.Before;
 import org.ops4j.pax.exam.karaf.options.KarafFeaturesOption;
 import org.ops4j.pax.exam.options.MavenArtifactUrlReference;
 import org.osgi.framework.BundleContext;
-import org.osgi.service.cm.ConfigurationAdmin;
 
 import javax.inject.Inject;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.TimeUnit;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
+import static com.bytex.snamp.configuration.ConfigurationManager.ConfigurationProcessor;
 
 /**
  * Represents an abstract class for all SNAMP-based integration tests.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @SnampDependencies({SnampFeature.PLATFORM})
@@ -44,21 +42,21 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
 @ImportPackages("com.bytex.snamp;version=\"[1.0,2)\"")
 public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTest {
 
-    private static final class AdapterStartedSynchronizationEvent extends SynchronizationEvent<ResourceAdapter> implements ResourceAdapterEventListener {
+    private static final class AdapterStartedSynchronizationEvent extends CompletableFuture<ResourceAdapter> implements ResourceAdapterEventListener {
 
         @Override
         public void handle(final ResourceAdapterEvent e) {
             if(e instanceof ResourceAdapterStartedEvent)
-                fire(e.getSource());
+                complete(e.getSource());
         }
     }
 
-    private static final class AdapterUpdatedSynchronizationEvent extends SynchronizationEvent<ResourceAdapter> implements ResourceAdapterEventListener{
+    private static final class AdapterUpdatedSynchronizationEvent extends CompletableFuture<ResourceAdapter> implements ResourceAdapterEventListener{
 
         @Override
         public void handle(final ResourceAdapterEvent e) {
             if(e instanceof ResourceAdapterUpdatedEvent)
-                fire(e.getSource());
+                complete(e.getSource());
         }
     }
     private static final EnvironmentBuilder SNAMP_ENV_BUILDER = new EnvironmentBuilder() {
@@ -79,10 +77,9 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
         }
     };
 
-    private PersistentConfigurationManager configManager = null;
     @Inject
     @SpecialUse
-    private ConfigurationAdmin configAdmin = null;
+    private ConfigurationManager configAdmin = null;
 
     protected AbstractSnampIntegrationTest(){
         super(SNAMP_ENV_BUILDER);
@@ -101,37 +98,14 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    private PersistentConfigurationManager getTestConfigurationManager() throws IOException{
-        if(configManager == null){
-            configManager = new PersistentConfigurationManager(configAdmin);
-            configManager.load();
-        }
-        return configManager;
-    }
-
-    private void refreshConfiguration() throws IOException{
-        if(configManager == null)
-            configManager = new PersistentConfigurationManager(configAdmin);
-        configManager.load();
-    }
-
     /**
      * Creates a new configuration for running this test.
      * @param config The configuration to set.
      */
     protected abstract void setupTestConfiguration(final AgentConfiguration config);
 
-    protected final <E extends Throwable> void processConfiguration(final Consumer<? super SerializableAgentConfiguration, E> handler,
-                                                                    final boolean saveChanges) throws E, IOException {
-        getTestConfigurationManager().processConfiguration(handler, saveChanges);
-    }
-
-    protected final <E extends Throwable> void processConfiguration(final Consumer<? super SerializableAgentConfiguration, E> handler,
-                                                                    final boolean refresh,
-                                                                    final boolean saveChanges) throws E, IOException{
-        if(refresh)
-            refreshConfiguration();
-        processConfiguration(handler, saveChanges);
+    protected final <E extends Throwable> void processConfiguration(final ConfigurationProcessor<E> handler) throws E, IOException {
+        configAdmin.processConfiguration(handler);
     }
 
     protected void beforeStartTest(final BundleContext context) throws Exception{
@@ -150,8 +124,10 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
     public final void prepare() throws Exception {
         beforeStartTest(getTestBundleContext());
         //read SNAMP configuration
-        setupTestConfiguration(getTestConfigurationManager().getCurrentConfiguration());
-        getTestConfigurationManager().save();
+        processConfiguration(config -> {
+            setupTestConfiguration(config);
+            return true;
+        });
         afterStartTest(getTestBundleContext());
     }
 
@@ -166,19 +142,21 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
     @After
     public final void cleanup() throws Exception{
         beforeCleanupTest(getTestBundleContext());
-        getTestConfigurationManager().getCurrentConfiguration().clear();
-        getTestConfigurationManager().save();
+        processConfiguration(config -> {
+            config.clear();
+            return true;
+        });
         afterCleanupTest(getTestBundleContext());
     }
 
-    protected static <V, E extends Exception> V syncWithAdapterStartedEvent(final String adapterName,
-                                                                          final ExceptionalCallable<V, E> handler,
-                                                                          final TimeSpan timeout) throws E, TimeoutException, InterruptedException {
+    protected static <V> V syncWithAdapterStartedEvent(final String adapterName,
+                                                       final Callable<? extends V> handler,
+                                                       final Duration timeout) throws Exception {
         final AdapterStartedSynchronizationEvent synchronizer = new AdapterStartedSynchronizationEvent();
         ResourceAdapterClient.addEventListener(adapterName, synchronizer);
         try {
             final V result = handler.call();
-            synchronizer.getAwaitor().get(timeout.duration, timeout.unit);
+            assertNotNull(synchronizer.get(timeout.toNanos(), TimeUnit.NANOSECONDS));
             return result;
         }
         catch (final ExecutionException e){
@@ -190,14 +168,14 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected static <V, E extends Exception> V syncWithAdapterUpdatedEvent(final String adapterName,
-                                                                            final ExceptionalCallable<V, E> handler,
-                                                                            final TimeSpan timeout) throws E, TimeoutException, InterruptedException {
+    protected static <V> V syncWithAdapterUpdatedEvent(final String adapterName,
+                                                       final Callable<? extends V> handler,
+                                                       final Duration timeout) throws Exception {
         final AdapterUpdatedSynchronizationEvent synchronizer = new AdapterUpdatedSynchronizationEvent();
         ResourceAdapterClient.addEventListener(adapterName, synchronizer);
         try {
             final V result = handler.call();
-            synchronizer.getAwaitor().get(timeout.duration, timeout.unit);
+            assertNotNull(synchronizer.get(timeout.toNanos(), TimeUnit.NANOSECONDS));
             return result;
         } catch (final ExecutionException e){
             fail(e.getCause().getMessage());
@@ -209,6 +187,6 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
     }
 
     protected static void setFeatureName(final FeatureConfiguration feature, final String name){
-        feature.getParameters().put(FeatureConfiguration.NAME_KEY, name);
+        feature.setAlternativeName(name);
     }
 }

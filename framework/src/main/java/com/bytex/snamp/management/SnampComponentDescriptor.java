@@ -1,6 +1,6 @@
 package com.bytex.snamp.management;
 
-import com.bytex.snamp.Consumer;
+import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.Descriptive;
 import com.bytex.snamp.core.SupportService;
 import org.osgi.framework.Version;
@@ -11,7 +11,7 @@ import java.util.Map;
 /**
  * Describes SNAMP component.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public interface SnampComponentDescriptor extends Descriptive, Map<String, String> {
@@ -67,5 +67,5 @@ public interface SnampComponentDescriptor extends Descriptive, Map<String, Strin
      * @see com.bytex.snamp.connectors.discovery.DiscoveryService
      * @see com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider
      */
-    <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Consumer<S, E> serviceInvoker) throws E;
+    <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Acceptor<S, E> serviceInvoker) throws E;
 }

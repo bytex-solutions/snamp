@@ -6,9 +6,10 @@ package com.bytex.snamp;
  * @param <R> Type of the record content.
  * @param <E> Type of the exception that can be produced by reader.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
+@FunctionalInterface
 public interface EntryReader<I, R, E extends Exception> {
     /**
      * Processes the single record.

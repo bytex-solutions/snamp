@@ -1,21 +1,28 @@
 package com.bytex.snamp.core;
 
-import com.google.common.collect.Maps;
 import org.osgi.framework.*;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Represents a permanent reference to the OSGi service. You should release this service manually
  * when you no longer need it.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class ServiceHolder<S> implements ServiceProvider<S> {
     private final ServiceReference<S> serviceRef;
     private S serviceImpl;
+
+    private ServiceHolder(final LocalServiceReference<S> localRef){
+        serviceRef = Objects.requireNonNull(localRef);
+        serviceImpl = localRef.get();
+    }
 
     /**
      * Initializes a new service reference holder.
@@ -30,12 +37,38 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
     }
 
     /**
-     * Initializes a new service reference holder.
+     * Attempts to create a reference to OSGi service without throwing exception if service was not registered.
      * @param context The context of the bundle which holds this reference. Cannot be {@literal null}.
      * @param serviceType The requested service type. Cannot be {@literal null}.
+     * @param <S> Type of service interface.
+     * @return A reference to OSGi service; or {@literal null}, if service was not registered.
+     * @since 1.2
      */
-    public ServiceHolder(final BundleContext context, final Class<S> serviceType) throws IllegalArgumentException{
-        this(context, context.getServiceReference(serviceType));
+    public static <S> ServiceHolder<S> tryCreate(final BundleContext context, final Class<S> serviceType){
+        final ServiceReference<S> serviceRef = context.getServiceReference(serviceType);
+        return serviceRef != null ? new ServiceHolder<>(context, serviceRef) : null;
+    }
+
+    /**
+     * Attempts to create a reference to OSGi or local (provided via {@link java.util.ServiceLoader}) service without throwing exception
+     * if service was not registered.
+     * @param context The class loader which holds this reference. Cannot be {@literal null}.
+     * @param serviceType The requested service type. Cannot be {@literal null}.
+     * @param <S> Type of service interface.
+     * @return A reference to OSGi or local service; or {@literal null}, if service was not registered.
+     * @since 1.2
+     */
+    public static <S> ServiceHolder<S> tryCreate(final ClassLoader context, final Class<S> serviceType){
+        if(context instanceof BundleReference)
+            return tryCreate(getBundleContext((BundleReference)context), serviceType);
+        else {
+            final LocalServiceReference<S> serviceRef = LocalServiceReference.resolve(context, serviceType);
+            return serviceRef != null ? new ServiceHolder<>(serviceRef) : null;
+        }
+    }
+
+    private static BundleContext getBundleContext(final BundleReference bundleRef){
+        return bundleRef.getBundle().getBundleContext();
     }
 
     /**
@@ -65,6 +98,23 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
     public final boolean release(final BundleContext context) {
         serviceImpl = null;
         return context.ungetService(serviceRef);
+    }
+
+    /**
+     * Releases this reference.
+     * @param context The class loader that was used to create this service holder.
+     * @return {@literal false} if the context bundle's use count for the service
+     *         is zero or if the service has been unregistered; {@literal true}
+     *         otherwise.
+     *  @since 1.2
+     */
+    public final boolean release(final ClassLoader context){
+        if(context instanceof BundleReference)
+            return release(getBundleContext((BundleReference)context));
+        else {
+            serviceImpl = null;
+            return true;
+        }
     }
 
     /**
@@ -119,11 +169,8 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
      * @return All properties associated with this reference.
      */
     public final Map<String, ?> getProperties(){
-        final String[] keys = getPropertyKeys();
-        final Map<String, Object> result = Maps.newHashMapWithExpectedSize(keys.length);
-        for(final String key: keys)
-            result.put(key, getProperty(key));
-        return result;
+        return Arrays.stream(getPropertyKeys())
+                .collect(Collectors.toMap(Function.identity(), this::getProperty));
     }
 
     /**

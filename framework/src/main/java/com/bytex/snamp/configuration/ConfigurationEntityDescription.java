@@ -18,7 +18,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfigurati
  *     Each element of the collection represents parameter name and this collection is read-only.
  * </p>
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public interface ConfigurationEntityDescription<T extends EntityConfiguration> extends Collection<String> {
@@ -47,7 +47,7 @@ public interface ConfigurationEntityDescription<T extends EntityConfiguration> e
      * Represents description of the configuration parameter.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     interface ParameterDescription extends Descriptive {
         /**

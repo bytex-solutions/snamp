@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class HttpNotificationRepository extends MDANotificationRepository<HttpNotificationAccessor> {
@@ -54,9 +54,9 @@ final class HttpNotificationRepository extends MDANotificationRepository<HttpNot
                 if (category.equals(metadata.getDescriptor().getName(ArrayUtils.getFirst(metadata.getNotifTypes()))))
                     try {
                         enqueue(metadata,
-                                metadata.getMessage(notification),
+                                HttpNotificationAccessor.getMessage(notification),
                                 metadata.getSequenceNumber(notification),
-                                metadata.getTimeStamp(notification),
+                                HttpNotificationAccessor.getTimeStamp(notification),
                                 metadata.getUserData(notification, formatter));
                     } catch (final OpenDataException e) {
                         getLogger().log(Level.SEVERE, "Unable to process notification " + notification, e);

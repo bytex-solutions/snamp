@@ -1,10 +1,6 @@
 package com.bytex.snamp.core;
 
 import com.bytex.snamp.TypeTokens;
-import com.google.common.base.Function;
-import com.google.common.base.Functions;
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -18,11 +14,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Represents a set of distributed services.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class DistributedServices {
@@ -108,40 +106,28 @@ public final class DistributedServices {
 
     private static <S> S processClusterNode(final BundleContext context,
                                             final Function<? super ClusterMember, S> processor,
-                                            final Supplier<S> def){
-        ServiceHolder<ClusterMember> holder = null;
-        try{
-            holder = new ServiceHolder<>(context, ClusterMember.class);
-            return processor.apply(holder.getService());
-        } catch (final IllegalArgumentException ignored){ //service not found
-            return def.get();
-        }finally {
-            if(holder != null)
+                                            final Supplier<S> def) {
+        final ServiceHolder<ClusterMember> holder = ServiceHolder.tryCreate(context, ClusterMember.class);
+        if (holder != null)
+            try {
+                return processor.apply(holder.getService());
+            } finally {
                 holder.release(context);
-        }
+            }
+        else return def.get();
     }
 
     private static <S> S getService(final BundleContext context,
                                     final String serviceName,
                                     final TypeToken<S> serviceType) {
-        return processClusterNode(context, new Function<ClusterMember, S>() {
-            @Override
-            public S apply(final ClusterMember node) {
-                return node.getService(serviceName, serviceType);
-            }
-        }, new Supplier<S>() {
-            @Override
-            public S get() {
-                return getProcessLocalService(serviceName, serviceType);
-            }
-        });
+        return processClusterNode(context, node -> node.getService(serviceName, serviceType), () -> getProcessLocalService(serviceName, serviceType));
     }
 
     /**
      * Gets distributed {@link java.util.concurrent.ConcurrentMap}.
      * @param context Context of the caller OSGi bundle.
      * @param collectionName Name of the distributed collection.
-     * @return Distributed or process-lAbstractocal storage.
+     * @return Distributed or process-local storage.
      */
     public static ConcurrentMap<String, Object> getDistributedStorage(final BundleContext context,
                                                                             final String collectionName){
@@ -165,12 +151,7 @@ public final class DistributedServices {
      * @return {@literal true}, the caller code hosted in active cluster node; otherwise, {@literal false}.
      */
     public static boolean isActiveNode(final BundleContext context) {
-        return processClusterNode(context, new Function<ClusterMember, Boolean>() {
-            @Override
-            public Boolean apply(final ClusterMember node) {
-                return node.isActive();
-            }
-        }, Suppliers.ofInstance(Boolean.TRUE));
+        return processClusterNode(context, ClusterMember::isActive, () -> true);
     }
 
     /**
@@ -179,7 +160,7 @@ public final class DistributedServices {
      * @return {@literal true}, if this method is called in clustered environment; otherwise, {@literal false}.
      */
     public static boolean isInCluster(final BundleContext context) {
-        return processClusterNode(context, Functions.constant(Boolean.TRUE), Suppliers.ofInstance(Boolean.FALSE));
+        return processClusterNode(context, member -> true, () -> false);
     }
 
     /**
@@ -188,16 +169,6 @@ public final class DistributedServices {
      * @return Name of the cluster node.
      */
     public static String getLocalMemberName(final BundleContext context){
-        return processClusterNode(context, new Function<ClusterMember, String>() {
-            @Override
-            public String apply(final ClusterMember node) {
-                return node.getName();
-            }
-        }, new Supplier<String>() {
-            @Override
-            public String get() {
-                return ManagementFactory.getRuntimeMXBean().getName();
-            }
-        });
+        return processClusterNode(context, ClusterMember::getName, () -> ManagementFactory.getRuntimeMXBean().getName());
     }
 }

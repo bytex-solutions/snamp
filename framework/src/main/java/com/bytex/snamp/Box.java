@@ -1,20 +1,19 @@
 package com.bytex.snamp;
 
-import com.google.common.base.Function;
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Supplier;
-
 import java.io.Serializable;
 import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Represents simple container that holds mutable typed value.
  * @param <T> Type of the value in the container.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
-public class Box<T> implements Wrapper<T>, Supplier<T>, SafeConsumer<T>, Cloneable, Serializable{
+public class Box<T> implements Wrapper<T>, Supplier<T>, Consumer<T>, Acceptor<T, ExceptionPlaceholder>, Cloneable, Serializable{
     private static final long serialVersionUID = -3932725773035687013L;
     private T value;
 
@@ -42,7 +41,6 @@ public class Box<T> implements Wrapper<T>, Supplier<T>, SafeConsumer<T>, Cloneab
     public Box(){
         this(null);
     }
-
 
     /**
      * Performs this operation on the given argument.
@@ -76,13 +74,22 @@ public class Box<T> implements Wrapper<T>, Supplier<T>, SafeConsumer<T>, Cloneab
     }
 
     /**
+     * Determines whether object in this container is not {@literal null}.
+     * @return {@literal true}, if object in this container is not {@literal null}; otherwise, {@literal false}.
+     * @since 1.2
+     */
+    public final boolean hasValue(){
+        return value != null;
+    }
+
+    /**
      * Retrieves an instance of the stored object or returns alternative value
      * if stored object is {@literal null}.
      * @param defval The alternative value to return.
      * @return An object stored in this box; or {@code defval} if stored object is {@literal null}.
      */
-    public final T getOrDefault(final T defval){
-        return MoreObjects.firstNonNull(value, defval);
+    public final T getOrDefault(final Supplier<T> defval){
+        return value == null ? defval.get() : value;
     }
 
     /**

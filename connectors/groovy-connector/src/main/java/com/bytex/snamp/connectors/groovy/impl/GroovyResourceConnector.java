@@ -1,9 +1,7 @@
 package com.bytex.snamp.connectors.groovy.impl;
 
-import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.GroupedThreadFactory;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
@@ -15,18 +13,16 @@ import com.bytex.snamp.connectors.metrics.MetricsReader;
 import com.bytex.snamp.connectors.notifications.*;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
-import com.google.common.base.Splitter;
-import com.google.common.base.StandardSystemProperty;
-import com.google.common.base.Strings;
+import com.bytex.snamp.io.IOUtils;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
 import org.osgi.framework.BundleContext;
 
 import javax.management.InvalidAttributeValueException;
-import javax.management.NotificationListener;
 import javax.management.ReflectionException;
 import javax.management.openmbean.CompositeData;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
@@ -37,9 +33,11 @@ import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class GroovyResourceConnector extends AbstractManagedResourceConnector {
@@ -57,7 +55,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         private static String getDescription(final NotificationDescriptor descriptor,
                                              final String fallback){
             final String result = descriptor.getDescription();
-            return Strings.isNullOrEmpty(result) ?
+            return isNullOrEmpty(result) ?
                     fallback:
                     result;
         }
@@ -111,12 +109,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         }
 
         private static NotificationListenerInvoker createListenerInvoker(final Executor executor) {
-            return NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker(executor, new NotificationListenerInvokerFactory.ExceptionHandler() {
-                @Override
-                public void handle(final Throwable e, final NotificationListener source) {
-                    getLoggerImpl().log(Level.SEVERE, "Unable to process JMX notification.", e);
-                }
-            });
+            return NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker(executor, (e, source) -> getLoggerImpl().log(Level.SEVERE, "Unable to process JMX notification.", e));
         }
 
         /**
@@ -175,7 +168,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         private static String getDescription(final AttributeDescriptor descriptor,
                                              final String fallback){
             final String result = descriptor.getDescription();
-            return Strings.isNullOrEmpty(result) ? fallback : result;
+            return isNullOrEmpty(result) ? fallback : result;
         }
 
         @Override
@@ -266,17 +259,11 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
     }
 
     private static final String RESOURCE_NAME_VAR = ManagedResourceScriptBase.RESOURCE_NAME_VAR;
-    @Aggregation
+    @Aggregation(cached = true)
     private final GroovyAttributeRepository attributes;
-    private static final Splitter PATH_SPLITTER;
     private final ManagedResourceInfo groovyConnector;
-    @Aggregation
+    @Aggregation(cached = true)
     private final GroovyNotificationRepository events;
-
-    static {
-        final String pathSeparator = StandardSystemProperty.PATH_SEPARATOR.value();
-        PATH_SPLITTER = Splitter.on(Strings.isNullOrEmpty(pathSeparator) ? ":" : pathSeparator);
-    }
 
     static Properties toProperties(final Map<String, String> params){
         final Properties props = new Properties();
@@ -284,21 +271,16 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         return props;
     }
 
-    static String[] getPaths(final String connectionString){
-        return ArrayUtils.toArray(PATH_SPLITTER.trimResults().splitToList(connectionString),
-                String.class);
-    }
-
     GroovyResourceConnector(final String resourceName,
                             final String connectionString,
                             final Map<String, String> params) throws IOException, ResourceException, ScriptException {
-        final String[] paths = getPaths(connectionString);
+        final String[] paths = IOUtils.splitPath(connectionString);
         final ManagedResourceScriptEngine engine = new ManagedResourceScriptEngine(getClass().getClassLoader(),
                 toProperties(params),
                 paths);
         engine.setGlobalVariable(RESOURCE_NAME_VAR, resourceName);
         final String initScript = GroovyResourceConfigurationDescriptor.getInitScriptFile(params);
-        groovyConnector = Strings.isNullOrEmpty(initScript) ?
+        groovyConnector = isNullOrEmpty(initScript) ?
                 null :
                 engine.init(initScript, params);
         attributes = new GroovyAttributeRepository(resourceName, engine);
@@ -311,7 +293,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         return assembleMetricsReader(attributes, events);
     }
 
-    static Logger getLoggerImpl(){
+    private static Logger getLoggerImpl(){
         return ResourceConnectorInfo.getLogger();
     }
 
@@ -347,7 +329,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         removeResourceEventListener(listener, attributes);
     }
 
-    boolean addAttribute(final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+    boolean addAttribute(final String attributeName, final Duration readWriteTimeout, final CompositeData options) {
         verifyClosedState();
         return attributes.addAttribute(attributeName, readWriteTimeout, options) != null;
     }

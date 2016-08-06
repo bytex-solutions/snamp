@@ -3,7 +3,7 @@ package com.bytex.snamp.concurrent;
 /**
  * Represents abstract time-based accumulator.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 abstract class AbstractAccumulator extends Number {
@@ -24,7 +24,11 @@ abstract class AbstractAccumulator extends Number {
         timer = System.currentTimeMillis();
     }
 
-    final boolean isExpired() {
+    /**
+     * Determines whether the value in this accumulator is expired.
+     * @return {@literal true}, if value is expired; otherwise, {@literal false}.
+     */
+    protected final boolean isExpired() {
         return System.currentTimeMillis() - timer > timeToLive;
     }
 }

@@ -1,30 +1,33 @@
 package com.bytex.snamp.adapters.syslog;
 
+import com.bytex.snamp.EntryReader;
+import com.bytex.snamp.adapters.AbstractResourceAdapter;
+import com.bytex.snamp.adapters.NotificationEvent;
+import com.bytex.snamp.adapters.NotificationListener;
+import com.bytex.snamp.adapters.modeling.*;
 import com.cloudbees.syslog.Facility;
 import com.cloudbees.syslog.Severity;
 import com.cloudbees.syslog.SyslogMessage;
 import com.cloudbees.syslog.sender.SyslogMessageSender;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
-import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.adapters.*;
-import com.bytex.snamp.adapters.modeling.*;
-import com.bytex.snamp.EntryReader;
 
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanNotificationInfo;
 import java.io.CharArrayWriter;
+import java.time.Duration;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static com.bytex.snamp.adapters.syslog.SysLogConfigurationDescriptor.createSender;
 import static com.bytex.snamp.adapters.syslog.SysLogConfigurationDescriptor.getPassiveCheckSendPeriod;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class SysLogAdapter extends AbstractResourceAdapter {
@@ -44,13 +47,15 @@ final class SysLogAdapter extends AbstractResourceAdapter {
             this.notifications = new HashMap<>(10);
         }
 
+        private <E extends Exception> void forEachNotificationImpl(final EntryReader<String, ? super SysLogNotificationAccessor, E> notificationReader) throws E{
+            for(final ResourceNotificationList<SysLogNotificationAccessor> list: notifications.values())
+                for(final SysLogNotificationAccessor accessor: list.values())
+                    if(!notificationReader.read(accessor.resourceName, accessor)) return;
+        }
+
         @Override
         public <E extends Exception> void forEachNotification(final EntryReader<String, ? super SysLogNotificationAccessor, E> notificationReader) throws E {
-            try(final LockScope ignored = beginRead()){
-                for(final ResourceNotificationList<SysLogNotificationAccessor> list: notifications.values())
-                    for(final SysLogNotificationAccessor accessor: list.values())
-                        if(!notificationReader.read(accessor.resourceName, accessor)) return;
-            }
+            readAccept(notificationReader, this::forEachNotificationImpl);
         }
 
         private void setCheckSender(final ConcurrentSyslogMessageSender value){
@@ -77,46 +82,51 @@ final class SysLogAdapter extends AbstractResourceAdapter {
             }
         }
 
+        private NotificationAccessor addNotificationImpl(final String resourceName,
+                                             final MBeanNotificationInfo metadata) {
+            final ResourceNotificationList<SysLogNotificationAccessor> list;
+            if (notifications.containsKey(resourceName))
+                list = notifications.get(resourceName);
+            else notifications.put(resourceName, list = new ResourceNotificationList<>());
+            final SysLogNotificationAccessor accessor;
+            list.put(accessor = new SysLogNotificationAccessor(resourceName, metadata, this));
+            return accessor;
+        }
+
         private NotificationAccessor addNotification(final String resourceName,
-                                                     final MBeanNotificationInfo metadata){
-            try(final LockScope ignored = beginWrite()){
-                final ResourceNotificationList<SysLogNotificationAccessor> list;
-                if(notifications.containsKey(resourceName))
-                    list = notifications.get(resourceName);
-                else notifications.put(resourceName, list = new ResourceNotificationList<>());
-                final SysLogNotificationAccessor accessor;
-                list.put(accessor = new SysLogNotificationAccessor(resourceName, metadata, this));
-                return accessor;
-            }
+                                                     final MBeanNotificationInfo metadata) {
+            return writeApply(resourceName, metadata, this::addNotificationImpl);
+        }
+
+        private NotificationAccessor removeNotificationImpl(final String resourceName,
+                                                        final MBeanNotificationInfo metadata){
+            final ResourceNotificationList<SysLogNotificationAccessor> list;
+            if(notifications.containsKey(resourceName))
+                list = notifications.get(resourceName);
+            else return null;
+            final NotificationAccessor accessor = list.remove(metadata);
+            if(list.isEmpty()) notifications.remove(resourceName);
+            return accessor;
         }
 
         private NotificationAccessor removeNotification(final String resourceName,
                                                         final MBeanNotificationInfo metadata){
-            try(final LockScope ignored = beginWrite()){
-                final ResourceNotificationList<SysLogNotificationAccessor> list;
-                if(notifications.containsKey(resourceName))
-                    list = notifications.get(resourceName);
-                else return null;
-                final NotificationAccessor accessor = list.remove(metadata);
-                if(list.isEmpty()) notifications.remove(resourceName);
-                return accessor;
-            }
+            return writeApply(resourceName, metadata, this::removeNotificationImpl);
         }
 
-        private Iterable<? extends NotificationAccessor> removeNotifications(final String resourceName){
-            try(final LockScope ignored = beginWrite()){
-                if(notifications.containsKey(resourceName))
-                    return notifications.remove(resourceName).values();
+        private Collection<? extends NotificationAccessor> removeNotifications(final String resourceName) {
+            return writeApply(resourceName, notifications, (resName, notifs) -> {
+                if (notifs.containsKey(resName))
+                    return notifs.remove(resName).values();
                 else return ImmutableList.of();
-            }
+            });
         }
 
         private void clear() {
-            try (final LockScope ignored = beginWrite()) {
-                for (final ResourceNotificationList<?> list : notifications.values())
-                    for (final NotificationAccessor accessor : list.values())
-                        accessor.close();
-            }
+            writeAccept(notifications, notifs -> {
+                notifs.values().forEach(list -> list.values().forEach(NotificationAccessor::close));
+                notifs.clear();
+            });
             final ConcurrentSyslogMessageSender sender = checkSender;
             if (sender != null)
                 sender.close();
@@ -146,9 +156,11 @@ final class SysLogAdapter extends AbstractResourceAdapter {
     }
 
     @Override
-    protected Iterable<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception {
-        return Iterables.concat(notifications.removeNotifications(resourceName),
-                attributes.clear(resourceName));
+    protected Stream<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception {
+        return Stream.concat(
+                notifications.removeNotifications(resourceName).stream(),
+                attributes.clear(resourceName).stream()
+        );
     }
 
     @SuppressWarnings("unchecked")
@@ -162,7 +174,7 @@ final class SysLogAdapter extends AbstractResourceAdapter {
     }
 
     private void start(final SyslogMessageSender sender,
-                       final TimeSpan passiveCheckSendPeriod){
+                       final Duration passiveCheckSendPeriod){
         final ConcurrentSyslogMessageSender parallelSender =
                 new ConcurrentSyslogMessageSender(sender);
         attributeSender = new SysLogAttributeSender(passiveCheckSendPeriod,

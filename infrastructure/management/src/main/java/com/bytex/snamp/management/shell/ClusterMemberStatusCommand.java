@@ -2,15 +2,17 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.core.DistributedServices;
-import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.management.jmx.ResignOperation;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
+import static com.bytex.snamp.management.shell.Utils.append;
+import static com.bytex.snamp.management.shell.Utils.appendln;
+
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
@@ -26,13 +28,13 @@ public class ClusterMemberStatusCommand extends OsgiCommandSupport implements Sn
         final StringBuilder result = new StringBuilder();
         if (startElection) {
             if (ResignOperation.resign(bundleContext))
-                IOUtils.appendln(result, "Resigned");
+                appendln(result, "Resigned");
             else
-                IOUtils.appendln(result, "This node is not in a cluster member");
+                appendln(result, "This node is not in a cluster member");
         }
-        IOUtils.appendln(result, "Is cluster member: %s", DistributedServices.isInCluster(bundleContext));
-        IOUtils.appendln(result, "Active Member: %s", DistributedServices.isActiveNode(bundleContext));
-        IOUtils.append(result, "Member Name: %s", DistributedServices.getLocalMemberName(bundleContext));
+        appendln(result, "Is cluster member: %s", DistributedServices.isInCluster(bundleContext));
+        appendln(result, "Active Member: %s", DistributedServices.isActiveNode(bundleContext));
+        append(result, "Member Name: %s", DistributedServices.getLocalMemberName(bundleContext));
         return result;
     }
 }

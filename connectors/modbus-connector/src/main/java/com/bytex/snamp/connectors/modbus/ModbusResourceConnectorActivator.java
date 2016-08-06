@@ -1,6 +1,5 @@
 package com.bytex.snamp.connectors.modbus;
 
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
 import com.bytex.snamp.SpecialUse;
 
@@ -8,6 +7,7 @@ import javax.management.openmbean.CompositeData;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
 
@@ -21,7 +21,7 @@ public final class ModbusResourceConnectorActivator extends ManagedResourceActiv
     private static final class ModbusConnectorFactory extends ManagedResourceConnectorModeler<ModbusResourceConnector>{
 
         @Override
-        protected boolean addAttribute(final ModbusResourceConnector connector, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+        protected boolean addAttribute(final ModbusResourceConnector connector, final String attributeName, final Duration readWriteTimeout, final CompositeData options) {
             return connector.addAttribute(attributeName, readWriteTimeout, options);
         }
 
@@ -42,7 +42,7 @@ public final class ModbusResourceConnectorActivator extends ManagedResourceActiv
         }
 
         @Override
-        protected boolean enableOperation(final ModbusResourceConnector connector, final String operationName, final TimeSpan invocationTimeout, final CompositeData options) {
+        protected boolean enableOperation(final ModbusResourceConnector connector, final String operationName, final Duration invocationTimeout, final CompositeData options) {
             //not supported
             return false;
         }

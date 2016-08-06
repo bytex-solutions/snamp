@@ -1,20 +1,19 @@
 package com.bytex.snamp.management.jmx;
 
-import com.google.common.collect.ImmutableMap;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.Box;
-import com.bytex.snamp.Consumer;
 import com.bytex.snamp.adapters.SelectableAdapterParameterDescriptor;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.connectors.SelectableConnectorParameterDescriptor;
 import com.bytex.snamp.jmx.CompositeTypeBuilder;
+import com.bytex.snamp.jmx.OpenMBean;
 import com.bytex.snamp.jmx.TabularDataBuilderRowFill;
 import com.bytex.snamp.jmx.TabularTypeBuilder;
 import com.bytex.snamp.management.AbstractSnampManager;
 import com.bytex.snamp.management.SnampComponentDescriptor;
-import com.bytex.snamp.jmx.OpenMBean;
+import com.google.common.collect.ImmutableMap;
 
 import javax.management.MBeanOperationInfo;
 import javax.management.openmbean.*;
@@ -24,7 +23,7 @@ import java.util.*;
  * The type Configuration schema operation.
  * @author Roman Sakno
  * @author Evgeniy Kirichenko
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 abstract class ConfigurationSchemaOperation extends OpenMBean.OpenOperation<CompositeData, CompositeType> implements CommonOpenTypesSupport<MBeanOperationInfo> {
@@ -102,7 +101,7 @@ abstract class ConfigurationSchemaOperation extends OpenMBean.OpenOperation<Comp
      */
     protected ConfigurationSchemaOperation(final AbstractSnampManager snampManager,
                                            final String operationName,
-                                           final OpenMBeanParameterInfo... parameters) {
+                                           final TypedParameterInfo<?>... parameters) {
         super(operationName, COMPONENT_CONFIG_SCHEMA, parameters);
         this.snampManager = Objects.requireNonNull(snampManager);
     }
@@ -132,9 +131,8 @@ abstract class ConfigurationSchemaOperation extends OpenMBean.OpenOperation<Comp
                 //related params
                 for(final ConfigurationEntityDescription.ParameterRelationship rel: ConfigurationEntityDescription.ParameterRelationship.values()){
                     final Set<String> relationship = new HashSet<>();
-                    for(final String relatedParameter: descriptor.getRelatedParameters(rel))
-                        relationship.add(relatedParameter);
-                    parameter.put(getRelationshipKey(rel), ArrayUtils.toArray(relationship, String.class));
+                    relationship.addAll(descriptor.getRelatedParameters(rel));
+                    parameter.put(getRelationshipKey(rel), relationship.stream().toArray(String[]::new));
                 }
                 builder.newRow()
                         .cell("Parameter", parameterName)
@@ -167,12 +165,7 @@ abstract class ConfigurationSchemaOperation extends OpenMBean.OpenOperation<Comp
     protected static CompositeData getConfigurationSchema(final SnampComponentDescriptor component,
                                                         final String locale) throws OpenDataException {
         final Box<CompositeData> result = new Box<>();
-        component.invokeSupportService(ConfigurationEntityDescriptionProvider.class, new Consumer<ConfigurationEntityDescriptionProvider, OpenDataException>() {
-            @Override
-            public void accept(final ConfigurationEntityDescriptionProvider input) throws OpenDataException {
-                result.set(getConfigurationSchema(input, locale == null || locale.isEmpty() ? Locale.getDefault() : Locale.forLanguageTag(locale)));
-            }
-        });
+        component.invokeSupportService(ConfigurationEntityDescriptionProvider.class, input -> result.set(getConfigurationSchema(input, locale == null || locale.isEmpty() ? Locale.getDefault() : Locale.forLanguageTag(locale))));
         return result.get();
     }
 

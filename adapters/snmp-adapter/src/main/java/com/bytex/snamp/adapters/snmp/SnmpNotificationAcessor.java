@@ -1,6 +1,7 @@
 package com.bytex.snamp.adapters.snmp;
 
 import com.bytex.snamp.adapters.modeling.NotificationAccessor;
+import com.bytex.snamp.adapters.snmp.helpers.OctetStringHelper;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 import com.bytex.snamp.jmx.WellKnownType;
 import org.snmp4j.agent.NotificationOriginator;
@@ -17,14 +18,14 @@ import java.text.ParseException;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
-import static com.bytex.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.*;
+import static com.bytex.snamp.adapters.snmp.SnmpAdapterDescriptionProvider.*;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
-public final class SnmpNotificationAcessor extends NotificationAccessor implements SnmpNotificationMapping {
+final class SnmpNotificationAcessor extends NotificationAccessor implements SnmpNotificationMapping {
     private static final Pattern IPv4_PATTERN = Pattern.compile("^\\d+\\.\\d+\\.\\d+\\.\\d+/\\d+");
     private WeakReference<NotificationOriginator> notificationOriginator;
     private final String resourceName;
@@ -36,7 +37,7 @@ public final class SnmpNotificationAcessor extends NotificationAccessor implemen
         super(metadata);
         this.notificationOriginator = null;
         this.resourceName = resourceName;
-        notificationID = parseOID(this);
+        notificationID = parseOID(metadata, SnmpHelpers.OID_GENERATOR);
     }
 
     @Override
@@ -65,7 +66,7 @@ public final class SnmpNotificationAcessor extends NotificationAccessor implemen
 
     @Override
     public OctetString getReceiverName() {
-        return SnmpHelpers.toOctetString(parseTargetName(getMetadata()));
+        return OctetStringHelper.toOctetString(parseTargetName(getMetadata()));
     }
 
     @Override
@@ -111,7 +112,7 @@ public final class SnmpNotificationAcessor extends NotificationAccessor implemen
                     get(),
                     typeMapper);
             originator.notify(new OctetString(), snmpTrap.notificationID, snmpTrap.getBindings()); //for SNMPv3 sending
-            originator.notify(SnmpHelpers.toOctetString("public"), snmpTrap.notificationID, snmpTrap.getBindings()); //for SNMPv2 sending
+            originator.notify(OctetStringHelper.toOctetString("public"), snmpTrap.notificationID, snmpTrap.getBindings()); //for SNMPv2 sending
         }
     }
 

@@ -13,7 +13,7 @@ import java.io.Writer;
 /**
  * Saves JAAS configuration into external file.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,

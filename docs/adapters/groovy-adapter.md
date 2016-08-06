@@ -132,7 +132,9 @@ Working with timers:
 def timer = createTimer({ println 'Tick' }, 300)  //will print 'Tick' every 300 milliseconds
 timer.run() //start printing
 timer.close() //stop printing
-//the code above is equivalent to
+```
+the code above is equivalent to
+```groovy
 def timer = schedule({ println 'Tick' }, 300)
 timer.close()
 ```
@@ -141,7 +143,9 @@ Simple messaging using communicator:
 ```groovy
 def communicator = getCommunicator 'test-communicator'
 communicator.register(asListener { msg -> println msg})
-//in other script file
+```
+in other script file
+```groovy
 def communicator = getCommunicator 'test-communicator'
 communicator.post 'Hello, world!'
 ```
@@ -154,7 +158,9 @@ def listen(message){
     communicator.post('pong')
 }
 
-communicator.register(asListener this.&listen)
+communicator.register(asListener(this.&listen))
+```
+```groovy
 //script2.groovy
 communicator = getCommunicator 'test-communicator'
 def response = communicator.post('ping', 2000)  //2 seconds for response timeout

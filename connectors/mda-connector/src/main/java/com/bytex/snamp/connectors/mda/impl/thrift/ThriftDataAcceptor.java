@@ -3,7 +3,6 @@ package com.bytex.snamp.connectors.mda.impl.thrift;
 import com.bytex.snamp.Box;
 import com.bytex.snamp.connectors.mda.DataAcceptor;
 import com.bytex.snamp.internal.Utils;
-import com.google.common.base.Supplier;
 import org.apache.thrift.TException;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.*;
@@ -16,11 +15,12 @@ import javax.management.openmbean.*;
 import java.lang.ref.WeakReference;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class ThriftDataAcceptor extends DataAcceptor implements TProcessor {
@@ -57,13 +57,13 @@ final class ThriftDataAcceptor extends DataAcceptor implements TProcessor {
     }
 
     @Override
-    @Aggregation
+    @Aggregation(cached = true)
     protected ThriftAttributeRepository getAttributes() {
         return attributes;
     }
 
     @Override
-    @Aggregation
+    @Aggregation(cached = true)
     protected ThriftNotificationRepository getNotifications() {
         return notifications;
     }

@@ -1,24 +1,24 @@
 package com.bytex.snamp.adapters.jmx;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Multimap;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.adapters.AbstractResourceAdapter;
 import com.bytex.snamp.adapters.modeling.AttributeSet;
 import com.bytex.snamp.adapters.modeling.FeatureAccessor;
 import com.bytex.snamp.adapters.modeling.NotificationSet;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
-import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.internal.Utils;
+import com.google.common.collect.Multimap;
 import org.osgi.framework.BundleContext;
 
 import javax.management.*;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * Represents JMX adapter. This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class JmxResourceAdapter extends AbstractResourceAdapter {
@@ -90,7 +90,7 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
     }
 
     @Override
-    protected synchronized Iterable<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws MalformedObjectNameException, MBeanRegistrationException, InstanceNotFoundException {
+    protected synchronized Stream<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws MalformedObjectNameException, MBeanRegistrationException, InstanceNotFoundException {
         if(exposedBeans.containsKey(resourceName)){
             final ProxyMBean bean = exposedBeans.remove(resourceName);
             //unregister bean
@@ -100,7 +100,7 @@ final class JmxResourceAdapter extends AbstractResourceAdapter {
             }
             return bean.getAccessorsAndClose();
         }
-        else return ImmutableList.of();
+        else return Stream.empty();
     }
 
     @SuppressWarnings("unchecked")

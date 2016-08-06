@@ -8,7 +8,7 @@ import javax.management.MBeanAttributeInfo;
  * Represents an event raised by managed resource connector
  * when it extends with a new attribute.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class AttributeAddedEvent extends FeatureAddedEvent<MBeanAttributeInfo> {

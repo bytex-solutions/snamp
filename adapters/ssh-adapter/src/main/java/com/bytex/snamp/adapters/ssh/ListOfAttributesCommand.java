@@ -1,6 +1,5 @@
 package com.bytex.snamp.adapters.ssh;
 
-import com.bytex.snamp.Consumer;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -12,7 +11,7 @@ import java.io.PrintWriter;
  * Represents shell command that obtains a list of attributes.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class ListOfAttributesCommand extends AbstractManagementShellCommand {
@@ -41,14 +40,11 @@ final class ListOfAttributesCommand extends AbstractManagementShellCommand {
                                  final boolean details,
                                  final PrintWriter output) throws IOException {
         for (final String attributeName : getAdapterController().getAttributes(resourceName))
-            getAdapterController().processAttribute(resourceName, attributeName, new Consumer<SshAttributeMapping, IOException>() {
-                @Override
-                public void accept(final SshAttributeMapping attr) throws IOException{
-                    output.println(withNames ? String.format("ID: %s NAME: %s CAN_READ: %s CAN_WRITE %s", attributeName, attr.getOriginalName(), attr.canRead(), attr.canWrite()) : attributeName);
-                    if(details) {
-                        attr.printOptions(output);
-                        output.println();
-                    }
+            getAdapterController().processAttribute(resourceName, attributeName, attr -> {
+                output.println(withNames ? String.format("ID: %s NAME: %s CAN_READ: %s CAN_WRITE %s", attributeName, attr.getOriginalName(), attr.canRead(), attr.canWrite()) : attributeName);
+                if(details) {
+                    attr.printOptions(output);
+                    output.println();
                 }
             });
     }

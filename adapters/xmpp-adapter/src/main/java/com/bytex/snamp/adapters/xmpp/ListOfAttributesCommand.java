@@ -1,6 +1,5 @@
 package com.bytex.snamp.adapters.xmpp;
 
-import com.bytex.snamp.io.IOUtils;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -12,7 +11,7 @@ import java.util.Objects;
  * Prints list of attributes.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class ListOfAttributesCommand extends AbstractCommand {
@@ -38,7 +37,7 @@ final class ListOfAttributesCommand extends AbstractCommand {
                                  final boolean details,
                                  final StringBuilder output) {
         for (final String attributeName : reader.getResourceAttributes(resourceName))
-            IOUtils.appendln(output, reader.printOptions(resourceName, attributeName, withNames, details));
+            output.append(reader.printOptions(resourceName, attributeName, withNames, details)).append(System.lineSeparator());
     }
 
     @Override

@@ -13,7 +13,7 @@ import static com.bytex.snamp.jmx.CompositeDataUtils.getString;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class TabularDataBuilderTest extends Assert {
@@ -21,10 +21,9 @@ public final class TabularDataBuilderTest extends Assert {
     @Test
     public void buildTest() throws OpenDataException {
         final TabularData table = new TabularDataBuilder()
-                .columns()
-                .addColumn("intColumn", "descr", SimpleType.INTEGER, true)
-                .addColumn("stringColumn", "descr", SimpleType.STRING, false)
-                .queryObject(TabularDataBuilder.class)
+                .declareColumns(columns -> columns
+                        .addColumn("intColumn", "descr", SimpleType.INTEGER, true)
+                        .addColumn("stringColumn", "descr", SimpleType.STRING, false))
                 .setTypeName("table", true)
                 .setTypeDescription("test table", true)
                 .add(1, "First")

@@ -1,9 +1,6 @@
 package com.bytex.snamp.adapters;
 
 import com.bytex.snamp.AbstractAggregator;
-import com.bytex.snamp.EntryReader;
-import com.bytex.snamp.ExceptionPlaceholder;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.modeling.*;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
@@ -19,6 +16,7 @@ import com.bytex.snamp.connectors.operations.OperationAddedEvent;
 import com.bytex.snamp.connectors.operations.OperationRemovingEvent;
 import com.bytex.snamp.core.LogicalOperation;
 import com.bytex.snamp.core.RichLogicalOperation;
+import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.google.common.collect.*;
 import org.osgi.framework.*;
@@ -29,12 +27,11 @@ import javax.management.MBeanNotificationInfo;
 import javax.management.MBeanOperationInfo;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.util.Collection;
-import java.util.Dictionary;
-import java.util.Map;
-import java.util.Objects;
+import java.time.Duration;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
@@ -46,23 +43,9 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * </p>
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  */
 public abstract class AbstractResourceAdapter extends AbstractAggregator implements ResourceAdapter, ResourceEventListener{
-    private static final class ResourceAdapterUpdateNotifier extends WeakReference<AbstractResourceAdapter> implements ResourceAdapterUpdatedCallback {
-
-        private ResourceAdapterUpdateNotifier(final AbstractResourceAdapter adapter) {
-            super(adapter);
-        }
-
-        @Override
-        public void updated() {
-            final AbstractResourceAdapter adapter = get();
-            if (adapter != null)
-                ResourceAdapterEventBus.notifyAdapterUpdated(adapter.getAdapterName(), adapter);
-        }
-    }
-
     private static final class AdapterLogicalOperation extends RichLogicalOperation {
         private static final String ADAPTER_INSTANCE_NAME_PROPERTY = "adapterInstanceName";
 
@@ -90,7 +73,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         }
 
         private static InternalState initialState(){
-            return new InternalState(AdapterState.CREATED, ImmutableMap.<String, String>of());
+            return new InternalState(AdapterState.CREATED, ImmutableMap.of());
         }
 
         private InternalState setParameters(final Map<String, String> value){
@@ -102,7 +85,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         }
 
         private static InternalState finalState(){
-            return new InternalState(AdapterState.CLOSED, ImmutableMap.<String, String>of());
+            return new InternalState(AdapterState.CLOSED, ImmutableMap.of());
         }
 
         private boolean parametersAreEqual(final Map<String, String> newParameters) {
@@ -336,14 +319,14 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * @param resourceName The name of the resource.
      * @return Read-only collection of features tracked by this resource adapter. Cannot be {@literal null}.
      */
-    protected abstract Iterable<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception;
+    protected abstract Stream<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception;
 
-    private Iterable<? extends FeatureAccessor<?>> removeAllFeaturesImpl(final String resourceName){
+    private Stream<? extends FeatureAccessor<?>> removeAllFeaturesImpl(final String resourceName){
         try {
             return removeAllFeatures(resourceName);
         } catch (final Exception e) {
             failedToRemoveFeatures(resourceName, e);
-            return ImmutableList.of();
+            return Stream.empty();
         }
     }
 
@@ -434,6 +417,14 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         }
     }
 
+    private static ResourceAdapterUpdatedCallback adapterUpdatedNotifier(final WeakReference<? extends AbstractResourceAdapter> adapterRef){
+        return () -> {
+            final AbstractResourceAdapter adapter = adapterRef.get();
+            if (adapter != null)
+                ResourceAdapterEventBus.notifyAdapterUpdated(adapter.getAdapterName(), adapter);
+        };
+    }
+
     /**
      * Begin or prolong updating the internal structure of this adapter.
      * @param manager The update manager.
@@ -442,9 +433,9 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
     protected final void beginUpdate(final ResourceAdapterUpdateManager manager,
                                      ResourceAdapterUpdatedCallback callback) {
         if (callback == null)
-            callback = new ResourceAdapterUpdateNotifier(this);
+            callback = adapterUpdatedNotifier(new WeakReference<>(this));
         else
-            callback = ResourceAdapterUpdateManager.combineCallbacks(callback, new ResourceAdapterUpdateNotifier(this));
+            callback = ResourceAdapterUpdateManager.combineCallbacks(callback, adapterUpdatedNotifier(new WeakReference<>(this)));
         if (manager.beginUpdate(callback))
             ResourceAdapterEventBus.notifyAdapterUpdating(getAdapterName(), this);
     }
@@ -468,12 +459,10 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                 //expose all features
                 final AttributeSupport attributeSupport = connector.queryObject(AttributeSupport.class);
                 if(attributeSupport != null)
-                    for(final MBeanAttributeInfo metadata: attributeSupport.getAttributeInfo())
-                        attributeAdded(new AttributeAddedEvent(attributeSupport, resourceName, metadata));
+                    Arrays.stream(attributeSupport.getAttributeInfo()).forEach(metadata -> attributeAdded(new AttributeAddedEvent(attributeSupport, resourceName, metadata)));
                 final NotificationSupport notificationSupport = connector.queryObject(NotificationSupport.class);
                 if(notificationSupport != null)
-                    for(final MBeanNotificationInfo metadata: notificationSupport.getNotificationInfo())
-                        notificationAdded(new NotificationAddedEvent(notificationSupport, resourceName, metadata));
+                    Arrays.stream(notificationSupport.getNotificationInfo()).forEach(metadata -> notificationAdded(new NotificationAddedEvent(notificationSupport, resourceName, metadata)));
             } finally {
                 context.ungetService(resourceRef);
             }
@@ -486,8 +475,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
         if(connector != null)
             try{
                 connector.removeResourceEventListener(this);
-                for(final FeatureAccessor<?> accessor: removeAllFeaturesImpl(resourceName))
-                    accessor.close();
+                removeAllFeaturesImpl(resourceName).forEach(FeatureAccessor::close);
             }
             finally {
                 context.ungetService(resourceRef);
@@ -502,8 +490,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                 //explore all available resources
                 final Collection<ServiceReference<ManagedResourceConnector>> resources =
                         getBundleContext().getServiceReferences(ManagedResourceConnector.class, null);
-                for(final ServiceReference<ManagedResourceConnector> resourceRef: resources)
-                    addResource(resourceRef);
+                resources.forEach(this::addResource);
                 InternalState newState = currentState.setParameters(params);
                 start(newState.parameters);
                 mutableState = newState.setAdapterState(AdapterState.STARTED);
@@ -524,8 +511,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
                     final BundleContext context = getBundleContext();
                     final Collection<ServiceReference<ManagedResourceConnector>> resources =
                             context.getServiceReferences(ManagedResourceConnector.class, null);
-                    for(final ServiceReference<ManagedResourceConnector> resourceRef: resources)
-                        removeResource(resourceRef);
+                    resources.forEach(this::removeResource);
                 }
                 finally {
                     getBundleContext().removeServiceListener(this);
@@ -554,7 +540,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      */
     @Override
     public final void serviceChanged(final ServiceEvent event) {
-        if (ManagedResourceConnectorClient.isResourceConnector(event.getServiceReference()))
+        if (ManagedResourceConnector.isResourceConnector(event.getServiceReference()))
             try (final LogicalOperation logger = AdapterLogicalOperation.connectorChangesDetected(getLogger(), adapterInstanceName)) {
                 @SuppressWarnings("unchecked")
                 final ServiceReference<ManagedResourceConnector> connectorRef = (ServiceReference<ManagedResourceConnector>) event.getServiceReference();
@@ -651,24 +637,13 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
     }
 
     public static String getAdapterName(final Class<? extends ResourceAdapter> adapterType){
-        return getAdapterName(FrameworkUtil.getBundle(adapterType));
+        return ResourceAdapter.getResourceAdapterType(Utils.getBundleContext(adapterType).getBundle());
     }
 
     public static String getAdapterName(final ResourceAdapter adapter) {
         return getAdapterName(adapter.getClass());
     }
 
-    static boolean isResourceAdapterBundle(final Bundle bnd){
-        return bnd != null && bnd.getHeaders().get(ADAPTER_NAME_MANIFEST_HEADER) != null;
-    }
-
-    private static String getAdapterName(final Dictionary<String, ?> identity) {
-        return Objects.toString(identity.get(ADAPTER_NAME_MANIFEST_HEADER), "");
-    }
-
-    static String getAdapterName(final Bundle bnd){
-        return getAdapterName(bnd.getHeaders());
-    }
 
     @Override
     public <M extends MBeanFeatureInfo> Multimap<String, ? extends FeatureBindingInfo<M>> getBindings(final Class<M> featureType) {
@@ -677,23 +652,13 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
 
     protected static <TAccessor extends AttributeAccessor & FeatureBindingInfo<MBeanAttributeInfo>> Multimap<String, ? extends FeatureBindingInfo<MBeanAttributeInfo>> getBindings(final AttributeSet<TAccessor> model){
         final Multimap<String, TAccessor> result = HashMultimap.create();
-        model.forEachAttribute(new EntryReader<String, TAccessor, ExceptionPlaceholder>() {
-            @Override
-            public boolean read(final String resourceName, final TAccessor accessor) {
-                return result.put(resourceName, accessor);
-            }
-        });
+        model.forEachAttribute(result::put);
         return result;
     }
 
     protected static <TAccessor extends NotificationAccessor & FeatureBindingInfo<MBeanNotificationInfo>> Multimap<String, ? extends FeatureBindingInfo<MBeanNotificationInfo>> getBindings(final NotificationSet<TAccessor> model){
         final Multimap<String, TAccessor> result = HashMultimap.create();
-        model.forEachNotification(new EntryReader<String, TAccessor, ExceptionPlaceholder>() {
-            @Override
-            public boolean read(final String resourceName, final TAccessor accessor) {
-                return result.put(resourceName, accessor);
-            }
-        });
+        model.forEachNotification(result::put);
         return result;
     }
 
@@ -705,7 +670,7 @@ public abstract class AbstractResourceAdapter extends AbstractAggregator impleme
      * @return {@literal true}, if Bus is switched to synchronous mode; otherwise, {@literal false}.
      * @throws InterruptedException Switching is terminated.
      */
-    public static boolean disableEventAsyncMode(final TimeSpan terminationTimeout) throws InterruptedException {
+    public static boolean disableEventAsyncMode(final Duration terminationTimeout) throws InterruptedException {
         return ResourceAdapterEventBus.disableAsyncMode(terminationTimeout);
     }
 }

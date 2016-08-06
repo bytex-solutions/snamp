@@ -1,7 +1,6 @@
 package com.bytex.snamp.connectors.mda;
 
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.attributes.OpenAttributeRepository;
 import com.bytex.snamp.core.DistributedServices;
@@ -10,9 +9,9 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
 import javax.management.InvalidAttributeValueException;
-import javax.management.openmbean.CompositeType;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
+import java.time.Duration;
 import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,10 +23,10 @@ import static com.bytex.snamp.connectors.mda.MDAResourceConfigurationDescriptorP
  * @param <M> Type of attributes in the repository.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  */
 public abstract class MDAAttributeRepository<M extends MDAAttributeInfo> extends OpenAttributeRepository<M> implements SafeCloseable {
-    private TimeSpan expirationTime;
+    private Duration expirationTime;
     private AccessTimer lastWriteAccess;
     private final Cache<String, OpenType<?>> attributeTypes;
 
@@ -42,7 +41,7 @@ public abstract class MDAAttributeRepository<M extends MDAAttributeInfo> extends
         attributeTypes = CacheBuilder.newBuilder().weakValues().build();
     }
 
-    final void init(final TimeSpan expirationTime,
+    final void init(final Duration expirationTime,
                     final AccessTimer accessTimer){
         this.expirationTime = expirationTime;
         this.lastWriteAccess = accessTimer;
@@ -90,11 +89,8 @@ public abstract class MDAAttributeRepository<M extends MDAAttributeInfo> extends
      * @param attributeType The name of the storage slot.
      * @return Default value of the storage slot.
      */
-    @SuppressWarnings("unchecked")
     protected <T> T getDefaultValue(final OpenType<T> attributeType) throws OpenDataException{
-        return attributeType instanceof CompositeType ?
-                (T)DefaultValues.get((CompositeType)attributeType) :
-                DefaultValues.get(attributeType);
+        return DefaultValues.get(attributeType);
     }
 
     /**

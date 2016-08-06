@@ -8,13 +8,13 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 import java.io.IOException;
 
-import static com.bytex.snamp.io.IOUtils.appendln;
+import static com.bytex.snamp.management.shell.Utils.appendln;
 import static com.bytex.snamp.management.shell.Utils.getStateString;
 
 /**
  * Command that prints list of installed adapters.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
@@ -23,7 +23,7 @@ import static com.bytex.snamp.management.shell.Utils.getStateString;
 public final class InstalledAdaptersCommand extends OsgiCommandSupport implements SnampShellCommand {
     private final SnampManager manager = new SnampManagerImpl();
 
-    static void writeAdapter(final SnampComponentDescriptor component, final StringBuilder output) throws IOException {
+    static void writeAdapter(final SnampComponentDescriptor component, final StringBuilder output) {
         appendln(output, "%s. Name: %s. Description: %s. Version: %s. State: %s",
                 component.getName(null),
                 component.get(SnampComponentDescriptor.ADAPTER_SYSTEM_NAME_PROPERTY),

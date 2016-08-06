@@ -7,14 +7,14 @@ import java.util.Collections;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class RShellConnectionOptionsTest extends Assert {
     @Test
     public void localProcessTest() throws Exception {
         final RShellConnectionOptions options =
-                new RShellConnectionOptions("process", Collections.<String, String>emptyMap());
+                new RShellConnectionOptions("process", Collections.emptyMap());
         assertNotNull(options.createExecutionChannel());
     }
 }

@@ -5,7 +5,7 @@ import com.google.common.collect.ForwardingObject;
 import javax.script.*;
 import java.io.Reader;
 
-public abstract class ForwardingScriptEngine extends ForwardingObject implements ScriptEngine{
+abstract class ForwardingScriptEngine extends ForwardingObject implements ScriptEngine{
 
     protected abstract ScriptEngine delegate();
 

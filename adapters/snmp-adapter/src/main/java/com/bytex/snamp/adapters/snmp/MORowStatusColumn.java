@@ -1,6 +1,5 @@
 package com.bytex.snamp.adapters.snmp;
 
-import com.google.common.base.Function;
 import com.bytex.snamp.jmx.WellKnownType;
 import org.snmp4j.agent.mo.MOAccessImpl;
 import org.snmp4j.agent.mo.MOMutableColumn;
@@ -8,12 +7,13 @@ import org.snmp4j.smi.Integer32;
 import org.snmp4j.smi.Variable;
 
 import javax.management.DescriptorRead;
+import java.util.function.Function;
 
 /**
  * Represents RowStatus column as described in SMIv2 (RFC 1903).
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  * @see <a href="http://www.ietf.org/rfc/rfc1903.txt">RFC 1903</a>
  */

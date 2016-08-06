@@ -10,7 +10,7 @@ import java.util.ServiceLoader;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class MDAResourceActivatorImpl extends MDAResourceActivator {
@@ -28,11 +28,11 @@ public final class MDAResourceActivatorImpl extends MDAResourceActivator {
         }
     }
 
-    private static final class MDAConfigurationEntityDescriptionManager extends ConfigurationEntityDescriptionManager<MDAResourceConfigurationDescriptorProviderImpl>{
+    private static final class MDAConfigurationEntityDescriptionManager extends ConfigurationEntityDescriptionManager<MDAConnectorDescriptionProvider>{
 
         @Override
-        protected MDAResourceConfigurationDescriptorProviderImpl createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
-            return new MDAResourceConfigurationDescriptorProviderImpl();
+        protected MDAConnectorDescriptionProvider createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
+            return MDAConnectorDescriptionProvider.getInstance();
         }
     }
 

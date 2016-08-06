@@ -2,7 +2,6 @@ package com.bytex.snamp.adapters.xmpp;
 
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.adapters.modeling.NotificationRouter;
-import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.json.JsonUtils;
 import com.google.gson.Gson;
@@ -19,7 +18,7 @@ import java.util.Map;
  * Bridge between notifications and XMPP protocol.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class XMPPNotificationAccessor extends NotificationRouter {
@@ -62,12 +61,15 @@ final class XMPPNotificationAccessor extends NotificationRouter {
             case 0:
                 return String.format(LISTEN_COMMAND_PATTERN, "");
             case 1:
-                for (final Map.Entry<String, ?> entry : filterParams.entrySet())
-                    return String.format(LISTEN_COMMAND_PATTERN, String.format("(%s=%s)", entry.getKey(), entry.getValue()));
+                return filterParams.entrySet()
+                        .stream()
+                        .map(entry -> String.format(LISTEN_COMMAND_PATTERN, String.format("(%s=%s)", entry.getKey(), entry.getValue())))
+                        .findFirst()
+                        .orElseGet(() -> null);
             default:
                 final StringBuilder filter = new StringBuilder(30);
                 for (final Map.Entry<String, ?> entry : filterParams.entrySet())
-                    IOUtils.append(null, "(%s=%s)", entry.getKey(), entry.getValue());
+                    filter.append(String.format("(%s=%s)", entry.getKey(), entry.getValue()));
                 return String.format("(&(%s))", filter);
 
         }

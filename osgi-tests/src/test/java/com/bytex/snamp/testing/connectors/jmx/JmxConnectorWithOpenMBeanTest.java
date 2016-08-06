@@ -1,24 +1,24 @@
 package com.bytex.snamp.testing.connectors.jmx;
 
-import com.bytex.snamp.concurrent.SynchronizationEvent;
+import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.connectors.attributes.AttributeSupport;
+import com.bytex.snamp.connectors.metrics.*;
+import com.bytex.snamp.connectors.notifications.Mailbox;
+import com.bytex.snamp.connectors.notifications.MailboxFactory;
 import com.bytex.snamp.connectors.notifications.NotificationSupport;
-import com.bytex.snamp.connectors.notifications.SynchronizationListener;
 import com.bytex.snamp.connectors.operations.OperationSupport;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.bytex.snamp.jmx.TabularDataBuilder;
-import com.bytex.snamp.testing.connectors.AbstractResourceConnectorTest;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceEvent;
-import org.osgi.framework.ServiceListener;
 
 import javax.management.*;
 import javax.management.openmbean.CompositeData;
@@ -28,17 +28,15 @@ import java.math.BigInteger;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.Objects;
+import java.util.concurrent.*;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTest<TestOpenMBean> {
@@ -119,22 +117,20 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         assertNotNull(notificationSupport);
         assertNotNull(attributeSupport);
         assertEquals(2, notificationSupport.getNotificationInfo().length);
-        final SynchronizationListener listener1 = new SynchronizationListener("19.1");
-        final SynchronizationListener listener2 = new SynchronizationListener("20.1");
+        final Mailbox listener1 = MailboxFactory.newMailbox("19.1");
+        final Mailbox listener2 = MailboxFactory.newMailbox("20.1");
         notificationSupport.addNotificationListener(listener1, listener1, null);
         notificationSupport.addNotificationListener(listener2, listener2, null);
-        final Future<Notification> awaitor1 = listener1.getAwaitor();
-        final Future<Notification> awaitor2 = listener2.getAwaitor();
         //force property changing
         attributeSupport.setAttribute(new Attribute("1.0", "Frank Underwood"));
-        final Notification notif1 = awaitor1.get(5, TimeUnit.SECONDS);
+        final Notification notif1 = listener1.poll(5, TimeUnit.SECONDS);
         assertNotNull(notif1);
         assertEquals("Property string is changed", notif1.getMessage());
         assertTrue(notif1.getUserData() instanceof CompositeData);
         final CompositeData attachment = (CompositeData)notif1.getUserData();
         assertEquals("string", attachment.get("attributeName"));
         assertEquals(String.class.getName(), attachment.get("attributeType"));
-        final Notification notif2 = awaitor2.get(5, TimeUnit.SECONDS);
+        final Notification notif2 = listener2.poll(5, TimeUnit.SECONDS);
         assertNotNull(notif2);
         assertEquals("Property changed", notif2.getMessage());
     }
@@ -154,24 +150,22 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         assertNotNull(notificationSupport);
         assertNotNull(attributeSupport);
         assertEquals(2, notificationSupport.getNotificationInfo().length);
-        final SynchronizationListener listener1 = new SynchronizationListener("19.1");
-        final SynchronizationListener listener2 = new SynchronizationListener("20.1");
+        final Mailbox listener1 = MailboxFactory.newMailbox("19.1");
+        final Mailbox listener2 = MailboxFactory.newMailbox("20.1");
         notificationSupport.addNotificationListener(listener1, listener1, null);
         notificationSupport.addNotificationListener(listener2, listener2, null);
-        final Future<Notification> awaitor1 = listener1.getAwaitor();
-        final Future<Notification> awaitor2 = listener2.getAwaitor();
         //simulate connection abort
         assertEquals("OK", ManagedResourceConnectorClient.invokeMaintenanceAction(getTestBundleContext(), CONNECTOR_NAME, "simulateConnectionAbort", null, null).get(3, TimeUnit.SECONDS));
         //force property changing
         attributeSupport.setAttribute(new Attribute("1.0", "Frank Underwood"));
-        final Notification notif1 = awaitor1.get(5, TimeUnit.SECONDS);
+        final Notification notif1 = listener1.poll(5, TimeUnit.SECONDS);
         assertNotNull(notif1);
         assertEquals("Property string is changed", notif1.getMessage());
         assertTrue(notif1.getUserData() instanceof CompositeData);
         final CompositeData attachment = (CompositeData)notif1.getUserData();
         assertEquals("string", attachment.get("attributeName"));
         assertEquals(String.class.getName(), attachment.get("attributeType"));
-        final Notification notif2 = awaitor2.get(5, TimeUnit.SECONDS);
+        final Notification notif2 = listener2.poll(5, TimeUnit.SECONDS);
         assertNotNull(notif2);
         assertEquals("Property changed", notif2.getMessage());
     }
@@ -195,20 +189,14 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         final TabularData table = new TabularDataBuilder()
                 .setTypeName("Table", true)
                 .setTypeDescription("Dummy table", true)
-                .columns()
-                .addColumn("col1", "dummy column", SimpleType.BOOLEAN, false)
-                .addColumn("col2", "dummy column", SimpleType.INTEGER, false)
-                .addColumn("col3", "dummy column", SimpleType.STRING, true)
-                .queryObject(TabularDataBuilder.class)
+                .declareColumns(columns -> columns
+                        .addColumn("col1", "dummy column", SimpleType.BOOLEAN, false)
+                        .addColumn("col2", "dummy column", SimpleType.INTEGER, false)
+                        .addColumn("col3", "dummy column", SimpleType.STRING, true))
                 .add(true, 42, "Frank Underwood")
                 .add(true, 43, "Peter Russo")
                 .build();
-        testAttribute("7.1", TypeToken.of(TabularData.class), table, new Equator<TabularData>() {
-            @Override
-            public boolean equate(final TabularData o1, final TabularData o2) {
-                return o1.size() == o2.size() && o1.values().containsAll(o2.values());
-            }
-        });
+        testAttribute("7.1", TypeToken.of(TabularData.class), table, (o1, o2) -> o1.size() == o2.size() && o1.values().containsAll(o2.values()));
     }
 
     @Test
@@ -220,13 +208,38 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
                 .put("col2", "descr", 42)
                 .put("col3", "descr", "Frank Underwood")
                 .build();
-        testAttribute("6.1", TypeToken.of(CompositeData.class), dict, AbstractResourceConnectorTest.<CompositeData>valueEquator());
+        testAttribute("6.1", TypeToken.of(CompositeData.class), dict, Objects::equals);
+    }
+
+    @Test
+    public void testForMetrics() throws Exception {
+        final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getTestBundleContext(), TEST_RESOURCE_NAME);
+        try{
+            final MetricsReader metrics = client.queryObject(MetricsReader.class);
+            assertNotNull(metrics);
+            assertTrue(metrics.getMetrics(MBeanAttributeInfo.class) instanceof AttributeMetrics);
+            assertTrue(metrics.getMetrics(MBeanNotificationInfo.class) instanceof NotificationMetrics);
+            assertTrue(metrics.getMetrics(MBeanOperationInfo.class) instanceof OperationMetrics);
+            assertNotNull(metrics.queryObject(AttributeMetrics.class));
+            assertNotNull(metrics.queryObject(NotificationMetrics.class));
+            assertNotNull(metrics.queryObject(OperationMetrics.class));
+            //read and write attributes
+            testForStringProperty();
+            //verify metrics
+            final AttributeMetrics attrMetrics = metrics.queryObject(AttributeMetrics.class);
+            assertTrue(attrMetrics.getNumberOfReads(MetricsInterval.HOUR) > 0);
+            assertTrue(attrMetrics.getNumberOfWrites(MetricsInterval.HOUR) > 0);
+            assertTrue(attrMetrics.getNumberOfReads() > 0);
+            assertTrue(attrMetrics.getNumberOfWrites() > 0);
+        } finally {
+            client.release(getTestBundleContext());
+        }
     }
 
     @Test
     public void testForArrayProperty() throws Exception {
         final short[] array = new short[]{10, 20, 30, 40, 50};
-        testAttribute("5.1", TypeToken.of(short[].class), array, arrayEquator());
+        testAttribute("5.1", TypeToken.of(short[].class), array, ArrayUtils::strictEquals);
     }
 
     @Test
@@ -262,24 +275,21 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
     @Test
     public void testForResourceConnectorListener() throws Exception {
         final BundleContext context = getTestBundleContext();
-        final SynchronizationEvent<Boolean> unregistered = new SynchronizationEvent<>(false);
-        final SynchronizationEvent<Boolean> registered = new SynchronizationEvent<>(false);
-        ManagedResourceConnectorClient.addResourceListener(context, new ServiceListener() {
-            @Override
-            public void serviceChanged(final ServiceEvent event) {
-                switch (event.getType()){
-                    case ServiceEvent.UNREGISTERING:
-                        unregistered.fire(Utils.isInstanceOf(event.getServiceReference(), ManagedResourceConnector.class));
-                        return;
-                    case ServiceEvent.REGISTERED:
-                        registered.fire(Utils.isInstanceOf(event.getServiceReference(), ManagedResourceConnector.class));
-                }
+        final CompletableFuture<Boolean> unregistered = new CompletableFuture<>();
+        final CompletableFuture<Boolean> registered = new CompletableFuture<>();
+        ManagedResourceConnectorClient.addResourceListener(context, event -> {
+            switch (event.getType()){
+                case ServiceEvent.UNREGISTERING:
+                    unregistered.complete(Utils.isInstanceOf(event.getServiceReference(), ManagedResourceConnector.class));
+                    return;
+                case ServiceEvent.REGISTERED:
+                    registered.complete(Utils.isInstanceOf(event.getServiceReference(), ManagedResourceConnector.class));
             }
         });
         stopResourceConnector(context);
         startResourceConnector(context);
-        assertTrue(unregistered.getAwaitor().get(2, TimeUnit.SECONDS));
-        assertTrue(registered.getAwaitor().get(2, TimeUnit.SECONDS));
+        assertTrue(unregistered.get(2, TimeUnit.SECONDS));
+        assertTrue(registered.get(2, TimeUnit.SECONDS));
     }
 
     @Test

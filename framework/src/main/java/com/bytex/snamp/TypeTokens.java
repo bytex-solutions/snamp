@@ -5,12 +5,20 @@ import com.google.common.reflect.TypeToken;
 /**
  * Provides helpers for working with {@link TypeToken} instances.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class TypeTokens {
-    private TypeTokens(){
+    private static final class TypeTokenCastException extends ClassCastException{
+        private static final long serialVersionUID = -1754975745564795992L;
 
+        private TypeTokenCastException(final Object value, final TypeToken<?> target){
+            super(String.format("Unable to cast %s to %s", value, target));
+        }
+    }
+
+    private TypeTokens(){
+        throw new InstantiationError();
     }
 
     /**
@@ -27,13 +35,6 @@ public final class TypeTokens {
     public static <T> T cast(final Object value, final TypeToken<T> target) throws ClassCastException {
         if (isInstance(value, target))
             return (T) value;
-        else throw new ClassCastException(String.format("Unable to cast %s to %s", value, target));
+        else throw new TypeTokenCastException(value, target);
     }
-
-    @SuppressWarnings("unchecked")
-    public static <T> T safeCast(final Object value, final TypeToken<T> target){
-        return isInstance(value, target) ? (T)value : null;
-    }
-
-
 }

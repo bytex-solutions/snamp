@@ -5,7 +5,7 @@ import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfigura
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
-import com.bytex.snamp.configuration.PersistentConfigurationManager;
+import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.connectors.discovery.DiscoveryService;
 import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.core.ServiceHolder;
@@ -14,21 +14,25 @@ import com.bytex.snamp.management.Maintainable;
 import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.Futures;
 import org.osgi.framework.*;
-import org.osgi.service.cm.ConfigurationAdmin;
 
 import javax.management.*;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
 import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfiguration;
+import static com.bytex.snamp.concurrent.SpinWait.spinUntilNull;
 
 /**
  * Represents a client of resource connector that can be used by resource consumers.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedResourceConnector> implements Aggregator, DynamicMBean {
@@ -41,6 +45,12 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
     public ManagedResourceConnectorClient(final BundleContext context,
                                           final String resourceName) throws InstanceNotFoundException {
         super(context, getResourceConnectorAndCheck(context, resourceName));
+    }
+
+    public ManagedResourceConnectorClient(final BundleContext context,
+                                          final String resourceName,
+                                          final Duration instanceTimeout) throws TimeoutException, InterruptedException {
+        super(context, spinUntilNull(context, resourceName, ManagedResourceConnectorClient::getResourceConnector, instanceTimeout));
     }
 
     private static ServiceReference<ManagedResourceConnector> getResourceConnectorAndCheck(final BundleContext context,
@@ -214,10 +224,8 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
             ref = getServiceReference(context, connectorType, null, Maintainable.class);
             if(ref == null) throw unsupportedServiceRequest(connectorType, Maintainable.class);
             final Maintainable service = context.getService(ref);
-            final Map<String, String> result = new HashMap<>(service.getActions().size());
-            for(final String actionName: service.getActions())
-                result.put(actionName, service.getActionDescription(actionName, loc));
-            return result;
+            return service.getActions().stream()
+                    .collect(Collectors.toMap(Function.identity(), actionName -> service.getActionDescription(actionName, loc)));
         }
         catch (final InvalidSyntaxException ignored) {
             ref = null;
@@ -267,35 +275,23 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
      * @return A map of management connector references where the key of the map represents
      *          a name of the management target.
      */
+    @SuppressWarnings("unchecked")
     public static Map<String, ServiceReference<ManagedResourceConnector>> getConnectors(final BundleContext context){
         if(context == null) return Collections.emptyMap();
         else try {
             ServiceReference<?>[] connectors = context.getAllServiceReferences(ManagedResourceConnector.class.getName(), null);
             if(connectors == null) connectors = emptyArray(ServiceReference[].class);
-            final Map<String, ServiceReference<ManagedResourceConnector>> result = new HashMap<>(connectors.length);
-            for(final ServiceReference<?> serviceRef: connectors) {
-                @SuppressWarnings("unchecked")
-                final ServiceReference<ManagedResourceConnector> connectorRef = (ServiceReference<ManagedResourceConnector>)serviceRef;
-                result.put(getManagedResourceName(connectorRef), connectorRef);
-            }
-            return result;
+            return Arrays.stream(connectors)
+                    .map(ref -> (ServiceReference<ManagedResourceConnector>)ref)
+                    .collect(Collectors.toMap(ManagedResourceConnectorClient::getManagedResourceName, Function.identity()));
         }
         catch (final InvalidSyntaxException ignored) {
             return Collections.emptyMap();
         }
     }
 
-    /**
-     * Gets type of the management connector by its reference.
-     * @param connectorRef The reference to the management connector.
-     * @return The type of the management connector.
-     */
-    public static String getConnectorType(final ServiceReference<ManagedResourceConnector> connectorRef){
-        return ManagedResourceActivator.getConnectorType(connectorRef);
-    }
-
     public String getConnectorType(){
-        return getConnectorType(this);
+        return ManagedResourceConnector.getResourceConnectorType(getBundle());
     }
 
     /**
@@ -353,15 +349,6 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
         }
     }
 
-    /**
-     * Determines whether the specified reference is a reference to {@link com.bytex.snamp.connectors.ManagedResourceConnector} service.
-     * @param ref A reference to check.
-     * @return {@literal true}, if the specified object is a reference to the {@link com.bytex.snamp.connectors.ManagedResourceConnector} service; otherwise, {@literal false}.
-     */
-    public static boolean isResourceConnector(final ServiceReference<?> ref){
-        return ManagedResourceActivator.isResourceConnector(ref);
-    }
-
     public static ManagedResourceConfiguration getResourceConfiguration(final BundleContext context,
                                                                         final ServiceReference<ManagedResourceConnector> connectorRef) throws IOException{
         return getResourceConfiguration(context, getManagedResourceName(connectorRef));
@@ -369,13 +356,15 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
 
     public static ManagedResourceConfiguration getResourceConfiguration(final BundleContext context,
                                                                         final String resourceName) throws IOException {
-        final ServiceHolder<ConfigurationAdmin> admin = new ServiceHolder<>(context,
-                ConfigurationAdmin.class);
-        try {
-            return PersistentConfigurationManager.readResourceConfiguration(admin.getService(), resourceName);
-        } finally {
-            admin.release(context);
-        }
+        final ServiceHolder<ConfigurationManager> manager = ServiceHolder.tryCreate(context,
+                ConfigurationManager.class);
+        if (manager != null)
+            try {
+                return manager.get().transformConfiguration(config -> config.getEntities(ManagedResourceConfiguration.class).get(resourceName));
+            } finally {
+                manager.release(context);
+            }
+        else return null;
     }
 
     public ManagedResourceConfiguration getResourceConfiguration(final BundleContext context) throws IOException {

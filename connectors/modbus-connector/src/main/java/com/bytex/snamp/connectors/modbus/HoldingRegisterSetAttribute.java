@@ -15,11 +15,12 @@ import javax.management.openmbean.SimpleType;
  */
 final class HoldingRegisterSetAttribute extends ModbusArrayAttributeInfo<short[], HoldingRegisterAccess> {
     private static final String DESCRIPTION = "A set of holding registers";
+    private static final long serialVersionUID = -6206738073781348952L;
 
-    protected HoldingRegisterSetAttribute(final String attributeID,
-                                          final AttributeDescriptor descriptor,
-                                          final HoldingRegisterAccess deviceAccess) throws OpenDataException {
-        super(attributeID, DESCRIPTION, new ArrayType<short[]>(SimpleType.SHORT, true), AttributeSpecifier.READ_WRITE, descriptor, deviceAccess);
+    HoldingRegisterSetAttribute(final String attributeID,
+                                final AttributeDescriptor descriptor,
+                                final HoldingRegisterAccess deviceAccess) throws OpenDataException {
+        super(attributeID, DESCRIPTION, new ArrayType<>(SimpleType.SHORT, true), AttributeSpecifier.READ_WRITE, descriptor, deviceAccess);
     }
 
 

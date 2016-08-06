@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 /**
  * The type Monitoring utils.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class MonitoringUtils {
@@ -36,7 +36,7 @@ final class MonitoringUtils {
      * @param data the data
      * @return the map
      */
-    public static Map<String, String> transformTabularDataToMap(final TabularData data) {
+    static Map<String, String> transformTabularDataToMap(final TabularData data) {
         if (data == null || data.isEmpty()) {
             return Collections.emptyMap();
         } else {
@@ -57,7 +57,7 @@ final class MonitoringUtils {
      * @return the tabular data support
      * @throws OpenDataException the open data exception
      */
-    public static TabularDataSupport transformAdditionalPropertiesToTabularData(final Map<String, String> map) throws OpenDataException {
+    static TabularDataSupport transformAdditionalPropertiesToTabularData(final Map<String, String> map) throws OpenDataException {
         final TabularDataSupport tabularDataSupport = new TabularDataSupport(CommonOpenTypesSupport.SIMPLE_MAP_TYPE);
         if (map != null) {
             for (final Map.Entry<String, String> entry : map.entrySet()) {

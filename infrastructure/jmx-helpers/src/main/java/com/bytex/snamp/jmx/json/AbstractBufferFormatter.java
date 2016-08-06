@@ -8,7 +8,7 @@ import java.nio.Buffer;
 /**
  * Represents abstract serializer/deserializer of NIO buffers.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public abstract class AbstractBufferFormatter<B extends Buffer> implements JsonSerializer<B>, JsonDeserializer<B> {

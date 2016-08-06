@@ -3,10 +3,13 @@ package com.bytex.snamp.concurrent;
 import com.bytex.snamp.SpecialUse;
 
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.function.IntBinaryOperator;
 
 /**
+ * Represents time-based accumulator for {@code int} numbers.
+ * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public abstract class IntAccumulator extends AbstractAccumulator {
@@ -28,29 +31,40 @@ public abstract class IntAccumulator extends AbstractAccumulator {
         this.current = this.initialValue = initialValue;
     }
 
-    /**
-     * Combines the current value of the accumulator with a new value.
-     * @param current The current value stored in this accumulator.
-     * @param newValue The new value supplied by the caller code.
-     * @return A new value.
-     */
-    protected abstract int combine(final int current, final int newValue);
-
     @Override
     public final synchronized void reset(){
         super.reset();
         CURRENT_VALUE_ACCESSOR.set(this, initialValue);
     }
 
-    private int updateImpl(final int value) {
-        int newValue;
-        do {
-            final int current = CURRENT_VALUE_ACCESSOR.get(this);
-            newValue = combine(current, value);
-        }
-        while (!CURRENT_VALUE_ACCESSOR.compareAndSet(this, current, newValue));
-        return newValue;
+    private synchronized void resetIfExpired(){
+        if(isExpired())
+            reset();
     }
+
+    /**
+     * Atomically adds the given value to the current value.
+     *
+     * @param delta The value to add.
+     * @return The updated value.
+     * @since 1.2
+     */
+    protected final int addAndGet(final int delta){
+        return CURRENT_VALUE_ACCESSOR.addAndGet(this, delta);
+    }
+
+    /**
+     * Atomically combines a new value with existing using given function.
+     * @param operator A side-effect-free function used to combine two values. Cannot be {@literal null}.
+     * @param newValue The value passed from {@link #update(int)} method.
+     * @return The updated value.
+     * @since 1.2
+     */
+    protected final int accumulateAndGet(final IntBinaryOperator operator, final int newValue){
+        return CURRENT_VALUE_ACCESSOR.accumulateAndGet(this, newValue, operator);
+    }
+
+    protected abstract int accumulate(final int value);
 
     /**
      * Updates this accumulator.
@@ -59,8 +73,8 @@ public abstract class IntAccumulator extends AbstractAccumulator {
      */
     public final int update(final int value){
         if(isExpired())
-            reset();
-        return updateImpl(value);
+            resetIfExpired();   //double check required
+        return accumulate(value);
     }
 
     /**
@@ -82,7 +96,7 @@ public abstract class IntAccumulator extends AbstractAccumulator {
     @Override
     public final int intValue() {
         if(isExpired())
-            reset();
+            resetIfExpired();   //double check required
         return CURRENT_VALUE_ACCESSOR.get(this);
     }
 
@@ -110,25 +124,35 @@ public abstract class IntAccumulator extends AbstractAccumulator {
         return intValue();
     }
 
-    public static IntAccumulator peak(final int initialValue, final long ttl){
+    public static IntAccumulator create(final int initialValue, final long ttl, final IntBinaryOperator accumulator){
         return new IntAccumulator(initialValue, ttl) {
-            private static final long serialVersionUID = 7620900607067251500L;
+            private static final long serialVersionUID = -3940528661924869135L;
 
             @Override
-            protected int combine(final int current, final int newValue) {
-                return Math.max(current, newValue);
+            protected int accumulate(final int value) {
+                return accumulateAndGet(accumulator, value);
             }
         };
     }
 
-    public static IntAccumulator adder(final int initialValue, final long ttl){
-        return new IntAccumulator(initialValue, ttl) {
-            private static final long serialVersionUID = -8158828259518423267L;
+    public static IntAccumulator peak(final int initialValue, final long ttl){
+        return create(initialValue, ttl, Math::max);
+    }
+
+    public static IntAccumulator adder(final int initialValue, final long ttl) {
+        final class Adder extends IntAccumulator{
+            private static final long serialVersionUID = 8155999174928846425L;
+
+            private Adder(final int initialValue, final long ttl){
+                super(initialValue, ttl);
+            }
 
             @Override
-            protected int combine(final int current, final int newValue) {
-                return current + newValue;
+            protected int accumulate(final int delta) {
+                return addAndGet(delta);
             }
-        };
+        }
+
+        return new Adder(initialValue, ttl);
     }
 }

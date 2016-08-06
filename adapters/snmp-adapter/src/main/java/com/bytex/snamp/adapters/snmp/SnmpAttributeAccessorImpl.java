@@ -6,12 +6,10 @@ import org.snmp4j.smi.OID;
 import javax.management.MBeanAttributeInfo;
 import java.text.ParseException;
 
-import static com.bytex.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.parseOID;
-
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class SnmpAttributeAccessorImpl extends SnmpAttributeAccessor {
@@ -19,7 +17,7 @@ final class SnmpAttributeAccessorImpl extends SnmpAttributeAccessor {
 
     SnmpAttributeAccessorImpl(final MBeanAttributeInfo metadata) throws ParseException {
         super(metadata);
-        attributeID = parseOID(metadata);
+        attributeID = SnmpAdapterDescriptionProvider.parseOID(metadata, SnmpHelpers.OID_GENERATOR);
     }
 
     @Override

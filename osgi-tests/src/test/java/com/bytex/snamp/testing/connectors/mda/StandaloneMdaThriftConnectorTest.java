@@ -1,7 +1,8 @@
 package com.bytex.snamp.testing.connectors.mda;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.connectors.notifications.NotificationBox;
+import com.bytex.snamp.connectors.notifications.Mailbox;
+import com.bytex.snamp.connectors.notifications.MailboxFactory;
 import com.bytex.snamp.connectors.notifications.NotificationSupport;
 import com.bytex.snamp.io.Buffers;
 import com.google.common.collect.ImmutableList;
@@ -27,7 +28,7 @@ import static com.bytex.snamp.testing.connectors.mda.MonitoringDataAcceptor.Clie
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class StandaloneMdaThriftConnectorTest extends AbstractMdaConnectorTest {
@@ -141,15 +142,15 @@ public final class StandaloneMdaThriftConnectorTest extends AbstractMdaConnector
     public void longArrayAttributeTest() throws IOException, TException {
         final Client client = createClient();
         final Long[] expectedValue = {3L, 90L, 50L, 7L};
-        final Long[] result = ArrayUtils.toArray(client.set_longArray(ImmutableList.copyOf(expectedValue)), Long.class);
+        final Long[] result = client.set_longArray(ImmutableList.copyOf(expectedValue)).stream().toArray(Long[]::new);
         assertArrayEquals(ArrayUtils.emptyArray(Long[].class), result);
-        assertArrayEquals(expectedValue, ArrayUtils.toArray(client.get_longArray(), Long.class));
+        assertArrayEquals(expectedValue, client.get_longArray().stream().toArray(Long[]::new));
     }
 
     @Test
     public void notificationTest() throws IOException, TException, TimeoutException, InterruptedException {
         final NotificationSupport notifications = getManagementConnector().queryObject(NotificationSupport.class);
-        final NotificationBox mailbox = new NotificationBox(2);
+        final Mailbox mailbox = MailboxFactory.newFixedSizeMailbox(2);
         try {
             notifications.addNotificationListener(mailbox, null, null);
         } finally {

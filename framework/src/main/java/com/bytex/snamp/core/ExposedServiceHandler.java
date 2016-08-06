@@ -1,7 +1,7 @@
 package com.bytex.snamp.core;
 
 import com.bytex.snamp.internal.Utils;
-import com.google.common.base.Strings;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import org.osgi.framework.*;
 
 import java.util.Objects;
@@ -11,7 +11,7 @@ import java.util.Objects;
  * @param <S> Type of the OSGi service.
  * @param <I> Type of the user data to be passed into the handler.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public abstract class ExposedServiceHandler<S, I> {
@@ -20,7 +20,7 @@ public abstract class ExposedServiceHandler<S, I> {
 
     protected ExposedServiceHandler(final Class<S> serviceType,
                                     final String filter) throws InvalidSyntaxException {
-        this.filter = Strings.isNullOrEmpty(filter) ? null : FrameworkUtil.createFilter(filter);
+        this.filter = isNullOrEmpty(filter) ? null : FrameworkUtil.createFilter(filter);
         this.serviceType = Objects.requireNonNull(serviceType);
     }
 

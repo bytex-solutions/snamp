@@ -14,7 +14,7 @@ import java.util.concurrent.ExecutorService;
  * Represents SNMP message dispatcher that supports thread pool for
  * concurrent message processing. This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class ConcurrentMessageDispatcher extends MessageDispatcherImpl implements Closeable {
@@ -26,15 +26,10 @@ public final class ConcurrentMessageDispatcher extends MessageDispatcherImpl imp
 
     @Override
     public void processMessage(final TransportMapping sourceTransport, final Address incomingAddress, final ByteBuffer wholeMessage, final TransportStateReference tmStateReference) {
-        executor.submit(new Runnable() {
-            @Override
-            public void run() {
-                ConcurrentMessageDispatcher.super.processMessage(sourceTransport,
-                        incomingAddress,
-                        wholeMessage,
-                        tmStateReference);
-            }
-        });
+        executor.submit(() -> ConcurrentMessageDispatcher.super.processMessage(sourceTransport,
+                incomingAddress,
+                wholeMessage,
+                tmStateReference));
     }
 
     /**
@@ -42,6 +37,5 @@ public final class ConcurrentMessageDispatcher extends MessageDispatcherImpl imp
      */
     @Override
     public void close() {
-        executor.shutdownNow();
     }
 }

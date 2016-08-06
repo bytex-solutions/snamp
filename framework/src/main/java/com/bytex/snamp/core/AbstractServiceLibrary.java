@@ -1,10 +1,9 @@
 package com.bytex.snamp.core;
 
-import com.bytex.snamp.ExceptionalCallable;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.ThreadSafe;
-import com.bytex.snamp.internal.Utils;
-import com.google.common.base.Supplier;
+import com.bytex.snamp.concurrent.LazyValueFactory;
+import com.bytex.snamp.concurrent.LazyValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.osgi.framework.*;
@@ -12,15 +11,15 @@ import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedServiceFactory;
 
 import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**
  * Represents an activator for SNAMP-specific bundle which exposes a set of services.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
@@ -100,9 +99,10 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      * Represents state of the service publication.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     public enum ProvidedServiceState{
+
         /**
          * Service is not published.
          */
@@ -113,6 +113,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          */
         PUBLISHED
     }
+
 
     /**
      * Represents a holder for the provided service.
@@ -129,8 +130,12 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         protected final Class<S> serviceContract;
         private final ImmutableList<RequiredService<?>> ownDependencies;
 
-        private ServiceRegistrationHolder<S, T> registration;
-        private ActivationPropertyReader properties;
+        private volatile ServiceRegistrationHolder<S, T> registration;
+        private volatile ActivationPropertyReader properties;
+
+        //fields as a part of tuple because it has the same lifecycle in this instance
+        private WeakServiceListener dependencyTracker;   //weak reference to avoid leak of service listener inside of OSGi container
+        private BundleContext activationContext;
 
         /**
          * Initializes a new holder for the provided service.
@@ -144,14 +149,6 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             ownDependencies = ImmutableList.copyOf(dependencies);
             registration = null;
             properties = emptyActivationPropertyReader;
-        }
-
-        /**
-         * Returns the bundle that declares this service.
-         * @return The bundle that declares this service.
-         */
-        protected final Bundle getBundle(){
-            return Utils.getBundleContextOfObject(this).getBundle();
         }
 
         /**
@@ -202,7 +199,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                         } catch (final Exception e) {
                             logger.log(Level.SEVERE, String.format("Unable to activate %s service", serviceContract), e);
                             if (registration != null) registration.unregister();
-                            this.registration = null;
+                            registration = null;
                         } finally {
                             logger.close();
                         }
@@ -217,7 +214,15 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          */
         @Override
         public final void serviceChanged(final ServiceEvent event) {
-            serviceChanged(getBundleContextOfObject(this), event);
+            serviceChanged(activationContext, event);
+        }
+
+        /**
+         * Gets bundle context used in {@link #serviceChanged(ServiceEvent)}.
+         * @return Bundle context used in {@link #serviceChanged(ServiceEvent)}.
+         */
+        final BundleContext getBundleContext() {
+            return activationContext;
         }
 
         /**
@@ -231,7 +236,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                     ProvidedServiceState.PUBLISHED;
         }
 
-        private void activateAndRegisterService(final BundleContext context) throws Exception{
+        private synchronized void activateAndRegisterService(final BundleContext context) throws Exception{
             final Hashtable<String, Object> identity = new Hashtable<>(3);
             this.registration = new ServiceRegistrationHolder<>(serviceContract,
                     activateService(identity, ownDependencies.toArray(new RequiredService<?>[ownDependencies.size()])),
@@ -243,47 +248,55 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * Determines whether the service activation and registration is allowed.
          * <p>
          *     In the default implementation this method always returns {@literal true}.
+         * @param context Bundle context that can be used to evaluate result of this method.
          * @return {@literal true}, if registration is allowed; otherwise, {@literal false}.
          */
         @MethodStub
-        protected boolean isActivationAllowed(){
+        protected boolean isActivationAllowed(final BundleContext context){
             return true;
         }
 
-        private void register(final BundleContext context, final ActivationPropertyReader properties) throws Exception {
+        private boolean register(final BundleContext context, final ActivationPropertyReader properties) throws Exception {
             this.properties = properties;
-            if(isActivationAllowed()) {
-                if (ownDependencies.isEmpty()) //instantiate and register service now because there are no dependencies
+            if(isActivationAllowed(context)) {
+                activationContext = context;
+                if (ownDependencies.isEmpty()) //instantiate and register service now because there are no dependencies, no dependency tracking is required
                     activateAndRegisterService(context);
                 else {
-                    final DependencyListeningFilter filter = new DependencyListeningFilter();
+                    final DependencyListeningFilterBuilder filter = new DependencyListeningFilterBuilder();
                     for (final RequiredService<?> dependency : ownDependencies) {
                         filter.append(dependency);
                         for (final ServiceReference<?> serviceRef : dependency.getCandidates(context))
                             serviceChanged(context, new ServiceEvent(ServiceEvent.REGISTERED, serviceRef));
                     }
                     //dependency tracking required
-                    filter.applyServiceListener(context, this);
+                    filter.applyServiceListener(context, dependencyTracker = new WeakServiceListener(this));
                 }
+                return true;
             }
-            else this.properties = emptyActivationPropertyReader;
+            else {
+                this.properties = emptyActivationPropertyReader;
+                return false;
+            }
         }
 
-        private void unregister(final BundleContext context) throws Exception {
-            if (!ownDependencies.isEmpty()) context.removeServiceListener(this);
-            //cancels registration
-            T serviceInstance = null;
-            try {
-                if (registration != null) {
-                    serviceInstance = registration.get();
-                    registration.unregister();
-                }
-                else serviceInstance = null;
-            } catch (final IllegalStateException ignored) {
-                //unregister can throws this exception and it must be suppressed
-            } finally {
-                registration = null;
+        private synchronized void unregister(final BundleContext context) throws Exception {
+            if (dependencyTracker != null) {
+                context.removeServiceListener(dependencyTracker);
+                dependencyTracker.clear();     //help GC
             }
+            //cancels registration
+            final T serviceInstance;
+            if (registration != null) {
+                serviceInstance = registration.get();
+                try {
+                    registration.unregister();
+                } catch (final IllegalStateException ignored) {
+                    //unregister can throws this exception and it must be suppressed
+                } finally {
+                    registration = null;
+                }
+            } else serviceInstance = null;
 
             //release service instance
             try {
@@ -291,9 +304,10 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                     cleanupService(serviceInstance, true);
             } finally {
                 //releases all dependencies
-                for (final RequiredService<?> dependency : ownDependencies)
-                    dependency.unbind(context);
+                ownDependencies.forEach(dependency -> dependency.unbind(context));
                 properties = emptyActivationPropertyReader;
+                dependencyTracker = null;
+                activationContext = null;
             }
         }
 
@@ -324,7 +338,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
     private static abstract class ManagedServiceFactoryImpl<TService> extends HashMap<String, TService> implements ManagedServiceFactory{
         private static final long serialVersionUID = 6353271076932722292L;
 
-        private synchronized <V, E extends Exception> V synchronizedInvoke(final ExceptionalCallable<V, E> action) throws E{
+        private synchronized <V> V synchronizedInvoke(final Callable<? extends V> action) throws Exception{
             return action.call();
         }
     }
@@ -338,22 +352,29 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      * @param <TService> Type of the dynamic service.
      */
     public static abstract class DynamicServiceManager<TService> extends ProvidedService<ManagedServiceFactory, ManagedServiceFactoryImpl<TService>>{
-        /**
-         * Represents a base persistent identifier used as a perfix for individual dynamic services configuration.
-         */
-        protected final String factoryPID;
+        private final LazyValue<String> factoryPID;
 
         /**
          * Initializes a new holder for the provided service.
          *
-         * @param factoryPID The base persistent identifier used as a prefix for individual dynamic services configuration.
          * @param dependencies A collection of service dependencies of dynamic services.
          * @throws IllegalArgumentException contract is {@literal null}.
          */
-        protected DynamicServiceManager(final String factoryPID, final RequiredService<?>... dependencies) {
+        protected DynamicServiceManager(final RequiredService<?>... dependencies) {
             super(ManagedServiceFactory.class, dependencies);
-            this.factoryPID = factoryPID;
+            factoryPID = LazyValueFactory.THREAD_SAFE.of(this::getFactoryPIDImpl);
         }
+
+        private String getFactoryPIDImpl(){
+            return getFactoryPID(super.ownDependencies.stream().toArray(RequiredService<?>[]::new));
+        }
+
+        /**
+         * Gets the base persistent identifier used as a prefix for individual dynamic services configuration.
+         * @param dependencies A set of dependencies required by this service manager.
+         * @return The base persistent identifier. Cannot be {@literal null} or empty string.
+         */
+        protected abstract String getFactoryPID(final RequiredService<?>[] dependencies);
 
         /**
          * Automatically invokes by SNAMP when the dynamic service should be updated with
@@ -427,11 +448,11 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         }
 
         LogicalOperation createLogicalOperationForUpdate(final String servicePID){
-            return DynamicServiceLogicalOperation.update(factoryPID, servicePID);
+            return DynamicServiceLogicalOperation.update(factoryPID.get(), servicePID);
         }
 
         LogicalOperation createLogicalOperationForDelete(final String servicePID){
-            return DynamicServiceLogicalOperation.delete(factoryPID, servicePID);
+            return DynamicServiceLogicalOperation.delete(factoryPID.get(), servicePID);
         }
 
         /**
@@ -443,6 +464,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          */
         @Override
         protected final ManagedServiceFactoryImpl<TService> activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception {
+            final String factoryPID = this.factoryPID.get();
             identity.put(Constants.SERVICE_PID, factoryPID);
             return new ManagedServiceFactoryImpl<TService>(){
                 private static final long serialVersionUID = -7596205835324011065L;
@@ -500,17 +522,14 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          */
         @Override
         protected final void cleanupService(final ManagedServiceFactoryImpl<TService> serviceInstance, final boolean stopBundle) throws Exception {
-            serviceInstance.synchronizedInvoke(new ExceptionalCallable<Void, Exception>() {
-                @Override
-                public Void call() throws Exception {
-                    try {
-                        for (final TService service : serviceInstance.values())
-                            dispose(service, stopBundle);
-                    } finally {
-                        serviceInstance.clear();
-                    }
-                    return null;
+            serviceInstance.synchronizedInvoke(() -> {
+                try {
+                    for (final TService service : serviceInstance.values())
+                        dispose(service, stopBundle);
+                } finally {
+                    serviceInstance.clear();
                 }
+                return null;
             });
             destroyManager();
         }
@@ -521,7 +540,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         }
     }
 
-    private static final class ServiceRegistrationHolder<S, T extends S> implements ServiceRegistration<S>, Supplier<T>{
+    private static final class ServiceRegistrationHolder<S, T extends S> implements ServiceRegistration<S>, Supplier<T> {
         private final ServiceRegistration<S> registration;
         private T serviceInstance;
 
@@ -594,24 +613,22 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         /**
          * Initializes a new dynamic service manager.
          * @param serviceContract The contract of the dynamic services.
-         * @param factoryPID The base persistent identifier used as a prefix for individual dynamic services configuration.
          * @param dependencies A collection of dependencies required for the newly created service.
          */
         protected ServiceSubRegistryManager(final Class<S> serviceContract,
-                                            final String factoryPID,
                                             final RequiredService<?>... dependencies){
-            super(factoryPID, dependencies);
+            super(dependencies);
             this.serviceContract = serviceContract;
         }
 
         @Override
         final LogicalOperation createLogicalOperationForUpdate(final String servicePID) {
-            return SubRegistryLogicalOperation.update(factoryPID, servicePID, serviceContract);
+            return SubRegistryLogicalOperation.update(super.factoryPID.get(), servicePID, serviceContract);
         }
 
         @Override
         final LogicalOperation createLogicalOperationForDelete(final String servicePID) {
-            return SubRegistryLogicalOperation.delete(factoryPID, servicePID, serviceContract);
+            return SubRegistryLogicalOperation.delete(super.factoryPID.get(), servicePID, serviceContract);
         }
 
         /**
@@ -653,7 +670,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             else if (oldService != newService) {
                 //save the identity of the service and removes registration of the previous version of service
                 final Dictionary<String, ?> identity = dispose(registration);
-                registration = new ServiceRegistrationHolder<>(serviceContract, newService, identity, getBundleContextOfObject(this));
+                registration = new ServiceRegistrationHolder<>(serviceContract, newService, identity, super.getBundleContext());
             }
             return registration;
         }
@@ -690,7 +707,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             final Hashtable<String, Object> identity = new Hashtable<>(4);
             identity.put(Constants.SERVICE_PID, servicePID);
             final T service = createService(identity, configuration, dependencies);
-            return service != null ? new ServiceRegistrationHolder<>(serviceContract, service, identity, getBundleContextOfObject(this)) : null;
+            return service != null ? new ServiceRegistrationHolder<>(serviceContract, service, identity, super.getBundleContext()) : null;
         }
 
         /**
@@ -730,7 +747,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      * Represents a holder of a collection of provided services.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     protected interface ProvidedServices{
         /**
@@ -747,7 +764,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
     private static final class ListOfProvidedServices extends ArrayList<ProvidedService<?, ?>> implements ProvidedServices{
         private static final long serialVersionUID = 341418339520679799L;
 
-        public ListOfProvidedServices(final ProvidedService<?, ?>... services){
+        private ListOfProvidedServices(final ProvidedService<?, ?>... services){
             super(Arrays.asList(services));
         }
 

@@ -11,7 +11,7 @@ import java.lang.ref.WeakReference;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class WeakMultimapTest extends Assert {
@@ -28,7 +28,7 @@ public final class WeakMultimapTest extends Assert {
             final Reference<?> ref = queue.poll();
             if(ref == null) break;
         }
-        WeakMultimap.iterate(map, EmptyEntryReader.<String, Object>getInstance());
+        WeakMultimap.iterate(map, EmptyEntryReader.getInstance());
         assertEquals(0, map.size());
     }
 }

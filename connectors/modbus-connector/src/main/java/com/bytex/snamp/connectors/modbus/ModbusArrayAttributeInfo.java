@@ -13,12 +13,14 @@ import static com.bytex.snamp.connectors.modbus.ModbusResourceConnectorConfigura
  */
 abstract class ModbusArrayAttributeInfo<T, A extends SlaveDeviceAccess> extends ModbusAttributeInfo<T, A> {
 
-    protected ModbusArrayAttributeInfo(final String attributeID,
-                                       final String description,
-                                       final ArrayType<T> attributeType,
-                                       final AttributeSpecifier specifier,
-                                       final AttributeDescriptor descriptor,
-                                       final A deviceAccess) {
+    private static final long serialVersionUID = 8018051076191542627L;
+
+    ModbusArrayAttributeInfo(final String attributeID,
+                             final String description,
+                             final ArrayType<T> attributeType,
+                             final AttributeSpecifier specifier,
+                             final AttributeDescriptor descriptor,
+                             final A deviceAccess) {
         super(attributeID, description, attributeType, specifier, descriptor, deviceAccess);
     }
 

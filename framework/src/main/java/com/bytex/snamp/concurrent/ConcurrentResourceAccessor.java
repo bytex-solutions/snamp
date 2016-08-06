@@ -1,7 +1,5 @@
 package com.bytex.snamp.concurrent;
 
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import com.bytex.snamp.Wrapper;
 
 /**
@@ -42,7 +40,7 @@ import com.bytex.snamp.Wrapper;
  * @param <R> Type of the thread-unsafe resource to hold.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  */
 public class ConcurrentResourceAccessor<R> extends AbstractConcurrentResourceAccessor<R> implements Wrapper<R> {
     private static final long serialVersionUID = -5981763196807390411L;
@@ -50,14 +48,14 @@ public class ConcurrentResourceAccessor<R> extends AbstractConcurrentResourceAcc
     /**
      * Represents coordinated resource.
      */
-    private final VolatileBox<R> resource;
+    private R resource;
 
     /**
      * Initializes a new thread safe container for the specified resource.
      * @param resource The resource to hold. May be {@literal null}.
      */
     public ConcurrentResourceAccessor(final R resource){
-        this.resource = new VolatileBox<>(resource);
+        this.resource = resource;
     }
 
     /**
@@ -67,74 +65,25 @@ public class ConcurrentResourceAccessor<R> extends AbstractConcurrentResourceAcc
      */
     @Override
     protected final R getResource() {
-        return resource.get();
+        return resource;
+    }
+
+    private <E extends Throwable> void changeResourceImpl(final Action<R, R, E> newResource) throws E{
+        resource = newResource.apply(resource);
     }
 
     /**
-     * Reads the current resource and set a new resource.
-     * @param newResource A new instance of the resource.
-     * @return Existed resource.
-     */
-    protected final R getAndSetResource(final R newResource){
-        return resource.getAndSet(newResource);
-    }
-
-    /**
-     * Sets resource in thread unsafe manner.
-     * @param resource The resource to set.
-     */
-    protected final void setResource(final R resource){
-        this.resource.set(resource);
-    }
-
-    /**
-     * Changes the resource.
-     * <p>
-     *     This operation acquires write-lock on the resource.
-     * </p>
-     * @param newResource A new instance of the resource.
-     */
-    public final void changeResource(final R newResource){
-        changeResource(Suppliers.ofInstance(newResource));
-    }
-
-    /**
-     * Changes the resource.
+     * Changes the resource. This operation may fail.
      * <p>
      *   This operation acquires write-lock on the resource.
      * </p>
      * @param newResource The factory of the new resource. Cannot be {@literal null}.
      * @throws IllegalArgumentException newResource is {@literal null}.
+     * @throws E An exception thrown by resource setter. The original resource remain unchanged.
+     * @since 1.2
      */
-    public final void changeResource(final Supplier<? extends R> newResource){
-        if(newResource == null) throw new IllegalArgumentException("newResource is null.");
-        final WriteLock wl = writeLock();
-        wl.lock();
-        try{
-            setResource(newResource.get());
-        }
-        finally {
-            wl.unlock();
-        }
-    }
-
-    /**
-     * Changes the resource.
-     * <p>
-     *   This operation acquires write-lock on the resource.
-     * </p>
-     * @param newResource The factory of the new resource. Cannot be {@literal null}.
-     * @throws IllegalArgumentException newResource is {@literal null}.
-     */
-    public final void changeResource(final ConsistentAction<R, R> newResource){
-        if(newResource == null) throw new IllegalArgumentException("newResource is null.");
-        final WriteLock wl = writeLock();
-        wl.lock();
-        try{
-            setResource(newResource.invoke(getResource()));
-        }
-        finally {
-            wl.unlock();
-        }
+    public final <E extends Throwable> void changeResource(final Action<R, R, E> newResource) throws E {
+        if (newResource == null) throw new IllegalArgumentException("newResource is null.");
+        writeAccept(newResource, this::changeResourceImpl);
     }
 }

@@ -8,7 +8,7 @@ import java.util.Map;
  * @param <K> The type of keys maintained by this map
  * @param <V> The type of mapped values
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public interface SerializableMap<K, V> extends Map<K, V>, Serializable {

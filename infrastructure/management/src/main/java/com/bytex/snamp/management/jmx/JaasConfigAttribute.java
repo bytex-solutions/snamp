@@ -1,9 +1,8 @@
 package com.bytex.snamp.management.jmx;
 
 import com.bytex.snamp.jmx.OpenMBean;
-import com.google.common.base.Strings;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
-import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.SimpleType;
 import java.io.*;
 
@@ -20,9 +19,8 @@ final class JaasConfigAttribute extends OpenMBean.OpenAttribute<String, SimpleTy
     /**
      * Instantiates a new Jaas config attribute.
      *
-     * @throws OpenDataException the open data exception
      */
-    JaasConfigAttribute() throws OpenDataException {
+    JaasConfigAttribute() {
         super(NAME, SimpleType.STRING);
     }
 
@@ -36,7 +34,7 @@ final class JaasConfigAttribute extends OpenMBean.OpenAttribute<String, SimpleTy
 
     @Override
     public void setValue(final String content) throws IOException {
-        if (Strings.isNullOrEmpty(content))
+        if (isNullOrEmpty(content))
             SnampManagerImpl.saveJaasConfiguration(getBundleContextOfObject(this), null);
         else try (final Reader reader = new StringReader(content)) {
             SnampManagerImpl.saveJaasConfiguration(getBundleContextOfObject(this), reader);

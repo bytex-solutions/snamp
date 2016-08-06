@@ -3,17 +3,18 @@ package com.bytex.snamp.connectors.mda;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
+import com.bytex.snamp.connectors.ManagedResourceDescriptionProvider;
 import com.bytex.snamp.jmx.CompositeTypeBuilder;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.google.common.base.Splitter;
-import com.google.common.base.Strings;
 import com.google.common.collect.ObjectArrays;
 
 import javax.management.Descriptor;
 import javax.management.openmbean.CompositeType;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
@@ -21,14 +22,15 @@ import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfigurati
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents basic configuration schema for all MDA connectors.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
-public abstract class MDAResourceConfigurationDescriptorProvider extends ConfigurationEntityDescriptionProviderImpl {
+public abstract class MDAResourceConfigurationDescriptorProvider extends ConfigurationEntityDescriptionProviderImpl implements ManagedResourceDescriptionProvider {
     private static final Splitter ITEMS_SPLITTER = Splitter.on(',').trimResults();
     /**
      * Represents configuration parameter which describes the type of the attribute.
@@ -89,7 +91,7 @@ public abstract class MDAResourceConfigurationDescriptorProvider extends Configu
             final String itemNames = DescriptorUtils.getField(descriptor, ITEM_NAMES_PARAM, String.class);
             final String itemTypes = DescriptorUtils.getField(descriptor, ITEM_TYPES_PARAM, String.class);
             final String typeName = DescriptorUtils.getField(descriptor, TYPE_NAME_PARAM, String.class);
-            if(Strings.isNullOrEmpty(itemNames) || Strings.isNullOrEmpty(itemTypes) || Strings.isNullOrEmpty(typeName))
+            if(isNullOrEmpty(itemNames) || isNullOrEmpty(itemTypes) || isNullOrEmpty(typeName))
                 return null;
             else return parseCompositeType(typeName, ITEMS_SPLITTER.splitToList(itemNames), ITEMS_SPLITTER.splitToList(itemTypes));
         }
@@ -99,8 +101,9 @@ public abstract class MDAResourceConfigurationDescriptorProvider extends Configu
     }
 
     static long parseExpireTime(final Map<String, String> parameters){
+        final long MAX_EXPIRE_TIME = Duration.ofNanos(Long.MAX_VALUE).toMillis();
         if(parameters.containsKey(EXPIRE_TIME_PARAM))
-            return Integer.parseInt(parameters.get(EXPIRE_TIME_PARAM));
-        else return Long.MAX_VALUE;
+            return Math.min(MAX_EXPIRE_TIME, Long.parseLong(parameters.get(EXPIRE_TIME_PARAM)));
+        else return MAX_EXPIRE_TIME;
     }
 }

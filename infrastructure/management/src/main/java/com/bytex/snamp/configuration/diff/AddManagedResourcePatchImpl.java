@@ -1,13 +1,12 @@
 package com.bytex.snamp.configuration.diff;
 
 import com.bytex.snamp.configuration.AbstractAgentConfiguration;
-import com.bytex.snamp.configuration.AgentConfiguration.*;
-
-import java.util.Map;
+import com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
+import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class AddManagedResourcePatchImpl extends AbstractManagedResourcePatch implements AddManagedResourcePatch {

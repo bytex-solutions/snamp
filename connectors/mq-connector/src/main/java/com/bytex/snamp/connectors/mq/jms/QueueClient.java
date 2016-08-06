@@ -19,7 +19,7 @@ import javax.naming.NamingException;
 /**
  * Represents connection factory for different types of queues.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public enum QueueClient {
@@ -62,19 +62,21 @@ public enum QueueClient {
         @Override
         ConnectionFactory getConnectionFactory(final String connectionString,
                                                final BundleContext context) throws JMSException {
-            final ServiceHolder<JNDIContextManager> jndiContextFactory = new ServiceHolder<>(context, JNDIContextManager.class);
-            try{
-                final Context jndiContext = jndiContextFactory.get().newInitialContext();
-                final Object factory = jndiContext.lookup(connectionString);
-                if(factory instanceof ConnectionFactory)
-                    return (ConnectionFactory)factory;
-                else throw new JMSException(String.format("Invalid ConnectionFactory at %s. JNDI is not configured properly", connectionString));
-            } catch (final NamingException e){
-                throw JMSExceptionUtils.wrap(e);
-            }
-            finally {
-                jndiContextFactory.release(context);
-            }
+            final ServiceHolder<JNDIContextManager> jndiContextFactory = ServiceHolder.tryCreate(context, JNDIContextManager.class);
+            if (jndiContextFactory != null)
+                try {
+                    final Context jndiContext = jndiContextFactory.get().newInitialContext();
+                    final Object factory = jndiContext.lookup(connectionString);
+                    if (factory instanceof ConnectionFactory)
+                        return (ConnectionFactory) factory;
+                    else
+                        throw new JMSException(String.format("Invalid ConnectionFactory at %s. JNDI is not configured properly", connectionString));
+                } catch (final NamingException e) {
+                    throw JMSExceptionUtils.wrap(e);
+                } finally {
+                    jndiContextFactory.release(context);
+                }
+            else return null;
         }
     };
 

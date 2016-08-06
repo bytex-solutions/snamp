@@ -10,7 +10,7 @@ import java.lang.reflect.Array;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class ArrayUtilsTest extends Assert {
@@ -169,5 +169,11 @@ public final class ArrayUtilsTest extends Assert {
         assertArrayEquals(Bytes.concat(Longs.toByteArray(10L), Longs.toByteArray(20L)), array1);
         array1 = ArrayUtils.toByteArray(new Long[]{10L, 20L});
         assertArrayEquals(Bytes.concat(Longs.toByteArray(10L), Longs.toByteArray(20L)), array1);
+    }
+
+    @Test
+    public void arrayConstructorTest(){
+        final String[] arr = ArrayUtils.arrayConstructor(String.class).apply(10);
+        assertEquals(10, arr.length);
     }
 }

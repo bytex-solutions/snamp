@@ -1,21 +1,19 @@
 package com.bytex.snamp.adapters.ssh;
 
-import com.bytex.snamp.Consumer;
-import com.bytex.snamp.ExceptionPlaceholder;
+import com.bytex.snamp.Acceptor;
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.adapters.AbstractResourceAdapter;
 import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationEventBox;
 import com.bytex.snamp.adapters.modeling.*;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
-import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.jmx.ExpressionBasedDescriptorFilter;
 import com.bytex.snamp.jmx.TabularDataUtils;
 import com.bytex.snamp.jmx.WellKnownType;
-import com.bytex.snamp.jmx.json.JsonSerializerFunction;
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.base.Supplier;
-import com.google.common.collect.*;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Multimap;
 import org.apache.sshd.SshServer;
 import org.apache.sshd.common.KeyPairProvider;
 import org.apache.sshd.server.Command;
@@ -33,17 +31,17 @@ import java.io.IOException;
 import java.io.Writer;
 import java.lang.ref.WeakReference;
 import java.nio.*;
+import java.security.InvalidKeyException;
 import java.security.PublicKey;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
-
-import static com.bytex.snamp.adapters.ssh.SshAdapterConfigurationDescriptor.*;
+import java.util.stream.Stream;
 
 /**
  * Represents SSH resource adapter.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class SshAdapter extends AbstractResourceAdapter implements AdapterController {
@@ -57,13 +55,15 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
             mailbox = new NotificationEventBox(50);
         }
 
+        private <E extends Exception> void forEachNotificationImpl(final EntryReader<String, ? super SshNotificationAccessor, E> notificationReader) throws E{
+            for (final ResourceNotificationList<SshNotificationAccessor> list : notifications.values())
+                for (final SshNotificationAccessor accessor : list.values())
+                    if (!notificationReader.read(accessor.resourceName, accessor)) return;
+        }
+
         @Override
         public <E extends Exception> void forEachNotification(final EntryReader<String, ? super SshNotificationAccessor, E> notificationReader) throws E {
-            try (final LockScope ignored = beginRead()) {
-                for (final ResourceNotificationList<SshNotificationAccessor> list : notifications.values())
-                    for (final SshNotificationAccessor accessor : list.values())
-                        if (!notificationReader.read(accessor.resourceName, accessor)) return;
-            }
+            readAccept(notificationReader, this::forEachNotificationImpl);
         }
 
         private static Map<String, ResourceNotificationList<SshNotificationAccessor>> createNotifs(){
@@ -72,53 +72,54 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
                 @Override
                 public void clear() {
-                    for(final ResourceNotificationList<?> list: values())
-                        list.clear();
+                    values().forEach(ResourceFeatureList::clear);
                     super.clear();
                 }
             };
         }
 
         private void clear(){
-            try(final LockScope ignored = beginWrite()){
-                notifications.clear();
-            }
+            writeAccept(notifications, Map::clear);
             mailbox.clear();
+        }
+
+        private NotificationAccessor addNotificationImpl(final String resourceName,
+                                                     final MBeanNotificationInfo metadata){
+            final ResourceNotificationList<SshNotificationAccessor> list;
+            if(notifications.containsKey(resourceName))
+                list = notifications.get(resourceName);
+            else notifications.put(resourceName, list = new ResourceNotificationList<>());
+            final SshNotificationAccessor accessor = new SshNotificationAccessor(metadata, mailbox, resourceName);
+            list.put(accessor);
+            return accessor;
         }
 
         private NotificationAccessor addNotification(final String resourceName,
                                                      final MBeanNotificationInfo metadata){
-            try(final LockScope ignored = beginWrite()){
-                final ResourceNotificationList<SshNotificationAccessor> list;
-                if(notifications.containsKey(resourceName))
-                    list = notifications.get(resourceName);
-                else notifications.put(resourceName, list = new ResourceNotificationList<>());
-                final SshNotificationAccessor accessor = new SshNotificationAccessor(metadata, mailbox, resourceName);
-                list.put(accessor);
-                return accessor;
-            }
+            return writeApply(resourceName, metadata, this::addNotificationImpl);
         }
 
-        private Iterable<? extends NotificationAccessor> clear(final String resourceName){
-            try(final LockScope ignored = beginWrite()){
-                return notifications.containsKey(resourceName) ?
-                    notifications.remove(resourceName).values():
-                        ImmutableList.<SshNotificationAccessor>of();
-            }
+        private Collection<? extends NotificationAccessor> clear(final String resourceName) {
+            return writeApply(resourceName, notifications, (resName, notifs) -> notifs.containsKey(resName) ?
+                    notifs.remove(resName).values() :
+                    ImmutableList.<SshNotificationAccessor>of());
+        }
+
+        private NotificationAccessor removeNotificationImpl(final String resourceName,
+                                                        final MBeanNotificationInfo metadata){
+            final ResourceNotificationList<SshNotificationAccessor> list;
+            if(notifications.containsKey(resourceName))
+                list = notifications.get(resourceName);
+            else return null;
+            final NotificationAccessor result = list.remove(metadata);
+            if(list.isEmpty())
+                notifications.remove(resourceName);
+            return result;
         }
 
         private NotificationAccessor removeNotification(final String resourceName,
-                                                        final MBeanNotificationInfo metadata){
-            try(final LockScope ignored = beginWrite()){
-                final ResourceNotificationList<SshNotificationAccessor> list;
-                if(notifications.containsKey(resourceName))
-                    list = notifications.get(resourceName);
-                else return null;
-                final NotificationAccessor result = list.remove(metadata);
-                if(list.isEmpty())
-                    notifications.remove(resourceName);
-                return result;
-            }
+                                                        final MBeanNotificationInfo metadata) {
+            return writeApply(resourceName, metadata, this::removeNotificationImpl);
         }
 
         private Notification poll(final ExpressionBasedDescriptorFilter filter) {
@@ -157,7 +158,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
     }
 
     private static abstract class AbstractBufferAttributeMapping<B extends Buffer> extends SshAttributeAccessor {
-        protected static final char WHITESPACE = ' ';
+        static final char WHITESPACE = ' ';
         private final Class<B> bufferType;
 
         private AbstractBufferAttributeMapping(final MBeanAttributeInfo metadata,
@@ -278,15 +279,10 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
             super(metadata);
         }
 
-        private static String joinString(final Collection<?> values,
+        private static String joinString(final Stream<String> values,
                                   final String format,
                                   final String separator) {
-            return Joiner.on(separator).join(Collections2.transform(values, new Function<Object, String>() {
-                @Override
-                public String apply(final Object input) {
-                    return String.format(format, input);
-                }
-            }));
+            return String.join(separator, (CharSequence[]) values.map(input -> String.format(format, input)).toArray(String[]::new));
         }
 
         @Override
@@ -295,16 +291,9 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
             final String COLUMN_SEPARATOR = "\t";
             final String ITEM_FORMAT = "%-10s";
             //print column first
-            output.append(joinString(data.getTabularType().getRowType().keySet(), ITEM_FORMAT, COLUMN_SEPARATOR));
+            output.append(joinString(data.getTabularType().getRowType().keySet().stream(), ITEM_FORMAT, COLUMN_SEPARATOR));
             //print rows
-            TabularDataUtils.forEachRow(data, new Consumer<CompositeData, IOException>() {
-                @SuppressWarnings("unchecked")
-                @Override
-                public void accept(final CompositeData row) throws IOException{
-                    final Collection<?> values = Collections2.transform(row.values(), new JsonSerializerFunction(SshHelpers.FORMATTER));
-                    output.append(joinString(values, ITEM_FORMAT, COLUMN_SEPARATOR));
-                }
-            });
+            TabularDataUtils.forEachRow(data, row -> output.append(joinString(row.values().stream().map(SshHelpers.FORMATTER::toJson), ITEM_FORMAT, COLUMN_SEPARATOR)));
         }
     }
 
@@ -359,7 +348,6 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
     }
 
     private SshServer server;
-    private ExecutorService threadPool;
     private final SshModelOfAttributes attributes;
     private final SshModelOfNotifications notifications;
 
@@ -369,7 +357,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
         notifications = new SshModelOfNotifications();
     }
 
-    private static void setupSecurity(final SshServer server, final SshSecuritySettings security) {
+    private static void setupSecurity(final SshServer server, final SshSecuritySettings security) throws InvalidKeyException {
         if (security.hasJaasDomain()) {
             final JaasPasswordAuthenticator auth = new JaasPasswordAuthenticator();
             auth.setDomain(security.getJaasDomain());
@@ -400,33 +388,26 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
                        final int port,
                        final KeyPairProvider hostKeyFile,
                        final SshSecuritySettings security,
-                       final Supplier<ExecutorService> threadPoolFactory) throws Exception{
+                       final ExecutorService threadPool) throws Exception{
         final SshServer server = SshServer.setUpDefaultServer();
-        final ExecutorService commandExecutors = threadPoolFactory.get();
         server.setHost(host);
         server.setPort(port);
         server.setKeyPairProvider(hostKeyFile);
         setupSecurity(server, security);
-        server.setShellFactory(ManagementShell.createFactory(this, commandExecutors));
-        server.setCommandFactory(new SshCommandFactory(this, commandExecutors));
+        server.setShellFactory(ManagementShell.createFactory(this, threadPool));
+        server.setCommandFactory(new SshCommandFactory(this, threadPool));
         server.start();
         this.server = server;
-        this.threadPool = commandExecutors;
     }
 
     @Override
     protected void start(final Map<String, String> parameters) throws Exception {
-        final String host = parameters.containsKey(HOST_PARAM) ?
-                parameters.get(HOST_PARAM) :
-                DEFAULT_HOST;
-        final int port = parameters.containsKey(PORT_PARAM) ?
-                Integer.parseInt(parameters.get(PORT_PARAM)) :
-                DEFAULT_PORT;
-        start(host,
-                port,
-                createKeyPairProvider(parameters),
-                createSecuritySettings(parameters),
-                new SshThreadPoolConfig(getInstanceName(), parameters));
+        final SshAdapterDescriptionProvider parser = SshAdapterDescriptionProvider.getInstance();
+        start(parser.getHost(parameters),
+                parser.getPort(parameters),
+                parser.getKeyPairProvider(parameters),
+                parser.getSecuritySettings(parameters),
+                parser.getThreadPool(parameters));
     }
 
     /**
@@ -439,13 +420,11 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
     protected void stop() throws Exception{
         try {
             server.stop();
-            threadPool.shutdownNow();
         }
         finally {
             attributes.clear();
             notifications.clear();
             server = null;
-            threadPool = null;
         }
     }
 
@@ -477,7 +456,7 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
     @Override
     public <E extends Exception> boolean processAttribute(final String resourceName,
                                                           final String attributeID,
-                                                          final Consumer<? super SshAttributeMapping, E> handler) throws E {
+                                                          final Acceptor<? super SshAttributeMapping, E> handler) throws E {
         return attributes.processAttribute(resourceName, attributeID, handler);
     }
 
@@ -497,8 +476,11 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
     }
 
     @Override
-    protected Iterable<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) {
-        return Iterables.concat(attributes.clear(resourceName), notifications.clear(resourceName));
+    protected Stream<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) {
+        return Stream.concat(
+                attributes.clear(resourceName).stream(),
+                notifications.clear(resourceName).stream()
+        );
     }
 
     @SuppressWarnings("unchecked")
@@ -518,28 +500,20 @@ final class SshAdapter extends AbstractResourceAdapter implements AdapterControl
 
     private static Multimap<String, ? extends FeatureBindingInfo<MBeanAttributeInfo>> getAttributes(final AttributeSet<SshAttributeAccessor> attributes){
         final Multimap<String, ReadOnlyFeatureBindingInfo<MBeanAttributeInfo>> result = HashMultimap.create();
-        attributes.forEachAttribute(new EntryReader<String, SshAttributeAccessor, ExceptionPlaceholder>() {
-            @Override
-            public boolean read(final String resourceName, final SshAttributeAccessor accessor) {
-                final ImmutableMap.Builder<String, String> parameters = ImmutableMap.builder();
-                if (accessor.canRead())
-                    parameters.put("read-command", accessor.getReadCommand(resourceName));
-                if (accessor.canWrite())
-                    parameters.put("write-command", accessor.getWriteCommand(resourceName));
-                return result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor, parameters.build()));
-            }
+        attributes.forEachAttribute((resourceName, accessor) -> {
+            final ImmutableMap.Builder<String, String> parameters = ImmutableMap.builder();
+            if (accessor.canRead())
+                parameters.put("read-command", accessor.getReadCommand(resourceName));
+            if (accessor.canWrite())
+                parameters.put("write-command", accessor.getWriteCommand(resourceName));
+            return result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor, parameters.build()));
         });
         return result;
     }
 
     private static Multimap<String, ? extends FeatureBindingInfo<MBeanNotificationInfo>> getNotifications(final NotificationSet<SshNotificationAccessor> notifs){
         final Multimap<String, ReadOnlyFeatureBindingInfo<MBeanNotificationInfo>> result = HashMultimap.create();
-        notifs.forEachNotification(new EntryReader<String, SshNotificationAccessor, ExceptionPlaceholder>() {
-            @Override
-            public boolean read(final String resourceName, final SshNotificationAccessor accessor) {
-                return result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor, "listen-command", accessor.getListenCommand()));
-            }
-        });
+        notifs.forEachNotification((resourceName, accessor) -> result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor, "listen-command", accessor.getListenCommand())));
         return result;
     }
 

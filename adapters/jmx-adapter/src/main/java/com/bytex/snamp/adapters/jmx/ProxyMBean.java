@@ -1,17 +1,17 @@
 package com.bytex.snamp.adapters.jmx;
 
 import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.EntryReader;
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.adapters.modeling.*;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.notifications.NotificationListenerList;
-import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.io.Buffers;
+import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.management.OpenMBeanProvider;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
@@ -20,16 +20,17 @@ import javax.management.openmbean.*;
 import java.io.Closeable;
 import java.lang.management.ManagementFactory;
 import java.nio.*;
-import java.util.Collection;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 /**
  * Represents proxy MBean that is used to expose attributes and notifications
  * via JMX.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, NotificationBroadcaster, NotificationListener, Closeable {
@@ -52,7 +53,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
                     true,
                     false,
                     false,
-                    getMetadata().getDescriptor());
+                    DescriptorUtils.copyOf(getMetadata().getDescriptor()));
         }
 
         @Override
@@ -80,7 +81,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
                     source.isReadable(),
                     source.isWritable(),
                     source.isIs(),
-                    getMetadata().getDescriptor());
+                    DescriptorUtils.copyOf(getMetadata().getDescriptor()));
         }
 
         @Override
@@ -111,7 +112,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
                     true,
                     true,
                     false,
-                    getMetadata().getDescriptor());
+                    DescriptorUtils.copyOf(getMetadata().getDescriptor()));
         }
 
         @Override
@@ -189,76 +190,77 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
         listeners.clear();
     }
 
-    Iterable<? extends FeatureAccessor<?>> getAccessorsAndClose(){
-        final ImmutableList<? extends FeatureAccessor<?>> result =
-                ImmutableList.copyOf(Iterables.concat(attributes.values(), notifications.values()));
+    Stream<? extends FeatureAccessor<?>> getAccessorsAndClose(){
+        final ImmutableList<JmxAttributeAccessor> attributes = ImmutableList.copyOf(this.attributes.values());
+        final ImmutableList<JmxNotificationAccessor> notifications = ImmutableList.copyOf(this.notifications.values());
+        final Stream<? extends FeatureAccessor<?>> result = Stream.concat(attributes.stream(), notifications.stream());
         close();
         return result;
     }
 
+    private NotificationAccessor addNotificationImpl(final MBeanNotificationInfo metadata){
+        final JmxNotificationAccessor result;
+        if(notifications.containsKey(metadata))
+            result = notifications.get(metadata);
+        else notifications.put(result = new JmxNotificationAccessor(resourceName, metadata, listeners));
+        return result;
+    }
+
     NotificationAccessor addNotification(final MBeanNotificationInfo metadata){
-        try(final LockScope ignored = beginWrite(MBeanResources.NOTIFICATIONS)){
-            final JmxNotificationAccessor result;
-            if(notifications.containsKey(metadata))
-                result = notifications.get(metadata);
-            else notifications.put(result = new JmxNotificationAccessor(resourceName, metadata, listeners));
-            return result;
-        }
+        return writeApply(MBeanResources.NOTIFICATIONS, metadata, this::addNotificationImpl);
     }
 
     NotificationAccessor removeNotification(final MBeanNotificationInfo metadata) {
-        try (final LockScope ignored = beginWrite(MBeanResources.NOTIFICATIONS)) {
-            return notifications.remove(metadata);
+        return writeApply(MBeanResources.NOTIFICATIONS, metadata, (Function<MBeanNotificationInfo, NotificationAccessor>) notifications::remove);
+    }
+
+    private AttributeAccessor addAttributeImpl(final MBeanAttributeInfo metadata){
+        final JmxAttributeAccessor accessor;
+        if(attributes.containsKey(metadata))
+            accessor = attributes.get(metadata);
+        else if(metadata instanceof OpenMBeanAttributeInfo)
+            accessor = new OpenTypeAttributeAccessor((OpenMBeanAttributeInfo)metadata);
+        else{
+            final WellKnownType attributeType = AttributeDescriptor.getType(metadata);
+            if(attributeType != null)
+                switch (attributeType){
+                    case BYTE_BUFFER:
+                        accessor = new BufferAttributeAccessor(metadata, ByteBuffer.class);
+                        break;
+                    case CHAR_BUFFER:
+                        accessor = new BufferAttributeAccessor(metadata, CharBuffer.class);
+                        break;
+                    case SHORT_BUFFER:
+                        accessor = new BufferAttributeAccessor(metadata, ShortBuffer.class);
+                        break;
+                    case INT_BUFFER:
+                        accessor = new BufferAttributeAccessor(metadata, IntBuffer.class);
+                        break;
+                    case LONG_BUFFER:
+                        accessor = new BufferAttributeAccessor(metadata, LongBuffer.class);
+                        break;
+                    case FLOAT_BUFFER:
+                        accessor = new BufferAttributeAccessor(metadata, FloatBuffer.class);
+                        break;
+                    case DOUBLE_BUFFER:
+                        accessor = new BufferAttributeAccessor(metadata, DoubleBuffer.class);
+                        break;
+                    default:
+                        accessor = new ReadOnlyAttributeAccessor(metadata);
+                        break;
+                }
+            else accessor = new ReadOnlyAttributeAccessor(metadata);
         }
+        attributes.put(accessor);
+        return accessor;
     }
 
     AttributeAccessor addAttribute(final MBeanAttributeInfo metadata){
-        try(final LockScope ignored = beginWrite(MBeanResources.ATTRIBUTES)){
-            final JmxAttributeAccessor accessor;
-            if(attributes.containsKey(metadata))
-                accessor = attributes.get(metadata);
-            else if(metadata instanceof OpenMBeanAttributeInfo)
-                accessor = new OpenTypeAttributeAccessor((OpenMBeanAttributeInfo)metadata);
-            else{
-                final WellKnownType attributeType = AttributeDescriptor.getType(metadata);
-                if(attributeType != null)
-                    switch (attributeType){
-                        case BYTE_BUFFER:
-                            accessor = new BufferAttributeAccessor(metadata, ByteBuffer.class);
-                            break;
-                        case CHAR_BUFFER:
-                            accessor = new BufferAttributeAccessor(metadata, CharBuffer.class);
-                            break;
-                        case SHORT_BUFFER:
-                            accessor = new BufferAttributeAccessor(metadata, ShortBuffer.class);
-                            break;
-                        case INT_BUFFER:
-                            accessor = new BufferAttributeAccessor(metadata, IntBuffer.class);
-                            break;
-                        case LONG_BUFFER:
-                            accessor = new BufferAttributeAccessor(metadata, LongBuffer.class);
-                            break;
-                        case FLOAT_BUFFER:
-                            accessor = new BufferAttributeAccessor(metadata, FloatBuffer.class);
-                            break;
-                        case DOUBLE_BUFFER:
-                            accessor = new BufferAttributeAccessor(metadata, DoubleBuffer.class);
-                            break;
-                        default:
-                            accessor = new ReadOnlyAttributeAccessor(metadata);
-                            break;
-                    }
-                else accessor = new ReadOnlyAttributeAccessor(metadata);
-            }
-            attributes.put(accessor);
-            return accessor;
-        }
+        return writeApply(MBeanResources.ATTRIBUTES, this, metadata, ProxyMBean::addAttributeImpl);
     }
 
     AttributeAccessor removeAttribute(final MBeanAttributeInfo metadata){
-        try(final LockScope ignored = beginWrite(MBeanResources.ATTRIBUTES)){
-            return attributes.remove(metadata);
-        }
+        return writeApply(MBeanResources.ATTRIBUTES, attributes, metadata, ResourceAttributeList::remove);
     }
 
     /**
@@ -272,9 +274,17 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
      */
     @Override
     public Object getAttribute(final String attributeName) throws AttributeNotFoundException, ReflectionException, MBeanException {
-        try(final LockScope ignored = beginRead(MBeanResources.ATTRIBUTES)){
-            return attributes.getAttribute(attributeName);
+        try {
+            return readCallInterruptibly(MBeanResources.ATTRIBUTES, () -> attributes.getAttribute(attributeName));
+        } catch (final AttributeNotFoundException | ReflectionException | MBeanException e) {
+            throw e;
+        } catch (final Exception e) {
+            throw new ReflectionException(e);
         }
+    }
+
+    private void setAttributeImpl(final Attribute attributeHolder) throws JMException{
+        attributes.setAttribute(attributeHolder.getName(), attributeHolder.getValue());
     }
 
     /**
@@ -288,8 +298,12 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
      */
     @Override
     public void setAttribute(final Attribute attributeHolder) throws AttributeNotFoundException, ReflectionException, InvalidAttributeValueException, MBeanException {
-        try(final LockScope ignored = beginRead(MBeanResources.ATTRIBUTES)){
-            attributes.setAttribute(attributeHolder.getName(), attributeHolder.getValue());
+        try {
+            readAcceptInterruptibly(MBeanResources.ATTRIBUTES, attributeHolder, this::setAttributeImpl);
+        } catch (final AttributeNotFoundException | ReflectionException | InvalidAttributeValueException | MBeanException e) {
+            throw e;
+        } catch (final Exception e) {
+            throw new ReflectionException(e);
         }
     }
 
@@ -323,18 +337,19 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     @Override
     public AttributeList setAttributes(final AttributeList attributes) {
         final AttributeList result = new AttributeList();
-        for(final Object entry: attributes)
-            if(entry instanceof Attribute)
-                try {
-                    setAttribute((Attribute)entry);
-                    result.add(entry);
-                }
-                catch (final JMException e) {
+        attributes.stream()
+                .filter(entry -> entry instanceof Attribute)
+                .forEach(entry -> {
+                    try {
+                        setAttribute((Attribute) entry);
+                        result.add(entry);
+                    } catch (final JMException e) {
                         logger.log(Level.WARNING,
                                 String.format("Unable to set attribute %s",
-                                entry),
+                                        entry),
                                 e);
-                }
+                    }
+        });
         return result;
     }
 
@@ -357,22 +372,18 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     }
 
     private OpenMBeanAttributeInfo[] getAttributeInfo() {
-        try(final LockScope ignored = beginRead(MBeanResources.ATTRIBUTES)){
-            final Collection<OpenMBeanAttributeInfo> result = Lists.newArrayListWithExpectedSize(attributes.size());
-            for(final JmxAttributeAccessor accessor: attributes.values())
-                result.add(accessor.cloneMetadata());
-            return ArrayUtils.toArray(result, OpenMBeanAttributeInfo.class);
-        }
+        return readApply(MBeanResources.ATTRIBUTES, attributes,
+                attrs -> attrs.values().stream()
+                        .map(JmxAttributeAccessor::cloneMetadata)
+                        .toArray(OpenMBeanAttributeInfo[]::new));
     }
 
     @Override
     public MBeanNotificationInfo[] getNotificationInfo() {
-        try(final LockScope ignored = beginRead(MBeanResources.NOTIFICATIONS)){
-            final Collection<MBeanNotificationInfo> result = Lists.newArrayListWithExpectedSize(notifications.size());
-            for(final JmxNotificationAccessor accessor: notifications.values())
-                result.add(accessor.cloneMetadata());
-            return ArrayUtils.toArray(result, MBeanNotificationInfo.class);
-        }
+        return readApply(MBeanResources.NOTIFICATIONS, notifications,
+                notifs -> notifs.values().stream()
+                        .map(JmxNotificationAccessor::cloneMetadata)
+                        .toArray(MBeanNotificationInfo[]::new));
     }
 
     /**
@@ -445,18 +456,20 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     }
 
     <E extends Exception> boolean forEachAttribute(final EntryReader<String, ? super JmxAttributeAccessor, E> attributeReader) throws E {
-        try(final LockScope ignored = beginRead(MBeanResources.ATTRIBUTES)){
-            for(final JmxAttributeAccessor accessor: attributes.values())
-                if(!attributeReader.read(resourceName, accessor)) return false;
+        try (final SafeCloseable ignored = acquireReadLock(MBeanResources.ATTRIBUTES)) {
+            for (final JmxAttributeAccessor accessor : attributes.values())
+                if (!attributeReader.read(resourceName, accessor))
+                    return false;
+            return true;
         }
-        return true;
     }
 
     <E extends Exception> boolean forEachNotification(final EntryReader<String, ? super JmxNotificationAccessor, E> notificationReader) throws E {
-        try(final LockScope ignored = beginRead(MBeanResources.NOTIFICATIONS)){
+        try(final SafeCloseable ignored = acquireReadLock(MBeanResources.NOTIFICATIONS)){
             for(final JmxNotificationAccessor accessor: notifications.values())
-                if(!notificationReader.read(resourceName, accessor)) return false;
+                if(!notificationReader.read(resourceName, accessor))
+                    return false;
+            return true;
         }
-        return true;
     }
 }

@@ -1,6 +1,5 @@
 package com.bytex.snamp.testing.configuration;
 
-import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
@@ -13,8 +12,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.net.*;
-import java.util.concurrent.Callable;
+import java.net.Authenticator;
+import java.net.HttpURLConnection;
+import java.net.PasswordAuthentication;
+import java.net.URL;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import static com.bytex.snamp.jmx.json.JsonUtils.toJsonObject;
@@ -23,18 +24,13 @@ import static com.bytex.snamp.testing.connectors.jmx.AbstractJmxConnectorTest.JM
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class JolokiaConfigurationTest extends AbstractSnampIntegrationTest {
     private final Gson formatter = new Gson();
     private static final String SNAMP_CORE_MBEAN = "com.bytex.snamp.management:type=SnampCore";
-    private static final URL JOLOKIA_URL = Utils.interfaceStaticInitialize(new Callable<URL>() {
-        @Override
-        public URL call() throws MalformedURLException {
-            return new URL("http://localhost:8181/jolokia");
-        }
-    });
+    private static final URL JOLOKIA_URL = Utils.interfaceStaticInitialize(() -> new URL("http://localhost:8181/jolokia"));
 
     private static final class JolokiaAuthenticator extends Authenticator{
         @Override
@@ -106,15 +102,13 @@ public final class JolokiaConfigurationTest extends AbstractSnampIntegrationTest
         assertEquals(JsonNull.INSTANCE, config.getAsJsonObject().get("value"));
         //change config
         final String RESOURCE_NAME = "res1";
-        processConfiguration(new SafeConsumer<AgentConfiguration>() {
-            @Override
-            public void accept(final AgentConfiguration config) {
-                final ManagedResourceConfiguration resource = config.getManagedResources().getOrAdd(RESOURCE_NAME);
+        processConfiguration(conf -> {
+                final ManagedResourceConfiguration resource = conf.getEntities(ManagedResourceConfiguration.class).getOrAdd(RESOURCE_NAME);
                 resource.getParameters().put("param1", "parameterValue");
                 resource.setConnectionType("snmp");
                 resource.setConnectionString("udp://127.0.0.1/161");
-            }
-        }, true);
+            return true;
+            });
         config = readAttribute(SNAMP_CORE_MBEAN, "configuration");
         assertTrue(config.isJsonObject());
         config = config.getAsJsonObject().get("value");

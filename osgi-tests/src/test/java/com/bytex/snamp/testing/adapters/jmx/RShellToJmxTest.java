@@ -1,7 +1,5 @@
 package com.bytex.snamp.testing.adapters.jmx;
 
-import com.bytex.snamp.ExceptionalCallable;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -9,6 +7,7 @@ import com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfigura
 import com.bytex.snamp.internal.OperatingSystem;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.bytex.snamp.scripting.OSGiScriptEngineManager;
+import com.bytex.snamp.testing.BundleExceptionCallable;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connectors.rshell.AbstractRShellConnectorTest;
@@ -27,17 +26,17 @@ import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineFactory;
+import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Hashtable;
-import java.util.Set;
 
 import static com.bytex.snamp.testing.connectors.jmx.AbstractJmxConnectorTest.*;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @SnampDependencies(SnampFeature.JMX_ADAPTER)
@@ -79,13 +78,10 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
-        syncWithAdapterStartedEvent(ADAPTER_NAME, new ExceptionalCallable<Void, BundleException>() {
-            @Override
-            public Void call() throws BundleException {
+        syncWithAdapterStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
                 ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
                 return null;
-            }
-        }, TimeSpan.ofSeconds(20));
+        }, Duration.ofSeconds(20));
     }
 
     @Override
@@ -122,19 +118,8 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
     }
 
     @Test
-    public void systemScriptEngineTest() throws IOException, ClassNotFoundException {
-        final Set<String> factories = OSGiScriptEngineManager.getSystemScriptEngineFactories();
-        assertTrue(factories.size() > 0);
-        for (final String className : factories) {
-            final Class<?> cls = Class.forName(className, true, getClass().getClassLoader());
-            assertNotNull(cls);
-            assertTrue(ScriptEngineFactory.class.isAssignableFrom(cls));
-        }
-    }
-
-    @Test
     public void javaScriptEngineTest() throws IOException, ReflectiveOperationException, ScriptException {
-        final OSGiScriptEngineManager engineManager = new OSGiScriptEngineManager(getTestBundleContext());
+        final ScriptEngineManager engineManager = new OSGiScriptEngineManager(getTestBundleContext());
         final ScriptEngine javaScript = engineManager.getEngineByName("JavaScript");
         assertNotNull(javaScript);
         final Object result = javaScript.eval("function sayHelloWorld(){return 'Hello, world!';}; sayHelloWorld();");

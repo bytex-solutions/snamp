@@ -1,15 +1,19 @@
 package com.bytex.snamp.concurrent;
 
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.ThreadSafe;
 
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.function.LongBinaryOperator;
 
 /**
- * Represents abstract time-based accumulator.
+ * Represents time-based accumulator for {@code long} numbers.
+ * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
+@ThreadSafe
 public abstract class LongAccumulator extends AbstractAccumulator {
     private static final long serialVersionUID = -8909745382790738723L;
     private static final AtomicLongFieldUpdater<LongAccumulator> CURRENT_VALUE_ACCESSOR =
@@ -29,38 +33,57 @@ public abstract class LongAccumulator extends AbstractAccumulator {
         this.current = this.initialValue = initialValue;
     }
 
-    /**
-     * Combines the current value of the accumulator with a new value.
-     * @param current The current value stored in this accumulator.
-     * @param newValue The new value supplied by the caller code.
-     * @return A new value.
-     */
-    protected abstract long combine(final long current, final long newValue);
-
-    private long updateImpl(final long value) {
-        long newValue;
-        do {
-            final long current = CURRENT_VALUE_ACCESSOR.get(this);
-            newValue = combine(current, value);
-        } while (!CURRENT_VALUE_ACCESSOR.compareAndSet(this, current, newValue));
-        return newValue;
-    }
-
     @Override
     public final synchronized void reset(){
         super.reset();
         CURRENT_VALUE_ACCESSOR.set(this, initialValue);
     }
 
+    private synchronized void resetIfExpired() {
+        if (isExpired())
+            reset();
+    }
+
+    /**
+     * Atomically adds the given value to the current value.
+     *
+     * @param delta The value to add.
+     * @return The updated value.
+     * @since 1.2
+     */
+    protected final long addAndGet(final long delta){
+        return CURRENT_VALUE_ACCESSOR.addAndGet(this, delta);
+    }
+
+    /**
+     * Atomically combines a new value with existing using given function.
+     * @param operator A side-effect-free function used to combine two values. Cannot be {@literal null}.
+     * @param newValue The value passed from {@link #update(long)} method.
+     * @return The updated value.
+     * @since 1.2
+     */
+    protected final long accumulateAndGet(final LongBinaryOperator operator, final long newValue){
+        return CURRENT_VALUE_ACCESSOR.accumulateAndGet(this, newValue, operator);
+    }
+
+    /**
+     * Combines the value in this accumulator with the new one.
+     * @param value A value comes for {@link #update(long)} method.
+     * @return A new combined value.
+     * @see #accumulateAndGet(LongBinaryOperator, long)
+     * @see #addAndGet(long)
+     */
+    protected abstract long accumulate(final long value);
+
     /**
      * Updates this accumulator.
      * @param value A new value to be combined with existing accumulator value.
      * @return Modified accumulator value.
      */
-    public final long update(final long value){
-        if(isExpired())
-            reset();
-        return updateImpl(value);
+    public final long update(final long value) {
+        if (isExpired())
+            resetIfExpired();   //double check required
+        return accumulate(value);
     }
 
     /**
@@ -70,7 +93,7 @@ public abstract class LongAccumulator extends AbstractAccumulator {
     @Override
     public final long longValue() {
         if(isExpired())
-            reset();
+            resetIfExpired();   //double check required
         return CURRENT_VALUE_ACCESSOR.get(this);
     }
 
@@ -110,25 +133,35 @@ public abstract class LongAccumulator extends AbstractAccumulator {
         return longValue();
     }
 
-    public static LongAccumulator peak(final long initialValue, final long ttl){
+    public static LongAccumulator create(final long initialValue, final long ttl, final LongBinaryOperator accumulator){
         return new LongAccumulator(initialValue, ttl) {
-            private static final long serialVersionUID = 761001354160302714L;
+            private static final long serialVersionUID = 3896687805468634111L;
 
             @Override
-            protected long combine(final long current, final long newValue) {
-                return Math.max(current, newValue);
+            protected long accumulate(final long value) {
+                return accumulateAndGet(accumulator, value);
             }
         };
     }
 
-    public static LongAccumulator adder(final long initialValue, final long ttl){
-        return new LongAccumulator(initialValue, ttl) {
-            private static final long serialVersionUID = 2696239067782396417L;
+    public static LongAccumulator peak(final long initialValue, final long ttl){
+        return create(initialValue, ttl, Math::max);
+    }
+
+    public static LongAccumulator adder(final long initialValue, final long ttl) {
+        final class Adder extends LongAccumulator{
+            private static final long serialVersionUID = 8583924012634668053L;
+
+            private Adder(final long initialValue, final long ttl){
+                super(initialValue, ttl);
+            }
 
             @Override
-            protected long combine(final long current, final long newValue) {
-                return current + newValue;
+            protected long accumulate(final long delta) {
+                return addAndGet(delta);
             }
-        };
+        }
+
+        return new Adder(initialValue, ttl);
     }
 }

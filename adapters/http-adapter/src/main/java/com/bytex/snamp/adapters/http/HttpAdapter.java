@@ -1,7 +1,6 @@
 package com.bytex.snamp.adapters.http;
 
 import com.bytex.snamp.EntryReader;
-import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.adapters.AbstractResourceAdapter;
 import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationListener;
@@ -11,7 +10,6 @@ import com.bytex.snamp.internal.KeyedObjects;
 import com.bytex.snamp.jmx.json.JsonUtils;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -35,6 +33,7 @@ import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 import static org.atmosphere.cpr.FrameworkConfig.ATMOSPHERE_CONFIG;
 
@@ -145,8 +144,7 @@ final class HttpAdapter extends AbstractResourceAdapter {
         }
 
         private void clear() {
-            for(final NotificationAccessor accessor: notifications.values())
-                accessor.close();
+            notifications.values().forEach(NotificationAccessor::close);
             notifications.clear();
         }
     }
@@ -173,73 +171,78 @@ final class HttpAdapter extends AbstractResourceAdapter {
 
                 @Override
                 public void clear() {
-                    for(final NotificationBroadcaster broadcaster: values()){
+                    values().forEach(broadcaster -> {
                         broadcaster.clear();
                         broadcaster.destroy();
-                    }
+                    });
                     super.clear();
                 }
             };
         }
 
+        private NotificationRouter addNotificationImpl(final String resourceName,
+                                                   final MBeanNotificationInfo metadata){
+            final NotificationBroadcaster broadcaster;
+            if (notifications.containsKey(resourceName))
+                broadcaster = notifications.get(resourceName);
+            else notifications.put(broadcaster = new NotificationBroadcaster(resourceName, FORMATTER));
+            return broadcaster.addNotification(metadata);
+        }
+
         private NotificationRouter addNotification(final String resourceName,
                                     final MBeanNotificationInfo metadata) {
-            try (final LockScope ignored = beginWrite()) {
-                final NotificationBroadcaster broadcaster;
-                if (notifications.containsKey(resourceName))
-                    broadcaster = notifications.get(resourceName);
-                else notifications.put(broadcaster = new NotificationBroadcaster(resourceName, FORMATTER));
-                return broadcaster.addNotification(metadata);
-            }
+            return writeApply(resourceName, metadata, this::addNotificationImpl);
+        }
+
+        private <E extends Exception> void forEachNotificationImpl(final EntryReader<String, ? super HttpNotificationAccessor, E> notificationReader) throws E{
+            for (final NotificationBroadcaster broadcaster : notifications.values())
+                for (final HttpNotificationAccessor accessor : broadcaster.notifications.values())
+                    if(!notificationReader.read(broadcaster.resourceName, accessor))
+                        return;
         }
 
         @Override
         public <E extends Exception> void forEachNotification(final EntryReader<String, ? super HttpNotificationAccessor, E> notificationReader) throws E {
-            try (final LockScope ignored = beginRead()) {
-                for (final NotificationBroadcaster broadcaster : notifications.values())
-                    for (final HttpNotificationAccessor accessor : broadcaster.notifications.values())
-                        notificationReader.read(broadcaster.resourceName, accessor);
-            }
+            readAccept(notificationReader, this::forEachNotificationImpl);
         }
 
         @Override
         public NotificationBroadcaster getBroadcaster(final String resourceName) {
-            try (final LockScope ignored = beginRead()) {
-                return notifications.get(resourceName);
+            return readApply(notifications, resourceName, KeyedObjects::get);
+        }
+
+        private NotificationAccessor removeNotificationImpl(final String resourceName,
+                                                        final MBeanNotificationInfo metadata){
+            NotificationBroadcaster broadcaster;
+            if(notifications.containsKey(resourceName))
+                broadcaster = notifications.get(resourceName);
+            else return null;
+            final NotificationAccessor acessor = broadcaster.removeNotification(metadata);
+            if(broadcaster.isEmpty()) {
+                broadcaster = notifications.remove(resourceName);
+                broadcaster.destroy();
             }
+            return acessor;
         }
 
         private NotificationAccessor removeNotification(final String resourceName,
                                                         final MBeanNotificationInfo metadata) {
-            try(final LockScope ignored = beginWrite()){
-                NotificationBroadcaster broadcaster;
-                if(notifications.containsKey(resourceName))
-                    broadcaster = notifications.get(resourceName);
-                else return null;
-                final NotificationAccessor acessor = broadcaster.removeNotification(metadata);
-                if(broadcaster.isEmpty()) {
-                    broadcaster = notifications.remove(resourceName);
-                    broadcaster.destroy();
-                }
-                return acessor;
-            }
+            return writeApply(resourceName, metadata, this::removeNotificationImpl);
         }
 
         private void clear() {
-            try(final LockScope ignored = beginWrite()){
-                notifications.clear();
-            }
+            writeAccept(notifications, KeyedObjects::clear);
         }
 
         private Collection<? extends NotificationAccessor> clear(final String resourceName) {
-            try(final LockScope ignored = beginWrite()){
-                if(notifications.containsKey(resourceName)){
-                    final NotificationBroadcaster broadcaster = notifications.remove(resourceName);
+            return writeApply(resourceName, notifications, (resName, notifs) -> {
+                if(notifs.containsKey(resName)){
+                    final NotificationBroadcaster broadcaster = notifs.remove(resName);
                     broadcaster.destroy();
                     return broadcaster.notifications.values();
                 }
                 else return ImmutableList.of();
-            }
+            });
         }
     }
 
@@ -305,12 +308,12 @@ final class HttpAdapter extends AbstractResourceAdapter {
     }
 
     @Override
-    protected Iterable<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) {
+    protected Stream<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) {
         final Collection<? extends AttributeAccessor> attributes =
                 servletFactory.attributes.clear(resourceName);
         final Collection<? extends NotificationAccessor> notifications =
                 servletFactory.notifications.clear(resourceName);
-        return Iterables.concat(attributes, notifications);
+        return Stream.concat(attributes.stream(), notifications.stream());
     }
 
     @SuppressWarnings("unchecked")
@@ -327,15 +330,10 @@ final class HttpAdapter extends AbstractResourceAdapter {
                                                                                                     final AttributeSet<HttpAttributeAccessor> attributes){
         final Multimap<String, ReadOnlyFeatureBindingInfo<MBeanAttributeInfo>> result =
                 HashMultimap.create();
-        attributes.forEachAttribute(new EntryReader<String, HttpAttributeAccessor, ExceptionPlaceholder>() {
-            @Override
-            public boolean read(final String resourceName, final HttpAttributeAccessor accessor) {
-                return result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor,
-                        "path", accessor.getPath(servletContext, resourceName),
-                        FeatureBindingInfo.MAPPED_TYPE, accessor.getJsonType()
-                ));
-            }
-        });
+        attributes.forEachAttribute((resourceName, accessor) -> result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor,
+                "path", accessor.getPath(servletContext, resourceName),
+                FeatureBindingInfo.MAPPED_TYPE, accessor.getJsonType()
+        )));
         return result;
     }
 
@@ -343,14 +341,9 @@ final class HttpAdapter extends AbstractResourceAdapter {
                                                                                                           final NotificationSet<HttpNotificationAccessor> notifs){
         final Multimap<String, ReadOnlyFeatureBindingInfo<MBeanNotificationInfo>> result =
                 HashMultimap.create();
-        notifs.forEachNotification(new EntryReader<String, HttpNotificationAccessor, ExceptionPlaceholder>() {
-            @Override
-            public boolean read(final String resourceName, final HttpNotificationAccessor accessor) {
-                return result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor,
-                        "path", accessor.getPath(servletContext, resourceName)
-                ));
-            }
-        });
+        notifs.forEachNotification( (resourceName, accessor) -> result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor,
+                "path", accessor.getPath(servletContext, resourceName)
+        )));
         return result;
     }
 

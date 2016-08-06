@@ -1,17 +1,18 @@
 package com.bytex.snamp.connectors.aggregator;
 
-import com.bytex.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 
 import javax.management.openmbean.SimpleType;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+
 /**
  * Represents regular expression computation.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class PatternMatcher extends UnaryAttributeAggregation<Boolean> {
@@ -34,8 +35,8 @@ final class PatternMatcher extends UnaryAttributeAggregation<Boolean> {
         return pattern.matcher(Objects.toString(foreignAttributeValue, "")).matches();
     }
 
-    static SerializableAttributeConfiguration getConfiguration() {
-        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration();
+    static AttributeConfiguration getConfiguration() {
+        final AttributeConfiguration result = createAttributeConfiguration(PatternMatcher.class.getClassLoader());
         result.setAlternativeName(NAME);
         fillParameters(result.getParameters());
         result.getParameters().put(AggregatorConnectorConfiguration.VALUE_PARAM, "");

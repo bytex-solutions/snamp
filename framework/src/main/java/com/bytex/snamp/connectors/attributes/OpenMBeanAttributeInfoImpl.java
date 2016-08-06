@@ -6,7 +6,7 @@ import java.util.Set;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class OpenMBeanAttributeInfoImpl extends CustomAttributeInfo implements OpenMBeanAttributeInfo {

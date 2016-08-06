@@ -1,6 +1,5 @@
 package com.bytex.snamp.adapters.ssh;
 
-import com.bytex.snamp.Consumer;
 import com.bytex.snamp.core.LogicalOperation;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -12,7 +11,7 @@ import java.io.PrintWriter;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class GetAttributeCommand extends AbstractAttributeCommand {
@@ -44,15 +43,12 @@ final class GetAttributeCommand extends AbstractAttributeCommand {
                     AttributeValueFormat.TEXT;
             final String resourceName = input.getOptionValue(RESOURCE_OPTION.getOpt());
             final String attributeName = input.getOptionValue(NAME_OPTION.getOpt());
-            if(!getAdapterController().processAttribute(resourceName, attributeName, new Consumer<SshAttributeMapping, CommandException>() {
-                @Override
-                public void accept(final SshAttributeMapping attribute) throws CommandException {
-                    try(final LogicalOperation ignored = SshHelpers.readAttributeLogicalOperation(attribute.getOriginalName(), attributeName)) {
-                        attribute.printValue(output, format);
-                    }
-                    catch (final IOException | JMException e){
-                        throw new CommandException(e);
-                    }
+            if(!getAdapterController().processAttribute(resourceName, attributeName, attribute -> {
+                try(final LogicalOperation ignored = SshHelpers.readAttributeLogicalOperation(attribute.getOriginalName(), attributeName)) {
+                    attribute.printValue(output, format);
+                }
+                catch (final IOException | JMException e){
+                    throw new CommandException(e);
                 }
             })) throw new CommandException("Attribute %s doesn't exist", attributeName);
         }

@@ -8,18 +8,19 @@ import org.snmp4j.security.*;
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
 
-import javax.naming.AuthenticationException;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.naming.directory.*;
 import java.util.*;
-import java.util.logging.Level;
+
+import static com.bytex.snamp.adapters.snmp.helpers.OctetStringHelper.SNMP_ENCODING;
+import static com.bytex.snamp.adapters.snmp.helpers.OctetStringHelper.toOctetString;
 
 /**
  * Represents security configuration of the SNMP adapter that is used
  * to setup SNMPv3 settings. This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class SecurityConfiguration {
@@ -81,14 +82,14 @@ final class SecurityConfiguration {
      */
     private static final String LDAP_PASSWORD_HOLDER_PARAM = "ldap-user-password-attribute-name";
 
-    private static final class DefaultDirContextFactory implements DirContextFactory{
+    private static final class DefaultDirContextFactory implements DirContextFactory {
         @Override
         public DirContext create(final Hashtable<String, ?> env) throws NamingException {
             return new InitialDirContext(env);
         }
     }
 
-    public enum LdapAuthenticationType{
+    private enum LdapAuthenticationType{
         NONE("none"),
         SIMPLE("simple"),
         MD5("DIGEST-MD5"),
@@ -114,7 +115,7 @@ final class SecurityConfiguration {
      * Represents SNMPv3 user. This class cannot be inherited.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     public static final class User{
         private OID authenticationProtocol;
@@ -125,7 +126,7 @@ final class SecurityConfiguration {
         /**
          * Initializes a new user security information.
          */
-        public User(){
+        User(){
             authenticationProtocol = null;
             privacyProtocol = null;
             password = encryptionKey = "";
@@ -137,31 +138,31 @@ final class SecurityConfiguration {
          * @see org.snmp4j.security.AuthMD5#ID
          * @see org.snmp4j.security.AuthSHA#ID
          */
-        public void setAuthenticationProtocol(final OID protocolID){
+        void setAuthenticationProtocol(final OID protocolID){
             authenticationProtocol = protocolID;
         }
 
-        public OID getAuthenticationProtocol(){
+        OID getAuthenticationProtocol(){
             return authenticationProtocol;
         }
 
-        public void setPrivacyProtocol(final OID protocolID){
+        void setPrivacyProtocol(final OID protocolID){
             privacyProtocol = protocolID;
         }
 
-        public OID getPrivacyProtocol(){
+        OID getPrivacyProtocol(){
             return privacyProtocol;
         }
 
-        public void setPassword(final String password){
+        void setPassword(final String password){
             this.password = password != null ? password : "";
         }
 
-        public void setPassword(final byte[] password){
-            setPassword(new String(password, SnmpHelpers.SNMP_ENCODING));
+        void setPassword(final byte[] password){
+            setPassword(new String(password, SNMP_ENCODING));
         }
 
-        public boolean setPassword(final Object password){
+        boolean setPassword(final Object password){
             if(password instanceof String){
                 setPassword((String)password);
                 return true;
@@ -173,7 +174,7 @@ final class SecurityConfiguration {
             else return false;
         }
 
-        public void setPrivacyProtocol(final String protocol) {
+        void setPrivacyProtocol(final String protocol) {
             if(protocol == null || protocol.isEmpty()) privacyProtocol = null;
             else switch (protocol.toLowerCase()){
                 case "aes-128":
@@ -189,12 +190,16 @@ final class SecurityConfiguration {
             }
         }
 
-        public void setAuthenticationProtocol(final String protocol) {
+        void setAuthenticationProtocol(final String protocol) {
             if(protocol == null || protocol.isEmpty()) authenticationProtocol = null;
             else switch (protocol.replace(" ", "").toLowerCase()){
                 case "md5":
                 case "md-5": setAuthenticationProtocol(AuthMD5.ID); return;
                 case "sha": setAuthenticationProtocol(AuthSHA.ID); return;
+                case "hmac128-sha224": setAuthenticationProtocol(AuthHMAC128SHA224.ID); return;
+                case "hmac192-sha256": setAuthenticationProtocol(AuthHMAC192SHA256.ID); return;
+                case "hmac256-sha384": setAuthenticationProtocol(AuthHMAC256SHA384.ID); return;
+                case "hmac384-sha512": setAuthenticationProtocol(AuthHMAC384SHA512.ID); return;
                 default:
                     //attempts to parse key-value pair in format
                     authenticationProtocol = new OID(protocol);
@@ -205,15 +210,15 @@ final class SecurityConfiguration {
          * Sets passphrase that is used to encrypt SNMPv3 traffic.
          * @param passphrase The passphrase that is used to encrypt SNMPv3 traffic.
          */
-        public void setPrivacyKey(final String passphrase){
+        void setPrivacyKey(final String passphrase){
             encryptionKey = passphrase;
         }
 
-        public void setPrivacyKey(final byte[] passphrase){
-            setPrivacyKey(new String(passphrase, SnmpHelpers.SNMP_ENCODING));
+        void setPrivacyKey(final byte[] passphrase){
+            setPrivacyKey(new String(passphrase, SNMP_ENCODING));
         }
 
-        public boolean setPrivacyKey(final Object passphrase){
+        boolean setPrivacyKey(final Object passphrase){
             if(passphrase instanceof String){
                 setPrivacyKey((String)passphrase);
                 return true;
@@ -225,19 +230,19 @@ final class SecurityConfiguration {
             else return false;
         }
 
-        public OctetString getPasswordAsOctetString() {
+        OctetString getPasswordAsOctetString() {
             return password == null || password.isEmpty() ?
                     null :
-                    SnmpHelpers.toOctetString(password);
+                    toOctetString(password);
         }
 
-        public OctetString getPrivacyKeyAsOctetString(){
+        OctetString getPrivacyKeyAsOctetString(){
             return encryptionKey == null || encryptionKey.isEmpty() ?
                     null :
-                    SnmpHelpers.toOctetString(encryptionKey);
+                    toOctetString(encryptionKey);
         }
 
-        public void defineUser(final USM userHive, final OctetString userName, final OctetString engineID) {
+        void defineUser(final USM userHive, final OctetString userName, final OctetString engineID) {
             userHive.addUser(userName, engineID,
                     new UsmUser(userName,
                             getAuthenticationProtocol(),
@@ -251,9 +256,9 @@ final class SecurityConfiguration {
      * Represents MIB access rights.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
-    public enum AccessRights{
+    enum AccessRights{
         /**
          * MO's value be obtained by SNMP manager.
          */
@@ -274,9 +279,9 @@ final class SecurityConfiguration {
      * Represents group of users. This class cannot be inherited.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
-    public static final class UserGroup extends HashMap<String, User>{
+    private static final class UserGroup extends HashMap<String, User>{
         private static final long serialVersionUID = -9033732379101836365L;
         private SecurityLevel level;
         private final EnumSet<AccessRights> rights;
@@ -284,7 +289,7 @@ final class SecurityConfiguration {
         /**
          * Initializes a new empty user group.
          */
-        public UserGroup(){
+        UserGroup(){
             level = SecurityLevel.noAuthNoPriv;
             rights = EnumSet.noneOf(AccessRights.class);
         }
@@ -293,7 +298,7 @@ final class SecurityConfiguration {
          * Gets security level applied to all users in this group.
          * @return Security level applied to all users in this group.
          */
-        public SecurityLevel getSecurityLevel(){
+        SecurityLevel getSecurityLevel(){
             return level;
         }
 
@@ -301,29 +306,29 @@ final class SecurityConfiguration {
          * Sets security level for all users in this group.
          * @param value Security level for all users in this group.
          */
-        public void setSecurityLevel(final SecurityLevel value){
+        void setSecurityLevel(final SecurityLevel value){
             level = value;
         }
 
-        public void setSecurityLevel(final String value){
+        void setSecurityLevel(final String value){
             setSecurityLevel((value == null || value.isEmpty()) ? SecurityLevel.noAuthNoPriv : SecurityLevel.valueOf(value));
         }
 
-        public boolean hasAccessRights(final Collection<AccessRights> rights){
+        boolean hasAccessRights(final Collection<AccessRights> rights){
             return this.rights.containsAll(rights);
         }
 
-        public boolean hasAccessRights(final AccessRights... rights){
+        boolean hasAccessRights(final AccessRights... rights){
             return hasAccessRights(Arrays.asList(rights));
         }
 
-        public void setAccessRights(final Iterable<String> rights){
+        void setAccessRights(final Iterable<String> rights){
             this.rights.clear();
             for(final String r: rights)
                 this.rights.add(AccessRights.valueOf(r.toUpperCase()));
         }
 
-        public void setAccessRights(final String rights) {
+        void setAccessRights(final String rights) {
             setAccessRights(SEMICOLON_SPLITTER.splitToList(rights));
         }
     }
@@ -336,7 +341,7 @@ final class SecurityConfiguration {
      * Initializes a new empty security configuration.
      * @param securityEngine Security engine ID (authoritative engine).
      */
-    public SecurityConfiguration(final byte[] securityEngine, final DirContextFactory contextFactory){
+    SecurityConfiguration(final byte[] securityEngine, final DirContextFactory contextFactory){
         this.securityEngineID = new OctetString(securityEngine);
         this.groups = new HashMap<>(10);
         this.contextFactory = contextFactory != null ? contextFactory : new DefaultDirContextFactory();
@@ -372,7 +377,7 @@ final class SecurityConfiguration {
         }
     }
 
-    public boolean read(final Map<String, String> adapterSettings){
+    boolean read(final Map<String, String> adapterSettings) throws NamingException{
         if(adapterSettings.containsKey(LDAP_URI_PARAM)) //import groups and users from LDAP
             return fillGroupsFromLdap(contextFactory, adapterSettings, adapterSettings.get(LDAP_URI_PARAM), groups);
         else if(adapterSettings.containsKey(SNMPv3_GROUPS_PARAM)){ //import groups and users from local configuration file
@@ -385,11 +390,11 @@ final class SecurityConfiguration {
     private static boolean fillGroupsFromLdap(final DirContextFactory contextFactory,
                                               final Map<String, String> adapterSettings,
                                               final String ldapUri,
-                                              final Map<String, UserGroup> groups) {
+                                              final Map<String, UserGroup> groups) throws NamingException {
         final String ldapUserName = adapterSettings.get(LDAP_ADMINDN_PARAM);
         final String ldapUserPassword = adapterSettings.get(LDAP_ADMIN_PASSWORD_PARAM);
         String jndiLdapFactory = adapterSettings.get(JNDI_LDAP_FACTORY_PARAM);
-        if(jndiLdapFactory == null || jndiLdapFactory.isEmpty())
+        if (jndiLdapFactory == null || jndiLdapFactory.isEmpty())
             jndiLdapFactory = "com.sun.jndi.ldap.LdapCtxFactory";
         final LdapAuthenticationType authenticationType = LdapAuthenticationType.parse(adapterSettings.get(LDAP_ADMIN_AUTH_TYPE_PARAM));
         final Hashtable<String, Object> env = new Hashtable<>(7);
@@ -407,28 +412,14 @@ final class SecurityConfiguration {
 
         // the following is helpful in debugging errors
         //env.put("com.sun.jndi.ldap.trace.ber", System.err);
-        try {
-            final DirContext ctx = contextFactory.create(env);
-            SnmpHelpers.log(Level.FINE, "User %s is authenticated successfully on LDAP %s", ldapUserName, ldapUri, null);
-            final String ldapGroups = adapterSettings.get(LDAP_GROUPS_PARAM);
-            final String userSearchFilter = adapterSettings.get(LDAP_USER_SEARCH_FILTER_PARAM);
-            final String baseDn = adapterSettings.get(LDAP_BASE_DN_PARAM);
-            final String userPasswordHolder = adapterSettings.get(LDAP_PASSWORD_HOLDER_PARAM);
-            fillGroupsFromLdap(ctx, SEMICOLON_SPLITTER.splitToList(ldapGroups), baseDn, userSearchFilter, groups, userPasswordHolder);
-            ctx.close();
-            return true;
-        }
-        catch (final AuthenticationException e){
-            SnmpHelpers.log(Level.SEVERE,
-                    "Failed to authenticate %s user on LDAP %s", ldapUserName, ldapUri,
-                    e);
-            return false;
-        }
-        catch (final NamingException e) {
-            SnmpHelpers.log(Level.SEVERE, "Failed to process LDAP response",
-                    e);
-            return false;
-        }
+        final DirContext ctx = contextFactory.create(env);
+        final String ldapGroups = adapterSettings.get(LDAP_GROUPS_PARAM);
+        final String userSearchFilter = adapterSettings.get(LDAP_USER_SEARCH_FILTER_PARAM);
+        final String baseDn = adapterSettings.get(LDAP_BASE_DN_PARAM);
+        final String userPasswordHolder = adapterSettings.get(LDAP_PASSWORD_HOLDER_PARAM);
+        fillGroupsFromLdap(ctx, SEMICOLON_SPLITTER.splitToList(ldapGroups), baseDn, userSearchFilter, groups, userPasswordHolder);
+        ctx.close();
+        return true;
     }
 
     private static void fillGroupsFromLdap(final DirContext directory,
@@ -523,20 +514,15 @@ final class SecurityConfiguration {
         userGroup.put(userInfo.getName(), u);
     }
 
-    public interface UserSelector{
+    private interface UserSelector{
         boolean match(final String userName, final User user, final UserGroup owner);
     }
 
-    public static UserSelector createUserSelector(final AccessRights... rights){
-        return new UserSelector() {
-            @Override
-            public boolean match(final String userName, final User user, final UserGroup owner) {
-                return owner.hasAccessRights(rights);
-            }
-        };
+    static UserSelector createUserSelector(final AccessRights... rights){
+        return (userName, user, owner) -> owner.hasAccessRights(rights);
     }
 
-    public String findFirstUser(final UserSelector selector){
+    String findFirstUser(final UserSelector selector){
         for(final UserGroup group: groups.values())
             for(final Map.Entry<String, User> user: group.entrySet())
                 if(selector.match(user.getKey(), user.getValue(), group))
@@ -544,36 +530,36 @@ final class SecurityConfiguration {
         return null;
     }
 
-    public SecurityLevel getUserSecurityLevel(final String userName){
+    SecurityLevel getUserSecurityLevel(final String userName){
         for(final UserGroup group: groups.values())
             for(final String lookup: group.keySet())
                 if(Objects.equals(userName, lookup)) return group.getSecurityLevel();
         return SecurityLevel.noAuthNoPriv;
     }
 
-    public void setupUserBasedSecurity(final USM security){
+    void setupUserBasedSecurity(final USM security){
         for(final UserGroup group: groups.values())
             for(final Map.Entry<String, User> user: group.entrySet()){
-                final OctetString userName = SnmpHelpers.toOctetString(user.getKey());
+                final OctetString userName = toOctetString(user.getKey());
                 final User userDef = user.getValue();
                 userDef.defineUser(security, userName, securityEngineID);
             }
     }
 
-    public void setupViewBasedAcm(final VacmMIB vacm){
+    void setupViewBasedAcm(final VacmMIB vacm){
         for(final Map.Entry<String, UserGroup> group: groups.entrySet()){
             final UserGroup groupDef = group.getValue();
             for(final Map.Entry<String, User> user: groupDef.entrySet()){
-                vacm.addGroup(SecurityModel.SECURITY_MODEL_USM, SnmpHelpers.toOctetString(user.getKey()),
-                        SnmpHelpers.toOctetString(group.getKey()),
+                vacm.addGroup(SecurityModel.SECURITY_MODEL_USM, toOctetString(user.getKey()),
+                        toOctetString(group.getKey()),
                         StorageType.nonVolatile);
             }
-            vacm.addAccess(SnmpHelpers.toOctetString(group.getKey()), new OctetString(),
+            vacm.addAccess(toOctetString(group.getKey()), new OctetString(),
                     SecurityModel.SECURITY_MODEL_USM, groupDef.getSecurityLevel().getSnmpValue(),
                     MutableVACM.VACM_MATCH_EXACT,
-                    groupDef.hasAccessRights(AccessRights.READ) ? SnmpHelpers.toOctetString("fullReadView") : null,
-                    groupDef.hasAccessRights(AccessRights.WRITE) ? SnmpHelpers.toOctetString("fullWriteView") : null,
-                    groupDef.hasAccessRights(AccessRights.NOTIFY) ? SnmpHelpers.toOctetString("fullNotifyView") : null,
+                    groupDef.hasAccessRights(AccessRights.READ) ? toOctetString("fullReadView") : null,
+                    groupDef.hasAccessRights(AccessRights.WRITE) ? toOctetString("fullWriteView") : null,
+                    groupDef.hasAccessRights(AccessRights.NOTIFY) ? toOctetString("fullNotifyView") : null,
                     StorageType.nonVolatile);
         }
     }

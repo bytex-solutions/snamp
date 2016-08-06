@@ -3,17 +3,17 @@ package com.bytex.snamp.management.shell;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.AgentConfiguration;
-import com.google.common.base.Strings;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Registers a new adapter instance.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
@@ -34,24 +34,19 @@ public final class ConfigAdapterInstanceCommand extends ConfigurationCommand {
 
     @Override
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
-        if (Strings.isNullOrEmpty(instanceName)) return false;
-        final ResourceAdapterConfiguration adapter;
-        if (configuration.getResourceAdapters().containsKey(instanceName)) {//modify existing adapter
-            adapter = configuration.getResourceAdapters().get(instanceName);
-            output.append("Updated");
-        } else {  //create new adapter instance
-            adapter = configuration.getResourceAdapters().getOrAdd(instanceName);
-            output.append("Created");
-        }
+        if (isNullOrEmpty(instanceName)) return false;
+        final ResourceAdapterConfiguration adapter = configuration.getOrRegisterEntity(ResourceAdapterConfiguration.class, instanceName);
         //setup system name
-        if (!Strings.isNullOrEmpty(systemName))
+        if (!isNullOrEmpty(systemName))
             adapter.setAdapterName(systemName);
         //setup parameters
         if (!ArrayUtils.isNullOrEmpty(parameters))
             for (final String pair : parameters) {
                 final StringKeyValue keyValue = StringKeyValue.parse(pair);
-                adapter.getParameters().put(keyValue.getKey(), keyValue.getValue());
+                if (keyValue != null)
+                    adapter.getParameters().put(keyValue.getKey(), keyValue.getValue());
             }
+        output.append("Updated");
         return true;
     }
 }

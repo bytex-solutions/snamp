@@ -1,14 +1,11 @@
 package com.bytex.snamp.testing.connectors.jmx;
 
-import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.adapters.AbstractResourceAdapter;
 import com.bytex.snamp.adapters.modeling.AttributeAccessor;
 import com.bytex.snamp.adapters.modeling.FeatureAccessor;
 import com.bytex.snamp.adapters.modeling.NotificationAccessor;
-import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 
@@ -20,6 +17,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
@@ -28,7 +26,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceCo
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOpenMBean> {
@@ -84,10 +82,12 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
         }
 
         @Override
-        protected Iterable<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception {
+        protected Stream<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception {
             try {
-                return Iterables.concat(ImmutableList.copyOf(attributes),
-                        ImmutableList.copyOf(notifications));
+                return Stream.concat(
+                        ImmutableList.copyOf(attributes).stream(),
+                        ImmutableList.copyOf(notifications).stream()
+                );
             }
             finally {
                 attributes.clear();
@@ -103,6 +103,7 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
             return NotificationAccessor.remove(notifications, metadata);
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         protected <M extends MBeanFeatureInfo> FeatureAccessor<M> removeFeature(final String resourceName, final M feature) throws Exception {
             if(feature instanceof MBeanAttributeInfo)
@@ -138,8 +139,8 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
     public void simpleTrackingTest() throws Exception {
         final TestAdapter adapter = new TestAdapter();
         ManagedResourceConnectorClient.addResourceListener(getTestBundleContext(), adapter);
-        try{
-            tryStart(adapter, Collections.<String, String>emptyMap());
+        try {
+            tryStart(adapter, Collections.emptyMap());
             assertEquals(9, adapter.getAttributes().size());
             assertEquals(2, adapter.getNotifications().size());
             //now deactivate the resource connector. This action causes restarting the adapter
@@ -153,24 +154,21 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
             assertEquals(9, adapter.getAttributes().size());
             assertEquals(2, adapter.getNotifications().size());
             //remove some attributes
-            processConfiguration(new SafeConsumer<AgentConfiguration>() {
-                @Override
-                public void accept(final AgentConfiguration config) {
-                    final ManagedResourceConfiguration testResource =
-                            config.getManagedResources().get(TEST_RESOURCE_NAME);
-                    assertNotNull(testResource);
-                    assertNotNull(testResource.getFeatures(AttributeConfiguration.class).remove("1.0"));
-                    assertNotNull(testResource.getFeatures(AttributeConfiguration.class).remove("2.0"));
-                    assertNotNull(testResource.getFeatures(AttributeConfiguration.class).remove("3.0"));
-                    assertNotNull(testResource.getFeatures(AttributeConfiguration.class).remove("4.0"));
-                    assertNotNull(testResource.getFeatures(EventConfiguration.class).remove("19.1"));
-                }
-            }, true);
+            processConfiguration(config -> {
+                final ManagedResourceConfiguration testResource =
+                        config.getEntities(ManagedResourceConfiguration.class).get(TEST_RESOURCE_NAME);
+                assertNotNull(testResource);
+                assertNotNull(testResource.getFeatures(AttributeConfiguration.class).remove("1.0"));
+                assertNotNull(testResource.getFeatures(AttributeConfiguration.class).remove("2.0"));
+                assertNotNull(testResource.getFeatures(AttributeConfiguration.class).remove("3.0"));
+                assertNotNull(testResource.getFeatures(AttributeConfiguration.class).remove("4.0"));
+                assertNotNull(testResource.getFeatures(EventConfiguration.class).remove("19.1"));
+                return true;
+            });
             Thread.sleep(2000);
             assertEquals(5, adapter.getAttributes().size());
             assertEquals(1, adapter.getNotifications().size());
-        }
-        finally {
+        } finally {
             getTestBundleContext().removeServiceListener(adapter);
             adapter.close();
         }

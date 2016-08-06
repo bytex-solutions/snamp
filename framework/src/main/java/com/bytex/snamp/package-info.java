@@ -5,7 +5,7 @@
  * <ul>
  *     <li>Simple containers: {@link com.bytex.snamp.Wrapper}, {@link com.bytex.snamp.Box}</li>
  *     <li>Syntactic sugar: {@link com.bytex.snamp.Switch}</li>
- *     <li>Functional interfaces: {@link com.bytex.snamp.Consumer}, {@link com.bytex.snamp.SafeConsumer}, {@link com.bytex.snamp.ExceptionalCallable}</li>
+ *     <li>Functional interfaces: {@link com.bytex.snamp.Acceptor}</li>
  *     <li>Array helpers: {@link com.bytex.snamp.ArrayUtils}</li>
  *     <li>Specialized collections and iterators: {@link com.bytex.snamp.ResettableIterator}, {@link com.bytex.snamp.WeakEventListenerList}</li>
  * </ul>

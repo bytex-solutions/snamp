@@ -1,27 +1,31 @@
 package com.bytex.snamp.adapters.nsca;
 
-import com.google.common.base.Strings;
-import com.googlecode.jsendnsca.core.Encryption;
-import com.googlecode.jsendnsca.core.NagiosSettings;
-import com.bytex.snamp.TimeSpan;
+import com.bytex.snamp.adapters.ResourceAdapterDescriptionProvider;
+import com.bytex.snamp.concurrent.LazyValueFactory;
+import com.bytex.snamp.concurrent.LazyValue;
 import com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import com.bytex.snamp.jmx.DescriptorUtils;
+import com.googlecode.jsendnsca.core.Encryption;
+import com.googlecode.jsendnsca.core.NagiosSettings;
 
 import javax.management.Descriptor;
+import java.time.Duration;
 import java.util.Map;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration.THREAD_POOL_KEY;
 import static com.bytex.snamp.jmx.DescriptorUtils.*;
+import static com.google.common.base.Strings.nullToEmpty;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
-final class NSCAAdapterConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl {
+final class NSCAAdapterConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl implements ResourceAdapterDescriptionProvider {
     private static final String NAGIOS_HOST_PARAM = "nagiosHost";
     private static final String NAGIOS_PORT_PARAM = "nagiosPort";
     private static final String CONNECTION_TIMEOUT_PARAM = "connectionTimeout";
@@ -65,17 +69,23 @@ final class NSCAAdapterConfigurationDescriptor extends ConfigurationEntityDescri
                     CONNECTION_TIMEOUT_PARAM,
                     PASSWORD_PARAM,
                     ENCRYPTION_PARAM,
+                    THREAD_POOL_KEY,
                     PASSIVE_CHECK_SEND_PERIOD_PARAM);
         }
     }
+    private static final LazyValue<NSCAAdapterConfigurationDescriptor> INSTANCE = LazyValueFactory.THREAD_SAFE.of(NSCAAdapterConfigurationDescriptor::new);
 
-    NSCAAdapterConfigurationDescriptor() {
+    private NSCAAdapterConfigurationDescriptor() {
         super(new ResourceAdapterConfigurationInfo(),
                 new AttributeConfigurationInfo(),
                 new EventConfigurationInfo());
     }
 
-    static NagiosSettings parseSettings(final Map<String, String> parameters) throws AbsentNSCAConfigurationParameterException {
+    static NSCAAdapterConfigurationDescriptor getInstance(){
+        return INSTANCE.get();
+    }
+
+    NagiosSettings parseSettings(final Map<String, String> parameters) throws AbsentNSCAConfigurationParameterException {
         final NagiosSettings result = new NagiosSettings();
         if(parameters.containsKey(NAGIOS_HOST_PARAM))
             result.setNagiosHost(parameters.get(NAGIOS_HOST_PARAM));
@@ -104,13 +114,13 @@ final class NSCAAdapterConfigurationDescriptor extends ConfigurationEntityDescri
                 defaultService;
     }
 
-    static TimeSpan getPassiveCheckSendPeriod(final Map<String, String> parameters){
+    Duration getPassiveCheckSendPeriod(final Map<String, String> parameters){
         if(parameters.containsKey(PASSIVE_CHECK_SEND_PERIOD_PARAM))
-            return TimeSpan.ofMillis(parameters.get(PASSIVE_CHECK_SEND_PERIOD_PARAM));
-        else return TimeSpan.ofSeconds(1L);
+            return Duration.ofMillis(Long.parseLong(parameters.get(PASSIVE_CHECK_SEND_PERIOD_PARAM)));
+        else return Duration.ofSeconds(1L);
     }
 
     static String getUnitOfMeasurement(final Descriptor descr){
-        return Strings.nullToEmpty(getUOM(descr));
+        return nullToEmpty(getUOM(descr));
     }
 }

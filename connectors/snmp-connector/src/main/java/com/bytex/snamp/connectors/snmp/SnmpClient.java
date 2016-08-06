@@ -1,13 +1,8 @@
 package com.bytex.snamp.connectors.snmp;
 
-import com.google.common.base.Stopwatch;
-import com.google.common.base.Supplier;
-import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.AbstractFuture;
 import com.bytex.snamp.Aggregator;
-import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.concurrent.SynchronizationEvent;
+import com.google.common.base.Stopwatch;
+import com.google.common.collect.Maps;
 import org.snmp4j.*;
 import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.event.ResponseListener;
@@ -21,31 +16,31 @@ import org.snmp4j.util.*;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * Represents SNMP client.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
     private static final AtomicInteger engineBoots = new AtomicInteger(0);
 
-    private static final class SnmpResponseListener extends SynchronizationEvent<ResponseEvent> implements ResponseListener {
-        public SnmpResponseListener() {
-            super(false);
-        }
+    private static final class SnmpResponseListener extends CompletableFuture<ResponseEvent> implements ResponseListener {
 
         @Override
         public void onResponse(final ResponseEvent event) {
-            fire(event);
+            complete(event);
         }
     }
 
-    private static final class SnmpTreeListener extends AbstractFuture<Collection<VariableBinding>> implements TreeListener {
+    private static final class SnmpTreeListener extends CompletableFuture<Collection<VariableBinding>> implements TreeListener {
         private final Collection<VariableBinding> bindings;
 
         private SnmpTreeListener(final int capacity) {
@@ -71,7 +66,7 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
             else if (event.isError()) {
                 Exception e = event.getException();
                 if(e == null) e = new IOException(event.getErrorMessage());
-                setException(e);
+                completeExceptionally(e);
                 return false;
             }
             return true;
@@ -93,10 +88,10 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
             else if (event.isError()) {
                 Exception e = event.getException();
                 if(e == null) e = new IOException(event.getErrorMessage());
-                setException(e);
+                completeExceptionally(e);
                 return;
             }
-            set(bindings);
+            complete(bindings);
         }
 
         /**
@@ -116,26 +111,25 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
         super(dispatcher, transport);
     }
 
-    public static SnmpClient create(final Address connectionAddress,
-                                    final OctetString engineID,
-                                    final OctetString userName,
-                                    final OID authenticationProtocol,
-                                    final OctetString password,
-                                    final OID encryptionProtocol,
-                                    final OctetString encryptionKey,
-                                    final OctetString contextName,
-                                    final Address localAddress,
-                                    final int socketTimeout,
-                                    final Supplier<ExecutorService> threadPoolFactory) throws IOException {
+    static SnmpClient create(final Address connectionAddress,
+                             final OctetString engineID,
+                             final OctetString userName,
+                             final OID authenticationProtocol,
+                             final OctetString password,
+                             final OID encryptionProtocol,
+                             final OctetString encryptionKey,
+                             final OctetString contextName,
+                             final Address localAddress,
+                             final int socketTimeout,
+                             final ExecutorService threadPool) throws IOException {
         if(userName == null ||
                 userName.length() == 0 ||
                 password == null ||
                 password.length() == 0)
-            return create(connectionAddress, new OctetString("public"), localAddress, socketTimeout, threadPoolFactory);
+            return create(connectionAddress, new OctetString("public"), localAddress, socketTimeout, threadPool);
         final SecurityLevel secLevel = encryptionProtocol != null && encryptionProtocol.size() > 0 &&
                 encryptionKey != null && encryptionKey.length() > 0 ?
             SecurityLevel.authPriv : SecurityLevel.authNoPriv;
-        final ExecutorService threadPool = threadPoolFactory.get();
         final MessageDispatcher dispatcher = new ConcurrentMessageDispatcher(threadPool);
         final USM userModel = new USM(DefaultSecurityProtocols.getInstance(), new OctetString(MPv3.createLocalEngineID()), engineBoots.getAndIncrement());
         userModel.addUser(userName, engineID,
@@ -145,7 +139,7 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
         transport.setSocketTimeout(socketTimeout);
         return new SnmpClient(dispatcher, transport) {
             @Override
-            protected Target createTarget(TimeSpan timeout) {
+            protected Target createTarget(Duration timeout) {
                 final UserTarget target = new UserTarget(connectionAddress,
                         userName,
                         engineID.getValue(),
@@ -153,9 +147,9 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
                 target.setSecurityModel(SecurityModel.SECURITY_MODEL_USM);
                 target.setRetries(1);
                 final long MAX_TIMEOUT = Long.MAX_VALUE / 100;
-                if(timeout == TimeSpan.INFINITE || timeout.convert(TimeUnit.MILLISECONDS).duration > MAX_TIMEOUT)
-                    timeout = TimeSpan.ofMillis(MAX_TIMEOUT);
-                target.setTimeout(timeout.convert(TimeUnit.MILLISECONDS).duration);
+                if(timeout == null || timeout.toMillis() > MAX_TIMEOUT)
+                    timeout = Duration.ofMillis(MAX_TIMEOUT);
+                target.setTimeout(timeout.toMillis());
                 target.setVersion(SnmpConstants.version3);
                 return target;
             }
@@ -173,38 +167,27 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
             public <T> T queryObject(final Class<T> objectType) {
                 return objectType.isInstance(threadPool) ? objectType.cast(threadPool) : null;
             }
-
-            @Override
-            public void close() throws IOException {
-                try {
-                    super.close();
-                }
-                finally {
-                    threadPool.shutdown();
-                }
-            }
         };
     }
 
-    public static SnmpClient create(final Address connectionAddress,
-                                    final OctetString community,
-                                    final Address localAddress,
-                                    final int socketTimeout,
-                                    final Supplier<ExecutorService> threadPoolFactory) throws IOException{
-        final ExecutorService threadPool = threadPoolFactory.get();
+    static SnmpClient create(final Address connectionAddress,
+                             final OctetString community,
+                             final Address localAddress,
+                             final int socketTimeout,
+                             final ExecutorService threadPool) throws IOException{
         final MessageDispatcher dispatcher = new ConcurrentMessageDispatcher(threadPool);
         dispatcher.addMessageProcessingModel(new MPv2c());
         final DefaultUdpTransportMapping transport = localAddress instanceof UdpAddress ? new DefaultUdpTransportMapping((UdpAddress)localAddress) : new DefaultUdpTransportMapping();
         transport.setSocketTimeout(socketTimeout);
         return new SnmpClient(dispatcher, transport){
             @Override
-            protected Target createTarget(TimeSpan timeout) {
+            protected Target createTarget(Duration timeout) {
                 final CommunityTarget target = new CommunityTarget(connectionAddress, community);
                 target.setVersion(SnmpConstants.version2c);
                 target.setRetries(1);
                 final long MAX_TIMEOUT = Long.MAX_VALUE / 100;
-                if(timeout == TimeSpan.INFINITE || timeout.toMillis() > MAX_TIMEOUT)
-                    timeout = TimeSpan.ofMillis(MAX_TIMEOUT);
+                if(timeout == null || timeout.toMillis() > MAX_TIMEOUT)
+                    timeout = Duration.ofMillis(MAX_TIMEOUT);
                 target.setTimeout(timeout.toMillis());
                 return target;
             }
@@ -220,34 +203,21 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
             public <T> T queryObject(final Class<T> objectType) {
                 return objectType.isInstance(threadPool) ? objectType.cast(threadPool) : null;
             }
-
-            @Override
-            public void close() throws IOException {
-                try {
-                    super.close();
-                }
-                finally {
-                    threadPool.shutdown();
-                }
-            }
         };
     }
 
     protected abstract PDU createPDU(final int pduType);
 
-    public final Address[] getClientAddresses(){
-        final Collection<TransportMapping> mappings = getMessageDispatcher().getTransportMappings();
-        final Address[] result = new Address[mappings.size()];
-        int i = 0;
-        for(final TransportMapping m: mappings)
-            result[i++] = m.getListenAddress();
-        return result;
+    final Address[] getClientAddresses(){
+        return getMessageDispatcher().getTransportMappings().stream()
+                .map(TransportMapping::getListenAddress)
+                .toArray(Address[]::new);
     }
 
-    protected abstract Target createTarget(final TimeSpan timeout);
+    protected abstract Target createTarget(final Duration timeout);
 
-    private static ResponseEvent waitForResponseEvent(final Future<ResponseEvent> awaitor, final TimeSpan timeout) throws TimeoutException, IOException, InterruptedException, ExecutionException {
-        final ResponseEvent response = timeout == TimeSpan.INFINITE ? awaitor.get() : awaitor.get(timeout.duration, timeout.unit);
+    private static ResponseEvent waitForResponseEvent(final Future<ResponseEvent> awaitor, final Duration timeout) throws TimeoutException, IOException, InterruptedException, ExecutionException {
+        final ResponseEvent response = timeout == null ? awaitor.get() : awaitor.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
         if(response == null || response.getResponse() == null) throw new TimeoutException("PDU sending timeout.");
         else if(response.getError() != null)
             if(response.getError() instanceof IOException)
@@ -256,10 +226,10 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
         else return response;
     }
 
-    public final ResponseEvent send(final PDU data, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException, ExecutionException {
+    private ResponseEvent send(final PDU data, final Duration timeout) throws IOException, TimeoutException, InterruptedException, ExecutionException {
         final SnmpResponseListener listener = new SnmpResponseListener();
         send(data, createTarget(timeout), null, listener);
-        return waitForResponseEvent(listener.getAwaitor(), timeout);
+        return waitForResponseEvent(listener, timeout);
     }
 
     private static OID prepareOidForGetBulk(final OID oid) {
@@ -274,7 +244,7 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
         }
     }
 
-    private Map<OID, Variable> get(final int pduType, final OID[] variables, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException, ExecutionException {
+    private Map<OID, Variable> get(final int pduType, final OID[] variables, final Duration timeout) throws IOException, TimeoutException, InterruptedException, ExecutionException {
         final PDU request = createPDU(pduType);
         if (pduType == PDU.GETBULK)
             for (int i = 0; i < variables.length; i++)
@@ -288,19 +258,19 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
         return result;
     }
 
-    public final Variable get(final OID variable, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException, ExecutionException {
+    final Variable get(final OID variable, final Duration timeout) throws IOException, TimeoutException, InterruptedException, ExecutionException {
         return get(new OID[]{variable}, timeout).get(variable);
     }
 
-    public final Map<OID, Variable> get(final OID[] variables, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException, ExecutionException {
+    private Map<OID, Variable> get(final OID[] variables, final Duration timeout) throws IOException, TimeoutException, InterruptedException, ExecutionException {
         return get(PDU.GET, variables, timeout);
     }
 
-    public final Map<OID, Variable> getBulk(final OID[] variables, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException, ExecutionException {
+    public final Map<OID, Variable> getBulk(final OID[] variables, final Duration timeout) throws IOException, TimeoutException, InterruptedException, ExecutionException {
         return get(PDU.GETBULK, variables, timeout);
     }
 
-    public final void set(final VariableBinding[] variables, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException, ExecutionException {
+    private void set(final VariableBinding[] variables, final Duration timeout) throws IOException, TimeoutException, InterruptedException, ExecutionException {
         final PDU request = createPDU(PDU.SET);
         for (final VariableBinding v : variables)
             request.add(v);
@@ -309,31 +279,31 @@ abstract class SnmpClient extends Snmp implements Closeable, Aggregator {
             throw new IOException(String.format("Unable to set %s variables. Status is %s(%s).", Arrays.toString(variables), response.getResponse().getErrorStatusText(), response.getResponse().getErrorStatus()));
     }
 
-    public final void walk(final OID root, final TimeSpan timeout, final Collection<VariableBinding> output) throws TimeoutException, InterruptedException, ExecutionException {
+    private void walk(final OID root, final Duration timeout, final Collection<VariableBinding> output) throws TimeoutException, InterruptedException, ExecutionException {
         final TreeUtils tree = new TreeUtils(this, new DefaultPDUFactory());
         final SnmpTreeListener listener = new SnmpTreeListener(100);
         tree.walk(createTarget(timeout), new OID[]{root}, null, listener);
-        output.addAll(listener.get(timeout.toMillis(), TimeUnit.MILLISECONDS));
+        output.addAll(listener.get(timeout.toNanos(), TimeUnit.NANOSECONDS));
     }
 
-    public final Collection<VariableBinding> walk(TimeSpan timeout) throws TimeoutException, InterruptedException, ExecutionException {
+    final Collection<VariableBinding> walk(Duration timeout) throws TimeoutException, InterruptedException, ExecutionException {
         final Collection<VariableBinding> result = new Vector<>(20);
         final Stopwatch timer = Stopwatch.createStarted();
         for(int i = 1; i <= 10; i++) {
-             timeout = timeout == TimeSpan.INFINITE ?
-                    TimeSpan.INFINITE:
-                    timeout.subtract(timer.elapsed(TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS);
+             timeout = timeout == null ?
+                    null :
+                    timeout.minus(timer.elapsed(TimeUnit.NANOSECONDS), ChronoUnit.NANOS);
             walk(new OID(new int[]{i}), timeout, result);
-            if(TimeSpan.ZERO.equals(timeout))
+            if(Duration.ZERO.equals(timeout))
                 throw new TimeoutException(String.format("Not enough time to collect all variables. Loop stopped at %s iteration.", i));
         }
         return result;
     }
 
-    public final void set(final Map<OID, Variable> variables, final TimeSpan timeout) throws IOException, TimeoutException, InterruptedException, ExecutionException {
-        final Collection<VariableBinding> bindings = new ArrayList<>(variables.size());
-        for(final Map.Entry<OID, Variable> entry: variables.entrySet())
-            bindings.add(new VariableBinding(entry.getKey(), entry.getValue()));
-        set(ArrayUtils.toArray(bindings, VariableBinding.class), timeout);
+    final void set(final Map<OID, Variable> variables, final Duration timeout) throws IOException, TimeoutException, InterruptedException, ExecutionException {
+        final Collection<VariableBinding> bindings = variables.entrySet().stream()
+                .map(entry -> new VariableBinding(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toCollection(LinkedList::new));
+        set(bindings.stream().toArray(VariableBinding[]::new), timeout);
     }
 }

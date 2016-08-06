@@ -15,11 +15,12 @@ import javax.management.openmbean.SimpleType;
  */
 final class InputDiscreteSetAttribute extends ModbusArrayAttributeInfo<boolean[], InputDiscreteAccess> {
     private static final String DESCRIPTION = "A set of input discretes";
+    private static final long serialVersionUID = 5270513533820737433L;
 
     InputDiscreteSetAttribute(final String attributeID,
                               final AttributeDescriptor descriptor,
                               final InputDiscreteAccess deviceAccess) throws OpenDataException {
-        super(attributeID, DESCRIPTION, new ArrayType<boolean[]>(SimpleType.BOOLEAN, true), AttributeSpecifier.READ_ONLY, descriptor, deviceAccess);
+        super(attributeID, DESCRIPTION, new ArrayType<>(SimpleType.BOOLEAN, true), AttributeSpecifier.READ_ONLY, descriptor, deviceAccess);
     }
 
 

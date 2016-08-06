@@ -1,5 +1,6 @@
 package com.bytex.snamp.testing.connectors.modbus;
 
+import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.bytex.snamp.connectors.modbus.transport.ModbusSlave;
@@ -16,7 +17,7 @@ import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class ModbusConnectorTest extends AbstractModbusConnectorTest {
@@ -67,7 +68,7 @@ public final class ModbusConnectorTest extends AbstractModbusConnectorTest {
         testAttribute("ID_01",
                 TypeToken.of(boolean[].class),
                 new boolean[]{DI_0.getValue(), DI_1.getValue()},
-                arrayEquator(),
+                ArrayUtils::strictEquals,
                 true);
     }
 
@@ -82,7 +83,7 @@ public final class ModbusConnectorTest extends AbstractModbusConnectorTest {
         testAttribute("IR_01",
                 TypeToken.of(short[].class),
                 new short[]{IR_0.getValue(), IR_1.getValue()},
-                arrayEquator(),
+                ArrayUtils::strictEquals,
                 true);
     }
 
@@ -96,7 +97,7 @@ public final class ModbusConnectorTest extends AbstractModbusConnectorTest {
         final short[] array = new short[]{4, 6, 7, 10, //record 0
                 15, 89, 34, 33,          //record 1
                 78, 0, 12, -56};                //record 2
-        testAttribute("FI_0", TypeToken.of(short[].class), array, arrayEquator());
+        testAttribute("FI_0", TypeToken.of(short[].class), array, ArrayUtils::strictEquals);
     }
 
     @Test

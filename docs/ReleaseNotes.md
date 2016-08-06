@@ -1,79 +1,43 @@
-# SNAMP 1.1.0
-Maintenance release with important updates of third-party libraries and minor product fixes.
+# SNAMP 1.2.0
+Upgrade of all SNAMP components and migration to Java 8:
 
 Change list:
 
-* Shell command `snamp:config-operation` renamed to `snamp:configure-operation`
+* SNAMP now requires at least Java 8. Java 7 is not supported anymore.
+* Centralized configuration of parallelism using `snamp:thread-pool-*` shell commands.
+* Configuration script written on JavaScript can be executed using `snamp:script` command.
+* Significant performance improvements.
 
 Updated components:
 
 * Apache Karaf
-* Groovy
-* Google Guava
+* Apache Decanter
 * Google GSON
-* Apache Thrift
+* Groovy
+* Bouncy Castle
 * SNMP4J
+* ActiveMQ Runtime
+* Atmosphere Framework
 
-All SNAMP components are affected so you need to backup your configuration, install new SNAMP version and reload the configuration. 
+All SNAMP components are affected so you need to reconfigure SNAMP. It is not possible to restore configuration from backup.
 
-# SNAMP 1.0.0
-Read-to-use in production environment version of SNAMP.
+## SNAMP Platform 1.2.0
+Centralized configuration of parallelism provided by the following commands:
 
-## Components
-The following components are released as parts of SNAMP:
+* Thread pool configuration commands using `snamp:thread-pool-add`, `snamp:thread-pool-remove` and `snamp:thread-pool-list` commands
+* `threadPool` configuration property represents a name of thread pool configured with `snamp:thread-pool-add` command and used by resource connector or adapter
 
-### SNAMP Platform 1.0.0
-First production release of SNAMP core components.
+The following configuration parameters are no longer supported: `minPoolSize`, `maxPoolSize`, `queueSize`, `keepAliveTime` and `priority`.
 
-## JMS Resource Connector 1.0.0
-First production release of JMS Resource Connector with JMS/JNDI/AMQP support.
+## SNMP Resource Adapter 1.2.0
+Remove support for nonstandard AES 192 and 256 using 3DES key extend algorithm.
 
-### SNMP Resource Connector 1.0.0
-First production release of SNMP Resource Connector with SNMPv2/SNMPv3 support.
+Support for new authentication protocols: `hmac128-sha224`, `hmac192-sha256`, `hmac256-sha384`, `hmac384-sha512`.
 
-### JMX Resource Connector 1.0.0
-First production release of JMX Resource Connector.
+## SNMP Resource Connector 1.2.0
+Improved compliance with RFC 3412 Â§6.2.
 
-### RShell Resource Connector 1.0.0
-First production release of RShell Resource Connector with ssh/rsh/rexec support.
+Support for new authentication protocols: `hmac128-sha224`, `hmac192-sha256`, `hmac256-sha384`, `hmac384-sha512`.
 
-### Groovy Resource Connector 1.0.0
-First production release of Groovy Resource Connector.
-
-### Resource Aggregator 1.0.0
-First production release of Resource Aggregator.
-
-### IBM WebSphere MQ Resource Connector 1.0.0
-First production release of WebSphere MQ Resource Connector.
-
-### Monitoring Data Acceptor 1.0.0
-First production release of MDA Resource Connector with HTTP and Thrift support.
-
-### JMX Resource Adapter 1.0.0
-First production release of JMX Resource Adapter.
-
-### SSH Resource Adapter 1.0.0
-First production release of SSH Resource Adapter.
-
-### HTTP Resource Adapter 1.0.0
-First production release of HTTP Resource Adapter.
-
-### XMPP Resource Adapter 1.0.0
-First production release of XMPP Resource Adapter.
-
-### Syslog Resource Adapter 1.0.0
-First production release of Syslog Resource Adapter.
-
-### Nagios Resource Adapter 1.0.0
-First production release of Nagios Resource Adapter.
-
-### Nagios Service Check Acceptor (NSCA) Adapter 1.0.0
-First production release of NSCA Resource Adapter.
-
-### Nagios Remote Data Processor (NRDP) Adapter 1.0.0
-First production release of NRDP Resource Adapter.
-
-## Dependencies
-Java SE 7
-Apache Karaf 3.0.5
-Hazelcast 3.4.2
+## RShell Resource Connector 1.2.0
+Nashorn is a primary JavaScript engine.

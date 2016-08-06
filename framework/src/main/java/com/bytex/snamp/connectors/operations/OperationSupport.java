@@ -7,7 +7,7 @@ import javax.management.ReflectionException;
 /**
  * Provides support of management operations.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public interface OperationSupport {
@@ -26,7 +26,7 @@ public interface OperationSupport {
 
     /**
      * The name of the field in {@link javax.management.Descriptor} which
-     * contains {@link com.bytex.snamp.TimeSpan} value.
+     * contains {@link java.time.Duration} value.
      */
     String INVOCATION_TIMEOUT_FIELD = "invocationTimeout";
 

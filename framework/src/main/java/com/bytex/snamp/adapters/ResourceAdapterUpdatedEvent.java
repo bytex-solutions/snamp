@@ -4,7 +4,7 @@ package com.bytex.snamp.adapters;
  * Represents an event indicating that the updating of managed resource adapter instance
  * is completed.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class ResourceAdapterUpdatedEvent extends ResourceAdapterEvent {

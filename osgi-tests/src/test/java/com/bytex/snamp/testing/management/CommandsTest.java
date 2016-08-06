@@ -1,8 +1,9 @@
 package com.bytex.snamp.testing.management;
 
-import com.bytex.snamp.SafeConsumer;
-import com.bytex.snamp.TimeSpan;
+import com.bytex.snamp.concurrent.ThreadPoolConfig;
+import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.core.PlatformVersion;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.OperatingSystem;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
@@ -15,21 +16,26 @@ import org.apache.felix.service.command.CommandSession;
 import org.junit.Test;
 
 import java.io.*;
+import java.time.temporal.ChronoUnit;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
 
 /**
  * Shell commands test.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @SnampDependencies({SnampFeature.JMX_CONNECTOR, SnampFeature.GROOVY_ADAPTER})
 public final class CommandsTest extends AbstractSnampIntegrationTest {
-    private CharSequence runCommand(String command) throws Exception{
-        final ServiceHolder<CommandProcessor> processorRef = new ServiceHolder<>(getTestBundleContext(), CommandProcessor.class);
+    private Object runCommand(String command) throws Exception{
+        final ServiceHolder<CommandProcessor> processorRef = ServiceHolder.tryCreate(getTestBundleContext(), CommandProcessor.class);
+        assertNotNull(processorRef);
         // On windows we have path separator that conflicts with escape symbols
         if (OperatingSystem.isWindows()) {
             command = command.replace("\\", "\\\\");
@@ -42,11 +48,39 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
              final OutputStream err = new FileOutputStream(errFile)) {
 
             final CommandSession session = processorRef.getService().createSession(input, new PrintStream(out), new PrintStream(err));
-            final CharSequence result = (CharSequence)session.execute(command);
+            final Object result = session.execute(command);
             session.close();
             return result;
         } finally {
             processorRef.release(getTestBundleContext());
+        }
+    }
+
+    @Test
+    public void executeJavaScriptTest() throws Exception{
+        Object result = runCommand("snamp:script \"snamp.version;\"");
+        assertTrue(result instanceof PlatformVersion);
+        result = runCommand("snamp:script \"var config; snamp.configure(function(conf) { config = conf; return false; }); config; \"");
+        assertTrue(result instanceof AgentConfiguration);
+    }
+
+    @Test
+    public void threadPoolConfigTest() throws Exception{
+        final Object result = runCommand("snamp:thread-pool-add -m 3 -M 5 -t 2000 tp1");
+        assertTrue(result instanceof CharSequence);
+        final ServiceHolder<ThreadPoolRepository> threadPoolRepo = ServiceHolder.tryCreate(getTestBundleContext(), ThreadPoolRepository.class);
+        assertNotNull(threadPoolRepo);
+        try{
+            final ThreadPoolConfig config = threadPoolRepo.get().getConfiguration("tp1");
+            assertTrue(config.isInfiniteQueue());
+            assertEquals(3, config.getMinPoolSize());
+            assertEquals(5, config.getMaxPoolSize());
+            assertEquals(2000, config.getKeepAliveTime().toMillis());
+            final ExecutorService executor = threadPoolRepo.get().getThreadPool("tp1", false);
+            final Future<Integer> task = executor.submit(() -> 10);
+            assertEquals(Integer.valueOf(10), task.get());
+        }   finally {
+            threadPoolRepo.release(getTestBundleContext());
         }
     }
 
@@ -57,7 +91,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
 
     @Test
     public void installedConnectorsTest() throws Exception {
-        final CharSequence result = runCommand("snamp:installed-connectors");
+        final CharSequence result = (CharSequence) runCommand("snamp:installed-connectors");
         assertTrue(result.toString().startsWith("JMX Connector"));
     }
 
@@ -72,35 +106,29 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
     }
 
     @Test
-    public void adapterConfigurationTest() throws Exception{
+    public void adapterConfigurationTest() throws Exception {
         runCommand("snamp:configure-adapter -p k=v -p key=value instance2 dummy");
         //saving configuration is asynchronous process therefore it is necessary to wait
         Thread.sleep(500);
-        processConfiguration(new SafeConsumer<AgentConfiguration>() {
-            @Override
-            public void accept(final AgentConfiguration config) {
-                assertTrue(config.getResourceAdapters().containsKey("instance2"));
-                assertEquals("dummy", config.getResourceAdapters().get("instance2").getAdapterName());
-                assertEquals("v", config.getResourceAdapters().get("instance2").getParameters().get("k"));
-            }
-        }, true, false);
+        processConfiguration(config -> {
+            assertTrue(config.getEntities(ResourceAdapterConfiguration.class).containsKey("instance2"));
+            assertEquals("dummy", config.getEntities(ResourceAdapterConfiguration.class).get("instance2").getAdapterName());
+            assertEquals("v", config.getEntities(ResourceAdapterConfiguration.class).get("instance2").getParameters().get("k"));
+            return false;
+        });
         runCommand("snamp:delete-adapter-param instance2 k");
         Thread.sleep(500);
-        processConfiguration(new SafeConsumer<AgentConfiguration>() {
-            @Override
-            public void accept(final AgentConfiguration config) {
-                assertTrue(config.getResourceAdapters().containsKey("instance2"));
-                assertFalse(config.getResourceAdapters().get("instance2").getParameters().containsKey("k"));
-            }
-        }, true, false);
+        processConfiguration(config -> {
+            assertTrue(config.getEntities(ResourceAdapterConfiguration.class).containsKey("instance2"));
+            assertFalse(config.getEntities(ResourceAdapterConfiguration.class).get("instance2").getParameters().containsKey("k"));
+            return false;
+        });
         runCommand("snamp:delete-adapter instance2");
         Thread.sleep(500);
-        processConfiguration(new SafeConsumer<AgentConfiguration>() {
-            @Override
-            public void accept(final AgentConfiguration config) {
-                assertFalse(config.getResourceAdapters().containsKey("instance2"));
-            }
-        }, true, false);
+        processConfiguration(config -> {
+            assertFalse(config.getEntities(ResourceAdapterConfiguration.class).containsKey("instance2"));
+            return false;
+        });
     }
 
     @Test
@@ -134,148 +162,126 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
     }
 
     @Test
-    public void configureResourceTest() throws Exception{
+    public void configureResourceTest() throws Exception {
         runCommand("snamp:configure-resource -p k=v resource2 dummy http://acme.com");
         //saving configuration is asynchronous process therefore it is necessary to wait
         Thread.sleep(500);
-        processConfiguration(new SafeConsumer<AgentConfiguration>() {
-            @Override
-            public void accept(final AgentConfiguration config) {
-                assertTrue(config.getManagedResources().containsKey("resource2"));
-                assertEquals("dummy", config.getManagedResources().get("resource2").getConnectionType());
-                assertEquals("http://acme.com", config.getManagedResources().get("resource2").getConnectionString());
-                assertEquals("v", config.getManagedResources().get("resource2").getParameters().get("k"));
-            }
-        }, true, false);
+        processConfiguration(config -> {
+            assertTrue(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource2"));
+            assertEquals("dummy", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getConnectionType());
+            assertEquals("http://acme.com", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getConnectionString());
+            assertEquals("v", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getParameters().get("k"));
+            return false;
+        });
 
         //remove configuration parameter
         runCommand("snamp:delete-resource-param resource2 k");
         Thread.sleep(500);
-        processConfiguration(new SafeConsumer<AgentConfiguration>() {
-            @Override
-            public void accept(final AgentConfiguration config) {
-                assertTrue(config.getManagedResources().containsKey("resource2"));
-                assertFalse(config.getManagedResources().get("resource2").getParameters().containsKey("k"));
-            }
-        }, true, false);
+        processConfiguration(config -> {
+            assertTrue(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource2"));
+            assertFalse(config.getEntities(ManagedResourceConfiguration.class).get("resource2").getParameters().containsKey("k"));
+            return false;
+        });
         //remove resource
         runCommand("snamp:delete-resource resource2");
         Thread.sleep(500);
-        processConfiguration(new SafeConsumer<AgentConfiguration>() {
-            @Override
-            public void accept(final AgentConfiguration config) {
-                assertFalse(config.getManagedResources().containsKey("resource2"));
-            }
-        }, true, false);
+        processConfiguration(config -> {
+            assertFalse(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource2"));
+            return false;
+        });
     }
 
     @Test
-    public void configureAttributeTest() throws Exception{
+    public void configureAttributeTest() throws Exception {
         runCommand("snamp:configure-resource -p k=v resource2 dummy http://acme.com");
         //saving configuration is asynchronous process therefore it is necessary to wait
         Thread.sleep(500);
-        processConfiguration(new SafeConsumer<AgentConfiguration>() {
-            @Override
-            public void accept(final AgentConfiguration config) {
-                assertTrue(config.getManagedResources().containsKey("resource2"));
-                assertEquals("dummy", config.getManagedResources().get("resource2").getConnectionType());
-                assertEquals("http://acme.com", config.getManagedResources().get("resource2").getConnectionString());
-                assertEquals("v", config.getManagedResources().get("resource2").getParameters().get("k"));
-            }
-        }, true, false);
+        processConfiguration(config -> {
+            assertTrue(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource2"));
+            assertEquals("dummy", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getConnectionType());
+            assertEquals("http://acme.com", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getConnectionString());
+            assertEquals("v", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getParameters().get("k"));
+            return false;
+        });
         //register attribute
         runCommand("snamp:configure-attribute -p par=val resource2 attr 12000");
         Thread.sleep(500);
-        processConfiguration(new SafeConsumer<AgentConfiguration>() {
-            @Override
-            public void accept(final AgentConfiguration config) {
-                assertTrue(config.getManagedResources().containsKey("resource2"));
-                final AttributeConfiguration attribute = config.getManagedResources()
-                        .get("resource2")
-                        .getFeatures(AttributeConfiguration.class)
-                        .get("attr");
-                assertNotNull(attribute);
-                assertEquals(TimeSpan.ofSeconds(12), attribute.getReadWriteTimeout());
-                assertEquals("val", attribute.getParameters().get("par"));
-            }
-        }, true, false);
+        processConfiguration(config -> {
+            assertTrue(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource2"));
+            final AttributeConfiguration attribute = config.getEntities(ManagedResourceConfiguration.class)
+                    .get("resource2")
+                    .getFeatures(AttributeConfiguration.class)
+                    .get("attr");
+            assertNotNull(attribute);
+            assertEquals(12, attribute.getReadWriteTimeout(ChronoUnit.SECONDS));
+            assertEquals("val", attribute.getParameters().get("par"));
+            return false;
+        });
         //remove configuration parameter
         runCommand("snamp:delete-attribute-param resource2 attr par");
-        processConfiguration(new SafeConsumer<AgentConfiguration>() {
-            @Override
-            public void accept(final AgentConfiguration config) {
-                assertTrue(config.getManagedResources().containsKey("resource2"));
-                final AttributeConfiguration attribute = config.getManagedResources()
-                        .get("resource2")
-                        .getFeatures(AttributeConfiguration.class)
-                        .get("attr");
-                assertNotNull(attribute);
-                assertFalse(attribute.getParameters().containsKey("par"));
-            }
-        }, true, false);
+        processConfiguration(config -> {
+            assertTrue(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource2"));
+            final AttributeConfiguration attribute = config.getEntities(ManagedResourceConfiguration.class)
+                    .get("resource2")
+                    .getFeatures(AttributeConfiguration.class)
+                    .get("attr");
+            assertNotNull(attribute);
+            assertFalse(attribute.getParameters().containsKey("par"));
+            return false;
+        });
         //remove resource
         runCommand("snamp:delete-resource resource2");
         Thread.sleep(500);
-        processConfiguration(new SafeConsumer<AgentConfiguration>() {
-            @Override
-            public void accept(final AgentConfiguration config) {
-                assertFalse(config.getManagedResources().containsKey("resource2"));
-            }
-        }, true, false);
+        processConfiguration(config -> {
+            assertFalse(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource2"));
+            return false;
+        });
     }
 
     @Test
-    public void configureEventTest() throws Exception{
+    public void configureEventTest() throws Exception {
         runCommand("snamp:configure-resource -p k=v resource2 dummy http://acme.com");
         //saving configuration is asynchronous process therefore it is necessary to wait
         Thread.sleep(500);
-        processConfiguration(new SafeConsumer<AgentConfiguration>() {
-            @Override
-            public void accept(final AgentConfiguration config) {
-                assertTrue(config.getManagedResources().containsKey("resource2"));
-                assertEquals("dummy", config.getManagedResources().get("resource2").getConnectionType());
-                assertEquals("http://acme.com", config.getManagedResources().get("resource2").getConnectionString());
-                assertEquals("v", config.getManagedResources().get("resource2").getParameters().get("k"));
-            }
-        }, true, false);
+        processConfiguration(config -> {
+            assertTrue(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource2"));
+            assertEquals("dummy", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getConnectionType());
+            assertEquals("http://acme.com", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getConnectionString());
+            assertEquals("v", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getParameters().get("k"));
+            return false;
+        });
         //register event
         runCommand("snamp:configure-event -p par=val resource2 ev1");
         Thread.sleep(500);
-        processConfiguration(new SafeConsumer<AgentConfiguration>() {
-            @Override
-            public void accept(final AgentConfiguration config) {
-                assertTrue(config.getManagedResources().containsKey("resource2"));
-                final EventConfiguration attribute = config.getManagedResources()
-                        .get("resource2")
-                        .getFeatures(EventConfiguration.class)
-                        .get("ev1");
-                assertNotNull(attribute);
-                assertEquals("val", attribute.getParameters().get("par"));
-            }
-        }, true, false);
+        processConfiguration(config -> {
+            assertTrue(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource2"));
+            final EventConfiguration attribute = config.getEntities(ManagedResourceConfiguration.class)
+                    .get("resource2")
+                    .getFeatures(EventConfiguration.class)
+                    .get("ev1");
+            assertNotNull(attribute);
+            assertEquals("val", attribute.getParameters().get("par"));
+            return false;
+        });
         //remove configuration parameter
         runCommand("snamp:delete-event-param resource2 ev1 par");
-        processConfiguration(new SafeConsumer<AgentConfiguration>() {
-            @Override
-            public void accept(final AgentConfiguration config) {
-                assertTrue(config.getManagedResources().containsKey("resource2"));
-                final EventConfiguration attribute = config.getManagedResources()
-                        .get("resource2")
-                        .getFeatures(EventConfiguration.class)
-                        .get("ev1");
-                assertNotNull(attribute);
-                assertFalse(attribute.getParameters().containsKey("par"));
-            }
-        }, true, false);
+        processConfiguration(config -> {
+            assertTrue(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource2"));
+            final EventConfiguration attribute = config.getEntities(ManagedResourceConfiguration.class)
+                    .get("resource2")
+                    .getFeatures(EventConfiguration.class)
+                    .get("ev1");
+            assertNotNull(attribute);
+            assertFalse(attribute.getParameters().containsKey("par"));
+            return false;
+        });
         //remove resource
         runCommand("snamp:delete-resource resource2");
         Thread.sleep(500);
-        processConfiguration(new SafeConsumer<AgentConfiguration>() {
-            @Override
-            public void accept(final AgentConfiguration config) {
-                assertFalse(config.getManagedResources().containsKey("resource2"));
-            }
-        }, true, false);
+        processConfiguration(config -> {
+            assertFalse(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource2"));
+            return false;
+        });
     }
 
     @Test
@@ -285,39 +291,35 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
     }
 
     @Test
-    public void resourceInfoTest() throws Exception{
+    public void resourceInfoTest() throws Exception {
         //register event
         runCommand("snamp:configure-event -p par=val resource1 ev1");
         Thread.sleep(500);
-        processConfiguration(new SafeConsumer<AgentConfiguration>() {
-            @Override
-            public void accept(final AgentConfiguration config) {
-                assertTrue(config.getManagedResources().containsKey("resource1"));
-                final EventConfiguration attribute = config.getManagedResources()
-                        .get("resource1")
-                        .getFeatures(EventConfiguration.class)
-                        .get("ev1");
-                assertNotNull(attribute);
-                assertEquals("val", attribute.getParameters().get("par"));
-            }
-        }, true, false);
+        processConfiguration(config -> {
+            assertTrue(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource1"));
+            final EventConfiguration attribute = config.getEntities(ManagedResourceConfiguration.class)
+                    .get("resource1")
+                    .getFeatures(EventConfiguration.class)
+                    .get("ev1");
+            assertNotNull(attribute);
+            assertEquals("val", attribute.getParameters().get("par"));
+            return false;
+        });
         Thread.sleep(500);
         //register attribute
         runCommand("snamp:configure-attribute -p par=val resource1 attr 12000");
         Thread.sleep(500);
-        processConfiguration(new SafeConsumer<AgentConfiguration>() {
-            @Override
-            public void accept(final AgentConfiguration config) {
-                assertTrue(config.getManagedResources().containsKey("resource1"));
-                final AttributeConfiguration attribute = config.getManagedResources()
-                        .get("resource1")
-                        .getFeatures(AttributeConfiguration.class)
-                        .get("attr");
-                assertNotNull(attribute);
-                assertEquals(TimeSpan.ofSeconds(12), attribute.getReadWriteTimeout());
-                assertEquals("val", attribute.getParameters().get("par"));
-            }
-        }, true, false);
+        processConfiguration(config -> {
+            assertTrue(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource1"));
+            final AttributeConfiguration attribute = config.getEntities(ManagedResourceConfiguration.class)
+                    .get("resource1")
+                    .getFeatures(AttributeConfiguration.class)
+                    .get("attr");
+            assertNotNull(attribute);
+            assertEquals(12, attribute.getReadWriteTimeout(ChronoUnit.SECONDS));
+            assertEquals("val", attribute.getParameters().get("par"));
+            return false;
+        });
         Thread.sleep(500);
         //check resource
         final String resource = runCommand("snamp:resource -a -e resource1").toString();
@@ -337,10 +339,10 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
     @Override
     protected void setupTestConfiguration(final AgentConfiguration config) {
         final ResourceAdapterConfiguration adapter =
-                config.getResourceAdapters().getOrAdd("adapterInst");
+                config.getEntities(ResourceAdapterConfiguration.class).getOrAdd("adapterInst");
         adapter.setAdapterName("dummyAdapter");
         final ManagedResourceConfiguration resource =
-                config.getManagedResources().getOrAdd("resource1");
+                config.getEntities(ManagedResourceConfiguration.class).getOrAdd("resource1");
         resource.setConnectionType("dummyConnector");
         resource.setConnectionString("http://acme.com");
     }

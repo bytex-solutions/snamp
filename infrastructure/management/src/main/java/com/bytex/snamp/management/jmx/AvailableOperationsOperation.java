@@ -1,11 +1,11 @@
 package com.bytex.snamp.management.jmx;
 
-import com.google.common.base.MoreObjects;
 import com.bytex.snamp.connectors.operations.OperationDescriptor;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.TabularDataBuilderRowFill;
 import com.bytex.snamp.jmx.TabularTypeBuilder;
 import com.bytex.snamp.jmx.WellKnownType;
+import static com.google.common.base.MoreObjects.firstNonNull;
 
 import javax.management.MBeanInfo;
 import javax.management.MBeanOperationInfo;
@@ -13,11 +13,10 @@ import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.SimpleType;
 import javax.management.openmbean.TabularData;
 import javax.management.openmbean.TabularType;
-import java.util.concurrent.Callable;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class AvailableOperationsOperation extends AvailableFeaturesOperation<MBeanOperationInfo> {
@@ -29,20 +28,15 @@ final class AvailableOperationsOperation extends AvailableFeaturesOperation<MBea
     private static final String RETURN_TYPE_COLUMN = "returnType";
     private static final String IMPACT_COLUMN = "impact";
 
-    private static final TabularType RETURN_TYPE = Utils.interfaceStaticInitialize(new Callable<TabularType>() {
-        @Override
-        public TabularType call() throws OpenDataException {
-            return new TabularTypeBuilder()
-                    .setTypeName("AvailableNotifications", true)
-                    .setDescription("A set of available notifications", true)
-                    .addColumn(NAME_COLUMN, "User-defined name of the event", SimpleType.STRING, true)
-                    .addColumn(DESCRIPTION_COLUMN, "Description of the event", SimpleType.STRING, false)
-                    .addColumn(PARAMETERS_COLUMN, "Configuration parameters", SimpleType.STRING, false)
-                    .addColumn(RETURN_TYPE_COLUMN, "Type of the notification attachment", SimpleType.STRING, false)
-                    .addColumn(IMPACT_COLUMN, "Severity of the notification", SimpleType.INTEGER, false)
-                    .build();
-        }
-    });
+    private static final TabularType RETURN_TYPE = Utils.interfaceStaticInitialize(() -> new TabularTypeBuilder()
+            .setTypeName("AvailableNotifications", true)
+            .setDescription("A set of available notifications", true)
+            .addColumn(NAME_COLUMN, "User-defined name of the event", SimpleType.STRING, true)
+            .addColumn(DESCRIPTION_COLUMN, "Description of the event", SimpleType.STRING, false)
+            .addColumn(PARAMETERS_COLUMN, "Configuration parameters", SimpleType.STRING, false)
+            .addColumn(RETURN_TYPE_COLUMN, "Type of the notification attachment", SimpleType.STRING, false)
+            .addColumn(IMPACT_COLUMN, "Severity of the notification", SimpleType.INTEGER, false)
+            .build());
 
     AvailableOperationsOperation() {
         super(NAME, RETURN_TYPE);
@@ -55,7 +49,7 @@ final class AvailableOperationsOperation extends AvailableFeaturesOperation<MBea
         row
                 .cell(NAME_COLUMN, operationInfo.getName())
                 .cell(PARAMETERS_COLUMN, toTabularData(operationInfo))
-                .cell(DESCRIPTION_COLUMN, MoreObjects.firstNonNull(description, ""))
+                .cell(DESCRIPTION_COLUMN, firstNonNull(description, ""))
                 .cell(RETURN_TYPE_COLUMN, returnType == null ? operationInfo.getReturnType() : returnType.getDisplayName())
                 .cell(IMPACT_COLUMN, operationInfo.getImpact())
                 .flush();

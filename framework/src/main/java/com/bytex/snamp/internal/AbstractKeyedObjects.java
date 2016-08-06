@@ -3,11 +3,12 @@ package com.bytex.snamp.internal;
 import com.bytex.snamp.SerializableMap;
 
 import java.util.HashMap;
+import java.util.function.Function;
 
 /**
  * Represents a base class for constructing keyed collection.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public abstract class AbstractKeyedObjects<K, V> extends HashMap<K, V> implements KeyedObjects<K, V>, SerializableMap<K, V> {
@@ -21,6 +22,9 @@ public abstract class AbstractKeyedObjects<K, V> extends HashMap<K, V> implement
         super(capacity);
     }
 
+    private AbstractKeyedObjects(){
+    }
+
     /**
      * Puts an item into this map.
      *
@@ -30,5 +34,16 @@ public abstract class AbstractKeyedObjects<K, V> extends HashMap<K, V> implement
     @Override
     public final V put(final V item) {
         return put(getKey(item), item);
+    }
+
+    public static <K, V> AbstractKeyedObjects<K, V> create(final Function<? super V, ? extends K> keyMapper){
+        return new AbstractKeyedObjects<K, V>() {
+            private static final long serialVersionUID = -6817032232930472784L;
+
+            @Override
+            public K getKey(final V item) {
+                return keyMapper.apply(item);
+            }
+        };
     }
 }

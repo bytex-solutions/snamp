@@ -1,14 +1,13 @@
 package com.bytex.snamp.connectors;
 
-import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.TimeSpan;
+import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.configuration.*;
+import com.bytex.snamp.configuration.internal.CMManagedResourceParser;
 import com.bytex.snamp.connectors.discovery.AbstractDiscoveryService;
 import com.bytex.snamp.connectors.discovery.DiscoveryService;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.management.Maintainable;
 import com.google.common.collect.Maps;
@@ -19,13 +18,15 @@ import org.osgi.service.cm.ConfigurationAdmin;
 
 import javax.management.openmbean.CompositeData;
 import java.math.BigInteger;
+import java.time.Duration;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
-import static com.bytex.snamp.connectors.ManagedResourceConnector.CONNECTOR_NAME_MANIFEST_HEADER;
 import static com.bytex.snamp.ArrayUtils.emptyArray;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents a base class for management connector bundle.
@@ -36,7 +37,7 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
  * @param <TConnector> Type of the management connector.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  */
 public class ManagedResourceActivator<TConnector extends ManagedResourceConnector> extends AbstractServiceLibrary {
     /**
@@ -63,6 +64,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
     private static final String MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY = "managedResource";
     private static final String CONNECTOR_STRING_IDENTITY_PROPERTY = "connectionString";
+    private static final String CONNECTION_TYPE_IDENTITY_PROPERTY = "connectionType";
 
     private static final ActivationProperty<String> CONNECTOR_TYPE_HOLDER = defineActivationProperty(String.class);
     private static final ActivationProperty<Logger> LOGGER_HOLDER = defineActivationProperty(Logger.class);
@@ -73,7 +75,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @param <TConnector> Type of the managed resource connector implementation.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     protected interface ManagedResourceConnectorLifecycleController<TConnector extends ManagedResourceConnector>{
 
@@ -143,7 +145,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @param <TConnector> Type of the connector implementation.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     protected static abstract class ManagedResourceConnectorFactory<TConnector extends ManagedResourceConnector> implements ManagedResourceConnectorLifecycleController<TConnector>{
 
@@ -208,7 +210,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @param <TConnector> Type of the managed resource connector.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     protected static abstract class ManagedResourceConnectorModeler<TConnector extends ManagedResourceConnector> extends ManagedResourceConnectorFactory<TConnector>{
         /**
@@ -226,7 +228,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          */
         protected abstract boolean addAttribute(final TConnector connector,
                                              final String attributeName,
-                                             final TimeSpan readWriteTimeout,
+                                             final Duration readWriteTimeout,
                                              final CompositeData options);
 
         /**
@@ -304,7 +306,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
         protected abstract boolean enableOperation(final TConnector connector,
                                                 final String operationName,
-                                                final TimeSpan invocationTimeout,
+                                                final Duration invocationTimeout,
                                                 final CompositeData options);
 
         /**
@@ -363,9 +365,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         private ManagedResourceConnectorRegistry(final String connectorType,
                                                  final ManagedResourceConnectorLifecycleController<TConnector> controller,
                                                  final RequiredService<?>... dependencies) {
-            super(ManagedResourceConnector.class,
-                    PersistentConfigurationManager.getConnectorFactoryPersistentID(connectorType),
-                    dependencies);
+            super(ManagedResourceConnector.class, ObjectArrays.<RequiredService>concat(dependencies, new SimpleDependency<>(ConfigurationManager.class)));
             this.controller = Objects.requireNonNull(controller, "controller is null.");
             this.connectorType = connectorType;
             this.configurationHashes = Maps.newHashMapWithExpectedSize(10);
@@ -373,25 +373,40 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
         private ManagedResourceConnectorRegistry(final ManagedResourceConnectorLifecycleController<TConnector> controller,
                                                  final RequiredService<?>... dependencies){
-            this(getConnectorType(controller), controller, dependencies);
+            this(ManagedResourceConnector.getResourceConnectorType(Utils.getBundleContextOfObject(controller).getBundle()), controller, dependencies);
+        }
+
+        @SuppressWarnings("unchecked")
+        private static CMManagedResourceParser getParser(final RequiredService<?>... dependencies){
+            final ConfigurationManager configManager = getDependency(RequiredServiceAccessor.class, ConfigurationManager.class, dependencies);
+            assert configManager != null;
+            final CMManagedResourceParser parser = configManager.queryObject(CMManagedResourceParser.class);
+            assert parser != null;
+            return parser;
         }
 
         @Override
-        protected boolean isActivationAllowed() {
+        protected String getFactoryPID(final RequiredService<?>[] dependencies) {
+            return getParser(dependencies).getConnectorFactoryPersistentID(connectorType);
+        }
+
+        @Override
+        protected boolean isActivationAllowed(final BundleContext context) {
             return getActivationPropertyValue(PREREQUISITES_CHECK_HOLDER);
         }
 
         private void updateFeatures(final TConnector connector,
-                            final Dictionary<String, ?> configuration) throws Exception {
+                            final Dictionary<String, ?> configuration,
+                                    final CMManagedResourceParser parser) throws Exception {
             controller.updateConnector(connector,
                     AttributeConfiguration.class,
-                    PersistentConfigurationManager.getAttributes(configuration));
+                    parser.getAttributes(configuration));
             controller.updateConnector(connector,
                     EventConfiguration.class,
-                    PersistentConfigurationManager.getEvents(configuration));
+                    parser.getEvents(configuration));
             controller.updateConnector(connector,
                     OperationConfiguration.class,
-                    PersistentConfigurationManager.getOperations(configuration));
+                    parser.getOperations(configuration));
             //expansion should be the last instruction in this method because updating procedure
             //may remove all automatically added attributes
             AbstractManagedResourceConnector.expandAll(connector);
@@ -412,10 +427,11 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         protected TConnector update(TConnector connector,
                                     final Dictionary<String, ?> configuration,
                                     final RequiredService<?>... dependencies) throws Exception {
-            final String resourceName = PersistentConfigurationManager.getResourceName(configuration);
+            final CMManagedResourceParser parser = getParser(dependencies);
+            final String resourceName = parser.getResourceName(configuration);
             final BigInteger oldHash = configurationHashes.get(resourceName);
-            final String connectionString = PersistentConfigurationManager.getConnectionString(configuration);
-            final Map<String, String> connectorParameters = PersistentConfigurationManager.getResourceConnectorParameters(configuration);
+            final String connectionString = parser.getConnectionString(configuration);
+            final Map<String, String> connectorParameters = parser.getResourceConnectorParameters(configuration);
             //we should not update resource connector if connection parameters was not changed
             final BigInteger newHash = computeConnectionParamsHashCode(connectionString, connectorParameters);
             if(!newHash.equals(oldHash)){
@@ -427,7 +443,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                         dependencies);
             }
             //but we should always update resource features
-            updateFeatures(connector, configuration);
+            updateFeatures(connector, configuration, parser);
             return connector;
         }
 
@@ -443,10 +459,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                              final String servicePID,
                                              final Dictionary<String, ?> configuration,
                                              final Exception e) {
-            logger.log(Level.SEVERE, String.format("Unable to update connector. Connection string: %s, connection parameters: %s",
-                            PersistentConfigurationManager.getConnectionString(configuration),
-                            PersistentConfigurationManager.getResourceConnectorParameters(configuration)),
-                    e);
+            logger.log(Level.SEVERE, String.format("Unable to update connector '%s'", servicePID), e);
         }
 
         /**
@@ -459,7 +472,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         protected void failedToCleanupService(final Logger logger,
                                               final String servicePID,
                                               final Exception e) {
-            logger.log(Level.SEVERE, "Unable to dispose connector", e);
+            logger.log(Level.SEVERE, String.format("Unable to dispose connector '%s'", servicePID), e);
         }
 
         /**
@@ -477,16 +490,17 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         protected TConnector createService(final Map<String, Object> identity,
                                            final Dictionary<String, ?> configuration,
                                            final RequiredService<?>... dependencies) throws Exception {
-            final String resourceName = PersistentConfigurationManager.getResourceName(configuration);
-            final Map<String, String> options = PersistentConfigurationManager.getResourceConnectorParameters(configuration);
-            final String connectionString = PersistentConfigurationManager.getConnectionString(configuration);
+            final CMManagedResourceParser parser = getParser(dependencies);
+            final String resourceName = parser.getResourceName(configuration);
+            final Map<String, String> options = parser.getResourceConnectorParameters(configuration);
+            final String connectionString = parser.getConnectionString(configuration);
             configurationHashes.put(resourceName, computeConnectionParamsHashCode(connectionString, options));
             createIdentity(resourceName,
                     connectorType,
                     connectionString,
                     identity);
             final TConnector result = controller.createConnector(resourceName, connectionString, options, dependencies);
-            updateFeatures(result, configuration);
+            updateFeatures(result, configuration, parser);
             return result;
         }
 
@@ -509,7 +523,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @param <T> Type of the adapter-related service implementation.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      * @see ManagedResourceActivator.ConfigurationEntityDescriptionManager
      * @see ManagedResourceActivator.DiscoveryServiceManager
      */
@@ -555,7 +569,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @param <T> Type of the maintenance service implementation.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     protected static abstract class MaintenanceServiceManager<T extends Maintainable> extends SupportConnectorServiceManager<Maintainable,T> {
 
@@ -574,7 +588,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          */
         @Override
         protected final T activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception {
-            identity.put(CONNECTOR_NAME_MANIFEST_HEADER, getConnectorName());
+            identity.put(CONNECTION_TYPE_IDENTITY_PROPERTY, getConnectorName());
             return createMaintenanceService(dependencies);
         }
     }
@@ -676,7 +690,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @param <T> A class that provides implementation of {@link com.bytex.snamp.connectors.discovery.DiscoveryService}
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     protected abstract static class DiscoveryServiceManager<T extends DiscoveryService> extends SupportConnectorServiceManager<DiscoveryService, T> {
 
@@ -707,7 +721,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          */
         @Override
         protected final T activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception {
-            identity.put(CONNECTOR_NAME_MANIFEST_HEADER, getConnectorName());
+            identity.put(CONNECTION_TYPE_IDENTITY_PROPERTY, getConnectorName());
             return createDiscoveryService(dependencies);
         }
     }
@@ -717,7 +731,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * on provided array of descriptions for each {@link com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration}.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     protected final static class SimpleConfigurationEntityDescriptionManager extends ConfigurationEntityDescriptionManager<ConfigurationEntityDescriptionProviderImpl>{
         private final ConfigurationEntityDescription<?>[] descriptions;
@@ -777,7 +791,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          */
         @Override
         protected final T activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception {
-            identity.put(CONNECTOR_NAME_MANIFEST_HEADER, getConnectorName());
+            identity.put(CONNECTION_TYPE_IDENTITY_PROPERTY, getConnectorName());
             return createConfigurationDescriptionProvider(dependencies);
         }
     }
@@ -814,7 +828,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                        final String connectionString,
                                        final Map<String, Object> identity){
         identity.put(MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY, resourceName);
-        identity.put(CONNECTOR_NAME_MANIFEST_HEADER, connectorType);
+        identity.put(CONNECTION_TYPE_IDENTITY_PROPERTY, connectorType);
         identity.put(CONNECTOR_STRING_IDENTITY_PROPERTY, connectionString);
     }
 
@@ -823,7 +837,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @return Type of the connector.
      */
     public final String getConnectorType(){
-        return getConnectorType(FrameworkUtil.getBundle(getClass()));
+        return ManagedResourceConnector.getResourceConnectorType(Utils.getBundleContextOfObject(this).getBundle());
     }
 
     /**
@@ -959,69 +973,30 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         return getConnectorType().hashCode();
     }
 
-    protected static String getConnectorType(final ServiceReference<ManagedResourceConnector> connectorRef){
-        return connectorRef != null ?
-                getConnectorType(getProperties(connectorRef)):
-                "";
-    }
-
-    private static String getConnectorType(final Bundle bnd){
-        return AbstractManagedResourceConnector.getConnectorType(bnd);
-    }
-
-    private static String getConnectorType(final ManagedResourceConnectorLifecycleController<?> registry){
-        return getConnectorType(FrameworkUtil.getBundle(registry.getClass()));
-    }
-
-    static String getConnectionString(final ServiceReference<ManagedResourceConnector> connectorRef){
-        return connectorRef != null ?
-                getConnectionString(getProperties(connectorRef)):
-                "";
-    }
-
     static String getManagedResourceName(final ServiceReference<ManagedResourceConnector> connectorRef) {
         return connectorRef != null ?
                 getManagedResourceName(getProperties(connectorRef)) :
                 "";
     }
 
-    private static String getConnectorType(final Dictionary<String, ?> identity){
-        return AbstractManagedResourceConnector.getConnectorType(identity);
-    }
-
-    private static String getConnectionString(final Dictionary<String, ?> identity){
-        return Utils.getProperty(identity, CONNECTOR_STRING_IDENTITY_PROPERTY, String.class, "");
+    static String getConnectionString(final ServiceReference<ManagedResourceConnector> identity){
+        return Utils.getProperty(getProperties(identity), CONNECTOR_STRING_IDENTITY_PROPERTY, String.class, "");
     }
 
     private static String getManagedResourceName(final Dictionary<String, ?> identity){
         return Utils.getProperty(identity, MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY, String.class, "");
     }
 
-    /**
-     * Determines whether the specified bundle provides implementation of the SNAMP Management Connector.
-     * @param bnd The bundle to check.
-     * @return {@literal true}, if the specified bundle provides implementation of the resource connector;
-     *      otherwise, {@literal false}.
-     */
-    public static boolean isResourceConnectorBundle(final Bundle bnd) {
-        return AbstractManagedResourceConnector.isResourceConnectorBundle(bnd);
-    }
-
-    private static List<Bundle> getResourceConnectorBundles(final BundleContext context){
-        final Bundle[] bundles = context.getBundles();
-        final List<Bundle> result = new ArrayList<>(bundles.length);
-        for(final Bundle bnd: bundles)
-            if(isResourceConnectorBundle(bnd)) result.add(bnd);
-        return result;
+    private static List<Bundle> getResourceConnectorBundles(final BundleContext context) {
+        return Arrays.stream(context.getBundles())
+                .filter(ManagedResourceConnector::isResourceConnectorBundle)
+                .collect(Collectors.toCollection(LinkedList::new));
     }
 
     static List<Bundle> getResourceConnectorBundles(final BundleContext context, final String connectorName){
-        final Bundle[] bundles = context.getBundles();
-        final List<Bundle> result = new LinkedList<>();
-        for(final Bundle bnd: bundles)
-            if(Objects.equals(getConnectorType(bnd), connectorName))
-                result.add(bnd);
-        return result;
+        return Arrays.stream(context.getBundles())
+                .filter(bnd -> ManagedResourceConnector.getResourceConnectorType(bnd).equals(connectorName))
+                .collect(Collectors.toCollection(LinkedList::new));
     }
 
     /**
@@ -1100,25 +1075,20 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      */
     public static Collection<String> getInstalledResourceConnectors(final BundleContext context){
         final Collection<Bundle> candidates = getResourceConnectorBundles(context);
-        final Collection<String> systemNames = new ArrayList<>(candidates.size());
-        for(final Bundle bnd: candidates)
-            systemNames.add(bnd.getHeaders().get(CONNECTOR_NAME_MANIFEST_HEADER));
-        return systemNames;
+        return candidates.stream()
+                .filter(ManagedResourceConnector::isResourceConnectorBundle)
+                .map(ManagedResourceConnector::getResourceConnectorType)
+                .collect(Collectors.toCollection(LinkedList::new));
     }
 
     static String createFilter(final String connectorType, final String filter){
-        return filter == null || filter.isEmpty() ?
-                String.format("(%s=%s)", CONNECTOR_NAME_MANIFEST_HEADER, connectorType):
-                String.format("(&(%s=%s)%s)", CONNECTOR_NAME_MANIFEST_HEADER, connectorType, filter);
+        return isNullOrEmpty(filter) ?
+                String.format("(%s=%s)", CONNECTION_TYPE_IDENTITY_PROPERTY, connectorType):
+                String.format("(&(%s=%s)%s)", CONNECTION_TYPE_IDENTITY_PROPERTY, connectorType, filter);
     }
 
     static String createFilter(final String resourceName){
         return String.format("(%s=%s)", MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY, resourceName);
-    }
-
-    static boolean isResourceConnector(final ServiceReference<?> ref){
-        return Utils.isInstanceOf(ref, ManagedResourceConnector.class) &&
-                ArrayUtils.containsAll(ref.getPropertyKeys(), CONNECTOR_NAME_MANIFEST_HEADER, MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY);
     }
 
     private static BigInteger toBigInteger(final String value){
@@ -1133,8 +1103,8 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @param connectionParameters The managed resource connection parameters.
      * @return A unique hash code generated from connection string and connection parameters.
      */
-    public static BigInteger computeConnectionParamsHashCode(final String connectionString,
-                                                             final Map<String, String> connectionParameters) {
+    static BigInteger computeConnectionParamsHashCode(final String connectionString,
+                                                      final Map<String, String> connectionParameters) {
         BigInteger result = toBigInteger(connectionString);
         for(final Map.Entry<String, String> entry: connectionParameters.entrySet()){
             result = result.xor(toBigInteger(entry.getKey()));
