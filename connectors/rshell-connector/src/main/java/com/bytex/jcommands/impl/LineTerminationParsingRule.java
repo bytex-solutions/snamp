@@ -7,7 +7,7 @@ import javax.xml.bind.annotation.*;
  * such as dictionaries and tables. This class cannot be inherited.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.2
+ * @version 2.0
  */
 @XmlRootElement(name = "line-terminator", namespace = XmlConstants.NAMESPACE)
 @XmlType(name = "LineTerminationParsingRule", namespace = XmlConstants.NAMESPACE)

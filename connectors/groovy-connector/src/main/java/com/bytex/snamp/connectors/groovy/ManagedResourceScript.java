@@ -31,7 +31,7 @@ import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 /**
  * Represents an abstract class for all Groovy-bases scenarios.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 abstract class ManagedResourceScript extends Script implements ManagedResourceScriptBase {

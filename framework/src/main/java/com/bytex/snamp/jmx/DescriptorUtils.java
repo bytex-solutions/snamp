@@ -16,7 +16,7 @@ import java.util.function.Supplier;
 /**
  * Represents utility methods for working with {@link javax.management.Descriptor} instances.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public final class DescriptorUtils {

@@ -1,17 +1,18 @@
 package com.bytex.snamp.core;
 
 import com.bytex.snamp.internal.Utils;
-import static com.google.common.base.Strings.isNullOrEmpty;
 import org.osgi.framework.*;
 
 import java.util.Objects;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents a handler for OSGi service exposed by the specified bundle.
  * @param <S> Type of the OSGi service.
  * @param <I> Type of the user data to be passed into the handler.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public abstract class ExposedServiceHandler<S, I> {

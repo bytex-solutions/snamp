@@ -25,7 +25,7 @@ import java.util.concurrent.TimeoutException;
  * Represents simple XMPP client that can be used in integration tests.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public final class XMPPClient implements Closeable {

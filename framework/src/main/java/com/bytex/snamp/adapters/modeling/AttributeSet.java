@@ -5,7 +5,7 @@ import com.bytex.snamp.EntryReader;
 /**
  * Represents reader for a set of attributes stored inside of the resource adapter.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public interface AttributeSet<TAccessor extends AttributeAccessor> {

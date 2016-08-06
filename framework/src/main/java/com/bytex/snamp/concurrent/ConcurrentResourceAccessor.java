@@ -40,7 +40,7 @@ import com.bytex.snamp.Wrapper;
  * @param <R> Type of the thread-unsafe resource to hold.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.2
+ * @version 2.0
  */
 public class ConcurrentResourceAccessor<R> extends AbstractConcurrentResourceAccessor<R> implements Wrapper<R> {
     private static final long serialVersionUID = -5981763196807390411L;

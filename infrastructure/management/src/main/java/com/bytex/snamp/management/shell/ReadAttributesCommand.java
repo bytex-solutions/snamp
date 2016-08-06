@@ -17,7 +17,7 @@ import java.io.PrintStream;
  * Read attribute value.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.2
+ * @version 2.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
     name = "read-attributes")

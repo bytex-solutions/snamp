@@ -8,7 +8,7 @@ import java.util.concurrent.BlockingQueue;
 /**
  * Represents mailbox for JMX notifications.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.2
  */
 public interface Mailbox extends BlockingQueue<Notification>, NotificationListener, NotificationFilter {

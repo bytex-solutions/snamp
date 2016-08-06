@@ -12,7 +12,7 @@ import java.util.stream.StreamSupport;
 /**
  * Represents a reference to a local service available through {@link java.util.ServiceLoader} class.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.2
  */
 final class LocalServiceReference<S> implements ServiceReference<S>, Supplier<S> {

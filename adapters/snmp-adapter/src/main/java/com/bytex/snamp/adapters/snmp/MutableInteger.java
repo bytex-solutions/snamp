@@ -4,7 +4,7 @@ package com.bytex.snamp.adapters.snmp;
  * Represents mutable wrapper for {@literal int} data type.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 final class MutableInteger extends Number implements Comparable<MutableInteger> {

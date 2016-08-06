@@ -18,7 +18,7 @@ import static com.bytex.snamp.internal.Utils.getProperty;
  * <p>
  *     Derived class should be placed in the same bundle where connector located.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.2
  */
 public interface ManagedResourceDescriptionProvider extends ConfigurationEntityDescriptionProvider {

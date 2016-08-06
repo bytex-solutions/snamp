@@ -13,7 +13,7 @@ import static com.bytex.snamp.adapters.decanter.DataConverter.convertUserData;
 /**
  * Represents bridge between SNAMP attribute and Decanter collector.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 final class DecanterAttributeAccessor extends AttributeAccessor {

@@ -22,7 +22,7 @@ import java.util.stream.Stream;
  * Represents Groovy Resource Adapter.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 final class GroovyResourceAdapter extends AbstractResourceAdapter {

@@ -2,7 +2,7 @@ package com.bytex.snamp.adapters.http;
 
 /**
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 interface HttpAccessor {

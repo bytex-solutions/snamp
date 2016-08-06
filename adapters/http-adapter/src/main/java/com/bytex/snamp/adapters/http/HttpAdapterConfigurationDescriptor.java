@@ -13,7 +13,7 @@ import static com.bytex.snamp.jmx.DescriptorUtils.hasField;
  * Represents descriptor of REST adapter configuration scheme.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 final class HttpAdapterConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl {

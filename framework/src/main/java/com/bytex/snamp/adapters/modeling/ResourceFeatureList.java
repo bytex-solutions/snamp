@@ -7,7 +7,7 @@ import javax.management.MBeanFeatureInfo;
 /**
  * Represents a collection of managed resource features.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public abstract class ResourceFeatureList<M extends MBeanFeatureInfo, TAccessor extends FeatureAccessor<M>> extends AbstractKeyedObjects<String, TAccessor> {

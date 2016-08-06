@@ -4,7 +4,7 @@ package com.bytex.snamp.core;
  * Represents cluster-wide generator of sequence numbers.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.2
+ * @version 2.0
  */
 @FunctionalInterface
 public interface LongCounter {

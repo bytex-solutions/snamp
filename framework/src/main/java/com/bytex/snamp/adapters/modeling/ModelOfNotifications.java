@@ -5,7 +5,7 @@ import com.bytex.snamp.EntryReader;
 
 /**
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public abstract class ModelOfNotifications<TAccessor extends NotificationAccessor> extends ThreadSafeObject implements NotificationSet<TAccessor> {

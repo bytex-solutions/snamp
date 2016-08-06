@@ -37,7 +37,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @param <TConnector> Type of the management connector.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.2
+ * @version 2.0
  */
 public class ManagedResourceActivator<TConnector extends ManagedResourceConnector> extends AbstractServiceLibrary {
     /**
@@ -75,7 +75,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @param <TConnector> Type of the managed resource connector implementation.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     protected interface ManagedResourceConnectorLifecycleController<TConnector extends ManagedResourceConnector>{
 
@@ -145,7 +145,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @param <TConnector> Type of the connector implementation.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     protected static abstract class ManagedResourceConnectorFactory<TConnector extends ManagedResourceConnector> implements ManagedResourceConnectorLifecycleController<TConnector>{
 
@@ -210,7 +210,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @param <TConnector> Type of the managed resource connector.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     protected static abstract class ManagedResourceConnectorModeler<TConnector extends ManagedResourceConnector> extends ManagedResourceConnectorFactory<TConnector>{
         /**
@@ -523,7 +523,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @param <T> Type of the adapter-related service implementation.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      * @see ManagedResourceActivator.ConfigurationEntityDescriptionManager
      * @see ManagedResourceActivator.DiscoveryServiceManager
      */
@@ -569,7 +569,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @param <T> Type of the maintenance service implementation.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     protected static abstract class MaintenanceServiceManager<T extends Maintainable> extends SupportConnectorServiceManager<Maintainable,T> {
 
@@ -690,7 +690,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @param <T> A class that provides implementation of {@link com.bytex.snamp.connectors.discovery.DiscoveryService}
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     protected abstract static class DiscoveryServiceManager<T extends DiscoveryService> extends SupportConnectorServiceManager<DiscoveryService, T> {
 
@@ -731,7 +731,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * on provided array of descriptions for each {@link ManagedResourceConfiguration.FeatureConfiguration}.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     protected final static class SimpleConfigurationEntityDescriptionManager extends ConfigurationEntityDescriptionManager<ConfigurationEntityDescriptionProviderImpl>{
         private final ConfigurationEntityDescription<?>[] descriptions;

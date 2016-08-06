@@ -13,14 +13,14 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * Represents lightweight timer that is used to repeat some action in time.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public abstract class Repeater implements AutoCloseable, Runnable {
     /**
      * Represents state of this timer.
      * @author Roman Sakno
-     * @version 1.2
+     * @version 2.0
      * @since 1.0
      */
     public enum RepeaterState {

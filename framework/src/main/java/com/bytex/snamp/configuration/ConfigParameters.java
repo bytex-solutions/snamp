@@ -11,7 +11,7 @@ import java.util.Map;
  * wrapped into {@link javax.management.openmbean.CompositeData}.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public final class ConfigParameters extends AbstractCompositeData<String> {

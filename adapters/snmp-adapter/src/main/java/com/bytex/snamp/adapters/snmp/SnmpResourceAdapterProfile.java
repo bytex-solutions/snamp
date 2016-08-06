@@ -13,7 +13,7 @@ import java.util.Map;
  * Represents default profile for SNMP Resource Adapter.
  * Other profiles should derive from the default profile.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 class SnmpResourceAdapterProfile extends BasicResourceAdapterProfile implements SnmpTypeMapper {

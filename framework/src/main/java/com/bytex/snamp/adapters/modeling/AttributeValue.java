@@ -14,7 +14,7 @@ import java.util.Objects;
 /**
  * Represents value of the attribute.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public class AttributeValue extends Attribute implements AttributeValueReader {

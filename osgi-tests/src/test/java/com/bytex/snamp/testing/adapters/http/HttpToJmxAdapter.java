@@ -51,7 +51,7 @@ import static com.bytex.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
 
 /**
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 @SnampDependencies({SnampFeature.HTTP_ADAPTER, SnampFeature.WRAPPED_LIBS})

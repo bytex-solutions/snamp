@@ -7,7 +7,7 @@ import java.util.function.Supplier;
 /**
  * Represents a builder of JMX Open Type.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public interface OpenTypeBuilder<T extends OpenType<?>> extends Supplier<T> {

@@ -5,7 +5,7 @@ import org.apache.commons.cli.Option;
 /**
  * An abstract class for set/get attribute command.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 abstract class AbstractAttributeCommand extends AbstractManagementShellCommand {

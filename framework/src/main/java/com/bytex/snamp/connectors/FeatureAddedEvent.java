@@ -5,7 +5,7 @@ import javax.management.MBeanFeatureInfo;
 /**
  * An event that describes a new feature supported by the managed resource.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public class FeatureAddedEvent<F extends MBeanFeatureInfo> extends FeatureModifiedEvent<F> {

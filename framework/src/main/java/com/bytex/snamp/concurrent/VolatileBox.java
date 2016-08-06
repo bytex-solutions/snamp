@@ -13,7 +13,7 @@ import java.util.function.Supplier;
  * Represents thread-safe version of {@link com.bytex.snamp.Box}.
  * @param <T> Type of the value in container.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public class VolatileBox<T> extends AtomicReference<T> implements Wrapper<T>, Supplier<T>, Consumer<T>, Acceptor<T, ExceptionPlaceholder> {

@@ -23,7 +23,7 @@ import static com.bytex.snamp.jmx.OpenMBean.OpenOperation;
 
 /**
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 abstract class AbstractBindingInfoOperation<F extends MBeanFeatureInfo> extends OpenOperation<TabularData, TabularType> {

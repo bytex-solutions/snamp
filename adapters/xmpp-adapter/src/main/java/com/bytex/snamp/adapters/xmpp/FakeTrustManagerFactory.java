@@ -11,7 +11,7 @@ import java.security.cert.X509Certificate;
  * Certificate Trust Manager for self-signed certificates.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 final class FakeTrustManagerFactory extends TrustManagerFactorySpi {

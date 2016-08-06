@@ -39,7 +39,7 @@ import java.util.function.Supplier;
  * </p>
  * @author Roman Sakno
  * @since 1.0
- * @version 1.2
+ * @version 2.0
  */
 public abstract class AbstractAggregator implements Aggregator {
     private interface AggregationSupplier {
@@ -299,7 +299,7 @@ public abstract class AbstractAggregator implements Aggregator {
      * Identifies that the parameterless method or field holds the aggregated object.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.METHOD, ElementType.FIELD})

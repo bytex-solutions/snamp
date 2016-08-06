@@ -23,7 +23,7 @@ import static com.bytex.snamp.adapters.snmp.SnmpAdapterDescriptionProvider.parse
 /**
  * Represents SNMP notification with attachments.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 final class SnmpNotification extends HashMap<OID, Variable> {

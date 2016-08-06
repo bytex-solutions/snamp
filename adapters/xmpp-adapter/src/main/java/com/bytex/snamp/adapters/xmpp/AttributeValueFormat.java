@@ -3,7 +3,7 @@ package com.bytex.snamp.adapters.xmpp;
 /**
  * Represents format of the attribute value.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 enum AttributeValueFormat {

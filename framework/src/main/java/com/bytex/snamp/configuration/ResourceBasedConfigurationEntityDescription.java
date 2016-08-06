@@ -11,7 +11,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 /**
  * Represents resource-based configuration entity descriptor.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public class ResourceBasedConfigurationEntityDescription<T extends EntityConfiguration> extends ResourceReader implements ConfigurationEntityDescription<T> {
@@ -137,7 +137,7 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
      * Represents parameter descriptor.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     protected class ParameterDescriptionImpl implements ParameterDescription{
         private final String parameterName;

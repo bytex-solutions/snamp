@@ -16,7 +16,7 @@ import java.util.Locale;
  *     Each element of the collection represents parameter name and this collection is read-only.
  * </p>
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public interface ConfigurationEntityDescription<T extends EntityConfiguration> extends Collection<String> {
@@ -45,7 +45,7 @@ public interface ConfigurationEntityDescription<T extends EntityConfiguration> e
      * Represents description of the configuration parameter.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     interface ParameterDescription extends Localizable {
         /**

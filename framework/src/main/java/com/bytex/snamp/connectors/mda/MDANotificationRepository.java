@@ -19,7 +19,7 @@ import static com.bytex.snamp.connectors.mda.MDAResourceConfigurationDescriptorP
  * Represents collection of notifications metadata.
  * @param <M> Type of notifications in repository.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public abstract class MDANotificationRepository<M extends MDANotificationInfo> extends AbstractNotificationRepository<M> implements SafeCloseable {

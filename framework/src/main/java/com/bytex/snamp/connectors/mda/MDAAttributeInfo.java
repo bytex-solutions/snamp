@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * Represents attribute that can be changed by remote Agent.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public class MDAAttributeInfo<T> extends OpenMBeanAttributeAccessor<T> {

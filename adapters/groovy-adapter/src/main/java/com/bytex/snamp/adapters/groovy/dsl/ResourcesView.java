@@ -6,7 +6,7 @@ import java.util.Set;
 /**
  * Provides access to connected resources.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 interface ResourcesView {

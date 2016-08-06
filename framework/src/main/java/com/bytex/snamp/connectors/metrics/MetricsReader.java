@@ -9,7 +9,7 @@ import javax.management.MBeanFeatureInfo;
  * <p>
  *     This viewer can be obtained with method {@link com.bytex.snamp.connectors.ManagedResourceConnector#queryObject(Class)}.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public interface MetricsReader extends Aggregator {

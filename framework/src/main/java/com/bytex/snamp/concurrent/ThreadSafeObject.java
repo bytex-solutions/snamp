@@ -21,7 +21,7 @@ import java.util.function.*;
  *     the access to the fields. The fields may be grouped into the sections
  *     with individual read/write locks.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public abstract class ThreadSafeObject {
@@ -29,7 +29,7 @@ public abstract class ThreadSafeObject {
      * Represents an enum that describes the single resource group.
      *
      * @author Roman Sakno
-     * @version 1.2
+     * @version 2.0
      * @since 1.0
      */
     protected enum SingleResourceGroup {

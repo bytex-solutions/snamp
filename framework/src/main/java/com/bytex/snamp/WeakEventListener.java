@@ -12,7 +12,7 @@ import java.util.function.Supplier;
  * @param <L> Type of event listener.
  * @param <E> Type of event state object to be handled by listener.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.2
  */
 public abstract class WeakEventListener<L extends EventListener, E extends EventObject> extends WeakReference<L> implements Supplier<L>, EventListener {

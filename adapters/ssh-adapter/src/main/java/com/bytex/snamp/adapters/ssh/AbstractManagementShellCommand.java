@@ -21,7 +21,7 @@ import java.util.logging.Level;
 /**
  * Represents SSH adapter shell command.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 abstract class AbstractManagementShellCommand extends BasicParser implements ManagementShellCommand {

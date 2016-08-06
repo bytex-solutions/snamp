@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 /**
  * Represents SNMP client.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 abstract class SnmpClient extends Snmp implements Closeable, Aggregator {

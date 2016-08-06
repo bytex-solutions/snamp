@@ -16,7 +16,7 @@ import java.util.function.Function;
  * @param <R> Type of the thread-unsafe resource to hold.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.2
+ * @version 2.0
  */
 public abstract class AbstractConcurrentResourceAccessor<R> extends ThreadSafeObject implements Wrapper<R>, Serializable {
     private static final long serialVersionUID = -7263363564614921684L;
@@ -27,7 +27,7 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ThreadSafeOb
      * @param <V> Type of the result of reading operation.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     public interface Action<R, V, E extends Throwable>{
         /**

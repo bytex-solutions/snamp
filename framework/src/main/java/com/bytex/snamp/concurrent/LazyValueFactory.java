@@ -6,7 +6,7 @@ import java.util.function.Supplier;
  * Provides factory methods used to instantiate {@link LazyValue} objects.
  * @author Roman Sakno
  * @since 1.2
- * @version 1.2
+ * @version 2.0
  */
 public enum LazyValueFactory {
     THREAD_UNSAFE{

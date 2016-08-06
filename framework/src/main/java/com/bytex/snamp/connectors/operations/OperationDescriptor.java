@@ -24,7 +24,7 @@ import static com.bytex.snamp.jmx.CompositeDataUtils.fillMap;
 /**
  * Represents descriptor of the managed resource operation.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public class OperationDescriptor extends ImmutableDescriptor implements ConfigurationEntityRuntimeMetadata<OperationConfiguration> {

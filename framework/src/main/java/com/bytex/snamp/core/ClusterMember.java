@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentMap;
  *         <li>{@link ConcurrentMap}&lt;{@link String}, {@link Object}&gt; for accessing data collections</li>
  *     </ul>
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  * @see LongCounter
  */

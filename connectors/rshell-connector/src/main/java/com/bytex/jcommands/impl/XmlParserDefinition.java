@@ -29,7 +29,7 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
  *     {@link java.lang.Integer}, {@link java.util.Map} and etc.
  * </p>
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  * @see XmlParsingResultType
  */

@@ -8,7 +8,7 @@ import java.util.function.Function;
 /**
  * Represents a base class for constructing keyed collection.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public abstract class AbstractKeyedObjects<K, V> extends HashMap<K, V> implements KeyedObjects<K, V>, SerializableMap<K, V> {

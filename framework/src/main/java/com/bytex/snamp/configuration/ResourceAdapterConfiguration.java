@@ -4,7 +4,7 @@ package com.bytex.snamp.configuration;
  * Represents hosting configuration (front-end configuration).
  * @author Roman Sakno
  * @since 1.0
- * @version 1.2
+ * @version 2.0
  */
 public interface ResourceAdapterConfiguration extends EntityConfiguration {
     /**

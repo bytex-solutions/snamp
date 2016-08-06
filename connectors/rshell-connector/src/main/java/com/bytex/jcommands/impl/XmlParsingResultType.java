@@ -16,7 +16,7 @@ import java.util.Set;
 /**
  * Represents SNAMP-compliant return type of the command-line tool.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 @XmlType(name = "CommandLineToolReturnType", namespace = XmlConstants.NAMESPACE)

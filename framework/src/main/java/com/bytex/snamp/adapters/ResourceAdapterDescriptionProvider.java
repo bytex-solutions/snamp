@@ -13,7 +13,7 @@ import static com.bytex.snamp.internal.Utils.getProperty;
 
 /**
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.2
  */
 public interface ResourceAdapterDescriptionProvider extends ConfigurationEntityDescriptionProvider {

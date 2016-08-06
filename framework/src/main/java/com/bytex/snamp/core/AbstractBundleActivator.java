@@ -16,7 +16,7 @@ import static com.bytex.snamp.internal.Utils.isInstanceOf;
 /**
  * Represents an abstract for all SNAMP-specific bundle activators.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public abstract class AbstractBundleActivator implements BundleActivator, ServiceListener {
@@ -50,7 +50,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @param <T> Type of the activation property.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     protected interface ActivationProperty<T> extends Attribute<T>{
         /**
@@ -73,7 +73,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @param <T> Type of the property.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     protected interface NamedActivationProperty<T> extends ActivationProperty<T>{
         /**
@@ -90,7 +90,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * </p>
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     protected interface ActivationPropertyPublisher{
         /**
@@ -111,7 +111,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * </p>
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     protected interface ActivationPropertyReader extends AttributeReader{
         /**
@@ -206,7 +206,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @param <S> Type of the required service.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     public static abstract class RequiredService<S> {
         private final Class<S> dependencyContract;
@@ -372,7 +372,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @param <S> Contract of the required service.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     public static abstract class RequiredServiceAccessor<S> extends RequiredService<S>{
         private S serviceInstance;
@@ -427,7 +427,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @param <S> Type of the required service contract.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     public static final class SimpleDependency<S> extends RequiredServiceAccessor<S>{
         /**
@@ -461,7 +461,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * </p>
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
      protected enum ActivationState {
         /**

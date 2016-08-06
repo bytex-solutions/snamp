@@ -9,7 +9,7 @@ import java.util.Set;
  * Represents parsing rule. This class cannot be inherited directly from your code.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.2
+ * @version 2.0
  */
 @XmlTransient
 public abstract class ParsingRule {

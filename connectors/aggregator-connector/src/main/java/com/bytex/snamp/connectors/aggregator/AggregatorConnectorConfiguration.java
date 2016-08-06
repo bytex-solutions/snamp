@@ -15,7 +15,7 @@ import java.util.Map;
  * Provides configuration schema of this resource connector.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 final class AggregatorConnectorConfiguration extends ConfigurationEntityDescriptionProviderImpl {

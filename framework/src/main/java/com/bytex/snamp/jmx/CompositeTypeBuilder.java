@@ -9,7 +9,7 @@ import java.util.Objects;
 /**
  * Represents builder of {@link javax.management.openmbean.CompositeType} instances.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  * @see javax.management.openmbean.CompositeType
  */

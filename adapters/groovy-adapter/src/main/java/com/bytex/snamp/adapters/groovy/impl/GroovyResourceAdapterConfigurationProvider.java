@@ -12,7 +12,7 @@ import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
  * Represents configuration descriptor of Groovy Resource Adapter.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 final class GroovyResourceAdapterConfigurationProvider extends ConfigurationEntityDescriptionProviderImpl {

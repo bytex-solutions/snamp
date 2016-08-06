@@ -10,7 +10,7 @@ import java.io.IOException;
  * This class cannot be inherited.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.2
+ * @version 2.0
  */
 abstract class PersistentConfigurationException extends IOException {
     private static final long serialVersionUID = -518115699501252969L;

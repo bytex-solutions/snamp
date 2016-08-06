@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
  * Represents an abstract object that helps you to organize storage
  * of all attributes inside of your resource adapter.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 @ThreadSafe

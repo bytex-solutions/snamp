@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 /**
  * Represents {@link javax.management.openmbean.TabularData} instance builder.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public class TabularDataBuilder extends LinkedList<CompositeData> implements Supplier<TabularData> {

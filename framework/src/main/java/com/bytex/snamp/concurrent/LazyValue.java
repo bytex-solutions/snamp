@@ -10,7 +10,7 @@ import java.util.function.Supplier;
  * Represents a thread-safe container for object with activation.
  * @param <V> Type of value provided by container.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.2
  */
 @ThreadSafe

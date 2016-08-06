@@ -12,7 +12,7 @@ import java.io.ObjectOutput;
  * Represents in-memory agent configuration that can be stored as serialized Java object.
  * @author Roman Sakno
  * @since 1.2
- * @version 1.2
+ * @version 2.0
  */
 public final class SerializableAgentConfiguration extends AbstractAgentConfiguration implements Externalizable {
     private final static byte FORMAT_VERSION = 1;

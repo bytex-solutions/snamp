@@ -8,7 +8,7 @@ import java.security.PublicKey;
 /**
  * Represents SSH security settings.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 interface SshSecuritySettings {

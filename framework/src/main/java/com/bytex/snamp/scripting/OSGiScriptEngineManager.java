@@ -22,7 +22,7 @@ import java.util.stream.StreamSupport;
  * define it as an interface, so we need to extend it to allow polymorphism. However, no calls to super are used.
  * It wraps all available ScriptEngineManagers in the OSGi ServicePlatform into a merged ScriptEngineManager.
  * @since 1.0
- * @version 1.2
+ * @version 2.0
  * @author Apache Foundation, Roman Sakno
  */
 @ThreadSafe(false)

@@ -6,7 +6,7 @@ import java.lang.annotation.*;
  * Represents informative annotation that describes method usage in the multi-thread context.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.2
+ * @version 2.0
  */
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.SOURCE)

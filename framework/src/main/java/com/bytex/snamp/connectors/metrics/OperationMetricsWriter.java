@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Represents default implementation of interface {@link OperationMetrics}.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public final class OperationMetricsWriter implements OperationMetrics {

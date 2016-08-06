@@ -7,7 +7,7 @@ import java.util.logging.Logger;
  * and SNMP4J logging subsystem.
  * This class cannot be inherited or instantiated directly.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public final class OSGiLogFactory extends JavaLogFactory {

@@ -12,7 +12,7 @@ import static javax.security.auth.login.AppConfigurationEntry.LoginModuleControl
 
 /**
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 final class LoginModuleControlFlagSerializerDeserializer implements JsonSerializer<LoginModuleControlFlag>, JsonDeserializer<LoginModuleControlFlag> {

@@ -8,7 +8,7 @@ import java.util.Map;
  * Represents management target configuration (back-end management information providers).
  * @author Roman Sakno
  * @since 1.0
- * @version 1.2
+ * @version 2.0
  */
 public interface ManagedResourceConfiguration extends EntityConfiguration {
 
@@ -28,7 +28,7 @@ public interface ManagedResourceConfiguration extends EntityConfiguration {
      * Represents a feature of the managed resource.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     interface FeatureConfiguration extends EntityConfiguration {
         /**
@@ -65,7 +65,7 @@ public interface ManagedResourceConfiguration extends EntityConfiguration {
      * Represents event configuration.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     interface EventConfiguration extends FeatureConfiguration {
     }
@@ -74,7 +74,7 @@ public interface ManagedResourceConfiguration extends EntityConfiguration {
      * Represents attribute configuration.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     interface AttributeConfiguration extends FeatureConfiguration {
         /**
@@ -107,7 +107,7 @@ public interface ManagedResourceConfiguration extends EntityConfiguration {
      * Represents configuration of the managed resource operation.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     interface OperationConfiguration extends FeatureConfiguration {
         /**

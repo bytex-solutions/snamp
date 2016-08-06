@@ -9,7 +9,7 @@ import com.bytex.snamp.concurrent.VolatileBox;
  * Represents simple container for {@link ResourceAdapterScript} object.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 final class ScriptHolder extends VolatileBox<ResourceAdapterScript> implements AutoCloseable, NotificationListener {

@@ -15,7 +15,7 @@ import static com.bytex.snamp.configuration.ManagedResourceConfiguration.*;
 /**
  * Represents an abstract class for initialization script.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public abstract class ManagedResourceInitializationScript extends ManagedResourceScript implements ManagedResourceInfo {

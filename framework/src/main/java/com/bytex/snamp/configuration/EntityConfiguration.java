@@ -6,7 +6,7 @@ import java.util.Map;
  * Represents a root interface for all agent configuration entities.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.2
+ * @version 2.0
  */
 public interface EntityConfiguration {
     /**

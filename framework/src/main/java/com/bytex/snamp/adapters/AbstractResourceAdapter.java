@@ -43,7 +43,7 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * </p>
  * @author Roman Sakno
  * @since 1.0
- * @version 1.2
+ * @version 2.0
  */
 public abstract class AbstractResourceAdapter extends AbstractAggregator implements ResourceAdapter, ResourceEventListener{
     private static final class AdapterLogicalOperation extends RichLogicalOperation {

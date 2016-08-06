@@ -28,7 +28,7 @@ import java.util.logging.Logger;
  * Represents JMX connectionHolder manager that provides reliable access to
  * MBean Server connectionHolder. This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 @Internal

@@ -26,7 +26,7 @@ import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventCo
  * 5. Go to http://localhost:15672/ and create queue named as "snampQueue"
  * 7. Ready to run test
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 @Ignore

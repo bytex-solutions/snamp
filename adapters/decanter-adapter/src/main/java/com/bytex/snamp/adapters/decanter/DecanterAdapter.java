@@ -19,7 +19,7 @@ import java.util.stream.Stream;
  * Represents Decanter Collector in the form of SNAMP Resource Adapter.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.2
+ * @version 2.0
  */
 final class DecanterAdapter extends AbstractResourceAdapter {
     private final EventDrivenCollector eventCollector;

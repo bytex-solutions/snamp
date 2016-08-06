@@ -6,7 +6,7 @@ import java.util.Map;
  * Represents a base class for custom agent configuration holders.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.2
+ * @version 2.0
  */
 public abstract class AbstractAgentConfiguration implements AgentConfiguration {
     private interface ConfigurationEntityCopier<T extends EntityConfiguration>{

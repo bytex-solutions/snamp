@@ -14,7 +14,7 @@ import java.util.function.Function;
  *     {@link com.bytex.snamp.configuration.internal.CMResourceAdapterParser} when {@link com.bytex.snamp.Aggregator#queryObject(Class)} is called
  *     with suitable arguments.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public interface ConfigurationManager extends FrameworkService {

@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  * @param <M> Notification metadata.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.2
+ * @version 2.0
  */
 public abstract class AbstractNotificationRepository<M extends MBeanNotificationInfo> extends AbstractFeatureRepository<M> implements NotificationSupport, SafeCloseable {
     private static final class NotificationHolder<M extends MBeanNotificationInfo> extends FeatureHolder<M>{

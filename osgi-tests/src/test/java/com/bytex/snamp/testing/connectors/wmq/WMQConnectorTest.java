@@ -13,7 +13,7 @@ import java.util.concurrent.Future;
 
 /**
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 @SnampDependencies(SnampFeature.WMQ_CONNECTOR)

@@ -11,7 +11,7 @@ import com.bytex.snamp.configuration.EntityConfiguration;
 /**
  * Represents configuration entity descriptor.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public interface ConfigurationEntityRuntimeMetadata<E extends EntityConfiguration> extends CopyOnWriteDescriptor {

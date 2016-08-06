@@ -19,7 +19,7 @@ import java.util.*;
  * @param <F> Type of the features managed by repository.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.2
+ * @version 2.0
  */
 public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> extends ThreadSafeObject implements Iterable<F> {
     private static final class WeakResourceEventListener extends WeakEventListener<ResourceEventListener, ResourceEvent> implements ResourceEventListener{
@@ -50,7 +50,7 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
      * @param <F> Type of the managed resource feature.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     protected static abstract class FeatureHolder<F extends MBeanFeatureInfo>{
         private final F metadata;

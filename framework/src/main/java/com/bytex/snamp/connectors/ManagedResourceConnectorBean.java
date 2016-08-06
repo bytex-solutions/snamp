@@ -75,7 +75,7 @@ import static com.bytex.snamp.configuration.ManagedResourceConfiguration.*;
  *     }</pre>
  * @author Roman Sakno
  * @since 1.0
- * @version 1.2
+ * @version 2.0
  */
 public abstract class ManagedResourceConnectorBean extends AbstractManagedResourceConnector
         implements NotificationSupport, AttributeSupport, OperationSupport {
@@ -85,7 +85,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * @param <T> Well-known type of the user data to be associated with each notification.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     protected interface ManagementNotificationType<T> extends Localizable {
         /**
@@ -137,7 +137,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * @param <T> JMX-compliant type.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     protected interface ManagementAttributeMarshaller<T> extends OpenTypeProvider<T>{
         /**
@@ -186,7 +186,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * Marks getter or setter as a management attribute.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.METHOD)
@@ -407,7 +407,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * This class cannot be inherited or instantiated directly in your code.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     private static class JavaBeanAttributeInfo extends CustomAttributeInfo implements AttributeDescriptorRead{
         private static final long serialVersionUID = -5047097712279607039L;
@@ -728,7 +728,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * supplied through reflection of the bean.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     public static abstract class BeanDiscoveryService extends AbstractAggregator implements DiscoveryService{
         private final Collection<? extends ManagementNotificationType<?>> notifications;

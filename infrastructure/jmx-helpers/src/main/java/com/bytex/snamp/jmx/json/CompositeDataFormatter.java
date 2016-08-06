@@ -16,7 +16,7 @@ import java.util.Objects;
  * Represents converter from {@link javax.management.openmbean.CompositeData} to JSON Object
  * and vice versa. This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public final class CompositeDataFormatter implements JsonDeserializer<CompositeData>, JsonSerializer<CompositeData> {

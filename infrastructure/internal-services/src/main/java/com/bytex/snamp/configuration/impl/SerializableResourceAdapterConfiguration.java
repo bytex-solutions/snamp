@@ -11,7 +11,7 @@ import java.io.ObjectOutput;
  * Represents adapter settings. This class cannot be inherited.
  * @author Roman Sakno
  * @since 1.2
- * @version 1.2
+ * @version 2.0
  */
 final class SerializableResourceAdapterConfiguration extends AbstractEntityConfiguration implements ResourceAdapterConfiguration {
     private static final byte FORMAT_VERSION = 1;

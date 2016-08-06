@@ -5,7 +5,7 @@ import com.ghgande.j2mod.modbus.ModbusException;
 /**
  * Provides access to the file records.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public interface FileAccess extends SlaveDeviceAccess {

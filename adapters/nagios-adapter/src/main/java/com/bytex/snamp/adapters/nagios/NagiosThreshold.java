@@ -16,7 +16,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * Represents threshold in Nagios format.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 final class NagiosThreshold implements Predicate<Number> {

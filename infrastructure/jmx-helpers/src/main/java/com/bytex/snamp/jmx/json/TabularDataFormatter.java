@@ -9,7 +9,7 @@ import java.lang.reflect.Type;
 /**
  * Represents serialization/deserialization engine for {@link TabularData}.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public final class TabularDataFormatter implements JsonDeserializer<TabularData>, JsonSerializer<TabularData> {

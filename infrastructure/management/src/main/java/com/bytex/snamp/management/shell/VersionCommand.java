@@ -6,7 +6,7 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 /**
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,

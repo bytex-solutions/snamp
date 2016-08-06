@@ -36,7 +36,7 @@ import java.util.logging.Logger;
  * @param <M> Type of the attribute metadata.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.2
+ * @version 2.0
  */
 public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> extends AbstractFeatureRepository<M> implements AttributeSupport, SafeCloseable {
     private static final class AttributeHolder<M extends MBeanAttributeInfo> extends FeatureHolder<M> {

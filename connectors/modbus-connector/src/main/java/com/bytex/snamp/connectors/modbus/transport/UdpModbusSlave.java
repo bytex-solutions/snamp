@@ -4,7 +4,7 @@ import com.ghgande.j2mod.modbus.net.ModbusUDPListener;
 
 /**
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 final class UdpModbusSlave extends AbstractModbusSlave<ModbusUDPListener> {

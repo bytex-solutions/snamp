@@ -26,14 +26,14 @@ import java.text.ParseException;
  *     This accessor can be used for retrieving and changing value of the attribute.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.2
+ * @version 2.0
  */
 public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> implements AttributeValueReader, Acceptor<Object, JMException> {
     /**
      * Represents an exception that can be produced by attribute interceptor.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     public static class InterceptionException extends ReflectionException{
         private static final long serialVersionUID = 8373399508228810347L;

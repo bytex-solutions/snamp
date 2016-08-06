@@ -8,7 +8,7 @@ import javax.management.MBeanNotificationInfo;
  * Represents an event raised by managed resource connector was extended
  * with a new set of notifications.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public class NotificationAddedEvent extends FeatureAddedEvent<MBeanNotificationInfo> {

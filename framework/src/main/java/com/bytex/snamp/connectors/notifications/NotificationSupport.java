@@ -12,7 +12,7 @@ import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventCo
  *     this interface may not be implemented by the management connector.
  * </p>
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public interface NotificationSupport extends NotificationBroadcaster {

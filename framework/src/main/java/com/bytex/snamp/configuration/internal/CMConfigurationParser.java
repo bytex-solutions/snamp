@@ -12,7 +12,7 @@ import com.bytex.snamp.configuration.EntityConfiguration;
  *     configuration storage provided and this interface will be deprecated.
  * @param <E> Type of configuration section.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.2
  */
 public interface CMConfigurationParser<E extends EntityConfiguration> {

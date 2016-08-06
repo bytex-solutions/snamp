@@ -14,7 +14,7 @@ import javax.management.*;
  * Exposes access to the individual notification.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.2
+ * @version 2.0
  */
 public abstract class NotificationAccessor extends FeatureAccessor<MBeanNotificationInfo> implements NotificationListener {
     private NotificationSupport notificationSupport;

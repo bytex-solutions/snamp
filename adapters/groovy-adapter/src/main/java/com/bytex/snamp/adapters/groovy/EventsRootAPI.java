@@ -7,7 +7,7 @@ import com.bytex.snamp.EntryReader;
  * Represents root-level DSL for working with events.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.2
+ * @version 2.0
  */
 public interface EventsRootAPI {
     ResourceNotificationsAnalyzer eventsAnalyzer();

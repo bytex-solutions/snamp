@@ -20,7 +20,7 @@ import java.util.function.Supplier;
 /**
  * Represents a set of distributed services.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public final class DistributedServices {
@@ -80,6 +80,7 @@ public final class DistributedServices {
             });
 
     private DistributedServices(){
+        throw new InstantiationError();
     }
 
     private static <S> S getProcessLocalService(final String serviceName, final TypeToken<S> serviceType) {

@@ -7,7 +7,7 @@ import java.util.concurrent.Executor;
 /**
  * Represents commonly used listener invocation strategies.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public final class NotificationListenerInvokerFactory {
@@ -31,7 +31,7 @@ public final class NotificationListenerInvokerFactory {
      * Represents notification listener exception handler.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     public interface ExceptionHandler{
         /**

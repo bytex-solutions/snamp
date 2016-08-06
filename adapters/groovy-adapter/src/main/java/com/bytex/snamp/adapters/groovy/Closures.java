@@ -8,7 +8,7 @@ import java.util.function.Predicate;
 /**
  * Represents additional converters for Groovy {@link groovy.lang.Closure}.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 final class Closures {

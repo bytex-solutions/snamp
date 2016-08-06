@@ -7,7 +7,7 @@ import java.util.function.Function;
 /**
  * Provides mapping between type system of SNAMP Managemement Information Model and SNMP type system.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 @FunctionalInterface

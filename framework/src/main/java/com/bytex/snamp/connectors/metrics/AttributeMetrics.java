@@ -3,7 +3,7 @@ package com.bytex.snamp.connectors.metrics;
 /**
  * Provides statistical information about attributes.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public interface AttributeMetrics extends Metrics {
