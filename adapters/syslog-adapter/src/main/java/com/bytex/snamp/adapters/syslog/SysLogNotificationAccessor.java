@@ -14,7 +14,7 @@ import static com.bytex.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class SysLogNotificationAccessor extends NotificationRouter implements FeatureBindingInfo<MBeanNotificationInfo> {

@@ -1,13 +1,15 @@
 package com.bytex.snamp.connectors.snmp;
 
-import com.bytex.snamp.TimeSpan;
+import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
-import com.bytex.snamp.SpecialUse;
 import org.snmp4j.log.OSGiLogFactory;
+import org.snmp4j.smi.GenericAddress;
 
 import javax.management.openmbean.CompositeData;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -15,7 +17,7 @@ import java.util.Set;
 /**
  * Represents SNMP connector activator.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class SnmpResourceConnectorActivator extends ManagedResourceActivator<SnmpResourceConnector> {
@@ -31,12 +33,14 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
                                                      final Map<String, String> connectionOptions,
                                                      final RequiredService<?>... dependencies) throws IOException {
             final SnmpResourceConnector result =
-                    new SnmpResourceConnector(resourceName, connectionString, connectionOptions);
+                    new SnmpResourceConnector(resourceName,
+                            connectionString,
+                            connectionOptions);
             result.listen();
             return result;
         }
         @Override
-        protected boolean addAttribute(final SnmpResourceConnector connector, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+        protected boolean addAttribute(final SnmpResourceConnector connector, final String attributeName, final Duration readWriteTimeout, final CompositeData options) {
             return connector.addAttribute(attributeName, readWriteTimeout, options);
         }
 
@@ -56,7 +60,7 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
         }
 
         @Override
-        protected boolean enableOperation(final SnmpResourceConnector connector, final String operationName, final TimeSpan timeout, final CompositeData options) {
+        protected boolean enableOperation(final SnmpResourceConnector connector, final String operationName, final Duration timeout, final CompositeData options) {
             //not supported
             return false;
         }
@@ -68,27 +72,27 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
     }
 
     @SpecialUse
-    public SnmpResourceConnectorActivator(){
-        super( new SnmpConnectorFactory(),
-                new ConfigurationEntityDescriptionManager<SnmpConnectorConfigurationProvider>() {
+    public SnmpResourceConnectorActivator() {
+        super(new SnmpConnectorFactory(),
+                new RequiredService<?>[]{new SimpleDependency<>(ThreadPoolRepository.class)},
+                new SupportConnectorServiceManager<?, ?>[]{new ConfigurationEntityDescriptionManager<SnmpConnectorDescriptionProvider>() {
                     @Override
-                    protected SnmpConnectorConfigurationProvider createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) throws Exception {
-                        return new SnmpConnectorConfigurationProvider();
+                    protected SnmpConnectorDescriptionProvider createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) throws Exception {
+                        return SnmpConnectorDescriptionProvider.getInstance();
                     }
                 },
-                new SimpleDiscoveryServiceManager<SnmpClient>() {
+                        new SimpleDiscoveryServiceManager<SnmpClient>(new SimpleDependency<>(ThreadPoolRepository.class)) {
+                            @Override
+                            protected SnmpClient createManagementInformationProvider(final String connectionString, final Map<String, String> connectionOptions, final RequiredService<?>... dependencies) throws Exception {
+                                final SnmpClient client = SnmpConnectorDescriptionProvider.getInstance().createSnmpClient(GenericAddress.parse(connectionString), connectionOptions);
+                                client.listen();
+                                return client;
+                            }
 
-                    @Override
-                    protected SnmpClient createManagementInformationProvider(final String connectionString, final Map<String, String> connectionOptions, final RequiredService<?>... dependencies) throws Exception {
-                        final SnmpClient client = new SnmpConnectionOptions(connectionString, connectionOptions).createSnmpClient();
-                        client.listen();
-                        return client;
-                    }
-
-                    @Override
-                    protected <T extends FeatureConfiguration> Collection<T> getManagementInformation(final Class<T> entityType, final SnmpClient client, final RequiredService<?>... dependencies) throws Exception {
-                        return SnmpDiscoveryService.discover(entityType, client);
-                    }
-                });
+                            @Override
+                            protected <T extends FeatureConfiguration> Collection<T> getManagementInformation(final Class<T> entityType, final SnmpClient client, final RequiredService<?>... dependencies) throws Exception {
+                                return SnmpDiscoveryService.discover(getClass().getClassLoader(), entityType, client);
+                            }
+                        }});
     }
 }

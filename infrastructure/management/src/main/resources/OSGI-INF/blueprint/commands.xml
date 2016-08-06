@@ -112,6 +112,18 @@
         <command>
             <action class="com.bytex.snamp.management.shell.ResourceMetricsCommand"/>
         </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.ListOfThreadPoolsCommand"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.RemoveThreadPoolCommand"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.AddThreadPoolCommand"/>
+        </command>
+        <command>
+            <action class="com.bytex.snamp.management.shell.JavaScriptCommand"/>
+        </command>
     </command-bundle>
 
 </blueprint>

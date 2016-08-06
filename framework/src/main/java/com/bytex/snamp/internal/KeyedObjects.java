@@ -5,7 +5,7 @@ import java.util.Map;
 /**
  * Represents a map of keyed objects where unique key is based on the item content.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public interface KeyedObjects<K, V> extends Map<K, V> {
@@ -24,5 +24,7 @@ public interface KeyedObjects<K, V> extends Map<K, V> {
      * @param item An item to add into this map.
      * @return The previous item to be removed from this map.
      */
-    V put(final V item);
+    default V put(final V item){
+        return put(getKey(item), item);
+    }
 }

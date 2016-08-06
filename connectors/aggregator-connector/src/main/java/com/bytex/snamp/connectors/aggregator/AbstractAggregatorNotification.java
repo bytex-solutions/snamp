@@ -1,5 +1,6 @@
 package com.bytex.snamp.connectors.aggregator;
 
+import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.connectors.attributes.AttributeSupport;
 import com.bytex.snamp.connectors.notifications.CustomNotificationInfo;
@@ -16,20 +17,22 @@ import java.util.logging.Logger;
 
 import static com.bytex.snamp.connectors.aggregator.AggregatorConnectorConfiguration.getForeignAttributeName;
 import static com.bytex.snamp.connectors.aggregator.AggregatorConnectorConfiguration.getSourceManagedResource;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 abstract class AbstractAggregatorNotification extends CustomNotificationInfo {
+    private static final long serialVersionUID = -848996422871723373L;
     private final String source;
     private final Logger logger;
 
     /**
      * The name of the imported attribute.
      */
-    protected final String foreignAttribute;
+    final String foreignAttribute;
 
     AbstractAggregatorNotification(final String notifType,
                                    final String description,
@@ -46,17 +49,21 @@ abstract class AbstractAggregatorNotification extends CustomNotificationInfo {
     }
 
 
-    protected final void attributeNotFound(final String attributeName, final AttributeNotFoundException e) {
+    final void attributeNotFound(final String attributeName, final AttributeNotFoundException e) {
         logger.log(Level.WARNING, String.format("Unknown attribute '%s'", attributeName), e);
     }
 
-    protected final void failedToGetAttribute(final String attributeName,
-                                      final Exception e) {
+    final void failedToGetAttribute(final String attributeName,
+                                    final Exception e) {
         logger.log(Level.SEVERE, String.format("Can't read '%s' attribute", attributeName), e);
     }
 
     protected abstract void process(final AttributeSupport attributes,
                                     final NotificationEnqueue sender);
+
+    static EventConfiguration createEventConfiguration(final ClassLoader context){
+        return ConfigurationManager.createEntityConfiguration(context, EventConfiguration.class);
+    }
 
     final void process(final NotificationEnqueue sender) throws InstanceNotFoundException {
         final BundleContext context = getBundleContext();

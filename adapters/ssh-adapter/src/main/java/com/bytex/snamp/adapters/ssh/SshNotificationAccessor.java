@@ -2,7 +2,6 @@ package com.bytex.snamp.adapters.ssh;
 
 import com.bytex.snamp.adapters.NotificationEventBox;
 import com.bytex.snamp.adapters.modeling.NotificationRouter;
-import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.jmx.DescriptorUtils;
 
 import javax.management.MBeanNotificationInfo;
@@ -35,12 +34,14 @@ final class SshNotificationAccessor extends NotificationRouter implements SshNot
             case 0:
                 return String.format(LISTEN_COMMAND_PATTERN, "");
             case 1:
-                for (final Map.Entry<String, ?> entry : filterParams.entrySet())
-                    return String.format(LISTEN_COMMAND_PATTERN, String.format("(%s=%s)", entry.getKey(), entry.getValue()));
+                return filterParams.entrySet().stream()
+                        .map(entry -> String.format(LISTEN_COMMAND_PATTERN, String.format("(%s=%s)", entry.getKey(), entry.getValue())))
+                        .findFirst()
+                        .orElseGet(() -> null);
             default:
                 final StringBuilder filter = new StringBuilder(512);
                 for (final Map.Entry<String, ?> entry : filterParams.entrySet())
-                    IOUtils.append(filter, "(%s=%s)", entry.getKey(), entry.getValue());
+                    filter.append(String.format("(%s=%s)", entry.getKey(), entry.getValue()));
                 return String.format("(&(%s))", filter);
 
         }

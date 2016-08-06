@@ -1,6 +1,6 @@
 package com.bytex.snamp.connectors.attributes;
 
-import com.google.common.base.MoreObjects;
+import static com.google.common.base.MoreObjects.firstNonNull;
 
 import javax.management.MBeanAttributeInfo;
 import java.util.Objects;
@@ -8,7 +8,7 @@ import java.util.Objects;
 /**
  * Represents simplified version of {@link javax.management.MBeanAttributeInfo}.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class CustomAttributeInfo extends MBeanAttributeInfo implements AttributeDescriptorRead {
@@ -52,6 +52,6 @@ public class CustomAttributeInfo extends MBeanAttributeInfo implements Attribute
      */
     @Override
     public final AttributeDescriptor getDescriptor() {
-        return MoreObjects.firstNonNull(descriptor, AttributeDescriptor.EMPTY_DESCRIPTOR);
+        return firstNonNull(descriptor, AttributeDescriptor.EMPTY_DESCRIPTOR);
     }
 }

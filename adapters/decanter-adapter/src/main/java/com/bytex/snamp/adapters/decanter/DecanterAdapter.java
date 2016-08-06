@@ -3,7 +3,6 @@ package com.bytex.snamp.adapters.decanter;
 import com.bytex.snamp.adapters.AbstractResourceAdapter;
 import com.bytex.snamp.adapters.modeling.FeatureAccessor;
 import com.bytex.snamp.internal.Utils;
-import com.google.common.collect.Iterables;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.EventAdmin;
@@ -14,12 +13,13 @@ import javax.management.MBeanNotificationInfo;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * Represents Decanter Collector in the form of SNAMP Resource Adapter.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  */
 final class DecanterAdapter extends AbstractResourceAdapter {
     private final EventDrivenCollector eventCollector;
@@ -45,10 +45,10 @@ final class DecanterAdapter extends AbstractResourceAdapter {
     }
 
     @Override
-    protected Iterable<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) {
-        return Iterables.concat(
-            eventCollector.clear(resourceName),
-            attributeCollector.clear(resourceName)
+    protected Stream<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) {
+        return Stream.concat(
+                eventCollector.clear(resourceName).stream(),
+                attributeCollector.clear(resourceName).stream()
         );
     }
 

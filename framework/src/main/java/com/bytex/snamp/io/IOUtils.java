@@ -1,21 +1,21 @@
 package com.bytex.snamp.io;
 
-import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.TypeTokens;
 import com.google.common.base.Splitter;
 import com.google.common.base.StandardSystemProperty;
-import com.google.common.base.Strings;
 import com.google.common.reflect.TypeToken;
 
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.BitSet;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class IOUtils {
@@ -27,7 +27,7 @@ public final class IOUtils {
 
     static {
         final String pathSeparator = StandardSystemProperty.PATH_SEPARATOR.value();
-        PATH_SPLITTER = Splitter.on(Strings.isNullOrEmpty(pathSeparator) ? ":" : pathSeparator);
+        PATH_SPLITTER = Splitter.on(isNullOrEmpty(pathSeparator) ? ":" : pathSeparator);
     }
 
     private IOUtils() {
@@ -65,18 +65,45 @@ public final class IOUtils {
     }
 
     public static <T extends Serializable> T deserialize(final byte[] serializedForm,
+                                                         final TypeToken<T> expectedType,
+                                                         final ClassResolver resolver) throws IOException {
+        if (serializedForm == null || serializedForm.length == 0)
+            return null;
+        else
+            try (final ByteArrayInputStream stream = new ByteArrayInputStream(serializedForm);
+                 final ObjectInputStream deserializer = new CustomObjectInputStream(stream, resolver)) {
+                return TypeTokens.cast(deserializer.readObject(), expectedType);
+            } catch (final ClassNotFoundException | ClassCastException e) {
+                throw new IOException(e);
+            }
+    }
+
+    public static <T extends Serializable> T deserialize(final byte[] serializedForm,
+                                                         final TypeToken<T> expectedType,
+                                                         final ClassLoader customLoader) throws IOException {
+        return deserialize(serializedForm, expectedType, desc -> Class.forName(desc.getName(), false, customLoader));
+    }
+
+    public static <T extends Serializable> T deserialize(final byte[] serializedForm,
                                                          final TypeToken<T> expectedType) throws IOException {
-        try (final ByteArrayInputStream stream = new ByteArrayInputStream(serializedForm);
-             final ObjectInputStream deserializer = new ObjectInputStream(stream)) {
-            return TypeTokens.cast(deserializer.readObject(), expectedType);
-        } catch (final ClassNotFoundException | ClassCastException e) {
-            throw new IOException(e);
-        }
+        return deserialize(serializedForm, expectedType, expectedType.getClass().getClassLoader());
     }
 
     public static <T extends Serializable> T deserialize(final byte[] serializedForm,
                                                          final Class<T> expectedType) throws IOException {
         return deserialize(serializedForm, TypeToken.of(expectedType));
+    }
+
+    public static <T extends Serializable> T deserialize(final byte[] serializedForm,
+                                                         final Class<T> expectedType,
+                                                         final ClassLoader customLoader) throws IOException {
+        return deserialize(serializedForm, TypeToken.of(expectedType), customLoader);
+    }
+
+    public static <T extends Serializable> T deserialize(final byte[] serializedForm,
+                                                         final Class<T> expectedType,
+                                                         final ClassResolver resolver) throws IOException {
+        return deserialize(serializedForm, TypeToken.of(expectedType), resolver);
     }
 
     public static byte[] readFully(final InputStream inputStream) throws IOException {
@@ -108,7 +135,7 @@ public final class IOUtils {
     }
 
     public static boolean waitForData(final InputStream is,
-                                      final TimeSpan timeout) throws IOException, InterruptedException {
+                                      final Duration timeout) throws IOException, InterruptedException {
         return waitForData(is, timeout.toMillis());
     }
 
@@ -122,9 +149,8 @@ public final class IOUtils {
         return result.toString();
     }
 
-    public static String[] splitPath(final String connectionString) {
-        return ArrayUtils.toArray(PATH_SPLITTER.trimResults().splitToList(connectionString),
-                String.class);
+    public static String[] splitPath(final String path) {
+        return PATH_SPLITTER.trimResults().splitToList(path).stream().toArray(String[]::new);
     }
 
     public static BitSet toBitSet(final boolean[] bits) {
@@ -139,26 +165,5 @@ public final class IOUtils {
         for(int position = 0; position < bits.length(); position++)
             result[position] = bits.get(position);
         return result;
-    }
-
-    public static StringBuilder appendln(final StringBuilder builder,
-                                         final String value){
-        return newLine(builder.append(value));
-    }
-
-    public static StringBuilder appendln(final StringBuilder builder,
-                                         final String format,
-                                         final Object... args){
-        return newLine(append(builder, format, args));
-    }
-
-    public static StringBuilder append(final StringBuilder builder,
-                                       final String format,
-                                       final Object... args){
-        return builder.append(String.format(format, args));
-    }
-
-    public static StringBuilder newLine(final StringBuilder output) {
-        return output.append(System.lineSeparator());
     }
 }

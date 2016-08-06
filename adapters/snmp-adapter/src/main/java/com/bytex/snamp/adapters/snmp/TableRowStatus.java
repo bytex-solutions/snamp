@@ -7,7 +7,7 @@ import org.snmp4j.smi.Variable;
 /**
  * Represents SMIv2 row status as defined in RFC 1903.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 enum TableRowStatus {

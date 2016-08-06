@@ -5,7 +5,7 @@ import com.bytex.snamp.core.AbstractServiceLibrary;
 /**
  * Represents an abstract class for SNAMP configuration bundle activator.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public abstract class AbstractConfigurationBundleActivator extends AbstractServiceLibrary {
@@ -15,7 +15,7 @@ public abstract class AbstractConfigurationBundleActivator extends AbstractServi
      * @param <T> Type of the configuration manager implementation.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     protected static abstract class ConfigurationManagerProvider<T extends ConfigurationManager> extends ProvidedService<ConfigurationManager, T>{
         /**

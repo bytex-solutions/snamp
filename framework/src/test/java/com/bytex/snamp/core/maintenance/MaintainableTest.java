@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class MaintainableTest extends Assert {
@@ -96,7 +96,7 @@ public final class MaintainableTest extends Assert {
     }
 
     @Test
-    public final void maintainableTest() throws ExecutionException, InterruptedException {
+    public void maintainableTest() throws ExecutionException, InterruptedException {
         final Maintainable m = new MaintainableImpl();
         assertEquals(2, m.getActions().size());
         assertTrue(m.getActions().contains("inc"));

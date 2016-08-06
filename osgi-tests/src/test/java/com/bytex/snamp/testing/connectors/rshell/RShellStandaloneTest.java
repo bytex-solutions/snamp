@@ -3,7 +3,9 @@ package com.bytex.snamp.testing.connectors.rshell;
 import com.bytex.snamp.concurrent.FutureThread;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceConnector;
+import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.connectors.attributes.AttributeSupport;
+import com.bytex.snamp.connectors.metrics.*;
 import com.bytex.snamp.internal.OperatingSystem;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import org.junit.Assume;
@@ -11,15 +13,15 @@ import org.junit.Test;
 import org.osgi.framework.BundleContext;
 
 import javax.management.JMException;
+import javax.management.MBeanAttributeInfo;
 import javax.management.openmbean.CompositeData;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
@@ -35,6 +37,11 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
                 PORT,
                 getPathToFileInProjectRoot(CERTIFICATE_FILE),
                 FINGERPRINT);
+    }
+
+    @Override
+    protected boolean enableRemoteDebugging() {
+        return false;
     }
 
     @Override
@@ -55,12 +62,7 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
             @SuppressWarnings("unchecked")
             final FutureThread<Object>[] tables = new FutureThread[10];
             for (int i = 0; i < tables.length; i++)
-                tables[i] = FutureThread.start(new Callable<Object>() {
-                    @Override
-                    public Object call() throws JMException {
-                        return attributes.getAttribute("ms");
-                    }
-                });
+                tables[i] = FutureThread.start(() -> attributes.getAttribute("ms"));
             for (final FutureThread<Object> thread : tables) {
                 final Object table = thread.get();
                 assertNotNull(table);
@@ -72,6 +74,25 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
         }
         finally {
             releaseManagementConnector();
+        }
+    }
+
+    @Test
+    public void testForMetrics() throws Exception {
+        final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(getTestBundleContext(), TEST_RESOURCE_NAME);
+        try{
+            final MetricsReader metrics = client.queryObject(MetricsReader.class);
+            assertNotNull(metrics);
+            assertTrue(metrics.getMetrics(MBeanAttributeInfo.class) instanceof AttributeMetrics);
+            assertNotNull(metrics.queryObject(AttributeMetrics.class));
+            //read and write attributes
+            readMemStatusAttribute();
+            //verify metrics
+            final AttributeMetrics attrMetrics = metrics.queryObject(AttributeMetrics.class);
+            assertTrue(attrMetrics.getNumberOfReads(MetricsInterval.HOUR) > 0);
+            assertTrue(attrMetrics.getNumberOfReads() > 0);
+        } finally {
+            client.release(getTestBundleContext());
         }
     }
 

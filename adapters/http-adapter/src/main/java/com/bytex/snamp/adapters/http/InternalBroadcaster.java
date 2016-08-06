@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * Represents HTTP Adapter-specific broadcaster.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public interface InternalBroadcaster extends Broadcaster {

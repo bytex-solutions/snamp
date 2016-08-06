@@ -8,7 +8,7 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 import java.io.IOException;
 
-import static com.bytex.snamp.io.IOUtils.appendln;
+import static com.bytex.snamp.management.shell.Utils.appendln;
 import static com.bytex.snamp.management.shell.Utils.getStateString;
 import static com.bytex.snamp.management.shell.InstalledAdaptersCommand.writeAdapter;
 import static com.bytex.snamp.management.shell.InstalledConnectorsCommand.writeConnector;
@@ -17,7 +17,7 @@ import static com.bytex.snamp.management.shell.InstalledConnectorsCommand.writeC
  * Prints list of installed SNAMP components.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
@@ -26,7 +26,7 @@ import static com.bytex.snamp.management.shell.InstalledConnectorsCommand.writeC
 public final class InstalledComponentsCommand extends OsgiCommandSupport implements SnampShellCommand {
     private final SnampManager manager = new SnampManagerImpl();
 
-    private static void writeComponent(final SnampComponentDescriptor component, final StringBuilder output) throws IOException {
+    private static void writeComponent(final SnampComponentDescriptor component, final StringBuilder output) {
         appendln(output, "%s. Description: %s. Version: %s. State: %s",
                 component.getName(null),
                 component.getDescription(null),

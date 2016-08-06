@@ -1,25 +1,22 @@
 package com.bytex.snamp.jmx;
 
-import com.bytex.snamp.internal.Utils;
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
-import com.google.common.collect.Maps;
 import com.bytex.snamp.ArrayUtils;
+import com.google.common.collect.Maps;
 
 import javax.management.Descriptor;
 import javax.management.DescriptorRead;
 import javax.management.ImmutableDescriptor;
 import javax.management.JMX;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.lang.reflect.Array;
 import java.util.*;
+import java.util.function.Supplier;
 
 /**
  * Represents utility methods for working with {@link javax.management.Descriptor} instances.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class DescriptorUtils {
@@ -29,14 +26,10 @@ public final class DescriptorUtils {
     public static final String MAX_VALUE_FIELD = JMX.MAX_VALUE_FIELD;
     public static final String UNIT_OF_MEASUREMENT_FIELD = "units";
 
-    public static final DescriptorRead EMPTY_DESCRIPTOR = new DescriptorRead() {
-        @Override
-        public Descriptor getDescriptor() {
-            return ImmutableDescriptor.EMPTY_DESCRIPTOR;
-        }
-    };
+    public static final DescriptorRead EMPTY_DESCRIPTOR = () -> ImmutableDescriptor.EMPTY_DESCRIPTOR;
 
     private DescriptorUtils(){
+        throw new InstantiationError();
     }
 
     public static <T> T getField(final Descriptor descr,
@@ -61,13 +54,13 @@ public final class DescriptorUtils {
                                  final String fieldName,
                                  final Class<T> fieldType,
                                  final T defval){
-        return getField(descr, fieldName, fieldType, Suppliers.ofInstance(defval));
+        return getField(descr, fieldName, fieldType, (Supplier<T>) () -> defval);
     }
 
     public static <T> T getField(final Descriptor descr,
                                  final String fieldName,
                                  final Class<T> fieldType){
-        return getField(descr, fieldName, fieldType, Utils.<T>nullSupplier());
+        return getField(descr, fieldName, fieldType, (Supplier<T>) () -> null);
     }
 
     public static Properties toProperties(final Descriptor descr) {
@@ -86,15 +79,6 @@ public final class DescriptorUtils {
         try(final StringWriter writer = new StringWriter(1024)){
             props.store(writer, comments);
             return writer.toString();
-        }
-    }
-
-    public static String toXML(final Descriptor descr, final String comments) throws IOException {
-        final Properties props = toProperties(descr);
-        final String ENCODING = "UTF-8";
-        try (final ByteArrayOutputStream out = new ByteArrayOutputStream(1024)) {
-            props.storeToXML(out, comments, ENCODING);
-            return new String(out.toByteArray(), ENCODING);
         }
     }
 

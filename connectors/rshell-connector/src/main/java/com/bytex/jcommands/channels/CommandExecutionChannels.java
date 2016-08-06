@@ -14,7 +14,7 @@ import java.util.ServiceLoader;
  * Represents consolidated factory of
  * {@link com.bytex.jcommands.CommandExecutionChannel} implementations.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class CommandExecutionChannels {
@@ -61,7 +61,7 @@ public final class CommandExecutionChannels {
     }
 
     public static CommandExecutionChannel createLocalProcessExecutionChannel() {
-        return new LocalProcessExecutionChannel(Collections.<String, String>emptyMap());
+        return new LocalProcessExecutionChannel(Collections.emptyMap());
     }
 
     public static CommandExecutionChannel createLocalProcessExecutionChannel(final Map<String, String> params){

@@ -9,7 +9,7 @@ import java.io.PrintWriter;
  * Represents a command that prints a list of managed resources.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class ListOfResourcesCommand extends AbstractManagementShellCommand {
@@ -40,7 +40,6 @@ final class ListOfResourcesCommand extends AbstractManagementShellCommand {
      */
     @Override
     protected void doCommand(final CommandLine input, final PrintWriter output) {
-        for (final String managedResource : getAdapterController().getConnectedResources())
-            output.println(managedResource);
+        getAdapterController().getConnectedResources().forEach(output::println);
     }
 }

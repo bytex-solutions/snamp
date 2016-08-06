@@ -6,7 +6,7 @@ import javax.management.NotificationListener;
 /**
  * Represents invocation method for the collection of {@link javax.management.NotificationListener}.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  * @see NotificationListenerInvokerFactory
  */

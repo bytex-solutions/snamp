@@ -1,12 +1,5 @@
 package com.bytex.snamp.jmx;
 
-import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.internal.Utils;
-import com.google.common.base.Function;
-import com.google.common.base.Functions;
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.Maps;
 
 import javax.management.openmbean.*;
@@ -19,15 +12,17 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Provides helper methods that allows to create and
  * manipulate of {@link javax.management.openmbean.CompositeData} instances.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class CompositeDataUtils {
@@ -95,11 +90,8 @@ public final class CompositeDataUtils {
      * @return Map with items from input {@link CompositeData}.
      */
     public static Map<String, ?> toMap(final CompositeData data) {
-        final Collection<String> items = data.getCompositeType().keySet();
-        final Map<String, Object> result = Maps.newHashMapWithExpectedSize(items.size());
-        for(final String itemName: items)
-            result.put(itemName, data.get(itemName));
-        return result;
+        return data.getCompositeType().keySet().stream()
+                .collect(Collectors.toMap(Function.identity(), data::get));
     }
 
     public static CompositeData create(final String typeName,
@@ -107,10 +99,8 @@ public final class CompositeDataUtils {
                                        final Map<String, ?> map,
                                        final Function<? super String, ? extends OpenType<?>> typeProvider,
                                        final Function<String, String> descriptionProvider) throws OpenDataException {
-        final String[] itemNames = ArrayUtils.toArray(map.keySet(), String.class);
-        final String[] itemDescriptions = ArrayUtils.toArray(
-                Collections2.transform(map.keySet(), descriptionProvider),
-                String.class);
+        final String[] itemNames = map.keySet().stream().toArray(String[]::new);
+        final String[] itemDescriptions = map.keySet().stream().map(descriptionProvider).toArray(String[]::new);
         final OpenType<?>[] itemTypes = new OpenType<?>[itemNames.length];
         for (int i = 0; i < itemTypes.length; i++)
             itemTypes[i] = typeProvider.apply(itemNames[i]);
@@ -127,25 +117,18 @@ public final class CompositeDataUtils {
                                        final Map<String, ?> map,
                                        final Map<String, ? extends OpenType<?>> types,
                                        final Function<String, String> descriptionProvider) throws OpenDataException {
-        return create(typeName, description, map, new Function<String, OpenType<?>>() {
-            @Override
-            public OpenType<?> apply(final String input) {
-                return types.get(input);
-            }
-        }, descriptionProvider);
+        return create(typeName, description, map, types::get, descriptionProvider);
     }
 
     public static <V> CompositeData create(final String typeName,
                                            final String description,
                                            final Map<String, V> map,
                                            final OpenType<V> type) throws OpenDataException {
-        final Function<? super String, ? extends OpenType<?>> typeProvider = Functions.constant(type);
-        final Function<String, String> itemDescriptionProvider = Functions.identity();
         return create(typeName,
                 description,
                 map,
-                typeProvider,
-                itemDescriptionProvider);
+                v -> type,
+                Function.identity());
     }
 
     public static <V> CompositeData create(final Map<String, V> map,
@@ -171,13 +154,13 @@ public final class CompositeDataUtils {
                             final String itemName,
                             final Class<T> itemType,
                             final T defval){
-        return getValue(dict, itemName, itemType, Suppliers.ofInstance(defval));
+        return getValue(dict, itemName, itemType, (Supplier<T>)() -> defval);
     }
 
     public static <T> T getValue(final CompositeData dict,
                             final String itemName,
                             final Class<T> itemType) {
-        return getValue(dict, itemName, itemType, Utils.<T>nullSupplier());
+        return getValue(dict, itemName, itemType, (Supplier<T>) () -> null);
     }
 
     public static boolean getBoolean(final CompositeData dict,
@@ -253,8 +236,7 @@ public final class CompositeDataUtils {
     }
 
     public static void fillMap(final CompositeData source, final Map<String, Object> dest){
-        for(final String key: source.getCompositeType().keySet())
-            dest.put(key, source.get(key));
+        source.getCompositeType().keySet().forEach(key -> dest.put(key, source.get(key)));
     }
 
     /**

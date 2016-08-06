@@ -1,18 +1,19 @@
 package com.bytex.snamp.management;
 
 import com.bytex.snamp.Aggregator;
-import com.bytex.snamp.Consumer;
+import com.bytex.snamp.Acceptor;
+import com.bytex.snamp.adapters.ResourceAdapter;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.adapters.ResourceAdapterClient;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
+import com.bytex.snamp.connectors.ManagedResourceConnector;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
 import com.bytex.snamp.core.AbstractFrameworkService;
 import com.bytex.snamp.core.SupportService;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import org.osgi.framework.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
@@ -21,7 +22,7 @@ import static com.bytex.snamp.internal.Utils.isInstanceOf;
 /**
  * Represents partial implementation of {@link com.bytex.snamp.management.SnampManager} service.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public abstract class AbstractSnampManager extends AbstractFrameworkService implements SnampManager {
@@ -92,7 +93,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
          * @see com.bytex.snamp.management.Maintainable
          */
         @Override
-        public <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Consumer<S, E> serviceInvoker) throws E {
+        public <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Acceptor<S, E> serviceInvoker) throws E {
             final BundleContext context = getItselfContext();
             final Bundle bnd = context.getBundle(getBundleID());
             boolean result = false;
@@ -136,7 +137,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
      * Represents superclass for resource adapter descriptor.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     protected static abstract class ResourceAdapterDescriptor extends HashMap<String, String> implements SnampComponentDescriptor{
         private static final long serialVersionUID = 5641114150847940779L;
@@ -199,7 +200,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
          * @see com.bytex.snamp.management.Maintainable
          */
         @Override
-        public final  <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Consumer<S, E> serviceInvoker) throws E {
+        public final  <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Acceptor<S, E> serviceInvoker) throws E {
             ServiceReference<S> ref = null;
             try {
                 ref = ResourceAdapterClient.getServiceReference(getItselfContext(), getSystemName(), null, serviceType);
@@ -239,7 +240,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
      * Represents superclass for managed resource connector descriptor.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     protected static abstract class ResourceConnectorDescriptor extends HashMap<String, String> implements SnampComponentDescriptor {
         private static final long serialVersionUID = -5406342058157943559L;
@@ -314,7 +315,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
          * @see com.bytex.snamp.management.Maintainable
          */
         @Override
-        public final  <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Consumer<S, E> serviceInvoker) throws E {
+        public final  <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Acceptor<S, E> serviceInvoker) throws E {
             ServiceReference<S> ref = null;
             try {
                 ref = ManagedResourceConnectorClient.getServiceReference(getItselfContext(), getSystemName(), null, serviceType);
@@ -353,10 +354,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
     @Override
     public final Collection<? extends ResourceConnectorDescriptor> getInstalledResourceConnectors() {
         final Collection<String> systemNames = ManagedResourceActivator.getInstalledResourceConnectors(getBundleContextOfObject(this));
-        final Collection<ResourceConnectorDescriptor> result = new LinkedList<>();
-        for(final String systemName: systemNames)
-            result.add(createResourceConnectorDescriptor(systemName));
-        return result;
+        return systemNames.stream().map(this::createResourceConnectorDescriptor).collect(Collectors.toCollection(LinkedList::new));
     }
 
     /**
@@ -374,10 +372,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
     @Override
     public final Collection<? extends ResourceAdapterDescriptor> getInstalledResourceAdapters() {
         final Collection<String> systemNames = ResourceAdapterActivator.getInstalledResourceAdapters(getBundleContextOfObject(this));
-        final Collection<ResourceAdapterDescriptor> result = new LinkedList<>();
-        for(final String systemName: systemNames)
-            result.add(createResourceAdapterDescriptor(systemName));
-        return result;
+        return systemNames.stream().map(this::createResourceAdapterDescriptor).collect(Collectors.toCollection(LinkedList::new));
     }
 
     /**
@@ -386,8 +381,8 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
      * @return {@literal true}, if the specified bundle is a part of SNAMP; otherwise, {@literal false}.
      */
     public static boolean isSnampComponent(final Bundle bnd){
-        if(ResourceAdapterActivator.isResourceAdapterBundle(bnd) ||
-                ManagedResourceActivator.isResourceConnectorBundle(bnd)) return false;
+        if(ResourceAdapter.isResourceAdapterBundle(bnd) ||
+                ManagedResourceConnector.isResourceConnectorBundle(bnd)) return false;
         final String importPackages = bnd.getHeaders().get(Constants.IMPORT_PACKAGE);
         if(importPackages == null) return false;
         final String snampPackageNameRoot = Aggregator.class.getPackage().getName();
@@ -402,28 +397,23 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
     @Override
     public final Collection<? extends SnampComponentDescriptor> getInstalledComponents() {
         final BundleContext context = getBundleContextOfObject(this);
-        final Collection<InternalSnampComponentDescriptor> result = new LinkedList<>();
-        for(final Bundle bnd: context.getBundles())
-            if(isSnampComponent(bnd))
-                result.add(new InternalSnampComponentDescriptor(bnd.getBundleId()));
-        return result;
+        return Arrays.stream(context.getBundles())
+                .filter(AbstractSnampManager::isSnampComponent)
+                .map(bnd -> new InternalSnampComponentDescriptor(bnd.getBundleId()))
+                .collect(Collectors.toCollection(LinkedList::new));
     }
 
     public final ResourceConnectorDescriptor getResourceConnector(final String connectorName) {
-        return Iterables.find(getInstalledResourceConnectors(), new Predicate<SnampComponentDescriptor>() {
-            @Override
-            public boolean apply(final SnampComponentDescriptor connector) {
-                return Objects.equals(connectorName, connector.get(SnampComponentDescriptor.CONNECTOR_SYSTEM_NAME_PROPERTY));
-            }
-        });
+        return getInstalledResourceConnectors().stream()
+                .filter(connector -> Objects.equals(connectorName, connector.get(SnampComponentDescriptor.CONNECTOR_SYSTEM_NAME_PROPERTY)))
+                .findFirst()
+                .orElseGet(() -> null);
     }
 
     public final ResourceAdapterDescriptor getResourceAdapter(final String adapterName) {
-        return Iterables.find(getInstalledResourceAdapters(), new Predicate<SnampComponentDescriptor>() {
-            @Override
-            public boolean apply(final SnampComponentDescriptor connector) {
-                return Objects.equals(adapterName, connector.get(SnampComponentDescriptor.ADAPTER_SYSTEM_NAME_PROPERTY));
-            }
-        });
+        return getInstalledResourceAdapters().stream()
+                .filter(adapter -> Objects.equals(adapterName, adapter.get(SnampComponentDescriptor.ADAPTER_SYSTEM_NAME_PROPERTY)))
+                .findFirst()
+                .orElseGet(() -> null);
     }
 }

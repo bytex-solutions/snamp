@@ -1,17 +1,12 @@
 package com.bytex.snamp.testing.adapters.xmpp;
 
-import com.bytex.snamp.ExceptionPlaceholder;
-import com.bytex.snamp.ExceptionalCallable;
-import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.adapters.ResourceAdapter;
 import com.bytex.snamp.adapters.ResourceAdapterActivator;
 import com.bytex.snamp.adapters.ResourceAdapterClient;
 import com.bytex.snamp.adapters.xmpp.client.XMPPClient;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
-import com.bytex.snamp.EntryReader;
+import com.bytex.snamp.testing.BundleExceptionCallable;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
-import com.bytex.snamp.testing.connectors.AbstractResourceConnectorTest;
 import com.bytex.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connectors.jmx.TestOpenMBean;
 import com.google.common.collect.ImmutableList;
@@ -21,13 +16,11 @@ import org.apache.vysper.storage.inmemory.MemoryStorageProviderRegistry;
 import org.apache.vysper.xmpp.addressing.EntityImpl;
 import org.apache.vysper.xmpp.authorization.AccountManagement;
 import org.apache.vysper.xmpp.authorization.Plain;
-import org.apache.vysper.xmpp.authorization.SASLMechanism;
 import org.apache.vysper.xmpp.modules.extension.xep0045_muc.MUCModule;
 import org.apache.vysper.xmpp.server.XMPPServer;
 import org.jivesoftware.smack.packet.Message;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
 
 import javax.management.AttributeChangeNotification;
 import javax.management.MBeanAttributeInfo;
@@ -35,6 +28,7 @@ import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -51,7 +45,7 @@ import static com.bytex.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @SnampDependencies({SnampFeature.XMPP_ADAPTER, SnampFeature.WRAPPED_LIBS})
@@ -104,26 +98,23 @@ public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean>
             client.beginChat("agent");
             client.peekMessage(SET);
             Thread.sleep(100);
-            final String response = client.sendMessage(GET, "Hi.*", TimeSpan.ofSeconds(10));
+            final String response = client.sendMessage(GET, "Hi.*", Duration.ofSeconds(10));
             assertTrue(String.format("Expected %s. Actual %s", value, response),
                     equator.equate(response, value));
         }
     }
 
     private static Equator<String> quotedEquator(){
-        return new Equator<String>() {
-            @Override
-            public boolean equate(String value1, String value2) {
-                value2 = value2.replace('\'', '\"');
-                value1 = '\"' + value1 + '\"';
-                return Objects.equals(value1, value2);
-            }
+        return (value1, value2) -> {
+            value2 = value2.replace('\'', '\"');
+            value1 = '\"' + value1 + '\"';
+            return Objects.equals(value1, value2);
         };
     }
 
     @Test
     public void integerTest() throws Exception {
-        testAttribute("3.0", "56", AbstractResourceConnectorTest.<String>valueEquator());
+        testAttribute("3.0", "56", Objects::equals);
     }
 
     @Test
@@ -174,14 +165,9 @@ public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean>
 
     @Test
     public void attributesBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
-        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, TimeSpan.ofSeconds(2));
+        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, Duration.ofSeconds(2));
         try {
-            assertTrue(client.forEachFeature(MBeanAttributeInfo.class, new EntryReader<String, ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo>, ExceptionPlaceholder>() {
-                @Override
-                public boolean read(final String resourceName, final ResourceAdapter.FeatureBindingInfo<MBeanAttributeInfo> bindingInfo) {
-                    return bindingInfo.getProperty("read-command") instanceof String;
-                }
-            }));
+            assertTrue(client.forEachFeature(MBeanAttributeInfo.class, (resourceName, bindingInfo) -> bindingInfo.getProperty("read-command") instanceof String));
         } finally {
             client.release(getTestBundleContext());
         }
@@ -195,7 +181,7 @@ public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean>
         endpoint.setPort(PORT);
         server.addEndpoint(endpoint);
         server.setStorageProviderRegistry(providerRegistry);
-        server.setSASLMechanisms(ImmutableList.<SASLMechanism>of(new Plain()));
+        server.setSASLMechanisms(ImmutableList.of(new Plain()));
         final AccountManagement accountManagement =
                 (AccountManagement) providerRegistry.retrieve(AccountManagement.class);
         accountManagement.addUser(EntityImpl.parse(USER_NAME + "@bytex.solutions"), PASSWORD);
@@ -210,13 +196,10 @@ public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean>
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
-        syncWithAdapterStartedEvent(ADAPTER_NAME, new ExceptionalCallable<Void, BundleException>() {
-            @Override
-            public Void call() throws BundleException {
+        syncWithAdapterStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
                 ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
                 return null;
-            }
-        }, TimeSpan.ofMinutes(4));
+        }, Duration.ofMinutes(4));
     }
 
     @Override

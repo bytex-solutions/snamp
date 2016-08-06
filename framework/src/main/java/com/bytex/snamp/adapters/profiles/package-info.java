@@ -8,7 +8,7 @@
  * @see com.bytex.snamp.adapters.profiles.ResourceAdapterProfile
  * @see com.bytex.snamp.adapters.profiles.PolymorphicResourceAdapter
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 package com.bytex.snamp.adapters.profiles;

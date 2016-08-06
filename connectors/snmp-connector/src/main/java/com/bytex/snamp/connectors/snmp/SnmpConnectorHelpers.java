@@ -1,17 +1,17 @@
 package com.bytex.snamp.connectors.snmp;
 
-import com.bytex.snamp.TimeSpan;
 import org.snmp4j.smi.OID;
 
 import javax.management.openmbean.ArrayType;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.SimpleType;
+import java.time.Duration;
 import java.util.Arrays;
 import static com.bytex.snamp.ArrayUtils.emptyArray;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class SnmpConnectorHelpers {
@@ -40,7 +40,7 @@ final class SnmpConnectorHelpers {
         }
     }
 
-    static TimeSpan getDiscoveryTimeout(){
-        return TimeSpan.ofMillis(System.getProperty(DISCOVERY_TIMEOUT_PROPERTY, "5000"));
+    static Duration getDiscoveryTimeout(){
+        return Duration.ofMillis(Long.parseLong(System.getProperty(DISCOVERY_TIMEOUT_PROPERTY, "5000")));
     }
 }

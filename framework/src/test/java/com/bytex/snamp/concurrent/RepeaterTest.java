@@ -1,26 +1,26 @@
 package com.bytex.snamp.concurrent;
 
-import com.bytex.snamp.TimeSpan;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.time.Duration;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class RepeaterTest extends Assert {
     private static final class SecondsCounter extends Repeater{
         private final AtomicLong c = new AtomicLong(0);
 
-        public SecondsCounter(){
-            super(TimeSpan.ofSeconds(1));
+        private SecondsCounter(){
+            super(Duration.ofSeconds(1));
         }
 
-        public final long getValue(){
+        public long getValue(){
             return c.get();
         }
 
@@ -34,7 +34,7 @@ public class RepeaterTest extends Assert {
          * @param s A new repeater state.
          */
         @Override
-        protected final void stateChanged(final RepeaterState s) {
+        protected void stateChanged(final RepeaterState s) {
             switch (s){
                 case STARTED: c.getAndSet(0L);
             }
@@ -44,7 +44,7 @@ public class RepeaterTest extends Assert {
          * Provides some periodical action.
          */
         @Override
-        protected final void doAction() {
+        protected void doAction() {
             c.incrementAndGet();
         }
     }
@@ -54,7 +54,7 @@ public class RepeaterTest extends Assert {
         try(final SecondsCounter counter = new SecondsCounter()){
             counter.run();
             Thread.sleep(5400);
-            counter.stop(TimeSpan.ofMillis(400));
+            counter.stop(Duration.ofMillis(400));
             assertEquals(5, counter.getValue());
             assertEquals(Repeater.RepeaterState.STOPPED, counter.getState());
         }
@@ -63,11 +63,11 @@ public class RepeaterTest extends Assert {
     @Test
     public final void exceptionTest() throws InterruptedException, TimeoutException {
         final String exceptionMessage = "Test exception";
-        try(final Repeater rep = new Repeater(TimeSpan.ofMillis(1)) {
+        try(final Repeater rep = new Repeater(Duration.ofMillis(1)) {
             private final AtomicLong counter = new AtomicLong(0);
 
             @Override
-            protected final void doAction() {
+            protected void doAction() {
                 if(counter.incrementAndGet() == 3) try {
                     throw new Exception(exceptionMessage);
                 } catch (final Exception e) {

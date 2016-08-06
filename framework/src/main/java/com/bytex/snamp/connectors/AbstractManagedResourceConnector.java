@@ -3,7 +3,8 @@ package com.bytex.snamp.connectors;
 import com.bytex.snamp.Descriptive;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.ThreadSafe;
-import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.concurrent.LazyValueFactory;
+import com.bytex.snamp.concurrent.LazyValue;
 import com.bytex.snamp.connectors.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connectors.attributes.AttributeSupport;
 import com.bytex.snamp.connectors.metrics.Metrics;
@@ -14,8 +15,6 @@ import com.bytex.snamp.connectors.operations.OperationSupport;
 import com.bytex.snamp.core.AbstractFrameworkService;
 import com.bytex.snamp.internal.IllegalStateFlag;
 import com.bytex.snamp.jmx.JMExceptionUtils;
-import com.google.common.base.Strings;
-import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 
 import javax.management.*;
@@ -35,11 +34,15 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
  *     </ul>
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  */
 public abstract class AbstractManagedResourceConnector extends AbstractFrameworkService implements ManagedResourceConnector, Descriptive {
     private final IllegalStateFlag closed = createConnectorStateFlag();
-    private volatile MetricsReader metrics;
+    private final LazyValue<MetricsReader> metrics;
+
+    protected AbstractManagedResourceConnector() {
+        metrics = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(this::createMetricsReader);
+    }
 
     private static IllegalStateFlag createConnectorStateFlag(){
         return new IllegalStateFlag() {
@@ -61,7 +64,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
             @Override
             public Metrics getMetrics(final Class<? extends MBeanFeatureInfo> featureType) {
                 for (final AbstractFeatureRepository<?> repository : repositories)
-                    if (repository.metadataType.equals(featureType))
+                    if (featureType.isAssignableFrom(repository.metadataType))
                         return repository.getMetrics();
                 return null;
             }
@@ -112,7 +115,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
     public void close() throws Exception {
         //change state of the connector
         closed.set();
-        metrics = null;
+        metrics.reset();
         clearCache();
     }
 
@@ -275,22 +278,16 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      */
     protected abstract MetricsReader createMetricsReader();
 
-    private synchronized MetricsReader getMetricsSync(){
-        if(metrics == null)
-            metrics = createMetricsReader();
-        return metrics;
-    }
-
     /**
      * Gets metrics associated with this instance of the resource connector.
      * @return Connector metrics.
      * @throws IllegalStateException This connector is closed.
      */
-    @Aggregation
+    @Aggregation(cached = true)
     @SpecialUse
     public final MetricsReader getMetrics(){
         verifyClosedState();
-        return metrics == null ? getMetricsSync() : metrics;
+        return metrics.get();
     }
 
     /**
@@ -321,8 +318,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      */
     protected static void addResourceEventListener(final ResourceEventListener listener,
                                                    final AbstractFeatureRepository<?>... modelers){
-        for(final AbstractFeatureRepository<?> modeler: modelers)
-            modeler.addModelEventListener(listener);
+        Arrays.stream(modelers).forEach(modeler -> modeler.addModelEventListener(listener));
     }
 
     /**
@@ -333,8 +329,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      */
     protected static void removeResourceEventListener(final ResourceEventListener listener,
                                                       final AbstractFeatureRepository<?>... modelers){
-        for(final AbstractFeatureRepository<?> modeler: modelers)
-            modeler.removeModelEventListener(listener);
+        Arrays.stream(modelers).forEach(modeler -> modeler.removeModelEventListener(listener));
     }
 
     /**
@@ -435,21 +430,13 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
         return isSmartModeSupported(this);
     }
 
-    public static boolean isSmartModeEnabled(final Map<String, ?> parameters) {
-        if(parameters.containsKey(AgentConfiguration.ManagedResourceConfiguration.SMART_MODE_KEY)){
-            final Object smartMode = parameters.get(AgentConfiguration.ManagedResourceConfiguration.SMART_MODE_KEY);
-            return Objects.equals(smartMode, Boolean.TRUE) || Objects.equals(smartMode, Boolean.TRUE.toString());
-        }
-        else return false;
-    }
-
     /**
      * Returns system name of the connector using its implementation class.
      * @param connectorImpl A class that represents implementation of resource connector.
      * @return System name of the connector.
      */
     public static String getConnectorType(final Class<? extends ManagedResourceConnector> connectorImpl){
-        return getConnectorType(FrameworkUtil.getBundle(connectorImpl));
+        return ManagedResourceConnector.getResourceConnectorType(FrameworkUtil.getBundle(connectorImpl));
     }
 
     /**
@@ -459,18 +446,6 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
      */
     public static String getConnectorType(final ManagedResourceConnector connector){
         return getConnectorType(connector.getClass());
-    }
-
-    static String getConnectorType(final Dictionary<String, ?> identity) {
-        return Objects.toString(identity.get(CONNECTOR_NAME_MANIFEST_HEADER), "");
-    }
-
-    static String getConnectorType(final Bundle bnd){
-        return isResourceConnectorBundle(bnd) ? getConnectorType(bnd.getHeaders()) : "";
-    }
-
-    static boolean isResourceConnectorBundle(final Bundle bnd) {
-        return !(bnd == null || Strings.isNullOrEmpty(bnd.getHeaders().get(CONNECTOR_NAME_MANIFEST_HEADER)));
     }
 
     /**

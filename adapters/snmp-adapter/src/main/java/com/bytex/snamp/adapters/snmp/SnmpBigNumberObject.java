@@ -1,6 +1,7 @@
 package com.bytex.snamp.adapters.snmp;
 
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.adapters.snmp.helpers.OctetStringHelper;
 import com.bytex.snamp.jmx.WellKnownType;
 import org.snmp4j.smi.AssignableFromByteArray;
 import org.snmp4j.smi.OctetString;
@@ -20,7 +21,7 @@ final class SnmpBigNumberObject extends SnmpScalarObject<OctetString>{
 
     @SpecialUse
     SnmpBigNumberObject(final SnmpAttributeAccessor attribute) {
-        super(attribute, SnmpHelpers.toOctetString(DEFAULT_VALUE.toString()));
+        super(attribute, OctetStringHelper.toOctetString(DEFAULT_VALUE.toString()));
     }
 
     @SpecialUse
@@ -31,7 +32,7 @@ final class SnmpBigNumberObject extends SnmpScalarObject<OctetString>{
         else if(value instanceof BigInteger)
             result = value.toString();
         else result = Objects.toString(value, "0");
-        return SnmpHelpers.toOctetString(result);
+        return OctetStringHelper.toOctetString(result);
     }
 
     @SpecialUse
@@ -39,14 +40,14 @@ final class SnmpBigNumberObject extends SnmpScalarObject<OctetString>{
         switch (WellKnownType.getType(attributeTypeInfo)){
             case BIG_DECIMAL:
                 try {
-                    return new BigDecimal(SnmpHelpers.toString(value));
+                    return new BigDecimal(OctetStringHelper.toString(value));
                 }
                 catch (final NumberFormatException e){
                     throw new InvalidAttributeValueException(e.getMessage());
                 }
             case BIG_INT:
                 try {
-                    return new BigInteger(SnmpHelpers.toString(value));
+                    return new BigInteger(OctetStringHelper.toString(value));
                 }
                 catch (final NumberFormatException e){
                     throw new InvalidAttributeValueException(e.getMessage());

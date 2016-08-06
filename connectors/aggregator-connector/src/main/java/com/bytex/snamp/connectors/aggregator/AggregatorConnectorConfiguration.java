@@ -1,6 +1,5 @@
 package com.bytex.snamp.connectors.aggregator;
 
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
@@ -9,13 +8,14 @@ import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 
+import java.time.Duration;
 import java.util.Map;
 
 /**
  * Provides configuration schema of this resource connector.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class AggregatorConnectorConfiguration extends ConfigurationEntityDescriptionProviderImpl {
@@ -128,9 +128,9 @@ final class AggregatorConnectorConfiguration extends ConfigurationEntityDescript
         else throw new AbsentAggregatorAttributeParameterException(FIELD_PATH_PARAM);
     }
 
-    static TimeSpan getNotificationFrequency(final Map<String, String> parameters){
+    static Duration getNotificationFrequency(final Map<String, String> parameters){
         return parameters.containsKey(NOTIFICATION_FREQUENCY_PARAM) ?
-                TimeSpan.ofMillis(parameters.get(NOTIFICATION_FREQUENCY_PARAM)) :
-                TimeSpan.ofSeconds(5);
+                Duration.ofMillis(Long.parseLong(parameters.get(NOTIFICATION_FREQUENCY_PARAM))) :
+                Duration.ofSeconds(5);
     }
 }

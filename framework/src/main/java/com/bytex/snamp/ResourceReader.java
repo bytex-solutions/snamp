@@ -19,19 +19,9 @@ public class ResourceReader implements Closeable, SafeCloseable {
      * The name of the resource.
      */
     public final String resourceName;
-    private volatile ResourceBundle bundle;
 
     public ResourceReader(final String baseName){
         resourceName = Utils.getFullyQualifiedResourceName(getClass(), baseName);
-        bundle = null;
-    }
-
-    private synchronized ResourceBundle getBundleSync(final Locale loc) {
-        if (bundle == null)
-            bundle = ResourceBundle.getBundle(resourceName,
-                    MoreObjects.firstNonNull(loc, Locale.getDefault()),
-                    getClass().getClassLoader());
-        return bundle;
     }
 
     /**
@@ -41,7 +31,9 @@ public class ResourceReader implements Closeable, SafeCloseable {
      * @throws MissingResourceException No resource bundle can be found
      */
     public final ResourceBundle getBundle(final Locale loc) throws MissingResourceException {
-        return bundle == null ? getBundleSync(loc) : bundle;
+        return ResourceBundle.getBundle(resourceName,
+                MoreObjects.firstNonNull(loc, Locale.getDefault()),
+                getClass().getClassLoader());
     }
 
     /**
@@ -94,7 +86,6 @@ public class ResourceReader implements Closeable, SafeCloseable {
      */
     @Override
     public void close() {
-        bundle = null;
         ResourceBundle.clearCache(getClass().getClassLoader());
     }
 }

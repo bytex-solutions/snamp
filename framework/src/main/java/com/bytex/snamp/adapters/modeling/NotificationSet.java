@@ -6,7 +6,7 @@ import com.bytex.snamp.EntryReader;
  * Represents reader for a set of events stored inside of the resource adapter.
  * @param <TAccessor> Type of the notification accessor.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public interface NotificationSet<TAccessor extends NotificationAccessor> {

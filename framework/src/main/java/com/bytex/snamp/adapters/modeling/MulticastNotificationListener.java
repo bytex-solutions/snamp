@@ -1,6 +1,7 @@
 package com.bytex.snamp.adapters.modeling;
 
 import com.bytex.snamp.Internal;
+import com.bytex.snamp.WeakEventListener;
 import com.bytex.snamp.WeakEventListenerList;
 import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationListener;
@@ -8,18 +9,30 @@ import com.bytex.snamp.adapters.NotificationListener;
 /**
  * Represents notification listener that aggregates many notification listeners.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class MulticastNotificationListener implements NotificationListener {
-    private static final class NotificationListenerList extends WeakEventListenerList<NotificationListener, NotificationEvent>{
-        private NotificationListenerList(){
-
+    private static final class WeakNotificationListener extends WeakEventListener<NotificationListener, NotificationEvent> implements NotificationListener{
+        private WeakNotificationListener(final NotificationListener listener) {
+            super(listener);
         }
 
         @Override
-        protected void invoke(final NotificationEvent event, final NotificationListener listener) {
+        protected void invoke(final NotificationListener listener, final NotificationEvent event) {
             listener.handleNotification(event);
+        }
+
+        @Override
+        public void handleNotification(final NotificationEvent event) {
+            invoke(event);
+        }
+    }
+
+    private static final class NotificationListenerList extends WeakEventListenerList<NotificationListener, NotificationEvent> {
+        @Override
+        protected WeakNotificationListener createWeakEventListener(final NotificationListener listener) {
+            return new WeakNotificationListener(listener);
         }
     }
 
@@ -51,6 +64,6 @@ public class MulticastNotificationListener implements NotificationListener {
     @Override
     @Internal
     public final void handleNotification(final NotificationEvent event) {
-        listeners.fire(event);
+        listeners.fireAsync(event);
     }
 }

@@ -1,7 +1,5 @@
 package com.bytex.snamp;
 
-import com.google.common.base.Function;
-import com.google.common.base.Suppliers;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -11,18 +9,17 @@ import java.util.concurrent.Executors;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class SwitchTest extends Assert {
 
     @Test
     public void simpleTest(){
-        @SuppressWarnings("ConstantConditions")
         final boolean result = new Switch<Long, Boolean>()
                 .equals(42L, Boolean.FALSE)
                 .equals(43L, Boolean.TRUE)
-                .equalsToNull(Suppliers.ofInstance(Boolean.FALSE))
+                .equalsToNull(() -> Boolean.FALSE)
                 .apply(43L);
         assertTrue(result);
     }
@@ -34,12 +31,7 @@ public final class SwitchTest extends Assert {
         final Integer result = new Switch<Object, Integer>()
                 .theSame(obj, 42)
                 .equalsToNull(56)
-                .instanceOf(String.class, new Function<String, Integer>() {
-                    @Override
-                    public Integer apply(final String input) {
-                        return input.hashCode();
-                    }
-                })
+                .instanceOf(String.class, String::hashCode)
                 .apply(obj, 72);
 
         assertNotNull(result);
@@ -51,6 +43,7 @@ public final class SwitchTest extends Assert {
         final Executor exec = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         final boolean result = new Switch<Long, Boolean>()
                 .theSame(42L, Boolean.FALSE)
+                .addCase(value -> value.equals(41L), () -> Boolean.TRUE)
                 .equals(43L, Boolean.FALSE)
                 .equals(44L, Boolean.FALSE)
                 .equals(45L, Boolean.FALSE)

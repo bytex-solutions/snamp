@@ -11,7 +11,7 @@ import java.lang.ref.WeakReference;
  * Represents notification router that routes the notification
  * to the underlying listener.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class NotificationRouter extends NotificationAccessor {

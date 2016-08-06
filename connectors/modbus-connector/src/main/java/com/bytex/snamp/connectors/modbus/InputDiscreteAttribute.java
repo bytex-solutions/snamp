@@ -10,11 +10,12 @@ import javax.management.openmbean.SimpleType;
 /**
  * Provides access to input discrete.
  */
-public class InputDiscreteAttribute extends ModbusAttributeInfo<Boolean, InputDiscreteAccess> {
+class InputDiscreteAttribute extends ModbusAttributeInfo<Boolean, InputDiscreteAccess> {
     static final String NAME = "inputDiscrete";
     private static final String DESCRIPTION = "Represents input discrete";
+    private static final long serialVersionUID = -856369386115138586L;
 
-    protected InputDiscreteAttribute(final String attributeID, final AttributeDescriptor descriptor, final InputDiscreteAccess deviceAccess) {
+    InputDiscreteAttribute(final String attributeID, final AttributeDescriptor descriptor, final InputDiscreteAccess deviceAccess) {
         super(attributeID, DESCRIPTION, SimpleType.BOOLEAN, AttributeSpecifier.READ_ONLY, descriptor, deviceAccess);
     }
 

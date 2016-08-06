@@ -1,14 +1,15 @@
 package com.bytex.snamp.jmx;
 
-import com.bytex.snamp.ArrayUtils;
-
 import javax.management.openmbean.*;
-import java.util.*;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Represents builder of {@link javax.management.openmbean.CompositeType} instances.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  * @see javax.management.openmbean.CompositeType
  */
@@ -19,9 +20,9 @@ public final class CompositeTypeBuilder implements OpenTypeBuilder<CompositeType
     private String typeDescription;
     private final LinkedHashMap<String, CompositeTypeItem> items;
 
-    CompositeTypeBuilder(final String typeName,
-                         final String typeDescription,
-                         final int capacity){
+    private CompositeTypeBuilder(final String typeName,
+                                 final String typeDescription,
+                                 final int capacity){
         this.items = new LinkedHashMap<>(capacity);
         this.typeDescription = Objects.requireNonNull(typeDescription, "typeDescription is null.");
         this.typeName = Objects.requireNonNull(typeName, "typeName is null.");
@@ -103,7 +104,7 @@ public final class CompositeTypeBuilder implements OpenTypeBuilder<CompositeType
     static CompositeType build(final String typeName,
                                final String typeDescription,
                                final Map<String, ? extends CompositeTypeItem> items) throws OpenDataException {
-        final String[] itemNames = ArrayUtils.toArray(items.keySet(), String.class);
+        final String[] itemNames = items.keySet().stream().toArray(String[]::new);
         final String[] itemDescriptions = new String[itemNames.length];
         final OpenType<?>[] itemTypes = new OpenType<?>[itemNames.length];
         for (int i = 0; i < itemNames.length; i++) {

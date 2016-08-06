@@ -7,7 +7,7 @@ import java.util.logging.Logger;
 /**
  * Represents a root interface for all SNAMP framework services.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @Internal

@@ -14,7 +14,7 @@ import java.util.Map;
 /**
  * Represents XML-serializable template of the command-line tool.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @XmlRootElement(name = "template", namespace = XmlConstants.NAMESPACE)
@@ -108,9 +108,10 @@ public class XmlCommandLineTemplate implements Serializable, ChannelProcessor<Ma
             template.add(pair.getKey(), pair.getValue());
         //fill template attributes from custom input
         if (input != null)
-            for (final Map.Entry<String, ?> pair : input.entrySet())
-                if(pair.getKey().indexOf('.') < 0)   //attribute name cannot be null or contain '.'
-                    template.add(pair.getKey(), pair.getValue());
+            //attribute name cannot be null or contain '.'
+            input.entrySet().stream()
+                    .filter(pair -> pair.getKey().indexOf('.') < 0)
+                    .forEach(pair -> template.add(pair.getKey(), pair.getValue()));
         return template.render();
     }
 
@@ -123,7 +124,7 @@ public class XmlCommandLineTemplate implements Serializable, ChannelProcessor<Ma
      */
     @ThreadSafe(true)
     public final String renderCommand(final Map<String, ?> channelParameters) throws IllegalStateException {
-        return renderCommand(channelParameters, Collections.<String, Object>emptyMap());
+        return renderCommand(channelParameters, Collections.emptyMap());
     }
 
     @XmlTransient

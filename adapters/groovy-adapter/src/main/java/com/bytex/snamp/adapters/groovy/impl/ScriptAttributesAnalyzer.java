@@ -1,14 +1,15 @@
 package com.bytex.snamp.adapters.groovy.impl;
 
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.modeling.ModelOfAttributes;
 import com.bytex.snamp.adapters.groovy.ResourceAttributesAnalyzer;
+
+import java.time.Duration;
 
 /**
  * Represents script-based periodic analyzer of attributes.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class ScriptAttributesAnalyzer extends ResourceAttributesAnalyzer<ScriptAttributeAccessor> {
@@ -19,7 +20,7 @@ final class ScriptAttributesAnalyzer extends ResourceAttributesAnalyzer<ScriptAt
      * @param attributes A collection of attributes. Cannot be {@literal null}.
      * @throws IllegalArgumentException period is {@literal null}.
      */
-    ScriptAttributesAnalyzer(final TimeSpan period, final ModelOfAttributes<ScriptAttributeAccessor> attributes) {
+    ScriptAttributesAnalyzer(final Duration period, final ModelOfAttributes<ScriptAttributeAccessor> attributes) {
         super(period, attributes);
     }
 }

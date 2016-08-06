@@ -1,6 +1,7 @@
 package com.bytex.snamp.adapters.snmp;
 
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.adapters.snmp.helpers.OctetStringHelper;
 import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.SMIConstants;
 
@@ -11,7 +12,7 @@ import java.util.Objects;
  * Represents SNMP wrapper for attribute with unknown type.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class SnmpFallbackObject extends SnmpScalarObject<OctetString> {
@@ -20,12 +21,12 @@ final class SnmpFallbackObject extends SnmpScalarObject<OctetString> {
 
     @SpecialUse
     SnmpFallbackObject(final SnmpAttributeAccessor attribute) {
-        super(attribute, true, SnmpHelpers.toOctetString(DEFAULT_VALUE));
+        super(attribute, true, OctetStringHelper.toOctetString(DEFAULT_VALUE));
     }
 
     @SpecialUse
     static OctetString toSnmpObject(final Object value){
-        return SnmpHelpers.toOctetString(Objects.toString(value, DEFAULT_VALUE));
+        return OctetStringHelper.toOctetString(Objects.toString(value, DEFAULT_VALUE));
     }
 
     /**

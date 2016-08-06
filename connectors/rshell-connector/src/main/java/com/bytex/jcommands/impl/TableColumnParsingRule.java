@@ -4,7 +4,7 @@ import javax.xml.bind.annotation.*;
 
 /**
 * @author Roman Sakno
-* @version 1.0
+* @version 1.2
 * @since 1.0
 */
 @XmlRootElement(name = "column", namespace = XmlConstants.NAMESPACE)

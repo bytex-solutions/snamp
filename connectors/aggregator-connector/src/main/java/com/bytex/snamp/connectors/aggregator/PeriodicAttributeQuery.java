@@ -1,6 +1,5 @@
 package com.bytex.snamp.connectors.aggregator;
 
-import com.bytex.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableEventConfiguration;
 import com.bytex.snamp.connectors.attributes.AttributeSupport;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 
@@ -8,9 +7,11 @@ import javax.management.AttributeNotFoundException;
 import javax.management.JMException;
 import java.util.logging.Logger;
 
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
+
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class PeriodicAttributeQuery extends AbstractAggregatorNotification {
@@ -40,8 +41,8 @@ final class PeriodicAttributeQuery extends AbstractAggregatorNotification {
         sender.sendNotification(this, "Attribute value = " + attributeValue, attributeValue);
     }
 
-    static SerializableEventConfiguration getConfiguration() {
-        final SerializableEventConfiguration result = new SerializableEventConfiguration();
+    static EventConfiguration getConfiguration() {
+        final EventConfiguration result = createEventConfiguration(PeriodicAttributeQuery.class.getClassLoader());
         result.setAlternativeName(CATEGORY);
         result.getParameters().put(AggregatorConnectorConfiguration.SOURCE_PARAM, "");
         result.getParameters().put(AggregatorConnectorConfiguration.FOREIGN_ATTRIBUTE_PARAM, "");

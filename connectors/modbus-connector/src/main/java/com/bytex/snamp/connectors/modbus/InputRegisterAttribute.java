@@ -13,8 +13,9 @@ import javax.management.openmbean.SimpleType;
 final class InputRegisterAttribute extends ModbusAttributeInfo<Short, InputRegisterAccess> {
     static final String NAME = "inputRegister";
     private static final String DESCRIPTION = "Represents input register";
+    private static final long serialVersionUID = -892885813426264736L;
 
-    protected InputRegisterAttribute(final String attributeID, final AttributeDescriptor descriptor, final InputRegisterAccess deviceAccess) {
+    InputRegisterAttribute(final String attributeID, final AttributeDescriptor descriptor, final InputRegisterAccess deviceAccess) {
         super(attributeID, DESCRIPTION, SimpleType.SHORT, AttributeSpecifier.READ_ONLY, descriptor, deviceAccess);
     }
 

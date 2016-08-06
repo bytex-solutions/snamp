@@ -2,7 +2,6 @@ package com.bytex.snamp.adapters.http;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.bytex.snamp.ArrayUtils;
 import com.sun.jersey.spi.resource.Singleton;
 import org.atmosphere.annotation.Suspend;
 import org.atmosphere.jersey.SuspendResponse;
@@ -70,12 +69,12 @@ public final class AdapterRestService {
         if(resourceName == null || resourceName.isEmpty()){   //all resources with attributes
             final JsonObject result = new JsonObject();
             for(final String resource: attributes.getHostedResources())
-                result.add(resource, formatter.toJsonTree(ArrayUtils.toArray(attributes.getResourceAttributes(resource), String.class)));
+                result.add(resource, formatter.toJsonTree(attributes.getResourceAttributes(resource).stream().toArray(String[]::new)));
             return formatter.toJson(result);
         }
         else {
             final Set<String> result = attributes.getResourceAttributes(resourceName);
-            return formatter.toJson(ArrayUtils.toArray(result, String.class));
+            return formatter.toJson(result.stream().toArray(String[]::new));
         }
     }
 
@@ -93,8 +92,7 @@ public final class AdapterRestService {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/resources")
-    public String getResources(){
-        final Set<String> result = attributes.getHostedResources();
-        return formatter.toJson(ArrayUtils.toArray(result, String.class));
+    public String getResources() {
+        return formatter.toJson(attributes.getHostedResources().stream().toArray(String[]::new));
     }
 }

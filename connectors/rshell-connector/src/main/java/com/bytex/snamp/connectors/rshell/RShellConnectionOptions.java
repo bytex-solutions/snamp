@@ -12,7 +12,7 @@ import java.util.concurrent.Callable;
 /**
  * Represents connection options for the RShell connector.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class RShellConnectionOptions implements Callable<CommandExecutionChannel> {

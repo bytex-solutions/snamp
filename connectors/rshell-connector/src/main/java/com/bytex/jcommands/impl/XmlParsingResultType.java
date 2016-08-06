@@ -1,6 +1,5 @@
 package com.bytex.jcommands.impl;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.Sets;
 
 import javax.management.openmbean.*;
@@ -17,7 +16,7 @@ import java.util.Set;
 /**
  * Represents SNAMP-compliant return type of the command-line tool.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @XmlType(name = "CommandLineToolReturnType", namespace = XmlConstants.NAMESPACE)
@@ -199,12 +198,7 @@ public enum XmlParsingResultType {
      * @return The all scalar types.
      */
     public static Set<XmlParsingResultType> getScalarTypes() {
-        return Sets.filter(EnumSet.allOf(XmlParsingResultType.class), new Predicate<XmlParsingResultType>() {
-            @Override
-            public boolean apply(final XmlParsingResultType input) {
-                return input.isScalar();
-            }
-        });
+        return Sets.filter(EnumSet.allOf(XmlParsingResultType.class), XmlParsingResultType::isScalar);
     }
 
     public abstract Object newArray(final int length);

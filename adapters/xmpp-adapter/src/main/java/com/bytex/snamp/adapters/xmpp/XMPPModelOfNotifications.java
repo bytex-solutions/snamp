@@ -1,5 +1,6 @@
 package com.bytex.snamp.adapters.xmpp;
 
+import com.bytex.snamp.adapters.modeling.ResourceFeatureList;
 import com.google.common.collect.ImmutableList;
 import com.bytex.snamp.adapters.modeling.MulticastNotificationListener;
 import com.bytex.snamp.adapters.modeling.NotificationSet;
@@ -7,6 +8,7 @@ import com.bytex.snamp.adapters.modeling.ResourceNotificationList;
 import com.bytex.snamp.EntryReader;
 
 import javax.management.MBeanNotificationInfo;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
@@ -15,7 +17,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class XMPPModelOfNotifications extends MulticastNotificationListener implements NotificationSet<XMPPNotificationAccessor> {
@@ -63,13 +65,13 @@ final class XMPPModelOfNotifications extends MulticastNotificationListener imple
         }
     }
 
-    Iterable<XMPPNotificationAccessor> clear(final String resourceName){
+    Collection<XMPPNotificationAccessor> clear(final String resourceName){
         final Lock writeLock = lock.writeLock();
         writeLock.lock();
         try{
             final ResourceNotificationList<XMPPNotificationAccessor> resource =
                     notifications.remove(resourceName);
-            return resource != null ? resource.values() : ImmutableList.<XMPPNotificationAccessor>of();
+            return resource != null ? resource.values() : ImmutableList.of();
         } finally {
             writeLock.unlock();
         }
@@ -80,8 +82,7 @@ final class XMPPModelOfNotifications extends MulticastNotificationListener imple
         final Lock writeLock = lock.writeLock();
         writeLock.lock();
         try{
-            for(final ResourceNotificationList<?> list: notifications.values())
-                list.clear();
+            notifications.values().forEach(ResourceFeatureList::clear);
             notifications.clear();
         }finally {
             writeLock.unlock();

@@ -1,11 +1,10 @@
 package com.bytex.snamp.management.jmx;
 
 import com.bytex.snamp.configuration.AgentConfiguration;
-import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.management.AbstractSnampManager;
 import com.bytex.snamp.management.SnampComponentDescriptor;
 
-import javax.management.openmbean.*;
+import javax.management.openmbean.OpenDataException;
 import java.util.Map;
 
 

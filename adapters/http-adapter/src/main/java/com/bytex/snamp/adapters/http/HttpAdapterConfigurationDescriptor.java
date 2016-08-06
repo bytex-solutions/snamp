@@ -2,7 +2,6 @@ package com.bytex.snamp.adapters.http;
 
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
-import com.bytex.snamp.configuration.ThreadPoolConfigurationDescriptor;
 
 import javax.management.Descriptor;
 
@@ -14,14 +13,14 @@ import static com.bytex.snamp.jmx.DescriptorUtils.hasField;
  * Represents descriptor of REST adapter configuration scheme.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class HttpAdapterConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl {
 
     private static final String DATE_FORMAT_PARAM = "dateFormat";
 
-    private static final class AdapterConfigurationInfo extends ResourceBasedConfigurationEntityDescription<ResourceAdapterConfiguration> implements ThreadPoolConfigurationDescriptor<ResourceAdapterConfiguration> {
+    private static final class AdapterConfigurationInfo extends ResourceBasedConfigurationEntityDescription<ResourceAdapterConfiguration> {
         private static final String RESOURCE_NAME = "RestAdapterConfig";
 
         private AdapterConfigurationInfo(){

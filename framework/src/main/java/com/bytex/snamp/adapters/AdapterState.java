@@ -3,7 +3,7 @@ package com.bytex.snamp.adapters;
 /**
  * Represents state of the resource adapter.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public enum AdapterState {

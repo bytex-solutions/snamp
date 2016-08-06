@@ -4,7 +4,7 @@ import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 
 import javax.management.openmbean.SimpleType;
 
-import static com.bytex.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
 
 /**
  * Compares two foreign attributes
@@ -26,13 +26,13 @@ final class BinaryComparison extends BinaryAttributeAggregation<Boolean> {
 
     @Override
     protected Boolean compute(final Object left,
-                              final Object right) throws Exception {
+                              final Object right) {
         return comparison.compute(NumberUtils.toBigDecimal(left),
                 NumberUtils.toBigDecimal(right));
     }
 
-    static SerializableAttributeConfiguration getConfiguration() {
-        final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration();
+    static AttributeConfiguration getConfiguration() {
+        final AttributeConfiguration result = createAttributeConfiguration(BinaryComparison.class.getClassLoader());
         result.setAlternativeName(NAME);
         fillParameters(result.getParameters());
         result.getParameters().put(AggregatorConnectorConfiguration.COMPARER_PARAM, "=");

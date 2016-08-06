@@ -2,6 +2,7 @@ package com.bytex.snamp.adapters;
 
 import com.bytex.snamp.MethodStub;
 
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
@@ -11,7 +12,7 @@ import static com.google.common.base.MoreObjects.firstNonNull;
  * which cannot modify its internal structure on-the-fly
  * when managed resource connector raises {@link com.bytex.snamp.connectors.ResourceEvent}.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class ResourceAdapterUpdateManager implements AutoCloseable {
@@ -27,7 +28,7 @@ public class ResourceAdapterUpdateManager implements AutoCloseable {
             setDaemon(true);
             setPriority(3);
             this.timeout = new AtomicLong(restartTimeout);
-            this.callback = firstNonNull(callback, ResourceAdapterUpdatedCallback.STUB);
+            this.callback = firstNonNull(callback, () -> { });
         }
 
         @Override
@@ -153,13 +154,9 @@ public class ResourceAdapterUpdateManager implements AutoCloseable {
      */
     public static ResourceAdapterUpdatedCallback combineCallbacks(final ResourceAdapterUpdatedCallback callback,
                                                          final ResourceAdapterUpdatedCallback... callbacks){
-        return new ResourceAdapterUpdatedCallback() {
-            @Override
-            public void updated() {
-                callback.updated();
-                for(final ResourceAdapterUpdatedCallback other: callbacks)
-                    other.updated();
-            }
+        return () -> {
+            callback.updated();
+            Arrays.stream(callbacks).forEach(ResourceAdapterUpdatedCallback::updated);
         };
     }
 }

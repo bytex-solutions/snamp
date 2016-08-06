@@ -1,11 +1,11 @@
 package com.bytex.snamp.connectors.rshell;
 
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.ManagedResourceActivator;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.SpecialUse;
 
 import javax.management.openmbean.CompositeData;
+import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
 
@@ -13,7 +13,7 @@ import java.util.Set;
  * Represents an activator of the rshell resource connector.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class RShellResourceConnectorActivator extends ManagedResourceActivator<RShellResourceConnector> {
@@ -30,7 +30,7 @@ public final class RShellResourceConnectorActivator extends ManagedResourceActiv
         }
 
         @Override
-        protected boolean addAttribute(final RShellResourceConnector connector, final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+        protected boolean addAttribute(final RShellResourceConnector connector, final String attributeName, final Duration readWriteTimeout, final CompositeData options) {
             return connector.addAttribute(attributeName, readWriteTimeout, options);
         }
         @Override
@@ -51,7 +51,7 @@ public final class RShellResourceConnectorActivator extends ManagedResourceActiv
         }
 
         @Override
-        protected boolean enableOperation(final RShellResourceConnector connector, final String operationName, final TimeSpan timeout, final CompositeData options) {
+        protected boolean enableOperation(final RShellResourceConnector connector, final String operationName, final Duration timeout, final CompositeData options) {
             //not supported
             return false;
         }

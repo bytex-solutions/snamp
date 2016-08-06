@@ -3,8 +3,6 @@
     <feature name="${project.artifactId}" description="${project.name}" version="${project.version}">
         <details>${project.description}</details>
         <feature version="[${snamp.framework.version}, ${snamp.framework.maxVersion})">platform-feature</feature>
-        <bundle start="true">mvn:org.bouncycastle/bcpkix-jdk15on/${bouncycastle.version}</bundle>
-        <bundle start="true">mvn:org.bouncycastle/bcprov-jdk15on/${bouncycastle.version}</bundle>
         <bundle start="true">mvn:com.bytex.snamp/sshj/${sshj.version}</bundle>
         <bundle start="true">mvn:com.bytex.snamp/rshell-connector/${project.version}</bundle>
     </feature>

@@ -1,6 +1,5 @@
 package com.bytex.snamp.management;
 
-import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.core.SupportService;
 
 import javax.management.DynamicMBean;
@@ -8,7 +7,7 @@ import javax.management.DynamicMBean;
 /**
  * Represents an interface for all SNAMP-related managed beans.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  * @see com.bytex.snamp.jmx.OpenMBean
  */

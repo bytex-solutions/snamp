@@ -1,8 +1,5 @@
 package com.bytex.snamp.jmx;
 
-import com.bytex.snamp.AbstractAggregator;
-import com.bytex.snamp.ArrayUtils;
-
 import javax.management.openmbean.*;
 import java.util.*;
 
@@ -10,16 +7,15 @@ import java.util.*;
  * Represents builder of {@link javax.management.openmbean.TabularType} instances.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  * @see javax.management.openmbean.TabularType
  */
-public final class TabularTypeBuilder extends AbstractAggregator implements OpenTypeBuilder<TabularType>, Iterable<String> {
+public final class TabularTypeBuilder implements OpenTypeBuilder<TabularType>, Iterable<String> {
     private String typeName;
     private String typeDescription;
     private final CompositeTypeBuilder rowBuilder;
     private final Set<String> indexes;
-    private Object service;
 
     private static String createRowTypeName(final String tabularTypeName){
         return tabularTypeName + "Row";
@@ -52,10 +48,6 @@ public final class TabularTypeBuilder extends AbstractAggregator implements Open
      */
     public TabularTypeBuilder(){
         this("", "", "", "");
-    }
-
-    void setService(final Object obj){
-        this.service = obj;
     }
 
     String getTypeName(){
@@ -163,7 +155,7 @@ public final class TabularTypeBuilder extends AbstractAggregator implements Open
         return new TabularType(typeName,
                 typeDescription,
                 buildRowType(),
-                ArrayUtils.toArray(indexes, String.class));
+                indexes.stream().toArray(String[]::new));
     }
 
     /**
@@ -188,16 +180,5 @@ public final class TabularTypeBuilder extends AbstractAggregator implements Open
     @Override
     public Iterator<String> iterator() {
         return rowBuilder.iterator();
-    }
-
-    /**
-     * Retrieves the aggregated object.
-     *
-     * @param objectType Type of the aggregated object.
-     * @return An instance of the requested object; or {@literal null} if object is not available.
-     */
-    @Override
-    public <T> T queryObject(final Class<T> objectType) {
-        return objectType.isInstance(service) ? objectType.cast(service) : null;
     }
 }

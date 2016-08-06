@@ -7,12 +7,13 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 
 /**
  * Configures resource event.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
@@ -33,13 +34,14 @@ public final class ConfigEventCommand extends ConfigurationCommand {
 
     @Override
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
-        if(configuration.getManagedResources().containsKey(resourceName)){
-            final AgentConfiguration.ManagedResourceConfiguration resource = configuration.getManagedResources().get(resourceName);
+        if(configuration.getEntities(ManagedResourceConfiguration.class).containsKey(resourceName)){
+            final AgentConfiguration.ManagedResourceConfiguration resource = configuration.getEntities(ManagedResourceConfiguration.class).get(resourceName);
             final EventConfiguration event = resource.getFeatures(EventConfiguration.class).getOrAdd(category);
             if(!ArrayUtils.isNullOrEmpty(parameters))
                 for(final String param: parameters) {
                     final StringKeyValue pair = StringKeyValue.parse(param);
-                    event.getParameters().put(pair.getKey(), pair.getValue());
+                    if (pair != null)
+                        event.getParameters().put(pair.getKey(), pair.getValue());
                 }
             output.append("Attribute configured successfully");
             return true;

@@ -1,26 +1,35 @@
 package com.bytex.snamp.connectors.groovy;
 
-import com.google.common.collect.ImmutableList;
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.configuration.ConfigurationManager;
+import com.google.common.collect.ImmutableList;
 import groovy.lang.Binding;
 
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Map;
 
+import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.*;
-import static com.bytex.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableAttributeConfiguration;
-import static com.bytex.snamp.configuration.SerializableAgentConfiguration.SerializableManagedResourceConfiguration.SerializableEventConfiguration;
 
 /**
  * Represents an abstract class for initialization script.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public abstract class ManagedResourceInitializationScript extends ManagedResourceScript implements ManagedResourceInfo {
     private final Collection<AttributeConfiguration> attributes = new LinkedList<>();
     private final Collection<EventConfiguration> events = new LinkedList<>();
+    private ClassLoader contextRef;
+
+    final void setContext(final ClassLoader context){
+        this.contextRef = context;
+    }
+
+    private <E extends EntityConfiguration> E createEntityConfiguration(final Class<E> entityType) {
+        return contextRef != null ? ConfigurationManager.createEntityConfiguration(contextRef, entityType) : null;
+    }
 
     /**
      * Defines an attribute.
@@ -29,10 +38,12 @@ public abstract class ManagedResourceInitializationScript extends ManagedResourc
      */
     @SpecialUse
     protected final void attribute(final String name, final Map<String, String> parameters){
-        final SerializableAttributeConfiguration config = new SerializableAttributeConfiguration();
-        config.setAlternativeName(name);
-        config.setParameters(parameters);
-        attributes.add(config);
+        final AttributeConfiguration config = createEntityConfiguration(AttributeConfiguration.class);
+        if(config != null) {
+            config.setAlternativeName(name);
+            config.setParameters(parameters);
+            attributes.add(config);
+        }
     }
 
     /**
@@ -42,10 +53,12 @@ public abstract class ManagedResourceInitializationScript extends ManagedResourc
      */
     @SpecialUse
     protected final void event(final String category, final Map<String, String> parameters){
-        final SerializableEventConfiguration config = new SerializableEventConfiguration();
-        config.setAlternativeName(category);
-        config.setParameters(parameters);
-        events.add(config);
+        final EventConfiguration config = createEntityConfiguration(EventConfiguration.class);
+        if(config != null) {
+            config.setAlternativeName(category);
+            config.setParameters(parameters);
+            events.add(config);
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -64,6 +77,7 @@ public abstract class ManagedResourceInitializationScript extends ManagedResourc
      */
     @Override
     public void close() throws Exception {
+        contextRef = null;
         attributes.clear();
         events.clear();
     }

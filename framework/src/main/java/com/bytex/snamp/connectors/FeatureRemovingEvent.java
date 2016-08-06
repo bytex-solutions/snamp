@@ -6,7 +6,7 @@ import javax.management.MBeanFeatureInfo;
  * An event indicating that the managed resource is in process of deregistration
  * of the feature.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class FeatureRemovingEvent<F extends MBeanFeatureInfo> extends FeatureModifiedEvent<F> {

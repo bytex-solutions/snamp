@@ -23,7 +23,7 @@ import java.nio.LongBuffer;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class JsonFormattingTests extends Assert {
@@ -123,10 +123,10 @@ public final class JsonFormattingTests extends Assert {
         final TabularData data = new TabularDataBuilder()
                 .setTypeName("TestTable", true)
                 .setTypeDescription("Descr", true)
-                .columns()
-                .addColumn("column1", "column1 descr", SimpleType.INTEGER, true)
-                .addColumn("column2", "column2 descr", SimpleType.STRING, false)
-                .queryObject(TabularDataBuilder.class)
+                .declareColumns(columns -> columns
+                    .addColumn("column1", "column1 descr", SimpleType.INTEGER, true)
+                    .addColumn("column2", "column2 descr", SimpleType.STRING, false)
+                )
                 .add(42, "String1")
                 .add(43, "String2")
                 .build();

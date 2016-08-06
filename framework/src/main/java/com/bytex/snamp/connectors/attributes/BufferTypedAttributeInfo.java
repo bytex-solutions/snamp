@@ -5,10 +5,12 @@ import java.nio.Buffer;
 /**
  * Represents managed resource attribute of type that derives from {@link java.nio.Buffer}.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class BufferTypedAttributeInfo<B extends Buffer> extends CustomAttributeInfo {
+    private static final long serialVersionUID = 921553832292630988L;
+
     /**
      * Constructs an <CODE>MBeanAttributeInfo</CODE> object.
      *

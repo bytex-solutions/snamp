@@ -12,7 +12,7 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
  * Represents format of the BLOB fragment.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  */
 @XmlType(name = "BlobFormat", namespace = XmlConstants.NAMESPACE)
 @XmlEnum

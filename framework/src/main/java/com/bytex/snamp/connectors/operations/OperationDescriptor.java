@@ -1,6 +1,5 @@
 package com.bytex.snamp.connectors.operations;
 
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigParameters;
 import com.bytex.snamp.connectors.ConfigurationEntityRuntimeMetadata;
@@ -14,6 +13,7 @@ import javax.management.ImmutableDescriptor;
 import javax.management.MBeanOperationInfo;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.OpenMBeanOperationInfo;
+import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
 
@@ -24,7 +24,7 @@ import static com.bytex.snamp.jmx.CompositeDataUtils.fillMap;
 /**
  * Represents descriptor of the managed resource operation.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class OperationDescriptor extends ImmutableDescriptor implements ConfigurationEntityRuntimeMetadata<OperationConfiguration> {
@@ -39,12 +39,12 @@ public class OperationDescriptor extends ImmutableDescriptor implements Configur
         this(config.getInvocationTimeout(), new ConfigParameters(config));
     }
 
-    public OperationDescriptor(final TimeSpan invocationTimeout,
+    public OperationDescriptor(final Duration invocationTimeout,
                                final CompositeData options){
         this(getFields(invocationTimeout, options));
     }
 
-    private static Map<String, ?> getFields(final TimeSpan invocationTimeout,
+    private static Map<String, ?> getFields(final Duration invocationTimeout,
                                             final CompositeData options){
         final Map<String, Object> fields = Maps.newHashMapWithExpectedSize(options.values().size() + 1);
         fields.put(INVOCATION_TIMEOUT_FIELD, invocationTimeout);
@@ -80,10 +80,7 @@ public class OperationDescriptor extends ImmutableDescriptor implements Configur
     @Override
     public final OperationDescriptor setFields(final Map<String, ?> values){
         if(values == null || values.isEmpty()) return this;
-        final String[] fields = getFieldNames();
-        final Map<String, Object> newFields = Maps.newHashMapWithExpectedSize(fields.length + values.size());
-        for(final String name: fields)
-            newFields.put(name, getFieldValue(name));
+        final Map<String, Object> newFields = DescriptorUtils.toMap(this, Object.class, false);
         newFields.putAll(values);
         return new OperationDescriptor(newFields);
     }
@@ -125,16 +122,18 @@ public class OperationDescriptor extends ImmutableDescriptor implements Configur
         return DescriptorUtils.getField(this, fieldName, fieldType);
     }
 
-    public static TimeSpan getInvocationTimeout(final Descriptor descriptor){
+    public static Duration getInvocationTimeout(final Descriptor descriptor){
         final Object fieldValue = descriptor.getFieldValue(INVOCATION_TIMEOUT_FIELD);
         if(fieldValue instanceof Number)
-            return TimeSpan.ofMillis(((Number)fieldValue).longValue());
-        else if(fieldValue instanceof TimeSpan)
-            return (TimeSpan)fieldValue;
-        else return TimeSpan.INFINITE;
+            return Duration.ofMillis(((Number)fieldValue).longValue());
+        else if(fieldValue instanceof Duration)
+            return (Duration)fieldValue;
+        else if(fieldValue instanceof CharSequence)
+            return Duration.parse((CharSequence)fieldValue);
+        else return null;
     }
 
-    public final TimeSpan getInvocationTimeout(){
+    public final Duration getInvocationTimeout(){
         return getInvocationTimeout(this);
     }
 

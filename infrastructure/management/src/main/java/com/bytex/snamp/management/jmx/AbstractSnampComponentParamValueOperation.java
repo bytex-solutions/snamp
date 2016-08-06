@@ -1,14 +1,12 @@
 package com.bytex.snamp.management.jmx;
 
-import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.Consumer;
 import com.bytex.snamp.adapters.SelectableAdapterParameterDescriptor;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
+import com.bytex.snamp.jmx.OpenMBean;
 import com.bytex.snamp.management.AbstractSnampManager;
 import com.bytex.snamp.management.SnampComponentDescriptor;
-import com.bytex.snamp.jmx.OpenMBean;
 
 import javax.management.MBeanOperationInfo;
 import javax.management.openmbean.*;
@@ -56,8 +54,8 @@ abstract class AbstractSnampComponentParamValueOperation extends OpenMBean.OpenO
      */
     protected AbstractSnampComponentParamValueOperation(final AbstractSnampManager manager,
                                                         final String operationName,
-                                                        final OpenMBeanParameterInfo... parameters) throws OpenDataException {
-        super(operationName, new ArrayType<String[]>(SimpleType.STRING, false), parameters);
+                                                        final TypedParameterInfo<?>... parameters) throws OpenDataException {
+        super(operationName, new ArrayType<>(SimpleType.STRING, false), parameters);
         this.snampManager = Objects.requireNonNull(manager);
     }
 
@@ -78,19 +76,16 @@ abstract class AbstractSnampComponentParamValueOperation extends OpenMBean.OpenO
                                                              final Map<String, String> tabularData) throws Exception {
 
         final List<String> result = new LinkedList<>();
-        snampComponentDescriptor.invokeSupportService(ConfigurationEntityDescriptionProvider.class, new Consumer<ConfigurationEntityDescriptionProvider, Exception>() {
-            @Override
-            public void accept(final ConfigurationEntityDescriptionProvider input) throws Exception {
-                final ConfigurationEntityDescription<?> description = input.getDescription(configurationEntity);
-                if (description != null) {
-                    final ConfigurationEntityDescription.ParameterDescription pd = description.getParameterDescriptor(parameterName);
-                    if (pd instanceof SelectableAdapterParameterDescriptor)
-                        Collections.addAll(result, ((SelectableAdapterParameterDescriptor) pd).suggestValues(tabularData,
-                                locale == null || locale.isEmpty() ? Locale.getDefault() : Locale.forLanguageTag(locale)));
+        snampComponentDescriptor.invokeSupportService(ConfigurationEntityDescriptionProvider.class, input -> {
+            final ConfigurationEntityDescription<?> description = input.getDescription(configurationEntity);
+            if (description != null) {
+                final ConfigurationEntityDescription.ParameterDescription pd = description.getParameterDescriptor(parameterName);
+                if (pd instanceof SelectableAdapterParameterDescriptor)
+                    Collections.addAll(result, ((SelectableAdapterParameterDescriptor) pd).suggestValues(tabularData,
+                            locale == null || locale.isEmpty() ? Locale.getDefault() : Locale.forLanguageTag(locale)));
 
-                }
             }
         });
-        return ArrayUtils.toArray(result, String.class);
+        return result.stream().toArray(String[]::new);
     }
 }

@@ -1,7 +1,8 @@
 package com.bytex.snamp.adapters.ssh;
 
+import com.bytex.snamp.AbstractAggregator;
+import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.Switch;
 import com.bytex.snamp.concurrent.WriteOnceRef;
 import jline.console.ConsoleReader;
 import org.apache.sshd.common.Factory;
@@ -25,31 +26,36 @@ import java.util.regex.Pattern;
 /**
  * Represents management shell.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class ManagementShell implements Command, SessionAware {
     private static final Pattern COMMAND_DELIMITER = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
 
-    private static final class CommandExecutionContextImpl extends Switch<Class<?>, Object> implements CommandExecutionContext{
-        @SuppressWarnings("ResultOfMethodCallIgnored")
+    private static final class CommandExecutionContextImpl implements CommandExecutionContext{
+        private final Aggregator aggregator;
+
         private CommandExecutionContextImpl(final AdapterController controller,
                                             final ExecutorService executor){
-            super.equals(CONTROLLER, controller)
-                    .equals(EXECUTOR, executor);
+            aggregator = AbstractAggregator.builder()
+                    .addValue(CONTROLLER, controller)
+                    .addValue(EXECUTOR, executor)
+                    .build();
         }
 
-        @SuppressWarnings("ResultOfMethodCallIgnored")
         private CommandExecutionContextImpl(final AdapterController controller,
                                             final ExecutorService executor,
                                             final InputStream reader) {
-            this(controller, executor);
-            super.equals(INPUT_STREAM, reader);
+            aggregator = AbstractAggregator.builder()
+                    .addValue(CONTROLLER, controller)
+                    .addValue(EXECUTOR, executor)
+                    .addValue(INPUT_STREAM, reader)
+                    .build();
         }
 
         @Override
         public <T> T queryObject(final Class<T> objectType) {
-            return objectType.cast(apply(objectType));
+            return aggregator.queryObject(objectType);
         }
     }
 
@@ -61,12 +67,12 @@ final class ManagementShell implements Command, SessionAware {
         private final ExitCallback callback;
         private final ExecutorService executor;
 
-        public Interpreter(final AdapterController controller,
+        private Interpreter(final AdapterController controller,
                            final InputStream is,
                            OutputStream os,
                            final OutputStream es,
                            final ExitCallback callback,
-                           final ExecutorService executor) throws IOException {
+                           final ExecutorService executor) {
             this.controller = Objects.requireNonNull(controller, "controller is null.");
             if (TtyOutputStream.needToApply()) {
                 this.outStream = new TtyOutputStream(os);
@@ -132,14 +138,9 @@ final class ManagementShell implements Command, SessionAware {
         this.executor = executor;
     }
 
-    public static Factory<Command> createFactory(final AdapterController controller,
-                                                 final ExecutorService executor) {
-        return new Factory<Command>() {
-            @Override
-            public Command create() {
-                return new ManagementShell(controller, executor);
-            }
-        };
+    static Factory<Command> createFactory(final AdapterController controller,
+                                          final ExecutorService executor) {
+        return () -> new ManagementShell(controller, executor);
     }
 
     /**
@@ -197,19 +198,14 @@ final class ManagementShell implements Command, SessionAware {
      */
     @Override
     public void start(final Environment env) {
-        try {
-            final Interpreter i = new Interpreter(controller,
-                    inStream.get(),
-                    outStream.get(),
-                    errStream.get(),
-                    exitCallback.get(),
-                    executor);
-            i.start();
-            interpreter.set(i);
-        }
-        catch (final IOException e){
-            SshHelpers.log(Level.SEVERE, "Unable to start SNAMP shell", e);
-        }
+        final Interpreter i = new Interpreter(controller,
+                inStream.get(),
+                outStream.get(),
+                errStream.get(),
+                exitCallback.get(),
+                executor);
+        i.start();
+        interpreter.set(i);
     }
 
     /**
@@ -251,8 +247,8 @@ final class ManagementShell implements Command, SessionAware {
         return matchList.toArray(new String[matchList.size()]);
     }
 
-    static Command createSshCommand(final String commandLine,
-                                 final CommandExecutionContext controller) {
+    private static Command createSshCommand(final String commandLine,
+                                            final CommandExecutionContext controller) {
         final String[] parts = splitArguments(commandLine);
         final ManagementShellCommand factory = createCommand(ArrayUtils.getFirst(parts), controller);
         return factory.createSshCommand(ArrayUtils.remove(parts, 0));

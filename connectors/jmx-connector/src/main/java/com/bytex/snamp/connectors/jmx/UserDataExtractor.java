@@ -14,7 +14,7 @@ import javax.management.timer.TimerNotification;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class UserDataExtractor {
@@ -23,6 +23,7 @@ final class UserDataExtractor {
 
     }
 
+    @SuppressWarnings("unchecked")
     private static CompositeData getUserData(final AttributeChangeNotification n) throws OpenDataException {
         final String TYPE_NAME = "AttributeChangeNotificationData";
         final String DESCRIPTION = "Advanced data associated with AttributeChangeNotification event";

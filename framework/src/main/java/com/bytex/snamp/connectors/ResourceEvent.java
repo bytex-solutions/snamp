@@ -5,7 +5,7 @@ import java.util.EventObject;
 /**
  * Represents an event associated with the managed resource.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public abstract class ResourceEvent extends EventObject {

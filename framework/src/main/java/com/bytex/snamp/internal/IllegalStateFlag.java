@@ -7,7 +7,7 @@ import com.bytex.snamp.ThreadSafe;
 /**
  * Represents object state flag that can be aggregated inside of stateful objects.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @Internal

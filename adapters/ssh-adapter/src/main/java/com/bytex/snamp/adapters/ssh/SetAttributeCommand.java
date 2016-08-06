@@ -1,6 +1,5 @@
 package com.bytex.snamp.adapters.ssh;
 
-import com.bytex.snamp.Consumer;
 import com.bytex.snamp.core.LogicalOperation;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -13,7 +12,7 @@ import java.io.StringReader;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class SetAttributeCommand extends AbstractAttributeCommand {
@@ -43,16 +42,13 @@ final class SetAttributeCommand extends AbstractAttributeCommand {
             final String resourceName = input.getOptionValue(RESOURCE_OPTION.getOpt());
             final String attributeName = input.getOptionValue(NAME_OPTION.getOpt());
             final String attributeValue = input.getOptionValue(VALUE_OPTION.getOpt());
-            if(!getAdapterController().processAttribute(resourceName, attributeName, new Consumer<SshAttributeMapping, CommandException>() {
-                @Override
-                public void accept(final SshAttributeMapping attribute) throws CommandException {
-                    try (final LogicalOperation ignored = SshHelpers.writeAttributeLogicalOperation(attribute.getOriginalName(), attributeName);
-                         final StringReader reader = new StringReader(attributeValue)) {
-                        attribute.setValue(reader);
-                        output.println("OK");
-                    } catch (final JMException | IOException e) {
-                        throw new CommandException(e);
-                    }
+            if(!getAdapterController().processAttribute(resourceName, attributeName, attribute -> {
+                try (final LogicalOperation ignored = SshHelpers.writeAttributeLogicalOperation(attribute.getOriginalName(), attributeName);
+                     final StringReader reader = new StringReader(attributeValue)) {
+                    attribute.setValue(reader);
+                    output.println("OK");
+                } catch (final JMException | IOException e) {
+                    throw new CommandException(e);
                 }
             })) throw new CommandException("Attribute %s doesn't exist.", attributeName);
         }

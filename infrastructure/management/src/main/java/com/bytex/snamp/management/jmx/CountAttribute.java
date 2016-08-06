@@ -8,7 +8,7 @@ import javax.management.openmbean.SimpleType;
 /**
  * The type Count attribute.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class CountAttribute extends OpenMBean.OpenAttribute<Long, SimpleType<Long>> {

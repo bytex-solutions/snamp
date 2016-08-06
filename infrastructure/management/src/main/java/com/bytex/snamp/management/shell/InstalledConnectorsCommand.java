@@ -8,14 +8,14 @@ import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 import java.io.IOException;
 
-import static com.bytex.snamp.io.IOUtils.appendln;
+import static com.bytex.snamp.management.shell.Utils.appendln;
 import static com.bytex.snamp.management.shell.Utils.getStateString;
 
 /**
  * Prints a list of installed connectors.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
@@ -24,7 +24,7 @@ import static com.bytex.snamp.management.shell.Utils.getStateString;
 public final class InstalledConnectorsCommand extends OsgiCommandSupport implements SnampShellCommand {
     private final SnampManager manager = new SnampManagerImpl();
 
-    static void writeConnector(final SnampComponentDescriptor component, final StringBuilder output) throws IOException {
+    static void writeConnector(final SnampComponentDescriptor component, final StringBuilder output) {
         appendln(output, "%s. Type: %s. Description: %s. Version: %s. State: %s",
                 component.getName(null),
                 component.get(SnampComponentDescriptor.CONNECTOR_SYSTEM_NAME_PROPERTY),

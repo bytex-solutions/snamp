@@ -1,7 +1,7 @@
 package com.bytex.snamp.adapters.groovy.impl;
 
-import com.google.common.collect.*;
-import com.bytex.snamp.TimeSpan;
+import com.bytex.snamp.EntryReader;
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.adapters.groovy.AttributesRootAPI;
 import com.bytex.snamp.adapters.groovy.EventsRootAPI;
@@ -10,17 +10,22 @@ import com.bytex.snamp.adapters.groovy.dsl.GroovyManagementModel;
 import com.bytex.snamp.adapters.modeling.*;
 import com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
-import com.bytex.snamp.EntryReader;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.osgi.framework.BundleContext;
 
 import javax.management.*;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Represents repository of t
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class ManagementInformationRepository extends GroovyManagementModel implements AttributesRootAPI, EventsRootAPI, AttributeSet<ScriptAttributeAccessor>, NotificationSet<ScriptNotificationAccessor> {
@@ -43,25 +48,24 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
         private final Map<String, ResourceNotificationList<ScriptNotificationAccessor>> notifications =
                 new HashMap<>(10);
 
-        private Iterable<ScriptNotificationAccessor> clear(final String resourceName) {
-            try (final LockScope ignored = beginWrite()) {
-                final ResourceNotificationList<ScriptNotificationAccessor> list = notifications.remove(resourceName);
-                return list != null ? list.values() : ImmutableList.<ScriptNotificationAccessor>of();
-            }
+        private Collection<ScriptNotificationAccessor> clear(final String resourceName) {
+            return writeApply(resourceName, notifications, (resName, notifs) -> {
+                final ResourceNotificationList<ScriptNotificationAccessor> list = notifs.remove(resName);
+                return list != null ? list.values() : ImmutableList.of();
+            });
         }
 
         private void clear() {
-            try (final LockScope ignored = beginWrite()) {
-                for (final ResourceNotificationList<?> list : notifications.values())
-                    list.clear();
-                notifications.clear();
-            }
+            writeAccept(notifications, notifs -> {
+                notifs.values().forEach(ResourceFeatureList::clear);
+                notifs.clear();
+            });
         }
 
         private NotificationRouter put(final String resourceName,
                                               final MBeanNotificationInfo metadata,
                                               final NotificationListener listener) {
-            try (final LockScope ignored = beginWrite()) {
+            try(final SafeCloseable ignored = acquireWriteLock(SingleResourceGroup.INSTANCE)){
                 final ResourceNotificationList<ScriptNotificationAccessor> list;
                 if (notifications.containsKey(resourceName))
                     list = notifications.get(resourceName);
@@ -72,39 +76,48 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
             }
         }
 
+        private ScriptNotificationAccessor removeImpl(final String resourceName,
+                                                  final MBeanNotificationInfo metadata){
+            final ResourceNotificationList<ScriptNotificationAccessor> list = notifications.get(resourceName);
+            if (list == null) return null;
+            final ScriptNotificationAccessor result = list.remove(metadata);
+            if (list.isEmpty()) notifications.remove(resourceName);
+            return result;
+        }
+
         private ScriptNotificationAccessor remove(final String resourceName,
                                                   final MBeanNotificationInfo metadata) {
-            try (final LockScope ignored = beginWrite()) {
-                final ResourceNotificationList<ScriptNotificationAccessor> list = notifications.get(resourceName);
-                if (list == null) return null;
-                final ScriptNotificationAccessor result = list.remove(metadata);
-                if (list.isEmpty()) notifications.remove(resourceName);
-                return result;
-            }
+            return writeApply(resourceName, metadata, this::removeImpl);
         }
 
         private Collection<MBeanNotificationInfo> getNotifications(final String resourceName) {
-            try (final LockScope ignored = beginRead()) {
-                final ResourceNotificationList<?> list = notifications.get(resourceName);
+            return readApply(resourceName, notifications, (resName, notifs) -> {
+                final ResourceNotificationList<?> list = notifs.get(resName);
                 if (list != null) {
-                    final List<MBeanNotificationInfo> result = Lists.newArrayListWithExpectedSize(list.size());
-                    for (final FeatureAccessor<MBeanNotificationInfo> accessor : list.values())
-                        result.add(accessor.getMetadata());
-                    return result;
-                } else return ImmutableList.of();
-            }
+                    return list.values().stream()
+                            .map(FeatureAccessor::getMetadata)
+                            .collect(Collectors.toList());
+                } else
+                    return ImmutableList.of();
+            });
         }
 
         private Set<String> getResourceEvents(final String resourceName) {
-
-            try (final LockScope ignored = beginRead()) {
-                if (notifications.containsKey(resourceName)) {
+            return readApply(resourceName, notifications, (resName, notifs) -> {
+                if (notifs.containsKey(resName)) {
                     final Set<String> result = new HashSet<>(20);
-                    for (final FeatureAccessor<MBeanNotificationInfo> accessor : notifications.get(resourceName).values())
+                    for (final FeatureAccessor<MBeanNotificationInfo> accessor : notifs.get(resName).values())
                         Collections.addAll(result, accessor.getMetadata().getNotifTypes());
                     return result;
-                } else return ImmutableSet.of();
-            }
+                } else
+                    return ImmutableSet.of();
+            });
+        }
+
+        private <E extends Exception> void forEachNotificationImpl(final EntryReader<String, ? super ScriptNotificationAccessor, E> notificationReader) throws E{
+            for (final ResourceNotificationList<ScriptNotificationAccessor> notifs : notifications.values())
+                for (final ScriptNotificationAccessor accessor : notifs.values())
+                    if(!notificationReader.read(accessor.getResourceName(), accessor)) return;
         }
 
         /**
@@ -115,11 +128,7 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
          */
         @Override
         public <E extends Exception> void forEachNotification(final EntryReader<String, ? super ScriptNotificationAccessor, E> notificationReader) throws E {
-            try (final LockScope ignored = beginRead()) {
-                for (final ResourceNotificationList<ScriptNotificationAccessor> notifs : notifications.values())
-                    for (final ScriptNotificationAccessor accessor : notifs.values())
-                        notificationReader.read(accessor.getResourceName(), accessor);
-            }
+            readAccept(notificationReader, this::forEachNotificationImpl);
         }
     }
 
@@ -177,7 +186,7 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
     }
 
     @Override
-    public ResourceAttributesAnalyzer<?> attributesAnalyzer(final TimeSpan checkPeriod) {
+    public ResourceAttributesAnalyzer<?> attributesAnalyzer(final Duration checkPeriod) {
         return new ScriptAttributesAnalyzer(checkPeriod, attributes);
     }
 
@@ -211,8 +220,11 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
         return attributes.addAttribute(resourceName, feature);
     }
 
-    Iterable<? extends FeatureAccessor<?>> clear(final String resourceName) {
-        return Iterables.concat(attributes.clear(resourceName), notifications.clear(resourceName));
+    Stream<? extends FeatureAccessor<?>> clear(final String resourceName) {
+        return Stream.concat(
+                attributes.clear(resourceName).stream(),
+                notifications.clear(resourceName).stream()
+        );
     }
 
     AttributeAccessor removeAttribute(final String resourceName, final MBeanAttributeInfo feature) {

@@ -1,7 +1,7 @@
 package com.bytex.snamp.connectors.mda.impl.http;
 
 import com.bytex.snamp.connectors.mda.DataAcceptorFactory;
-import com.bytex.snamp.connectors.mda.impl.MDAThreadPoolConfig;
+import com.bytex.snamp.connectors.mda.impl.MDAConnectorDescriptionProvider;
 
 import java.util.Map;
 
@@ -10,7 +10,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 /**
  * Represents factory of {@link HttpDataAcceptor} class.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class HttpDataAcceptorFactory implements DataAcceptorFactory {
@@ -22,13 +22,13 @@ public final class HttpDataAcceptorFactory implements DataAcceptorFactory {
 
     @Override
     public HttpDataAcceptor create(final String resourceName,
-                                   String servletContext,
-                                   final Map<String, String> parameters) throws Exception {
+                                           String servletContext,
+                                           final Map<String, String> parameters) {
         if (isNullOrEmpty(servletContext))
             servletContext = getServletContext(resourceName);
         return new HttpDataAcceptor(resourceName,
                 servletContext,
-                new MDAThreadPoolConfig(resourceName, parameters));
+                () -> MDAConnectorDescriptionProvider.getInstance().parseThreadPool(parameters));
     }
 
     @Override

@@ -1,30 +1,38 @@
 package com.bytex.snamp.adapters.groovy.dsl;
 
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.concurrent.LazyValueFactory;
+import com.bytex.snamp.concurrent.LazyValue;
 import groovy.lang.GroovyObjectSupport;
 
 import javax.management.*;
-import java.util.Objects;
 
 /**
  * Represents attribute of the managed resource.
  * This class cannot be inherited directly from your code.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  */
 public final class GroovyResourceAttribute extends GroovyObjectSupport {
     private final AttributesView attributes;
     private final String attributeName;
     private final String resourceName;
-    private volatile GroovyFeatureMetadata<MBeanAttributeInfo> metadataCache;
+    private final LazyValue<GroovyFeatureMetadata<MBeanAttributeInfo>> metadataCache;
 
     GroovyResourceAttribute(final AttributesView attributes,
                             final String resourceName,
-                            final String attributeName){
+                            final String attributeName) {
         this.attributes = attributes;
         this.attributeName = attributeName;
         this.resourceName = resourceName;
+        this.metadataCache = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(() ->
+                attributes.getAttributesMetadata(resourceName).stream()
+                        .filter(metadata -> attributeName.equals(metadata.getName()))
+                        .map(GroovyFeatureMetadata::new)
+                        .findFirst()
+                        .orElseGet(() -> null)
+        );
     }
 
     @SpecialUse
@@ -37,17 +45,9 @@ public final class GroovyResourceAttribute extends GroovyObjectSupport {
         return attributes.getAttributeValue(resourceName, attributeName);
     }
 
-    private synchronized GroovyFeatureMetadata<MBeanAttributeInfo> getMetadataImpl() {
-        if (metadataCache == null)
-            for (final MBeanAttributeInfo metadata : attributes.getAttributesMetadata(resourceName))
-                if (Objects.equals(attributeName, metadata.getName()))
-                    return metadataCache = new GroovyFeatureMetadata<>(metadata);
-        return metadataCache;
-    }
-
     @SpecialUse
     public GroovyFeatureMetadata<MBeanAttributeInfo> getMetadata() {
-        return metadataCache == null ? getMetadataImpl() : metadataCache;
+        return metadataCache.get();
     }
 
     @Override

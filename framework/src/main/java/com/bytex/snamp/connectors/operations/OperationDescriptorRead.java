@@ -5,7 +5,7 @@ import javax.management.DescriptorRead;
 /**
  * Interface to read the Descriptor of a management operation.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public interface OperationDescriptorRead extends DescriptorRead {

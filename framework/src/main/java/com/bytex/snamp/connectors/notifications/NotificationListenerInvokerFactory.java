@@ -7,7 +7,7 @@ import java.util.concurrent.Executor;
 /**
  * Represents commonly used listener invocation strategies.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class NotificationListenerInvokerFactory {
@@ -24,20 +24,14 @@ public final class NotificationListenerInvokerFactory {
      * @return A new instance of the invoker.
      */
     public static NotificationListenerSequentialInvoker createSequentialInvoker(){
-        return new NotificationListenerSequentialInvoker() {
-            @Override
-            public void invoke(final Notification n, final Object handback, final Iterable<? extends NotificationListener> listeners) {
-                for(final NotificationListener listener: listeners)
-                    listener.handleNotification(n, handback);
-            }
-        };
+        return (n, handback, listeners) -> listeners.forEach(listener -> listener.handleNotification(n, handback));
     }
 
     /**
      * Represents notification listener exception handler.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     public interface ExceptionHandler{
         /**
@@ -55,18 +49,14 @@ public final class NotificationListenerInvokerFactory {
      * @return A new instance of the invoker.
      */
     public static NotificationListenerSequentialInvoker createExceptionResistantInvoker(final ExceptionHandler handler){
-        return new NotificationListenerSequentialInvoker() {
-            @Override
-            public void invoke(final Notification n, final Object handback, final Iterable<? extends NotificationListener> listeners) {
-                for(final NotificationListener listener: listeners)
-                    try{
-                        listener.handleNotification(n, handback);
-                    }
-                    catch (final Throwable e){
-                        handler.handle(e, listener);
-                    }
+        return (n, handback, listeners) -> listeners.forEach(listener -> {
+            try{
+                listener.handleNotification(n, handback);
             }
-        };
+            catch (final Throwable e){
+                handler.handle(e, listener);
+            }
+        });
     }
 
     /**
@@ -83,13 +73,7 @@ public final class NotificationListenerInvokerFactory {
 
             @Override
             public void invoke(final Notification n, final Object handback, final Iterable<? extends NotificationListener> listeners) {
-                for(final NotificationListener listener: listeners)
-                    getScheduler().execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            listener.handleNotification(n, handback);
-                        }
-                    });
+                listeners.forEach(listener -> getScheduler().execute(() -> listener.handleNotification(n, handback)));
             }
         };
     }
@@ -103,18 +87,14 @@ public final class NotificationListenerInvokerFactory {
 
             @Override
             public void invoke(final Notification n, final Object handback, final Iterable<? extends NotificationListener> listeners) {
-                for(final NotificationListener listener: listeners)
-                    getScheduler().execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            try{
-                                listener.handleNotification(n, handback);
-                            }
-                            catch (final Throwable e){
-                                handler.handle(e, listener);
-                            }
-                        }
-                    });
+                listeners.forEach(listener -> getScheduler().execute(() -> {
+                    try{
+                        listener.handleNotification(n, handback);
+                    }
+                    catch (final Throwable e){
+                        handler.handle(e, listener);
+                    }
+                }));
             }
         };
     }

@@ -1,9 +1,7 @@
 package com.bytex.snamp.adapters.snmp;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.SafeConsumer;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.modeling.AttributeAccessor;
 import com.bytex.snamp.jmx.TabularDataUtils;
 import com.google.common.base.Stopwatch;
@@ -26,13 +24,15 @@ import javax.management.MBeanAttributeInfo;
 import javax.management.openmbean.*;
 import java.lang.reflect.Array;
 import java.text.ParseException;
+import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 
-import static com.bytex.snamp.adapters.snmp.SnmpAdapterConfigurationDescriptor.parseOID;
 import static com.bytex.snamp.adapters.snmp.SnmpHelpers.getAccessRestrictions;
 import static com.bytex.snamp.adapters.snmp.SnmpResourceAdapterProfile.createDefaultTypeMapper;
+import static com.bytex.snamp.adapters.snmp.SnmpAdapterDescriptionProvider.parseOID;
 import static com.bytex.snamp.jmx.DescriptorUtils.getField;
 import static com.bytex.snamp.jmx.DescriptorUtils.hasField;
 
@@ -173,12 +173,12 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
     }
 
     private static final class UpdateManager {
-        private final TimeSpan tableCacheTime;
+        private final Duration tableCacheTime;
         private Object updateSource;
         private Date updateTimeStamp;
         private final Stopwatch timer;
 
-        private UpdateManager(final TimeSpan initial){
+        private UpdateManager(final Duration initial){
             tableCacheTime = initial;
             timer = Stopwatch.createUnstarted();
         }
@@ -201,12 +201,12 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
         }
 
         private boolean isEmpty(){
-            final long elapsed = timer.elapsed(tableCacheTime.unit);
-            return elapsed > tableCacheTime.duration;
+            final long elapsed = timer.elapsed(TimeUnit.NANOSECONDS);
+            return elapsed > tableCacheTime.toNanos();
         }
 
         private UpdateManager(){
-            this(TimeSpan.ofSeconds(5));
+            this(Duration.ofSeconds(5));
         }
 
         private void reset(){
@@ -243,7 +243,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
         //add RowStatus column
         if(useRowStatus)
             columns.add(new MORowStatusColumn(columnID, typeMapper));
-        return ArrayUtils.toArray(columns, MONamedColumn.class);
+        return columns.stream().toArray(MONamedColumn[]::new);
     }
 
     private static MONamedColumn[] createColumns(final CompositeType type,
@@ -254,7 +254,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
         final List<MONamedColumn> columns = Lists.newArrayListWithCapacity(type.keySet().size());
         for(final String itemName: type.keySet())
             columns.add(new MONamedColumn(columnID++, type, itemName, typeMapper, access));
-        return ArrayUtils.toArray(columns, MONamedColumn.class);
+        return columns.stream().toArray(MONamedColumn[]::new);
     }
 
     private static MONamedColumn[] createColumns(final TabularType type,
@@ -271,7 +271,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
         //add RowStatus column
         if(useRowStatus)
             columns.add(new MORowStatusColumn(columnID, typeMapper));
-        return ArrayUtils.toArray(columns, MONamedColumn.class);
+        return columns.stream().toArray(MONamedColumn[]::new);
     }
 
     private static MONamedColumn[] createColumns(final OpenType<?> type,
@@ -310,7 +310,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
         //save additional fields
         _connector = connector;
         cacheManager = hasField(connector.getMetadata().getDescriptor(), TABLE_CACHE_TIME_PARAM) ?
-                new UpdateManager(TimeSpan.ofMillis(getField(connector.getMetadata().getDescriptor(), TABLE_CACHE_TIME_PARAM, String.class))):
+                new UpdateManager(Duration.ofMillis(Long.parseLong(getField(connector.getMetadata().getDescriptor(), TABLE_CACHE_TIME_PARAM, String.class)))):
                 new UpdateManager();
     }
 
@@ -335,7 +335,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
      * Determines whether this table is empty.
      * @return {@literal true}, if this table is empty; otherwise, {@literal false}.
      */
-    public boolean isEmpty(){
+    private boolean isEmpty(){
         return getModel().getRowCount() == 0;
     }
 
@@ -362,21 +362,18 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
                              final MOTable<DefaultMOMutableRow2PC, MONamedColumn, MOTableModel<DefaultMOMutableRow2PC>> table,
                              final DescriptorRead conversionOptions){
         final MutableInteger rowIndex = new MutableInteger(0);
-        TabularDataUtils.forEachRow(data, new SafeConsumer<CompositeData>() {
-            @Override
-            public void accept(final CompositeData row) {
-                final List<Variable> cells = Lists.newArrayListWithExpectedSize(table.getColumnCount());
-                for (int columnIndex = 0; columnIndex < table.getColumnCount(); columnIndex++) {
-                    final MONamedColumn columnDef = table.getColumn(columnIndex);
-                    if (MORowStatusColumn.isInstance(columnDef))
-                        cells.add(columnIndex, TableRowStatus.ACTIVE.toManagedScalarValue());
-                    else {
-                        final Variable cell = columnDef.createCellValue(row.get(columnDef.name), conversionOptions);
-                        cells.add(columnIndex, cell);
-                    }
+        TabularDataUtils.forEachRow(data, row -> {
+            final List<Variable> cells = Lists.newArrayListWithExpectedSize(table.getColumnCount());
+            for (int columnIndex = 0; columnIndex < table.getColumnCount(); columnIndex++) {
+                final MONamedColumn columnDef = table.getColumn(columnIndex);
+                if (MORowStatusColumn.isInstance(columnDef))
+                    cells.add(columnIndex, TableRowStatus.ACTIVE.toManagedScalarValue());
+                else {
+                    final Variable cell = columnDef.createCellValue(row.get(columnDef.name), conversionOptions);
+                    cells.add(columnIndex, cell);
                 }
-                table.addRow(table.createRow(makeRowID(rowIndex.getAndIncrement()), ArrayUtils.toArray(cells, Variable.class)));
             }
+            table.addRow(table.createRow(makeRowID(rowIndex.getAndIncrement()), cells.stream().toArray(Variable[]::new)));
         });
     }
 
@@ -389,7 +386,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
             final Variable cell = columnDef.createCellValue(data.get(columnDef.name), conversionOptions);
             cells.add(columnIndex, cell);
         }
-        table.addRow(table.createRow(makeRowID(0), ArrayUtils.toArray(cells, Variable.class)));
+        table.addRow(table.createRow(makeRowID(0), cells.stream().toArray(Variable[]::new)));
     }
 
     private static void fill(final Object array,
@@ -404,7 +401,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
             //handle row status column
             if(needRowStatus)
                 cells.add(1, TableRowStatus.ACTIVE.toManagedScalarValue());
-            table.addRow(table.createRow(makeRowID(i), ArrayUtils.toArray(cells, Variable.class)));
+            table.addRow(table.createRow(makeRowID(i), cells.stream().toArray(Variable[]::new)));
         }
     }
 
@@ -562,8 +559,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
         else if(attributeType instanceof TabularType)
             rowsToDelete = dump((TabularType)attributeType);
         //remove rows
-        for(final OID row: rowsToDelete)
-            removeRow(row);
+        rowsToDelete.forEach(this::removeRow);
     }
 
     @Override
@@ -649,7 +645,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
     @Override
     public boolean equals(final MBeanAttributeInfo metadata) {
         try {
-            return Objects.equals(getID(), new OID(parseOID(metadata)));
+            return Objects.equals(getID(), new OID(parseOID(metadata, SnmpHelpers.OID_GENERATOR)));
         } catch (final ParseException ignored) {
             return false;
         }

@@ -9,7 +9,7 @@ import java.util.Map;
 /**
  * The type Get connector configuration schema operation.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class GetConnectorConfigurationSchemaOperation extends ConfigurationSchemaOperation {

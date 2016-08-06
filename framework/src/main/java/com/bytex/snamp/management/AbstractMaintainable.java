@@ -2,12 +2,9 @@ package com.bytex.snamp.management;
 
 import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.concurrent.FutureThread;
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.ObjectArrays;
 import com.google.common.util.concurrent.Futures;
 
@@ -25,6 +22,8 @@ import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * Represents an abstract class for building your own maintainable object.
@@ -32,7 +31,7 @@ import java.util.concurrent.Future;
  *     Derived class should not be inner private.
  * @param <T> Type of the enum that describes all maintenance actions supported by this class.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  * @see MaintenanceActionInfo
  */
@@ -42,7 +41,7 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
      * Indicates that the annotated method is used for action invocation.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
@@ -67,7 +66,7 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
      * from your code.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     protected static final class ActionHandle{
         private final MethodHandle handle;
@@ -238,12 +237,7 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
     public final Future<String> doAction(final T action, final String arguments, final Locale loc) {
         //find the action implemented through reflection
         try {
-            final ActionHandle actionImpl = actionCache.get(action, new Callable<ActionHandle>() {
-                @Override
-                public ActionHandle call() throws IllegalAccessException {
-                    return findActionImplementation(AbstractMaintainable.this, action, actionResolver);
-                }
-            });
+            final ActionHandle actionImpl = actionCache.get(action, () -> findActionImplementation(AbstractMaintainable.this, action, actionResolver));
             if (actionImpl == null)
                 throw new NoSuchElementException(String.format("Action %s doesn't exist", action.getName()));
             else return doAction(actionImpl, parseArguments(action, arguments, loc), loc);
@@ -274,13 +268,14 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
         return action != null ? doAction(action, arguments, loc): null;
     }
 
+    private static String getActionName(final MaintenanceActionInfo actionInfo){
+        return actionInfo.getName();
+    }
+
     private static <T extends Enum<T> & MaintenanceActionInfo> Set<String> getMaintenanceActions(final Iterable<T> actions) {
-        return ImmutableSet.copyOf(Iterables.transform(actions, new Function<T, String>() {
-            @Override
-            public String apply(final T input) {
-                return input.getName();
-            }
-        }));
+        return ImmutableSet
+                .copyOf(StreamSupport.stream(actions.spliterator(), false)
+                        .map(AbstractMaintainable::getActionName).collect(Collectors.toList()));
     }
 
     /**
@@ -302,12 +297,10 @@ public abstract class AbstractMaintainable<T extends Enum<T> & MaintenanceAction
      * @throws java.util.NoSuchElementException Action with the specified name doesn't exist.
      */
     public static <T extends Enum<T> & MaintenanceActionInfo> T getAction(final Set<T> actions, final String actionName) {
-        return Iterables.find(actions, new Predicate<T>() {
-            @Override
-            public boolean apply(final T input) {
-                return Objects.equals(input.getName(), actionName);
-            }
-        });
+        return actions.stream()
+                .filter(input -> Objects.equals(input.getName(), actionName))
+                .findFirst()
+                .orElseGet(() -> null);
     }
 
     /**

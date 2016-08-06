@@ -1,14 +1,15 @@
 package com.bytex.snamp;
 
-import com.google.common.base.Function;
+import java.util.function.Function;
 
 /**
  * Represents a wrapper for the specified type of object.
  * @param <T> Type of the object that is wrapped.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
+@FunctionalInterface
 public interface Wrapper<T> {
     /**
      * Handles the wrapped object.

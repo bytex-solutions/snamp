@@ -1,16 +1,16 @@
 package com.bytex.snamp.adapters.modeling;
 
 import com.bytex.snamp.ExceptionPlaceholder;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.concurrent.Repeater;
 import com.bytex.snamp.EntryReader;
 
+import java.time.Duration;
 import java.util.Objects;
 
 /**
  * Abstract sender of attribute values.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public abstract class PeriodicPassiveChecker<TAccessor extends AttributeAccessor> extends Repeater implements EntryReader<String, TAccessor, ExceptionPlaceholder> {
@@ -23,7 +23,7 @@ public abstract class PeriodicPassiveChecker<TAccessor extends AttributeAccessor
      * @param attributes A collection of attributes. Cannot be {@literal null}.
      * @throws IllegalArgumentException period is {@literal null}.
      */
-    protected PeriodicPassiveChecker(final TimeSpan period,
+    protected PeriodicPassiveChecker(final Duration period,
                                      final ModelOfAttributes<TAccessor> attributes) {
         super(period);
         this.attributes = Objects.requireNonNull(attributes);

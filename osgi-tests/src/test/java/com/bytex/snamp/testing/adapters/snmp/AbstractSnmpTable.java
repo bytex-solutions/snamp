@@ -8,7 +8,7 @@ import java.math.BigInteger;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public abstract class AbstractSnmpTable implements SnmpTable {

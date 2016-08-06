@@ -3,29 +3,30 @@ package com.bytex.snamp.adapters.nrdp;
 import ch.shamu.jsendnrdp.NRDPServerConnectionSettings;
 import ch.shamu.jsendnrdp.domain.NagiosCheckResult;
 import ch.shamu.jsendnrdp.domain.State;
-import com.bytex.snamp.core.DistributedServices;
-import com.bytex.snamp.internal.Utils;
-import com.google.common.base.Supplier;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Multimap;
-import com.bytex.snamp.TimeSpan;
-import com.bytex.snamp.adapters.*;
+import com.bytex.snamp.EntryReader;
+import com.bytex.snamp.adapters.AbstractResourceAdapter;
+import com.bytex.snamp.adapters.NotificationEvent;
 import com.bytex.snamp.adapters.NotificationListener;
 import com.bytex.snamp.adapters.modeling.*;
-import com.bytex.snamp.EntryReader;
+import com.bytex.snamp.core.DistributedServices;
+import com.bytex.snamp.internal.Utils;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multimap;
 
-import javax.management.*;
+import javax.management.MBeanAttributeInfo;
+import javax.management.MBeanFeatureInfo;
+import javax.management.MBeanNotificationInfo;
+import java.time.Duration;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
-
-import static com.bytex.snamp.adapters.nrdp.NRDPAdapterConfigurationDescriptor.*;
+import java.util.stream.Stream;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class NRDPAdapter extends AbstractResourceAdapter {
@@ -46,13 +47,15 @@ final class NRDPAdapter extends AbstractResourceAdapter {
             this.notifications = new HashMap<>(10);
         }
 
+        private <E extends Exception> void forEachNotificationImpl(final EntryReader<String, ? super NRDPNotificationAccessor, E> notificationReader) throws E {
+            for (final ResourceNotificationList<NRDPNotificationAccessor> list : notifications.values())
+                for (final NRDPNotificationAccessor accessor : list.values())
+                    if (!notificationReader.read(accessor.resourceName, accessor)) return;
+        }
+
         @Override
         public <E extends Exception> void forEachNotification(final EntryReader<String, ? super NRDPNotificationAccessor, E> notificationReader) throws E {
-            try(final LockScope ignored = beginRead()){
-                for(final ResourceNotificationList<NRDPNotificationAccessor> list: notifications.values())
-                    for(final NRDPNotificationAccessor accessor: list.values())
-                        if(!notificationReader.read(accessor.resourceName, accessor)) return;
-            }
+            readAccept(notificationReader, this::forEachNotificationImpl);
         }
 
         private void setCheckSender(final ConcurrentPassiveCheckSender value){
@@ -72,49 +75,48 @@ final class NRDPAdapter extends AbstractResourceAdapter {
                         event.getNotification().getMessage()));
         }
 
+        private NotificationAccessor addNotificationImpl(final String resourceName,
+                                                     final MBeanNotificationInfo metadata){
+            final ResourceNotificationList<NRDPNotificationAccessor> list;
+            if(notifications.containsKey(resourceName))
+                list = notifications.get(resourceName);
+            else notifications.put(resourceName, list = new ResourceNotificationList<>());
+            final NRDPNotificationAccessor accessor;
+            list.put(accessor = new NRDPNotificationAccessor(resourceName, metadata, this));
+            return accessor;
+        }
+
         private NotificationAccessor addNotification(final String resourceName,
                                                      final MBeanNotificationInfo metadata){
-            try(final LockScope ignored = beginWrite()){
-                final ResourceNotificationList<NRDPNotificationAccessor> list;
-                if(notifications.containsKey(resourceName))
-                    list = notifications.get(resourceName);
-                else notifications.put(resourceName, list = new ResourceNotificationList<>());
-                final NRDPNotificationAccessor accessor;
-                list.put(accessor = new NRDPNotificationAccessor(resourceName, metadata, this));
-                return accessor;
-            }
+            return writeApply(resourceName, metadata, this::addNotificationImpl);
+        }
+
+        private NotificationAccessor removeNotificationImpl(final String resourceName,
+                                                        final MBeanNotificationInfo metadata){
+            final ResourceNotificationList<NRDPNotificationAccessor> list;
+            if(notifications.containsKey(resourceName))
+                list = notifications.get(resourceName);
+            else return null;
+            final NotificationAccessor accessor = list.remove(metadata);
+            if(list.isEmpty()) notifications.remove(resourceName);
+            return accessor;
         }
 
         private NotificationAccessor removeNotification(final String resourceName,
                                                         final MBeanNotificationInfo metadata){
-            try(final LockScope ignored = beginWrite()){
-                final ResourceNotificationList<NRDPNotificationAccessor> list;
-                if(notifications.containsKey(resourceName))
-                    list = notifications.get(resourceName);
-                else return null;
-                final NotificationAccessor accessor = list.remove(metadata);
-                if(list.isEmpty()) notifications.remove(resourceName);
-                return accessor;
-            }
+            return writeApply(resourceName, metadata, this::removeNotificationImpl);
         }
 
-        private Iterable<? extends NotificationAccessor> removeNotifications(final String resourceName){
-            try(final LockScope ignored = beginWrite()){
-                if(notifications.containsKey(resourceName))
-                    return notifications.remove(resourceName).values();
-                else return ImmutableList.of();
-            }
+        private Collection<? extends NotificationAccessor> removeNotifications(final String resourceName){
+            return writeApply(resourceName, notifications,
+                    (resName, notifs) -> notifs.containsKey(resName) ? notifs.remove(resName).values() : ImmutableList.of());
         }
 
         private void clear() {
-            try (final LockScope ignored = beginWrite()) {
-                for (final ResourceNotificationList<?> list : notifications.values())
-                    for (final NotificationAccessor accessor : list.values())
-                        accessor.close();
-            }
-            final ConcurrentPassiveCheckSender sender = checkSender;
-            if (sender != null)
-                sender.close();
+            writeAccept(notifications, notifs -> {
+                notifs.values().forEach(list -> list.values().forEach(NotificationAccessor::close));
+                notifs.clear();
+            });
             checkSender = null;
         }
     }
@@ -122,7 +124,7 @@ final class NRDPAdapter extends AbstractResourceAdapter {
     private static final class NSCAPeriodPassiveCheckSender extends PeriodicPassiveChecker<NRDPAttributeAccessor> {
         private final ConcurrentPassiveCheckSender checkSender;
 
-        NSCAPeriodPassiveCheckSender(final TimeSpan period,
+        NSCAPeriodPassiveCheckSender(final Duration period,
                                      final ConcurrentPassiveCheckSender sender,
                                      final NRDPAttributeModelOfAttributes attributes) {
             super(period, attributes);
@@ -159,9 +161,11 @@ final class NRDPAdapter extends AbstractResourceAdapter {
     }
 
     @Override
-    protected Iterable<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception {
-        return Iterables.concat(notifications.removeNotifications(resourceName),
-                attributes.clear(resourceName));
+    protected Stream<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception {
+        return Stream.concat(
+                notifications.removeNotifications(resourceName).stream(),
+                attributes.clear(resourceName).stream()
+        );
     }
 
     @SuppressWarnings("unchecked")
@@ -174,10 +178,10 @@ final class NRDPAdapter extends AbstractResourceAdapter {
         else return null;
     }
 
-    private synchronized void start(final TimeSpan checkPeriod,
+    private synchronized void start(final Duration checkPeriod,
                        final NRDPServerConnectionSettings settings,
-                       final Supplier<ExecutorService> threadPoolFactory) {
-        final ConcurrentPassiveCheckSender checkSender = new ConcurrentPassiveCheckSender(settings, threadPoolFactory);
+                       final ExecutorService threadPool) {
+        final ConcurrentPassiveCheckSender checkSender = new ConcurrentPassiveCheckSender(settings, threadPool);
         notifications.setCheckSender(checkSender);
         attributeChecker = new NSCAPeriodPassiveCheckSender(checkPeriod, checkSender, attributes);
         attributeChecker.run();
@@ -185,9 +189,10 @@ final class NRDPAdapter extends AbstractResourceAdapter {
 
     @Override
     protected void start(final Map<String, String> parameters) throws AbsentNRDPConfigurationParameterException {
-        start(getPassiveCheckSendPeriod(parameters),
-                parseSettings(parameters),
-                new SenderThreadPoolConfig(parameters, getAdapterName(), getInstanceName()));
+        final NRDPAdapterConfigurationDescriptor parser = NRDPAdapterConfigurationDescriptor.getInstance();
+        start(parser.getPassiveCheckSendPeriod(parameters),
+                parser.parseSettings(parameters),
+                parser.getThreadPool(parameters));
     }
 
     @Override

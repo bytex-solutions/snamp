@@ -12,7 +12,7 @@ import java.util.Objects;
  * @param <V> Type of the values.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  */
 public final class KeyValueTypeBuilder<K, V> implements OpenTypeBuilder<TabularType> {
     /**

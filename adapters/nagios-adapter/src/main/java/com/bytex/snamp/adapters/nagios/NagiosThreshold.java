@@ -1,7 +1,5 @@
 package com.bytex.snamp.adapters.nagios;
 
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import com.google.common.collect.Range;
 
 import java.math.BigDecimal;
@@ -9,6 +7,7 @@ import java.math.BigInteger;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -17,7 +16,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * Represents threshold in Nagios format.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class NagiosThreshold implements Predicate<Number> {
@@ -38,14 +37,14 @@ final class NagiosThreshold implements Predicate<Number> {
                     isNullOrEmpty(upperBound);
             final Predicate<BigDecimal> predicate;
             if (isPositiveInfinity)
-                predicate = Range.atLeast(new BigDecimal(lowerBound));
+                predicate = Range.atLeast(new BigDecimal(lowerBound))::contains;
             else if (isNegativeInfinity)
-                predicate = Range.atMost(new BigDecimal(upperBound));
+                predicate = Range.atMost(new BigDecimal(upperBound))::contains;
             else if (!isNullOrEmpty(upperBound))
-                predicate = Range.closed(new BigDecimal(lowerBound), new BigDecimal(upperBound));
-            else predicate = Range.closed(BigDecimal.ZERO, new BigDecimal(lowerBound));
+                predicate = Range.closed(new BigDecimal(lowerBound), new BigDecimal(upperBound))::contains;
+            else predicate = Range.closed(BigDecimal.ZERO, new BigDecimal(lowerBound))::contains;
             this.rangeChecker = inverse ?
-                    Predicates.not(predicate) :
+                    predicate.negate() :
                     predicate;
         } else throw new IllegalArgumentException(String.format("'%s' is not a threshold", threshold));
     }
@@ -56,10 +55,10 @@ final class NagiosThreshold implements Predicate<Number> {
 
     public boolean check(final Number value) {
         if (value instanceof BigDecimal)
-            return rangeChecker.apply((BigDecimal) value);
+            return rangeChecker.test((BigDecimal) value);
         else if (value instanceof BigInteger)
-            return rangeChecker.apply(new BigDecimal((BigInteger) value));
-        else return rangeChecker.apply(new BigDecimal(value.doubleValue()));
+            return rangeChecker.test(new BigDecimal((BigInteger) value));
+        else return rangeChecker.test(new BigDecimal(value.doubleValue()));
     }
 
     public boolean check(final String value, final DecimalFormat format) throws ParseException {
@@ -67,7 +66,7 @@ final class NagiosThreshold implements Predicate<Number> {
     }
 
     @Override
-    public boolean apply(final Number value) {
+    public boolean test(final Number value) {
         return check(value);
     }
 

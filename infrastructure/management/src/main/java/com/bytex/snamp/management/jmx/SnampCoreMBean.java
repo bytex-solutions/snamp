@@ -1,6 +1,5 @@
 package com.bytex.snamp.management.jmx;
 
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.jmx.OpenMBean;
 import com.bytex.snamp.management.AbstractSnampManager;
 import com.bytex.snamp.management.FrameworkMBean;
@@ -9,17 +8,18 @@ import org.osgi.service.log.LogListener;
 import org.osgi.service.log.LogService;
 
 import javax.management.openmbean.OpenDataException;
+import java.time.Duration;
 import java.util.Objects;
 import java.util.logging.Logger;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class SnampCoreMBean extends OpenMBean implements LogListener, FrameworkMBean {
     public static final String OBJECT_NAME = "com.bytex.snamp.management:type=SnampCore";
-    public static final TimeSpan DEFAULT_RENEWAL_TIME = TimeSpan.ofSeconds(5);
+    public static final Duration DEFAULT_RENEWAL_TIME = Duration.ofSeconds(5);
     private final StatisticCounters counter;
 
     private SnampCoreMBean(final StatisticCounters counter, final AbstractSnampManager manager) throws OpenDataException{
@@ -102,7 +102,7 @@ public final class SnampCoreMBean extends OpenMBean implements LogListener, Fram
         if(objectType == null) return null;
         else if(Objects.equals(objectType, Logger.class))
             return objectType.cast(getLogger());
-        else if(Objects.equals(objectType, LogListener.class))
+        else if(objectType.isInstance(this))
             return objectType.cast(this);
         else return null;
     }

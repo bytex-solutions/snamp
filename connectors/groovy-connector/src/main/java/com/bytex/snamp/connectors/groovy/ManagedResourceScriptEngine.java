@@ -1,11 +1,11 @@
 package com.bytex.snamp.connectors.groovy;
 
-import com.google.common.base.StandardSystemProperty;
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
 import com.bytex.snamp.jmx.DescriptorUtils;
+import com.google.common.base.StandardSystemProperty;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import com.google.common.collect.ImmutableMap;
 import groovy.lang.Binding;
 import groovy.util.GroovyScriptEngine;
 import groovy.util.ResourceException;
@@ -21,7 +21,7 @@ import java.util.StringTokenizer;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class ManagedResourceScriptEngine extends GroovyScriptEngine implements AttributeConnector, EventConnector {
@@ -73,7 +73,7 @@ public final class ManagedResourceScriptEngine extends GroovyScriptEngine implem
     private static void setupClassPath(final CompilerConfiguration config) {
         final List<String> classPath = config.getClasspath();
         final String javaClassPath = StandardSystemProperty.JAVA_CLASS_PATH.value();
-        if (!Strings.isNullOrEmpty(javaClassPath)) {
+        if (!isNullOrEmpty(javaClassPath)) {
             StringTokenizer tokenizer = new StringTokenizer(javaClassPath, File.pathSeparator);
             while (tokenizer.hasMoreTokens())
                 classPath.add(tokenizer.nextToken());
@@ -143,6 +143,7 @@ public final class ManagedResourceScriptEngine extends GroovyScriptEngine implem
     public ManagedResourceInfo init(final String initScript,
                      final Map<String, ?> initParams) throws ResourceException, ScriptException {
         final ManagedResourceInitializationScript result = createScript(initScript, initParams, ManagedResourceInitializationScript.class);
+        result.setContext(getClass().getClassLoader());
         result.run();
         return result;
     }

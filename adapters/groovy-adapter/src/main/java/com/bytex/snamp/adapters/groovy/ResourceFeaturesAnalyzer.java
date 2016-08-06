@@ -1,16 +1,16 @@
 package com.bytex.snamp.adapters.groovy;
 
-import com.google.common.base.Supplier;
 import com.bytex.snamp.adapters.modeling.FeatureAccessor;
 import com.bytex.snamp.jmx.ExpressionBasedDescriptorFilter;
 import org.osgi.framework.InvalidSyntaxException;
 
 import javax.management.MBeanFeatureInfo;
+import java.util.function.Supplier;
 
 /**
  * Represents a root interface for resource features analyzer.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public interface ResourceFeaturesAnalyzer {

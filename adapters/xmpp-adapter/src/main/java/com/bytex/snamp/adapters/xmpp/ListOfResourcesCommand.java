@@ -8,7 +8,7 @@ import org.jivesoftware.smack.packet.Message;
  * Prints connected managed resources.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class ListOfResourcesCommand extends AbstractCommand {
@@ -27,8 +27,7 @@ final class ListOfResourcesCommand extends AbstractCommand {
     @Override
     protected Message doCommand(final CommandLine command) {
         final StringBuilder resources = new StringBuilder(64);
-        for(final String resourceName: reader.getHostedResources())
-            resources.append(resourceName);
+        reader.getHostedResources().forEach(resources::append);
         final Message msg = new Message();
         msg.setSubject("List of managed resources");
         msg.setBody(resources.toString());

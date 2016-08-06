@@ -1,7 +1,7 @@
 package com.bytex.snamp.adapters.groovy;
 
 import com.google.common.base.StandardSystemProperty;
-import com.google.common.base.Strings;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import groovy.lang.Binding;
 import groovy.util.GroovyScriptEngine;
 import groovy.util.ResourceException;
@@ -19,7 +19,7 @@ import java.util.StringTokenizer;
  * Represents script engine for Resource Adapter scripts.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class ResourceAdapterScriptEngine extends GroovyScriptEngine {
@@ -71,7 +71,7 @@ public final class ResourceAdapterScriptEngine extends GroovyScriptEngine {
     private static void setupClassPath(final CompilerConfiguration config) {
         final List<String> classPath = config.getClasspath();
         final String javaClassPath = StandardSystemProperty.JAVA_CLASS_PATH.value();
-        if (!Strings.isNullOrEmpty(javaClassPath)) {
+        if (!isNullOrEmpty(javaClassPath)) {
             StringTokenizer tokenizer = new StringTokenizer(javaClassPath, File.pathSeparator);
             while (tokenizer.hasMoreTokens())
                 classPath.add(tokenizer.nextToken());

@@ -1,12 +1,14 @@
 package com.bytex.snamp.testing.adapters.decanter;
 
-import com.bytex.snamp.concurrent.SynchronizationEvent;
+import com.bytex.snamp.adapters.ResourceAdapterActivator;
+import com.bytex.snamp.testing.BundleExceptionCallable;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connectors.jmx.TestOpenMBean;
 import com.google.common.reflect.TypeToken;
 import org.junit.Test;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
@@ -17,12 +19,10 @@ import javax.management.JMException;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.management.openmbean.CompositeData;
+import java.time.Duration;
 import java.util.Hashtable;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 import static com.bytex.snamp.configuration.AgentConfiguration.EntityMap;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration;
@@ -32,19 +32,19 @@ import static com.bytex.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @SnampDependencies(SnampFeature.DECANTER_ADAPTER)
 public class JmxToDecanterTest extends AbstractJmxConnectorTest<TestOpenMBean> implements EventConstants {
-    private static final class DecanterEventListener extends SynchronizationEvent<Event> implements EventHandler{
-        private DecanterEventListener(){
-            super(true);
-        }
+    private static final String ADAPTER_NAME = "decanter";
+
+    private static final class DecanterEventListener extends LinkedBlockingQueue<Event> implements EventHandler{
+        private static final long serialVersionUID = -6332965879993615931L;
 
         @Override
         public void handleEvent(final Event event) {
-            fire(event);
+            offer(event);
         }
     }
 
@@ -65,7 +65,8 @@ public class JmxToDecanterTest extends AbstractJmxConnectorTest<TestOpenMBean> i
         ht.put(EVENT_TOPIC, topics);
         final ServiceRegistration<EventHandler> handler = getTestBundleContext().registerService(EventHandler.class, listener, ht);
         try{
-            final Event ev = listener.getAwaitor().get(10, TimeUnit.SECONDS);
+            final Event ev = listener.poll(10, TimeUnit.SECONDS);
+            assertNotNull(ev);
             assertEquals("dictionary", ev.getProperty("snampType"));
             assertEquals(CompositeData.class.getName(), ev.getProperty("javaType"));
             assertTrue(ev.getProperty("value") instanceof Map<?, ?>);
@@ -83,9 +84,9 @@ public class JmxToDecanterTest extends AbstractJmxConnectorTest<TestOpenMBean> i
         ht.put(EVENT_TOPIC, topics);
         final ServiceRegistration<EventHandler> handler = getTestBundleContext().registerService(EventHandler.class, listener, ht);
         try {
-            final Future<Event> f = listener.getAwaitor();
             testAttribute("string", TypeToken.of(String.class), "Frank Underwood");
-            final Event ev = f.get(10, TimeUnit.SECONDS);
+            final Event ev = listener.poll(10, TimeUnit.SECONDS);
+            assertNotNull(ev);
             assertEquals("notice", ev.getProperty("severity"));
             assertTrue(ev.getProperty("data") instanceof Map<?, ?>);
             assertTrue(ev.containsProperty("message"));
@@ -96,8 +97,29 @@ public class JmxToDecanterTest extends AbstractJmxConnectorTest<TestOpenMBean> i
     }
 
     @Override
+    protected void beforeStartTest(final BundleContext context) throws Exception {
+        super.beforeStartTest(context);
+        beforeCleanupTest(context);
+    }
+
+    @Override
+    protected void afterStartTest(final BundleContext context) throws Exception {
+        startResourceConnector(context);
+        syncWithAdapterStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
+            ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
+            return null;
+        }, Duration.ofMinutes(4));
+    }
+
+    @Override
+    protected void beforeCleanupTest(final BundleContext context) throws Exception {
+        ResourceAdapterActivator.stopResourceAdapter(context, ADAPTER_NAME);
+        stopResourceConnector(context);
+    }
+
+    @Override
     protected void fillAdapters(final EntityMap<? extends ResourceAdapterConfiguration> adapters) {
-        adapters.getOrAdd("decanter-adapter").setAdapterName("decanter");
+        adapters.getOrAdd("decanter-adapter").setAdapterName(ADAPTER_NAME);
     }
 
     @Override

@@ -3,32 +3,32 @@ package com.bytex.snamp.testing;
 /**
  * Represents SNAMP artifacts.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public enum SnampFeature {
-    PLATFORM("platform-feature", "1.1.0"),
-    JMX_CONNECTOR("jmx-connector-feature", "1.1.0"),
-    WMQ_CONNECTOR("ibmwmq-connector-feature", "1.1.0"),
-    SNMP_ADAPTER("snmp-adapter-feature", "1.1.0"),
-    JMX_ADAPTER("jmx-adapter-feature", "1.1.0"),
-    SNMP_CONNECTOR("snmp-connector-feature", "1.1.0"),
-    RSHELL_CONNECTOR("rshell-connector-feature", "1.1.0"),
-    SSH_ADAPTER("ssh-adapter-feature", "1.1.0"),
-    WRAPPED_LIBS("wrapped-libs-for-tests", "1.1.0"),
-    HTTP_ADAPTER("http-adapter-feature", "1.1.0"),
-    RESOURCE_AGGREGATOR("aggregator-connector-feature", "1.1.0"),
-    NSCA_ADAPTER("nsca-adapter-feature", "1.1.0"),
-    NRDP_ADAPTER("nrdp-adapter-feature", "1.1.0"),
-    NAGIOS_ADAPTER("nagios-adapter-feature", "1.1.0"),
-    SYSLOG_ADAPTER("syslog-adapter-feature", "1.1.0"),
-    XMPP_ADAPTER("xmpp-adapter-feature", "1.1.0"),
-    DECANTER_ADAPTER("decanter-adapter-feature", "1.1.0"),
-    GROOVY_CONNECTOR("groovy-connector-feature", "1.1.0"),
-    GROOVY_ADAPTER("groovy-adapter-feature", "1.1.0"),
-    MODBUS_CONNECTOR("modbus-connector-feature", "1.1.0"),
-    MDA_CONNECTOR("mda-connector-feature", "1.1.0"),
-    MQ_CONNECTOR("mq-connector-feature", "1.1.0");
+    PLATFORM("platform-feature", "1.2.0"),
+    JMX_CONNECTOR("jmx-connector-feature", "1.2.0"),
+    WMQ_CONNECTOR("ibmwmq-connector-feature", "1.2.0"),
+    SNMP_ADAPTER("snmp-adapter-feature", "1.2.0"),
+    JMX_ADAPTER("jmx-adapter-feature", "1.2.0"),
+    SNMP_CONNECTOR("snmp-connector-feature", "1.2.0"),
+    RSHELL_CONNECTOR("rshell-connector-feature", "1.2.0"),
+    SSH_ADAPTER("ssh-adapter-feature", "1.2.0"),
+    WRAPPED_LIBS("wrapped-libs-for-tests", "1.2.0"),
+    HTTP_ADAPTER("http-adapter-feature", "1.2.0"),
+    RESOURCE_AGGREGATOR("aggregator-connector-feature", "1.2.0"),
+    NSCA_ADAPTER("nsca-adapter-feature", "1.2.0"),
+    NRDP_ADAPTER("nrdp-adapter-feature", "1.2.0"),
+    NAGIOS_ADAPTER("nagios-adapter-feature", "1.2.0"),
+    SYSLOG_ADAPTER("syslog-adapter-feature", "1.2.0"),
+    XMPP_ADAPTER("xmpp-adapter-feature", "1.2.0"),
+    DECANTER_ADAPTER("decanter-adapter-feature", "1.2.0"),
+    GROOVY_CONNECTOR("groovy-connector-feature", "1.2.0"),
+    GROOVY_ADAPTER("groovy-adapter-feature", "1.2.0"),
+    MODBUS_CONNECTOR("modbus-connector-feature", "1.2.0"),
+    MDA_CONNECTOR("mda-connector-feature", "1.2.0"),
+    MQ_CONNECTOR("mq-connector-feature", "1.2.0");
 
     final String featureName;
     final String version;

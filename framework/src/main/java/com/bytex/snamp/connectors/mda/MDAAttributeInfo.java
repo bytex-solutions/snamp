@@ -1,6 +1,5 @@
 package com.bytex.snamp.connectors.mda;
 
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.attributes.AttributeDescriptor;
 import com.bytex.snamp.connectors.attributes.AttributeSpecifier;
 import com.bytex.snamp.connectors.attributes.OpenMBeanAttributeAccessor;
@@ -10,13 +9,14 @@ import com.bytex.snamp.jmx.OpenMBean;
 import javax.management.InvalidAttributeValueException;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
+import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
 /**
  * Represents attribute that can be changed by remote Agent.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class MDAAttributeInfo<T> extends OpenMBeanAttributeAccessor<T> {
@@ -24,7 +24,7 @@ public class MDAAttributeInfo<T> extends OpenMBeanAttributeAccessor<T> {
 
     private Map.Entry<String, Object> entryRef;
     private AccessTimer accessTimer;
-    private TimeSpan expirationTime;
+    private Duration expirationTime;
     private final OpenType<T> attributeType;
 
     public MDAAttributeInfo(final String name,
@@ -49,7 +49,7 @@ public class MDAAttributeInfo<T> extends OpenMBeanAttributeAccessor<T> {
         return getDescriptor().getName(getName());
     }
 
-    final void init(final AccessTimer accessTimer, final TimeSpan expirationTime, final ConcurrentMap<String, Object> storage, final T initialValue){
+    final void init(final AccessTimer accessTimer, final Duration expirationTime, final ConcurrentMap<String, Object> storage, final T initialValue){
         storage.put(getStorageKey(), initialValue);
         this.accessTimer = accessTimer;
         this.expirationTime = expirationTime;

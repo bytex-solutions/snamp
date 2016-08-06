@@ -4,12 +4,13 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 
 /**
  * Deletes event from resource.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
@@ -26,8 +27,8 @@ public final class DeleteEventCommand extends ConfigurationCommand {
 
     @Override
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
-        if (configuration.getManagedResources().containsKey(resourceName))
-            if (configuration.getManagedResources().get(resourceName).getFeatures(EventConfiguration.class).remove(userDefinedName) == null) {
+        if (configuration.getEntities(ManagedResourceConfiguration.class).containsKey(resourceName))
+            if (configuration.getEntities(ManagedResourceConfiguration.class).get(resourceName).getFeatures(EventConfiguration.class).remove(userDefinedName) == null) {
                 output.append("Event doesn't exist");
                 return false;
             } else {
@@ -36,7 +37,7 @@ public final class DeleteEventCommand extends ConfigurationCommand {
             }
         else {
             output.append("Resource doesn't exist");
-            return true;
+            return false;
         }
     }
 }

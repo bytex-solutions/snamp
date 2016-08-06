@@ -2,12 +2,11 @@ package com.bytex.snamp.connectors.notifications;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.configuration.AgentConfiguration;
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import com.bytex.snamp.configuration.ConfigParameters;
 import com.bytex.snamp.connectors.ConfigurationEntityRuntimeMetadata;
 import com.bytex.snamp.jmx.DescriptorUtils;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 
 import javax.management.Descriptor;
 import javax.management.ImmutableDescriptor;
@@ -20,11 +19,12 @@ import java.util.Objects;
 import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration;
 import static com.bytex.snamp.connectors.notifications.NotificationSupport.*;
 import static com.bytex.snamp.jmx.CompositeDataUtils.fillMap;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents notification descriptor.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public class NotificationDescriptor extends ImmutableDescriptor implements ConfigurationEntityRuntimeMetadata<EventConfiguration> {
@@ -58,10 +58,7 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
     @Override
     public final NotificationDescriptor setFields(final Map<String, ?> values){
         if(values == null || values.isEmpty()) return this;
-        final String[] fields = getFieldNames();
-        final Map<String, Object> newFields = Maps.newHashMapWithExpectedSize(fields.length + values.size());
-        for(final String name: fields)
-            newFields.put(name, getFieldValue(name));
+        final Map<String, Object> newFields = DescriptorUtils.toMap(this, Object.class, false);
         newFields.putAll(values);
         return new NotificationDescriptor(newFields);
     }
@@ -115,7 +112,7 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
 
     public final String getDescription(final String defval){
         final String result = getDescription();
-        return Strings.isNullOrEmpty(result) ? defval : result;
+        return isNullOrEmpty(result) ? defval : result;
     }
 
     public static String getDescription(final Descriptor metadata){

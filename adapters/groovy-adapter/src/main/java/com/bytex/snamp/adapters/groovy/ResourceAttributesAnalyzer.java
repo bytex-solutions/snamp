@@ -2,8 +2,6 @@ package com.bytex.snamp.adapters.groovy;
 
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
-import com.google.common.base.Predicate;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.adapters.modeling.ModelOfAttributes;
 import com.bytex.snamp.adapters.modeling.AttributeAccessor;
 import com.bytex.snamp.adapters.modeling.PeriodicPassiveChecker;
@@ -15,42 +13,37 @@ import org.osgi.framework.InvalidSyntaxException;
 import javax.management.DescriptorRead;
 import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
+import java.time.Duration;
 import java.util.*;
+import java.util.function.Predicate;
 
 /**
  * Represents advanced attribute analyzer based on periodic attribute query.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  */
 public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> extends PeriodicPassiveChecker<TAccessor> implements ResourceFeaturesAnalyzer {
     private interface AttributeStatement extends FeatureStatement{
-    }
-
-    private static <I, E extends Throwable> AttributeValueHandler<I, E> handlerStub(){
-        return new AttributeValueHandler<I, E>() {
-            @Override
-            public void handle(final String resourceName, final MBeanAttributeInfo metadata, final I attributeValue) {
-
-            }
-        };
     }
 
     /**
      * Represents attribute value handler.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     public static class FilterAndProcessAttributeStatement implements Predicate, AttributeStatement{
         private final Predicate checker;
         private final WriteOnceRef<AttributeValueHandler<Object, ?>> successHandler;
         private final WriteOnceRef<AttributeValueHandler<? super Throwable, ? extends RuntimeException>> errorHandler;
 
-        protected FilterAndProcessAttributeStatement(final Predicate checker){
+        protected FilterAndProcessAttributeStatement(final Predicate checker) {
             this.checker = Objects.requireNonNull(checker);
-            this.successHandler = new WriteOnceRef<AttributeValueHandler<Object, ?>>(handlerStub());
-            this.errorHandler = new WriteOnceRef<AttributeValueHandler<? super Throwable, ? extends RuntimeException>>(ResourceAttributesAnalyzer.<Throwable, RuntimeException>handlerStub());
+            this.successHandler = new WriteOnceRef<>((resourceName, metadata, attributeValue) -> {
+            });
+            this.errorHandler = new WriteOnceRef<>((resourceName, metadata, attributeValue) -> {
+            });
         }
 
         /**
@@ -60,8 +53,8 @@ public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> ext
          */
         @SuppressWarnings("unchecked")
         @Override
-        public final boolean apply(final Object attributeValue) {
-            return checker.apply(attributeValue);
+        public final boolean test(final Object attributeValue) {
+            return checker.test(attributeValue);
         }
 
         public final FilterAndProcessAttributeStatement failure(final AttributeValueHandler<? super Throwable, ? extends RuntimeException> handler){
@@ -71,7 +64,7 @@ public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> ext
 
         @SpecialUse
         public final FilterAndProcessAttributeStatement failure(final Closure<?> handler){
-            return failure(Closures.<Throwable, RuntimeException>toAttributeHandler(handler));
+            return failure(Closures.toAttributeHandler(handler));
         }
 
         public final FilterAndProcessAttributeStatement then(final AttributeValueHandler<Object, ?> handler){
@@ -107,7 +100,7 @@ public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> ext
      * Represents attribute selector statement.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     public static class AttributeSelectStatement extends AbstractSelectStatement implements AttributeStatement {
         private final List<FilterAndProcessAttributeStatement> handlers;
@@ -142,9 +135,9 @@ public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> ext
                     handler.onError(resourceName, accessor.getMetadata(), e);
                 return;
             }
-            for (final FilterAndProcessAttributeStatement handler : handlers)
-                if (handler.apply(attributeValue))
-                    handler.onSuccess(resourceName, accessor.getMetadata(), attributeValue);
+            handlers.stream()
+                    .filter(handler -> handler.test(attributeValue))
+                    .forEach(handler -> handler.onSuccess(resourceName, accessor.getMetadata(), attributeValue));
         }
     }
 
@@ -157,7 +150,7 @@ public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> ext
      * @param attributes A collection of attributes. Cannot be {@literal null}.
      * @throws IllegalArgumentException period is {@literal null}.
      */
-    public ResourceAttributesAnalyzer(final TimeSpan period,
+    public ResourceAttributesAnalyzer(final Duration period,
                                       final ModelOfAttributes<TAccessor> attributes) {
         super(period, attributes);
         selectionStatements = new LinkedHashSet<>(10);
@@ -179,9 +172,9 @@ public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> ext
     public final boolean processAttribute(final String resourceName, final TAccessor accessor) {
         //abort if passive node
         if (DistributedServices.isActiveNode(Utils.getBundleContextOfObject(this))) {
-            for (final AttributeSelectStatement group : selectionStatements)
-                if (group.match((DescriptorRead) accessor))
-                    group.process(resourceName, accessor);
+            selectionStatements.stream()
+                    .filter(group -> group.match((DescriptorRead) accessor))
+                    .forEach(group -> group.process(resourceName, accessor));
             return true;
         } else return false;
     }

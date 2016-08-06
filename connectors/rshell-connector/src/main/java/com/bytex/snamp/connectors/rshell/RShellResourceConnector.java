@@ -4,10 +4,6 @@ import com.bytex.jcommands.CommandExecutionChannel;
 import com.bytex.jcommands.impl.TypeTokens;
 import com.bytex.jcommands.impl.XmlCommandLineToolProfile;
 import com.bytex.jcommands.impl.XmlParserDefinition;
-import com.bytex.jcommands.impl.XmlParsingResultType;
-import com.bytex.snamp.EntryReader;
-import com.bytex.snamp.ExceptionPlaceholder;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.connectors.AbstractManagedResourceConnector;
 import com.bytex.snamp.connectors.ResourceEventListener;
 import com.bytex.snamp.connectors.attributes.*;
@@ -25,23 +21,24 @@ import javax.script.ScriptException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.bytex.snamp.TypeTokens.safeCast;
+import static com.bytex.snamp.TypeTokens.cast;
 
 /**
  * Represents RShell resource connector.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class RShellResourceConnector extends AbstractManagedResourceConnector implements AttributeSupport {
     private static abstract class RShellAttributeInfo extends OpenMBeanAttributeInfoImpl {
         private static final long serialVersionUID = -403897890533078455L;
-        protected final XmlCommandLineToolProfile commandProfile;
+        final XmlCommandLineToolProfile commandProfile;
         private final Map<String, ?> parameters;
 
         private RShellAttributeInfo(final String attributeID,
@@ -115,12 +112,9 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
                                                       final XmlParserDefinition definition) throws OpenDataException{
             final TabularTypeBuilder builder = new TabularTypeBuilder();
             builder.addColumn(INDEX_COLUMN, "The index of the row", SimpleType.INTEGER, true);
-            definition.exportTableOrDictionaryType(new EntryReader<String, XmlParsingResultType, ExceptionPlaceholder>() {
-                @Override
-                public boolean read(final String index, final XmlParsingResultType value) {
-                    builder.addColumn(index, index, value.getOpenType(), false);
-                    return true;
-                }
+            definition.exportTableOrDictionaryType((index, value) -> {
+                builder.addColumn(index, index, value.getOpenType(), false);
+                return true;
             });
             builder.setTypeName(String.format("%sTabularType", descriptor.getName(attributeName)), true);
             builder.setDescription(RShellAttributeInfo.getDescription(descriptor), true);
@@ -139,7 +133,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
 
         @Override
         protected Object getValue(final CommandExecutionChannel channel, final Map<String, ?> channelParams) throws IOException, ScriptException, OpenDataException {
-            final List<? extends Map<String, ?>> rows = com.bytex.snamp.TypeTokens.safeCast(commandProfile.readFromChannel(channel, channelParams), TypeTokens.TABLE_TYPE_TOKEN);
+            final List<? extends Map<String, ?>> rows = cast(commandProfile.readFromChannel(channel, channelParams), TypeTokens.TABLE_TYPE_TOKEN);
             return rows != null ? convert(rows) : null;
         }
 
@@ -168,12 +162,9 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
                                                       final AttributeDescriptor descriptor,
                                                     final XmlParserDefinition definition) throws OpenDataException{
             final CompositeTypeBuilder builder = new CompositeTypeBuilder();
-            definition.exportTableOrDictionaryType(new EntryReader<String, XmlParsingResultType, ExceptionPlaceholder>() {
-                @Override
-                public boolean read(final String index, final XmlParsingResultType value) {
-                    builder.addItem(index, index, value.getOpenType());
-                    return true;
-                }
+            definition.exportTableOrDictionaryType((index, value) -> {
+                builder.addItem(index, index, value.getOpenType());
+                return true;
             });
             builder.setTypeName(String.format("%sCompositeType", descriptor.getName(attributeName)));
             builder.setDescription(RShellAttributeInfo.getDescription(descriptor));
@@ -186,7 +177,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
 
         @Override
         protected CompositeData getValue(final CommandExecutionChannel channel, final Map<String, ?> channelParams) throws IOException, ScriptException, OpenDataException {
-            final Map<String, ?> dict = safeCast(commandProfile.readFromChannel(channel, channelParams), TypeTokens.DICTIONARY_TYPE_TOKEN);
+            final Map<String, ?> dict = cast(commandProfile.readFromChannel(channel, channelParams), TypeTokens.DICTIONARY_TYPE_TOKEN);
             return dict != null ? convert(dict) : null;
         }
     }
@@ -297,11 +288,11 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
     }
 
     private final CommandExecutionChannel executionChannel;
-    @Aggregation
+    @Aggregation(cached = true)
     private final RShellAttributes attributes;
 
-    RShellResourceConnector(final String resourceName,
-                            final RShellConnectionOptions connectionOptions) throws Exception {
+    private RShellResourceConnector(final String resourceName,
+                                    final RShellConnectionOptions connectionOptions) throws Exception {
         executionChannel = connectionOptions.createExecutionChannel();
         if(executionChannel == null)
             throw new InstantiationException(String.format("Unknown channel: %s", connectionOptions));
@@ -321,7 +312,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
         return assembleMetricsReader(attributes);
     }
 
-    boolean addAttribute(final String attributeName, final TimeSpan readWriteTimeout, final CompositeData options) {
+    boolean addAttribute(final String attributeName, final Duration readWriteTimeout, final CompositeData options) {
         return attributes.addAttribute(attributeName, readWriteTimeout, options) != null;
     }
 

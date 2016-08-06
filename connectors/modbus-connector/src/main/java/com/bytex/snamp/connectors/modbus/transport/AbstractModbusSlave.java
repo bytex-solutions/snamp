@@ -13,7 +13,7 @@ import java.util.Objects;
 /**
  * Represents an abstract class for building virtual Slave device.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 abstract class AbstractModbusSlave<L extends ModbusListener> implements ModbusSlave {
@@ -29,15 +29,6 @@ abstract class AbstractModbusSlave<L extends ModbusListener> implements ModbusSl
         this.listener = Objects.requireNonNull(listener);
         this.processImage = new SimpleProcessImage();
         ModbusCoupler.getReference().setProcessImage(processImage);
-    }
-
-    private static DigitalIn cast(final DigitalInputAccessor di){
-        return new DigitalIn() {
-            @Override
-            public boolean isSet() {
-                return di.getValue();
-            }
-        };
     }
 
     private static DigitalOut cast(final DigitalOutputAccessor out){
@@ -182,9 +173,9 @@ abstract class AbstractModbusSlave<L extends ModbusListener> implements ModbusSl
     @Override
     public final AbstractModbusSlave<L> register(final int ref, final DigitalInputAccessor input) {
         if(processImage.getDigitalInCount() <= ref)
-            processImage.addDigitalIn(cast(input));
+            processImage.addDigitalIn(input::getValue);
         else
-            processImage.setDigitalIn(ref, cast(input));
+            processImage.setDigitalIn(ref, input::getValue);
         return this;
     }
 

@@ -11,7 +11,7 @@ import java.util.Objects;
 /**
  * This class emulates {@link com.google.common.collect.Multimap} with weak values.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class WeakMultimap {

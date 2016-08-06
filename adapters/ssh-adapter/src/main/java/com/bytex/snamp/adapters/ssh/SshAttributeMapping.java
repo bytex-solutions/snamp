@@ -8,7 +8,7 @@ import java.io.Writer;
 /**
  * Represents form of the attribute suitable for printing via text-based streams.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public interface SshAttributeMapping {

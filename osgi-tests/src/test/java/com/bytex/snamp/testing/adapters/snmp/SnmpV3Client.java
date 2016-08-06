@@ -52,6 +52,7 @@ final class SnmpV3Client extends AbstractSnmpClient {
      * and the listen() method listens for answers.
      * @throws java.io.IOException
      */
+    @SuppressWarnings("unchecked")
     private void start() throws IOException {
         //setup dispatcher
         final MessageDispatcherImpl dispatcher = new MessageDispatcherImpl();

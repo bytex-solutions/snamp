@@ -1,7 +1,7 @@
 package com.bytex.snamp.configuration;
 
-import com.bytex.snamp.TimeSpan;
-
+import java.time.Duration;
+import java.time.temporal.TemporalUnit;
 import java.util.Map;
 
 /**
@@ -27,14 +27,14 @@ import java.util.Map;
  * </p>
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  */
 public interface AgentConfiguration extends Cloneable {
     /**
      * Represents a root interface for all agent configuration entities.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     interface EntityConfiguration {
         /**
@@ -52,6 +52,27 @@ public interface AgentConfiguration extends Cloneable {
          * @return A map of configuration parameters.
          */
         Map<String, String> getParameters();
+
+        default void setGroupName(final String value){
+            getParameters().put(GROUP_KEY, value);
+        }
+
+        default String getGroupName(){
+            return getParameters().get(GROUP_KEY);
+        }
+
+        default void setDescription(final String value){
+            getParameters().put(DESCRIPTION_KEY, value);
+        }
+
+        default String getDescription(){
+            return getParameters().get(DESCRIPTION_KEY);
+        }
+
+        default void setParameters(final Map<String, String> parameters){
+            getParameters().clear();
+            getParameters().putAll(parameters);
+        }
     }
 
     /**
@@ -71,9 +92,16 @@ public interface AgentConfiguration extends Cloneable {
      * Represents hosting configuration (front-end configuration).
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     interface ResourceAdapterConfiguration extends EntityConfiguration {
+        /**
+         * Represents name of configuration parameter that points to thread pool in {@link com.bytex.snamp.concurrent.ThreadPoolRepository}
+         * service used by adapter.
+         * @since 1.2
+         */
+        String THREAD_POOL_KEY = "threadPool";
+
         /**
          * Gets the hosting adapter name.
          * @return The hosting adapter name.
@@ -98,20 +126,27 @@ public interface AgentConfiguration extends Cloneable {
      * Represents management target configuration (back-end management information providers).
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.0
+     * @version 1.2
      */
     interface ManagedResourceConfiguration extends EntityConfiguration {
 
         /**
-         * Represents name of the configuration parameter that can be used to enable Smart mode of the connector.
+         * Represents name of configuration parameter that can be used to enable Smart mode of the connector.
          */
         String SMART_MODE_KEY = "smartMode";
+
+        /**
+         * Represents name of configuration parameter that points to thread pool in {@link com.bytex.snamp.concurrent.ThreadPoolRepository}
+         * service used by connector.
+         * @since 1.2
+         */
+        String THREAD_POOL_KEY = "threadPool";
 
         /**
          * Represents a feature of the managed resource.
          * @author Roman Sakno
          * @since 1.0
-         * @version 1.0
+         * @version 1.2
          */
         interface FeatureConfiguration extends EntityConfiguration {
             /**
@@ -123,13 +158,32 @@ public interface AgentConfiguration extends Cloneable {
              * Represents configuration parameter indicating that this feature was created by machine, not by human.
              */
             String AUTOMATICALLY_ADDED_KEY = "automaticallyAdded";
+
+            default void setAlternativeName(final String value){
+                getParameters().put(NAME_KEY, value);
+            }
+
+            default String getAlternativeName(){
+                return getParameters().get(NAME_KEY);
+            }
+
+            default boolean isAutomaticallyAdded(){
+                return getParameters().containsKey(AUTOMATICALLY_ADDED_KEY);
+            }
+
+            default void setAutomaticallyAdded(final boolean value){
+                if(value)
+                    getParameters().put(AUTOMATICALLY_ADDED_KEY, Boolean.TRUE.toString());
+                else
+                    getParameters().remove(AUTOMATICALLY_ADDED_KEY);
+            }
         }
 
         /**
          * Represents event configuration.
          * @author Roman Sakno
          * @since 1.0
-         * @version 1.0
+         * @version 1.2
          */
         interface EventConfiguration extends FeatureConfiguration {
         }
@@ -138,50 +192,66 @@ public interface AgentConfiguration extends Cloneable {
          * Represents attribute configuration.
          * @author Roman Sakno
          * @since 1.0
-         * @version 1.0
+         * @version 1.2
          */
         interface AttributeConfiguration extends FeatureConfiguration {
             /**
              * Recommended timeout for read/write of attribute in smart mode.
              */
-            TimeSpan TIMEOUT_FOR_SMART_MODE = TimeSpan.ofSeconds(10);
+            Duration TIMEOUT_FOR_SMART_MODE = Duration.ofSeconds(10);
 
             /**
              * Gets attribute value invoke/write operation timeout.
              * @return Gets attribute value invoke/write operation timeout.
              */
-            TimeSpan getReadWriteTimeout();
+            Duration getReadWriteTimeout();
+
+            default long getReadWriteTimeout(final TemporalUnit unit){
+                return getReadWriteTimeout().get(unit);
+            }
 
             /**
              * Sets attribute value invoke/write operation timeout.
              * @param value A new value of the timeout.
              */
-            void setReadWriteTimeout(final TimeSpan value);
+            void setReadWriteTimeout(final Duration value);
+
+            default void setReadWriteTimeout(final long amount, final TemporalUnit unit){
+                setReadWriteTimeout(Duration.of(amount, unit));
+            }
         }
 
         /**
          * Represents configuration of the managed resource operation.
          * @author Roman Sakno
          * @since 1.0
-         * @version 1.0
+         * @version 1.2
          */
         interface OperationConfiguration extends FeatureConfiguration{
             /**
              * Recommended timeout for invocation of operation in smart mode.
              */
-            TimeSpan TIMEOUT_FOR_SMART_MODE = TimeSpan.ofSeconds(10);
+            Duration TIMEOUT_FOR_SMART_MODE = Duration.ofSeconds(10);
 
             /**
              * Gets timeout of operation invocation.
              * @return Timeout value.
              */
-            TimeSpan getInvocationTimeout();
+            Duration getInvocationTimeout();
+
+            default long getInvocationTimeout(final TemporalUnit unit){
+                return getInvocationTimeout().get(unit);
+            }
 
             /**
              * Sets timeout of operation invocation.
              * @param value A new timeout value.
              */
-            void setInvocationTimeout(final TimeSpan value);
+            void setInvocationTimeout(final Duration value);
+
+            default void setInvocationTimeout(final long amount, final TemporalUnit unit){
+                setInvocationTimeout(Duration.of(amount, unit));
+            }
         }
 
         /**
@@ -228,22 +298,35 @@ public interface AgentConfiguration extends Cloneable {
     }
 
     /**
-     * Gets a collection of resource adapters.
-     * <p>
-     *     The key represents user-defined unique name of the adapter.
-     * </p>
-     * @return A collection of resource adapters.
+     * Obtains a repository of configuration entities.
+     * @param entityType Type of entity. You can use {@link ManagedResourceConfiguration} or {@link ResourceAdapterConfiguration} as entities.
+     * @param <E> Type of entity.
+     * @return A repository of configuration entities; or {@literal null}, if entity type is not supported by SNAMP configuration subsystem.
+     * @since 1.2
      */
-    EntityMap<? extends ResourceAdapterConfiguration> getResourceAdapters();
+    <E extends EntityConfiguration> EntityMap<? extends E> getEntities(final Class<E> entityType);
 
     /**
-     * Gets a collection of managed resources.
-     * <p>
-     *     The key represents user-defined name of the managed resource.
-     * </p>
-     * @return The dictionary of managed resources.
+     * Obtain configuration of SNAMP entity or register new.
+     * @param entityType Type of entity. You can use {@link ManagedResourceConfiguration} or {@link ResourceAdapterConfiguration} as entities.
+     * @param entityID Entity ID.
+     * @param <E> Type of entity.
+     * @return An instance of existing entity or newly created entity. {@literal null}, if entity type is not supported by SNAMP configuration subsystem.
+     * @since 1.2
      */
-    EntityMap<? extends ManagedResourceConfiguration> getManagedResources();
+    default <E extends EntityConfiguration> E getOrRegisterEntity(final Class<E> entityType, final String entityID){
+        final EntityMap<? extends E> entities = getEntities(entityType);
+        return entities == null ? null : entities.getOrAdd(entityID);
+    }
+
+    /**
+     * Creates a new instance of entity configuration.
+     * @param entityType Type of entity. Can be {@link ManagedResourceConfiguration},
+     *                  {@link ResourceAdapterConfiguration}. {@link ManagedResourceConfiguration.AttributeConfiguration}, {@link ManagedResourceConfiguration.EventConfiguration}, {@link ManagedResourceConfiguration.OperationConfiguration}.
+     * @param <E> Type of requested entity.
+     * @return A new instance of entity configuration; or {@literal null}, if entity is not supported.
+     */
+    <E extends EntityConfiguration> E createEntityConfiguration(final Class<E> entityType);
 
     /**
      * Imports the state of specified object into this object.
@@ -255,4 +338,5 @@ public interface AgentConfiguration extends Cloneable {
      * Clears this configuration.
      */
     void clear();
+
 }

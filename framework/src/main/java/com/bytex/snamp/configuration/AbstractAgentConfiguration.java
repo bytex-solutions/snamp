@@ -7,7 +7,7 @@ import java.util.Objects;
  * Represents a base class for custom agent configuration holders.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 1.2
  */
 public abstract class AbstractAgentConfiguration implements AgentConfiguration {
     private interface ConfigurationEntityCopier<T extends EntityConfiguration>{
@@ -26,8 +26,8 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
      */
     @Override
     public void clear() {
-        getManagedResources().clear();
-        getResourceAdapters().clear();
+        getEntities(ManagedResourceConfiguration.class).clear();
+        getEntities(ResourceAdapterConfiguration.class).clear();
     }
 
     /**
@@ -55,9 +55,7 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
      */
     public static void copy(final ManagedResourceConfiguration.AttributeConfiguration source, final ManagedResourceConfiguration.AttributeConfiguration dest){
         dest.setReadWriteTimeout(source.getReadWriteTimeout());
-        final Map<String, String> additionalElements = dest.getParameters();
-        additionalElements.clear();
-        additionalElements.putAll(source.getParameters());
+        dest.setParameters(source.getParameters());
     }
 
     /**
@@ -66,16 +64,12 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
      * @param dest The event to fill.
      */
     public static void copy(final ManagedResourceConfiguration.EventConfiguration source, final ManagedResourceConfiguration.EventConfiguration dest){
-        final Map<String, String> additionalElements = dest.getParameters();
-        additionalElements.clear();
-        additionalElements.putAll(source.getParameters());
+        dest.setParameters(source.getParameters());
     }
 
     public static void copy(final ManagedResourceConfiguration.OperationConfiguration source, final ManagedResourceConfiguration.OperationConfiguration dest){
         dest.setInvocationTimeout(source.getInvocationTimeout());
-        final Map<String, String> additionalElements = dest.getParameters();
-        additionalElements.clear();
-        additionalElements.putAll(source.getParameters());
+        dest.setParameters(source.getParameters());
     }
 
     private static void copyAttributes(final Map<String, ? extends ManagedResourceConfiguration.AttributeConfiguration> input,
@@ -167,27 +161,16 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
      * @param input The configuration import source.
      * @param output The configuration import destination.
      */
-    public static void copy(final AgentConfiguration input, final AgentConfiguration output){
-        if(input == null || output == null) return;
+    public static void copy(final AgentConfiguration input, final AgentConfiguration output) {
+        if (input == null || output == null) return;
         //import hosting configuration
-        copy(input.getResourceAdapters(),
-                output.getResourceAdapters(),
-        new ConfigurationEntityCopier<ResourceAdapterConfiguration>() {
-            @Override
-            public void copy(final ResourceAdapterConfiguration input, final ResourceAdapterConfiguration output) {
-                AbstractAgentConfiguration.copy(input, output);
-            }
-        });
+        copy(input.getEntities(ResourceAdapterConfiguration.class),
+                output.getEntities(ResourceAdapterConfiguration.class),
+                (ConfigurationEntityCopier<ResourceAdapterConfiguration>) AbstractAgentConfiguration::copy);
         //import management targets
-        copy(input.getManagedResources(),
-                output.getManagedResources(),
-        new ConfigurationEntityCopier<ManagedResourceConfiguration>() {
-            @Override
-            public void copy(final ManagedResourceConfiguration input, final ManagedResourceConfiguration output) {
-                AbstractAgentConfiguration.copy(input, output);
-            }
-        });
-
+        copy(input.getEntities(ManagedResourceConfiguration.class),
+                output.getEntities(ManagedResourceConfiguration.class),
+                (ConfigurationEntityCopier<ManagedResourceConfiguration>) AbstractAgentConfiguration::copy);
     }
 
     /**
@@ -236,8 +219,8 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
     public static boolean equals(final AgentConfiguration obj1, final AgentConfiguration obj2){
         return obj1 == obj2 ||
                 !(obj1 == null || obj2 == null) &&
-                        equals(obj1.getResourceAdapters(), obj2.getResourceAdapters()) &&
-                        equals(obj1.getManagedResources(), obj2.getManagedResources());
+                        equals(obj1.getEntities(ResourceAdapterConfiguration.class), obj2.getEntities(ResourceAdapterConfiguration.class)) &&
+                        equals(obj1.getEntities(ManagedResourceConfiguration.class), obj2.getEntities(ManagedResourceConfiguration.class));
     }
 
     public static boolean equals(final ResourceAdapterConfiguration adapter1, final ResourceAdapterConfiguration adapter2){

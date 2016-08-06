@@ -1,21 +1,22 @@
 package com.bytex.snamp.management.jmx;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.bytex.snamp.Consumer;
-import com.bytex.snamp.TimeSpan;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.connectors.discovery.DiscoveryService;
 import com.bytex.snamp.jmx.CompositeTypeBuilder;
+import com.bytex.snamp.jmx.OpenMBean;
 import com.bytex.snamp.jmx.TabularDataBuilderRowFill;
 import com.bytex.snamp.management.AbstractSnampManager;
 import com.bytex.snamp.management.SnampComponentDescriptor;
-import com.bytex.snamp.jmx.OpenMBean;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 import javax.management.MBeanOperationInfo;
 import javax.management.openmbean.*;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.time.temporal.ChronoUnit;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Description here
@@ -78,58 +79,55 @@ final class DiscoverManagementMetadataOperation extends OpenMBean.OpenOperation<
                                                      final String connectionString, final Map<String, String> connectionOptions) throws Exception {
 
         final Map<String, Object> schema = Maps.newHashMapWithExpectedSize(CONNECTOR_METADATA.keySet().size());
-        connector.invokeSupportService(DiscoveryService.class, new Consumer<DiscoveryService, Exception>() {
+        connector.invokeSupportService(DiscoveryService.class, input -> {
             @SuppressWarnings("unchecked")
-            @Override
-            public void accept(final DiscoveryService input) throws Exception {
-                final DiscoveryService.DiscoveryResult metadata = input.discover(connectionString, connectionOptions,
-                        AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class,
-                        AgentConfiguration.ManagedResourceConfiguration.EventConfiguration.class);
-                // Attributes
-                final Collection<AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> attributes =
-                        metadata.getSubResult(AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class);
-                final List<CompositeData> attributesData = Lists.newArrayListWithExpectedSize(attributes.size());
-                for (AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration attribute: attributes) {
-                    final Map<String, Object> attrMap = new HashMap<>();
-                    // append the r/w timeout
-                    if (attribute.getReadWriteTimeout() != TimeSpan.INFINITE)
-                        attrMap.put("ReadWriteTimeout", attribute.getReadWriteTimeout().convert(TimeUnit.MILLISECONDS).duration);
-                    else {
-                        attrMap.put("ReadWriteTimeout", -1L);
-                    }
-                    //read other properties
-                    final TabularDataBuilderRowFill builder = new TabularDataBuilderRowFill(SIMPLE_MAP_TYPE);
-                    for (final Map.Entry<String, String> parameter : attribute.getParameters().entrySet()) {
-                        builder.newRow()
-                                .cell("Key", parameter.getKey())
-                                .cell("Value", parameter.getValue())
-                                .flush();
-                    }
-                    // append additional properties
-                    attrMap.put("AdditionalProperties", builder.get());
-                    attributesData.add(ATTRIBUTE_METADATA_BUILDER.build(attrMap));
+            final DiscoveryService.DiscoveryResult metadata = input.discover(connectionString, connectionOptions,
+                    AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class,
+                    AgentConfiguration.ManagedResourceConfiguration.EventConfiguration.class);
+            // Attributes
+            final Collection<AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration> attributes =
+                    metadata.getSubResult(AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration.class);
+            final List<CompositeData> attributesData = Lists.newArrayListWithExpectedSize(attributes.size());
+            for (AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration attribute: attributes) {
+                final Map<String, Object> attrMap = new HashMap<>();
+                // append the r/w timeout
+                if (attribute.getReadWriteTimeout() != null)
+                    attrMap.put("ReadWriteTimeout", attribute.getReadWriteTimeout(ChronoUnit.MILLIS));
+                else {
+                    attrMap.put("ReadWriteTimeout", -1L);
                 }
-                // Events
-                final Collection<AgentConfiguration.ManagedResourceConfiguration.EventConfiguration> events =
-                        metadata.getSubResult(AgentConfiguration.ManagedResourceConfiguration.EventConfiguration.class);
-                final List<CompositeData> eventsData = Lists.newArrayListWithExpectedSize(events.size());
-                for (AgentConfiguration.ManagedResourceConfiguration.EventConfiguration event: events) {
-                    final Map<String, Object> eventMap = new HashMap<>();
-                    //read other properties
-                    final TabularDataBuilderRowFill builder = new TabularDataBuilderRowFill(SIMPLE_MAP_TYPE);
-                    for (final Map.Entry<String, String> parameter : event.getParameters().entrySet()) {
-                        builder.newRow()
-                                .cell("Key", parameter.getKey())
-                                .cell("Value", parameter.getValue())
-                                .flush();
-                    }
-                    // append additional properties
-                    eventMap.put("AdditionalProperties", builder.get());
-                    eventsData.add(EVENT_METADATA_BUILDER.build(eventMap));
+                //read other properties
+                final TabularDataBuilderRowFill builder = new TabularDataBuilderRowFill(SIMPLE_MAP_TYPE);
+                for (final Map.Entry<String, String> parameter : attribute.getParameters().entrySet()) {
+                    builder.newRow()
+                            .cell("Key", parameter.getKey())
+                            .cell("Value", parameter.getValue())
+                            .flush();
                 }
-                schema.put("Attributes", attributesData.toArray(new CompositeData[attributesData.size()]));
-                schema.put("Events", eventsData.toArray(new CompositeData[eventsData.size()]));
+                // append additional properties
+                attrMap.put("AdditionalProperties", builder.get());
+                attributesData.add(ATTRIBUTE_METADATA_BUILDER.build(attrMap));
             }
+            // Events
+            final Collection<AgentConfiguration.ManagedResourceConfiguration.EventConfiguration> events =
+                    metadata.getSubResult(AgentConfiguration.ManagedResourceConfiguration.EventConfiguration.class);
+            final List<CompositeData> eventsData = Lists.newArrayListWithExpectedSize(events.size());
+            for (AgentConfiguration.ManagedResourceConfiguration.EventConfiguration event: events) {
+                final Map<String, Object> eventMap = new HashMap<>();
+                //read other properties
+                final TabularDataBuilderRowFill builder = new TabularDataBuilderRowFill(SIMPLE_MAP_TYPE);
+                for (final Map.Entry<String, String> parameter : event.getParameters().entrySet()) {
+                    builder.newRow()
+                            .cell("Key", parameter.getKey())
+                            .cell("Value", parameter.getValue())
+                            .flush();
+                }
+                // append additional properties
+                eventMap.put("AdditionalProperties", builder.get());
+                eventsData.add(EVENT_METADATA_BUILDER.build(eventMap));
+            }
+            schema.put("Attributes", attributesData.toArray(new CompositeData[attributesData.size()]));
+            schema.put("Events", eventsData.toArray(new CompositeData[eventsData.size()]));
         });
         return CONNECTOR_METADATA_BUILDER.build(schema);
     }
@@ -138,7 +136,6 @@ final class DiscoverManagementMetadataOperation extends OpenMBean.OpenOperation<
     public CompositeData invoke(final Map<String, ?> arguments) throws Exception {
         final String connectorName = CONNECTOR_NAME_PARAM.getArgument(arguments);
         final String connectionString = CONNECTION_STRING.getArgument(arguments);
-        final String locale = LOCALE_PARAM.getArgument(arguments);
         final Map<String, String> connectionStringParam =
                 MonitoringUtils.transformTabularDataToMap(CONNECTION_STRING_PARAM.getArgument(arguments));
         final SnampComponentDescriptor connector = snampManager.getResourceConnector(connectorName);

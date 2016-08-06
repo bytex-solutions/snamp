@@ -8,7 +8,7 @@ import java.io.PrintWriter;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 final class ExitCommand extends AbstractManagementShellCommand {

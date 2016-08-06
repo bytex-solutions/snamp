@@ -33,6 +33,7 @@ final class SnmpV2Client extends AbstractSnmpClient {
      * and the listen() method listens for answers.
      * @throws java.io.IOException
      */
+    @SuppressWarnings("unchecked")
     private void start() throws IOException {
         final MessageDispatcherImpl dispatcher = new MessageDispatcherImpl();
         dispatcher.addMessageProcessingModel(new MPv2c());

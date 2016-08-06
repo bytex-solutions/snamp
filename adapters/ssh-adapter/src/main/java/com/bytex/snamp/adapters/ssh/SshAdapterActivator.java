@@ -7,12 +7,12 @@ import com.bytex.snamp.SpecialUse;
  * Represents OSGi activator for {@link com.bytex.snamp.adapters.ssh.SshAdapter} resource adapter.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 public final class SshAdapterActivator extends ResourceAdapterActivator<SshAdapter> {
 
-    private static final class ConfigurationDescriptorServiceManager extends ConfigurationEntityDescriptionManager<SshAdapterConfigurationDescriptor> {
+    private static final class ConfigurationDescriptorServiceManager extends ConfigurationEntityDescriptionManager<SshAdapterDescriptionProvider> {
 
         /**
          * Creates a new instance of the configuration description provider.
@@ -21,8 +21,8 @@ public final class SshAdapterActivator extends ResourceAdapterActivator<SshAdapt
          * @return A new instance of the configuration description provider.
          */
         @Override
-        protected SshAdapterConfigurationDescriptor createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
-            return new SshAdapterConfigurationDescriptor();
+        protected SshAdapterDescriptionProvider createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
+            return SshAdapterDescriptionProvider.getInstance();
         }
     }
 

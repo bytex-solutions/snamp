@@ -1,6 +1,4 @@
-repo/
 target/
-*.agent
 *.pid
 *~
 .idea/
@@ -9,3 +7,4 @@ out/
 *.key
 exam/
 images/
+.flattened-pom.xml

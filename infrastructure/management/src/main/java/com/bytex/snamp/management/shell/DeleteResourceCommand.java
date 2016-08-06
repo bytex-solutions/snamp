@@ -5,10 +5,12 @@ import com.bytex.snamp.configuration.AgentConfiguration;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 
+import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
+
 /**
  * Deletes managed resource.
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
@@ -21,7 +23,7 @@ public final class DeleteResourceCommand extends ConfigurationCommand {
 
     @Override
     boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
-        if(configuration.getManagedResources().remove(resourceName) == null){
+        if(configuration.getEntities(ManagedResourceConfiguration.class).remove(resourceName) == null){
             output.append("Resource doesn't exist");
             return false;
         }

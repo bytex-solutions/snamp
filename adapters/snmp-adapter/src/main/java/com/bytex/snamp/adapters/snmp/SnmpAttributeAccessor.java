@@ -11,7 +11,7 @@ import java.util.Objects;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 1.2
  * @since 1.0
  */
 abstract class SnmpAttributeAccessor extends AttributeAccessor implements SnmpEntity<MBeanAttributeInfo> {

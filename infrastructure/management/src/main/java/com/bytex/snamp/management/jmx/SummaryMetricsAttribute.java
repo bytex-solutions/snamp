@@ -6,9 +6,7 @@ import com.bytex.snamp.jmx.CompositeTypeBuilder;
 import com.google.common.collect.Maps;
 
 import javax.management.openmbean.*;
-
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 import static com.bytex.snamp.jmx.OpenMBean.OpenAttribute;
 
@@ -36,32 +34,27 @@ final class SummaryMetricsAttribute extends OpenAttribute<CompositeData, Composi
     private static final String NUM_OF_INVOKED_HOUR = NUM_OF_READS.concat("LastHour");
     private static final String NUM_OF_INVOKED_DAY = NUM_OF_READS.concat("Last24Hours");
 
-    static final CompositeType TYPE = Utils.interfaceStaticInitialize(new Callable<CompositeType>() {
-        @Override
-        public CompositeType call() throws OpenDataException {
-            return new CompositeTypeBuilder("Metrics", "Consolidated set of metrics")
-                    .addItem(NUM_OF_WRITES, "Total number of attribute writes", SimpleType.LONG)
-                    .addItem(NUM_OF_WRITES_MINUTE, "Number of attribute writes for the last minute", SimpleType.LONG)
-                    .addItem(NUM_OF_WRITES_HOUR, "Number of attribute writes for the last hour", SimpleType.LONG)
-                    .addItem(NUM_OF_WRITES_DAY, "Number of attribute writes for the last 24 hours", SimpleType.LONG)
+    static final CompositeType TYPE = Utils.interfaceStaticInitialize(() -> new CompositeTypeBuilder("Metrics", "Consolidated set of metrics")
+            .addItem(NUM_OF_WRITES, "Total number of attribute writes", SimpleType.LONG)
+            .addItem(NUM_OF_WRITES_MINUTE, "Number of attribute writes for the last minute", SimpleType.LONG)
+            .addItem(NUM_OF_WRITES_HOUR, "Number of attribute writes for the last hour", SimpleType.LONG)
+            .addItem(NUM_OF_WRITES_DAY, "Number of attribute writes for the last 24 hours", SimpleType.LONG)
 
-                    .addItem(NUM_OF_READS, "Total number of attribute reads", SimpleType.LONG)
-                    .addItem(NUM_OF_READS_MINUTE, "Number of attribute reads for the last minute", SimpleType.LONG)
-                    .addItem(NUM_OF_READS_HOUR, "Number of attribute reads for the last hour", SimpleType.LONG)
-                    .addItem(NUM_OF_READS_DAY, "Number of attribute reads for the last 24 hours", SimpleType.LONG)
+            .addItem(NUM_OF_READS, "Total number of attribute reads", SimpleType.LONG)
+            .addItem(NUM_OF_READS_MINUTE, "Number of attribute reads for the last minute", SimpleType.LONG)
+            .addItem(NUM_OF_READS_HOUR, "Number of attribute reads for the last hour", SimpleType.LONG)
+            .addItem(NUM_OF_READS_DAY, "Number of attribute reads for the last 24 hours", SimpleType.LONG)
 
-                    .addItem(NUM_OF_EMITTED, "Total number of emitted notifications", SimpleType.LONG)
-                    .addItem(NUM_OF_EMITTED_MINUTE, "Number of emitted notifications for the last minute", SimpleType.LONG)
-                    .addItem(NUM_OF_EMITTED_HOUR, "Number of emitted notifications for the last hour", SimpleType.LONG)
-                    .addItem(NUM_OF_EMITTED_DAY, "Number of emitted notifications for the last day", SimpleType.LONG)
+            .addItem(NUM_OF_EMITTED, "Total number of emitted notifications", SimpleType.LONG)
+            .addItem(NUM_OF_EMITTED_MINUTE, "Number of emitted notifications for the last minute", SimpleType.LONG)
+            .addItem(NUM_OF_EMITTED_HOUR, "Number of emitted notifications for the last hour", SimpleType.LONG)
+            .addItem(NUM_OF_EMITTED_DAY, "Number of emitted notifications for the last day", SimpleType.LONG)
 
-                    .addItem(NUM_OF_INVOKED, "Total number of emitted notifications", SimpleType.LONG)
-                    .addItem(NUM_OF_INVOKED_MINUTE, "Number of emitted notifications for the last minute", SimpleType.LONG)
-                    .addItem(NUM_OF_INVOKED_HOUR, "Number of emitted notifications for the last hour", SimpleType.LONG)
-                    .addItem(NUM_OF_INVOKED_DAY, "Number of emitted notifications for the last day", SimpleType.LONG)
-                    .build();
-        }
-    });
+            .addItem(NUM_OF_INVOKED, "Total number of emitted notifications", SimpleType.LONG)
+            .addItem(NUM_OF_INVOKED_MINUTE, "Number of emitted notifications for the last minute", SimpleType.LONG)
+            .addItem(NUM_OF_INVOKED_HOUR, "Number of emitted notifications for the last hour", SimpleType.LONG)
+            .addItem(NUM_OF_INVOKED_DAY, "Number of emitted notifications for the last day", SimpleType.LONG)
+            .build());
 
     private static void collectMetrics(final AttributeMetrics metrics, final Map<String, Long> output) {
         if (metrics == null) {
