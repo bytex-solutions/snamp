@@ -58,7 +58,6 @@
     <snamp.adapters.syslog.version>2.0.0</snamp.adapters.syslog.version>
     <snamp.adapters.xmpp.version>2.0.0</snamp.adapters.xmpp.version>
     <snamp.adapters.groovy.version>2.0.0</snamp.adapters.groovy.version>
-    <snamp.adapters.decanter.version>2.0.0</snamp.adapters.decanter.version>
 
     <snamp.jmxhelper.version>2.0.0</snamp.jmxhelper.version>
     <snamp.management.version>2.0.0</snamp.management.version>

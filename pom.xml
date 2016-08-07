@@ -64,7 +64,6 @@
     <hazelcast.version>3.4.2</hazelcast.version>
     <qpid.version>0.6.0</qpid.version>
     <snamp.management.version>2.0.0</snamp.management.version>
-    <snamp.adapters.decanter.version>2.0.0</snamp.adapters.decanter.version>
     <slf4j.api.version>1.7.12</slf4j.api.version>
     <snamp.connectors.rshell.version>2.0.0</snamp.connectors.rshell.version>
     <jline.version>2.13</jline.version>
