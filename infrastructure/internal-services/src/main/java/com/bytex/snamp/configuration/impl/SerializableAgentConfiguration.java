@@ -22,8 +22,8 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
     private final static byte FORMAT_VERSION = 1;
     private static final long serialVersionUID = 8461144056430141155L;
 
-    static abstract class Resettable{
-        abstract void reset();
+    interface Resettable{
+        void reset();
     }
 
     /**
@@ -33,12 +33,6 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
      * @version 1.2
      */
     interface SerializableEntityConfiguration extends EntityConfiguration, Modifiable, Externalizable{
-        /**
-         * Determines whether this configuration entity is modified after deserialization.
-         * @return {@literal true}, if this configuration entity is modified; otherwise, {@literal false}.
-         */
-        @Override
-        boolean isModified();
     }
 
     @SuppressWarnings("NullableProblems")
@@ -144,7 +138,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
         }
     }
 
-    private static abstract class ConfigurationEntityRegistry<E extends EntityConfiguration> extends ModifiableMap<String, E> implements EntityMap<E>{
+    private static abstract class ConfigurationEntityRegistry<E extends EntityConfiguration & Modifiable & Resettable> extends ModifiableMap<String, E> implements EntityMap<E>{
         private static final long serialVersionUID = -3859844548619883398L;
         private final HashMap<String, E> entities;
 
@@ -152,12 +146,12 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
             entities = new HashMap<>(10);
         }
 
-        private <ERROR extends Exception> void modifiedEntries(final EntryReader<String, ? super E, ERROR> reader) throws ERROR{
-            for(final Entry<String, E> e: entrySet()){
+        private <ERROR extends Exception> void modifiedEntries(final EntryReader<String, ? super E, ERROR> reader) throws ERROR {
+            for (final Entry<String, E> e : entrySet()) {
                 final E entity = e.getValue();
                 final String name = e.getKey();
-                if(entity instanceof Modifiable && ((Modifiable)entity).isModified())
-                    if(!reader.read(name, entity)) break;
+                if (entity.isModified())
+                    if (!reader.read(name, entity)) break;
             }
         }
 
@@ -192,15 +186,15 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
         @Override
         public final boolean isModified() {
             if(super.isModified()) return true;
-            else for(final EntityConfiguration entity: values())
-                if(entity instanceof Modifiable && ((Modifiable)entity).isModified()) return true;
+            else for(final Modifiable entity: values())
+                if(entity.isModified()) return true;
             return false;
         }
 
         @Override
         public final void reset() {
             super.reset();
-            values().stream().filter(entity -> entity instanceof Resettable).forEach(entity -> ((Resettable) entity).reset());
+            values().forEach(Resettable::reset);
         }
 
         @Override
@@ -225,7 +219,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
 
         @Override
         protected SerializableResourceAdapterConfiguration createEntity() {
-            return new SerializableResourceAdapterConfiguration();
+            return new SerializableResourceAdapterConfiguration(true);
         }
     }
 
@@ -238,11 +232,11 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
 
         @Override
         protected SerializableManagedResourceConfiguration createEntity() {
-            return new SerializableManagedResourceConfiguration();
+            return new SerializableManagedResourceConfiguration(true);
         }
     }
 
-    private abstract static class AbstractEntityConfiguration extends Resettable implements SerializableEntityConfiguration {
+    private abstract static class AbstractEntityConfiguration implements Resettable, SerializableEntityConfiguration {
         private static final long serialVersionUID = -8455277079119895844L;
         private transient boolean modified;
         private final ModifiableParameters parameters;
@@ -261,7 +255,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
         }
 
         @Override
-        final void reset() {
+        public final void reset() {
             modified = false;
             parameters.reset();
             resetAdditionally();
@@ -321,6 +315,12 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
         @SpecialUse
         public SerializableResourceAdapterConfiguration(){
             adapterName = "";
+        }
+
+        SerializableResourceAdapterConfiguration(final boolean modified){
+            this();
+            if(modified)
+                markAsModified();
         }
 
         /**
@@ -421,7 +421,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
 
             @Override
             protected SerializableOperationConfiguration createEntity() {
-                return new SerializableOperationConfiguration();
+                return new SerializableOperationConfiguration(true);
             }
         }
 
@@ -434,7 +434,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
 
             @Override
             protected SerializableAttributeConfiguration createEntity() {
-                return new SerializableAttributeConfiguration();
+                return new SerializableAttributeConfiguration(true);
             }
         }
 
@@ -447,7 +447,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
 
             @Override
             protected SerializableEventConfiguration createEntity() {
-                return new SerializableEventConfiguration();
+                return new SerializableEventConfiguration(true);
             }
         }
 
@@ -468,6 +468,12 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
             @SpecialUse
             public SerializableOperationConfiguration(){
 
+            }
+
+            SerializableOperationConfiguration(final boolean modified) {
+                this();
+                if (modified)
+                    markAsModified();
             }
 
             /**
@@ -544,6 +550,12 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
 
             }
 
+            SerializableEventConfiguration(final boolean modified){
+                this();
+                if(modified)
+                    markAsModified();
+            }
+
             /**
              * The object implements the writeExternal method to save its contents
              * by calling the methods of DataOutput for its primitive values or
@@ -611,6 +623,12 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
 
             @SpecialUse
             public SerializableAttributeConfiguration() {
+            }
+
+            SerializableAttributeConfiguration(final boolean modified){
+                this();
+                if(modified)
+                    markAsModified();
             }
 
             /**
@@ -699,6 +717,12 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
             this.attributes = new AttributeRegistry();
             this.events = new EventRegistry();
             this.operations = new OperationRegistry();
+        }
+
+        SerializableManagedResourceConfiguration(final boolean modified) {
+            this();
+            if (modified)
+                markAsModified();
         }
 
         /**
