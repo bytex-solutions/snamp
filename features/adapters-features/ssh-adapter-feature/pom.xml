@@ -8,7 +8,7 @@
     <version>1.2.0</version>
   </parent>
   <artifactId>ssh-adapter-feature</artifactId>
-  <version>1.2.0</version>
+  <version>2.0.0</version>
   <packaging>kar</packaging>
   <name>SSH Adapter Karaf Feature</name>
   <description>SSH Adapter wrapped in the form of Apache Karaf Feature</description>

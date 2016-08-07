@@ -5,10 +5,10 @@
   <parent>
     <groupId>com.bytex.snamp</groupId>
     <artifactId>adapters</artifactId>
-    <version>1.2.0</version>
+    <version>2.0.0</version>
   </parent>
   <artifactId>nrdp-adapter</artifactId>
-  <version>1.2.0</version>
+  <version>2.0.0</version>
   <packaging>bundle</packaging>
   <name>Nagios NRDP Adapter</name>
   <description>SNAMP adapter for NRDP passive check plug-in</description>
@@ -16,7 +16,7 @@
     <dependency>
       <groupId>com.bytex.snamp</groupId>
       <artifactId>framework</artifactId>
-      <version>1.2.0</version>
+      <version>2.0.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>

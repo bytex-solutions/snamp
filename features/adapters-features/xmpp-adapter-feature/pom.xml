@@ -8,7 +8,7 @@
     <version>1.2.0</version>
   </parent>
   <artifactId>xmpp-adapter-feature</artifactId>
-  <version>1.2.0</version>
+  <version>2.0.0</version>
   <packaging>kar</packaging>
   <name>XMPP Adapter Karaf Feature</name>
   <description>XMPP Adapter in the form of Apache Karaf Feature</description>

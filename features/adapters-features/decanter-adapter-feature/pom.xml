@@ -8,7 +8,7 @@
     <version>1.2.0</version>
   </parent>
   <artifactId>decanter-adapter-feature</artifactId>
-  <version>1.2.0</version>
+  <version>2.0.0</version>
   <packaging>kar</packaging>
   <name>Decanter Adapter Karaf Feature</name>
   <description>SNAMP Resource Adapter for Decanter</description>
