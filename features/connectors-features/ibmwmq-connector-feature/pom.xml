@@ -8,7 +8,7 @@
     <version>1.2.0</version>
   </parent>
   <artifactId>ibmwmq-connector-feature</artifactId>
-  <version>2.0.0</version>
+  <version>${snamp.connectors.ibmwmq.version}</version>
   <packaging>kar</packaging>
   <name>IBM MQ Connector Karaf Feature</name>
   <build>

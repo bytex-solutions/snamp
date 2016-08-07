@@ -67,7 +67,6 @@
     <snamp.connectors.rshell.version>2.0.0</snamp.connectors.rshell.version>
     <snamp.connectors.aggregator.version>2.0.0</snamp.connectors.aggregator.version>
     <snamp.connectors.groovy.version>2.0.0</snamp.connectors.groovy.version>
-    <snamp.connectors.ibmwmq.version>2.0.0</snamp.connectors.ibmwmq.version>
     <snamp.connectors.jmx.version>2.0.0</snamp.connectors.jmx.version>
     <snamp.connectors.mda.version>2.0.0</snamp.connectors.mda.version>
     <snamp.connectors.snmp.version>2.0.0</snamp.connectors.snmp.version>

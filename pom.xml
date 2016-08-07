@@ -35,7 +35,6 @@
     <snamp.connectors.mq.version>2.0.0</snamp.connectors.mq.version>
     <junit.version>4.12</junit.version>
     <snmp4j.version>2.5.0</snmp4j.version>
-    <snamp.connectors.ibmwmq.version>2.0.0</snamp.connectors.ibmwmq.version>
     <gson.version>2.7</gson.version>
     <snamp.connectors.aggregator.version>2.0.0</snamp.connectors.aggregator.version>
     <karaf.version>3.0.7</karaf.version>

@@ -22,7 +22,6 @@
     <module>syslog-adapter</module>
     <module>xmpp-adapter</module>
     <module>groovy-adapter</module>
-    <module>decanter-adapter</module>
   </modules>
   <build>
     <plugins>
