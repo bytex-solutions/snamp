@@ -39,7 +39,7 @@ import static com.bytex.snamp.configuration.ConfigurationManager.ConfigurationPr
         "com.sun.management.jmxremote.ssl",
         "pax.exam.osgi.unresolved.fail"
 })
-@ImportPackages("com.bytex.snamp;version=\"[1.0,2)\"")
+@ImportPackages("com.bytex.snamp;version=\"[2.0,3)\"")
 public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTest {
 
     private static final class AdapterStartedSynchronizationEvent extends CompletableFuture<ResourceAdapter> implements ResourceAdapterEventListener {
