@@ -10,7 +10,7 @@ import java.io.ObjectOutput;
 import java.util.HashMap;
 
 
-abstract class ConfigurationEntityRegistry<E extends EntityConfiguration> extends ModifiableMap<String, E> implements EntityMap<E> {
+abstract class ConfigurationEntityRegistry<E extends EntityConfiguration & Modifiable & Resettable> extends ModifiableMap<String, E> implements EntityMap<E> {
     private static final long serialVersionUID = -3859844548619883398L;
     private final HashMap<String, E> entities;
 
@@ -22,7 +22,7 @@ abstract class ConfigurationEntityRegistry<E extends EntityConfiguration> extend
         for (final Entry<String, E> e : entrySet()) {
             final E entity = e.getValue();
             final String name = e.getKey();
-            if (entity instanceof Modifiable && ((Modifiable) entity).isModified())
+            if (entity.isModified())
                 if (!reader.read(name, entity)) break;
         }
     }
@@ -58,15 +58,19 @@ abstract class ConfigurationEntityRegistry<E extends EntityConfiguration> extend
     @Override
     public final boolean isModified() {
         if (super.isModified()) return true;
-        else for (final EntityConfiguration entity : values())
-            if (entity instanceof Modifiable && ((Modifiable) entity).isModified()) return true;
+        else for (final Modifiable entity : values())
+            if (entity.isModified()) return true;
         return false;
+    }
+
+    private static void reset(final Resettable r){
+        r.reset();
     }
 
     @Override
     public final void reset() {
         super.reset();
-        values().stream().filter(entity -> entity instanceof Resettable).forEach(entity -> ((Resettable) entity).reset());
+        values().forEach(ConfigurationEntityRegistry::reset);//BANANA: Bug in JDK, can't replace with Resettable::reset
     }
 
     @Override

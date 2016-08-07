@@ -30,7 +30,9 @@ final class SerializableManagedResourceConfiguration extends AbstractEntityConfi
 
         @Override
         protected SerializableOperationConfiguration createEntity() {
-            return new SerializableOperationConfiguration();
+            final SerializableOperationConfiguration result = new SerializableOperationConfiguration();
+            result.markAsModified();
+            return result;
         }
     }
 
@@ -43,7 +45,9 @@ final class SerializableManagedResourceConfiguration extends AbstractEntityConfi
 
         @Override
         protected SerializableAttributeConfiguration createEntity() {
-            return new SerializableAttributeConfiguration();
+            final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration();
+            result.markAsModified();
+            return result;
         }
     }
 
@@ -56,7 +60,9 @@ final class SerializableManagedResourceConfiguration extends AbstractEntityConfi
 
         @Override
         protected SerializableEventConfiguration createEntity() {
-            return new SerializableEventConfiguration();
+            final SerializableEventConfiguration result = new SerializableEventConfiguration();
+            result.markAsModified();
+            return result;
         }
     }
 

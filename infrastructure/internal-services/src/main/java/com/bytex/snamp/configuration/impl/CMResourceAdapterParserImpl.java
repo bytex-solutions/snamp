@@ -171,9 +171,9 @@ final class CMResourceAdapterParserImpl extends AbstractConfigurationParser<Seri
     @Override
     void saveChanges(final SerializableAgentConfiguration config,
               final ConfigurationAdmin admin) throws IOException {
+        final ConfigurationEntityRegistry<? extends SerializableResourceAdapterConfiguration> adapters = config.getEntities(SerializableResourceAdapterConfiguration.class);
         //remove all unnecessary adapters
         try {
-            final Map<String, ? extends SerializableResourceAdapterConfiguration> adapters = config.getEntities(SerializableResourceAdapterConfiguration.class);
             forEachAdapter(admin, ALL_ADAPTERS_QUERY, output -> {
                 final String adapterInstance = getAdapterInstanceName(output.getProperties());
                 if (!adapters.containsKey(adapterInstance))

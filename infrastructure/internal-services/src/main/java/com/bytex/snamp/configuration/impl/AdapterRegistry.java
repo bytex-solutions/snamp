@@ -3,7 +3,7 @@ package com.bytex.snamp.configuration.impl;
 import com.bytex.snamp.SpecialUse;
 
 /**
- * Created by Роман on 04.08.2016.
+ * Represents collection of resource adapters.
  */
 final class AdapterRegistry extends ConfigurationEntityRegistry<SerializableResourceAdapterConfiguration> {
     private static final long serialVersionUID = 8142154170844526063L;
@@ -14,6 +14,8 @@ final class AdapterRegistry extends ConfigurationEntityRegistry<SerializableReso
 
     @Override
     protected SerializableResourceAdapterConfiguration createEntity() {
-        return new SerializableResourceAdapterConfiguration();
+        final SerializableResourceAdapterConfiguration result = new SerializableResourceAdapterConfiguration();
+        result.markAsModified();
+        return result;
     }
 }

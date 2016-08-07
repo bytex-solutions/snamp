@@ -1,11 +1,13 @@
 package com.bytex.snamp.core;
 
+import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.ThreadSafe;
-import com.bytex.snamp.concurrent.LazyValueFactory;
 import com.bytex.snamp.concurrent.LazyValue;
+import com.bytex.snamp.concurrent.LazyValueFactory;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ObjectArrays;
 import org.osgi.framework.*;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedServiceFactory;
@@ -124,10 +126,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      * @param <T> Implementation of the provided service.
      */
     public static abstract class ProvidedService<S, T extends S> implements ServiceListener {
-        /**
-         * Represents service contract.
-         */
-        protected final Class<S> serviceContract;
+        private final Class<? super S>[] serviceContracts;
         private final ImmutableList<RequiredService<?>> ownDependencies;
 
         private volatile ServiceRegistrationHolder<S, T> registration;
@@ -137,18 +136,34 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         private WeakServiceListener dependencyTracker;   //weak reference to avoid leak of service listener inside of OSGi container
         private BundleContext activationContext;
 
+        private ProvidedService(final Supplier<Class<? super S>[]> contracts, final RequiredService<?>... dependencies){
+            serviceContracts = contracts.get();
+            ownDependencies = ImmutableList.copyOf(dependencies);
+            registration = null;
+            properties = emptyActivationPropertyReader;
+        }
+
         /**
          * Initializes a new holder for the provided service.
          * @param contract Contract of the provided service. Cannot be {@literal null}.
          * @param dependencies A collection of service dependencies.
          * @throws IllegalArgumentException contract is {@literal null}.
          */
-        protected ProvidedService(final Class<S> contract, final RequiredService<?>... dependencies){
-            if(contract == null) throw new IllegalArgumentException("contract is null.");
-            serviceContract = contract;
-            ownDependencies = ImmutableList.copyOf(dependencies);
-            registration = null;
-            properties = emptyActivationPropertyReader;
+        protected ProvidedService(final Class<S> contract, final RequiredService<?>... dependencies) {
+            this(() -> new Class[]{contract}, dependencies);
+        }
+
+        protected ProvidedService(final Class<S> mainContract, final RequiredService<?>[] dependencies, final Class<? super S>... subContracts){
+            this(() -> ObjectArrays.concat(mainContract, subContracts), dependencies);
+        }
+
+        /**
+         * Gets main service contract.
+         * @return Main service contract.
+         * @since 2.0
+         */
+        protected final Class<? super S> getServiceContract(){
+            return ArrayUtils.getFirst(serviceContracts);
         }
 
         /**
@@ -175,7 +190,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                     //dependency lost but service is activated
                     if(resolvedDependencies != ownDependencies.size()) {
                         final LogicalOperation logger = ProvidedServiceLogicalOperation.unregister(getClass().getName(),
-                                serviceContract,
+                                getServiceContract(),
                                 context);
                         try {
                             if (registration != null) {
@@ -184,7 +199,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                                 cleanupService(serviceInstance, false);
                             }
                         } catch (final Exception e) {
-                            logger.log(Level.SEVERE, String.format("Unable to cleanup service %s", serviceContract), e);
+                            logger.log(Level.SEVERE, String.format("Unable to cleanup service %s", getServiceContract()), e);
                         } finally {
                             registration = null;
                             logger.close();
@@ -193,11 +208,11 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                     return;
                 case NOT_PUBLISHED:
                     if(resolvedDependencies == ownDependencies.size()) {
-                        final LogicalOperation logger = ProvidedServiceLogicalOperation.expose(getClass().getName(), serviceContract, context);
+                        final LogicalOperation logger = ProvidedServiceLogicalOperation.expose(getClass().getName(), getServiceContract(), context);
                         try {
                             activateAndRegisterService(context);
                         } catch (final Exception e) {
-                            logger.log(Level.SEVERE, String.format("Unable to activate %s service", serviceContract), e);
+                            logger.log(Level.SEVERE, String.format("Unable to activate %s service", getServiceContract()), e);
                             if (registration != null) registration.unregister();
                             registration = null;
                         } finally {
@@ -238,7 +253,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
 
         private synchronized void activateAndRegisterService(final BundleContext context) throws Exception{
             final Hashtable<String, Object> identity = new Hashtable<>(3);
-            this.registration = new ServiceRegistrationHolder<>(serviceContract,
+            this.registration = new ServiceRegistrationHolder<>(serviceContracts,
                     activateService(identity, ownDependencies.toArray(new RequiredService<?>[ownDependencies.size()])),
                     identity,
                     context);
@@ -541,15 +556,24 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
     }
 
     private static final class ServiceRegistrationHolder<S, T extends S> implements ServiceRegistration<S>, Supplier<T> {
-        private final ServiceRegistration<S> registration;
+        private final ServiceRegistration<?> registration;
         private T serviceInstance;
 
-        private ServiceRegistrationHolder(final Class<S> serviceContract,
+        private ServiceRegistrationHolder(final Class<? super S>[] serviceContracts,
                                           final T service,
                                           final Dictionary<String, ?> identity,
                                           final BundleContext context) {
             serviceInstance = Objects.requireNonNull(service);
-            registration = context.registerService(serviceContract, service, identity);
+            final String[] serviceContractNames = Arrays.stream(serviceContracts).map(Class::getName).toArray(String[]::new);
+            registration = context.registerService(serviceContractNames, service, identity);
+        }
+
+        @SuppressWarnings("unchecked")
+        private ServiceRegistrationHolder(final Class<S> serviceContract,
+                                          final T service,
+                                          final Dictionary<String, ?> identity,
+                                          final BundleContext context){
+            this(new Class[]{serviceContract}, service, identity, context);
         }
 
         @Override
@@ -570,9 +594,10 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             return serviceInstance;
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public ServiceReference<S> getReference(){
-            return registration.getReference();
+            return (ServiceReference<S>) registration.getReference();
         }
 
         @Override

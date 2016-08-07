@@ -7,6 +7,7 @@ import com.bytex.snamp.configuration.ThreadPoolConfiguration;
 import com.bytex.snamp.configuration.impl.CMThreadPoolParser;
 import com.bytex.snamp.core.AbstractFrameworkService;
 import com.google.common.collect.ImmutableSet;
+import org.osgi.framework.Constants;
 import org.osgi.service.cm.ConfigurationException;
 
 import java.io.Closeable;
@@ -41,7 +42,14 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
             case DEFAULT_POOL:
                 return defaultThreadPool;
             default:
-                return threadPools.read(services -> services.containsKey(name) ? services.get(name): defaultThreadPool);
+                return threadPools.read(services -> {
+                    if (services.containsKey(name))
+                        return services.get(name);
+                    else if (useDefaultIfNotExists)
+                        return defaultThreadPool;
+                    else
+                        return null;
+                });
         }
     }
 
@@ -78,22 +86,29 @@ public final class ThreadPoolRepositoryImpl extends AbstractFrameworkService imp
                     final Enumeration<String> keys = properties.keys();
                     while (keys.hasMoreElements()) {
                         final String poolName = keys.nextElement();
-                        if (poolName.equals(DEFAULT_POOL)) continue;
-                        //deserialize configuration
-                        final ThreadPoolConfiguration offeredConfig;
-                        try {
-                            offeredConfig = CMThreadPoolParser.deserialize(poolName, properties, getClass().getClassLoader());
-                        } catch (final IOException e) {
-                            logger.log(Level.SEVERE, "Unable to read thread pool config");
-                            continue;
+                        switch (poolName) {
+                            case Constants.SERVICE_PID:
+                            case Constants.OBJECTCLASS:
+                            case DEFAULT_POOL:
+                                continue;
+                            default:
+                                //deserialize configuration
+                                final ThreadPoolConfiguration offeredConfig;
+                                try {
+                                    offeredConfig = CMThreadPoolParser.deserialize(poolName, properties, getClass().getClassLoader());
+                                    assert offeredConfig != null;
+                                } catch (final IOException e) {
+                                    logger.log(Level.SEVERE, "Unable to read thread pool config");
+                                    continue;
+                                }
+                                //if exists then compare and merge
+                                if (services.containsKey(poolName)) {
+                                    final ConfiguredThreadPool actualConfig = services.get(poolName);
+                                    if (!actualConfig.equals(offeredConfig))    //replace with a new thread pool
+                                        actualConfig.shutdown();
+                                }
+                                services.put(poolName, new ConfiguredThreadPool(offeredConfig, poolName));
                         }
-                        //if exists then compare and merge
-                        if (services.containsKey(poolName)) {
-                            final ConfiguredThreadPool actualConfig = services.get(poolName);
-                            if (!actualConfig.equals(offeredConfig))    //replace with a new thread pool
-                                actualConfig.shutdown();
-                        }
-                        services.put(poolName, new ConfiguredThreadPool(offeredConfig, poolName));
                     }
                 }
 

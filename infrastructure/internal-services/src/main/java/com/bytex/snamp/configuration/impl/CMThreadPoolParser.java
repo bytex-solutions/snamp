@@ -1,14 +1,14 @@
 package com.bytex.snamp.configuration.impl;
 
+import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
+import org.osgi.framework.Constants;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 
 import java.io.IOException;
-import java.util.Dictionary;
-import java.util.Enumeration;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Supplier;
 
 /**
@@ -39,15 +39,22 @@ public final class CMThreadPoolParser extends AbstractConfigurationParser<Serial
     }
 
     private static Configuration getConfig(final ConfigurationAdmin admin) throws IOException {
-        return admin.getConfiguration(PID, null);
+        return admin.getConfiguration(PID);
     }
 
-    private void readThreadPools(final Configuration input, final Map<String, SerializableThreadPoolConfiguration> output) throws IOException{
+    private void readThreadPools(final Configuration input, final Map<String, SerializableThreadPoolConfiguration> output) throws IOException {
         final Dictionary<String, ?> threadPools = input.getProperties();
-        final Enumeration<String> names = threadPools.keys();
+        final Enumeration<String> names = threadPools == null ? EmptyStringEnumerator.getInstance() : threadPools.keys();
         while (names.hasMoreElements()) {
             final String poolName = names.nextElement();
-            output.put(poolName, deserialize(poolName, threadPools, getClass().getClassLoader()));
+            switch (poolName) {
+                case Constants.SERVICE_PID:
+                case Constants.OBJECTCLASS:
+                case ThreadPoolRepository.DEFAULT_POOL:
+                    continue;
+                default:
+                    output.put(poolName, deserialize(poolName, threadPools, getClass().getClassLoader()));
+            }
         }
     }
 
@@ -69,12 +76,26 @@ public final class CMThreadPoolParser extends AbstractConfigurationParser<Serial
         }
     }
 
+    private static void saveChanges(final SerializableAgentConfiguration source, final Dictionary<String, Object> dest) throws IOException{
+        final ConfigurationEntityRegistry<? extends SerializableThreadPoolConfiguration> threadPools = source.getEntities(SerializableThreadPoolConfiguration.class);
+        //remove deleted thread pools
+        Collections.list(dest.keys()).stream()
+                .filter(destThreadPool -> !threadPools.containsKey(destThreadPool))
+                .forEach(dest::remove);
+        //save modified thread pools
+        threadPools.modifiedEntries((poolName, poolConfig) -> {
+            dest.put(poolName, serialize(poolConfig));
+            return true;
+        });
+    }
+
     @Override
     void saveChanges(final SerializableAgentConfiguration source, final ConfigurationAdmin dest) throws IOException {
         final Configuration config = getConfig(dest);
-        source.getEntities(SerializableThreadPoolConfiguration.class).modifiedEntries((poolName, poolConfig) -> {
-            config.getProperties().put(poolName, serialize(poolConfig));
-            return true;
-        });
+        Dictionary<String, Object> props = config.getProperties();
+        if(props == null)
+            props = new Hashtable<>();
+        saveChanges(source, props);
+        config.update(props);
     }
 }

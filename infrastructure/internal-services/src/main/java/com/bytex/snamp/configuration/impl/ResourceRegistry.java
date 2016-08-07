@@ -14,6 +14,8 @@ final class ResourceRegistry extends ConfigurationEntityRegistry<SerializableMan
 
     @Override
     protected SerializableManagedResourceConfiguration createEntity() {
-        return new SerializableManagedResourceConfiguration();
+        final SerializableManagedResourceConfiguration result = new SerializableManagedResourceConfiguration();
+        result.markAsModified();
+        return result;
     }
 }

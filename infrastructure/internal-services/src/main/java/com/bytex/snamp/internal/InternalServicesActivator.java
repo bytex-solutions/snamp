@@ -1,5 +1,6 @@
 package com.bytex.snamp.internal;
 
+import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.cluster.GridMember;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
@@ -16,6 +17,7 @@ import com.hazelcast.core.HazelcastInstance;
 import org.apache.karaf.jaas.config.JaasRealm;
 import org.osgi.framework.Constants;
 import org.osgi.service.cm.ConfigurationAdmin;
+import org.osgi.service.cm.ManagedService;
 
 import java.io.File;
 import java.io.FileReader;
@@ -128,7 +130,7 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
     private static final class ThreadPoolRepositoryProvider extends ProvidedService<ThreadPoolRepository, ThreadPoolRepositoryImpl> {
 
         private ThreadPoolRepositoryProvider() {
-            super(ThreadPoolRepository.class);
+            super(ThreadPoolRepository.class, ArrayUtils.emptyArray(RequiredService[].class), ManagedService.class);
         }
 
         @SuppressWarnings("unchecked")

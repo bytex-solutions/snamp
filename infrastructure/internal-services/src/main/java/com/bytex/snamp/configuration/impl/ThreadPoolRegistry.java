@@ -16,6 +16,8 @@ final class ThreadPoolRegistry extends ConfigurationEntityRegistry<SerializableT
 
     @Override
     protected SerializableThreadPoolConfiguration createEntity() {
-        return new SerializableThreadPoolConfiguration();
+        final SerializableThreadPoolConfiguration result = new SerializableThreadPoolConfiguration();
+        result.markAsModified();
+        return result;
     }
 }
