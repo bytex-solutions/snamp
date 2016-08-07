@@ -191,10 +191,14 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
             return false;
         }
 
+        private static void reset(final Resettable r){
+            r.reset();
+        }
+
         @Override
         public final void reset() {
             super.reset();
-            values().forEach(Resettable::reset);
+            values().forEach(ConfigurationEntityRegistry::reset);   //BANANA: Due to bug in JDK can't use Resettable::reset
         }
 
         @Override
@@ -219,7 +223,9 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
 
         @Override
         protected SerializableResourceAdapterConfiguration createEntity() {
-            return new SerializableResourceAdapterConfiguration(true);
+            final SerializableResourceAdapterConfiguration result = new SerializableResourceAdapterConfiguration();
+            result.markAsModified();
+            return result;
         }
     }
 
@@ -232,7 +238,9 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
 
         @Override
         protected SerializableManagedResourceConfiguration createEntity() {
-            return new SerializableManagedResourceConfiguration(true);
+            final SerializableManagedResourceConfiguration result = new SerializableManagedResourceConfiguration();
+            result.markAsModified();
+            return result;
         }
     }
 
@@ -315,12 +323,6 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
         @SpecialUse
         public SerializableResourceAdapterConfiguration(){
             adapterName = "";
-        }
-
-        SerializableResourceAdapterConfiguration(final boolean modified){
-            this();
-            if(modified)
-                markAsModified();
         }
 
         /**
@@ -421,7 +423,9 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
 
             @Override
             protected SerializableOperationConfiguration createEntity() {
-                return new SerializableOperationConfiguration(true);
+                final SerializableOperationConfiguration result = new SerializableOperationConfiguration();
+                result.markAsModified();
+                return result;
             }
         }
 
@@ -434,7 +438,9 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
 
             @Override
             protected SerializableAttributeConfiguration createEntity() {
-                return new SerializableAttributeConfiguration(true);
+                final SerializableAttributeConfiguration result = new SerializableAttributeConfiguration();
+                result.markAsModified();
+                return result;
             }
         }
 
@@ -447,7 +453,9 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
 
             @Override
             protected SerializableEventConfiguration createEntity() {
-                return new SerializableEventConfiguration(true);
+                final SerializableEventConfiguration result = new SerializableEventConfiguration();
+                result.markAsModified();
+                return result;
             }
         }
 
@@ -468,12 +476,6 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
             @SpecialUse
             public SerializableOperationConfiguration(){
 
-            }
-
-            SerializableOperationConfiguration(final boolean modified) {
-                this();
-                if (modified)
-                    markAsModified();
             }
 
             /**
@@ -550,12 +552,6 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
 
             }
 
-            SerializableEventConfiguration(final boolean modified){
-                this();
-                if(modified)
-                    markAsModified();
-            }
-
             /**
              * The object implements the writeExternal method to save its contents
              * by calling the methods of DataOutput for its primitive values or
@@ -623,12 +619,6 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
 
             @SpecialUse
             public SerializableAttributeConfiguration() {
-            }
-
-            SerializableAttributeConfiguration(final boolean modified){
-                this();
-                if(modified)
-                    markAsModified();
             }
 
             /**
@@ -717,12 +707,6 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
             this.attributes = new AttributeRegistry();
             this.events = new EventRegistry();
             this.operations = new OperationRegistry();
-        }
-
-        SerializableManagedResourceConfiguration(final boolean modified) {
-            this();
-            if (modified)
-                markAsModified();
         }
 
         /**
