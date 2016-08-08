@@ -71,12 +71,8 @@ final class InstalledComponents extends OpenMBean.OpenAttribute<TabularData, Tab
         row.put(BUNDLE_STATE_COLUMN, component.getState());
         row.put(IS_MANAGEABLE_COLUMN, false);
         row.put(IS_CONFIG_DESCR_AVAIL_COLUMN, false);
-        try {
-            component.invokeSupportService(Maintainable.class, input -> row.put(IS_MANAGEABLE_COLUMN, input != null));
-            component.invokeSupportService(ConfigurationEntityDescriptionProvider.class, input -> row.put(IS_CONFIG_DESCR_AVAIL_COLUMN, input != null));
-        } catch (final Exception e) {
-            MonitoringUtils.getLogger().log(Level.SEVERE, e.getLocalizedMessage(), e);
-        }
+        component.invokeSupportService(Maintainable.class, input -> row.put(IS_MANAGEABLE_COLUMN, input != null));
+        component.invokeSupportService(ConfigurationEntityDescriptionProvider.class, input -> row.put(IS_CONFIG_DESCR_AVAIL_COLUMN, input != null));
         return INSTALLED_COMPONENT_BUILDER.build(row);
     }
 

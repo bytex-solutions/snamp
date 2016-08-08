@@ -16,7 +16,7 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * The type Start connector operation.
  * @author Evgeniy Kirichenko
  */
-final class StartConnectorOperation extends OpenMBean.OpenOperation<Void, SimpleType<Void>> implements CommonOpenTypesSupport<MBeanOperationInfo> {
+final class StartConnectorOperation extends AbstractConnectorOperation {
 
     private static final String NAME = "startConnector";
 
@@ -26,12 +26,11 @@ final class StartConnectorOperation extends OpenMBean.OpenOperation<Void, Simple
      * @throws OpenDataException the open data exception
      */
     StartConnectorOperation() throws OpenDataException {
-        super(NAME, SimpleType.VOID, CONNECTOR_NAME_PARAM);
+        super(NAME);
     }
 
     @Override
-    public Void invoke(Map<String, ?> arguments) throws BundleException {
-        ManagedResourceActivator.startResourceConnector(getBundleContextOfObject(this), CONNECTOR_NAME_PARAM.getArgument(arguments));
-        return null;
+    void invoke(final String resourceName) throws BundleException {
+        ManagedResourceActivator.startResourceConnector(getBundleContextOfObject(this), resourceName);
     }
 }

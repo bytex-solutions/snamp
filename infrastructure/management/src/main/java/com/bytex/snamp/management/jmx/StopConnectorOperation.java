@@ -16,7 +16,7 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * The type Stop connector operation.
  * @author Evgeniy Kirichenko
  */
-final class StopConnectorOperation extends OpenMBean.OpenOperation<Void, SimpleType<Void>> implements CommonOpenTypesSupport<MBeanOperationInfo> {
+final class StopConnectorOperation extends AbstractConnectorOperation{
 
     private static final String NAME = "stopConnector";
 
@@ -26,13 +26,11 @@ final class StopConnectorOperation extends OpenMBean.OpenOperation<Void, SimpleT
      * @throws OpenDataException the open data exception
      */
     StopConnectorOperation() throws OpenDataException {
-        super(NAME, SimpleType.VOID, CONNECTOR_NAME_PARAM);
+        super(NAME);
     }
 
     @Override
-    public Void invoke(final Map<String, ?> arguments) throws BundleException {
-        ManagedResourceActivator.stopResourceConnector(getBundleContextOfObject(this),
-                CONNECTOR_NAME_PARAM.getArgument(arguments));
-        return null;
+    void invoke(final String resourceName) throws BundleException {
+        ManagedResourceActivator.stopResourceConnector(getBundleContextOfObject(this), resourceName);
     }
 }

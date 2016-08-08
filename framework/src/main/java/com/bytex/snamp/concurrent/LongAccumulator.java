@@ -5,6 +5,8 @@ import com.bytex.snamp.ThreadSafe;
 
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.function.LongBinaryOperator;
+import java.util.function.LongConsumer;
+import java.util.function.LongSupplier;
 
 /**
  * Represents time-based accumulator for {@code long} numbers.
@@ -14,7 +16,7 @@ import java.util.function.LongBinaryOperator;
  * @since 1.0
  */
 @ThreadSafe
-public abstract class LongAccumulator extends AbstractAccumulator {
+public abstract class LongAccumulator extends AbstractAccumulator implements LongSupplier, LongConsumer {
     private static final long serialVersionUID = -8909745382790738723L;
     private static final AtomicLongFieldUpdater<LongAccumulator> CURRENT_VALUE_ACCESSOR =
             AtomicLongFieldUpdater.newUpdater(LongAccumulator.class, "current");
@@ -28,7 +30,7 @@ public abstract class LongAccumulator extends AbstractAccumulator {
      * @param ttl Time-to-live of the value in this accumulator, in millis.
      */
     protected LongAccumulator(final long initialValue,
-                              final long ttl){
+                              final LongSupplier ttl){
         super(ttl);
         this.current = this.initialValue = initialValue;
     }
@@ -87,6 +89,15 @@ public abstract class LongAccumulator extends AbstractAccumulator {
     }
 
     /**
+     * Updates this accumulator.
+     * @param value A new value to be combined with existing accumulator value.
+     */
+    @Override
+    public final void accept(final long value) {
+        update(value);
+    }
+
+    /**
      * Gets value of this accumulator.
      * @return Value of this accumulator
      */
@@ -95,6 +106,15 @@ public abstract class LongAccumulator extends AbstractAccumulator {
         if(isExpired())
             resetIfExpired();   //double check required
         return CURRENT_VALUE_ACCESSOR.get(this);
+    }
+
+    /**
+     * Gets value of this accumulator.
+     * @return Value of this accumulator
+     */
+    @Override
+    public final long getAsLong() {
+        return longValue();
     }
 
     /**
@@ -134,7 +154,7 @@ public abstract class LongAccumulator extends AbstractAccumulator {
     }
 
     public static LongAccumulator create(final long initialValue, final long ttl, final LongBinaryOperator accumulator){
-        return new LongAccumulator(initialValue, ttl) {
+        return new LongAccumulator(initialValue, () -> ttl) {
             private static final long serialVersionUID = 3896687805468634111L;
 
             @Override
@@ -153,7 +173,7 @@ public abstract class LongAccumulator extends AbstractAccumulator {
             private static final long serialVersionUID = 8583924012634668053L;
 
             private Adder(final long initialValue, final long ttl){
-                super(initialValue, ttl);
+                super(initialValue, () -> ttl);
             }
 
             @Override

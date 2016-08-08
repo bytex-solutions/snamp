@@ -14,7 +14,7 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * The type Stop adapter operation.
  * @author Evgeniy Kirichenko
  */
-final class StopAdapterOperation extends OpenMBean.OpenOperation<Void, SimpleType<Void>> implements CommonOpenTypesSupport<MBeanOperationInfo> {
+final class StopAdapterOperation extends AbstractAdapterOperation {
 
     private static final String NAME = "stopAdapter";
 
@@ -24,13 +24,11 @@ final class StopAdapterOperation extends OpenMBean.OpenOperation<Void, SimpleTyp
      * @throws OpenDataException the open data exception
      */
     StopAdapterOperation() throws OpenDataException {
-        super(NAME, SimpleType.VOID, ADAPTER_NAME_PARAM);
+        super(NAME);
     }
 
     @Override
-    public Void invoke(final Map<String, ?> arguments) throws Exception {
-        ResourceAdapterActivator.stopResourceAdapter(getBundleContextOfObject(this),
-                ADAPTER_NAME_PARAM.getArgument(arguments));
-        return null;
+    void invoke(final String adapterInstance) throws Exception {
+        ResourceAdapterActivator.stopResourceAdapter(getBundleContextOfObject(this), adapterInstance);
     }
 }

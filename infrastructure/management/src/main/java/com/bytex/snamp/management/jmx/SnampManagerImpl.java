@@ -75,7 +75,7 @@ public final class SnampManagerImpl extends AbstractSnampManager {
      */
     @Override
     public Logger getLogger() {
-        return MonitoringUtils.getLogger();
+        return SnampCoreMBean.getLoggerImpl();
     }
 
     public static void restart(final BundleContext context) throws BundleException {

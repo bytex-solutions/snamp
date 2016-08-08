@@ -123,7 +123,7 @@ final class SnmpNotification extends HashMap<OID, Variable> {
                                                               final DescriptorRead options,
                                                               final SnmpTypeMapper typeMapper,
                                                               final Acceptor<VariableBinding, E> handler) throws E{
-        final MutableInteger rowIndex = new MutableInteger(0);
+        final MutableInteger rowIndex = new MutableInteger();
         TabularDataUtils.forEachRow(attachment, value -> {
             int columnIndex = 0;
             for(final String columnName: value.getCompositeType().keySet()){

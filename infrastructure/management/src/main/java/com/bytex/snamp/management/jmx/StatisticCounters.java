@@ -1,9 +1,11 @@
 package com.bytex.snamp.management.jmx;
 
+import com.bytex.snamp.concurrent.LongAccumulator;
 import org.osgi.service.log.LogService;
 
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.LongConsumer;
 
 /**
  * The type Statistic counters.
@@ -12,12 +14,22 @@ import java.util.concurrent.atomic.AtomicLong;
  * @since 1.0
  */
 final class StatisticCounters {
-    private long frequency;
-    private long timer;
-    private final AtomicLong numberOfFaults;
-    private final AtomicLong numberOfWarnings;
-    private final AtomicLong numberOfDebugMessages;
-    private final AtomicLong numberOfInformationMessages;
+    private static final class LogEventCounter extends LongAccumulator {
+        private LogEventCounter(final AtomicLong timeout){
+            super(0L, timeout::get);
+        }
+
+        @Override
+        protected long accumulate(final long delta) {
+            return addAndGet(delta);
+        }
+    }
+
+    private final AtomicLong timeout;
+    private final LogEventCounter numberOfFaults;
+    private final LogEventCounter numberOfWarnings;
+    private final LogEventCounter numberOfDebugMessages;
+    private final LogEventCounter numberOfInformationMessages;
 
     /**
      * Initializes a new countdown timer.
@@ -26,12 +38,11 @@ final class StatisticCounters {
      * @throws IllegalArgumentException initial is null.
      */
     StatisticCounters(final Duration frequency) {
-        this.frequency = frequency.toMillis();
-        numberOfFaults = new AtomicLong(0L);
-        numberOfDebugMessages = new AtomicLong(0L);
-        numberOfInformationMessages = new AtomicLong(0L);
-        numberOfWarnings = new AtomicLong(0L);
-        timer = System.currentTimeMillis();
+        this.timeout = new AtomicLong(frequency.toMillis());
+        numberOfFaults = new LogEventCounter(timeout);
+        numberOfDebugMessages = new LogEventCounter(timeout);
+        numberOfInformationMessages = new LogEventCounter(timeout);
+        numberOfWarnings = new LogEventCounter(timeout);
     }
 
     /**
@@ -39,9 +50,8 @@ final class StatisticCounters {
      *
      * @param value Renewal time, in millis.
      */
-    synchronized void setRenewalTime(final long value){
-        timer = System.currentTimeMillis();
-        frequency = value;
+    void setRenewalTime(final long value){
+        timeout.set(value);
     }
 
     /**
@@ -49,44 +59,31 @@ final class StatisticCounters {
      *
      * @return Renewal time, in millis.
      */
-    synchronized long getRenewalTime(){
-        return frequency;
+    long getRenewalTime(){
+        return timeout.get();
     }
 
     long getValue(final int level){
-        resetCountersIfNecessary();
         switch (level){
-            case LogService.LOG_ERROR: return numberOfFaults.get();
-            case LogService.LOG_WARNING: return numberOfWarnings.get();
-            case LogService.LOG_DEBUG: return numberOfDebugMessages.get();
-            default: return numberOfInformationMessages.get();
+            case LogService.LOG_ERROR: return numberOfFaults.getAsLong();
+            case LogService.LOG_WARNING: return numberOfWarnings.getAsLong();
+            case LogService.LOG_DEBUG: return numberOfDebugMessages.getAsLong();
+            default: return numberOfInformationMessages.getAsLong();
         }
     }
-
-    private synchronized void resetCountersIfNecessary() {
-        final long currentTime = System.currentTimeMillis();
-        if (currentTime - timer <= frequency) return;
-        timer = currentTime;
-        numberOfInformationMessages.set(0L);
-        numberOfFaults.set(0L);
-        numberOfWarnings.set(0L);
-        numberOfDebugMessages.set(0L);
-    }
-
     /**
-     * Increment void.
+     * Increase counter.
      *
      * @param eventType the event type
      */
     void increment(final int eventType){
-        resetCountersIfNecessary();
-        final AtomicLong counter;
+        final LongConsumer counter;
         switch (eventType){
             case LogService.LOG_ERROR: counter = numberOfFaults; break;
             case LogService.LOG_DEBUG: counter = numberOfDebugMessages; break;
             case LogService.LOG_WARNING: counter = numberOfWarnings; break;
             default: counter = numberOfInformationMessages; break;
         }
-        counter.incrementAndGet();
+        counter.accept(1L);
     }
 }

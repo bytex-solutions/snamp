@@ -31,7 +31,7 @@ public final class SnampClusterNodeMBean extends OpenMBean implements FrameworkM
 
     @Override
     public Logger getLogger() {
-        return MonitoringUtils.getLogger();
+        return SnampCoreMBean.getLoggerImpl();
     }
 
     /**

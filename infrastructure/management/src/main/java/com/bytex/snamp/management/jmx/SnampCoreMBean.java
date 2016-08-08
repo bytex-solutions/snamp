@@ -18,23 +18,22 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 public final class SnampCoreMBean extends OpenMBean implements LogListener, FrameworkMBean {
+    private static final String LOGGER_NAME = "com.bytex.snamp.management";
     public static final String OBJECT_NAME = "com.bytex.snamp.management:type=SnampCore";
     public static final Duration DEFAULT_RENEWAL_TIME = Duration.ofSeconds(5);
     private final StatisticCounters counter;
 
     private SnampCoreMBean(final StatisticCounters counter, final AbstractSnampManager manager) throws OpenDataException{
-        super(  new GetConnectorConfigurationSchemaOperation(manager),
-                new SummaryMetricsAttribute(),
+        super(  new SummaryMetricsAttribute(),
                 new MetricsAttribute(),
                 new ResetMetricsOperation(),
                 new PlatformVersionAttribute(),
                 new RestartOperation(),
-                new GetAdapterConfigurationSchemaOperation(manager),
                 new StatisticRenewalTimeAttribute(counter),
-                new CountAttribute("FaultsCount", counter, LogService.LOG_ERROR),
-                new CountAttribute("WarningMessagesCount", counter, LogService.LOG_WARNING),
-                new CountAttribute("DebugMessagesCount", counter, LogService.LOG_DEBUG),
-                new CountAttribute("InformationMessagesCount", counter, LogService.LOG_INFO),
+                new LogEventCountAttribute("FaultsCount", counter, LogService.LOG_ERROR),
+                new LogEventCountAttribute("WarningMessagesCount", counter, LogService.LOG_WARNING),
+                new LogEventCountAttribute("DebugMessagesCount", counter, LogService.LOG_DEBUG),
+                new LogEventCountAttribute("InformationMessagesCount", counter, LogService.LOG_INFO),
                 new LogEventNotification(),
                 new InstalledComponents(manager),
                 new InstalledAdaptersAttribute(),
@@ -42,21 +41,7 @@ public final class SnampCoreMBean extends OpenMBean implements LogListener, Fram
                 new StartConnectorOperation(),
                 new StartAdapterOperation(),
                 new StopConnectorOperation(),
-                new StopAdapterOperation(),
-                new SuggestAdapterParameterValuesOperation(manager),
-                new SuggestConnectorParameterValuesOperation(manager),
-                new SuggestConnectorAttributeParameterValuesOperation(manager),
-                new SuggestConnectorEventParameterValuesOperation(manager),
-                new GetConnectorInfoOperation(manager),
-                new GetAdapterInfoOperation(manager),
-                new DiscoverManagementMetadataOperation(manager),
-                new JaasConfigAttribute(),
-                new SnampConfigurationAttribute(),
-                new AvailableAttributesOperation(),
-                new AvailableEventsOperation(),
-                new AvailableOperationsOperation(),
-                new GetBindingOfAttributesOperation(),
-                new GetBindingOfEventsOperation());
+                new StopAdapterOperation());
         this.counter = counter;
     }
 
@@ -88,7 +73,11 @@ public final class SnampCoreMBean extends OpenMBean implements LogListener, Fram
      */
     @Override
     public Logger getLogger() {
-        return MonitoringUtils.getLogger();
+        return getLoggerImpl();
+    }
+
+    static Logger getLoggerImpl() {
+        return Logger.getLogger(LOGGER_NAME);
     }
 
     /**

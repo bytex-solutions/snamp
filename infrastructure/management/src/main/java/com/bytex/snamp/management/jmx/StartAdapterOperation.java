@@ -16,7 +16,7 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * The type Start adapter operation.
  * @author Evgeniy Kirichenko
  */
-final class StartAdapterOperation extends OpenMBean.OpenOperation<Void, SimpleType<Void>> implements CommonOpenTypesSupport<MBeanOperationInfo> {
+final class StartAdapterOperation extends AbstractAdapterOperation {
 
     private static final String NAME = "startAdapter";
 
@@ -26,12 +26,11 @@ final class StartAdapterOperation extends OpenMBean.OpenOperation<Void, SimpleTy
      * @throws OpenDataException the open data exception
      */
     StartAdapterOperation() throws OpenDataException {
-        super(NAME, SimpleType.VOID, ADAPTER_NAME_PARAM);
+        super(NAME);
     }
 
     @Override
-    public Void invoke(Map<String, ?> arguments) throws BundleException {
-        ResourceAdapterActivator.startResourceAdapter(getBundleContextOfObject(this), ADAPTER_NAME_PARAM.getArgument(arguments));
-        return null;
+    void invoke(final String adapterInstance) throws BundleException {
+        ResourceAdapterActivator.startResourceAdapter(getBundleContextOfObject(this), adapterInstance);
     }
 }

@@ -361,7 +361,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
     private static void fill(final TabularData data,
                              final MOTable<DefaultMOMutableRow2PC, MONamedColumn, MOTableModel<DefaultMOMutableRow2PC>> table,
                              final DescriptorRead conversionOptions){
-        final MutableInteger rowIndex = new MutableInteger(0);
+        final MutableInteger rowIndex = new MutableInteger();
         TabularDataUtils.forEachRow(data, row -> {
             final List<Variable> cells = Lists.newArrayListWithExpectedSize(table.getColumnCount());
             for (int columnIndex = 0; columnIndex < table.getColumnCount(); columnIndex++) {

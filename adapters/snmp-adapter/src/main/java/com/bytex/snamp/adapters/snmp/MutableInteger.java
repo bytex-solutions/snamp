@@ -1,5 +1,8 @@
 package com.bytex.snamp.adapters.snmp;
 
+import java.util.function.IntConsumer;
+import java.util.function.IntSupplier;
+
 /**
  * Represents mutable wrapper for {@literal int} data type.
  * This class cannot be inherited.
@@ -7,19 +10,17 @@ package com.bytex.snamp.adapters.snmp;
  * @version 2.0
  * @since 1.0
  */
-final class MutableInteger extends Number implements Comparable<MutableInteger> {
+final class MutableInteger extends Number implements Comparable<MutableInteger>, IntSupplier, IntConsumer {
     private static final long serialVersionUID = -7135764717407730727L;
     private int value;
 
-    MutableInteger(final int value){
-        this.value = value;
-    }
-
-    int get(){
+    @Override
+    public int getAsInt(){
         return value;
     }
 
-    void set(final int value){
+    @Override
+    public void accept(final int value){
         this.value = value;
     }
 

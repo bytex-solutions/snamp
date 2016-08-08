@@ -4,6 +4,9 @@ import com.bytex.snamp.SpecialUse;
 
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.function.IntBinaryOperator;
+import java.util.function.IntConsumer;
+import java.util.function.IntSupplier;
+import java.util.function.LongSupplier;
 
 /**
  * Represents time-based accumulator for {@code int} numbers.
@@ -12,7 +15,7 @@ import java.util.function.IntBinaryOperator;
  * @version 2.0
  * @since 1.0
  */
-public abstract class IntAccumulator extends AbstractAccumulator {
+public abstract class IntAccumulator extends AbstractAccumulator implements IntSupplier, IntConsumer {
     private static final AtomicIntegerFieldUpdater<IntAccumulator> CURRENT_VALUE_ACCESSOR =
             AtomicIntegerFieldUpdater.newUpdater(IntAccumulator.class, "current");
     private static final long serialVersionUID = 5460812167708036224L;
@@ -26,7 +29,7 @@ public abstract class IntAccumulator extends AbstractAccumulator {
      * @param ttl Time-to-live of the value in this accumulator, in millis.
      */
     protected IntAccumulator(final int initialValue,
-                             final long ttl){
+                             final LongSupplier ttl){
         super(ttl);
         this.current = this.initialValue = initialValue;
     }
@@ -78,6 +81,15 @@ public abstract class IntAccumulator extends AbstractAccumulator {
     }
 
     /**
+     * Updates this accumulator.
+     * @param value A new value to be combined with existing accumulator value.
+     */
+    @Override
+    public final void accept(final int value) {
+        update(value);
+    }
+
+    /**
      * Gets value of this accumulator.
      * @return Value of this accumulator
      */
@@ -98,6 +110,18 @@ public abstract class IntAccumulator extends AbstractAccumulator {
         if(isExpired())
             resetIfExpired();   //double check required
         return CURRENT_VALUE_ACCESSOR.get(this);
+    }
+
+    /**
+     * Returns the value of the specified number as an <code>int</code>.
+     * This may involve rounding or truncation.
+     *
+     * @return the numeric value represented by this object after conversion
+     * to type <code>int</code>.
+     */
+    @Override
+    public final int getAsInt() {
+        return intValue();
     }
 
     /**
@@ -125,7 +149,7 @@ public abstract class IntAccumulator extends AbstractAccumulator {
     }
 
     public static IntAccumulator create(final int initialValue, final long ttl, final IntBinaryOperator accumulator){
-        return new IntAccumulator(initialValue, ttl) {
+        return new IntAccumulator(initialValue, () -> ttl) {
             private static final long serialVersionUID = -3940528661924869135L;
 
             @Override
@@ -144,7 +168,7 @@ public abstract class IntAccumulator extends AbstractAccumulator {
             private static final long serialVersionUID = 8155999174928846425L;
 
             private Adder(final int initialValue, final long ttl){
-                super(initialValue, ttl);
+                super(initialValue, () -> ttl);
             }
 
             @Override

@@ -1,5 +1,7 @@
 package com.bytex.snamp.concurrent;
 
+import java.util.function.LongSupplier;
+
 /**
  * Represents abstract time-based accumulator.
  * @author Roman Sakno
@@ -13,9 +15,9 @@ abstract class AbstractAccumulator extends Number {
     /**
      * Time-to-live of the value in this accumulator, in millis.
      */
-    private final long timeToLive;
+    private final LongSupplier timeToLive;
 
-    AbstractAccumulator(final long ttl){
+    AbstractAccumulator(final LongSupplier ttl){
         timer = System.currentTimeMillis();
         this.timeToLive = ttl;
     }
@@ -29,6 +31,6 @@ abstract class AbstractAccumulator extends Number {
      * @return {@literal true}, if value is expired; otherwise, {@literal false}.
      */
     protected final boolean isExpired() {
-        return System.currentTimeMillis() - timer > timeToLive;
+        return System.currentTimeMillis() - timer > timeToLive.getAsLong();
     }
 }

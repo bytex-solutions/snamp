@@ -6,12 +6,12 @@ import org.osgi.service.log.LogService;
 import javax.management.openmbean.SimpleType;
 
 /**
- * The type Count attribute.
+ *
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0
  */
-final class CountAttribute extends OpenMBean.OpenAttribute<Long, SimpleType<Long>> {
+final class LogEventCountAttribute extends OpenMBean.OpenAttribute<Long, SimpleType<Long>> {
     private final StatisticCounters counter;
     private final int logLevel;
 
@@ -22,9 +22,9 @@ final class CountAttribute extends OpenMBean.OpenAttribute<Long, SimpleType<Long
      * @param counter the counter
      * @param logLevel the log level
      */
-    CountAttribute(final String attributeName,
-                   final StatisticCounters counter,
-                   final int logLevel){
+    LogEventCountAttribute(final String attributeName,
+                           final StatisticCounters counter,
+                           final int logLevel){
         super(attributeName, SimpleType.LONG);
         this.counter = counter;
         this.logLevel = logLevel;
