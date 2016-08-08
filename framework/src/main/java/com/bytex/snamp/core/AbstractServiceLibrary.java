@@ -259,39 +259,20 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                     context);
         }
 
-        /**
-         * Determines whether the service activation and registration is allowed.
-         * <p>
-         *     In the default implementation this method always returns {@literal true}.
-         * @param context Bundle context that can be used to evaluate result of this method.
-         * @return {@literal true}, if registration is allowed; otherwise, {@literal false}.
-         */
-        @MethodStub
-        protected boolean isActivationAllowed(final BundleContext context){
-            return true;
-        }
-
-        private boolean register(final BundleContext context, final ActivationPropertyReader properties) throws Exception {
+        private void register(final BundleContext context, final ActivationPropertyReader properties) throws Exception {
             this.properties = properties;
-            if(isActivationAllowed(context)) {
-                activationContext = context;
-                if (ownDependencies.isEmpty()) //instantiate and register service now because there are no dependencies, no dependency tracking is required
-                    activateAndRegisterService(context);
-                else {
-                    final DependencyListeningFilterBuilder filter = new DependencyListeningFilterBuilder();
-                    for (final RequiredService<?> dependency : ownDependencies) {
-                        filter.append(dependency);
-                        for (final ServiceReference<?> serviceRef : dependency.getCandidates(context))
-                            serviceChanged(context, new ServiceEvent(ServiceEvent.REGISTERED, serviceRef));
-                    }
-                    //dependency tracking required
-                    filter.applyServiceListener(context, dependencyTracker = new WeakServiceListener(this));
-                }
-                return true;
-            }
+            activationContext = context;
+            if (ownDependencies.isEmpty()) //instantiate and register service now because there are no dependencies, no dependency tracking is required
+                activateAndRegisterService(context);
             else {
-                this.properties = emptyActivationPropertyReader;
-                return false;
+                final DependencyListeningFilterBuilder filter = new DependencyListeningFilterBuilder();
+                for (final RequiredService<?> dependency : ownDependencies) {
+                    filter.append(dependency);
+                    for (final ServiceReference<?> serviceRef : dependency.getCandidates(context))
+                        serviceChanged(context, new ServiceEvent(ServiceEvent.REGISTERED, serviceRef));
+                }
+                //dependency tracking required
+                filter.applyServiceListener(context, dependencyTracker = new WeakServiceListener(this));
             }
         }
 

@@ -40,27 +40,6 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.0
  */
 public class ManagedResourceActivator<TConnector extends ManagedResourceConnector> extends AbstractServiceLibrary {
-    /**
-     * Describes missing prerequisite.
-     */
-    public static abstract class PrerequisiteException extends Exception{
-        private static final long serialVersionUID = 7774921412080568085L;
-
-        protected PrerequisiteException(final String message){
-            super(message);
-        }
-
-        protected PrerequisiteException(final String message,
-                                        final Exception cause){
-            super(message, cause);
-        }
-
-        /**
-         * Determines whether the bundle activation process should be terminated.
-         * @return {@literal true} to terminate activator; otherwise, {@literal false}.
-         */
-        protected abstract boolean abortStarting();
-    }
 
     private static final String MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY = "managedResource";
     private static final String CONNECTOR_STRING_IDENTITY_PROPERTY = "connectionString";
@@ -68,7 +47,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
     private static final ActivationProperty<String> CONNECTOR_TYPE_HOLDER = defineActivationProperty(String.class);
     private static final ActivationProperty<Logger> LOGGER_HOLDER = defineActivationProperty(Logger.class);
-    private static final ActivationProperty<Boolean> PREREQUISITES_CHECK_HOLDER = defineActivationProperty(Boolean.class, false);
 
     /**
      * Represents an interface responsible for lifecycle control over resource connector instances.
@@ -390,11 +368,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
             return getParser(dependencies).getConnectorFactoryPersistentID(connectorType);
         }
 
-        @Override
-        protected boolean isActivationAllowed(final BundleContext context) {
-            return getActivationPropertyValue(PREREQUISITES_CHECK_HOLDER);
-        }
-
         private void updateFeatures(final TConnector connector,
                             final Dictionary<String, ?> configuration,
                                     final CMManagedResourceParser parser) throws Exception {
@@ -531,10 +504,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
         private SupportConnectorServiceManager(final Class<S> contract, final RequiredService<?>... dependencies) {
             super(contract, dependencies);
-        }
-
-        protected final boolean isPrerequisitesOK(){
-            return getActivationPropertyValue(PREREQUISITES_CHECK_HOLDER);
         }
 
         /**
@@ -796,8 +765,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         }
     }
 
-    private boolean prerequisitesOK;
-
     /**
      * Initializes a new connector factory.
      * @param controller Resource connector lifecycle controller. Cannot be {@literal null}.
@@ -820,7 +787,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                        final RequiredService<?>[] connectorDependencies,
                                        final SupportConnectorServiceManager<?, ?>[] optionalServices){
         super(ObjectArrays.concat(optionalServices, new ServiceSubRegistryManager<?, ?>[]{ new ManagedResourceConnectorRegistry<>(controller, connectorDependencies)}, ProvidedService.class));
-        this.prerequisitesOK = false;
     }
 
     private static void createIdentity(final String resourceName,
@@ -853,26 +819,12 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
     }
 
-    protected void checkPrerequisites() throws PrerequisiteException{
-        prerequisitesOK = true;
-    }
-
     /**
      * Initializes the library.
      * @param bundleLevelDependencies A collection of library-level dependencies to fill.
      */
     @Override
     protected final void start(final Collection<RequiredService<?>> bundleLevelDependencies) throws Exception {
-        prerequisitesOK = true;
-        try {
-            checkPrerequisites();
-        } catch (final PrerequisiteException e) {
-            if (e.abortStarting()) throw e;
-            else {
-                getLogger().log(Level.WARNING, String.format("Preconditions for %s connector are not met", getConnectorType()), e);
-                prerequisitesOK = false;
-            }
-        }
         bundleLevelDependencies.add(new SimpleDependency<>(ConfigurationAdmin.class));
         addDependencies(bundleLevelDependencies);
     }
@@ -887,7 +839,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     protected final void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception {
         activationProperties.publish(LOGGER_HOLDER, getLogger());
         activationProperties.publish(CONNECTOR_TYPE_HOLDER, getConnectorType());
-        activationProperties.publish(PREREQUISITES_CHECK_HOLDER, prerequisitesOK);
         getLogger().log(Level.INFO, String.format("Activating resource connectors of type %s", getConnectorType()));
     }
 
