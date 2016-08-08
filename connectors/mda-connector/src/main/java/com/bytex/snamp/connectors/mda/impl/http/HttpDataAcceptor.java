@@ -226,7 +226,6 @@ public final class HttpDataAcceptor extends DataAcceptor {
         final HttpService publisher = publisherRef.getAndSet(null);
         if (publisher != null)
             publisher.unregister(servletContext);
-        threadPool.shutdown();
         attributes.close();
         notifications.close();
         super.close();

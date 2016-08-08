@@ -1,6 +1,5 @@
 package com.bytex.snamp.connectors.notifications;
 
-import javax.management.Notification;
 import javax.management.NotificationListener;
 import java.util.concurrent.Executor;
 
@@ -13,7 +12,7 @@ import java.util.concurrent.Executor;
 public final class NotificationListenerInvokerFactory {
 
     private NotificationListenerInvokerFactory(){
-
+        throw new InstantiationError();
     }
 
     /**
@@ -33,6 +32,7 @@ public final class NotificationListenerInvokerFactory {
      * @since 1.0
      * @version 2.0
      */
+    @FunctionalInterface
     public interface ExceptionHandler{
         /**
          * Handles the exception raised by notification listener.
@@ -43,59 +43,22 @@ public final class NotificationListenerInvokerFactory {
     }
 
     /**
-     * Creates a new invoker that invokes each notification listener sequentially in the caller thread
-     * in exception-safe manner.
-     * @param handler An exception handler that captures exception raised by the notification listener.
-     * @return A new instance of the invoker.
+     * Creates an invoker that invokes each listener using {@link Executor#execute(Runnable)} method.
+     * @param executor An executor that is used to apply each listener.
+     * @return A new instance of the listener invoker that uses {@link Executor} for listener invocation.
      */
-    public static NotificationListenerSequentialInvoker createExceptionResistantInvoker(final ExceptionHandler handler){
-        return (n, handback, listeners) -> listeners.forEach(listener -> {
+    public static NotificationListenerInvoker createParallelInvoker(final Executor executor) {
+        return (n, handback, listeners) -> listeners.forEach(listener -> executor.execute(() -> listener.handleNotification(n, handback)));
+    }
+
+    public static NotificationListenerInvoker createParallelExceptionResistantInvoker(final Executor executor, final ExceptionHandler handler){
+        return (n, handback, listeners) -> listeners.forEach(listener -> executor.execute(() -> {
             try{
                 listener.handleNotification(n, handback);
             }
             catch (final Throwable e){
                 handler.handle(e, listener);
             }
-        });
-    }
-
-    /**
-     * Creates an invoker that invokes each listener using {@link Executor#execute(Runnable)} method.
-     * @param executor An executor that is used to apply each listener.
-     * @return A new instance of the listener invoker that uses {@link Executor} for listener invocation.
-     */
-    public static NotificationListenerParallelInvoker createParallelInvoker(final Executor executor){
-        return new NotificationListenerParallelInvoker() {
-            @Override
-            public Executor getScheduler() {
-                return executor;
-            }
-
-            @Override
-            public void invoke(final Notification n, final Object handback, final Iterable<? extends NotificationListener> listeners) {
-                listeners.forEach(listener -> getScheduler().execute(() -> listener.handleNotification(n, handback)));
-            }
-        };
-    }
-
-    public static NotificationListenerParallelInvoker createParallelExceptionResistantInvoker(final Executor executor, final ExceptionHandler handler){
-        return new NotificationListenerParallelInvoker() {
-            @Override
-            public Executor getScheduler() {
-                return executor;
-            }
-
-            @Override
-            public void invoke(final Notification n, final Object handback, final Iterable<? extends NotificationListener> listeners) {
-                listeners.forEach(listener -> getScheduler().execute(() -> {
-                    try{
-                        listener.handleNotification(n, handback);
-                    }
-                    catch (final Throwable e){
-                        handler.handle(e, listener);
-                    }
-                }));
-            }
-        };
+        }));
     }
 }

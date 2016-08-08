@@ -122,7 +122,6 @@ final class ThriftDataAcceptor extends DataAcceptor implements TProcessor {
     public void close() throws Exception {
         thriftServer.stop();
         transport.close();
-        threadPool.shutdown();
         attributes.close();
         notifications.close();
         super.close();
