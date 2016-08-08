@@ -32,7 +32,6 @@ import static com.bytex.snamp.configuration.ConfigurationManager.ConfigurationPr
  */
 @SnampDependencies({SnampFeature.PLATFORM})
 @PropagateSystemProperties({
-        SnampSystemProperties.JAAS_CONFIG_FILE,
         "java.security.egd",
         "com.sun.management.jmxremote.authenticate",
         "com.sun.management.jmxremote.port",
@@ -83,19 +82,6 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
 
     protected AbstractSnampIntegrationTest(){
         super(SNAMP_ENV_BUILDER);
-        //WORKAROUND for system properties with relative path
-        if(!isInTestContainer()){
-            expandSystemPropertyFileName(SnampSystemProperties.JAAS_CONFIG_FILE);
-        }
-    }
-
-    private static void expandSystemPropertyFileName(final String propertyName) {
-        String fileName = System.getProperty(propertyName);
-        if (fileName != null && fileName.startsWith("./")) {
-            fileName = fileName.substring(2);
-            fileName = getPathToFileInProjectRoot(fileName);
-            System.setProperty(propertyName, fileName);
-        }
     }
 
     /**

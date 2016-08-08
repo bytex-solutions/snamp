@@ -8,8 +8,6 @@ import com.bytex.snamp.internal.OperatingSystem;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import org.apache.felix.service.command.CommandProcessor;
 import org.apache.felix.service.command.CommandSession;
 import org.junit.Test;
@@ -142,18 +140,6 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
     public void startStopConnectorTest() throws Exception{
         runCommand("snamp:stop-connector jmx");
         runCommand("snamp:start-connector jmx");
-    }
-
-    @Test
-    public void jaasConfigTest() throws Exception{
-        runCommand(String.format("snamp:setup-jaas %s", getPathToFileInProjectRoot("jaas.json")));
-        final File jaasConfig = File.createTempFile("snamp", "jaas");
-        runCommand(String.format("snamp:dump-jaas %s", jaasConfig.getPath()));
-        try(final Reader reader = new FileReader(jaasConfig)){
-            final Gson formatter = new Gson();
-            final JsonElement element = formatter.fromJson(reader, JsonElement.class);
-            assertNotNull(element);
-        }
     }
 
     @Test

@@ -68,7 +68,6 @@
                         <com.sun.management.jmxremote.port>3334</com.sun.management.jmxremote.port>
                         <com.sun.management.jmxremote.authenticate>false</com.sun.management.jmxremote.authenticate>
                         <com.sun.management.jmxremote.ssl>false</com.sun.management.jmxremote.ssl>
-                        <com.bytex.snamp.login.config.boot>./jaas.json</com.bytex.snamp.login.config.boot>
                         <pax.exam.osgi.unresolved.fail>true</pax.exam.osgi.unresolved.fail>
                         <mavenLocalRepository>${settings.localRepository}</mavenLocalRepository>
                     </systemPropertyVariables>
