@@ -96,9 +96,7 @@
             <feature>http</feature>
             <feature>war</feature>
             <feature>http-whiteboard</feature>
-            <feature>jolokia</feature>
             <feature>cellar</feature>
-            <feature>hawtio-offline</feature>
           </installedFeatures>
         </configuration>
       </plugin>
