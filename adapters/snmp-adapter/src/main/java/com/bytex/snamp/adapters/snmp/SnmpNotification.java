@@ -61,8 +61,7 @@ final class SnmpNotification extends HashMap<OID, Variable> {
 
     SnmpNotification(final OID notificationID,
                      final Notification n,
-                     final MBeanNotificationInfo options,
-                     final SnmpTypeMapper mapper) {
+                     final MBeanNotificationInfo options) {
         this(notificationID);
         put(messageId, OctetStringHelper.toOctetString(n.getMessage()));
         put(severityId, new Integer32(NotificationDescriptor.getSeverity(options).getLevel()));
@@ -70,7 +69,7 @@ final class SnmpNotification extends HashMap<OID, Variable> {
         put(categoryId, OctetStringHelper.toOctetString(NotificationDescriptor.getName(options)));
         final DateTimeFormatter formatter = SnmpHelpers.createDateTimeFormatter(parseDateTimeDisplayFormat(options));
         put(timeStampId, new OctetString(formatter.convert(new Date(n.getTimeStamp()))));
-        putAttachment(notificationID, n.getUserData(), options, this, mapper);
+        putAttachment(notificationID, n.getUserData(), options, this);
         put(eventNameId, OctetStringHelper.toOctetString(n.getType()));
         put(sourceId, OctetStringHelper.toOctetString(Objects.toString(n.getSource(), "")));
     }
@@ -78,29 +77,27 @@ final class SnmpNotification extends HashMap<OID, Variable> {
     private static void putAttachment(final OID notificationID,
                                       final Object attachment,
                                       final DescriptorRead options,
-                                      final Map<OID, Variable> output,
-                                      final SnmpTypeMapper mapper) {
+                                      final Map<OID, Variable> output) {
         if (attachment == null) return;
-        final SnmpType type = mapper.apply(WellKnownType.fromValue(attachment));
+        final SnmpType type = SnmpType.map(WellKnownType.fromValue(attachment));
         assert type != null;
         if (type.isScalar()) {
             final Variable value = type.convert(attachment, options);
             output.put(new OID(notificationID).append(MAX_RESERVED_POSTFIX + 1), value != null ? value : new Null());
         } else if (Objects.equals(type, SnmpType.TABLE))
-            forEachVariable(attachment, options, mapper, binding ->
+            forEachVariable(attachment, options, binding ->
                 output.put(new OID(notificationID).append(MAX_RESERVED_POSTFIX + 1).append(binding.getOid()), binding.getVariable())
             );
     }
 
     private static <E extends Exception> void forEachVariable(final CompositeData attachment,
                                                               final DescriptorRead options,
-                                                              final SnmpTypeMapper typeMapper,
                                                               final Acceptor<VariableBinding, E> handler) throws E {
         int index = 0;
         for(final String itemName: attachment.getCompositeType().keySet()){
             final WellKnownType itemType = WellKnownType.getType(attachment.getCompositeType().getType(itemName));
             if(itemType == null || !itemType.isPrimitive()) continue;
-            final SnmpType snmpType = typeMapper.apply(itemType);
+            final SnmpType snmpType = SnmpType.map(itemType);
             assert snmpType != null;
             handler.accept(new VariableBinding(new OID(new int[]{index++}), snmpType.convert(attachment.get(itemName), options)));
         }
@@ -108,11 +105,10 @@ final class SnmpNotification extends HashMap<OID, Variable> {
 
     private static <E extends Exception> void iterateOverArray(final Object array,
                                                                final DescriptorRead options,
-                                                               final SnmpTypeMapper typeMapper,
                                                                final Acceptor<VariableBinding, E> handler) throws E{
         final WellKnownType elementType = WellKnownType.getType(array.getClass().getComponentType());
         if(elementType == null || !elementType.isPrimitive()) return;
-        final SnmpType snmpType = typeMapper.apply(elementType);
+        final SnmpType snmpType = SnmpType.map(elementType);
         assert snmpType != null;
         for(int i = 0; i < Array.getLength(array); i++) {
             handler.accept(new VariableBinding(new OID(new int[]{i}), snmpType.convert(Array.get(array, i), options)));
@@ -121,13 +117,12 @@ final class SnmpNotification extends HashMap<OID, Variable> {
 
     private static <E extends Exception> void forEachVariable(final TabularData attachment,
                                                               final DescriptorRead options,
-                                                              final SnmpTypeMapper typeMapper,
                                                               final Acceptor<VariableBinding, E> handler) throws E{
         final MutableInteger rowIndex = new MutableInteger();
         TabularDataUtils.forEachRow(attachment, value -> {
             int columnIndex = 0;
             for(final String columnName: value.getCompositeType().keySet()){
-                final SnmpType columnType = typeMapper.apply(WellKnownType.getType(value.getCompositeType().getType(columnName)));
+                final SnmpType columnType = SnmpType.map(WellKnownType.getType(value.getCompositeType().getType(columnName)));
                 assert columnType != null;
                 handler.accept(new VariableBinding(new OID(new int[]{columnIndex++, rowIndex.getAndIncrement()}), columnType.convert(value.get(columnName), options)));
             }
@@ -136,14 +131,13 @@ final class SnmpNotification extends HashMap<OID, Variable> {
 
     private static <E extends Exception> void forEachVariable(final Object attachment,
                                                               final DescriptorRead options,
-                                                              final SnmpTypeMapper typeMapper,
                                                               final Acceptor<VariableBinding, E> handler) throws E{
         if(attachment instanceof CompositeData)
-            forEachVariable((CompositeData)attachment, options, typeMapper, handler);
+            forEachVariable((CompositeData)attachment, options, handler);
         else if(ArrayUtils.isArray(attachment))
-            iterateOverArray(attachment, options, typeMapper, handler);
+            iterateOverArray(attachment, options, handler);
         else if(attachment instanceof TabularData)
-            forEachVariable((TabularData)attachment, options, typeMapper, handler);
+            forEachVariable((TabularData)attachment, options, handler);
     }
 
     private boolean put(final VariableBinding binding) {

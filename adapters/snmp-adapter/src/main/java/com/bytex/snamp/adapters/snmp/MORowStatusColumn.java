@@ -7,7 +7,6 @@ import org.snmp4j.smi.Integer32;
 import org.snmp4j.smi.Variable;
 
 import javax.management.DescriptorRead;
-import java.util.function.Function;
 
 /**
  * Represents RowStatus column as described in SMIv2 (RFC 1903).
@@ -27,11 +26,9 @@ final class MORowStatusColumn extends MONamedColumn {
     /**
      * Initializes a new RowStatus column.
      * @param columnId The column identifier.
-     * @param typeMapper A mapper between SNAMP and SNMP type system. Cannot be {@literal null}.
      */
-    MORowStatusColumn(final int columnId,
-                      final Function<WellKnownType, SnmpType> typeMapper){
-        super(columnId, NAME, WellKnownType.INT, typeMapper, MOAccessImpl.ACCESS_READ_WRITE, false);
+    MORowStatusColumn(final int columnId){
+        super(columnId, NAME, WellKnownType.INT, MOAccessImpl.ACCESS_READ_WRITE, false);
     }
 
     /**

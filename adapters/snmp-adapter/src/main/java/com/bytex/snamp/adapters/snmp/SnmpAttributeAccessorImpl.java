@@ -22,14 +22,11 @@ final class SnmpAttributeAccessorImpl extends SnmpAttributeAccessor {
 
     @Override
     SnmpAttributeMapping registerManagedObject(final OID context,
-                                               final SnmpTypeMapper typeMapper,
                                                final MOServer server) throws DuplicateRegistrationException {
-        final SnmpType attributeType = getType(typeMapper);
-        assert attributeType != null;
         //do not add the attribute with invalid prefix
         final SnmpAttributeMapping mapping;
         if (attributeID.startsWith(context)) {
-            mapping = attributeType.createManagedObject(this);
+            mapping = getSnmpType().createManagedObject(this);
             server.register(mapping, null);
         }
         else mapping = null;

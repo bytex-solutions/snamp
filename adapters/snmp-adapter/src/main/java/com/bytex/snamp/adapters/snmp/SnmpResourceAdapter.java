@@ -1,11 +1,11 @@
 package com.bytex.snamp.adapters.snmp;
 
+import com.bytex.snamp.adapters.AbstractResourceAdapter;
 import com.bytex.snamp.adapters.ResourceAdapterUpdateManager;
 import com.bytex.snamp.adapters.ResourceAdapterUpdatedCallback;
 import com.bytex.snamp.adapters.modeling.AttributeAccessor;
 import com.bytex.snamp.adapters.modeling.FeatureAccessor;
 import com.bytex.snamp.adapters.modeling.NotificationAccessor;
-import com.bytex.snamp.adapters.profiles.PolymorphicResourceAdapter;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import org.osgi.service.jndi.JNDIContextManager;
@@ -14,13 +14,12 @@ import org.snmp4j.agent.DuplicateRegistrationException;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanNotificationInfo;
-import javax.naming.NamingException;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Objects;
+import java.util.concurrent.Callable;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
@@ -31,22 +30,20 @@ import static com.bytex.snamp.adapters.snmp.SnmpAdapterDescriptionProvider.isVal
  * @version 2.0
  * @since 1.0
  */
-final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceAdapterProfile> {
+final class SnmpResourceAdapter extends AbstractResourceAdapter {
     private static final class SnmpAdapterUpdateManager extends ResourceAdapterUpdateManager {
         private final SnmpAgent agent;
-        private final SnmpResourceAdapterProfile profile;
 
         private SnmpAdapterUpdateManager(final String adapterInstanceName,
-                                         final SnmpResourceAdapterProfile profile,
-                                         final DirContextFactory contextFactory) throws IOException, SnmpAdapterAbsentParameterException, NamingException {
-            super(adapterInstanceName, profile.getRestartTimeout());
-            this.profile = Objects.requireNonNull(profile);
-            agent = profile.createSnmpAgent(contextFactory);
+                                         final long restartTimeout,
+                                         final Callable<SnmpAgent> agentFactory) throws Exception {
+            super(adapterInstanceName, restartTimeout);
+            agent = agentFactory.call();
         }
 
         private void startAgent(final Iterable<? extends SnmpAttributeAccessor> attributes,
                                 final Iterable<? extends SnmpNotificationMapping> notifications) throws IOException, DuplicateRegistrationException {
-            agent.start(attributes, notifications, profile);
+            agent.start(attributes, notifications);
         }
 
         @Override
@@ -69,7 +66,7 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
         }
 
         private void registerManagedObject(final SnmpAttributeAccessor accessor) throws DuplicateRegistrationException {
-            agent.registerManagedObject(accessor, profile);
+            agent.registerManagedObject(accessor);
         }
 
         private void unregisterManagedObject(final SnmpAttributeAccessor accessor) {
@@ -77,7 +74,7 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
         }
 
         private void registerNotificationTarget(final SnmpNotificationAcessor mapping) {
-            agent.registerNotificationTarget(mapping, profile);
+            agent.registerNotificationTarget(mapping);
         }
 
         private void unregisterNotificationTarget(final SnmpNotificationMapping mapping) {
@@ -99,28 +96,26 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
     }
 
     /**
-     * Creates a new instance of the profile using its name and configuration parameters.
+     * Starts the adapter.
+     * <p>
+     * This method will be called by SNAMP infrastructure automatically.
+     * </p>
      *
-     * @param profileName The name of the profile.
-     * @param parameters  A set of configuration parameters.
-     * @return A new instance of the profile. Cannot be {@literal null}.
+     * @param parameters Adapter startup parameters.
+     * @throws Exception Unable to start adapter.
      */
     @Override
-    protected SnmpResourceAdapterProfile createProfile(final String profileName,
-                                                       final Map<String, String> parameters) {
-        switch (profileName) {
-            case SnmpResourceAdapterProfile.PROFILE_NAME:
-            default:
-                return SnmpResourceAdapterProfile.createDefault(parameters);
-        }
-    }
-
-    @Override
-    protected synchronized void start(final SnmpResourceAdapterProfile profile) throws IOException, DuplicateRegistrationException, SnmpAdapterAbsentParameterException, NamingException {
+    protected void start(final Map<String, String> parameters) throws Exception {
+        final SnmpAdapterDescriptionProvider parser = SnmpAdapterDescriptionProvider.getInstance();
+        final Callable<SnmpAgent> agentFactory = () -> new SnmpAgent(parser.parseContext(parameters),
+                parser.parseEngineID(parameters),
+                parser.parsePort(parameters),
+                parser.parseAddress(parameters),
+                parser.parseSecurityConfiguration(parameters, contextFactory),
+                parser.parseSocketTimeout(parameters),
+                parser.getThreadPool(parameters));
         //initialize restart manager and start SNMP agent
-        updateManager = new SnmpAdapterUpdateManager(getInstanceName(),
-                profile,
-                contextFactory);
+        updateManager = new SnmpAdapterUpdateManager(getInstanceName(), parser.parseRestartTimeout(parameters), agentFactory);
         updateManager.startAgent(attributes.values(), notifications.values());
     }
 
@@ -227,27 +222,25 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
         }
     }
 
-    private static Multimap<String, ? extends FeatureBindingInfo<MBeanAttributeInfo>> getAttributes(final Multimap<String, SnmpAttributeAccessor> attributes,
-                                                                                                            final SnmpTypeMapper typeMapper){
+    private static Multimap<String, ? extends FeatureBindingInfo<MBeanAttributeInfo>> getAttributes(final Multimap<String, SnmpAttributeAccessor> attributes){
         final Multimap<String, ReadOnlyFeatureBindingInfo<MBeanAttributeInfo>> result =
                 HashMultimap.create(attributes.keySet().size(), 10);
         for(final String resourceName: attributes.keySet())
             for(final SnmpAttributeAccessor accessor: attributes.get(resourceName))
                 result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor,
-                        FeatureBindingInfo.MAPPED_TYPE, accessor.getType(typeMapper),
+                        FeatureBindingInfo.MAPPED_TYPE, accessor.getSnmpType(),
                         "OID", accessor.getID()
                         ));
         return result;
     }
 
-    private static Multimap<String, ? extends FeatureBindingInfo<MBeanNotificationInfo>> getNotifications(final Multimap<String, SnmpNotificationAcessor> notifs,
-                                                                                                          final SnmpTypeMapper typeMapper){
+    private static Multimap<String, ? extends FeatureBindingInfo<MBeanNotificationInfo>> getNotifications(final Multimap<String, SnmpNotificationAcessor> notifs){
         final Multimap<String, ReadOnlyFeatureBindingInfo<MBeanNotificationInfo>> result =
                 HashMultimap.create(notifs.keySet().size(), 10);
         for(final String resourceName: notifs.keySet())
             for(final SnmpNotificationAcessor accessor: notifs.get(resourceName))
                 result.put(resourceName, new ReadOnlyFeatureBindingInfo<>(accessor,
-                        FeatureBindingInfo.MAPPED_TYPE, accessor.getType(typeMapper),
+                        FeatureBindingInfo.MAPPED_TYPE, accessor.getSnmpType(),
                         "OID", accessor.getID()
                 ));
         return result;
@@ -260,9 +253,9 @@ final class SnmpResourceAdapter extends PolymorphicResourceAdapter<SnmpResourceA
         if(updateManager == null)
             return super.getBindings(featureType);
         else if(featureType.isAssignableFrom(MBeanAttributeInfo.class))
-            return (Multimap<String, ? extends FeatureBindingInfo<M>>)getAttributes(attributes, updateManager.profile);
+            return (Multimap<String, ? extends FeatureBindingInfo<M>>)getAttributes(attributes);
         else if(featureType.isAssignableFrom(MBeanNotificationInfo.class))
-            return (Multimap<String, ? extends FeatureBindingInfo<M>>)getNotifications(notifications, updateManager.profile);
+            return (Multimap<String, ? extends FeatureBindingInfo<M>>)getNotifications(notifications);
         else return super.getBindings(featureType);
     }
 

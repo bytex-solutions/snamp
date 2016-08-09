@@ -31,7 +31,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 
 import static com.bytex.snamp.adapters.snmp.SnmpHelpers.getAccessRestrictions;
-import static com.bytex.snamp.adapters.snmp.SnmpResourceAdapterProfile.createDefaultTypeMapper;
 import static com.bytex.snamp.adapters.snmp.SnmpAdapterDescriptionProvider.parseOID;
 import static com.bytex.snamp.jmx.DescriptorUtils.getField;
 import static com.bytex.snamp.jmx.DescriptorUtils.hasField;
@@ -42,7 +41,6 @@ import static com.bytex.snamp.jmx.DescriptorUtils.hasField;
  */
 final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONamedColumn, MOTableModel<DefaultMOMutableRow2PC>> implements SnmpAttributeMapping, UpdatableManagedObject{
     static final int SYNTAX = SMIConstants.EXCEPTION_NO_SUCH_OBJECT;
-    private static final SnmpTypeMapper DEFAULT_MAPPER = createDefaultTypeMapper();
 
     /**
      * Represents transaction state.
@@ -233,32 +231,29 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
     private final UpdateManager cacheManager;
 
     private static MONamedColumn[] createColumns(final ArrayType<?> tableType,
-                                                 final SnmpTypeMapper typeMapper,
                                                            final MOAccess access,
                                                            final boolean useRowStatus){
         int columnID = 2;
         final List<MONamedColumn> columns = Lists.newArrayListWithCapacity(2);
         //column with array values
-        columns.add(new MONamedColumn(columnID++, tableType, typeMapper, access));
+        columns.add(new MONamedColumn(columnID++, tableType, access));
         //add RowStatus column
         if(useRowStatus)
-            columns.add(new MORowStatusColumn(columnID, typeMapper));
+            columns.add(new MORowStatusColumn(columnID));
         return columns.stream().toArray(MONamedColumn[]::new);
     }
 
     private static MONamedColumn[] createColumns(final CompositeType type,
-                                                 final SnmpTypeMapper typeMapper,
                                                     final MOAccess access){
         int columnID = 2;
         //each key is in separated column
         final List<MONamedColumn> columns = Lists.newArrayListWithCapacity(type.keySet().size());
         for(final String itemName: type.keySet())
-            columns.add(new MONamedColumn(columnID++, type, itemName, typeMapper, access));
+            columns.add(new MONamedColumn(columnID++, type, itemName, access));
         return columns.stream().toArray(MONamedColumn[]::new);
     }
 
     private static MONamedColumn[] createColumns(final TabularType type,
-                                                 final SnmpTypeMapper typeMapper,
                                                   final MOAccess access,
                                                   final boolean useRowStatus){
         int columnID = 2;
@@ -267,23 +262,22 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
         final CompositeType rowType = type.getRowType();
         final List<MONamedColumn> columns = Lists.newArrayListWithCapacity(rowType.keySet().size() + 1);
         for(final String columnName: rowType.keySet())
-            columns.add(new MONamedColumn(columnID++, type, columnName, typeMapper, access));
+            columns.add(new MONamedColumn(columnID++, type, columnName, access));
         //add RowStatus column
         if(useRowStatus)
-            columns.add(new MORowStatusColumn(columnID, typeMapper));
+            columns.add(new MORowStatusColumn(columnID));
         return columns.stream().toArray(MONamedColumn[]::new);
     }
 
     private static MONamedColumn[] createColumns(final OpenType<?> type,
-                                                 final SnmpTypeMapper typeMapper,
                                                            final MOAccess access,
                                                            final boolean useRowStatus){
         if(type instanceof ArrayType<?>)
-            return createColumns((ArrayType<?>)type, typeMapper, access, useRowStatus);
+            return createColumns((ArrayType<?>)type, access, useRowStatus);
         else if(type instanceof CompositeType)
-            return createColumns((CompositeType)type, typeMapper, access);
+            return createColumns((CompositeType)type, access);
         else if(type instanceof TabularType)
-            return createColumns((TabularType)type, typeMapper, access, useRowStatus);
+            return createColumns((TabularType)type, access, useRowStatus);
         else return ArrayUtils.emptyArray(MONamedColumn[].class);
     }
 
@@ -297,11 +291,10 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
     }
 
     private SnmpTableObject(final OID oid,
-                            final AttributeAccessor connector,
-                            final SnmpTypeMapper typeMapper){
+                            final AttributeAccessor connector){
         super(oid,
                 new MOTableIndex(new MOTableSubIndex[]{new MOTableSubIndex(null, SMIConstants.SYNTAX_INTEGER, 1, 1)}),
-                createColumns(connector.getOpenType(), typeMapper, getAccessRestrictions(connector.getMetadata(), true), shouldUseRowStatus(connector.getMetadata().getDescriptor()))
+                createColumns(connector.getOpenType(), getAccessRestrictions(connector.getMetadata(), true), shouldUseRowStatus(connector.getMetadata().getDescriptor()))
         );
         //setup table model
         final DefaultMOMutableTableModel<DefaultMOMutableRow2PC> tableModel = new DefaultMOMutableTableModel<>();
@@ -316,9 +309,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
 
     @SpecialUse
     SnmpTableObject(final SnmpAttributeAccessor connector) {
-        this(connector.getID(),
-                connector,
-                DEFAULT_MAPPER);
+        this(connector.getID(), connector);
     }
 
     /**

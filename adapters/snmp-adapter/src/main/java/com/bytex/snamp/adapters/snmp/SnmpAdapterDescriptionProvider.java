@@ -141,9 +141,9 @@ public final class SnmpAdapterDescriptionProvider extends ConfigurationEntityDes
         return INSTANCE.get();
     }
 
-    String parseContext(final Map<String, String> parameters) throws SnmpAdapterAbsentParameterException {
+    OID parseContext(final Map<String, String> parameters) throws SnmpAdapterAbsentParameterException {
         if(parameters.containsKey(CONTEXT_PARAM_NAME))
-            return parameters.get(CONTEXT_PARAM_NAME);
+            return new OID(parameters.get(CONTEXT_PARAM_NAME));
         else throw new SnmpAdapterAbsentParameterException(CONTEXT_PARAM_NAME);
     }
 

@@ -29,7 +29,6 @@ final class SnmpNotificationAcessor extends NotificationAccessor implements Snmp
     private static final Pattern IPv4_PATTERN = Pattern.compile("^\\d+\\.\\d+\\.\\d+\\.\\d+/\\d+");
     private WeakReference<NotificationOriginator> notificationOriginator;
     private final String resourceName;
-    private SnmpTypeMapper typeMapper;
     private final OID notificationID;
 
     SnmpNotificationAcessor(final MBeanNotificationInfo metadata,
@@ -38,11 +37,6 @@ final class SnmpNotificationAcessor extends NotificationAccessor implements Snmp
         this.notificationOriginator = null;
         this.resourceName = resourceName;
         notificationID = parseOID(metadata, SnmpHelpers.OID_GENERATOR);
-    }
-
-    @Override
-    public void setTypeMapper(final SnmpTypeMapper value) {
-        typeMapper = value;
     }
 
     @Override
@@ -94,9 +88,9 @@ final class SnmpNotificationAcessor extends NotificationAccessor implements Snmp
         notificationOriginator = new WeakReference<>(originator);
     }
 
-    SnmpType getType(final SnmpTypeMapper typeMapper){
+    SnmpType getSnmpType(){
         final WellKnownType attachmentType = WellKnownType.getType(NotificationDescriptor.getUserDataType(get()));
-        return attachmentType == null ? null : typeMapper.apply(attachmentType);
+        return attachmentType == null ? null : SnmpType.map(attachmentType);
     }
 
     @Override
@@ -105,12 +99,11 @@ final class SnmpNotificationAcessor extends NotificationAccessor implements Snmp
         final NotificationOriginator originator = originatorRef != null ?
                 originatorRef.get() :
                 null;
-        if (originator != null && typeMapper != null) {
+        if (originator != null) {
             notification.setSource(resourceName);
             final SnmpNotification snmpTrap = new SnmpNotification(notificationID,
                     notification,
-                    get(),
-                    typeMapper);
+                    get());
             originator.notify(new OctetString(), snmpTrap.notificationID, snmpTrap.getBindings()); //for SNMPv3 sending
             originator.notify(OctetStringHelper.toOctetString("public"), snmpTrap.notificationID, snmpTrap.getBindings()); //for SNMPv2 sending
         }
@@ -121,6 +114,5 @@ final class SnmpNotificationAcessor extends NotificationAccessor implements Snmp
         final WeakReference<NotificationOriginator> originatorRef = this.notificationOriginator;
         this.notificationOriginator = null;
         if (originatorRef != null) originatorRef.clear();
-        typeMapper = null;
     }
 }

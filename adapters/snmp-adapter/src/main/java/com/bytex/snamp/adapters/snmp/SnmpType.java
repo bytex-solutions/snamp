@@ -1,6 +1,7 @@
 package com.bytex.snamp.adapters.snmp;
 
 import com.bytex.snamp.jmx.DescriptorUtils;
+import com.bytex.snamp.jmx.WellKnownType;
 import org.snmp4j.smi.*;
 
 import javax.management.DescriptorRead;
@@ -278,5 +279,47 @@ public enum SnmpType {
     @Override
     public final String toString() {
         return AbstractVariable.getSyntaxString(syntax);
+    }
+
+    static SnmpType map(final WellKnownType type){
+        if(type != null)
+            switch (type){
+                case BOOL: return SnmpType.BOOLEAN;
+                case CHAR:
+                case OBJECT_NAME:
+                case STRING: return SnmpType.TEXT;
+                case BIG_DECIMAL:
+                case BIG_INT: return SnmpType.NUMBER;
+                case BYTE:
+                case INT:
+                case SHORT: return SnmpType.INTEGER;
+                case LONG: return SnmpType.LONG;
+                case FLOAT:
+                case DOUBLE: return SnmpType.FLOAT;
+                case DATE: return SnmpType.UNIX_TIME;
+                case BYTE_BUFFER:
+                case SHORT_BUFFER:
+                case CHAR_BUFFER:
+                case INT_BUFFER:
+                case LONG_BUFFER:
+                case FLOAT_BUFFER:
+                case DOUBLE_BUFFER: return SnmpType.BUFFER;
+                case BYTE_ARRAY:
+                case WRAPPED_BYTE_ARRAY:
+                case BOOL_ARRAY:
+                case WRAPPED_BOOL_ARRAY:
+                    return SnmpType.BLOB;
+                case FLOAT_ARRAY:
+                case WRAPPED_FLOAT_ARRAY:
+                case SHORT_ARRAY:
+                case WRAPPED_SHORT_ARRAY:
+                case INT_ARRAY:
+                case WRAPPED_INT_ARRAY:
+                case LONG_ARRAY:
+                case WRAPPED_LONG_ARRAY:
+                case DICTIONARY:
+                case TABLE: return SnmpType.TABLE;
+            }
+        return SnmpType.FALLBACK;
     }
 }

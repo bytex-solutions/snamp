@@ -10,13 +10,12 @@ import javax.management.InvalidAttributeValueException;
 import javax.management.openmbean.ArrayType;
 import javax.management.openmbean.CompositeType;
 import javax.management.openmbean.TabularType;
-import java.util.function.Function;
 
 /**
  * Represents named column value.
  */
 class MONamedColumn extends MOMutableColumn<Variable> {
-    static final String ARRAY_VALUE_COLUMN = "Value";
+    private static final String ARRAY_VALUE_COLUMN = "Value";
 
     /**
      * Represents the name of the column.
@@ -48,18 +47,15 @@ class MONamedColumn extends MOMutableColumn<Variable> {
     protected MONamedColumn(final int columnID,
                             final String columnName,
                             final WellKnownType columnType,
-                            final Function<WellKnownType, SnmpType> mapper,
                             final MOAccess access,
                             final boolean isIndexed){
-        this(columnID, columnName, mapper.apply(columnType), columnType, access, isIndexed);
+        this(columnID, columnName, SnmpType.map(columnType), columnType, access, isIndexed);
     }
 
     MONamedColumn(final int columnID,
                   final ArrayType<?> arrayType,
-                  final Function<WellKnownType, SnmpType> typeMapper,
                   final MOAccess access) {
         this(columnID, ARRAY_VALUE_COLUMN, WellKnownType.getArrayElementType(arrayType),
-                typeMapper,
                 access,
                 false);
     }
@@ -67,20 +63,17 @@ class MONamedColumn extends MOMutableColumn<Variable> {
     MONamedColumn(final int columnID,
                   final CompositeType type,
                   final String itemName,
-                  final Function<WellKnownType, SnmpType> typeMapper,
                   final MOAccess access){
-        this(columnID, itemName, WellKnownType.getItemType(type, itemName), typeMapper, access, false);
+        this(columnID, itemName, WellKnownType.getItemType(type, itemName), access, false);
     }
 
     MONamedColumn(final int columnID,
                   final TabularType type,
                   final String columnName,
-                  final Function<WellKnownType, SnmpType> typeMapper,
                   final MOAccess access){
         this(columnID,
                 columnName,
                 WellKnownType.getColumnType(type, columnName),
-                typeMapper,
                 access,
                 type.getIndexNames().contains(columnName));
     }

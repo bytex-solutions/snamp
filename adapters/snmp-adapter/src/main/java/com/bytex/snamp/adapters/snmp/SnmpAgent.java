@@ -64,18 +64,15 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, Res
         this.prefix = prefix;
 	}
 
-    void registerManagedObject(final SnmpAttributeAccessor accessor,
-                               final SnmpTypeMapper mapper) throws DuplicateRegistrationException {
-        accessor.registerManagedObject(prefix, mapper, server);
+    void registerManagedObject(final SnmpAttributeAccessor accessor) throws DuplicateRegistrationException {
+        accessor.registerManagedObject(prefix, server);
     }
 
     ManagedObject unregisterManagedObject(final SnmpAttributeAccessor accessor) {
         return accessor.unregisterManagedObject(server);
     }
 
-    void registerNotificationTarget(final SnmpNotificationMapping mapping,
-                                    final SnmpTypeMapper typeMapper){
-        mapping.setTypeMapper(typeMapper);
+    void registerNotificationTarget(final SnmpNotificationMapping mapping){
         getSnmpTargetMIB().addTargetAddress(mapping.getReceiverName(),
                 mapping.getTransportDomain(),
                 mapping.getReceiverAddress(),
@@ -254,24 +251,22 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, Res
     }
 
     private void finishInit(final Iterable<? extends SnmpAttributeAccessor> attributes,
-                            final Iterable<? extends SnmpNotificationMapping> notifications,
-                            final SnmpTypeMapper mapper) throws DuplicateRegistrationException {
+                            final Iterable<? extends SnmpNotificationMapping> notifications) throws DuplicateRegistrationException {
         for(final SnmpAttributeAccessor mapping: attributes)
-            registerManagedObject(mapping, mapper);
+            registerManagedObject(mapping);
         for(final SnmpNotificationMapping mapping: notifications)
-            registerNotificationTarget(mapping, mapper);
+            registerNotificationTarget(mapping);
         finishInit();
     }
 
     synchronized boolean start(final Iterable<? extends SnmpAttributeAccessor> attributes,
-                  final Iterable<? extends SnmpNotificationMapping> notifications,
-                  final SnmpTypeMapper mapper) throws IOException, DuplicateRegistrationException {
+                  final Iterable<? extends SnmpNotificationMapping> notifications) throws IOException, DuplicateRegistrationException {
 		switch (agentState){
             case STATE_STOPPED:
             case STATE_CREATED:
                 init();
                 if(coldStart) getServer().addContext(new OctetString("public"));
-                finishInit(attributes, notifications, mapper);
+                finishInit(attributes, notifications);
                 run();
                 if(coldStart) sendColdStartNotification();
                 coldStart = false;

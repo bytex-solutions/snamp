@@ -24,6 +24,4 @@ public interface SnmpNotificationMapping extends SnmpEntity<MBeanNotificationInf
     int getRetryCount();
 
     void setNotificationOriginator(final NotificationOriginator originator);
-
-    void setTypeMapper(final SnmpTypeMapper value);
 }

@@ -20,13 +20,12 @@ abstract class SnmpAttributeAccessor extends AttributeAccessor implements SnmpEn
     }
 
     abstract SnmpAttributeMapping registerManagedObject(final OID context,
-                                               final SnmpTypeMapper typeMapper,
                                                final MOServer server) throws DuplicateRegistrationException;
 
     abstract ManagedObject unregisterManagedObject(final MOServer server);
 
-    final SnmpType getType(final SnmpTypeMapper mapper){
-        return mapper.apply(getType());
+    final SnmpType getSnmpType(){
+        return SnmpType.map(getType());
     }
 
     @Override
