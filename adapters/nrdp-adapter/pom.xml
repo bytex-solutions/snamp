@@ -76,8 +76,8 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-SymbolicName>com.bytex.snamp.adapters.nrdp</Bundle-SymbolicName>
-            <Bundle-Activator>com.bytex.snamp.adapters.nrdp.NRDPAdapterActivator</Bundle-Activator>
+            <Bundle-SymbolicName>com.bytex.snamp.gateway.nrdp</Bundle-SymbolicName>
+            <Bundle-Activator>com.bytex.snamp.gateway.nrdp.NRDPGatewayActivator</Bundle-Activator>
             <Embed-Dependency>*;scope=compile</Embed-Dependency>
             <Embed-Transitive>true</Embed-Transitive>
             <Export-Package />
@@ -85,7 +85,7 @@
                             !org.apache.log.*,
                             !org.slf4j.impl.*,
                             *</Import-Package>
-            <Provide-Capability>com.bytex.snamp.adapters; type=nrdp</Provide-Capability>
+            <Provide-Capability>com.bytex.snamp.gateway; type=nrdp</Provide-Capability>
           </instructions>
         </configuration>
       </plugin>

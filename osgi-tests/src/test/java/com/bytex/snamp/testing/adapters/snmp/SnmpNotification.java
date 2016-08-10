@@ -1,6 +1,6 @@
 package com.bytex.snamp.testing.adapters.snmp;
 
-import com.bytex.snamp.connectors.notifications.Severity;
+import com.bytex.snamp.connector.notifications.Severity;
 import org.snmp4j.smi.*;
 
 import java.text.ParseException;

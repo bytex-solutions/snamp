@@ -64,7 +64,7 @@ public interface SnampComponentDescriptor extends Localizable, Map<String, Strin
      * @return {@literal true}, if the requested service is invoked; otherwise, {@literal false}.
      * @throws E An exception raised by service invoker.
      * @see com.bytex.snamp.management.Maintainable
-     * @see com.bytex.snamp.connectors.discovery.DiscoveryService
+     * @see com.bytex.snamp.connector.discovery.DiscoveryService
      * @see com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider
      */
     <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Acceptor<S, E> serviceInvoker) throws E;

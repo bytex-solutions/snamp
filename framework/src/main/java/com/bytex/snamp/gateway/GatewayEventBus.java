@@ -1,0 +1,100 @@
+package com.bytex.snamp.gateway;
+
+import com.bytex.snamp.ExceptionPlaceholder;
+import com.bytex.snamp.Internal;
+import com.bytex.snamp.concurrent.GroupedThreadFactory;
+import com.bytex.snamp.EntryReader;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+
+import java.lang.ref.WeakReference;
+import java.time.Duration;
+import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * @author Roman Sakno
+ * @version 2.0
+ * @since 1.0
+ */
+final class GatewayEventBus {
+    private static final ExecutorService EVENT_EXECUTOR =
+            Executors.newSingleThreadExecutor(new GroupedThreadFactory("ADAPTER_EVENT_BUS"));
+
+    private static final class AdapterEventHandler implements EntryReader<String, GatewayEventListener, ExceptionPlaceholder> {
+        private final String adapterName;
+        private final GatewayEvent event;
+
+        private AdapterEventHandler(final String adapterName,
+                                    final GatewayEvent event) {
+            this.adapterName = adapterName;
+            this.event = event;
+        }
+
+        @Override
+        public boolean read(final String adapterName, final GatewayEventListener listener) {
+            if (Objects.equals(this.adapterName, adapterName))
+                if (EVENT_EXECUTOR.isTerminated())
+                    listener.handle(event);
+                else EVENT_EXECUTOR.execute(() -> listener.handle(event));
+            return true;
+        }
+    }
+
+    private static final Multimap<String, WeakReference<GatewayEventListener>> listeners =
+            HashMultimap.create(10, 3);
+
+    private GatewayEventBus(){
+    }
+
+    @Internal
+    static boolean disableAsyncMode(final Duration terminationTimeout) throws InterruptedException {
+        EVENT_EXECUTOR.shutdown();
+        return EVENT_EXECUTOR.awaitTermination(terminationTimeout.toNanos(), TimeUnit.NANOSECONDS);
+    }
+
+    static boolean addEventListener(final String adapterName,
+                                    final GatewayEventListener listener){
+        if(adapterName == null || adapterName.isEmpty() || listener == null) return false;
+        synchronized (listeners){
+            return WeakMultimap.put(listeners, adapterName, listener);
+        }
+    }
+
+    static boolean removeEventListener(final String adapterName,
+                                       final GatewayEventListener listener){
+        if(adapterName == null || listener == null) return false;
+        synchronized (listeners){
+            return WeakMultimap.remove(listeners, adapterName, listener) > 0;
+        }
+    }
+
+    private static void fireAdapterListeners(final String adapterName,
+                                             final GatewayEvent event) {
+        synchronized (listeners) {
+            WeakMultimap.iterate(listeners, new AdapterEventHandler(adapterName, event));
+        }
+    }
+
+    static void notifyAdapterStopped(final String adapterName, final Gateway adapter) {
+        adapter.getLogger().info(String.format("Adapter %s is stopped", adapter.getInstanceName()));
+        fireAdapterListeners(adapterName, new GatewayStoppedEvent(adapter));
+    }
+
+    static void notifyAdapterStarted(final String adapterName, final Gateway adapter){
+        adapter.getLogger().info(String.format("Adapter %s is started", adapter.getInstanceName()));
+        fireAdapterListeners(adapterName, new GatewayStartedEvent(adapter));
+    }
+
+    static void notifyAdapterUpdating(final String adapterName, final Gateway adapter){
+        adapter.getLogger().info(String.format("Adapter %s is updating", adapter.getInstanceName()));
+        fireAdapterListeners(adapterName, new GatewayUpdatingEvent(adapter));
+    }
+
+    static void notifyAdapterUpdated(final String adapterName, final Gateway adapter) {
+        adapter.getLogger().info(String.format("Adapter %s is updated", adapter.getInstanceName()));
+        fireAdapterListeners(adapterName, new GatewayUpdatedEvent(adapter));
+    }
+}

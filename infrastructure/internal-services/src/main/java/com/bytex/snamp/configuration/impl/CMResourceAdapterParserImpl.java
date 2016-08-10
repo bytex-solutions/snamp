@@ -23,7 +23,7 @@ import java.util.Map;
  * @since 1.0
  */
 final class CMResourceAdapterParserImpl extends AbstractConfigurationParser<SerializableResourceAdapterConfiguration> implements CMResourceAdapterParser {
-    private static final String ADAPTER_PID_TEMPLATE = "com.bytex.snamp.adapters.%s";
+    private static final String ADAPTER_PID_TEMPLATE = "com.bytex.snamp.gateway.%s";
     private static final String ADAPTER_INSTANCE_NAME_PROPERTY = "$adapterInstanceName$";
     private static final String ALL_ADAPTERS_QUERY = String.format("(%s=%s)", Constants.SERVICE_PID, String.format(ADAPTER_PID_TEMPLATE, "*"));
 

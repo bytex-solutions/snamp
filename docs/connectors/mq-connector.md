@@ -265,8 +265,8 @@ The following table contains signature of all possible conversion methods:
 
 Method | Description
 ---- | ----
-com.bytex.snamp.connectors.mq.jms.SnampMessageType getMessageType(javax.jms.Message message) | Detects message type
-void getMessageType(javax.jms.Message message, com.bytex.snamp.connectors.mq.jms.SnampMessageType type) | Stores message type into the specified message
+com.bytex.snamp.connector.mq.jms.SnampMessageType getMessageType(javax.jms.Message message) | Detects message type
+void getMessageType(javax.jms.Message message, com.bytex.snamp.connector.mq.jms.SnampMessageType type) | Stores message type into the specified message
 String getStorageKey(javax.jms.Message message) | Extracts storage key from the message
 void setStorageKey(javax.jms.Message message, String storageKey) | Saves storage key to the message
 String getMessage(javax.jms.Message message) | Extracts notification message from JMS message

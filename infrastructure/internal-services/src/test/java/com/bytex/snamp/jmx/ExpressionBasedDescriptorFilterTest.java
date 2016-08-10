@@ -2,8 +2,8 @@ package com.bytex.snamp.jmx;
 
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
 import static com.bytex.snamp.configuration.impl.SerializableAgentConfiguration.newEntityConfiguration;
-import com.bytex.snamp.connectors.notifications.NotificationDescriptor;
-import com.bytex.snamp.connectors.notifications.Severity;
+import com.bytex.snamp.connector.notifications.NotificationDescriptor;
+import com.bytex.snamp.connector.notifications.Severity;
 import org.junit.Assert;
 import org.junit.Test;
 import org.osgi.framework.InvalidSyntaxException;

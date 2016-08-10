@@ -2,11 +2,11 @@ package com.bytex.snamp.testing.connectors.groovy;
 
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
-import com.bytex.snamp.connectors.ManagedResourceConnector;
-import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
-import com.bytex.snamp.connectors.notifications.Mailbox;
-import com.bytex.snamp.connectors.notifications.MailboxFactory;
-import com.bytex.snamp.connectors.notifications.NotificationSupport;
+import com.bytex.snamp.connector.ManagedResourceConnector;
+import com.bytex.snamp.connector.ManagedResourceConnectorClient;
+import com.bytex.snamp.connector.notifications.Mailbox;
+import com.bytex.snamp.connector.notifications.MailboxFactory;
+import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Test;

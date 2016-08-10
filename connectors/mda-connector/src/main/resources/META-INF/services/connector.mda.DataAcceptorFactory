@@ -1,0 +1,2 @@
+connector.mda.impl.http.HttpDataAcceptorFactory
+connector.mda.impl.thrift.ThriftDataAcceptorFactory

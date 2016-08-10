@@ -1,9 +1,9 @@
 package com.bytex.snamp.testing.adapters.syslog;
 
-import com.bytex.snamp.adapters.ResourceAdapterActivator;
-import com.bytex.snamp.adapters.ResourceAdapterClient;
+import com.bytex.snamp.gateway.GatewayActivator;
+import com.bytex.snamp.gateway.GatewayClient;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
-import com.bytex.snamp.connectors.ManagedResourceConnector;
+import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.testing.BundleExceptionCallable;
 import com.bytex.snamp.testing.SnampDependencies;
@@ -66,16 +66,16 @@ public final class SyslogAdapterTest extends AbstractJmxConnectorTest<TestOpenMB
 
     @Test
     public void configurationDescriptorTest() throws BundleException {
-        ConfigurationEntityDescription desc = ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, EventConfiguration.class);
+        ConfigurationEntityDescription desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, EventConfiguration.class);
         testConfigurationDescriptor(desc,
                 "applicationName",
                 "facility",
                 "severity");
-        desc = ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, AttributeConfiguration.class);
+        desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, AttributeConfiguration.class);
         testConfigurationDescriptor(desc,
                 "applicationName",
                 "facility");
-        desc = ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, ResourceAdapterConfiguration.class);
+        desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, ResourceAdapterConfiguration.class);
         testConfigurationDescriptor(desc,
                 "port",
                 "address",
@@ -88,7 +88,7 @@ public final class SyslogAdapterTest extends AbstractJmxConnectorTest<TestOpenMB
 
     @Test
     public void attributesBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
-        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, Duration.ofSeconds(2));
+        final GatewayClient client = new GatewayClient(getTestBundleContext(), INSTANCE_NAME, Duration.ofSeconds(2));
         try {
             assertTrue(client.forEachFeature(MBeanAttributeInfo.class, (resourceName, bindingInfo) -> bindingInfo.getProperty("messageID") instanceof String &&
                     bindingInfo.getProperty("facility") instanceof Enum<?>));
@@ -132,14 +132,14 @@ public final class SyslogAdapterTest extends AbstractJmxConnectorTest<TestOpenMB
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
         syncWithAdapterStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
-                ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
+                GatewayActivator.startResourceAdapter(context, ADAPTER_NAME);
                 return null;
         }, Duration.ofMinutes(4));
     }
 
     @Override
     protected void beforeCleanupTest(final BundleContext context) throws Exception {
-        ResourceAdapterActivator.stopResourceAdapter(context, ADAPTER_NAME);
+        GatewayActivator.stopResourceAdapter(context, ADAPTER_NAME);
         stopResourceConnector(context);
     }
 

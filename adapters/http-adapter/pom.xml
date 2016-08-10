@@ -92,8 +92,8 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-SymbolicName>com.bytex.snamp.adapters.http</Bundle-SymbolicName>
-            <Bundle-Activator>com.bytex.snamp.adapters.http.HttpAdapterActivator</Bundle-Activator>
+            <Bundle-SymbolicName>com.bytex.snamp.gateway.http</Bundle-SymbolicName>
+            <Bundle-Activator>com.bytex.snamp.gateway.http.HttpGatewayActivator</Bundle-Activator>
             <Export-Package />
             <Import-Package>!org.eclipse.jetty.websocket.api.*,
                             !org.eclipse.jetty.websocket.server.*,
@@ -112,7 +112,7 @@
                             !org.mortbay.*,
                             *</Import-Package>
             <Embed-Dependency>*;scope=compile</Embed-Dependency>
-            <Provide-Capability>com.bytex.snamp.adapters; type=http</Provide-Capability>
+            <Provide-Capability>com.bytex.snamp.gateway; type=http</Provide-Capability>
           </instructions>
         </configuration>
       </plugin>

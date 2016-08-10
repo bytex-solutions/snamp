@@ -1,7 +1,7 @@
 package com.bytex.snamp.management.jmx;
 
-import com.bytex.snamp.adapters.ResourceAdapterActivator;
-import com.bytex.snamp.connectors.ManagedResourceActivator;
+import com.bytex.snamp.gateway.GatewayActivator;
+import com.bytex.snamp.connector.ManagedResourceActivator;
 import com.bytex.snamp.management.AbstractSnampManager;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
@@ -75,12 +75,12 @@ public final class SnampManagerImpl extends AbstractSnampManager {
 
     public static void restart(final BundleContext context) throws BundleException {
         //first, stop all adapters
-        ResourceAdapterActivator.stopResourceAdapters(context);
+        GatewayActivator.stopResourceAdapters(context);
         //second, stop all connectors
         ManagedResourceActivator.stopResourceConnectors(context);
         //third, start all connectors
         ManagedResourceActivator.startResourceConnectors(context);
         //fourth, start all adapters
-        ResourceAdapterActivator.startResourceAdapters(context);
+        GatewayActivator.startResourceAdapters(context);
     }
 }

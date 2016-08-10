@@ -1,10 +1,12 @@
 package com.bytex.snamp.testing.connectors.jmx;
 
-import com.bytex.snamp.adapters.AbstractResourceAdapter;
-import com.bytex.snamp.adapters.modeling.AttributeAccessor;
-import com.bytex.snamp.adapters.modeling.FeatureAccessor;
-import com.bytex.snamp.adapters.modeling.NotificationAccessor;
-import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.connector.ManagedResourceConnectorClient;
+import com.bytex.snamp.gateway.AbstractGateway;
+import com.bytex.snamp.gateway.modeling.AttributeAccessor;
+import com.bytex.snamp.gateway.modeling.FeatureAccessor;
+import com.bytex.snamp.gateway.modeling.NotificationAccessor;
 import com.google.common.collect.ImmutableList;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
@@ -19,8 +21,6 @@ import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-import com.bytex.snamp.configuration.EntityMap;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
 
@@ -32,7 +32,7 @@ import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventCo
 public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOpenMBean> {
 
 
-    private static final class TestAdapter extends AbstractResourceAdapter{
+    private static final class TestAdapter extends AbstractGateway {
 
         private final ArrayList<AttributeAccessor> attributes = new ArrayList<>();
 
@@ -123,9 +123,9 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
         super(new TestOpenMBean(), new ObjectName(TestOpenMBean.BEAN_NAME));
     }
 
-    private static boolean tryStart(final AbstractResourceAdapter adapter,
+    private static boolean tryStart(final AbstractGateway adapter,
                                     final Map<String, String> parameters) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        final Method tryStartMethod = AbstractResourceAdapter.class.getDeclaredMethod("tryStart", Map.class);
+        final Method tryStartMethod = AbstractGateway.class.getDeclaredMethod("tryStart", Map.class);
         tryStartMethod.setAccessible(true);
         return (Boolean)tryStartMethod.invoke(adapter, parameters);
     }
@@ -227,7 +227,7 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
         event.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
 
         event = events.getOrAdd("20.1");
-        setFeatureName(event, "com.bytex.snamp.connectors.tests.impl.testnotif");
+        setFeatureName(event, "com.bytex.snamp.connector.tests.impl.testnotif");
         event.getParameters().put("severity", "panic");
         event.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
     }

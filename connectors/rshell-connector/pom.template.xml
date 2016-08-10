@@ -36,8 +36,8 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Bundle-SymbolicName>com.bytex.snamp.connectors.rshell</Bundle-SymbolicName>
-                        <Bundle-Activator>com.bytex.snamp.connectors.rshell.RShellResourceConnectorActivator</Bundle-Activator>
+                        <Bundle-SymbolicName>com.bytex.snamp.connector.rshell</Bundle-SymbolicName>
+                        <Bundle-Activator>com.bytex.snamp.connector.rshell.RShellResourceConnectorActivator</Bundle-Activator>
                         <Embed-Dependency>
                             *;scope=compile
                         </Embed-Dependency>
@@ -60,7 +60,7 @@
                             com.bytex.jcommands
                         </Export-Package>
                         <!--SNAMP specific header-->
-                        <Provide-Capability>com.bytex.snamp.connectors; type=rshell</Provide-Capability>
+                        <Provide-Capability>com.bytex.snamp.connector; type=rshell</Provide-Capability>
                     </instructions>
                 </configuration>
             </plugin>

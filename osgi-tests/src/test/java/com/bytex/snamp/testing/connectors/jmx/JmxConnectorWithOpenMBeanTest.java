@@ -1,15 +1,16 @@
 package com.bytex.snamp.testing.connectors.jmx;
 
 import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
-import com.bytex.snamp.connectors.ManagedResourceConnector;
-import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
-import com.bytex.snamp.connectors.attributes.AttributeSupport;
-import com.bytex.snamp.connectors.metrics.*;
-import com.bytex.snamp.connectors.notifications.Mailbox;
-import com.bytex.snamp.connectors.notifications.MailboxFactory;
-import com.bytex.snamp.connectors.notifications.NotificationSupport;
-import com.bytex.snamp.connectors.operations.OperationSupport;
+import com.bytex.snamp.connector.ManagedResourceConnector;
+import com.bytex.snamp.connector.ManagedResourceConnectorClient;
+import com.bytex.snamp.connector.attributes.AttributeSupport;
+import com.bytex.snamp.connector.metrics.*;
+import com.bytex.snamp.connector.notifications.Mailbox;
+import com.bytex.snamp.connector.notifications.MailboxFactory;
+import com.bytex.snamp.connector.notifications.NotificationSupport;
+import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.bytex.snamp.jmx.TabularDataBuilder;
@@ -31,7 +32,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.*;
 
-import com.bytex.snamp.configuration.EntityMap;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.*;
 
 /**
@@ -99,7 +99,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         event.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
 
         event = events.getOrAdd("20.1");
-        setFeatureName(event, "com.bytex.snamp.connectors.tests.impl.testnotif");
+        setFeatureName(event, "com.bytex.snamp.connector.tests.impl.testnotif");
         event.getParameters().put("severity", "panic");
         event.getParameters().put("objectName", TestOpenMBean.BEAN_NAME);
     }

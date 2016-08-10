@@ -1,9 +1,11 @@
 package com.bytex.snamp.testing.adapters.groovy;
 
-import com.bytex.snamp.adapters.ResourceAdapter;
-import com.bytex.snamp.adapters.ResourceAdapterActivator;
-import com.bytex.snamp.adapters.ResourceAdapterClient;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
+import com.bytex.snamp.gateway.Gateway;
+import com.bytex.snamp.gateway.GatewayActivator;
+import com.bytex.snamp.gateway.GatewayClient;
 import com.bytex.snamp.io.Communicator;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.testing.BundleExceptionCallable;
@@ -24,11 +26,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Predicate;
 
-import com.bytex.snamp.configuration.EntityMap;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
-
-import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
 import static com.bytex.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
 
 /**
@@ -101,15 +100,15 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     @Test
     public void configurationTest(){
         final ConfigurationEntityDescription<?> descr =
-                ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, ResourceAdapterConfiguration.class);
+                GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, ResourceAdapterConfiguration.class);
         testConfigurationDescriptor(descr, "scriptFile",  "scriptPath");
     }
 
     @Test
     public void attributesBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
-        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, Duration.ofSeconds(2));
+        final GatewayClient client = new GatewayClient(getTestBundleContext(), INSTANCE_NAME, Duration.ofSeconds(2));
         try {
-            assertTrue(client.forEachFeature(MBeanAttributeInfo.class, (resourceName, bindingInfo) -> bindingInfo.getProperty(ResourceAdapter.FeatureBindingInfo.MAPPED_TYPE) instanceof WellKnownType));
+            assertTrue(client.forEachFeature(MBeanAttributeInfo.class, (resourceName, bindingInfo) -> bindingInfo.getProperty(Gateway.FeatureBindingInfo.MAPPED_TYPE) instanceof WellKnownType));
         } finally {
             client.release(getTestBundleContext());
         }
@@ -117,7 +116,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
 
     @Test
     public void notificationsBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
-        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, Duration.ofSeconds(2));
+        final GatewayClient client = new GatewayClient(getTestBundleContext(), INSTANCE_NAME, Duration.ofSeconds(2));
         try {
             assertTrue(client.forEachFeature(MBeanAttributeInfo.class, (resourceName, bindingInfo) -> bindingInfo != null));
         } finally {
@@ -173,11 +172,11 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
         event.getParameters().put("severity", "notice");
         event.getParameters().put("objectName", BEAN_NAME);
 
-        event = events.getOrAdd("com.bytex.snamp.connectors.tests.impl.testnotif");
+        event = events.getOrAdd("com.bytex.snamp.connector.tests.impl.testnotif");
         event.getParameters().put("severity", "panic");
         event.getParameters().put("objectName", BEAN_NAME);
 
-        event = events.getOrAdd("com.bytex.snamp.connectors.tests.impl.plainnotif");
+        event = events.getOrAdd("com.bytex.snamp.connector.tests.impl.plainnotif");
         event.getParameters().put("severity", "notice");
         event.getParameters().put("objectName", BEAN_NAME);
     }
@@ -192,14 +191,14 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
         syncWithAdapterStartedEvent(ADAPTER_NAME, (BundleExceptionCallable)() -> {
-                ResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+                GatewayActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
                 return null;
         }, Duration.ofSeconds(15));
     }
 
     @Override
     protected void beforeCleanupTest(final BundleContext context) throws Exception {
-        ResourceAdapterActivator.stopResourceAdapter(context, ADAPTER_NAME);
+        GatewayActivator.stopResourceAdapter(context, ADAPTER_NAME);
         stopResourceConnector(context);
     }
 }

@@ -1,8 +1,8 @@
 package com.bytex.snamp.testing.connectors.modbus;
 
 import com.google.common.collect.ImmutableMap;
-import com.bytex.snamp.connectors.modbus.slave.*;
-import com.bytex.snamp.connectors.modbus.transport.ModbusSlave;
+import com.bytex.snamp.connector.modbus.slave.*;
+import com.bytex.snamp.connector.modbus.transport.ModbusSlave;
 import com.bytex.snamp.io.Buffers;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;

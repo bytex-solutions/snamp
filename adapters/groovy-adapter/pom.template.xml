@@ -22,16 +22,16 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Bundle-SymbolicName>com.bytex.snamp.adapters.groovy</Bundle-SymbolicName>
-                        <Bundle-Activator>com.bytex.snamp.adapters.groovy.impl.GroovyResourceAdapterActivator</Bundle-Activator>
+                        <Bundle-SymbolicName>com.bytex.snamp.gateway.groovy</Bundle-SymbolicName>
+                        <Bundle-Activator>com.bytex.snamp.gateway.groovy.impl.GroovyGatewayActivator</Bundle-Activator>
                         <Export-Package>
-                            com.bytex.snamp.adapters.groovy
+                            com.bytex.snamp.gateway.groovy
                         </Export-Package>
                         <DynamicImport-Package>
                             *
                         </DynamicImport-Package>
                         <!--SNAMP specific header-->
-                        <Provide-Capability>com.bytex.snamp.adapters; type=groovy</Provide-Capability>
+                        <Provide-Capability>com.bytex.snamp.gateway; type=groovy</Provide-Capability>
                     </instructions>
                 </configuration>
             </plugin>

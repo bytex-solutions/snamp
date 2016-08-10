@@ -1,6 +1,6 @@
 package com.bytex.snamp.testing.adapters.jmx;
 
-import com.bytex.snamp.adapters.ResourceAdapterActivator;
+import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
@@ -79,14 +79,14 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
         syncWithAdapterStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
-                ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
+                GatewayActivator.startResourceAdapter(context, ADAPTER_NAME);
                 return null;
         }, Duration.ofSeconds(20));
     }
 
     @Override
     protected void beforeCleanupTest(final BundleContext context) throws Exception {
-        ResourceAdapterActivator.stopResourceAdapter(context, ADAPTER_NAME);
+        GatewayActivator.stopResourceAdapter(context, ADAPTER_NAME);
         stopResourceConnector(context);
     }
 

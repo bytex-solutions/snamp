@@ -1,12 +1,12 @@
 package com.bytex.snamp.metrics;
 
-import com.bytex.snamp.connectors.metrics.AttributeMetricsWriter;
-import com.bytex.snamp.connectors.metrics.MetricsInterval;
+import com.bytex.snamp.connector.metrics.AttributeMetricsWriter;
+import com.bytex.snamp.connector.metrics.MetricsInterval;
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Unit tests for {@link com.bytex.snamp.connectors.metrics.AttributeMetricsWriter}.
+ * Unit tests for {@link com.bytex.snamp.connector.metrics.AttributeMetricsWriter}.
  */
 public final class AttributeMetricsWriterTest extends Assert {
     @Test

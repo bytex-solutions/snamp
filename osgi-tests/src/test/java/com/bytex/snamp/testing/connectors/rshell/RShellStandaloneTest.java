@@ -2,10 +2,10 @@ package com.bytex.snamp.testing.connectors.rshell;
 
 import com.bytex.snamp.concurrent.FutureThread;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
-import com.bytex.snamp.connectors.ManagedResourceConnector;
-import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
-import com.bytex.snamp.connectors.attributes.AttributeSupport;
-import com.bytex.snamp.connectors.metrics.*;
+import com.bytex.snamp.connector.ManagedResourceConnector;
+import com.bytex.snamp.connector.ManagedResourceConnectorClient;
+import com.bytex.snamp.connector.attributes.AttributeSupport;
+import com.bytex.snamp.connector.metrics.*;
 import com.bytex.snamp.internal.OperatingSystem;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import org.junit.Assume;

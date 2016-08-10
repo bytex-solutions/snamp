@@ -1,9 +1,11 @@
 package com.bytex.snamp.testing.adapters.http;
 
-import com.bytex.snamp.adapters.ResourceAdapterActivator;
-import com.bytex.snamp.adapters.ResourceAdapterClient;
 import com.bytex.snamp.concurrent.SpinWait;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
+import com.bytex.snamp.gateway.GatewayActivator;
+import com.bytex.snamp.gateway.GatewayClient;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.bytex.snamp.jmx.TabularDataBuilder;
@@ -39,13 +41,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeoutException;
 
-import static com.bytex.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
-
-import com.bytex.snamp.configuration.EntityMap;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
-
-import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
+import static com.bytex.snamp.gateway.Gateway.FeatureBindingInfo;
 import static com.bytex.snamp.jmx.json.JsonUtils.toJsonArray;
 import static com.bytex.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
 
@@ -123,11 +121,11 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
     public void startStopTest() throws Exception {
         final Duration TIMEOUT = Duration.ofSeconds(15);
         //stop adapter and connector
-        ResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        GatewayActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
         stopResourceConnector(getTestBundleContext());
         //start empty adapter
         syncWithAdapterStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
-                ResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+                GatewayActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
                 return null;
         }, TIMEOUT);
         //start connector, this causes attribute registration and SNMP adapter restarting,
@@ -141,7 +139,7 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
         //now stops the connector again
         stopResourceConnector(getTestBundleContext());
         //stop the adapter
-        ResourceAdapterActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        GatewayActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
     }
 
     @Test
@@ -232,7 +230,7 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
 
     @Test
     public void configurationDescriptorTest() throws BundleException {
-        final ConfigurationEntityDescription desc = ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, ResourceAdapterConfiguration.class);
+        final ConfigurationEntityDescription desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, ResourceAdapterConfiguration.class);
         testConfigurationDescriptor(desc, "dateFormat");
     }
 
@@ -251,20 +249,20 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
         syncWithAdapterStartedEvent(ADAPTER_NAME, (BundleExceptionCallable)() -> {
-                ResourceAdapterActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+                GatewayActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
                 return null;
         }, Duration.ofSeconds(15));
     }
 
     @Override
     protected void beforeCleanupTest(final BundleContext context) throws Exception {
-        ResourceAdapterActivator.stopResourceAdapter(context, ADAPTER_NAME);
+        GatewayActivator.stopResourceAdapter(context, ADAPTER_NAME);
         stopResourceConnector(context);
     }
 
     @Test
     public void attributeBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
-        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, Duration.ofSeconds(2));
+        final GatewayClient client = new GatewayClient(getTestBundleContext(), INSTANCE_NAME, Duration.ofSeconds(2));
         try {
             assertTrue(client.forEachFeature(MBeanAttributeInfo.class, (resourceName, bindingInfo) -> bindingInfo.getProperty("path") instanceof String &&
                     bindingInfo.getProperty(FeatureBindingInfo.MAPPED_TYPE) instanceof String));
@@ -275,7 +273,7 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
 
     @Test
     public void notificationBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
-        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, Duration.ofSeconds(2));
+        final GatewayClient client = new GatewayClient(getTestBundleContext(), INSTANCE_NAME, Duration.ofSeconds(2));
         try {
             assertTrue(client.forEachFeature(MBeanNotificationInfo.class, (resourceName, bindingInfo) -> bindingInfo.getProperty("path") instanceof String));
         } finally {
@@ -321,11 +319,11 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
         event.getParameters().put("severity", "notice");
         event.getParameters().put("objectName", BEAN_NAME);
 
-        event = events.getOrAdd("com.bytex.snamp.connectors.tests.impl.testnotif");
+        event = events.getOrAdd("com.bytex.snamp.connector.tests.impl.testnotif");
         event.getParameters().put("severity", "panic");
         event.getParameters().put("objectName", BEAN_NAME);
 
-        event = events.getOrAdd("com.bytex.snamp.connectors.tests.impl.plainnotif");
+        event = events.getOrAdd("com.bytex.snamp.connector.tests.impl.plainnotif");
         event.getParameters().put("severity", "notice");
         event.getParameters().put("objectName", BEAN_NAME);
     }

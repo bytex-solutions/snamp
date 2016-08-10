@@ -22,8 +22,8 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Bundle-SymbolicName>com.bytex.snamp.adapters.ssh</Bundle-SymbolicName>
-                        <Bundle-Activator>com.bytex.snamp.adapters.ssh.SshAdapterActivator</Bundle-Activator>
+                        <Bundle-SymbolicName>com.bytex.snamp.gateway.ssh</Bundle-SymbolicName>
+                        <Bundle-Activator>com.bytex.snamp.gateway.ssh.SshGatewayActivator</Bundle-Activator>
                         <Export-Package/>
                         <Import-Package>
                             !javax.swing.*,
@@ -43,7 +43,7 @@
                         </Embed-Dependency>
                         <Embed-Transitive>true</Embed-Transitive>
                         <!--SNAMP specific header-->
-                        <Provide-Capability>com.bytex.snamp.adapters; type=ssh</Provide-Capability>
+                        <Provide-Capability>com.bytex.snamp.gateway; type=ssh</Provide-Capability>
                     </instructions>
                 </configuration>
             </plugin>

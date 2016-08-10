@@ -21,11 +21,11 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Bundle-SymbolicName>com.bytex.snamp.connectors.mda</Bundle-SymbolicName>
-                        <Bundle-Activator>com.bytex.snamp.connectors.mda.impl.MDAResourceActivatorImpl</Bundle-Activator>
+                        <Bundle-SymbolicName>com.bytex.snamp.connector.mda</Bundle-SymbolicName>
+                        <Bundle-Activator>com.bytex.snamp.connector.mda.impl.MDAResourceActivatorImpl</Bundle-Activator>
                         <Export-Package/>
                         <!--SNAMP specific header-->
-                        <Provide-Capability>com.bytex.snamp.connectors; type=mda</Provide-Capability>
+                        <Provide-Capability>com.bytex.snamp.connector; type=mda</Provide-Capability>
                     </instructions>
                 </configuration>
             </plugin>

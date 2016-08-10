@@ -64,10 +64,10 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-SymbolicName>com.bytex.snamp.adapters.nagios</Bundle-SymbolicName>
-            <Bundle-Activator>com.bytex.snamp.adapters.nagios.NagiosAdapterActivator</Bundle-Activator>
+            <Bundle-SymbolicName>com.bytex.snamp.gateway.nagios</Bundle-SymbolicName>
+            <Bundle-Activator>com.bytex.snamp.gateway.nagios.NagiosGatewayActivator</Bundle-Activator>
             <Export-Package />
-            <Provide-Capability>com.bytex.snamp.adapters; type=nagios</Provide-Capability>
+            <Provide-Capability>com.bytex.snamp.gateway; type=nagios</Provide-Capability>
           </instructions>
         </configuration>
       </plugin>

@@ -1,7 +1,7 @@
 package com.bytex.snamp.management.shell;
 
-import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
-import com.bytex.snamp.connectors.notifications.NotificationSupport;
+import com.bytex.snamp.connector.ManagedResourceConnectorClient;
+import com.bytex.snamp.connector.notifications.NotificationSupport;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 import javax.management.InstanceNotFoundException;

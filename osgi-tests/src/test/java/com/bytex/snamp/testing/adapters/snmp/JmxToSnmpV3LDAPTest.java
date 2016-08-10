@@ -1,10 +1,10 @@
 package com.bytex.snamp.testing.adapters.snmp;
 
-import com.bytex.snamp.adapters.ResourceAdapterActivator;
+import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
-import com.bytex.snamp.connectors.notifications.Severity;
+import com.bytex.snamp.connector.notifications.Severity;
 import com.bytex.snamp.testing.BundleExceptionCallable;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
@@ -318,14 +318,14 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
         syncWithAdapterStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
-                ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
+                GatewayActivator.startResourceAdapter(context, ADAPTER_NAME);
                 return null;
         }, Duration.ofSeconds(4));
     }
 
     @Override
     protected void beforeCleanupTest(final BundleContext context) throws Exception {
-        ResourceAdapterActivator.stopResourceAdapter(context, ADAPTER_NAME);
+        GatewayActivator.stopResourceAdapter(context, ADAPTER_NAME);
         stopResourceConnector(context);
     }
 
@@ -367,7 +367,7 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
         event.getParameters().put("oid", "1.1.19.1");
 
         event = events.getOrAdd("20.1");
-        setFeatureName(event, "com.bytex.snamp.connectors.tests.impl.testnotif");
+        setFeatureName(event, "com.bytex.snamp.connector.tests.impl.testnotif");
         event.getParameters().put("severity", "panic");
         event.getParameters().put("objectName", BEAN_NAME);
         event.getParameters().put("receiverAddress", SNMP_HOST + "/" + client.getClientPort());

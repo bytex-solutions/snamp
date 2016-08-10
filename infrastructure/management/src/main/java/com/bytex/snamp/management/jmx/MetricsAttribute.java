@@ -1,9 +1,9 @@
 package com.bytex.snamp.management.jmx;
 
-import com.bytex.snamp.connectors.ManagedResourceConnector;
-import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
-import com.bytex.snamp.connectors.metrics.MetricsReader;
-import com.bytex.snamp.connectors.metrics.SummaryMetrics;
+import com.bytex.snamp.connector.ManagedResourceConnector;
+import com.bytex.snamp.connector.ManagedResourceConnectorClient;
+import com.bytex.snamp.connector.metrics.MetricsReader;
+import com.bytex.snamp.connector.metrics.SummaryMetrics;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.TabularDataBuilderRowFill;

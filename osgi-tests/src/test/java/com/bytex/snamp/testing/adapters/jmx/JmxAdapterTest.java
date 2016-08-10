@@ -1,10 +1,12 @@
 package com.bytex.snamp.testing.adapters.jmx;
 
-import com.bytex.snamp.adapters.ResourceAdapterActivator;
-import com.bytex.snamp.adapters.ResourceAdapterClient;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
-import com.bytex.snamp.connectors.ManagedResourceConnector;
-import com.bytex.snamp.connectors.metrics.MetricsReader;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
+import com.bytex.snamp.connector.ManagedResourceConnector;
+import com.bytex.snamp.connector.metrics.MetricsReader;
+import com.bytex.snamp.gateway.GatewayActivator;
+import com.bytex.snamp.gateway.GatewayClient;
 import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.bytex.snamp.jmx.TabularDataBuilder;
 import com.bytex.snamp.testing.BundleExceptionCallable;
@@ -30,15 +32,14 @@ import java.math.BigInteger;
 import java.time.Duration;
 import java.util.Hashtable;
 import java.util.Objects;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
-import static com.bytex.snamp.adapters.ResourceAdapter.FeatureBindingInfo;
-
-import com.bytex.snamp.configuration.EntityMap;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
-
-import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
+import static com.bytex.snamp.gateway.Gateway.FeatureBindingInfo;
 import static com.bytex.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
 
 /**
@@ -178,15 +179,15 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
 
     @Test
     public void configurationDescriptorTest() throws BundleException {
-        ConfigurationEntityDescription desc = ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, ResourceAdapterConfiguration.class);
+        ConfigurationEntityDescription desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, ResourceAdapterConfiguration.class);
         testConfigurationDescriptor(desc, "objectName", "usePlatformMBean");
-        desc = ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, EventConfiguration.class);
+        desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, EventConfiguration.class);
         testConfigurationDescriptor(desc, "severity");
     }
 
     @Test
     public void attributeBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
-        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, Duration.ofSeconds(2));
+        final GatewayClient client = new GatewayClient(getTestBundleContext(), INSTANCE_NAME, Duration.ofSeconds(2));
         try {
             assertTrue(client.forEachFeature(MBeanAttributeInfo.class, (resourceName, bindingInfo) -> bindingInfo.getProperty(FeatureBindingInfo.MAPPED_TYPE) instanceof OpenType<?>));
         } finally {
@@ -196,7 +197,7 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
 
     @Test
     public void notificationBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
-        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, Duration.ofSeconds(2));
+        final GatewayClient client = new GatewayClient(getTestBundleContext(), INSTANCE_NAME, Duration.ofSeconds(2));
         try {
             assertTrue(client.forEachFeature(MBeanNotificationInfo.class, (resourceName, bindingInfo) -> bindingInfo != null));
         } finally {
@@ -234,14 +235,14 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
         syncWithAdapterStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
-                ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
+                GatewayActivator.startResourceAdapter(context, ADAPTER_NAME);
                 return null;
         }, Duration.ofMinutes(4));
     }
 
     @Override
     protected void beforeCleanupTest(final BundleContext context) throws Exception {
-        ResourceAdapterActivator.stopResourceAdapter(context, ADAPTER_NAME);
+        GatewayActivator.stopResourceAdapter(context, ADAPTER_NAME);
         stopResourceConnector(context);
     }
 
@@ -253,12 +254,12 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
         event.getParameters().put("objectName", BEAN_NAME);
 
         event = events.getOrAdd("20.1");
-        setFeatureName(event, "com.bytex.snamp.connectors.tests.impl.testnotif");
+        setFeatureName(event, "com.bytex.snamp.connector.tests.impl.testnotif");
         event.getParameters().put("severity", "panic");
         event.getParameters().put("objectName", BEAN_NAME);
 
         event = events.getOrAdd("21.1");
-        setFeatureName(event, "com.bytex.snamp.connectors.tests.impl.plainnotif");
+        setFeatureName(event, "com.bytex.snamp.connector.tests.impl.plainnotif");
         event.getParameters().put("severity", "notice");
         event.getParameters().put("objectName", BEAN_NAME);
     }

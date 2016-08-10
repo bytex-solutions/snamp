@@ -1,0 +1,14 @@
+package com.bytex.snamp.connector.metrics;
+
+/**
+ * Represents a root interface for different type of metric sets.
+ * @author Roman Sakno
+ * @version 2.0
+ * @since 1.0
+ */
+public interface Metrics {
+    /**
+     * Resets all metrics.
+     */
+    void reset();
+}

@@ -1,7 +1,7 @@
 package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.connectors.notifications.NotificationSupport;
+import com.bytex.snamp.connector.notifications.NotificationSupport;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 

@@ -1,7 +1,7 @@
 package com.bytex.snamp.testing.connectors.mq;
 
 import com.bytex.snamp.Acceptor;
-import com.bytex.snamp.connectors.mq.jms.QueueClient;
+import com.bytex.snamp.connector.mq.jms.QueueClient;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connectors.AbstractResourceConnectorTest;

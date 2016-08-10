@@ -1,8 +1,8 @@
 package com.bytex.snamp.testing.adapters.xmpp;
 
-import com.bytex.snamp.adapters.ResourceAdapterActivator;
-import com.bytex.snamp.adapters.ResourceAdapterClient;
-import com.bytex.snamp.adapters.xmpp.client.XMPPClient;
+import com.bytex.snamp.gateway.GatewayActivator;
+import com.bytex.snamp.gateway.GatewayClient;
+import com.bytex.snamp.gateway.xmpp.client.XMPPClient;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.testing.BundleExceptionCallable;
 import com.bytex.snamp.testing.SnampDependencies;
@@ -150,7 +150,7 @@ public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean>
 
     @Test
     public void configurationDescriptorTest(){
-        final ConfigurationEntityDescription<?> descr = ResourceAdapterClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, ResourceAdapterConfiguration.class);
+        final ConfigurationEntityDescription<?> descr = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, ResourceAdapterConfiguration.class);
         testConfigurationDescriptor(descr,
                 "host",
                 "port",
@@ -166,7 +166,7 @@ public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean>
 
     @Test
     public void attributesBindingTest() throws TimeoutException, InterruptedException, ExecutionException {
-        final ResourceAdapterClient client = new ResourceAdapterClient(getTestBundleContext(), INSTANCE_NAME, Duration.ofSeconds(2));
+        final GatewayClient client = new GatewayClient(getTestBundleContext(), INSTANCE_NAME, Duration.ofSeconds(2));
         try {
             assertTrue(client.forEachFeature(MBeanAttributeInfo.class, (resourceName, bindingInfo) -> bindingInfo.getProperty("read-command") instanceof String));
         } finally {
@@ -198,14 +198,14 @@ public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean>
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
         syncWithAdapterStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
-                ResourceAdapterActivator.startResourceAdapter(context, ADAPTER_NAME);
+                GatewayActivator.startResourceAdapter(context, ADAPTER_NAME);
                 return null;
         }, Duration.ofMinutes(4));
     }
 
     @Override
     protected void beforeCleanupTest(final BundleContext context) throws Exception {
-        ResourceAdapterActivator.stopResourceAdapter(context, ADAPTER_NAME);
+        GatewayActivator.stopResourceAdapter(context, ADAPTER_NAME);
         stopResourceConnector(context);
     }
 

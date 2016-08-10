@@ -2,8 +2,8 @@ package com.bytex.snamp.testing.connectors.snmp;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.concurrent.Repeater;
-import com.bytex.snamp.connectors.ManagedResourceConnector;
-import com.bytex.snamp.connectors.notifications.NotificationSupport;
+import com.bytex.snamp.connector.ManagedResourceConnector;
+import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.google.common.reflect.TypeToken;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;

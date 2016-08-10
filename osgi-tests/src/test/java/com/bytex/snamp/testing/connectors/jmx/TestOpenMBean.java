@@ -110,13 +110,13 @@ public final class TestOpenMBean extends NotificationBroadcasterSupport implemen
     );
 
     private static final MBeanNotificationInfo TIMER_EVENT = new MBeanNotificationInfo(
-            new String[]{"com.bytex.snamp.connectors.tests.impl.testnotif"},
+            new String[]{"com.bytex.snamp.connector.tests.impl.testnotif"},
             TimerNotification.class.getName(),
             "Occurs when timer is changed"
     );
 
     private static final MBeanNotificationInfo PLAIN_EVENT = new MBeanNotificationInfo(
-            new String[]{"com.bytex.snamp.connectors.tests.impl.plainnotif"},
+            new String[]{"com.bytex.snamp.connector.tests.impl.plainnotif"},
             Notification.class.getName(),
             "Notification with attachment"
     );

@@ -25,10 +25,10 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Bundle-SymbolicName>com.bytex.snamp.adapters.xmpp</Bundle-SymbolicName>
-                        <Bundle-Activator>com.bytex.snamp.adapters.xmpp.XMPPAdapterActivator</Bundle-Activator>
+                        <Bundle-SymbolicName>com.bytex.snamp.gateway.xmpp</Bundle-SymbolicName>
+                        <Bundle-Activator>com.bytex.snamp.gateway.xmpp.XMPPGatewayActivator</Bundle-Activator>
                         <Export-Package>
-                            com.bytex.snamp.adapters.xmpp.client.*
+                            com.bytex.snamp.gateway.xmpp.client.*
                         </Export-Package>
                         <Embed-Dependency>
                             *;scope=compile
@@ -39,7 +39,7 @@
                         </Import-Package>
                         <Embed-Transitive>true</Embed-Transitive>
                         <!--SNAMP specific header-->
-                        <Provide-Capability>com.bytex.snamp.adapters; type=xmpp</Provide-Capability>
+                        <Provide-Capability>com.bytex.snamp.gateway; type=xmpp</Provide-Capability>
                     </instructions>
                 </configuration>
             </plugin>

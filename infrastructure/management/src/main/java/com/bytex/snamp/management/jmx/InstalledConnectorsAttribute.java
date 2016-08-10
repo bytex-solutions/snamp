@@ -1,6 +1,6 @@
 package com.bytex.snamp.management.jmx;
 
-import com.bytex.snamp.connectors.ManagedResourceActivator;
+import com.bytex.snamp.connector.ManagedResourceActivator;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.OpenMBean;
 

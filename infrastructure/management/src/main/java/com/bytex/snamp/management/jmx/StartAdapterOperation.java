@@ -1,13 +1,9 @@
 package com.bytex.snamp.management.jmx;
 
-import com.bytex.snamp.adapters.ResourceAdapterActivator;
-import com.bytex.snamp.jmx.OpenMBean;
+import com.bytex.snamp.gateway.GatewayActivator;
 import org.osgi.framework.BundleException;
 
-import javax.management.MBeanOperationInfo;
 import javax.management.openmbean.OpenDataException;
-import javax.management.openmbean.SimpleType;
-import java.util.Map;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
@@ -31,6 +27,6 @@ final class StartAdapterOperation extends AbstractAdapterOperation {
 
     @Override
     void invoke(final String adapterInstance) throws BundleException {
-        ResourceAdapterActivator.startResourceAdapter(getBundleContextOfObject(this), adapterInstance);
+        GatewayActivator.startResourceAdapter(getBundleContextOfObject(this), adapterInstance);
     }
 }

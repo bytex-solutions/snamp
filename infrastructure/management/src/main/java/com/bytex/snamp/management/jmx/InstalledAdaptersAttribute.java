@@ -1,6 +1,6 @@
 package com.bytex.snamp.management.jmx;
 
-import com.bytex.snamp.adapters.ResourceAdapterActivator;
+import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.OpenMBean;
 
@@ -29,7 +29,7 @@ final class InstalledAdaptersAttribute extends OpenMBean.OpenAttribute<String[],
 
     @Override
     public String[] getValue() throws OpenDataException{
-        final Collection<String> result = ResourceAdapterActivator.getInstalledResourceAdapters(Utils.getBundleContextOfObject(this));
+        final Collection<String> result = GatewayActivator.getInstalledResourceAdapters(Utils.getBundleContextOfObject(this));
         return result.toArray(new String[result.size()]);
     }
 }

@@ -2,12 +2,12 @@ package com.bytex.snamp.management;
 
 import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.Acceptor;
-import com.bytex.snamp.adapters.ResourceAdapter;
-import com.bytex.snamp.adapters.ResourceAdapterActivator;
-import com.bytex.snamp.adapters.ResourceAdapterClient;
-import com.bytex.snamp.connectors.ManagedResourceActivator;
-import com.bytex.snamp.connectors.ManagedResourceConnector;
-import com.bytex.snamp.connectors.ManagedResourceConnectorClient;
+import com.bytex.snamp.gateway.Gateway;
+import com.bytex.snamp.gateway.GatewayActivator;
+import com.bytex.snamp.gateway.GatewayClient;
+import com.bytex.snamp.connector.ManagedResourceActivator;
+import com.bytex.snamp.connector.ManagedResourceConnector;
+import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.core.AbstractFrameworkService;
 import com.bytex.snamp.core.SupportService;
 import org.osgi.framework.*;
@@ -168,7 +168,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
          */
         @Override
         public int getState() {
-            return ResourceAdapterClient.getState(getItselfContext(), getSystemName());
+            return GatewayClient.getState(getItselfContext(), getSystemName());
         }
 
         /**
@@ -179,7 +179,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
          */
         @Override
         public String getName(final Locale loc) {
-            return ResourceAdapterClient.getDisplayName(getItselfContext(), getSystemName(), loc);
+            return GatewayClient.getDisplayName(getItselfContext(), getSystemName(), loc);
         }
 
         /**
@@ -189,7 +189,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
          */
         @Override
         public Version getVersion() {
-            return ResourceAdapterClient.getVersion(getItselfContext(), getSystemName());
+            return GatewayClient.getVersion(getItselfContext(), getSystemName());
         }
 
         /**
@@ -203,7 +203,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
         public final  <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Acceptor<S, E> serviceInvoker) throws E {
             ServiceReference<S> ref = null;
             try {
-                ref = ResourceAdapterClient.getServiceReference(getItselfContext(), getSystemName(), null, serviceType);
+                ref = GatewayClient.getServiceReference(getItselfContext(), getSystemName(), null, serviceType);
                 if (ref == null) return false;
                 serviceInvoker.accept(getItselfContext().getService(ref));
             } catch (final InvalidSyntaxException ignored) {
@@ -223,7 +223,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
          */
         @Override
         public String toString(final Locale locale) {
-            return ResourceAdapterClient.getDescription(getItselfContext(), getSystemName(), locale);
+            return GatewayClient.getDescription(getItselfContext(), getSystemName(), locale);
         }
 
         /**
@@ -371,7 +371,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
      */
     @Override
     public final Collection<? extends ResourceAdapterDescriptor> getInstalledResourceAdapters() {
-        final Collection<String> systemNames = ResourceAdapterActivator.getInstalledResourceAdapters(getBundleContextOfObject(this));
+        final Collection<String> systemNames = GatewayActivator.getInstalledResourceAdapters(getBundleContextOfObject(this));
         return systemNames.stream().map(this::createResourceAdapterDescriptor).collect(Collectors.toCollection(LinkedList::new));
     }
 
@@ -381,7 +381,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
      * @return {@literal true}, if the specified bundle is a part of SNAMP; otherwise, {@literal false}.
      */
     public static boolean isSnampComponent(final Bundle bnd){
-        if(ResourceAdapter.isResourceAdapterBundle(bnd) ||
+        if(Gateway.isResourceAdapterBundle(bnd) ||
                 ManagedResourceConnector.isResourceConnectorBundle(bnd)) return false;
         final String importPackages = bnd.getHeaders().get(Constants.IMPORT_PACKAGE);
         if(importPackages == null) return false;

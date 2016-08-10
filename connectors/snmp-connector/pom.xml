@@ -46,10 +46,10 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-SymbolicName>com.bytex.snamp.connectors.snmp</Bundle-SymbolicName>
-            <Bundle-Activator>com.bytex.snamp.connectors.snmp.SnmpResourceConnectorActivator</Bundle-Activator>
+            <Bundle-SymbolicName>com.bytex.snamp.connector.snmp</Bundle-SymbolicName>
+            <Bundle-Activator>com.bytex.snamp.connector.snmp.SnmpResourceConnectorActivator</Bundle-Activator>
             <Export-Package />
-            <Provide-Capability>com.bytex.snamp.connectors; type=snmp</Provide-Capability>
+            <Provide-Capability>com.bytex.snamp.connector; type=snmp</Provide-Capability>
           </instructions>
         </configuration>
       </plugin>

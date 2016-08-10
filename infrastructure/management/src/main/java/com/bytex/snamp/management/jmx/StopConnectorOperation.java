@@ -1,13 +1,9 @@
 package com.bytex.snamp.management.jmx;
 
-import com.bytex.snamp.connectors.ManagedResourceActivator;
-import com.bytex.snamp.jmx.OpenMBean;
+import com.bytex.snamp.connector.ManagedResourceActivator;
 import org.osgi.framework.BundleException;
 
-import javax.management.MBeanOperationInfo;
 import javax.management.openmbean.OpenDataException;
-import javax.management.openmbean.SimpleType;
-import java.util.Map;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 

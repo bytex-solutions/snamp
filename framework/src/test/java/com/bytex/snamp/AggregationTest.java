@@ -1,6 +1,6 @@
 package com.bytex.snamp;
 
-import com.bytex.snamp.connectors.metrics.MetricsReader;
+import com.bytex.snamp.connector.metrics.MetricsReader;
 import org.junit.Assert;
 import org.junit.Test;
 

@@ -1,9 +1,9 @@
 package com.bytex.snamp.testing.connectors.mda;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.connectors.notifications.Mailbox;
-import com.bytex.snamp.connectors.notifications.MailboxFactory;
-import com.bytex.snamp.connectors.notifications.NotificationSupport;
+import com.bytex.snamp.connector.notifications.Mailbox;
+import com.bytex.snamp.connector.notifications.MailboxFactory;
+import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.io.Buffers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;

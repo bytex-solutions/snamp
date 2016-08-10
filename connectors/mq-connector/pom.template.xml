@@ -27,10 +27,10 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Bundle-SymbolicName>com.bytex.snamp.connectors.mq</Bundle-SymbolicName>
-                        <Bundle-Activator>com.bytex.snamp.connectors.mq.MQConnectorBundleActivator</Bundle-Activator>
+                        <Bundle-SymbolicName>com.bytex.snamp.connector.mq</Bundle-SymbolicName>
+                        <Bundle-Activator>com.bytex.snamp.connector.mq.MQConnectorBundleActivator</Bundle-Activator>
                         <Export-Package>
-                            com.bytex.snamp.connectors.mq.jms
+                            com.bytex.snamp.connector.mq.jms
                         </Export-Package>
                         <DynamicImport-Package>
                             *
@@ -40,7 +40,7 @@
                             *;scope=compile
                         </Embed-Dependency>
                         <!--SNAMP specific header-->
-                        <Provide-Capability>com.bytex.snamp.connectors; type=mq</Provide-Capability>
+                        <Provide-Capability>com.bytex.snamp.connector; type=mq</Provide-Capability>
                     </instructions>
                 </configuration>
             </plugin>

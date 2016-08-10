@@ -72,11 +72,11 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Bundle-SymbolicName>com.bytex.snamp.connectors.groovy</Bundle-SymbolicName>
-            <Bundle-Activator>com.bytex.snamp.connectors.groovy.impl.GroovyResourceActivator</Bundle-Activator>
-            <Export-Package>com.bytex.snamp.connectors.groovy</Export-Package>
+            <Bundle-SymbolicName>com.bytex.snamp.connector.groovy</Bundle-SymbolicName>
+            <Bundle-Activator>com.bytex.snamp.connector.groovy.impl.GroovyResourceActivator</Bundle-Activator>
+            <Export-Package>com.bytex.snamp.connector.groovy</Export-Package>
             <DynamicImport-Package>*</DynamicImport-Package>
-            <Provide-Capability>com.bytex.snamp.connectors; type=groovy</Provide-Capability>
+            <Provide-Capability>com.bytex.snamp.connector; type=groovy</Provide-Capability>
           </instructions>
         </configuration>
       </plugin>

@@ -1,7 +1,7 @@
 package com.bytex.snamp.testing;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.adapters.*;
+import com.bytex.snamp.gateway.*;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import org.junit.After;
@@ -41,20 +41,20 @@ import static com.bytex.snamp.configuration.ConfigurationManager.ConfigurationPr
 @ImportPackages("com.bytex.snamp;version=\"[2.0,3)\"")
 public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTest {
 
-    private static final class AdapterStartedSynchronizationEvent extends CompletableFuture<ResourceAdapter> implements ResourceAdapterEventListener {
+    private static final class AdapterStartedSynchronizationEvent extends CompletableFuture<Gateway> implements GatewayEventListener {
 
         @Override
-        public void handle(final ResourceAdapterEvent e) {
-            if(e instanceof ResourceAdapterStartedEvent)
+        public void handle(final GatewayEvent e) {
+            if(e instanceof GatewayStartedEvent)
                 complete(e.getSource());
         }
     }
 
-    private static final class AdapterUpdatedSynchronizationEvent extends CompletableFuture<ResourceAdapter> implements ResourceAdapterEventListener{
+    private static final class AdapterUpdatedSynchronizationEvent extends CompletableFuture<Gateway> implements GatewayEventListener {
 
         @Override
-        public void handle(final ResourceAdapterEvent e) {
-            if(e instanceof ResourceAdapterUpdatedEvent)
+        public void handle(final GatewayEvent e) {
+            if(e instanceof GatewayUpdatedEvent)
                 complete(e.getSource());
         }
     }
@@ -139,7 +139,7 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
                                                        final Callable<? extends V> handler,
                                                        final Duration timeout) throws Exception {
         final AdapterStartedSynchronizationEvent synchronizer = new AdapterStartedSynchronizationEvent();
-        ResourceAdapterClient.addEventListener(adapterName, synchronizer);
+        GatewayClient.addEventListener(adapterName, synchronizer);
         try {
             final V result = handler.call();
             assertNotNull(synchronizer.get(timeout.toNanos(), TimeUnit.NANOSECONDS));
@@ -150,7 +150,7 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
             return null;
         }
         finally {
-            ResourceAdapterClient.removeEventListener(adapterName, synchronizer);
+            GatewayClient.removeEventListener(adapterName, synchronizer);
         }
     }
 
@@ -158,7 +158,7 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
                                                        final Callable<? extends V> handler,
                                                        final Duration timeout) throws Exception {
         final AdapterUpdatedSynchronizationEvent synchronizer = new AdapterUpdatedSynchronizationEvent();
-        ResourceAdapterClient.addEventListener(adapterName, synchronizer);
+        GatewayClient.addEventListener(adapterName, synchronizer);
         try {
             final V result = handler.call();
             assertNotNull(synchronizer.get(timeout.toNanos(), TimeUnit.NANOSECONDS));
@@ -168,7 +168,7 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
             return null;
         }
         finally {
-            ResourceAdapterClient.removeEventListener(adapterName, synchronizer);
+            GatewayClient.removeEventListener(adapterName, synchronizer);
         }
     }
 

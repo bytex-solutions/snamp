@@ -1,7 +1,7 @@
 package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.adapters.ResourceAdapterActivator;
+import com.bytex.snamp.gateway.GatewayActivator;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
@@ -23,7 +23,7 @@ public final class StartAdapterCommand extends OsgiCommandSupport implements Sna
 
     @Override
     protected Void doExecute() throws BundleException {
-        ResourceAdapterActivator.startResourceAdapter(bundleContext, adapterName);
+        GatewayActivator.startResourceAdapter(bundleContext, adapterName);
         return null;
     }
 }
