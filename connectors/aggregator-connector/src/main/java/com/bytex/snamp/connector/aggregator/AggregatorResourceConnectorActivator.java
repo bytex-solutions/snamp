@@ -67,24 +67,13 @@ public final class AggregatorResourceConnectorActivator extends ManagedResourceA
         }
     }
 
-    private static final class ConfigurationProvider extends ConfigurationEntityDescriptionManager<AggregatorConnectorConfiguration>{
-        @Override
-        protected AggregatorConnectorConfiguration createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
-            return new AggregatorConnectorConfiguration();
-        }
-    }
-
-    private static final class DiscoveryServiceManagerImpl extends DiscoveryServiceManager<AggregatorDiscoveryService>{
-
-        @Override
-        protected AggregatorDiscoveryService createDiscoveryService(final RequiredService<?>... dependencies) {
-            return new AggregatorDiscoveryService();
-        }
-    }
-
     public AggregatorResourceConnectorActivator() {
         super(new ConnectorController(),
-                new DiscoveryServiceManagerImpl(),
-                new ConfigurationProvider());
+                discoveryService(AggregatorResourceConnectorActivator::newDiscoveryService),
+                configurationDescriptor(AggregatorConnectorConfiguration::new));
+    }
+
+    private static AggregatorDiscoveryService newDiscoveryService(final RequiredService<?>... dependencies){
+        return new AggregatorDiscoveryService();
     }
 }

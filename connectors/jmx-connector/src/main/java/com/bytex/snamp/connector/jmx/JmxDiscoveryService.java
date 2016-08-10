@@ -1,14 +1,13 @@
 package com.bytex.snamp.connector.jmx;
 
 import com.bytex.snamp.configuration.ConfigurationManager;
+import com.bytex.snamp.connector.discovery.AbstractDiscoveryService;
 
 import javax.management.*;
 import javax.management.remote.JMXConnector;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.logging.Logger;
 
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.*;
 import static com.bytex.snamp.connector.jmx.JmxConnectorDescriptionProvider.OBJECT_NAME_PROPERTY;
@@ -19,10 +18,7 @@ import static com.bytex.snamp.connector.jmx.JmxConnectorDescriptionProvider.OBJE
  * @version 2.0
  * @since 1.0
  */
-final class JmxDiscoveryService{
-    private JmxDiscoveryService() {
-        throw new InstantiationError();
-    }
+final class JmxDiscoveryService extends AbstractDiscoveryService<JMXConnector>{
 
     private static Collection<AttributeConfiguration> discoverAttributes(final ClassLoader context, final MBeanServerConnection connection) throws IOException, JMException {
         final List<AttributeConfiguration> result = new ArrayList<>(40);
@@ -65,7 +61,22 @@ final class JmxDiscoveryService{
         else return Collections.emptyList();
     }
 
-    static <T extends FeatureConfiguration> Collection<T> discover(final ClassLoader context, final JMXConnector options, final Class<T> entityType) throws IOException, JMException {
+    private static <T extends FeatureConfiguration> Collection<T> discover(final ClassLoader context, final JMXConnector options, final Class<T> entityType) throws IOException, JMException {
         return discover(context, options.getMBeanServerConnection(), entityType);
+    }
+
+    @Override
+    public Logger getLogger() {
+        return JmxConnector.getLoggerImpl();
+    }
+
+    @Override
+    protected JMXConnector createProvider(final String connectionString, final Map<String, String> connectionOptions) throws IOException, MalformedObjectNameException {
+        return new JmxConnectionOptions(connectionString, connectionOptions).createConnection();
+    }
+
+    @Override
+    protected <T extends FeatureConfiguration> Collection<T> getEntities(final Class<T> entityType, final JMXConnector options) throws IOException, JMException {
+        return discover(getClass().getClassLoader(), options, entityType);
     }
 }

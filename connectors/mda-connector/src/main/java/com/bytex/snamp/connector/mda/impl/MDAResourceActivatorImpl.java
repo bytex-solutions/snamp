@@ -28,18 +28,10 @@ public final class MDAResourceActivatorImpl extends MDAResourceActivator {
         }
     }
 
-    private static final class MDAConfigurationEntityDescriptionManager extends ConfigurationEntityDescriptionManager<MDAConnectorDescriptionProvider>{
-
-        @Override
-        protected MDAConnectorDescriptionProvider createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
-            return MDAConnectorDescriptionProvider.getInstance();
-        }
-    }
-
     @SpecialUse
     public MDAResourceActivatorImpl() {
         super(new MonitoringDataAcceptorFactoryImpl(),
-                new MDAConfigurationEntityDescriptionManager(),
+                configurationDescriptor(MDAConnectorDescriptionProvider::getInstance),
                 new SimpleDependency<>(HttpService.class));
     }
 }

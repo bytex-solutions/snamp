@@ -366,6 +366,10 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
         return Logger.getLogger(getLoggerName(connectorName));
     }
 
+    public static Logger getLogger(final Class<? extends ManagedResourceConnector> connectorType){
+        return getLogger(getConnectorType(connectorType));
+    }
+
     /**
      * Determines whether the connector may automatically expanded with features without predefined configuration.
      * @param featureType Type of the feature. Cannot be {@literal null}.
@@ -440,21 +444,12 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
     }
 
     /**
-     * Returns system name of the specified connector.
-     * @param connector An instance of the resource connector.
-     * @return System name of the specified connector.
-     */
-    public static String getConnectorType(final ManagedResourceConnector connector){
-        return getConnectorType(connector.getClass());
-    }
-
-    /**
      * Gets logger associated with this connector.
      * @return A logger associated with this connector.
      */
     @Override
     @Aggregation
     public Logger getLogger() {
-        return getLogger(getConnectorType(this));
+        return getLogger(getClass());
     }
 }

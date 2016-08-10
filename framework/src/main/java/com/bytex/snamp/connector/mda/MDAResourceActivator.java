@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.mda;
 
+import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 import org.osgi.service.http.HttpService;
 
@@ -79,7 +80,7 @@ public abstract class MDAResourceActivator extends ManagedResourceActivator<Data
     }
 
     protected MDAResourceActivator(final MonitoringDataAcceptorFactory factory,
-                                   final ConfigurationEntityDescriptionManager<? extends MDAResourceConfigurationDescriptorProvider> descriptionManager,
+                                   final SupportConnectorServiceManager<ConfigurationEntityDescriptionProvider, ? extends MDAResourceConfigurationDescriptorProvider> descriptionManager,
                                    final RequiredService<?>... dependencies){
         super(factory, dependencies, new SupportConnectorServiceManager[]{descriptionManager});
     }

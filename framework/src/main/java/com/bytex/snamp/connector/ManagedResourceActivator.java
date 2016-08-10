@@ -1,11 +1,11 @@
 package com.bytex.snamp.connector;
 
 import com.bytex.snamp.MethodStub;
-import com.bytex.snamp.configuration.*;
+import com.bytex.snamp.configuration.ConfigParameters;
+import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
+import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.internal.CMManagedResourceParser;
-import com.bytex.snamp.connector.discovery.AbstractDiscoveryService;
 import com.bytex.snamp.connector.discovery.DiscoveryService;
-import com.bytex.snamp.core.AbstractBundleActivator;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.internal.Utils;
@@ -14,13 +14,17 @@ import com.bytex.snamp.management.Maintainable;
 import com.google.common.collect.Maps;
 import com.google.common.collect.ObjectArrays;
 import com.google.common.collect.Sets;
-import org.osgi.framework.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.ServiceReference;
 import org.osgi.service.cm.ConfigurationAdmin;
 
 import javax.management.openmbean.CompositeData;
 import java.math.BigInteger;
 import java.time.Duration;
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -479,6 +483,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @version 2.0
      * @see #maintenanceService(Supplier)
      * @see #discoveryService(Supplier)
+     * @see #configurationDescriptor(Supplier)
      */
     protected static abstract class SupportConnectorServiceManager<S extends FrameworkService, T extends S> extends ProvidedService<S, T> {
 
@@ -522,73 +527,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     }
 
     /**
-     * Represents a simple implementation of configuration description service manager based
-     * on provided array of descriptions for each {@link ManagedResourceConfiguration.FeatureConfiguration}.
-     * @author Roman Sakno
-     * @since 1.0
-     * @version 2.0
-     */
-    protected final static class SimpleConfigurationEntityDescriptionManager extends ConfigurationEntityDescriptionManager<ConfigurationEntityDescriptionProviderImpl>{
-        private final ConfigurationEntityDescription<?>[] descriptions;
-
-        /**
-         * Initializes a new configuration service manager.
-         * @param descriptions An array of configuration entity descriptors.
-         */
-        public SimpleConfigurationEntityDescriptionManager(final ConfigurationEntityDescription<?>... descriptions){
-            this.descriptions = Arrays.copyOf(descriptions, 0);
-        }
-
-        /**
-         * Creates a new instance of the configuration description provider.
-         *
-         * @param dependencies A collection of provider dependencies.
-         * @return A new instance of the configuration description provider.
-         */
-        @Override
-        protected ConfigurationEntityDescriptionProviderImpl createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
-            return new ConfigurationEntityDescriptionProviderImpl(descriptions);
-        }
-    }
-
-    /**
-     * Represents a holder for connector configuration descriptor.
-     * @param <T> Type of the configuration descriptor implementation.
-     * @author Roman Sakno
-     * @since 1.0
-     */
-    protected abstract static class ConfigurationEntityDescriptionManager<T extends ConfigurationEntityDescriptionProvider> extends SupportConnectorServiceManager<ConfigurationEntityDescriptionProvider, T> {
-
-        /**
-         * Initializes a new holder for the provided service.
-         *
-         * @param dependencies A collection of service dependencies.
-         * @throws IllegalArgumentException contract is {@literal null}.
-         */
-        protected ConfigurationEntityDescriptionManager(final RequiredService<?>... dependencies) {
-            super(ConfigurationEntityDescriptionProvider.class, dependencies);
-        }
-
-        /**
-         * Creates a new instance of the configuration description provider.
-         * @param dependencies A collection of provider dependencies.
-         * @return A new instance of the configuration description provider.
-         */
-        protected abstract T createConfigurationDescriptionProvider(final RequiredService<?>... dependencies);
-
-        /**
-         * Creates a new instance of the service.
-         *
-         * @param dependencies A collection of dependencies.
-         * @return A new instance of the service.
-         */
-        @Override
-        protected final T activateService(final RequiredService<?>... dependencies) {
-            return createConfigurationDescriptionProvider(dependencies);
-        }
-    }
-
-    /**
      * Initializes a new connector factory.
      * @param controller Resource connector lifecycle controller. Cannot be {@literal null}.
      * @param optionalServices Additional set of supporting services.
@@ -618,11 +556,11 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         };
     }
 
-    protected static <T extends DiscoveryService> SupportConnectorServiceManager<DiscoveryService, T> discoveryService(final Supplier<T> factory) {
-        return new SupportConnectorServiceManager<DiscoveryService, T>(DiscoveryService.class) {
+    protected static <T extends DiscoveryService> SupportConnectorServiceManager<DiscoveryService, T> discoveryService(final Function<RequiredService<?>[], T> factory, final RequiredService<?>... dependencies) {
+        return new SupportConnectorServiceManager<DiscoveryService, T>(DiscoveryService.class, dependencies) {
             @Override
             T activateService(final RequiredService<?>... dependencies) {
-                return factory.get();
+                return factory.apply(dependencies);
             }
         };
     }

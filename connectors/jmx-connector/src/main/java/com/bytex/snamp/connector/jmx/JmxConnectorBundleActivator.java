@@ -1,25 +1,25 @@
 package com.bytex.snamp.connector.jmx;
 
 import com.bytex.snamp.AbstractAggregator;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.FutureThread;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration.FeatureConfiguration;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
-import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.management.AbstractMaintainable;
 import com.bytex.snamp.management.Maintainable;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
-import javax.management.JMException;
 import javax.management.MalformedObjectNameException;
 import javax.management.openmbean.CompositeData;
-import javax.management.remote.JMXConnector;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.time.Duration;
-import java.util.*;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
@@ -170,26 +170,12 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
     @SpecialUse
     public JmxConnectorBundleActivator() {
         super(new JmxConnectorFactory(),
-                new ConfigurationEntityDescriptionManager<JmxConnectorDescriptionProvider>() {
-                    @Override
-                    protected JmxConnectorDescriptionProvider createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
-                        return JmxConnectorDescriptionProvider.getInstance();
-                    }
-                },
+                configurationDescriptor(JmxConnectorDescriptionProvider::getInstance),
                 maintenanceService(JmxMaintenanceService::new),
-                new SimpleDiscoveryServiceManager<JMXConnector>() {
+                discoveryService(JmxConnectorBundleActivator::newDiscoveryService));
+    }
 
-                    @Override
-                    protected JMXConnector createManagementInformationProvider(final String connectionString, final Map<String, String> connectionOptions, final RequiredService<?>... dependencies) throws MalformedObjectNameException, IOException {
-                        return new JmxConnectionOptions(connectionString, connectionOptions).createConnection();
-                    }
-
-                    @Override
-                    protected <T extends FeatureConfiguration> Collection<T> getManagementInformation(final Class<T> entityType,
-                                                                                               final JMXConnector connection,
-                                                                                               final RequiredService<?>... dependencies) throws JMException, IOException {
-                        return JmxDiscoveryService.discover(getClass().getClassLoader(), connection, entityType);
-                    }
-                });
+    private static JmxDiscoveryService newDiscoveryService(final RequiredService<?>... dependencies){
+        return new JmxDiscoveryService();
     }
 }

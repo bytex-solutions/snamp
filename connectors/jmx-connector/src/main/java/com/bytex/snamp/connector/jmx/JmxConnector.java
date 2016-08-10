@@ -907,7 +907,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
         return getLoggerImpl();
     }
 
-    static Logger getLoggerImpl(){
+    static Logger getLoggerImpl() {
         return getLogger(getType());
     }
 

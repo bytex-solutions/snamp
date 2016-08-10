@@ -1,9 +1,11 @@
 package com.bytex.snamp.connector.groovy.impl;
 
+import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceActivator;
+import com.bytex.snamp.connector.discovery.AbstractDiscoveryService;
 import com.bytex.snamp.connector.groovy.ManagedResourceInfo;
 import com.bytex.snamp.connector.groovy.ManagedResourceScriptEngine;
-import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.io.IOUtils;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
@@ -14,6 +16,7 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.FeatureConfiguration;
 
@@ -69,41 +72,35 @@ public final class GroovyResourceActivator extends ManagedResourceActivator<Groo
         }
     }
 
-    private static final class GroovyDiscoveryService extends SimpleDiscoveryServiceManager<ManagedResourceInfo>{
-
-        @Override
-        protected ManagedResourceInfo createManagementInformationProvider(final String connectionString,
-                                                                           final Map<String, String> connectionOptions,
-                                                                           final RequiredService<?>... dependencies) throws IOException, ResourceException, ScriptException {
-            final String[] paths = IOUtils.splitPath(connectionString);
-            final ManagedResourceScriptEngine engine = new ManagedResourceScriptEngine(
-                    getClass().getClassLoader(),
-                    GroovyResourceConnector.toProperties(connectionOptions),
-                    paths);
-            final String initScript = GroovyResourceConfigurationDescriptor.getInitScriptFile(connectionOptions);
-            return engine.init(initScript, connectionOptions);
-        }
-
-        @Override
-        protected <T extends FeatureConfiguration> Collection<T> getManagementInformation(final Class<T> entityType,
-                                                                                          final ManagedResourceInfo provider,
-                                                                                          final RequiredService<?>... dependencies) {
-            return provider.getEntities(entityType);
-        }
-    }
-
-    private static final class GroovyConfigurationDescriptionProvider extends ConfigurationEntityDescriptionManager<GroovyResourceConfigurationDescriptor>{
-
-        @Override
-        protected GroovyResourceConfigurationDescriptor createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) throws Exception {
-            return new GroovyResourceConfigurationDescriptor();
-        }
-    }
-
     @SpecialUse
     public GroovyResourceActivator(){
         super( new GroovyResourceConnectorFactory(),
-                new GroovyDiscoveryService(),
-                new GroovyConfigurationDescriptionProvider());
+                configurationDescriptor(GroovyResourceConfigurationDescriptor::new),
+                discoveryService(GroovyResourceActivator::newDiscoveryService));
+    }
+
+    private static AbstractDiscoveryService<ManagedResourceInfo> newDiscoveryService(final RequiredService<?>... dependencies){
+        return new AbstractDiscoveryService<ManagedResourceInfo>() {
+            @Override
+            protected ManagedResourceInfo createProvider(final String connectionString, final Map<String, String> connectionOptions) throws IOException, ResourceException, ScriptException {
+                final String[] paths = IOUtils.splitPath(connectionString);
+                final ManagedResourceScriptEngine engine = new ManagedResourceScriptEngine(
+                        getClass().getClassLoader(),
+                        GroovyResourceConnector.toProperties(connectionOptions),
+                        paths);
+                final String initScript = GroovyResourceConfigurationDescriptor.getInitScriptFile(connectionOptions);
+                return engine.init(initScript, connectionOptions);
+            }
+
+            @Override
+            protected <T extends FeatureConfiguration> Collection<T> getEntities(final Class<T> entityType, final ManagedResourceInfo provider) {
+                return provider.getEntities(entityType);
+            }
+
+            @Override
+            public Logger getLogger() {
+                return AbstractManagedResourceConnector.getLogger(GroovyResourceConnector.class);
+            }
+        };
     }
 }

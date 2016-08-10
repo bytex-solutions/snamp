@@ -29,18 +29,10 @@ public final class MQConnectorBundleActivator extends MDAResourceActivator {
         }
     }
 
-    private static final class MQConnectorConfigurationDescriptorManager extends ConfigurationEntityDescriptionManager<MQResourceConnectorDescriptionProvider>{
-
-        @Override
-        protected MQResourceConnectorDescriptionProvider createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
-            return MQResourceConnectorDescriptionProvider.getInstance();
-        }
-    }
-
     @SpecialUse
     public MQConnectorBundleActivator(){
         super(new MQDataAcceptorFactory(),
-                new MQConnectorConfigurationDescriptorManager(),
+                configurationDescriptor(MQResourceConnectorDescriptionProvider::getInstance),
                 new SimpleDependency<>(JNDIContextManager.class));
     }
 }

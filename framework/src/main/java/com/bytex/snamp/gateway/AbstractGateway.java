@@ -597,7 +597,9 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
         return Logger.getLogger(getLoggerName(adapterName));
     }
 
-
+    public static Logger getLogger(final Class<? extends Gateway> gatewayType){
+        return getLogger(getGatewayType(gatewayType));
+    }
 
     /**
      * Releases all resources associated with this gateway.
@@ -636,8 +638,8 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
      */
     @Override
     @Aggregation
-    public Logger getLogger(){
-        return getLogger(getGatewayType(this));
+    public Logger getLogger() {
+        return getLogger(getClass());
     }
 
     /**
@@ -650,7 +652,7 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
     }
 
     public final String getGatewayType(){
-        return getGatewayType(this);
+        return getGatewayType(getClass());
     }
 
     public static String getGatewayType(final Class<? extends Gateway> adapterType) {
@@ -658,11 +660,6 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
         assert context != null;
         return Gateway.getGatewayType(context.getBundle());
     }
-
-    public static String getGatewayType(final Gateway adapter) {
-        return getGatewayType(adapter.getClass());
-    }
-
 
     @Override
     public <M extends MBeanFeatureInfo> Multimap<String, ? extends FeatureBindingInfo<M>> getBindings(final Class<M> featureType) {

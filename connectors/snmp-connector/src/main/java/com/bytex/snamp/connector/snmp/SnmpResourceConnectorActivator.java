@@ -2,15 +2,12 @@ package com.bytex.snamp.connector.snmp;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration.FeatureConfiguration;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 import org.snmp4j.log.OSGiLogFactory;
-import org.snmp4j.smi.GenericAddress;
 
 import javax.management.openmbean.CompositeData;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
@@ -75,19 +72,13 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
     public SnmpResourceConnectorActivator() {
         super(new SnmpConnectorFactory(),
                 new RequiredService<?>[]{new SimpleDependency<>(ThreadPoolRepository.class)},
-                new SupportConnectorServiceManager<?, ?>[]{configurationDescriptor(SnmpConnectorDescriptionProvider::getInstance),
-                        new SimpleDiscoveryServiceManager<SnmpClient>(new SimpleDependency<>(ThreadPoolRepository.class)) {
-                            @Override
-                            protected SnmpClient createManagementInformationProvider(final String connectionString, final Map<String, String> connectionOptions, final RequiredService<?>... dependencies) throws Exception {
-                                final SnmpClient client = SnmpConnectorDescriptionProvider.getInstance().createSnmpClient(GenericAddress.parse(connectionString), connectionOptions);
-                                client.listen();
-                                return client;
-                            }
+                new SupportConnectorServiceManager<?, ?>[]{
+                        configurationDescriptor(SnmpConnectorDescriptionProvider::getInstance),
+                        discoveryService(SnmpResourceConnectorActivator::newDiscoveryService)
+                });
+    }
 
-                            @Override
-                            protected <T extends FeatureConfiguration> Collection<T> getManagementInformation(final Class<T> entityType, final SnmpClient client, final RequiredService<?>... dependencies) throws Exception {
-                                return SnmpDiscoveryService.discover(getClass().getClassLoader(), entityType, client);
-                            }
-                        }});
+    private static SnmpDiscoveryService newDiscoveryService(final RequiredService<?>... dependencies){
+        return new SnmpDiscoveryService();
     }
 }

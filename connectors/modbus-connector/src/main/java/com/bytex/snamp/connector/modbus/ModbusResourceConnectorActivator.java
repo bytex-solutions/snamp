@@ -60,16 +60,8 @@ public final class ModbusResourceConnectorActivator extends ManagedResourceActiv
         }
     }
 
-    private static final class ModbusConfigurationDescriptorServiceManager extends ConfigurationEntityDescriptionManager<ModbusResourceConnectorConfigurationDescriptor> {
-
-        @Override
-        protected ModbusResourceConnectorConfigurationDescriptor createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
-            return new ModbusResourceConnectorConfigurationDescriptor();
-        }
-    }
-
     @SpecialUse
     public ModbusResourceConnectorActivator() {
-        super(new ModbusConnectorFactory(), new ModbusConfigurationDescriptorServiceManager());
+        super(new ModbusConnectorFactory(), configurationDescriptor(ModbusResourceConnectorConfigurationDescriptor::new));
     }
 }
