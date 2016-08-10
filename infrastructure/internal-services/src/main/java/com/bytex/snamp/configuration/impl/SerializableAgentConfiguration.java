@@ -20,7 +20,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
 
 
     private final ConfigurationEntityRegistry<SerializableManagedResourceConfiguration> resources;
-    private final ConfigurationEntityRegistry<SerializableResourceAdapterConfiguration> adapters;
+    private final ConfigurationEntityRegistry<SerializableGatewayConfiguration> adapters;
     private final ConfigurationEntityRegistry<SerializableThreadPoolConfiguration> threadPools;
 
     /**
@@ -70,9 +70,9 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
     @Override
     public void writeExternal(final ObjectOutput out) throws IOException {
         out.writeByte(FORMAT_VERSION);
-        //write adapters
+        //write gateway
         adapters.writeExternal(out);
-        //write connectors
+        //write connector
         resources.writeExternal(out);
         //write thread pools
         threadPools.writeExternal(out);
@@ -96,9 +96,9 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
         //check version
         if(version != FORMAT_VERSION)
             throw new IOException(String.format("Unknown version of configuration format. Expected %s but actual %s", FORMAT_VERSION, version));
-        //read adapters
+        //read gateway
         adapters.readExternal(in);
-        //read connectors
+        //read connector
         resources.readExternal(in);
         //read thread pools
         threadPools.readExternal(in);
@@ -118,7 +118,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
         final ConfigurationEntityRegistry result;
         if (entityType.isAssignableFrom(SerializableManagedResourceConfiguration.class))
             result = resources;
-        else if (entityType.isAssignableFrom(SerializableResourceAdapterConfiguration.class))
+        else if (entityType.isAssignableFrom(SerializableGatewayConfiguration.class))
             result = adapters;
         else if(entityType.isAssignableFrom(SerializableThreadPoolConfiguration.class))
             result = threadPools;
@@ -131,7 +131,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
         return threadPools;
     }
 
-    ConfigurationEntityRegistry<SerializableResourceAdapterConfiguration> getResourceAdapters() {
+    ConfigurationEntityRegistry<SerializableGatewayConfiguration> getResourceAdapters() {
         return adapters;
     }
 
@@ -144,7 +144,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
      * Creates a new instance of entity configuration.
      *
      * @param entityType Type of entity. Can be {@link ManagedResourceConfiguration},
-     *                   {@link ResourceAdapterConfiguration}. {@link ManagedResourceConfiguration.AttributeConfiguration}, {@link ManagedResourceConfiguration.EventConfiguration}, {@link ManagedResourceConfiguration.OperationConfiguration}.
+     *                   {@link GatewayConfiguration}. {@link ManagedResourceConfiguration.AttributeConfiguration}, {@link ManagedResourceConfiguration.EventConfiguration}, {@link ManagedResourceConfiguration.OperationConfiguration}.
      * @return A new instance of entity configuration; or {@literal null}, if entity is not supported.
      */
     @Override
@@ -156,14 +156,14 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
      * Creates a new instance of entity configuration.
      *
      * @param entityType Type of entity. Can be {@link ManagedResourceConfiguration},
-     *                   {@link ResourceAdapterConfiguration}. {@link ManagedResourceConfiguration.AttributeConfiguration}, {@link ManagedResourceConfiguration.EventConfiguration}, {@link ManagedResourceConfiguration.OperationConfiguration}.
+     *                   {@link GatewayConfiguration}. {@link ManagedResourceConfiguration.AttributeConfiguration}, {@link ManagedResourceConfiguration.EventConfiguration}, {@link ManagedResourceConfiguration.OperationConfiguration}.
      * @return A new instance of entity configuration; or {@literal null}, if entity is not supported.
      */
     public static  <E extends EntityConfiguration> E newEntityConfiguration(final Class<E> entityType) {
         if (entityType.isAssignableFrom(SerializableManagedResourceConfiguration.class))
             return entityType.cast(new SerializableManagedResourceConfiguration());
-        else if (entityType.isAssignableFrom(SerializableResourceAdapterConfiguration.class))
-            return entityType.cast(new SerializableResourceAdapterConfiguration());
+        else if (entityType.isAssignableFrom(SerializableGatewayConfiguration.class))
+            return entityType.cast(new SerializableGatewayConfiguration());
         else if (entityType.isAssignableFrom(SerializableManagedResourceConfiguration.SerializableAttributeConfiguration.class))
             return entityType.cast(new SerializableManagedResourceConfiguration.SerializableAttributeConfiguration());
         else if (entityType.isAssignableFrom(SerializableManagedResourceConfiguration.SerializableEventConfiguration.class))
@@ -176,7 +176,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
     }
 
     private boolean equals(final AgentConfiguration other) {
-        return adapters.equals(other.getEntities(ResourceAdapterConfiguration.class)) &&
+        return adapters.equals(other.getEntities(GatewayConfiguration.class)) &&
                 resources.equals(other.getEntities(ManagedResourceConfiguration.class)) &&
                 threadPools.equals(other.getEntities(ThreadPoolConfiguration.class));
     }

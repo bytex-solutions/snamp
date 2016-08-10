@@ -1,6 +1,6 @@
 package com.bytex.snamp.gateway.xmpp;
 
-import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
+import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import com.bytex.snamp.jmx.DescriptorUtils;
@@ -40,11 +40,11 @@ public final class XMPPGatewayConfigurationProvider extends ConfigurationEntityD
     private static final String ALLOW_CUSTOM_CERTIFICATE_PARAM = "allowUnsafeCertificate";
     private static final String M2M_FEATURES_PARAM = "enableM2M";
 
-    private static final class GatewayConfigurationDescriptor extends ResourceBasedConfigurationEntityDescription<ResourceAdapterConfiguration>{
+    private static final class GatewayConfigurationDescriptor extends ResourceBasedConfigurationEntityDescription<GatewayConfiguration>{
         private static final String RESOURCE_NAME = "GatewayParameters";
 
         private GatewayConfigurationDescriptor(){
-            super(RESOURCE_NAME, ResourceAdapterConfiguration.class,
+            super(RESOURCE_NAME, GatewayConfiguration.class,
                     PORT_PARAM,
                     HOST_PARAM,
                     USER_NAME_PARAM,

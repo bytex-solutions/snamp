@@ -27,7 +27,6 @@ import javax.management.MBeanNotificationInfo;
 import javax.management.MBeanOperationInfo;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.time.Duration;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -36,7 +35,7 @@ import java.util.stream.Stream;
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**
- * Represents a base class for constructing custom resource adapters.
+ * Represents a base class for constructing custom resource gateway.
  * <p>
  *     Resource adapter is not an OSGi service because this is front-end SNAMP component.
  *     Therefore, an instance of the adapter is not accessible through OSGi environment.
@@ -46,56 +45,74 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * @version 2.0
  */
 public abstract class AbstractGateway extends AbstractAggregator implements Gateway, ResourceEventListener{
-    private static final class AdapterLogicalOperation extends RichLogicalOperation {
-        private static final String ADAPTER_INSTANCE_NAME_PROPERTY = "adapterInstanceName";
+    private static final class GatewayLogicalOperation extends RichLogicalOperation {
+        private static final String GATEWAY_INSTANCE_NAME_PROPERTY = "gatewayInstance";
 
-        private AdapterLogicalOperation(final Logger logger,
+        private GatewayLogicalOperation(final Logger logger,
                                         final String operationName,
-                                        final String adapterInstanceName){
+                                        final String gatewayInstance){
             super(logger,
                     operationName,
-                    ImmutableMap.of(ADAPTER_INSTANCE_NAME_PROPERTY, adapterInstanceName));
+                    ImmutableMap.of(GATEWAY_INSTANCE_NAME_PROPERTY, gatewayInstance));
         }
 
-        private static AdapterLogicalOperation connectorChangesDetected(final Logger logger,
-                                                                        final String adapterInstanceName){
-            return new AdapterLogicalOperation(logger, "processResourceConnectorChanges", adapterInstanceName);
+        private static GatewayLogicalOperation connectorChangesDetected(final Logger logger,
+                                                                        final String instanceName){
+            return new GatewayLogicalOperation(logger, "processResourceConnectorChanges", instanceName);
         }
     }
 
-    private static final class InternalState{
+    private static final class InternalState {
         private final ImmutableMap<String, String> parameters;
         private final GatewayState state;
 
-        private InternalState(final GatewayState state, final ImmutableMap<String, String> params){
+        private InternalState(final GatewayState state, final ImmutableMap<String, String> params) {
             this.state = state;
             this.parameters = params;
         }
 
-        private static InternalState initialState(){
+        private static InternalState initialState() {
             return new InternalState(GatewayState.CREATED, ImmutableMap.of());
         }
 
-        private InternalState setParameters(final Map<String, String> value){
+        private InternalState setParameters(final Map<String, String> value) {
             return new InternalState(state, ImmutableMap.copyOf(value));
         }
 
-        private InternalState setAdapterState(final GatewayState value){
+        private InternalState setAdapterState(final GatewayState value) {
             return new InternalState(value, parameters);
         }
 
-        private static InternalState finalState(){
+        private static InternalState finalState() {
             return new InternalState(GatewayState.CLOSED, ImmutableMap.of());
         }
 
         private boolean parametersAreEqual(final Map<String, String> newParameters) {
-            if(parameters.size() == newParameters.size()) {
+            if (parameters.size() == newParameters.size()) {
                 for (final Map.Entry<String, String> entry : newParameters.entrySet())
-                    if(!Objects.equals(parameters.get(entry.getKey()), entry.getValue()))
+                    if (!Objects.equals(parameters.get(entry.getKey()), entry.getValue()))
                         return false;
                 return true;
-            }
-            else return false;
+            } else return false;
+        }
+
+        private boolean equals(final InternalState other) {
+            return state.equals(other.state) && parametersAreEqual(other.parameters);
+        }
+
+        @Override
+        public boolean equals(final Object other) {
+            return other instanceof InternalState && equals((InternalState) other);
+        }
+
+        @Override
+        public String toString() {
+            return state.toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return state.hashCode() & parameters.hashCode();
         }
     }
 
@@ -187,29 +204,29 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
     }
 
     private InternalState mutableState;
-    private final String adapterInstanceName;
+    private final String instanceName;
 
     /**
-     * Initializes a new resource adapter.
-     * @param instanceName The name of the adapter instance.
+     * Initializes a new instance of gateway.
+     * @param instanceName The name of the gateway instance.
      */
     protected AbstractGateway(final String instanceName) {
-        this.adapterInstanceName = instanceName;
+        this.instanceName = instanceName;
         mutableState = InternalState.initialState();
     }
 
     /**
-     * Gets name of this adapter instance.
-     * @return The name of the adapter instance.
+     * Gets name of this gateway instance.
+     * @return The name of the gateway instance.
      */
     @Override
     public final String getInstanceName(){
-        return adapterInstanceName;
+        return instanceName;
     }
 
     /**
-     * Gets state of this adapter.
-     * @return The state of this adapter.
+     * Gets state of this gateway.
+     * @return The state of this gateway.
      */
     @Override
     public final GatewayState getState(){
@@ -363,26 +380,26 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
     }
 
     /**
-     * Starts the adapter.
+     * Starts the gateway instance.
      * <p>
      *     This method will be called by SNAMP infrastructure automatically.
      * </p>
-     * @param parameters Adapter startup parameters.
-     * @throws java.lang.Exception Unable to start adapter.
+     * @param parameters Gateway startup parameters.
+     * @throws java.lang.Exception Unable to gateway instance.
      */
     protected abstract void start(final Map<String, String> parameters) throws Exception;
 
     /**
-     * Updates this adapter with a new configuration parameters.
+     * Updates this gateway with a new configuration parameters.
      * <p>
      *     In the default implementation this method causes restarting
-     *     of this adapter that affects availability of the adapter.
-     *     You should override this method if custom resource adapter
+     *     of this gateway instance that affects availability of the gateway.
+     *     You should override this method if custom resource gateway
      *     supports soft update (without affecting availability).
      * </p>
      * @param current The current configuration parameters.
      * @param newParameters A new configuration parameters.
-     * @throws Exception Unable to update this adapter.
+     * @throws Exception Unable to update this gateway.
      */
     protected void update(final Map<String, String> current,
                           final Map<String, String> newParameters) throws Exception{
@@ -391,9 +408,9 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
     }
 
     /**
-     * Restarts this resource adapter.
-     * @param parameters A new parameters for adapter start.
-     * @throws Exception Unable to restart adapter. This is inconsistent exception.
+     * Restarts this gateway instance.
+     * @param parameters A new parameters for gateway start.
+     * @throws Exception Unable to restart gateway. This is unrecoverable exception.
      */
     protected synchronized final void restart(final Map<String, String> parameters) throws Exception{
         tryStop();
@@ -417,11 +434,11 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
         }
     }
 
-    private static GatewayUpdatedCallback adapterUpdatedNotifier(final WeakReference<? extends AbstractGateway> adapterRef){
+    private static GatewayUpdatedCallback gatewayUpdatedNotifier(final WeakReference<? extends AbstractGateway> adapterRef){
         return () -> {
-            final AbstractGateway adapter = adapterRef.get();
-            if (adapter != null)
-                GatewayEventBus.notifyAdapterUpdated(adapter.getAdapterName(), adapter);
+            final AbstractGateway gateway = adapterRef.get();
+            if (gateway != null)
+                GatewayEventBus.notifyAdapterUpdated(gateway.getGatewayType(), gateway);
         };
     }
 
@@ -433,11 +450,11 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
     protected final void beginUpdate(final GatewayUpdateManager manager,
                                      GatewayUpdatedCallback callback) {
         if (callback == null)
-            callback = adapterUpdatedNotifier(new WeakReference<>(this));
+            callback = gatewayUpdatedNotifier(new WeakReference<>(this));
         else
-            callback = GatewayUpdateManager.combineCallbacks(callback, adapterUpdatedNotifier(new WeakReference<>(this)));
+            callback = GatewayUpdateManager.combineCallbacks(callback, gatewayUpdatedNotifier(new WeakReference<>(this)));
         if (manager.beginUpdate(callback))
-            GatewayEventBus.notifyAdapterUpdating(getAdapterName(), this);
+            GatewayEventBus.notifyAdapterUpdating(getGatewayType(), this);
     }
 
     /**
@@ -494,7 +511,7 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
                 InternalState newState = currentState.setParameters(params);
                 start(newState.parameters);
                 mutableState = newState.setAdapterState(GatewayState.STARTED);
-                adapterStarted();
+                started();
                 ManagedResourceConnectorClient.addResourceListener(getBundleContext(), this);
                 return true;
             default:
@@ -517,7 +534,7 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
                     getBundleContext().removeServiceListener(this);
                     mutableState = currentState.setAdapterState(GatewayState.STOPPED);
                 }
-                adapterStopped();
+                stopped();
                 return true;
             default:
                 return false;
@@ -534,14 +551,14 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
     protected abstract void stop() throws Exception;
 
     /**
-     * Captures reference to the managed resource connectors.
+     * Captures reference to the managed resource connector.
      *
      * @param event The {@code ServiceEvent} object.
      */
     @Override
     public final void serviceChanged(final ServiceEvent event) {
         if (ManagedResourceConnector.isResourceConnector(event.getServiceReference()))
-            try (final LogicalOperation logger = AdapterLogicalOperation.connectorChangesDetected(getLogger(), adapterInstanceName)) {
+            try (final LogicalOperation logger = GatewayLogicalOperation.connectorChangesDetected(getLogger(), instanceName)) {
                 @SuppressWarnings("unchecked")
                 final ServiceReference<ManagedResourceConnector> connectorRef = (ServiceReference<ManagedResourceConnector>) event.getServiceReference();
                 final String resourceName = ManagedResourceConnectorClient.getManagedResourceName(connectorRef);
@@ -556,7 +573,7 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
                     default:
                         logger.info(String.format("Unexpected event %s captured by adapter %s for resource %s",
                                 event.getType(),
-                                        adapterInstanceName,
+                                instanceName,
                                         resourceName));
                 }
             }
@@ -583,8 +600,8 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
 
 
     /**
-     * Releases all resources associated with this adapter.
-     * @throws java.io.IOException An exception occurred during adapter releasing.
+     * Releases all resources associated with this gateway.
+     * @throws java.io.IOException An exception occurred during gateway releasing.
      */
     @Override
     public final void close() throws IOException {
@@ -593,19 +610,19 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
         } catch (final IOException e) {
             throw e;
         } catch (final Exception e) {
-            throw new IOException(String.format("Unable to release resources associated with %s adapter instance", adapterInstanceName), e);
+            throw new IOException(String.format("Unable to release resources associated with %s gateway instance", instanceName), e);
         } finally {
             mutableState = InternalState.finalState();
             clearCache();
         }
     }
 
-    private void adapterStarted(){
-        GatewayEventBus.notifyAdapterStarted(getAdapterName(), this);
+    private void started(){
+        GatewayEventBus.notifyAdapterStarted(getGatewayType(), this);
     }
 
-    private void adapterStopped(){
-        GatewayEventBus.notifyAdapterStopped(getAdapterName(), this);
+    private void stopped(){
+        GatewayEventBus.notifyAdapterStopped(getGatewayType(), this);
     }
 
     private BundleContext getBundleContext(){
@@ -620,7 +637,7 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
     @Override
     @Aggregation
     public Logger getLogger(){
-        return getLogger(getAdapterName(this));
+        return getLogger(getGatewayType(this));
     }
 
     /**
@@ -629,19 +646,21 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
      */
     @Override
     public String toString() {
-        return adapterInstanceName;
+        return instanceName;
     }
 
-    public final String getAdapterName(){
-        return getAdapterName(this);
+    public final String getGatewayType(){
+        return getGatewayType(this);
     }
 
-    public static String getAdapterName(final Class<? extends Gateway> adapterType){
-        return Gateway.getResourceAdapterType(Utils.getBundleContext(adapterType).getBundle());
+    public static String getGatewayType(final Class<? extends Gateway> adapterType) {
+        final BundleContext context = Utils.getBundleContext(adapterType);
+        assert context != null;
+        return Gateway.getGatewayType(context.getBundle());
     }
 
-    public static String getAdapterName(final Gateway adapter) {
-        return getAdapterName(adapter.getClass());
+    public static String getGatewayType(final Gateway adapter) {
+        return getGatewayType(adapter.getClass());
     }
 
 
@@ -660,17 +679,5 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
         final Multimap<String, TAccessor> result = HashMultimap.create();
         model.forEachNotification(result::put);
         return result;
-    }
-
-    /**
-     * Disables asynchronous mode used to process events in this bus.
-     * <p>
-     *     This method should be used for debugging purposes only.
-     * @param terminationTimeout Termination timeout of thread pool used to process events.
-     * @return {@literal true}, if Bus is switched to synchronous mode; otherwise, {@literal false}.
-     * @throws InterruptedException Switching is terminated.
-     */
-    public static boolean disableEventAsyncMode(final Duration terminationTimeout) throws InterruptedException {
-        return GatewayEventBus.disableAsyncMode(terminationTimeout);
     }
 }

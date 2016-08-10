@@ -2,7 +2,7 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.EntityMap;
-import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
+import com.bytex.snamp.configuration.GatewayConfiguration;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 
@@ -15,7 +15,7 @@ import org.apache.karaf.shell.commands.Command;
 @Command(scope = SnampShellCommand.SCOPE,
     name = "delete-adapter-param",
     description = "Delete configuration parameter of the adapter instance")
-public final class DeleteAdapterParameterCommand extends ConfigurationCommand<ResourceAdapterConfiguration> {
+public final class DeleteAdapterParameterCommand extends ConfigurationCommand<GatewayConfiguration> {
     @Argument(name = "instanceName", index = 0, required = true, description = "Name of the adapter instance to modify")
     @SpecialUse
     private String instanceName = "";
@@ -25,11 +25,11 @@ public final class DeleteAdapterParameterCommand extends ConfigurationCommand<Re
     private String paramName = "";
 
     public DeleteAdapterParameterCommand(){
-        super(ResourceAdapterConfiguration.class);
+        super(GatewayConfiguration.class);
     }
 
     @Override
-    boolean doExecute(final EntityMap<? extends ResourceAdapterConfiguration> configuration, final StringBuilder output) {
+    boolean doExecute(final EntityMap<? extends GatewayConfiguration> configuration, final StringBuilder output) {
         if(configuration.containsKey(instanceName)){
             configuration.get(instanceName).getParameters().remove(paramName);
             output.append("Instance modified successfully");

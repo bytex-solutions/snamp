@@ -26,7 +26,7 @@ import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventCo
  * @version 2.0
  * @since 1.0
  */
-@SnampDependencies({SnampFeature.JMX_CONNECTOR, SnampFeature.GROOVY_ADAPTER})
+@SnampDependencies({SnampFeature.JMX_CONNECTOR, SnampFeature.GROOVY_GATEWAY})
 public final class CommandsTest extends AbstractSnampIntegrationTest {
     private Object runCommand(String command) throws Exception{
         final ServiceHolder<CommandProcessor> processorRef = ServiceHolder.tryCreate(getTestBundleContext(), CommandProcessor.class);
@@ -85,12 +85,12 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
 
     @Test
     public void installedAdaptersTest() throws Exception {
-        assertTrue(runCommand("snamp:installed-adapters").toString().startsWith("Groovy Resource Adapter"));
+        assertTrue(runCommand("snamp:installed-gateway").toString().startsWith("Groovy Resource Adapter"));
     }
 
     @Test
     public void installedConnectorsTest() throws Exception {
-        final CharSequence result = (CharSequence) runCommand("snamp:installed-connectors");
+        final CharSequence result = (CharSequence) runCommand("snamp:installed-connector");
         assertTrue(result.toString().startsWith("JMX Connector"));
     }
 
@@ -110,22 +110,22 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
         //saving configuration is asynchronous process therefore it is necessary to wait
         Thread.sleep(500);
         processConfiguration(config -> {
-            assertTrue(config.getEntities(ResourceAdapterConfiguration.class).containsKey("instance2"));
-            assertEquals("dummy", config.getEntities(ResourceAdapterConfiguration.class).get("instance2").getAdapterName());
-            assertEquals("v", config.getEntities(ResourceAdapterConfiguration.class).get("instance2").getParameters().get("k"));
+            assertTrue(config.getEntities(GatewayConfiguration.class).containsKey("instance2"));
+            assertEquals("dummy", config.getEntities(GatewayConfiguration.class).get("instance2").getType());
+            assertEquals("v", config.getEntities(GatewayConfiguration.class).get("instance2").getParameters().get("k"));
             return false;
         });
         runCommand("snamp:delete-adapter-param instance2 k");
         Thread.sleep(500);
         processConfiguration(config -> {
-            assertTrue(config.getEntities(ResourceAdapterConfiguration.class).containsKey("instance2"));
-            assertFalse(config.getEntities(ResourceAdapterConfiguration.class).get("instance2").getParameters().containsKey("k"));
+            assertTrue(config.getEntities(GatewayConfiguration.class).containsKey("instance2"));
+            assertFalse(config.getEntities(GatewayConfiguration.class).get("instance2").getParameters().containsKey("k"));
             return false;
         });
         runCommand("snamp:delete-adapter instance2");
         Thread.sleep(500);
         processConfiguration(config -> {
-            assertFalse(config.getEntities(ResourceAdapterConfiguration.class).containsKey("instance2"));
+            assertFalse(config.getEntities(GatewayConfiguration.class).containsKey("instance2"));
             return false;
         });
     }
@@ -155,7 +155,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
         Thread.sleep(500);
         processConfiguration(config -> {
             assertTrue(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource2"));
-            assertEquals("dummy", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getConnectionType());
+            assertEquals("dummy", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getType());
             assertEquals("http://acme.com", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getConnectionString());
             assertEquals("v", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getParameters().get("k"));
             return false;
@@ -185,7 +185,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
         Thread.sleep(500);
         processConfiguration(config -> {
             assertTrue(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource2"));
-            assertEquals("dummy", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getConnectionType());
+            assertEquals("dummy", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getType());
             assertEquals("http://acme.com", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getConnectionString());
             assertEquals("v", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getParameters().get("k"));
             return false;
@@ -232,7 +232,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
         Thread.sleep(500);
         processConfiguration(config -> {
             assertTrue(config.getEntities(ManagedResourceConfiguration.class).containsKey("resource2"));
-            assertEquals("dummy", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getConnectionType());
+            assertEquals("dummy", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getType());
             assertEquals("http://acme.com", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getConnectionString());
             assertEquals("v", config.getEntities(ManagedResourceConfiguration.class).get("resource2").getParameters().get("k"));
             return false;
@@ -325,12 +325,12 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
 
     @Override
     protected void setupTestConfiguration(final AgentConfiguration config) {
-        final ResourceAdapterConfiguration adapter =
-                config.getEntities(ResourceAdapterConfiguration.class).getOrAdd("adapterInst");
-        adapter.setAdapterName("dummyAdapter");
+        final GatewayConfiguration adapter =
+                config.getEntities(GatewayConfiguration.class).getOrAdd("adapterInst");
+        adapter.setType("dummyAdapter");
         final ManagedResourceConfiguration resource =
                 config.getEntities(ManagedResourceConfiguration.class).getOrAdd("resource1");
-        resource.setConnectionType("dummyConnector");
+        resource.setType("dummyConnector");
         resource.setConnectionString("http://acme.com");
     }
 }

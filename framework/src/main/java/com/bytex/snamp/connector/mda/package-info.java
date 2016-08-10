@@ -1,5 +1,5 @@
 /**
- * Provides Monitoring Data Acquisition (MDA) architecture for constructing passive resource connectors.
+ * Provides Monitoring Data Acquisition (MDA) architecture for constructing passive resource connector.
  * Passive connector accepts information from external agents. It cannot query managed resources directly.
  * @author Roman Sakno
  * @version 2.0

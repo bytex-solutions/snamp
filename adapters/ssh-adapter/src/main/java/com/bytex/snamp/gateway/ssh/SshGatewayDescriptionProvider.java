@@ -4,7 +4,7 @@ import com.bytex.snamp.gateway.GatewayDescriptionProvider;
 import com.bytex.snamp.gateway.SelectableGatewayParameterDescriptor;
 import com.bytex.snamp.concurrent.LazyValueFactory;
 import com.bytex.snamp.concurrent.LazyValue;
-import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
+import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import net.schmizz.sshj.userauth.keyprovider.*;
@@ -18,7 +18,7 @@ import java.security.PublicKey;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.bytex.snamp.configuration.ResourceAdapterConfiguration.THREAD_POOL_KEY;
+import static com.bytex.snamp.configuration.GatewayConfiguration.THREAD_POOL_KEY;
 
 /**
  * @author Roman Sakno
@@ -41,7 +41,7 @@ final class SshGatewayDescriptionProvider extends ConfigurationEntityDescription
     private static final int DEFAULT_PORT = 22;
     private static final String DEFAULT_HOST_KEY = "ssh-adapter.ser";
 
-    private static final class AdapterConfigurationInfo extends ResourceBasedConfigurationEntityDescription<ResourceAdapterConfiguration> {
+    private static final class AdapterConfigurationInfo extends ResourceBasedConfigurationEntityDescription<GatewayConfiguration> {
         private static final String RESOURCE_NAME = "SshGatewayConfig";
 
         private final class HostParameter extends ParameterDescriptionImpl implements SelectableGatewayParameterDescriptor {
@@ -63,7 +63,7 @@ final class SshGatewayDescriptionProvider extends ConfigurationEntityDescription
 
         private AdapterConfigurationInfo() {
             super(RESOURCE_NAME,
-                    ResourceAdapterConfiguration.class,
+                    GatewayConfiguration.class,
                     HOST_PARAM,
                     PORT_PARAM,
                     HOST_KEY_FILE_PARAM,

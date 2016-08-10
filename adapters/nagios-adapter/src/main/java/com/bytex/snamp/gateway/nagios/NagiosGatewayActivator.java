@@ -10,28 +10,17 @@ import org.osgi.service.http.HttpService;
  * @since 1.0
  */
 public final class NagiosGatewayActivator extends GatewayActivator<NagiosGateway> {
-    private static final class NagiosAdapterFactory implements ResourceAdapterFactory<NagiosGateway>{
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public NagiosGateway createAdapter(final String adapterInstance,
-                                           final RequiredService<?>... dependencies) {
-            return new NagiosGateway(adapterInstance, getDependency(RequiredServiceAccessor.class, HttpService.class, dependencies));
-        }
-    }
-
-    private static final class NagiosConfigurationProvider extends ConfigurationEntityDescriptionManager<NagiosGatewayConfigurationDescriptor>{
-
-        @Override
-        protected NagiosGatewayConfigurationDescriptor createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) throws Exception {
-            return new NagiosGatewayConfigurationDescriptor();
-        }
-    }
 
     @SpecialUse
     public NagiosGatewayActivator() {
-        super(new NagiosAdapterFactory(),
+        super(NagiosGatewayActivator::newGateway,
                 new RequiredService<?>[]{new SimpleDependency<>(HttpService.class)},
-                new SupportAdapterServiceManager<?, ?>[]{new NagiosConfigurationProvider()});
+                new SupportGatewayServiceManager<?, ?>[]{configurationDescriptor(NagiosGatewayConfigurationDescriptor::new)});
+    }
+
+    @SuppressWarnings("unchecked")
+    private static NagiosGateway newGateway(final String instanceName,
+                                            final RequiredService<?>... dependencies) {
+        return new NagiosGateway(instanceName, getDependency(RequiredServiceAccessor.class, HttpService.class, dependencies));
     }
 }

@@ -15,7 +15,7 @@ import javax.management.MBeanOperationInfo;
 import java.util.Objects;
 
 /**
- * Provides metrics across all active resource connectors.
+ * Provides metrics across all active resource connector.
  * This class cannot be inherited or instantiated directly from your code.
  * @author Roman Sakno
  * @since 1.0

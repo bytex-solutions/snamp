@@ -9,24 +9,13 @@ import com.bytex.snamp.SpecialUse;
  * @since 1.0
  */
 public final class SysLogGatewayActivator extends GatewayActivator<SysLogGateway> {
-    private static final class SysLogAdapterFactory implements ResourceAdapterFactory<SysLogGateway>{
-
-        @Override
-        public SysLogGateway createAdapter(final String adapterInstance,
-                                           final RequiredService<?>... dependencies) {
-            return new SysLogGateway(adapterInstance);
-        }
-    }
-
-    private static final class SysLogConfigurationProvider extends ConfigurationEntityDescriptionManager<SysLogConfigurationDescriptor>{
-        @Override
-        protected SysLogConfigurationDescriptor createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
-            return new SysLogConfigurationDescriptor();
-        }
-    }
-
     @SpecialUse
     public SysLogGatewayActivator(){
-        super(new SysLogAdapterFactory(), new SysLogConfigurationProvider());
+        super(SysLogGatewayActivator::newGateway, configurationDescriptor(SysLogConfigurationDescriptor::new));
+    }
+
+    private static SysLogGateway newGateway(final String instanceName,
+                                            final RequiredService<?>... dependencies) {
+        return new SysLogGateway(instanceName);
     }
 }

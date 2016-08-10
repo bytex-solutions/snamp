@@ -70,7 +70,7 @@ public final class ResourceInfoCommand extends ConfigurationCommand<ManagedResou
         if (configuration.containsKey(resourceName)) {
             final ManagedResourceConfiguration resource = configuration.get(resourceName);
             appendln(output, "Resource Name: %s", resourceName);
-            appendln(output, "Connection Type: %s", resource.getConnectionType());
+            appendln(output, "Connection Type: %s", resource.getType());
             appendln(output, "Connection String: %s", resource.getConnectionString());
             appendln(output, "Configuration parameters:");
             for (final Map.Entry<String, String> pair : resource.getParameters().entrySet())

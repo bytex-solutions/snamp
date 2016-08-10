@@ -14,7 +14,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @since 1.0
  */
 public final class HttpDataAcceptorFactory implements DataAcceptorFactory {
-    private static final String SERVLET_CONTEXT = "/snamp/connectors/mda/";
+    private static final String SERVLET_CONTEXT = "/snamp/connector/mda/";
 
     private static String getServletContext(final String resourceName){
         return SERVLET_CONTEXT.concat(resourceName);

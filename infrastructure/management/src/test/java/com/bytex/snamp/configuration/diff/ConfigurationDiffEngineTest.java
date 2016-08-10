@@ -10,7 +10,7 @@ import java.time.temporal.ChronoUnit;
 
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 
-import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
+import com.bytex.snamp.configuration.GatewayConfiguration;
 
 /**
  * @author Roman Sakno
@@ -27,7 +27,7 @@ public final class ConfigurationDiffEngineTest extends Assert {
                 .getOrAdd("attr");
         attr.setReadWriteTimeout(1, ChronoUnit.SECONDS);
         resource.setConnectionString("connection-string");
-        resource.setConnectionType("jmx");
+        resource.setType("jmx");
         resource.getParameters().put("param", "value");
 
         final AgentConfiguration target = baseline.clone();
@@ -52,7 +52,7 @@ public final class ConfigurationDiffEngineTest extends Assert {
                 .getOrAdd("attr");
         attr.setReadWriteTimeout(1, ChronoUnit.SECONDS);
         resource.setConnectionString("connection-string");
-        resource.setConnectionType("jmx");
+        resource.setType("jmx");
         resource.getParameters().put("param", "value");
 
         //add attribute
@@ -96,19 +96,19 @@ public final class ConfigurationDiffEngineTest extends Assert {
                 .getOrAdd("attr");
         attr.setReadWriteTimeout(1, ChronoUnit.SECONDS);
         resource.setConnectionString("connection-string");
-        resource.setConnectionType("jmx");
+        resource.setType("jmx");
         resource.getParameters().put("param", "value");
         final AgentConfiguration target = baseline.clone();
         target.clear();
         final ManagedResourceConfiguration resource2 = target.getEntities(ManagedResourceConfiguration.class).getOrAdd("resource2");
         AbstractAgentConfiguration.copy(resource, resource2);
         resource2.setConnectionString("connection-string-2");
-        resource2.setConnectionType("snmp");
+        resource2.setType("snmp");
         final ManagedResourceConfiguration resource3 = target.getEntities(ManagedResourceConfiguration.class).getOrAdd("resource3");
         AbstractAgentConfiguration.copy(resource, resource3);
         resource3.setConnectionString("connection-string-3");
         ConfigurationDiffEngine.merge(target, baseline);
-        Assert.assertEquals(0, baseline.getEntities(ResourceAdapterConfiguration.class).size());
+        Assert.assertEquals(0, baseline.getEntities(GatewayConfiguration.class).size());
         Assert.assertEquals(2, baseline.getEntities(ManagedResourceConfiguration.class).size());
     }
 }

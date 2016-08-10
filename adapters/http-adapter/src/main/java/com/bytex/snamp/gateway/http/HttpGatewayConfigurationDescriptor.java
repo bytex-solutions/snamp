@@ -1,7 +1,7 @@
 package com.bytex.snamp.gateway.http;
 
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
-import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
+import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 
 import javax.management.Descriptor;
@@ -20,12 +20,12 @@ final class HttpGatewayConfigurationDescriptor extends ConfigurationEntityDescri
 
     private static final String DATE_FORMAT_PARAM = "dateFormat";
 
-    private static final class AdapterConfigurationInfo extends ResourceBasedConfigurationEntityDescription<ResourceAdapterConfiguration> {
+    private static final class AdapterConfigurationInfo extends ResourceBasedConfigurationEntityDescription<GatewayConfiguration> {
         private static final String RESOURCE_NAME = "HttpGatewayConfig";
 
         private AdapterConfigurationInfo(){
             super(RESOURCE_NAME,
-                    ResourceAdapterConfiguration.class,
+                    GatewayConfiguration.class,
                     DATE_FORMAT_PARAM);
         }
     }

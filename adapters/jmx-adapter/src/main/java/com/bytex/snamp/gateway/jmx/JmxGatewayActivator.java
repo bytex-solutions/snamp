@@ -10,29 +10,17 @@ import com.bytex.snamp.SpecialUse;
  * @since 1.0
  */
 public final class JmxGatewayActivator extends GatewayActivator<JmxGateway> {
-    private static final class JmxConfigurationDescriptor extends ConfigurationEntityDescriptionManager<JmxGatewayConfigurationProvider> {
-
-        @Override
-        protected JmxGatewayConfigurationProvider createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) throws Exception {
-            return new JmxGatewayConfigurationProvider();
-        }
-    }
-
-    private static final class JmxAdapterFactory implements ResourceAdapterFactory<JmxGateway>{
-
-        @Override
-        public JmxGateway createAdapter(final String adapterInstance,
-                                        final RequiredService<?>... dependencies) throws Exception {
-            return new JmxGateway(adapterInstance);
-        }
-    }
 
     /**
      * Initializes a new instance of the resource adapter lifetime manager.
      */
     @SpecialUse
     public JmxGatewayActivator() {
-        super(new JmxAdapterFactory(),
-                new JmxConfigurationDescriptor());
+        super(JmxGatewayActivator::newGateway, configurationDescriptor(JmxGatewayConfigurationProvider::new));
+    }
+
+    private static JmxGateway newGateway(final String instanceName,
+                                         final RequiredService<?>... dependencies) {
+        return new JmxGateway(instanceName);
     }
 }

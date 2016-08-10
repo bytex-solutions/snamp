@@ -1,7 +1,7 @@
 package com.bytex.snamp.gateway.groovy.impl;
 
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
-import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
+import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import com.bytex.snamp.io.IOUtils;
 
@@ -18,11 +18,11 @@ final class GroovyGatewayConfigurationProvider extends ConfigurationEntityDescri
     private static final String SCRIPT_FILE_PARAM = "scriptFile";
     private static final String SCRIPT_PATH_PARAM = "scriptPath";
 
-    private static final class AdapterConfigurationInfo extends ResourceBasedConfigurationEntityDescription<ResourceAdapterConfiguration>{
+    private static final class AdapterConfigurationInfo extends ResourceBasedConfigurationEntityDescription<GatewayConfiguration>{
         private static final String NAME = "GatewayConfig";
 
         private AdapterConfigurationInfo(){
-            super(NAME, ResourceAdapterConfiguration.class,
+            super(NAME, GatewayConfiguration.class,
                     SCRIPT_FILE_PARAM,
                     SCRIPT_PATH_PARAM);
         }

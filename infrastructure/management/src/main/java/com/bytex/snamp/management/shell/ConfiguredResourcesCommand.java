@@ -26,7 +26,7 @@ public final class ConfiguredResourcesCommand extends ConfigurationCommand<Manag
     boolean doExecute(final EntityMap<? extends ManagedResourceConfiguration> configuration, final StringBuilder output) {
         for(final Map.Entry<String, ? extends ManagedResourceConfiguration> resource: configuration.entrySet())
             appendln(output, "Resource: %s. Type: %s. Connection string: %s", resource.getKey(),
-                    resource.getValue().getConnectionType(),
+                    resource.getValue().getType(),
                     resource.getValue().getConnectionString());
         return false;
     }

@@ -282,7 +282,7 @@ TestDict get_dictAttr()
 
 The following example demonstrates complex Thrift IDL which covers a several attributes and a single notification:
 ```thrift
-namespace java com.bytex.snamp.testing.connectors.mda
+namespace java com.bytex.snamp.testing.connector.mda
 
 struct MemoryStatus {
     1: required i32 free

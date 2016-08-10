@@ -24,7 +24,7 @@ import java.util.logging.Logger;
 import static com.bytex.snamp.ArrayUtils.emptyArray;
 
 /**
- * Represents an abstract class for building custom management connectors.
+ * Represents an abstract class for building custom management connector.
  * <p>
  *     This class provides a base support for the following management mechanisms:
  *     <ul>

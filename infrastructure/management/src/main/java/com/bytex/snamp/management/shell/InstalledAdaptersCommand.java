@@ -12,14 +12,14 @@ import static com.bytex.snamp.management.shell.Utils.appendln;
 import static com.bytex.snamp.management.shell.Utils.getStateString;
 
 /**
- * Command that prints list of installed adapters.
+ * Command that prints list of installed gateway.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
-        name = "installed-adapters",
-        description = "List of installed resource adapters")
+        name = "installed-gateway",
+        description = "List of installed resource gateway")
 public final class InstalledAdaptersCommand extends OsgiCommandSupport implements SnampShellCommand {
     private final SnampManager manager = new SnampManagerImpl();
 

@@ -11,7 +11,7 @@ import java.util.Collection;
 
 
 /**
- * The type Installed adapters attribute.
+ * The type Installed gateway attribute.
  * @author Evgeniy Kirichenko
  */
 final class InstalledAdaptersAttribute extends OpenMBean.OpenAttribute<String[], ArrayType<String[]>>  {
@@ -19,7 +19,7 @@ final class InstalledAdaptersAttribute extends OpenMBean.OpenAttribute<String[],
     private static final String NAME = "InstalledAdapters";
 
     /**
-     * Instantiates a new Installed adapters attribute.
+     * Instantiates a new Installed gateway attribute.
      *
      * @throws OpenDataException the open data exception
      */

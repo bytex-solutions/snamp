@@ -2,7 +2,7 @@ package com.bytex.snamp.configuration.diff;
 
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
-import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
+import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.configuration.ThreadPoolConfiguration;
 
 import java.util.Map;
@@ -21,20 +21,20 @@ public final class ConfigurationDiffEngine {
 
     }
 
-    private static Stream<ConfigurationPatch> computeAdaptersGap(final Map<String, ? extends ResourceAdapterConfiguration> target,
-                                           final Map<String, ? extends ResourceAdapterConfiguration> baseline) {
-        //compute gaps for adapters that should be deleted from baseline config
+    private static Stream<ConfigurationPatch> computeAdaptersGap(final Map<String, ? extends GatewayConfiguration> target,
+                                           final Map<String, ? extends GatewayConfiguration> baseline) {
+        //compute gaps for gateway that should be deleted from baseline config
         Stream<ConfigurationPatch> result = baseline.entrySet()
                 .stream()
                 .filter(adapterInstance -> !target.containsKey(adapterInstance.getKey()))
                 .map(adapterInstance -> new RemoveResourceAdapterPatchImpl(adapterInstance.getKey(), adapterInstance.getValue()));
         result = Stream.concat(result, target.entrySet().stream().map(adapterInstance -> {
-                    //compute gaps between two resource adapters
+                    //compute gaps between two resource gateway
                     if (baseline.containsKey(adapterInstance.getKey())) {
-                        final ResourceAdapterConfiguration targetConfig = adapterInstance.getValue();
+                        final GatewayConfiguration targetConfig = adapterInstance.getValue();
                         return targetConfig.equals(baseline.get(adapterInstance.getKey())) ? null : new UpdateResourceAdapterInstancePatchImpl(adapterInstance.getKey(), targetConfig);
                     }
-                    //compute gaps for adapters that should be added to the baseline config
+                    //compute gaps for gateway that should be added to the baseline config
                     else
                         return new AddResourceAdapterPatchIml(adapterInstance.getKey(), adapterInstance.getValue());
                 }).filter(Objects::nonNull)
@@ -87,8 +87,8 @@ public final class ConfigurationDiffEngine {
     public static Stream<ConfigurationPatch> computeGap(final AgentConfiguration target,
                                                         final AgentConfiguration baseline){
         Stream<ConfigurationPatch> result = computeAdaptersGap(
-                target.getEntities(ResourceAdapterConfiguration.class),
-                baseline.getEntities(ResourceAdapterConfiguration.class));
+                target.getEntities(GatewayConfiguration.class),
+                baseline.getEntities(GatewayConfiguration.class));
         result = Stream.concat(result, computeResourcesGap(target.getEntities(ManagedResourceConfiguration.class),
                 baseline.getEntities(ManagedResourceConfiguration.class)));
         result = Stream.concat(result, computeThreadPoolGap(target.getEntities(ThreadPoolConfiguration.class),

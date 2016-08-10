@@ -1,7 +1,7 @@
 package com.bytex.snamp.configuration.diff;
 
 import com.bytex.snamp.configuration.EntityMap;
-import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
+import com.bytex.snamp.configuration.GatewayConfiguration;
 
 /**
  * @author Roman Sakno
@@ -10,12 +10,12 @@ import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
  */
 final class RemoveResourceAdapterPatchImpl extends AbstractResourceAdapterInstancePatch implements RemoveResourceAdapterPatch {
 
-    RemoveResourceAdapterPatchImpl(final String adapterInstanceName, final ResourceAdapterConfiguration adapter) {
+    RemoveResourceAdapterPatchImpl(final String adapterInstanceName, final GatewayConfiguration adapter) {
         super(adapterInstanceName, adapter);
     }
 
     @Override
-    protected void applyTo(final EntityMap<? extends ResourceAdapterConfiguration> adapters) {
+    protected void applyTo(final EntityMap<? extends GatewayConfiguration> adapters) {
         adapters.remove(getEntityID());
     }
 }

@@ -25,7 +25,7 @@ import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventCo
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
- * Represents basic configuration schema for all MDA connectors.
+ * Represents basic configuration schema for all MDA connector.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0

@@ -47,7 +47,7 @@ public final class ConfigResourceCommand extends ConfigurationCommand<ManagedRes
         final ManagedResourceConfiguration resource = configuration.getOrAdd(resourceName);
         //setup connection type
         if(!isNullOrEmpty(connectionType))
-            resource.setConnectionType(connectionType);
+            resource.setType(connectionType);
         //setup connection string
         if(!isNullOrEmpty(connectionString))
             resource.setConnectionString(connectionString);

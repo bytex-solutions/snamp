@@ -3,7 +3,7 @@ package com.bytex.snamp.management.shell;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.EntityMap;
-import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
+import com.bytex.snamp.configuration.GatewayConfiguration;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
@@ -19,7 +19,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 @Command(scope = SnampShellCommand.SCOPE,
     name = "configure-adapter",
     description = "Configure new or existing adapter instance")
-public final class ConfigAdapterInstanceCommand extends ConfigurationCommand<ResourceAdapterConfiguration> {
+public final class ConfigAdapterInstanceCommand extends ConfigurationCommand<GatewayConfiguration> {
     @Argument(name = "instanceName", index = 0, required = true, description = "Name of the adapter instance")
     @SpecialUse
     private String instanceName = "";
@@ -33,16 +33,16 @@ public final class ConfigAdapterInstanceCommand extends ConfigurationCommand<Res
     private String[] parameters = ArrayUtils.emptyArray(String[].class);
 
     public ConfigAdapterInstanceCommand(){
-        super(ResourceAdapterConfiguration.class);
+        super(GatewayConfiguration.class);
     }
 
     @Override
-    boolean doExecute(final EntityMap<? extends ResourceAdapterConfiguration> configuration, final StringBuilder output) {
+    boolean doExecute(final EntityMap<? extends GatewayConfiguration> configuration, final StringBuilder output) {
         if (isNullOrEmpty(instanceName)) return false;
-        final ResourceAdapterConfiguration adapter = configuration.getOrAdd(instanceName);
+        final GatewayConfiguration adapter = configuration.getOrAdd(instanceName);
         //setup system name
         if (!isNullOrEmpty(systemName))
-            adapter.setAdapterName(systemName);
+            adapter.setType(systemName);
         //setup parameters
         if (!ArrayUtils.isNullOrEmpty(parameters))
             for (final String pair : parameters) {

@@ -6,7 +6,7 @@ package com.bytex.snamp.gateway;
  * @version 2.0
  * @since 1.0
  */
-enum GatewayState {
+public enum GatewayState {
     /**
      * Adapter is created but not started.
      */

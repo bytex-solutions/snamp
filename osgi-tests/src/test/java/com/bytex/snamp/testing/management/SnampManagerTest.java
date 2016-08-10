@@ -4,14 +4,14 @@ import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
-import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
+import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.connector.notifications.Mailbox;
 import com.bytex.snamp.connector.notifications.MailboxFactory;
 import com.bytex.snamp.testing.BundleExceptionCallable;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
-import com.bytex.snamp.testing.connectors.jmx.AbstractJmxConnectorTest;
-import com.bytex.snamp.testing.connectors.jmx.TestOpenMBean;
+import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
+import com.bytex.snamp.testing.connector.jmx.TestOpenMBean;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
-import static com.bytex.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
+import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
 
 
 /**
@@ -43,7 +43,7 @@ import static com.bytex.snamp.testing.connectors.jmx.TestOpenMBean.BEAN_NAME;
  * @version 2.0
  * @since 1.0
  */
-@SnampDependencies(SnampFeature.SNMP_ADAPTER)
+@SnampDependencies(SnampFeature.SNMP_GATEWAY)
 public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final String ADAPTER_INSTANCE_NAME = "test-snmp";
     private static final String SNAMP_MBEAN = "com.bytex.snamp.management:type=SnampCore";
@@ -301,9 +301,9 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
     }
 
     @Override
-    protected void fillAdapters(final EntityMap<? extends ResourceAdapterConfiguration> adapters) {
-        final ResourceAdapterConfiguration snmpAdapter = adapters.getOrAdd(ADAPTER_INSTANCE_NAME);
-        snmpAdapter.setAdapterName(ADAPTER_NAME);
+    protected void fillAdapters(final EntityMap<? extends GatewayConfiguration> adapters) {
+        final GatewayConfiguration snmpAdapter = adapters.getOrAdd(ADAPTER_INSTANCE_NAME);
+        snmpAdapter.setType(ADAPTER_NAME);
         snmpAdapter.getParameters().put("port", SNMP_PORT);
         snmpAdapter.getParameters().put("host", SNMP_HOST);
         snmpAdapter.getParameters().put("socketTimeout", "5000");

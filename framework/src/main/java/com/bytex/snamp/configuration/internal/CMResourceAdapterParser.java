@@ -3,7 +3,7 @@ package com.bytex.snamp.configuration.internal;
 import java.util.Dictionary;
 import java.util.Map;
 
-import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
+import com.bytex.snamp.configuration.GatewayConfiguration;
 
 /**
  * Provides parsing of resource adapter configuration from data provided by {@link org.osgi.service.cm.Configuration}.
@@ -14,7 +14,7 @@ import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
  * @version 2.0
  * @since 1.2
  */
-public interface CMResourceAdapterParser extends CMConfigurationParser<ResourceAdapterConfiguration> {
+public interface CMResourceAdapterParser extends CMConfigurationParser<GatewayConfiguration> {
     /**
      * Returns persistent identifier of the specified resource adapter.
      * @param adapterType The name of the adapter instance.

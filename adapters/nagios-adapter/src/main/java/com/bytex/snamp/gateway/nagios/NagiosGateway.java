@@ -54,7 +54,7 @@ final class NagiosGateway extends AbstractGateway {
     }
 
     private String getServletContext(){
-        final String SERVLET_CONTEXT = "/snamp/adapters/nagios/%s";
+        final String SERVLET_CONTEXT = "/snamp/gateway/nagios/%s";
         return String.format(SERVLET_CONTEXT, getInstanceName());
     }
 

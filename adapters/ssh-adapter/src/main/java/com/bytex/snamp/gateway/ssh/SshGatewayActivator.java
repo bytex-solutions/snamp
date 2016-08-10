@@ -12,31 +12,12 @@ import com.bytex.snamp.SpecialUse;
  */
 public final class SshGatewayActivator extends GatewayActivator<SshGateway> {
 
-    private static final class ConfigurationDescriptorServiceManager extends ConfigurationEntityDescriptionManager<SshGatewayDescriptionProvider> {
-
-        /**
-         * Creates a new instance of the configuration description provider.
-         *
-         * @param dependencies A collection of provider dependencies.
-         * @return A new instance of the configuration description provider.
-         */
-        @Override
-        protected SshGatewayDescriptionProvider createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) {
-            return SshGatewayDescriptionProvider.getInstance();
-        }
-    }
-
-    private static final class SshAdapterFactory implements ResourceAdapterFactory<SshGateway>{
-
-        @Override
-        public SshGateway createAdapter(final String adapterInstance, final RequiredService<?>... dependencies) throws Exception {
-            return new SshGateway(adapterInstance);
-        }
-    }
-
     @SpecialUse
     public SshGatewayActivator() {
-        super(new SshAdapterFactory(),
-                new ConfigurationDescriptorServiceManager());
+        super(SshGatewayActivator::newGateway, configurationDescriptor(SshGatewayDescriptionProvider::getInstance));
+    }
+
+    private static SshGateway newGateway(final String instanceName, final RequiredService<?>... dependencies) {
+        return new SshGateway(instanceName);
     }
 }

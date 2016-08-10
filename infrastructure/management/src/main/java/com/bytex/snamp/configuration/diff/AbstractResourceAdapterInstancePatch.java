@@ -2,7 +2,7 @@ package com.bytex.snamp.configuration.diff;
 
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
-import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
+import com.bytex.snamp.configuration.GatewayConfiguration;
 
 /**
  * @author Roman Sakno
@@ -11,16 +11,16 @@ import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
  */
 abstract class AbstractResourceAdapterInstancePatch implements ResourceAdapterInstancePatch {
     private final String adapterInstance;
-    private final ResourceAdapterConfiguration adapterConfig;
+    private final GatewayConfiguration adapterConfig;
 
     AbstractResourceAdapterInstancePatch(final String adapterInstanceName,
-                                         final ResourceAdapterConfiguration adapter) {
+                                         final GatewayConfiguration adapter) {
         this.adapterInstance = adapterInstanceName;
         this.adapterConfig = adapter;
     }
 
     @Override
-    public final ResourceAdapterConfiguration getEntity() {
+    public final GatewayConfiguration getEntity() {
         return adapterConfig;
     }
 
@@ -29,7 +29,7 @@ abstract class AbstractResourceAdapterInstancePatch implements ResourceAdapterIn
         return adapterInstance;
     }
 
-    protected abstract void applyTo(final EntityMap<? extends ResourceAdapterConfiguration> adapters);
+    protected abstract void applyTo(final EntityMap<? extends GatewayConfiguration> adapters);
 
     /**
      * Applies this patch to the baseline configuration.
@@ -38,6 +38,6 @@ abstract class AbstractResourceAdapterInstancePatch implements ResourceAdapterIn
      */
     @Override
     public final void applyTo(final AgentConfiguration baseline) {
-        applyTo(baseline.getEntities(ResourceAdapterConfiguration.class));
+        applyTo(baseline.getEntities(GatewayConfiguration.class));
     }
 }

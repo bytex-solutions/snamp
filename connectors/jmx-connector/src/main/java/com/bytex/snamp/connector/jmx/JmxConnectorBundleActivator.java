@@ -115,14 +115,6 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
         }
     }
 
-    private static final class JmxMaintenanceServiceManager extends MaintenanceServiceManager<JmxMaintenanceService> {
-
-        @Override
-        protected JmxMaintenanceService createMaintenanceService(final RequiredService<?>... dependencies) throws Exception {
-            return new JmxMaintenanceService();
-        }
-    }
-
     private static final class JmxConnectorFactory extends ManagedResourceConnectorModeler<JmxConnector> {
 
         @Override
@@ -170,11 +162,6 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
         protected void retainOperations(final JmxConnector connector, final Set<String> operations) {
             connector.disableOperationsExcept(operations);
         }
-
-        @Override
-        public void releaseConnector(final JmxConnector connector) throws Exception {
-            connector.close();
-        }
     }
 
     /**
@@ -189,7 +176,7 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
                         return JmxConnectorDescriptionProvider.getInstance();
                     }
                 },
-                new JmxMaintenanceServiceManager(),
+                maintenanceService(JmxMaintenanceService::new),
                 new SimpleDiscoveryServiceManager<JMXConnector>() {
 
                     @Override

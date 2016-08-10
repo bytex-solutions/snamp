@@ -16,40 +16,21 @@ public final class SnmpGatewayActivator extends GatewayActivator<SnmpGateway> {
         OSGiLogFactory.setup();
     }
 
-    private static final class SnmpAdapterConfigurationEntityDescriptionManager extends ConfigurationEntityDescriptionManager<SnmpGatewayDescriptionProvider> {
-
-        /**
-         * Creates a new instance of the configuration description provider.
-         *
-         * @param dependencies A collection of provider dependencies.
-         * @return A new instance of the configuration description provider.
-         * @throws Exception An exception occurred during provider instantiation.
-         */
-        @Override
-        public SnmpGatewayDescriptionProvider createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) throws Exception {
-            return SnmpGatewayDescriptionProvider.getInstance();
-        }
-    }
-
-    private static final class SnmpAdapterFactory implements ResourceAdapterFactory<SnmpGateway>{
-
-        @Override
-        public SnmpGateway createAdapter(final String adapterInstance, final RequiredService<?>... dependencies) throws Exception {
-            @SuppressWarnings("unchecked")
-            final JNDIContextManager contextManager = getDependency(RequiredServiceAccessor.class, JNDIContextManager.class, dependencies);
-            return new SnmpGateway(adapterInstance, contextManager);
-        }
-    }
-
     /**
      * Initializes a new instance of the resource adapter lifetime manager.
      */
     @SpecialUse
     public SnmpGatewayActivator() {
-        super(new SnmpAdapterFactory(),
+        super(SnmpGatewayActivator::newGateway,
                 new RequiredService<?>[]{ new SimpleDependency<>(JNDIContextManager.class), new SimpleDependency<>(ThreadPoolRepository.class) },
-                new SupportAdapterServiceManager<?, ?>[]{
-                        new SnmpAdapterConfigurationEntityDescriptionManager()
+                new SupportGatewayServiceManager<?, ?>[]{
+                        configurationDescriptor(SnmpGatewayDescriptionProvider::getInstance)
                 });
+    }
+
+    private static SnmpGateway newGateway(final String instanceName, final RequiredService<?>... dependencies) {
+        @SuppressWarnings("unchecked")
+        final JNDIContextManager contextManager = getDependency(RequiredServiceAccessor.class, JNDIContextManager.class, dependencies);
+        return new SnmpGateway(instanceName, contextManager);
     }
 }

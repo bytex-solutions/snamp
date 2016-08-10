@@ -26,7 +26,7 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
     @Override
     public void clear() {
         getEntities(ManagedResourceConfiguration.class).clear();
-        getEntities(ResourceAdapterConfiguration.class).clear();
+        getEntities(GatewayConfiguration.class).clear();
     }
 
     /**
@@ -119,7 +119,7 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
 
     public static void copy(final ManagedResourceConfiguration input, final ManagedResourceConfiguration output){
         output.setConnectionString(input.getConnectionString());
-        output.setConnectionType(input.getConnectionType());
+        output.setType(input.getType());
         //import additional elements
         output.setParameters(input.getParameters());
         //import managementAttributes
@@ -134,8 +134,8 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         );
     }
 
-    public static void copy(final ResourceAdapterConfiguration input, final ResourceAdapterConfiguration output){
-        output.setAdapterName(input.getAdapterName());
+    public static void copy(final GatewayConfiguration input, final GatewayConfiguration output){
+        output.setType(input.getType());
         output.setParameters(input.getParameters());
     }
 
@@ -168,9 +168,9 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
     public static void copy(final AgentConfiguration input, final AgentConfiguration output) {
         if (input == null || output == null) return;
         //import hosting configuration
-        copy(input.getEntities(ResourceAdapterConfiguration.class),
-                output.getEntities(ResourceAdapterConfiguration.class),
-                (ConfigurationEntityCopier<ResourceAdapterConfiguration>) AbstractAgentConfiguration::copy);
+        copy(input.getEntities(GatewayConfiguration.class),
+                output.getEntities(GatewayConfiguration.class),
+                (ConfigurationEntityCopier<GatewayConfiguration>) AbstractAgentConfiguration::copy);
         //import management targets
         copy(input.getEntities(ManagedResourceConfiguration.class),
                 output.getEntities(ManagedResourceConfiguration.class),

@@ -1,4 +1,4 @@
-namespace java com.bytex.snamp.testing.connectors.mda
+namespace java com.bytex.snamp.testing.connector.mda
 
 struct MemoryStatus {
     1: required i32 free

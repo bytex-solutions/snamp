@@ -1,7 +1,7 @@
 package com.bytex.snamp.gateway;
 
 /**
- * Represents an event indicating that the updating of managed resource adapter instance
+ * Represents an event indicating that the updating of gateway instance
  * is completed.
  * @author Roman Sakno
  * @version 2.0
@@ -13,9 +13,9 @@ public class GatewayUpdatedEvent extends GatewayEvent {
     /**
      * Initializes a new instance of the event data holder.
      *
-     * @param adapterInstance An instance of the resource adapter associated with this event.
+     * @param gatewayInstance An instance of the gateway associated with this event.
      */
-    public GatewayUpdatedEvent(final Gateway adapterInstance) {
-        super(adapterInstance);
+    GatewayUpdatedEvent(final Gateway gatewayInstance) {
+        super(gatewayInstance);
     }
 }

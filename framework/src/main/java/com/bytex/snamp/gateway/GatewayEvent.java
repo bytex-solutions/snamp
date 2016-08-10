@@ -3,7 +3,7 @@ package com.bytex.snamp.gateway;
 import java.util.EventObject;
 
 /**
- * The root class from which all adapter-related event state objects shall be derived.
+ * The root class from which all gateway-related event state objects shall be derived.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0
@@ -14,16 +14,16 @@ public class GatewayEvent extends EventObject {
     /**
      * Initializes a new instance of the event data holder.
      *
-     * @param adapterInstance An instance of the resource adapter associated with this event.
+     * @param adapterInstance An instance of the gateway associated with this event.
      */
     GatewayEvent(final Gateway adapterInstance) {
         super(adapterInstance);
     }
 
     /**
-     * Gets the resource adapter associated with this event.
+     * Gets the gateway instance associated with this event.
      *
-     * @return The resource adapter associated with this event.
+     * @return The gateway instance associated with this event.
      */
     @Override
     public final Gateway getSource() {

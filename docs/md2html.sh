@@ -17,10 +17,10 @@ cp -avr ./examples/*.png ./html/examples
 cp -avr ./*.css ./html/css
 for file in $(ls *.md); do pandoc -f markdown_github -t html -c css/pandoc.css --html-q-tags "${file}" > "./html/${file}.html"; done;
 cd adapters
-for file in $(ls *.md); do pandoc -f markdown_github -t html -c ../css/pandoc.css --html-q-tags "${file}" > "../html/adapters/${file}.html"; done;
+for file in $(ls *.md); do pandoc -f markdown_github -t html -c ../css/pandoc.css --html-q-tags "${file}" > "../html/gateway/${file}.html"; done;
 cd ..
 cd connectors
-for file in $(ls *.md); do pandoc -f markdown_github -t html -c ../css/pandoc.css --html-q-tags "${file}" > "../html/connectors/${file}.html"; done;
+for file in $(ls *.md); do pandoc -f markdown_github -t html -c ../css/pandoc.css --html-q-tags "${file}" > "../html/connector/${file}.html"; done;
 cd ..
 cd webconsole
 for file in $(ls *.md); do pandoc -f markdown_github -t html -c ../css/pandoc.css --html-q-tags "${file}" > "../html/webconsole/${file}.html"; done;

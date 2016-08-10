@@ -12,15 +12,15 @@ import static com.bytex.snamp.management.shell.Utils.appendln;
 import static com.bytex.snamp.management.shell.Utils.getStateString;
 
 /**
- * Prints a list of installed connectors.
+ * Prints a list of installed connector.
  * This class cannot be inherited.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
-        name = "installed-connectors",
-        description = "List of installed resource connectors")
+        name = "installed-connector",
+        description = "List of installed resource connector")
 public final class InstalledConnectorsCommand extends OsgiCommandSupport implements SnampShellCommand {
     private final SnampManager manager = new SnampManagerImpl();
 

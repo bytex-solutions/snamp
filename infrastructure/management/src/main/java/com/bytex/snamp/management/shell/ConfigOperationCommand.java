@@ -8,7 +8,7 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 
-import java.time.temporal.ChronoUnit;
+import java.time.Duration;
 
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.OperationConfiguration;
 
@@ -33,8 +33,8 @@ public final class ConfigOperationCommand extends ConfigurationCommand<ManagedRe
     private String name = "";
 
     @SpecialUse
-    @Argument(index = 2, name = "readWriteTimeout", required = false, description = "Invocation timeout for operation, in millis")
-    private long readWriteTimeout = INFINITE_TIMEOUT;
+    @Argument(index = 2, name = "invocationTimeout", required = false, description = "Invocation timeout for operation, in millis")
+    private long invocationTimeout = INFINITE_TIMEOUT;
 
     @SpecialUse
     @Option(name = "-p", aliases = {"-param", "--parameter"}, multiValued = true, description = "Configuration parameters in the form of key=value")
@@ -49,8 +49,8 @@ public final class ConfigOperationCommand extends ConfigurationCommand<ManagedRe
         if(configuration.containsKey(resourceName)){
             final ManagedResourceConfiguration resource = configuration.get(resourceName);
             final OperationConfiguration operation = resource.getFeatures(OperationConfiguration.class).getOrAdd(name);
-            if(readWriteTimeout > INFINITE_TIMEOUT)
-                operation.setInvocationTimeout(readWriteTimeout, ChronoUnit.MILLIS);
+            if(invocationTimeout > INFINITE_TIMEOUT)
+                operation.setInvocationTimeout(Duration.ofMillis(invocationTimeout));
             if(!ArrayUtils.isNullOrEmpty(parameters))
                 for(final String param: parameters) {
                     final StringKeyValue pair = StringKeyValue.parse(param);

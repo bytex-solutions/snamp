@@ -4,7 +4,7 @@ import ch.shamu.jsendnrdp.NRDPServerConnectionSettings;
 import com.bytex.snamp.gateway.GatewayDescriptionProvider;
 import com.bytex.snamp.concurrent.LazyValueFactory;
 import com.bytex.snamp.concurrent.LazyValue;
-import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
+import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import com.bytex.snamp.jmx.DescriptorUtils;
@@ -15,7 +15,7 @@ import java.util.Map;
 
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
-import static com.bytex.snamp.configuration.ResourceAdapterConfiguration.THREAD_POOL_KEY;
+import static com.bytex.snamp.configuration.GatewayConfiguration.THREAD_POOL_KEY;
 import static com.bytex.snamp.jmx.DescriptorUtils.*;
 import static com.google.common.base.Strings.nullToEmpty;
 
@@ -57,12 +57,12 @@ final class NRDPGatewayConfigurationDescriptor extends ConfigurationEntityDescri
         }
     }
 
-    private static final class GatewayConfigurationInfo extends ResourceBasedConfigurationEntityDescription<ResourceAdapterConfiguration>{
+    private static final class GatewayConfigurationInfo extends ResourceBasedConfigurationEntityDescription<GatewayConfiguration>{
         private static final String RESOURCE_NAME = "GatewayParameters";
 
         private GatewayConfigurationInfo(){
             super(RESOURCE_NAME,
-                    ResourceAdapterConfiguration.class,
+                    GatewayConfiguration.class,
                     NRDP_SERVER_URL_PARAM,
                     CONNECTION_TIMEOUT_PARAM,
                     THREAD_POOL_KEY,

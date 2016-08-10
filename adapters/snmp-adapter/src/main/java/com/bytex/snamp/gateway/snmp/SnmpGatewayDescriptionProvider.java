@@ -4,7 +4,7 @@ package com.bytex.snamp.gateway.snmp;
 import com.bytex.snamp.gateway.GatewayDescriptionProvider;
 import com.bytex.snamp.concurrent.LazyValueFactory;
 import com.bytex.snamp.concurrent.LazyValue;
-import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
+import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import org.snmp4j.SNMP4JSettings;
@@ -20,7 +20,7 @@ import java.util.function.Supplier;
 
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
-import static com.bytex.snamp.configuration.ResourceAdapterConfiguration.THREAD_POOL_KEY;
+import static com.bytex.snamp.configuration.GatewayConfiguration.THREAD_POOL_KEY;
 import static com.bytex.snamp.jmx.DescriptorUtils.getField;
 import static com.bytex.snamp.jmx.DescriptorUtils.hasField;
 
@@ -83,11 +83,11 @@ final class SnmpGatewayDescriptionProvider extends ConfigurationEntityDescriptio
     private static final String TARGET_NAME_PARAM = "receiverName";
     private static final String TARGET_ADDRESS_PARAM = "receiverAddress";
 
-    private static final class ResourceAdapterConfigurationInfo extends ResourceBasedConfigurationEntityDescription<ResourceAdapterConfiguration> {
+    private static final class ResourceAdapterConfigurationInfo extends ResourceBasedConfigurationEntityDescription<GatewayConfiguration> {
         private static final String RESOURCE_NAME = "SnmpGatewayConfig";
         private ResourceAdapterConfigurationInfo(){
             super(RESOURCE_NAME,
-                    ResourceAdapterConfiguration.class,
+                    GatewayConfiguration.class,
                     CONTEXT_PARAM_NAME,
                     ENGINE_ID_PARAM,
                     SNMPv3_GROUPS_PARAM,

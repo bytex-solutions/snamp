@@ -1,12 +1,9 @@
 package com.bytex.snamp.gateway;
 
-import com.bytex.snamp.connector.ManagedResourceConnector;
-import com.bytex.snamp.internal.Utils;
-import com.google.common.collect.Multimap;
 import com.bytex.snamp.core.FrameworkService;
+import com.google.common.collect.Multimap;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceListener;
-import org.osgi.framework.ServiceReference;
 import org.osgi.framework.wiring.BundleRevision;
 
 import javax.management.MBeanFeatureInfo;
@@ -109,7 +106,7 @@ public interface Gateway extends FrameworkService, ServiceListener, Closeable {
      */
     <M extends MBeanFeatureInfo> Multimap<String, ? extends FeatureBindingInfo<M>> getBindings(final Class<M> featureType);
 
-    static String getResourceAdapterType(final Bundle bnd){
+    static String getGatewayType(final Bundle bnd){
         final BundleRevision revision = bnd.adapt(BundleRevision.class);
         assert revision != null;
         return revision.getCapabilities(CAPABILITY_NAMESPACE)
@@ -120,11 +117,7 @@ public interface Gateway extends FrameworkService, ServiceListener, Closeable {
                 .orElseGet(() -> "");
     }
 
-    static boolean isResourceAdapterBundle(final Bundle bnd) {
-        return bnd != null && !isNullOrEmpty(getResourceAdapterType(bnd));
-    }
-
-    static boolean isResourceAdapter(final ServiceReference<?> ref){
-        return Utils.isInstanceOf(ref, ManagedResourceConnector.class) && isResourceAdapterBundle(ref.getBundle());
+    static boolean isGatewayBundle(final Bundle bnd) {
+        return bnd != null && !isNullOrEmpty(getGatewayType(bnd));
     }
 }

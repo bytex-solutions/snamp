@@ -2,7 +2,7 @@ package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.Box;
-import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
+import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.configuration.internal.CMResourceAdapterParser;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.Maps;
@@ -22,7 +22,7 @@ import java.util.Map;
  * @version 1.0
  * @since 1.0
  */
-final class CMResourceAdapterParserImpl extends AbstractConfigurationParser<SerializableResourceAdapterConfiguration> implements CMResourceAdapterParser {
+final class CMResourceAdapterParserImpl extends AbstractConfigurationParser<SerializableGatewayConfiguration> implements CMResourceAdapterParser {
     private static final String ADAPTER_PID_TEMPLATE = "com.bytex.snamp.gateway.%s";
     private static final String ADAPTER_INSTANCE_NAME_PROPERTY = "$adapterInstanceName$";
     private static final String ALL_ADAPTERS_QUERY = String.format("(%s=%s)", Constants.SERVICE_PID, String.format(ADAPTER_PID_TEMPLATE, "*"));
@@ -31,7 +31,7 @@ final class CMResourceAdapterParserImpl extends AbstractConfigurationParser<Seri
         private static final long serialVersionUID = -242953184038600223L;
 
         private ResourceAdapterConfigurationException(final String pid, final Throwable e) {
-            super(pid, SerializableResourceAdapterConfiguration.class, e);
+            super(pid, SerializableGatewayConfiguration.class, e);
         }
     }
 
@@ -90,11 +90,11 @@ final class CMResourceAdapterParserImpl extends AbstractConfigurationParser<Seri
 
     @Override
     void fill(final ConfigurationAdmin admin,
-                                     final Map<String, SerializableResourceAdapterConfiguration> output) throws IOException {
+                                     final Map<String, SerializableGatewayConfiguration> output) throws IOException {
         try {
             forEachAdapter(admin, ALL_ADAPTERS_QUERY, config -> {
                 final String adapterInstanceName = getAdapterInstanceName(config.getProperties());
-                final SerializableResourceAdapterConfiguration adapter = parse(config);
+                final SerializableGatewayConfiguration adapter = parse(config);
                 output.put(adapterInstanceName, adapter);
             });
         } catch (final InvalidSyntaxException e) {
@@ -112,9 +112,9 @@ final class CMResourceAdapterParserImpl extends AbstractConfigurationParser<Seri
     }
 
     @Override
-    public SerializableResourceAdapterConfiguration parse(final Configuration config) {
-        final SerializableResourceAdapterConfiguration result = new SerializableResourceAdapterConfiguration();
-        result.setAdapterName(getAdapterType(config.getFactoryPid()));
+    public SerializableGatewayConfiguration parse(final Configuration config) {
+        final SerializableGatewayConfiguration result = new SerializableGatewayConfiguration();
+        result.setType(getAdapterType(config.getFactoryPid()));
         //deserialize parameters
         fillAdapterParameters(config.getProperties(), result.getParameters());
         result.reset();
@@ -122,14 +122,14 @@ final class CMResourceAdapterParserImpl extends AbstractConfigurationParser<Seri
     }
 
     private static void serialize(final String adapterInstanceName,
-                                  final SerializableResourceAdapterConfiguration adapter,
+                                  final SerializableGatewayConfiguration adapter,
                                   final Configuration output) throws IOException{
         final Dictionary<String, String> configuration = serialize(adapter);
         Utils.setProperty(configuration, ADAPTER_INSTANCE_NAME_PROPERTY, adapterInstanceName);
         output.update(configuration);
     }
 
-    private static Dictionary<String, String> serialize(final SerializableResourceAdapterConfiguration adapter) {
+    private static Dictionary<String, String> serialize(final SerializableGatewayConfiguration adapter) {
         final Dictionary<String, String> result = new Hashtable<>(4);
 
         for(final Map.Entry<String, String> entry: adapter.getParameters().entrySet())
@@ -143,16 +143,16 @@ final class CMResourceAdapterParserImpl extends AbstractConfigurationParser<Seri
     }
 
     @Override
-    public void serialize(final ResourceAdapterConfiguration input, final Configuration output) throws IOException {
-        assert input instanceof SerializableResourceAdapterConfiguration;
-        output.update(serialize((SerializableResourceAdapterConfiguration) input));
+    public void serialize(final GatewayConfiguration input, final Configuration output) throws IOException {
+        assert input instanceof SerializableGatewayConfiguration;
+        output.update(serialize((SerializableGatewayConfiguration) input));
     }
 
     private void serialize(final String adapterInstance,
-                             final SerializableResourceAdapterConfiguration adapter,
+                             final SerializableGatewayConfiguration adapter,
                              final ConfigurationAdmin admin) throws ResourceAdapterConfigurationException {
         try {
-            //find existing configuration of adapters
+            //find existing configuration of gateway
             final Box<Boolean> updated = new Box<>(Boolean.FALSE);
             forEachAdapter(admin, String.format("(%s=%s)", ADAPTER_INSTANCE_NAME_PROPERTY, adapterInstance), config -> {
                 serialize(adapterInstance, adapter, config);
@@ -162,7 +162,7 @@ final class CMResourceAdapterParserImpl extends AbstractConfigurationParser<Seri
             if (!updated.get())
                 serialize(adapterInstance,
                         adapter,
-                        admin.createFactoryConfiguration(getAdapterFactoryPersistentID(adapter.getAdapterName()), null));
+                        admin.createFactoryConfiguration(getAdapterFactoryPersistentID(adapter.getType()), null));
         } catch (final IOException | InvalidSyntaxException e) {
             throw new ResourceAdapterConfigurationException(adapterInstance, e);
         }
@@ -171,8 +171,8 @@ final class CMResourceAdapterParserImpl extends AbstractConfigurationParser<Seri
     @Override
     void saveChanges(final SerializableAgentConfiguration config,
               final ConfigurationAdmin admin) throws IOException {
-        final ConfigurationEntityRegistry<? extends SerializableResourceAdapterConfiguration> adapters = config.getEntities(SerializableResourceAdapterConfiguration.class);
-        //remove all unnecessary adapters
+        final ConfigurationEntityRegistry<? extends SerializableGatewayConfiguration> adapters = config.getEntities(SerializableGatewayConfiguration.class);
+        //remove all unnecessary gateway
         try {
             forEachAdapter(admin, ALL_ADAPTERS_QUERY, output -> {
                 final String adapterInstance = getAdapterInstanceName(output.getProperties());
@@ -183,7 +183,7 @@ final class CMResourceAdapterParserImpl extends AbstractConfigurationParser<Seri
             throw new IOException(e);
         }
         //save each modified adapter
-        config.getEntities(SerializableResourceAdapterConfiguration.class).modifiedEntries((adapterInstance, adapter) -> {
+        config.getEntities(SerializableGatewayConfiguration.class).modifiedEntries((adapterInstance, adapter) -> {
             serialize(adapterInstance, adapter, admin);
             return true;
         });

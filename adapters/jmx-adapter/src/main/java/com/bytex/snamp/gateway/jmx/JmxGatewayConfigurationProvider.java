@@ -1,7 +1,7 @@
 package com.bytex.snamp.gateway.jmx;
 
 import com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
-import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
+import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 
@@ -30,12 +30,12 @@ final class JmxGatewayConfigurationProvider extends ConfigurationEntityDescripti
         }
     }
 
-    private static final class GatewayConfigSchema extends ResourceBasedConfigurationEntityDescription<ResourceAdapterConfiguration>{
+    private static final class GatewayConfigSchema extends ResourceBasedConfigurationEntityDescription<GatewayConfiguration>{
         private static final String RESOURCE_NAME = "JmxGatewaySettings";
 
         public GatewayConfigSchema() {
             super(RESOURCE_NAME,
-                    ResourceAdapterConfiguration.class, OBJECT_NAME_PARAM, USE_PLATFORM_MBEAN_PARAM);
+                    GatewayConfiguration.class, OBJECT_NAME_PARAM, USE_PLATFORM_MBEAN_PARAM);
         }
     }
 

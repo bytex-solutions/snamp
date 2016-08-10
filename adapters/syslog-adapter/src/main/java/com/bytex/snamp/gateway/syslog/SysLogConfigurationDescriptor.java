@@ -3,7 +3,7 @@ package com.bytex.snamp.gateway.syslog;
 import com.cloudbees.syslog.Facility;
 import com.cloudbees.syslog.MessageFormat;
 import com.cloudbees.syslog.sender.SyslogMessageSender;
-import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
+import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
@@ -33,12 +33,12 @@ final class SysLogConfigurationDescriptor extends ConfigurationEntityDescription
     private static final String PASSIVE_CHECK_SEND_PERIOD_PARAM = "passiveCheckSendPeriod";
     private static final String SEVERITY_PARAM = NotificationDescriptor.SEVERITY_PARAM;
 
-    private static final class GatewayConfigurationInfo extends ResourceBasedConfigurationEntityDescription<ResourceAdapterConfiguration>{
+    private static final class GatewayConfigurationInfo extends ResourceBasedConfigurationEntityDescription<GatewayConfiguration>{
         private static final String RESOURCE_NAME = "GatewayParameters";
 
         private GatewayConfigurationInfo(){
             super(RESOURCE_NAME,
-                    ResourceAdapterConfiguration.class,
+                    GatewayConfiguration.class,
                     PORT_PARAM,
                     ADDRESS_PARAM,
                     USE_SSL_PARAM,

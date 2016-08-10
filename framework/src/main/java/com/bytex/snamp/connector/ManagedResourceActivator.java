@@ -5,6 +5,7 @@ import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.configuration.internal.CMManagedResourceParser;
 import com.bytex.snamp.connector.discovery.AbstractDiscoveryService;
 import com.bytex.snamp.connector.discovery.DiscoveryService;
+import com.bytex.snamp.core.AbstractBundleActivator;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.internal.Utils;
@@ -20,6 +21,7 @@ import javax.management.openmbean.CompositeData;
 import java.math.BigInteger;
 import java.time.Duration;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -97,24 +99,15 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         <F extends FeatureConfiguration> void updateConnector(final TConnector connector,
                                                               final Class<F> featureType,
                                                               final Map<String, ? extends F> features) throws Exception;
-
-        /**
-         * Releases all resources associated with the resource connector.
-         * @param connector The instance of the connector to dispose.
-         * @throws Exception Unable to dispose resource connector instance.
-         */
-        void releaseConnector(final TConnector connector) throws Exception;
     }
 
     /**
      * Represents managed resource connector factory.
      * <p>
-     *     This class provides the default implementation of {@link ManagedResourceActivator.ManagedResourceConnectorLifecycleController#releaseConnector(ManagedResourceConnector)}
-     *     and {@link ManagedResourceActivator.ManagedResourceConnectorLifecycleController#updateConnector(ManagedResourceConnector, String, String, java.util.Map, com.bytex.snamp.core.AbstractBundleActivator.RequiredService[])}
+     *     This class provides the default implementation of {@link ManagedResourceActivator.ManagedResourceConnectorLifecycleController#updateConnector(ManagedResourceConnector, String, String, java.util.Map, com.bytex.snamp.core.AbstractBundleActivator.RequiredService[])}
      *     in the following manner:
      *     <ul>
-     *         <li>{@code releaseConnector} - just calls {@link AutoCloseable#close()} method of the connector.</li>
-     *         <li>{@code updateConnector} - sequentially calls {@code releaseConnector} on the existing connector
+     *         <li>{@code updateConnector} - sequentially calls {@link ManagedResourceConnector#close()} on the existing connector
      *         and creates a new instance of the connector using {@code createConnector}.</li>
      *     </ul>
      *     In the derived factory you may implements just {@link ManagedResourceActivator.ManagedResourceConnectorLifecycleController#createConnector(String, String, java.util.Map, com.bytex.snamp.core.AbstractBundleActivator.RequiredService[])}
@@ -150,26 +143,13 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
             }
             catch (final ManagedResourceConnector.UnsupportedUpdateOperationException ignored){
                 //Update operation is not supported -> force recreation
-                releaseConnector(connector);
+                connector.close();
                 connector = createConnector(resourceName,
                         connectionString,
                         connectionParameters,
                         dependencies);
             }
             return connector;
-        }
-
-        /**
-         * Releases all resources associated with the resource connector.
-         * <p>
-         *     This method just calls {@link AutoCloseable#close()} implemented in the connector.
-         * </p>
-         * @param connector The instance of the connector to dispose.
-         * @throws Exception Unable to dispose resource connector instance.
-         */
-        @Override
-        public void releaseConnector(final TConnector connector) throws Exception {
-            connector.close();
         }
     }
 
@@ -481,7 +461,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         protected void cleanupService(final TConnector service,
                                       final Dictionary<String, ?> identity) throws Exception {
             try {
-                controller.releaseConnector(service);
+                service.close();
             }
             finally {
                 configurationHashes.remove(getManagedResourceName(identity));
@@ -497,13 +477,21 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @author Roman Sakno
      * @since 1.0
      * @version 2.0
-     * @see ManagedResourceActivator.ConfigurationEntityDescriptionManager
-     * @see ManagedResourceActivator.DiscoveryServiceManager
+     * @see #maintenanceService(Supplier)
+     * @see #discoveryService(Supplier)
      */
     protected static abstract class SupportConnectorServiceManager<S extends FrameworkService, T extends S> extends ProvidedService<S, T> {
 
         private SupportConnectorServiceManager(final Class<S> contract, final RequiredService<?>... dependencies) {
             super(contract, dependencies);
+        }
+
+        abstract T activateService(final RequiredService<?>... dependencies) throws Exception;
+
+        @Override
+        protected final T activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception {
+            identity.put(CONNECTION_TYPE_IDENTITY_PROPERTY, getConnectorName());
+            return activateService(dependencies);
         }
 
         /**
@@ -515,7 +503,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          * @return The name of the underlying resource connector.
          * @see #getState()
          */
-        protected final String getConnectorName() {
+        private String getConnectorName() {
             return getActivationPropertyValue(CONNECTOR_TYPE_HOLDER);
         }
 
@@ -530,168 +518,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          */
         protected final Logger getLogger() {
             return getActivationPropertyValue(LOGGER_HOLDER);
-        }
-    }
-
-    /**
-     * Represents maintenance service provider.
-     * @param <T> Type of the maintenance service implementation.
-     * @author Roman Sakno
-     * @since 1.0
-     * @version 2.0
-     */
-    protected static abstract class MaintenanceServiceManager<T extends Maintainable> extends SupportConnectorServiceManager<Maintainable,T> {
-
-        protected MaintenanceServiceManager(final RequiredService<?>... dependencies) {
-            super(Maintainable.class, dependencies);
-        }
-
-        protected abstract T createMaintenanceService(final RequiredService<?>... dependencies) throws Exception;
-
-        /**
-         * Creates a new instance of the service.
-         *
-         * @param identity     A dictionary of properties that uniquely identifies service instance.
-         * @param dependencies A collection of dependencies.
-         * @return A new instance of the service.
-         */
-        @Override
-        protected final T activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception {
-            identity.put(CONNECTION_TYPE_IDENTITY_PROPERTY, getConnectorName());
-            return createMaintenanceService(dependencies);
-        }
-    }
-
-    /**
-     * Represents simple manager that exposes default implementation of {@link com.bytex.snamp.connector.discovery.DiscoveryService}.
-     * <p>
-     *     Discovery algorithm is based on the abstract methods that you should implement in the derived manager.
-     *     Note that these methods should be stateless.
-     * @param <TProvider> Type of management information provider.
-     * @author Roman Sakno
-     * @since 1.0
-     */
-    protected abstract static class SimpleDiscoveryServiceManager<TProvider extends AutoCloseable> extends DiscoveryServiceManager<AbstractDiscoveryService<TProvider>>{
-        /**
-         * Initializes a new instance of the discovery service manager.
-         * @param dependencies A collection of discovery service dependencies.
-         */
-        protected SimpleDiscoveryServiceManager(final RequiredService<?>... dependencies){
-            super(dependencies);
-        }
-
-        /**
-         * Creates a new instance of the management information provider.
-         * <p>
-         *     This method should be stateless.
-         * @param connectionString Managed resource connection string.
-         * @param connectionOptions Managed resource connection options.
-         * @param dependencies A collection of discovery service dependencies.
-         * @return A new instance of the management information provider.
-         * @throws Exception Unable to instantiate provider.
-         */
-        protected abstract TProvider createManagementInformationProvider(final String connectionString,
-                                                                         final Map<String, String> connectionOptions,
-                                                                         final RequiredService<?>... dependencies) throws Exception;
-
-        /**
-         * Extracts management information from provider.
-         * <p>
-         *     This method should be stateless.
-         * @param entityType Type of the requested management information.
-         * @param provider An instance of the management information provider.
-         * @param dependencies A collection of discovery service dependencies.
-         * @param <T> Type of the requested management information.
-         * @return A new instance of the management information provider.
-         * @throws Exception Unable to extract management information.
-         */
-        protected abstract <T extends FeatureConfiguration> Collection<T> getManagementInformation(final Class<T> entityType,
-                                                                                            final TProvider provider,
-                                                                                            final RequiredService<?>... dependencies) throws Exception;
-
-        /**
-         * Creates a new instance of the discovery service.
-         *
-         * @param dependencies A collection of discovery service dependencies.
-         * @return A new instance of the discovery service.
-         * @throws Exception Unable to instantiate discovery service.
-         */
-        @Override
-        protected final AbstractDiscoveryService<TProvider> createDiscoveryService(final RequiredService<?>... dependencies) throws Exception {
-            return new AbstractDiscoveryService<TProvider>() {
-                private final Logger logger = getActivationPropertyValue(LOGGER_HOLDER);
-
-                @Override
-                protected TProvider createProvider(final String connectionString, final Map<String, String> connectionOptions) throws Exception {
-                    return createManagementInformationProvider(connectionString, connectionOptions, dependencies);
-                }
-
-                @Override
-                protected <T extends FeatureConfiguration> Collection<T> getEntities(final Class<T> entityType, final TProvider provider) throws Exception {
-                    return getManagementInformation(entityType, provider, dependencies);
-                }
-
-                @Override
-                public Logger getLogger() {
-                    return logger;
-                }
-            };
-        }
-
-        /**
-         * Provides service cleanup operations.
-         * <p>
-         * In the default implementation this method does nothing.
-         *
-         * @param serviceInstance An instance of the hosted service to cleanup.
-         * @param stopBundle      {@literal true}, if this method calls when the owner bundle is stopping;
-         *                        {@literal false}, if this method calls when loosing dependency.
-         */
-        @Override
-        @MethodStub
-        protected final void cleanupService(final AbstractDiscoveryService<TProvider> serviceInstance, final boolean stopBundle) {
-            //do nothing
-        }
-    }
-
-    /**
-     * Represents factory for {@link com.bytex.snamp.connector.discovery.DiscoveryService} service.
-     * @param <T> A class that provides implementation of {@link com.bytex.snamp.connector.discovery.DiscoveryService}
-     * @author Roman Sakno
-     * @since 1.0
-     * @version 2.0
-     */
-    protected abstract static class DiscoveryServiceManager<T extends DiscoveryService> extends SupportConnectorServiceManager<DiscoveryService, T> {
-
-        /**
-         * Initializes a new holder for the provided service.
-         * @param dependencies A collection of service dependencies.
-         * @throws IllegalArgumentException contract is {@literal null}.
-         */
-        protected DiscoveryServiceManager(final RequiredService<?>... dependencies) {
-            super(DiscoveryService.class, dependencies);
-        }
-
-        /**
-         * Creates a new instance of the discovery service.
-         * @param dependencies A collection of discovery service dependencies.
-         * @return A new instance of the discovery service.
-         * @throws java.lang.Exception Unable to instantiate discovery service.
-         */
-        protected abstract T createDiscoveryService(final RequiredService<?>... dependencies) throws Exception;
-
-        /**
-         * Creates a new instance of the service.
-         *
-         * @param identity     A dictionary of properties that uniquely identifies service instance.
-         * @param dependencies A collection of dependencies.
-         * @return A new instance of the service.
-         * @throws java.lang.Exception Unable to instantiate discovery service.
-         */
-        @Override
-        protected final T activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception {
-            identity.put(CONNECTION_TYPE_IDENTITY_PROPERTY, getConnectorName());
-            return createDiscoveryService(dependencies);
         }
     }
 
@@ -747,20 +573,17 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          * Creates a new instance of the configuration description provider.
          * @param dependencies A collection of provider dependencies.
          * @return A new instance of the configuration description provider.
-         * @throws Exception An exception occurred during provider instantiation.
          */
-        protected abstract T createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) throws Exception;
+        protected abstract T createConfigurationDescriptionProvider(final RequiredService<?>... dependencies);
 
         /**
          * Creates a new instance of the service.
          *
-         * @param identity     A dictionary of properties that uniquely identifies service instance.
          * @param dependencies A collection of dependencies.
          * @return A new instance of the service.
          */
         @Override
-        protected final T activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception {
-            identity.put(CONNECTION_TYPE_IDENTITY_PROPERTY, getConnectorName());
+        protected final T activateService(final RequiredService<?>... dependencies) {
             return createConfigurationDescriptionProvider(dependencies);
         }
     }
@@ -775,6 +598,33 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         this(controller,
                 emptyArray(RequiredService[].class),
                 optionalServices);
+    }
+
+    protected static <T extends ConfigurationEntityDescriptionProvider> SupportConnectorServiceManager<ConfigurationEntityDescriptionProvider, T> configurationDescriptor(final Supplier<T> factory){
+        return new SupportConnectorServiceManager<ConfigurationEntityDescriptionProvider, T>(ConfigurationEntityDescriptionProvider.class) {
+            @Override
+            T activateService(final RequiredService<?>... dependencies) {
+                return factory.get();
+            }
+        };
+    }
+
+    protected static <T extends Maintainable> SupportConnectorServiceManager<Maintainable,T> maintenanceService(final Supplier<T> factory) {
+        return new SupportConnectorServiceManager<Maintainable, T>(Maintainable.class) {
+            @Override
+            T activateService(RequiredService<?>... dependencies) {
+                return factory.get();
+            }
+        };
+    }
+
+    protected static <T extends DiscoveryService> SupportConnectorServiceManager<DiscoveryService, T> discoveryService(final Supplier<T> factory) {
+        return new SupportConnectorServiceManager<DiscoveryService, T>(DiscoveryService.class) {
+            @Override
+            T activateService(final RequiredService<?>... dependencies) {
+                return factory.get();
+            }
+        };
     }
 
     /**
@@ -839,7 +689,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     protected final void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception {
         activationProperties.publish(LOGGER_HOLDER, getLogger());
         activationProperties.publish(CONNECTOR_TYPE_HOLDER, getConnectorType());
-        getLogger().log(Level.INFO, String.format("Activating resource connectors of type %s", getConnectorType()));
+        getLogger().log(Level.INFO, String.format("Activating resource connector of type %s", getConnectorType()));
     }
 
     /**
@@ -884,7 +734,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     @Override
     @MethodStub
     protected final void deactivate(final ActivationPropertyReader activationProperties) {
-        getLogger().log(Level.INFO, String.format("Unloading connectors of type %s", getConnectorType()));
+        getLogger().log(Level.INFO, String.format("Unloading connector of type %s", getConnectorType()));
     }
 
     /**
@@ -951,11 +801,11 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     }
 
     /**
-     * Stops all bundles with resource connectors.
+     * Stops all bundles with resource connector.
      * @param context The context of the caller bundle. Cannot be {@literal null}.
      * @return Number of stopped bundles.
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
-     * @throws org.osgi.framework.BundleException Unable to stop resource connectors.
+     * @throws org.osgi.framework.BundleException Unable to stop resource connector.
      */
     public static int stopResourceConnectors(final BundleContext context) throws BundleException {
         if(context == null) throw new IllegalArgumentException("context is null.");
@@ -985,11 +835,11 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     }
 
     /**
-     * Starts all bundles with resource connectors.
+     * Starts all bundles with resource connector.
      * @param context The context of the caller bundle. Cannot be {@literal null}.
-     * @return Number of started resource connectors.
+     * @return Number of started resource connector.
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
-     * @throws org.osgi.framework.BundleException Unable to start resource connectors.
+     * @throws org.osgi.framework.BundleException Unable to start resource connector.
      */
     public static int startResourceConnectors(final BundleContext context) throws BundleException{
         if(context == null) throw new IllegalArgumentException("context is null.");
@@ -1020,9 +870,9 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     }
 
     /**
-     * Gets a collection of installed connectors (system names).
+     * Gets a collection of installed connector (system names).
      * @param context The context of the caller bundle. Cannot be {@literal null}.
-     * @return A collection of installed connectors (system names).
+     * @return A collection of installed connector (system names).
      */
     public static Collection<String> getInstalledResourceConnectors(final BundleContext context){
         final Collection<Bundle> candidates = getResourceConnectorBundles(context);

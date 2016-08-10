@@ -74,13 +74,13 @@ public final class SnampManagerImpl extends AbstractSnampManager {
     }
 
     public static void restart(final BundleContext context) throws BundleException {
-        //first, stop all adapters
+        //first, stop all gateway
         GatewayActivator.stopResourceAdapters(context);
-        //second, stop all connectors
+        //second, stop all connector
         ManagedResourceActivator.stopResourceConnectors(context);
-        //third, start all connectors
+        //third, start all connector
         ManagedResourceActivator.startResourceConnectors(context);
-        //fourth, start all adapters
+        //fourth, start all gateway
         GatewayActivator.startResourceAdapters(context);
     }
 }

@@ -12,7 +12,7 @@ import java.util.Set;
 import static com.bytex.snamp.connector.mda.MDAResourceConfigurationDescriptorProvider.parseExpireTime;
 
 /**
- * Represents basic activator for MDA connectors.
+ * Represents basic activator for MDA connector.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0

@@ -2,7 +2,7 @@ package com.bytex.snamp.connector.attributes;
 
 import com.bytex.snamp.configuration.ConfigParameters;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
-import com.bytex.snamp.configuration.ResourceAdapterConfiguration;
+import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.connector.ConfigurationEntityRuntimeMetadata;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.WellKnownType;
@@ -93,7 +93,7 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
      * Returns a type of the configuration entity.
      *
      * @return A type of the configuration entity.
-     * @see ResourceAdapterConfiguration
+     * @see GatewayConfiguration
      * @see ManagedResourceConfiguration
      * @see ManagedResourceConfiguration.EventConfiguration
      * @see ManagedResourceConfiguration.AttributeConfiguration

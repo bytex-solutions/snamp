@@ -44,7 +44,7 @@ import static org.atmosphere.cpr.FrameworkConfig.ATMOSPHERE_CONFIG;
  */
 final class HttpGateway extends AbstractGateway {
     private static final int METHOD_NOT_ALLOWED = 405;
-    private static final String SERVLET_CONTEXT = "/snamp/adapters/http/%s";
+    private static final String SERVLET_CONTEXT = "/snamp/gateway/http/%s";
 
     private static final class HttpModelOfAttributes extends ModelOfAttributes<HttpAttributeAccessor> implements AttributeSupport{
 

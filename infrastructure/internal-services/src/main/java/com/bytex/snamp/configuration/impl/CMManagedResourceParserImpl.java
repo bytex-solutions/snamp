@@ -173,7 +173,7 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
     public SerializableManagedResourceConfiguration parse(final Configuration config) throws IOException {
         final SerializableManagedResourceConfiguration result = new SerializableManagedResourceConfiguration();
         result.setConnectionString(getConnectionString(config.getProperties()));
-        result.setConnectionType(getConnectorType(config.getFactoryPid()));
+        result.setType(getConnectorType(config.getFactoryPid()));
         //deserialize attributes
         result.setAttributes(getAttributes(config.getProperties()));
         //deserialize events
@@ -238,7 +238,7 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
             });
             //no existing configuration, creates a new configuration
             if(!updated.get())
-                serialize(resourceName, resource, admin.createFactoryConfiguration(getConnectorFactoryPersistentID(resource.getConnectionType()), null));
+                serialize(resourceName, resource, admin.createFactoryConfiguration(getConnectorFactoryPersistentID(resource.getType()), null));
         } catch (final IOException | InvalidSyntaxException e) {
             throw new ManagedResourceConfigurationException(resourceName, e);
         }

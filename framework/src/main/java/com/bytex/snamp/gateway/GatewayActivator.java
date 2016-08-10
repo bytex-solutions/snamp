@@ -4,6 +4,7 @@ import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.internal.CMResourceAdapterParser;
+import com.bytex.snamp.core.AbstractBundleActivator;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.internal.Utils;
@@ -14,6 +15,8 @@ import org.osgi.service.cm.ConfigurationAdmin;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -22,9 +25,9 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
- * Represents lifetime manager for managed resource adapter.
+ * Represents lifetime manager for gateway instances.
  * <p>
- *     This class is a recommendation for the resource adapter implementation. Of course,
+ *     This class is a recommendation for the gateway implementation. Of course,
  *     you can write your own {@link org.osgi.framework.BundleActivator} implementation
  *     and consumes instances of {@link com.bytex.snamp.connector.ManagedResourceConnector} services.
  * </p>
@@ -34,32 +37,33 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @since 1.0
  */
 public class GatewayActivator<G extends AbstractGateway> extends AbstractServiceLibrary {
-    private static final String ADAPTER_INSTANCE_IDENTITY_PROPERTY = "instanceName";
-    private static final String ADAPTER_TYPE_IDENTITY_PROPERTY = "adapterType";
-    private static final ActivationProperty<String> ADAPTER_NAME_HOLDER = defineActivationProperty(String.class);
+    private static final String GATEWAY_INSTANCE_IDENTITY_PROPERTY = "instanceName";
+    private static final String GATEWAY_TYPE_IDENTITY_PROPERTY = "gatewayType";
+    private static final ActivationProperty<String> GATEWAY_TYPE_HOLDER = defineActivationProperty(String.class);
     private static final ActivationProperty<Logger> LOGGER_HOLDER = defineActivationProperty(Logger.class);
 
     /**
-     * Represents a factory responsible for creating instances of resource adapters.
-     * @param <TAdapter> Type of the adapter implementation.
+     * Represents a factory responsible for creating instances of a gateway.
+     * @param <G> Type of gateway implementation.
      * @author Roman Sakno
      * @since 1.0
      * @version 2.0
      */
-    protected interface ResourceAdapterFactory<TAdapter extends Gateway>{
-        TAdapter createAdapter(final String adapterInstance,
-                               final RequiredService<?>... dependencies) throws Exception;
+    @FunctionalInterface
+    protected interface GatewayFactory<G extends Gateway>{
+        G createInstance(final String adapterInstance,
+                         final RequiredService<?>... dependencies) throws Exception;
     }
 
-    private static final class ResourceAdapterRegistry<TAdapter extends AbstractGateway> extends ServiceSubRegistryManager<Gateway, TAdapter>{
-        private final ResourceAdapterFactory<TAdapter> adapterFactory;
+    private static final class ResourceAdapterRegistry<G extends AbstractGateway> extends ServiceSubRegistryManager<Gateway, G>{
+        private final GatewayFactory<G> adapterFactory;
         /**
          * Represents name of the resource adapter.
          */
         protected final String adapterName;
 
         private ResourceAdapterRegistry(final String adapterName,
-                                        final ResourceAdapterFactory<TAdapter> factory,
+                                        final GatewayFactory<G> factory,
                                         final RequiredService<?>... dependencies) {
             super(Gateway.class,
                     ObjectArrays.<RequiredService>concat(dependencies, new SimpleDependency<>(ConfigurationManager.class)));
@@ -67,9 +71,9 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
             this.adapterName = adapterName;
         }
 
-        private ResourceAdapterRegistry(final ResourceAdapterFactory<TAdapter> factory,
+        private ResourceAdapterRegistry(final GatewayFactory<G> factory,
                                        final RequiredService<?>... dependencies) {
-            this(Gateway.getResourceAdapterType(Utils.getBundleContextOfObject(factory).getBundle()), factory, dependencies);
+            this(Gateway.getGatewayType(Utils.getBundleContextOfObject(factory).getBundle()), factory, dependencies);
         }
 
         @SuppressWarnings("unchecked")
@@ -87,22 +91,22 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
         }
 
         @Override
-        protected TAdapter update(final TAdapter adapter,
-                                  final Dictionary<String, ?> configuration,
-                                  final RequiredService<?>... dependencies) throws Exception {
+        protected G update(final G adapter,
+                           final Dictionary<String, ?> configuration,
+                           final RequiredService<?>... dependencies) throws Exception {
             final CMResourceAdapterParser parser = getParser(dependencies);
             adapter.tryUpdate(parser.getAdapterParameters(configuration));
             return adapter;
         }
 
         @Override
-        protected TAdapter createService(final Map<String, Object> identity,
-                                         final Dictionary<String, ?> configuration,
-                                         final RequiredService<?>... dependencies) throws Exception {
+        protected G createService(final Map<String, Object> identity,
+                                  final Dictionary<String, ?> configuration,
+                                  final RequiredService<?>... dependencies) throws Exception {
             final CMResourceAdapterParser parser = getParser(dependencies);
             final String instanceName = parser.getAdapterInstanceName(configuration);
             createIdentity(adapterName, instanceName, identity);
-            final TAdapter resourceAdapter = adapterFactory.createAdapter(instanceName, dependencies);
+            final G resourceAdapter = adapterFactory.createInstance(instanceName, dependencies);
             if (resourceAdapter != null)
                 if (resourceAdapter.tryStart(parser.getAdapterParameters(configuration))) {
                     return resourceAdapter;
@@ -114,7 +118,7 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
         }
 
         @Override
-        protected void cleanupService(final TAdapter adapter, final Dictionary<String, ?> identity) throws IOException {
+        protected void cleanupService(final G adapter, final Dictionary<String, ?> identity) throws IOException {
             adapter.close();
         }
 
@@ -142,116 +146,54 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
     private static void createIdentity(final String adapterName,
                                        final String instanceName,
                                        final Map<String, Object> identity){
-        identity.put(ADAPTER_TYPE_IDENTITY_PROPERTY, adapterName);
-        identity.put(ADAPTER_INSTANCE_IDENTITY_PROPERTY, instanceName);
+        identity.put(GATEWAY_TYPE_IDENTITY_PROPERTY, adapterName);
+        identity.put(GATEWAY_INSTANCE_IDENTITY_PROPERTY, instanceName);
     }
 
     /**
-     * Represents superclass for all optional adapter-related service factories.
+     * Represents superclass for all optional gateway-related service factories.
      * You cannot derive from this class directly.
-     * @param <S> Type of the adapter-related service contract.
-     * @param <T> Type of the adapter-related service implementation.
+     * @param <S> Type of the gateway-related service contract.
+     * @param <T> Type of the gateway-related service implementation.
      * @author Roman Sakno
      * @since 1.0
      * @version 2.0
-     * @see GatewayActivator.ConfigurationEntityDescriptionManager
+     * @see #configurationDescriptor(Supplier)
      */
-    protected abstract static class SupportAdapterServiceManager<S extends FrameworkService, T extends S> extends ProvidedService<S, T>{
-
-        private SupportAdapterServiceManager(final Class<S> contract, final RequiredService<?>... dependencies) {
+    protected abstract static class SupportGatewayServiceManager<S extends FrameworkService, T extends S> extends ProvidedService<S, T>{
+        private SupportGatewayServiceManager(final Class<S> contract, final RequiredService<?>... dependencies) {
             super(contract, dependencies);
+        }
+
+        abstract T activateService(final RequiredService<?>... dependencies);
+
+        @Override
+        protected final T activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) {
+            identity.put(GATEWAY_TYPE_IDENTITY_PROPERTY, getGatewayType());
+            return activateService(dependencies);
         }
 
         /**
          * Gets name of the adapter.
          * @return The name of the adapter.
          */
-        protected final String getAdapterName(){
-            return getActivationPropertyValue(ADAPTER_NAME_HOLDER);
-        }
-    }
-
-    /**
-     * Represents maintenance service manager.
-     * @param <T> Type of the maintenance service implementation.
-     * @author Roman Sakno
-     * @since 1.0
-     * @version 2.0
-     */
-    protected static abstract class MaintenanceServiceManager<T extends Maintainable> extends SupportAdapterServiceManager<Maintainable,T> {
-
-        protected MaintenanceServiceManager(final RequiredService<?>... dependencies) {
-            super(Maintainable.class, dependencies);
-        }
-
-        protected abstract T createMaintenanceService(final RequiredService<?>... dependencies) throws Exception;
-
-        /**
-         * Creates a new instance of the service.
-         *
-         * @param identity     A dictionary of properties that uniquely identifies service instance.
-         * @param dependencies A collection of dependencies.
-         * @return A new instance of the service.
-         */
-        @Override
-        protected final T activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception {
-            identity.put(ADAPTER_TYPE_IDENTITY_PROPERTY, getAdapterName());
-            return createMaintenanceService(dependencies);
-        }
-    }
-
-    /**
-     * Represents a holder for connector configuration descriptor.
-     * @param <T> Type of the configuration descriptor implementation.
-     * @author Roman Sakno
-     * @since 1.0
-     */
-    protected abstract static class ConfigurationEntityDescriptionManager<T extends ConfigurationEntityDescriptionProvider> extends SupportAdapterServiceManager<ConfigurationEntityDescriptionProvider, T> {
-
-        /**
-         * Initializes a new holder for the provided service.
-         *
-         * @param dependencies A collection of service dependencies.
-         * @throws IllegalArgumentException contract is {@literal null}.
-         */
-        protected ConfigurationEntityDescriptionManager(final RequiredService<?>... dependencies) {
-            super(ConfigurationEntityDescriptionProvider.class, dependencies);
-        }
-
-        /**
-         * Creates a new instance of the configuration description provider.
-         * @param dependencies A collection of provider dependencies.
-         * @return A new instance of the configuration description provider.
-         * @throws Exception An exception occurred during provider instantiation.
-         */
-        protected abstract T createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) throws Exception;
-
-        /**
-         * Creates a new instance of the service.
-         *
-         * @param identity     A dictionary of properties that uniquely identifies service instance.
-         * @param dependencies A collection of dependencies.
-         * @return A new instance of the service.
-         */
-        @Override
-        protected final T activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception {
-            identity.put(ADAPTER_TYPE_IDENTITY_PROPERTY, getAdapterName());
-            return createConfigurationDescriptionProvider(dependencies);
+        private String getGatewayType(){
+            return getActivationPropertyValue(GATEWAY_TYPE_HOLDER);
         }
     }
 
     /**
      * Initializes a new instance of the resource adapter activator.
-     * @param factory Resource adapter factory. Cannot be {@literal null}.
+     * @param factory Gateway factory. Cannot be {@literal null}.
      * @param optionalServices Additional services exposed by adapter.
      */
-    protected GatewayActivator(final ResourceAdapterFactory<G> factory,
-                               final SupportAdapterServiceManager<?, ?>... optionalServices){
+    protected GatewayActivator(final GatewayFactory<G> factory,
+                               final SupportGatewayServiceManager<?, ?>... optionalServices){
         this(factory, emptyArray(RequiredService[].class), optionalServices);
     }
 
     private GatewayActivator(final ResourceAdapterRegistry<?> registry,
-                             final SupportAdapterServiceManager<?, ?>[] optionalServices) {
+                             final SupportGatewayServiceManager<?, ?>[] optionalServices) {
         super(ObjectArrays.concat(new ServiceSubRegistryManager<?, ?>[]{registry}, optionalServices, ProvidedService.class));
     }
 
@@ -261,14 +203,23 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
      * @param adapterDependencies Adapter-level dependencies.
      * @param optionalServices Additional services exposed by adapter.
      */
-    protected GatewayActivator(final ResourceAdapterFactory<G> factory,
+    protected GatewayActivator(final GatewayFactory<G> factory,
                                final RequiredService<?>[] adapterDependencies,
-                               final SupportAdapterServiceManager<?, ?>[] optionalServices) {
+                               final SupportGatewayServiceManager<?, ?>[] optionalServices) {
         this(new ResourceAdapterRegistry<>(factory, adapterDependencies), optionalServices);
     }
 
-    public final String getAdapterName() {
-        return Gateway.getResourceAdapterType(Utils.getBundleContextOfObject(this).getBundle());
+    protected static <T extends ConfigurationEntityDescriptionProvider> SupportGatewayServiceManager<ConfigurationEntityDescriptionProvider, T> configurationDescriptor(final Supplier<T> factory) {
+        return new SupportGatewayServiceManager<ConfigurationEntityDescriptionProvider, T>(ConfigurationEntityDescriptionProvider.class) {
+            @Override
+            T activateService(final RequiredService<?>... dependencies) {
+                return factory.get();
+            }
+        };
+    }
+
+    public final String getGatewayType() {
+        return Gateway.getGatewayType(Utils.getBundleContextOfObject(this).getBundle());
     }
 
     /**
@@ -314,9 +265,9 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
      */
     @Override
     protected final void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception {
-        activationProperties.publish(ADAPTER_NAME_HOLDER, getAdapterName());
+        activationProperties.publish(GATEWAY_TYPE_HOLDER, getGatewayType());
         activationProperties.publish(LOGGER_HOLDER, getLogger());
-        getLogger().info(String.format("Activating resource adapters of type %s", getAdapterName()));
+        getLogger().info(String.format("Activating resource gateway of type %s", getGatewayType()));
     }
 
     /**
@@ -325,7 +276,7 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
      */
     @Override
     protected Logger getLogger(){
-        return AbstractGateway.getLogger(getAdapterName());
+        return AbstractGateway.getLogger(getGatewayType());
     }
 
     /**
@@ -336,7 +287,7 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
      */
     @Override
     protected final void deactivate(final ActivationPropertyReader activationProperties) throws Exception {
-        getLogger().info(String.format("Unloading adapters of type %s", getAdapterName()));
+        getLogger().info(String.format("Unloading gateway of type %s", getGatewayType()));
     }
 
     /**
@@ -348,7 +299,7 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
     @Override
     protected void activationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
         getLogger().log(Level.SEVERE, String.format("Unable to activate %s resource adapter instance",
-                        getAdapterName()),
+                        getGatewayType()),
                 e);
     }
 
@@ -361,28 +312,28 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
     @Override
     protected void deactivationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
         getLogger().log(Level.SEVERE, String.format("Unable to deactivate %s resource adapter instance",
-                        getAdapterName()),
+                        getGatewayType()),
                 e);
     }
 
     private static List<Bundle> getResourceAdapterBundles(final BundleContext context){
         return Arrays.stream(context.getBundles())
-                .filter(Gateway::isResourceAdapterBundle)
+                .filter(Gateway::isGatewayBundle)
                 .collect(Collectors.toCollection(LinkedList::new));
     }
 
     static List<Bundle> getResourceAdapterBundles(final BundleContext context, final String adapterName) {
         return Arrays.stream(context.getBundles())
-                .filter(bnd -> Gateway.getResourceAdapterType(bnd).equals(adapterName))
+                .filter(bnd -> Gateway.getGatewayType(bnd).equals(adapterName))
                 .collect(Collectors.toCollection(LinkedList::new));
     }
 
     /**
-     * Stops all managed resource adapters loaded into the current OSGi environment.
+     * Stops all managed resource gateway loaded into the current OSGi environment.
      * @param context The context of the calling bundle. Cannot be {@literal null}.
      * @return Number of stopped bundles.
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
-     * @throws BundleException Unable to stop adapters.
+     * @throws BundleException Unable to stop gateway.
      */
     public static int stopResourceAdapters(final BundleContext context) throws BundleException {
         if(context == null) throw new IllegalStateException("context is null.");
@@ -400,7 +351,7 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
      * @param adapterName The name of the adapter to stop.
      * @return {@literal true}, if bundle with the specified adapter exists; otherwise, {@literal false}.
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
-     * @throws BundleException Unable to stop adapters.
+     * @throws BundleException Unable to stop gateway.
      */
     public static boolean stopResourceAdapter(final BundleContext context, final String adapterName) throws BundleException {
         if(context == null) throw new IllegalArgumentException("context is null.");
@@ -413,10 +364,10 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
     }
 
     /**
-     * Starts all managed resource adapters loaded into the current OSGi environment.
+     * Starts all managed resource gateway loaded into the current OSGi environment.
      * @param context The context of the calling bundle. Cannot be {@literal null}.
-     * @return Number of started bundles with adapters.
-     * @throws BundleException Unable to start adapters.
+     * @return Number of started bundles with gateway.
+     * @throws BundleException Unable to start gateway.
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
      */
     public static int startResourceAdapters(final BundleContext context) throws BundleException{
@@ -449,30 +400,30 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
 
 
     /**
-     * Gets a collection of installed adapters (system names).
+     * Gets a collection of installed gateway (system names).
      * @param context The context of the caller bundle. Cannot be {@literal null}.
      * @return A collection of installed adapter (system names).
      */
     public static Collection<String> getInstalledResourceAdapters(final BundleContext context) {
         final Collection<Bundle> candidates = getResourceAdapterBundles(context);
         return candidates.stream()
-                .map(Gateway::getResourceAdapterType)
+                .map(Gateway::getGatewayType)
                 .filter(name -> !isNullOrEmpty(name))
                 .collect(Collectors.toCollection(HashSet::new));
     }
 
     static String createFilter(final String adapterName, final String filter){
         return filter == null || filter.isEmpty() ?
-                String.format("(%s=%s)", ADAPTER_TYPE_IDENTITY_PROPERTY, adapterName):
-                String.format("(&(%s=%s)%s)", ADAPTER_TYPE_IDENTITY_PROPERTY, adapterName, filter);
+                String.format("(%s=%s)", GATEWAY_TYPE_IDENTITY_PROPERTY, adapterName):
+                String.format("(&(%s=%s)%s)", GATEWAY_TYPE_IDENTITY_PROPERTY, adapterName, filter);
     }
 
     static String createFilter(final String adapterInstanceName){
-        return String.format("(%s=%s)", ADAPTER_INSTANCE_IDENTITY_PROPERTY, adapterInstanceName);
+        return String.format("(%s=%s)", GATEWAY_INSTANCE_IDENTITY_PROPERTY, adapterInstanceName);
     }
 
     private static String getAdapterInstanceName(final Dictionary<String, ?> identity){
-        return Objects.toString(identity.get(ADAPTER_INSTANCE_IDENTITY_PROPERTY), "");
+        return Objects.toString(identity.get(GATEWAY_INSTANCE_IDENTITY_PROPERTY), "");
     }
 
     static String getAdapterInstanceName(final ServiceReference<Gateway> adapterInstance) {

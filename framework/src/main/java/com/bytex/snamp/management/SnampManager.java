@@ -13,14 +13,14 @@ import java.util.Collection;
 public interface SnampManager extends SupportService {
 
     /**
-     * Returns a read-only collection of installed resource connectors.
-     * @return A read-only collection of installed resource connectors.
+     * Returns a read-only collection of installed resource connector.
+     * @return A read-only collection of installed resource connector.
      */
     Collection<? extends SnampComponentDescriptor> getInstalledResourceConnectors();
 
     /**
-     * Returns a read-only collection of installed resource adapters.
-     * @return A read-only collection of installed resource adapters.
+     * Returns a read-only collection of installed resource gateway.
+     * @return A read-only collection of installed resource gateway.
      */
     Collection<? extends SnampComponentDescriptor> getInstalledResourceAdapters();
 

@@ -9,7 +9,7 @@ import java.util.Locale;
  * Represents description of the SNAMP plugin configuration model.
  * <p>
  *     This interface provides description of additional configuration properties that can be obtained
- *     via {@link ResourceAdapterConfiguration#getParameters()},
+ *     via {@link GatewayConfiguration#getParameters()},
  *     {@link ManagedResourceConfiguration#getParameters()},
  *     {@link ManagedResourceConfiguration.AttributeConfiguration#getParameters()}
  *     or {@link ManagedResourceConfiguration.EventConfiguration#getParameters()}.
@@ -94,7 +94,7 @@ public interface ConfigurationEntityDescription<T extends EntityConfiguration> e
     /**
      * Returns a type of the configuration entity.
      * @return A type of the configuration entity.
-     * @see ResourceAdapterConfiguration
+     * @see GatewayConfiguration
      * @see ManagedResourceConfiguration
      * @see ManagedResourceConfiguration.EventConfiguration
      * @see ManagedResourceConfiguration.AttributeConfiguration

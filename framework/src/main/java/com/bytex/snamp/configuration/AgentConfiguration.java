@@ -36,7 +36,7 @@ public interface AgentConfiguration extends Cloneable {
 
     /**
      * Obtains a repository of configuration entities.
-     * @param entityType Type of entity. You can use {@link ManagedResourceConfiguration} or {@link ResourceAdapterConfiguration} as entities.
+     * @param entityType Type of entity. You can use {@link ManagedResourceConfiguration} or {@link GatewayConfiguration} as entities.
      * @param <E> Type of entity.
      * @return A repository of configuration entities; or {@literal null}, if entity type is not supported by SNAMP configuration subsystem.
      * @since 1.2
@@ -46,7 +46,7 @@ public interface AgentConfiguration extends Cloneable {
     /**
      * Creates a new instance of entity configuration.
      * @param entityType Type of entity. Can be {@link ManagedResourceConfiguration},
-     *                  {@link ResourceAdapterConfiguration}. {@link ManagedResourceConfiguration.AttributeConfiguration}, {@link ManagedResourceConfiguration.EventConfiguration}, {@link ManagedResourceConfiguration.OperationConfiguration}.
+     *                  {@link GatewayConfiguration}. {@link ManagedResourceConfiguration.AttributeConfiguration}, {@link ManagedResourceConfiguration.EventConfiguration}, {@link ManagedResourceConfiguration.OperationConfiguration}.
      * @param <E> Type of requested entity.
      * @return A new instance of entity configuration; or {@literal null}, if entity is not supported.
      */

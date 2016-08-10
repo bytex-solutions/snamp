@@ -11,7 +11,7 @@ import java.util.Collection;
 
 
 /**
- * The type Installed connectors attribute.
+ * The type Installed connector attribute.
  * @author Evgeniy Kirichenko
  */
 final class InstalledConnectorsAttribute extends OpenMBean.OpenAttribute<String [], ArrayType<String []>> {
@@ -19,7 +19,7 @@ final class InstalledConnectorsAttribute extends OpenMBean.OpenAttribute<String 
     private static final String NAME = "InstalledConnectors";
 
     /**
-     * Instantiates a new Installed connectors attribute.
+     * Instantiates a new Installed connector attribute.
      *
      * @throws OpenDataException the open data exception
      */

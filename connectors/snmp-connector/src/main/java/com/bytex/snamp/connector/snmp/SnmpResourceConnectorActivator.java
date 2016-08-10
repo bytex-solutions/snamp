@@ -75,12 +75,7 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
     public SnmpResourceConnectorActivator() {
         super(new SnmpConnectorFactory(),
                 new RequiredService<?>[]{new SimpleDependency<>(ThreadPoolRepository.class)},
-                new SupportConnectorServiceManager<?, ?>[]{new ConfigurationEntityDescriptionManager<SnmpConnectorDescriptionProvider>() {
-                    @Override
-                    protected SnmpConnectorDescriptionProvider createConfigurationDescriptionProvider(final RequiredService<?>... dependencies) throws Exception {
-                        return SnmpConnectorDescriptionProvider.getInstance();
-                    }
-                },
+                new SupportConnectorServiceManager<?, ?>[]{configurationDescriptor(SnmpConnectorDescriptionProvider::getInstance),
                         new SimpleDiscoveryServiceManager<SnmpClient>(new SimpleDependency<>(ThreadPoolRepository.class)) {
                             @Override
                             protected SnmpClient createManagementInformationProvider(final String connectionString, final Map<String, String> connectionOptions, final RequiredService<?>... dependencies) throws Exception {

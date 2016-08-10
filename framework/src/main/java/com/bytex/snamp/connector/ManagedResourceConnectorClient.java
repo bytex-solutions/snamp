@@ -271,7 +271,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
     }
 
     /**
-     * Gets a map of available management connectors in the current OSGi environment.
+     * Gets a map of available management connector in the current OSGi environment.
      * @param context The context of the caller bundle.
      * @return A map of management connector references where the key of the map represents
      *          a name of the management target.

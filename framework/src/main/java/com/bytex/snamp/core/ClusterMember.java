@@ -33,8 +33,8 @@ public interface ClusterMember extends SupportService {
     /**
      * Determines whether this node is active.
      * <p>
-     *   Passive SNAMP node ignores any notifications received by resource connectors.
-     *   As a result, all resource adapters will not route notifications to the connected
+     *   Passive SNAMP node ignores any notifications received by resource connector.
+     *   As a result, all resource gateway will not route notifications to the connected
      *   monitoring tools. But you can still read any attributes.
      * @return {@literal true}, if this node is active; otherwise, {@literal false}.
      */

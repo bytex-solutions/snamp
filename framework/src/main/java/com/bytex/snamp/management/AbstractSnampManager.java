@@ -347,9 +347,9 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
     protected abstract ResourceConnectorDescriptor createResourceConnectorDescriptor(final String systemName);
 
     /**
-     * Returns a read-only collection of installed resource connectors.
+     * Returns a read-only collection of installed resource connector.
      *
-     * @return A read-only collection of installed resource connectors.
+     * @return A read-only collection of installed resource connector.
      */
     @Override
     public final Collection<? extends ResourceConnectorDescriptor> getInstalledResourceConnectors() {
@@ -365,9 +365,9 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
     protected abstract ResourceAdapterDescriptor createResourceAdapterDescriptor(final String systemName);
 
     /**
-     * Returns a read-only collection of installed resource adapters.
+     * Returns a read-only collection of installed resource gateway.
      *
-     * @return A read-only collection of installed resource adapters.
+     * @return A read-only collection of installed resource gateway.
      */
     @Override
     public final Collection<? extends ResourceAdapterDescriptor> getInstalledResourceAdapters() {
@@ -381,7 +381,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
      * @return {@literal true}, if the specified bundle is a part of SNAMP; otherwise, {@literal false}.
      */
     public static boolean isSnampComponent(final Bundle bnd){
-        if(Gateway.isResourceAdapterBundle(bnd) ||
+        if(Gateway.isGatewayBundle(bnd) ||
                 ManagedResourceConnector.isResourceConnectorBundle(bnd)) return false;
         final String importPackages = bnd.getHeaders().get(Constants.IMPORT_PACKAGE);
         if(importPackages == null) return false;

@@ -10,7 +10,7 @@ import java.util.Map;
  * @since 1.0
  * @version 2.0
  */
-public interface ManagedResourceConfiguration extends EntityConfiguration {
+public interface ManagedResourceConfiguration extends TypedEntityConfiguration {
 
     /**
      * Represents name of configuration parameter that can be used to enable Smart mode of the connector.
@@ -121,19 +121,11 @@ public interface ManagedResourceConfiguration extends EntityConfiguration {
          */
         Duration getInvocationTimeout();
 
-        default long getInvocationTimeout(final TemporalUnit unit){
-            return getInvocationTimeout().get(unit);
-        }
-
         /**
          * Sets timeout of operation invocation.
          * @param value A new timeout value.
          */
         void setInvocationTimeout(final Duration value);
-
-        default void setInvocationTimeout(final long amount, final TemporalUnit unit){
-            setInvocationTimeout(Duration.of(amount, unit));
-        }
     }
 
     /**
@@ -149,20 +141,6 @@ public interface ManagedResourceConfiguration extends EntityConfiguration {
     void setConnectionString(final String connectionString);
 
     /**
-     * Gets the type of the management connector that is used to organize monitoring data exchange between
-     * agent and the management provider.
-     * @return The management connector type.
-     */
-    String getConnectionType();
-
-    /**
-     * Sets the management connector that is used to organize monitoring data exchange between
-     * agent and the management provider.
-     * @param connectorType The management connector type.
-     */
-    void setConnectionType(final String connectorType);
-
-    /**
      * Gets a collection of configured manageable elements for this target.
      * @param featureType The type of the manageable element.
      * @param <T> The type of the manageable element.
@@ -171,10 +149,4 @@ public interface ManagedResourceConfiguration extends EntityConfiguration {
      * @see EventConfiguration
      */
     <T extends FeatureConfiguration> EntityMap<? extends T> getFeatures(final Class<T> featureType);
-
-    /**
-     * Returns the dictionary of additional configuration parameters.
-     * @return The dictionary of additional configuration parameters.
-     */
-    Map<String, String> getParameters();
 }

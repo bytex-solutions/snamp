@@ -426,7 +426,7 @@ final class SerializableManagedResourceConfiguration extends AbstractEntityConfi
      * @return The management connector type.
      */
     @Override
-    public String getConnectionType() {
+    public String getType() {
         return connectionType;
     }
 
@@ -437,7 +437,7 @@ final class SerializableManagedResourceConfiguration extends AbstractEntityConfi
      * @param connectorType The management connector type.
      */
     @Override
-    public void setConnectionType(final String connectorType) {
+    public void setType(final String connectorType) {
         markAsModified();
         this.connectionType = connectionType != null ? connectorType : "";
     }
@@ -501,7 +501,7 @@ final class SerializableManagedResourceConfiguration extends AbstractEntityConfi
 
     private boolean equals(final ManagedResourceConfiguration other){
         return Objects.equals(getConnectionString(),  other.getConnectionString()) &&
-                Objects.equals(getConnectionType(), other.getConnectionType()) &&
+                Objects.equals(getType(), other.getType()) &&
                 attributes.equals(other.getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class)) &&
                 events.equals(other.getFeatures(ManagedResourceConfiguration.EventConfiguration.class)) &&
                 operations.equals(other.getFeatures(ManagedResourceConfiguration.OperationConfiguration.class)) &&
