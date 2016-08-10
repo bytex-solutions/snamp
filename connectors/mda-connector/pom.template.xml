@@ -9,7 +9,7 @@
         <version>2.0.0</version>
     </parent>
     <artifactId>mda-connector</artifactId>
-    <version>${snamp.connectors.mda.version}</version>
+    <version>${snamp.connector.mda.version}</version>
     <packaging>bundle</packaging>
     <name>Monitoring Data Acquisition Connector</name>
     <description>Passive Resource Connector that provides HTTP/Thrift endpoints for data submitting</description>

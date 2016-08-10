@@ -143,7 +143,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
                                              final String resourceName,
                                                final BundleContext context) throws TimeoutException, InterruptedException, BundleException, ExecutionException {
         try(final LogicalOperation ignored = ConnectorTestLogicalOperation.stopResourceConnector(connectorType, testName)) {
-            assertTrue(String.format("Connector %s is not deployed", connectorType), ManagedResourceActivator.stopResourceConnector(context, connectorType));
+            assertTrue(String.format("Connector %s is not deployed", connectorType), ManagedResourceActivator.disableConnector(context, connectorType));
             waitForNoConnector(Duration.ofSeconds(10), resourceName, context);
         }
     }
@@ -157,7 +157,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
                                               final String resourceName,
                                               final BundleContext context) throws TimeoutException, InterruptedException, BundleException, ExecutionException {
         try (final LogicalOperation ignored = ConnectorTestLogicalOperation.startResourceConnector(connectorType, testName)) {
-            assertTrue(String.format("Connector %s is not deployed", connectorType), ManagedResourceActivator.startResourceConnector(context, connectorType));
+            assertTrue(String.format("Connector %s is not deployed", connectorType), ManagedResourceActivator.enableConnector(context, connectorType));
             waitForConnector(Duration.ofSeconds(10), resourceName, context);
         }
     }

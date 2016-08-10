@@ -8,7 +8,7 @@
         <version>2.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <version>${snamp.connectors.modbus.version}</version>
+    <version>${snamp.connector.modbus.version}</version>
     <artifactId>modbus-connector-feature</artifactId>
     <name>Modbus Connector Karaf Feature</name>
     <packaging>kar</packaging>

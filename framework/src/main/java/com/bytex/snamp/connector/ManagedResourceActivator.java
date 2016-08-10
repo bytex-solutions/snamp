@@ -482,7 +482,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @since 1.0
      * @version 2.0
      * @see #maintenanceService(Supplier)
-     * @see #discoveryService(Supplier)
+     * @see #discoveryService(Function, RequiredService[])
      * @see #configurationDescriptor(Supplier)
      */
     protected static abstract class SupportConnectorServiceManager<S extends FrameworkService, T extends S> extends ProvidedService<S, T> {
@@ -745,7 +745,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
      * @throws org.osgi.framework.BundleException Unable to stop resource connector.
      */
-    public static int stopResourceConnectors(final BundleContext context) throws BundleException {
+    public static int disableConnectors(final BundleContext context) throws BundleException {
         if(context == null) throw new IllegalArgumentException("context is null.");
         int count = 0;
         for(final Bundle bnd: getResourceConnectorBundles(context)) {
@@ -763,7 +763,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @throws BundleException Unable to stop resource connector.
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
      */
-    public static boolean stopResourceConnector(final BundleContext context, final String connectorName) throws BundleException {
+    public static boolean disableConnector(final BundleContext context, final String connectorName) throws BundleException {
         boolean success = false;
         for(final Bundle bnd: getResourceConnectorBundles(context, connectorName)) {
             bnd.stop();
@@ -779,7 +779,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
      * @throws org.osgi.framework.BundleException Unable to start resource connector.
      */
-    public static int startResourceConnectors(final BundleContext context) throws BundleException{
+    public static int enableConnectors(final BundleContext context) throws BundleException{
         if(context == null) throw new IllegalArgumentException("context is null.");
         int count = 0;
         for(final Bundle bnd: getResourceConnectorBundles(context)) {
@@ -797,7 +797,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
      * @throws BundleException Unable to start resource connector.
      */
-    public static boolean startResourceConnector(final BundleContext context, final String connectorName) throws BundleException{
+    public static boolean enableConnector(final BundleContext context, final String connectorName) throws BundleException{
         if(context == null) throw new IllegalArgumentException("context is null.");
         boolean success = false;
         for(final Bundle bnd: getResourceConnectorBundles(context, connectorName)) {

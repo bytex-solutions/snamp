@@ -47,29 +47,29 @@
     <snamp.framework.version>2.0.0</snamp.framework.version>
     <snamp.framework.maxVersion>3</snamp.framework.maxVersion>
 
-    <snamp.adapters.http.version>2.0.0</snamp.adapters.http.version>
-    <snamp.adapters.jmx.version>2.0.0</snamp.adapters.jmx.version>
-    <snamp.adapters.nagios.version>2.0.0</snamp.adapters.nagios.version>
-    <snamp.adapters.nrdp.version>2.0.0</snamp.adapters.nrdp.version>
-    <snamp.adapters.nsca.version>2.0.0</snamp.adapters.nsca.version>
-    <snamp.adapters.snmp.version>2.0.0</snamp.adapters.snmp.version>
-    <snamp.adapters.ssh.version>2.0.0</snamp.adapters.ssh.version>
-    <snamp.adapters.syslog.version>2.0.0</snamp.adapters.syslog.version>
-    <snamp.adapters.xmpp.version>2.0.0</snamp.adapters.xmpp.version>
-    <snamp.adapters.groovy.version>2.0.0</snamp.adapters.groovy.version>
+    <snamp.gateway.http.version>2.0.0</snamp.gateway.http.version>
+    <snamp.gateway.jmx.version>2.0.0</snamp.gateway.jmx.version>
+    <snamp.gateway.nagios.version>2.0.0</snamp.gateway.nagios.version>
+    <snamp.gateway.nrdp.version>2.0.0</snamp.gateway.nrdp.version>
+    <snamp.gateway.nsca.version>2.0.0</snamp.gateway.nsca.version>
+    <snamp.gateway.snmp.version>2.0.0</snamp.gateway.snmp.version>
+    <snamp.gateway.ssh.version>2.0.0</snamp.gateway.ssh.version>
+    <snamp.gateway.syslog.version>2.0.0</snamp.gateway.syslog.version>
+    <snamp.gateway.xmpp.version>2.0.0</snamp.gateway.xmpp.version>
+    <snamp.gateway.groovy.version>2.0.0</snamp.gateway.groovy.version>
 
     <snamp.jmxhelper.version>2.0.0</snamp.jmxhelper.version>
     <snamp.management.version>2.0.0</snamp.management.version>
     <snamp.services.version>2.0.0</snamp.services.version>
 
-    <snamp.connectors.rshell.version>2.0.0</snamp.connectors.rshell.version>
-    <snamp.connectors.aggregator.version>2.0.0</snamp.connectors.aggregator.version>
-    <snamp.connectors.groovy.version>2.0.0</snamp.connectors.groovy.version>
-    <snamp.connectors.jmx.version>2.0.0</snamp.connectors.jmx.version>
-    <snamp.connectors.mda.version>2.0.0</snamp.connectors.mda.version>
-    <snamp.connectors.snmp.version>2.0.0</snamp.connectors.snmp.version>
-    <snamp.connectors.modbus.version>2.0.0</snamp.connectors.modbus.version>
-    <snamp.connectors.mq.version>2.0.0</snamp.connectors.mq.version>
+    <snamp.connector.rshell.version>2.0.0</snamp.connector.rshell.version>
+    <snamp.connector.aggregator.version>2.0.0</snamp.connector.aggregator.version>
+    <snamp.connector.groovy.version>2.0.0</snamp.connector.groovy.version>
+    <snamp.connector.jmx.version>2.0.0</snamp.connector.jmx.version>
+    <snamp.connector.mda.version>2.0.0</snamp.connector.mda.version>
+    <snamp.connector.snmp.version>2.0.0</snamp.connector.snmp.version>
+    <snamp.connector.modbus.version>2.0.0</snamp.connector.modbus.version>
+    <snamp.connector.mq.version>2.0.0</snamp.connector.mq.version>
   </properties>
   <version>2.0.0</version>
   <organization>
@@ -287,14 +287,14 @@
   <modules>
     <module>framework</module>
     <module>connectors</module>
-    <module>adapters</module>
+    <module>gateways</module>
     <module>third-party-libs/bundlized/snmp4j</module>
     <module>third-party-libs/bundlized/sshj</module>
     <module>infrastructure/jmx-helpers</module>
     <module>infrastructure/management</module>
     <module>infrastructure/internal-services</module>
     <module>features/platform-feature</module>
-    <module>features/adapters-features</module>
+    <module>features/gateways-features</module>
     <module>features/connectors-features</module>
     <module>features/wrapped-libs-for-tests</module>
     <module>osgi-tests</module>

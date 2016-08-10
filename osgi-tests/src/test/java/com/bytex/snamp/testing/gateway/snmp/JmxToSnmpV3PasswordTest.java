@@ -78,14 +78,14 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
     protected void afterStartTest(final BundleContext context) throws Exception  {
         startResourceConnector(context);
         syncWithAdapterStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
-                GatewayActivator.startResourceAdapter(context, ADAPTER_NAME);
+                GatewayActivator.enableGateway(context, ADAPTER_NAME);
                 return null;
         }, Duration.ofSeconds(4));
     }
 
     @Override
     protected void beforeCleanupTest(final BundleContext context) throws Exception {
-        GatewayActivator.stopResourceAdapter(context, ADAPTER_NAME);
+        GatewayActivator.disableGateway(context, ADAPTER_NAME);
         stopResourceConnector(context);
     }
 

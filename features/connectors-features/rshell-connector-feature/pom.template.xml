@@ -11,7 +11,7 @@
     <name>RShell Connector Karaf Feature</name>
     <description>KAR package for RShell Connector</description>
     <artifactId>rshell-connector-feature</artifactId>
-    <version>${snamp.connectors.rshell.version}</version>
+    <version>${snamp.connector.rshell.version}</version>
     <packaging>kar</packaging>
     <build>
         <resources>

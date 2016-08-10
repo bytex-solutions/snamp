@@ -29,7 +29,7 @@ final class InstalledAdaptersAttribute extends OpenMBean.OpenAttribute<String[],
 
     @Override
     public String[] getValue() throws OpenDataException{
-        final Collection<String> result = GatewayActivator.getInstalledResourceAdapters(Utils.getBundleContextOfObject(this));
+        final Collection<String> result = GatewayActivator.getInstalledGateways(Utils.getBundleContextOfObject(this));
         return result.toArray(new String[result.size()]);
     }
 }

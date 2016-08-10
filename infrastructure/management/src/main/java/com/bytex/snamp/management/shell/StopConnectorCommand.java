@@ -14,16 +14,16 @@ import org.osgi.framework.BundleException;
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
-    name = "stop-connector",
-    description = "Stops bundle with resource connector")
+    name = "disable-connector",
+    description = "Disables bundle with resource connector")
 public final class StopConnectorCommand extends OsgiCommandSupport implements SnampShellCommand {
-    @Argument(name = "systemName", index = 0, required = true, description = "System name of resource connector")
+    @Argument(name = "connectorType", index = 0, required = true, description = "Type of resource connector")
     @SpecialUse
-    private String connectorName = "";
+    private String connectorType = "";
 
     @Override
     protected Void doExecute() throws BundleException {
-        ManagedResourceActivator.stopResourceConnector(bundleContext, connectorName);
+        ManagedResourceActivator.disableConnector(bundleContext, connectorType);
         return null;
     }
 }

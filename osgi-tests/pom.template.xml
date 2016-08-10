@@ -288,7 +288,7 @@
         <dependency>
             <groupId>com.bytex.snamp</groupId>
             <artifactId>rshell-connector</artifactId>
-            <version>${snamp.connectors.rshell.version}</version>
+            <version>${snamp.connector.rshell.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -319,14 +319,14 @@
         </dependency>
         <dependency>
             <groupId>com.bytex.snamp</groupId>
-            <artifactId>xmpp-adapter</artifactId>
-            <version>${snamp.adapters.xmpp.version}</version>
+            <artifactId>xmpp-gateway</artifactId>
+            <version>${snamp.gateway.xmpp.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.bytex.snamp</groupId>
             <artifactId>modbus-connector</artifactId>
-            <version>${snamp.connectors.modbus.version}</version>
+            <version>${snamp.connector.modbus.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -362,7 +362,7 @@
         <dependency>
             <groupId>com.bytex.snamp</groupId>
             <artifactId>mq-connector</artifactId>
-            <version>${snamp.connectors.mq.version}</version>
+            <version>${snamp.connector.mq.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

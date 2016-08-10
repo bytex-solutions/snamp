@@ -121,11 +121,11 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
     public void startStopTest() throws Exception {
         final Duration TIMEOUT = Duration.ofSeconds(15);
         //stop adapter and connector
-        GatewayActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        GatewayActivator.disableGateway(getTestBundleContext(), ADAPTER_NAME);
         stopResourceConnector(getTestBundleContext());
         //start empty adapter
         syncWithAdapterStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
-                GatewayActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+                GatewayActivator.enableGateway(getTestBundleContext(), ADAPTER_NAME);
                 return null;
         }, TIMEOUT);
         //start connector, this causes attribute registration and SNMP adapter restarting,
@@ -139,7 +139,7 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
         //now stops the connector again
         stopResourceConnector(getTestBundleContext());
         //stop the adapter
-        GatewayActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        GatewayActivator.disableGateway(getTestBundleContext(), ADAPTER_NAME);
     }
 
     @Test
@@ -249,14 +249,14 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
         syncWithAdapterStartedEvent(ADAPTER_NAME, (BundleExceptionCallable)() -> {
-                GatewayActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+                GatewayActivator.enableGateway(getTestBundleContext(), ADAPTER_NAME);
                 return null;
         }, Duration.ofSeconds(15));
     }
 
     @Override
     protected void beforeCleanupTest(final BundleContext context) throws Exception {
-        GatewayActivator.stopResourceAdapter(context, ADAPTER_NAME);
+        GatewayActivator.disableGateway(context, ADAPTER_NAME);
         stopResourceConnector(context);
     }
 

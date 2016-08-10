@@ -9,7 +9,7 @@
     </parent>
     <artifactId>modbus-connector</artifactId>
     <modelVersion>4.0.0</modelVersion>
-    <version>${snamp.connectors.modbus.version}</version>
+    <version>${snamp.connector.modbus.version}</version>
     <packaging>bundle</packaging>
     <name>Modbus Connector</name>
     <description>SNAMP resource connector for Modbus (over TCP and UDP) protocol</description>

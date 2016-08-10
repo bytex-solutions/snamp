@@ -72,14 +72,14 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
         syncWithAdapterStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
-                GatewayActivator.startResourceAdapter(context, ADAPTER_NAME);
+                GatewayActivator.enableGateway(context, ADAPTER_NAME);
                 return null;
         }, Duration.ofSeconds(4));
     }
 
     @Override
     protected void beforeCleanupTest(final BundleContext context) throws Exception {
-        GatewayActivator.stopResourceAdapter(context, ADAPTER_NAME);
+        GatewayActivator.disableGateway(context, ADAPTER_NAME);
         stopResourceConnector(context);
     }
 
@@ -118,11 +118,11 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
     public void startStopTest() throws Exception {
         final Duration TIMEOUT = Duration.ofSeconds(14);
         //stop adapter and connector
-        GatewayActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        GatewayActivator.disableGateway(getTestBundleContext(), ADAPTER_NAME);
         stopResourceConnector(getTestBundleContext());
         //start empty adapter
         syncWithAdapterStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
-                GatewayActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+                GatewayActivator.enableGateway(getTestBundleContext(), ADAPTER_NAME);
                 return null;
         }, TIMEOUT);
         //start connector, this causes attribute registration and SNMP adapter updating
@@ -135,7 +135,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
         //now stops the connector again
         stopResourceConnector(getTestBundleContext());
         //stop the adapter
-        GatewayActivator.stopResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+        GatewayActivator.disableGateway(getTestBundleContext(), ADAPTER_NAME);
     }
 
     @Test

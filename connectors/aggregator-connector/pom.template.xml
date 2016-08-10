@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>aggregator-connector</artifactId>
-    <version>${snamp.connectors.aggregator.version}</version>
+    <version>${snamp.connector.aggregator.version}</version>
     <packaging>bundle</packaging>
     <name>Managed Resource Aggregator</name>
     <description>SNAMP management connector used for aggregating other resource connectors.</description>

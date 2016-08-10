@@ -4,18 +4,18 @@ import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.internal.CMResourceAdapterParser;
-import com.bytex.snamp.core.AbstractBundleActivator;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.management.Maintainable;
 import com.google.common.collect.ObjectArrays;
-import org.osgi.framework.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.ServiceReference;
 import org.osgi.service.cm.ConfigurationAdmin;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -335,7 +335,7 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
      * @throws BundleException Unable to stop gateway.
      */
-    public static int stopResourceAdapters(final BundleContext context) throws BundleException {
+    public static int disableGateways(final BundleContext context) throws BundleException {
         if(context == null) throw new IllegalStateException("context is null.");
         int count = 0;
         for(final Bundle bnd: getResourceAdapterBundles(context)) {
@@ -353,7 +353,7 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
      * @throws BundleException Unable to stop gateway.
      */
-    public static boolean stopResourceAdapter(final BundleContext context, final String adapterName) throws BundleException {
+    public static boolean disableGateway(final BundleContext context, final String adapterName) throws BundleException {
         if(context == null) throw new IllegalArgumentException("context is null.");
         boolean success = false;
         for(final Bundle bnd: getResourceAdapterBundles(context, adapterName)) {
@@ -370,7 +370,7 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
      * @throws BundleException Unable to start gateway.
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
      */
-    public static int startResourceAdapters(final BundleContext context) throws BundleException{
+    public static int enableGateways(final BundleContext context) throws BundleException{
         if(context == null) throw new IllegalArgumentException("context is null.");
         int count = 0;
         for(final Bundle bnd: getResourceAdapterBundles(context)) {
@@ -388,7 +388,7 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
      * @throws BundleException Unable to start adapter.
      */
-    public static boolean startResourceAdapter(final BundleContext context, final String adapterName) throws BundleException{
+    public static boolean enableGateway(final BundleContext context, final String adapterName) throws BundleException{
         if(context == null) throw new IllegalArgumentException("context is null.");
         boolean success = false;
         for(final Bundle bnd: getResourceAdapterBundles(context, adapterName)) {
@@ -400,11 +400,11 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
 
 
     /**
-     * Gets a collection of installed gateway (system names).
+     * Gets a collection of installed gateway (types).
      * @param context The context of the caller bundle. Cannot be {@literal null}.
      * @return A collection of installed adapter (system names).
      */
-    public static Collection<String> getInstalledResourceAdapters(final BundleContext context) {
+    public static Collection<String> getInstalledGateways(final BundleContext context) {
         final Collection<Bundle> candidates = getResourceAdapterBundles(context);
         return candidates.stream()
                 .map(Gateway::getGatewayType)
@@ -422,13 +422,13 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
         return String.format("(%s=%s)", GATEWAY_INSTANCE_IDENTITY_PROPERTY, adapterInstanceName);
     }
 
-    private static String getAdapterInstanceName(final Dictionary<String, ?> identity){
+    private static String getGatewayInstance(final Dictionary<String, ?> identity){
         return Objects.toString(identity.get(GATEWAY_INSTANCE_IDENTITY_PROPERTY), "");
     }
 
-    static String getAdapterInstanceName(final ServiceReference<Gateway> adapterInstance) {
-        return adapterInstance != null ?
-                getAdapterInstanceName(getProperties(adapterInstance)) :
+    static String getGatewayInstance(final ServiceReference<Gateway> gatewayInstance) {
+        return gatewayInstance != null ?
+                getGatewayInstance(getProperties(gatewayInstance)) :
                 "";
     }
 }

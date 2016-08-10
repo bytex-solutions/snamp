@@ -235,14 +235,14 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
         syncWithAdapterStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
-                GatewayActivator.startResourceAdapter(context, ADAPTER_NAME);
+                GatewayActivator.enableGateway(context, ADAPTER_NAME);
                 return null;
         }, Duration.ofMinutes(4));
     }
 
     @Override
     protected void beforeCleanupTest(final BundleContext context) throws Exception {
-        GatewayActivator.stopResourceAdapter(context, ADAPTER_NAME);
+        GatewayActivator.disableGateway(context, ADAPTER_NAME);
         stopResourceConnector(context);
     }
 

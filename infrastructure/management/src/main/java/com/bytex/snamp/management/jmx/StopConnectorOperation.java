@@ -27,6 +27,6 @@ final class StopConnectorOperation extends AbstractConnectorOperation{
 
     @Override
     void invoke(final String resourceName) throws BundleException {
-        ManagedResourceActivator.stopResourceConnector(getBundleContextOfObject(this), resourceName);
+        ManagedResourceActivator.disableConnector(getBundleContextOfObject(this), resourceName);
     }
 }

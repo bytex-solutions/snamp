@@ -106,7 +106,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
 
     @Test
     public void adapterConfigurationTest() throws Exception {
-        runCommand("snamp:configure-adapter -p k=v -p key=value instance2 dummy");
+        runCommand("snamp:configure-gateway -p k=v -p key=value instance2 dummy");
         //saving configuration is asynchronous process therefore it is necessary to wait
         Thread.sleep(500);
         processConfiguration(config -> {
@@ -115,14 +115,14 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
             assertEquals("v", config.getEntities(GatewayConfiguration.class).get("instance2").getParameters().get("k"));
             return false;
         });
-        runCommand("snamp:delete-adapter-param instance2 k");
+        runCommand("snamp:delete-gateway-param instance2 k");
         Thread.sleep(500);
         processConfiguration(config -> {
             assertTrue(config.getEntities(GatewayConfiguration.class).containsKey("instance2"));
             assertFalse(config.getEntities(GatewayConfiguration.class).get("instance2").getParameters().containsKey("k"));
             return false;
         });
-        runCommand("snamp:delete-adapter instance2");
+        runCommand("snamp:delete-gateway instance2");
         Thread.sleep(500);
         processConfiguration(config -> {
             assertFalse(config.getEntities(GatewayConfiguration.class).containsKey("instance2"));
@@ -132,8 +132,8 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
 
     @Test
     public void startStopAdapterTest() throws Exception {
-        runCommand("snamp:stop-adapter groovy");
-        runCommand("snamp:start-adapter groovy");
+        runCommand("snamp:disable-gateway groovy");
+        runCommand("snamp:enable-gateway groovy");
     }
 
     @Test

@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <name>SNMP Connector</name>
-    <version>${snamp.connectors.snmp.version}</version>
+    <version>${snamp.connector.snmp.version}</version>
     <description>SNMP-compliant managed resource connector</description>
     <artifactId>snmp-connector</artifactId>
     <packaging>bundle</packaging>

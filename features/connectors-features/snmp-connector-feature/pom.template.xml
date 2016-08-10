@@ -11,7 +11,7 @@
     <packaging>kar</packaging>
     <artifactId>snmp-connector-feature</artifactId>
     <name>SNMP Connector Karaf Feature</name>
-    <version>${snamp.connectors.snmp.version}</version>
+    <version>${snamp.connector.snmp.version}</version>
     <build>
         <resources>
             <resource>

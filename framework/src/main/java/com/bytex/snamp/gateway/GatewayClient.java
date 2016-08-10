@@ -272,7 +272,7 @@ public final class GatewayClient extends ServiceHolder<Gateway> {
     }
 
     public static String getAdapterInstanceName(final ServiceReference<Gateway> adapterInstance){
-        return GatewayActivator.getAdapterInstanceName(adapterInstance);
+        return GatewayActivator.getGatewayInstance(adapterInstance);
     }
 
     /**

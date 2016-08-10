@@ -25,6 +25,6 @@ final class StopAdapterOperation extends AbstractAdapterOperation {
 
     @Override
     void invoke(final String adapterInstance) throws Exception {
-        GatewayActivator.stopResourceAdapter(getBundleContextOfObject(this), adapterInstance);
+        GatewayActivator.disableGateway(getBundleContextOfObject(this), adapterInstance);
     }
 }

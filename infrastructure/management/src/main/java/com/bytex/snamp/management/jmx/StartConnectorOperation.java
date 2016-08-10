@@ -27,6 +27,6 @@ final class StartConnectorOperation extends AbstractConnectorOperation {
 
     @Override
     void invoke(final String resourceName) throws BundleException {
-        ManagedResourceActivator.startResourceConnector(getBundleContextOfObject(this), resourceName);
+        ManagedResourceActivator.enableConnector(getBundleContextOfObject(this), resourceName);
     }
 }

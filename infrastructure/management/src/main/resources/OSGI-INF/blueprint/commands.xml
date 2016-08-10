@@ -17,22 +17,22 @@
             <action class="com.bytex.snamp.management.shell.ConfiguredAdaptersCommand"/>
         </command>
         <command>
-            <action class="com.bytex.snamp.management.shell.ConfigAdapterInstanceCommand"/>
+            <action class="com.bytex.snamp.management.shell.ConfigGatewayInstanceCommand"/>
         </command>
         <command>
-            <action class="com.bytex.snamp.management.shell.DeleteAdapterInstanceCommand"/>
+            <action class="com.bytex.snamp.management.shell.DeleteGatewayInstanceCommand"/>
         </command>
         <command>
-            <action class="com.bytex.snamp.management.shell.DeleteAdapterParameterCommand"/>
+            <action class="com.bytex.snamp.management.shell.DeleteGatewayParameterCommand"/>
         </command>
         <command>
-            <action class="com.bytex.snamp.management.shell.StartAdapterCommand"/>
+            <action class="com.bytex.snamp.management.shell.EnableGatewayCommand"/>
         </command>
         <command>
-            <action class="com.bytex.snamp.management.shell.StopAdapterCommand"/>
+            <action class="com.bytex.snamp.management.shell.DisableGatewayCommand"/>
         </command>
         <command>
-            <action class="com.bytex.snamp.management.shell.StartConnectorCommand"/>
+            <action class="com.bytex.snamp.management.shell.EnableConnectorCommand"/>
         </command>
         <command>
             <action class="com.bytex.snamp.management.shell.StopConnectorCommand"/>

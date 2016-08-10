@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>groovy-connector</artifactId>
-    <version>${snamp.connectors.groovy.version}</version>
+    <version>${snamp.connector.groovy.version}</version>
     <packaging>bundle</packaging>
     <name>Groovy Script Resource</name>
     <description>SNAMP resource connector used for Groovy scripts for management information aggregation</description>

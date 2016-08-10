@@ -37,7 +37,7 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
  */
 @SnampDependencies(SnampFeature.GROOVY_GATEWAY)
 public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
-    private static final String INSTANCE_NAME = "groovy-adapter";
+    private static final String INSTANCE_NAME = "groovy-gateway";
     private static final String ADAPTER_NAME = "groovy";
     private static final String COMMUNICATION_CHANNEL = "test-communication-channel";
     private static final Predicate<Object> NON_NOTIF = responseMessage -> !(responseMessage instanceof Notification);
@@ -191,14 +191,14 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
         syncWithAdapterStartedEvent(ADAPTER_NAME, (BundleExceptionCallable)() -> {
-                GatewayActivator.startResourceAdapter(getTestBundleContext(), ADAPTER_NAME);
+                GatewayActivator.enableGateway(getTestBundleContext(), ADAPTER_NAME);
                 return null;
         }, Duration.ofSeconds(15));
     }
 
     @Override
     protected void beforeCleanupTest(final BundleContext context) throws Exception {
-        GatewayActivator.stopResourceAdapter(context, ADAPTER_NAME);
+        GatewayActivator.disableGateway(context, ADAPTER_NAME);
         stopResourceConnector(context);
     }
 }

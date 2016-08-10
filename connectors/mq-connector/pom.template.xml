@@ -9,7 +9,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <version>${snamp.connectors.mq.version}</version>
+    <version>${snamp.connector.mq.version}</version>
     <artifactId>mq-connector</artifactId>
     <packaging>bundle</packaging>
     <name>Message Queue Connector</name>

@@ -8,7 +8,7 @@
         <version>2.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <version>${snamp.connectors.mq.version}</version>
+    <version>${snamp.connector.mq.version}</version>
     <artifactId>mq-connector-feature</artifactId>
     <name>JMS Connector Karaf Feature</name>
     <packaging>kar</packaging>

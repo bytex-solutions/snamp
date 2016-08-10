@@ -7,7 +7,7 @@
     <version>2.0.0</version>
   </parent>
   <artifactId>jmx-connector</artifactId>
-  <version>${snamp.connectors.jmx.version}</version>
+  <version>${snamp.connector.jmx.version}</version>
   <packaging>bundle</packaging>
   <name>JMX Connector</name>
   <description>SNAMP resource connector for JMX protocol</description>

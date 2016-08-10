@@ -27,6 +27,6 @@ final class StartAdapterOperation extends AbstractAdapterOperation {
 
     @Override
     void invoke(final String adapterInstance) throws BundleException {
-        GatewayActivator.startResourceAdapter(getBundleContextOfObject(this), adapterInstance);
+        GatewayActivator.enableGateway(getBundleContextOfObject(this), adapterInstance);
     }
 }

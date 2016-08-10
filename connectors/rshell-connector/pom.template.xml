@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <name>RShell Connector</name>
-    <version>${snamp.connectors.rshell.version}</version>
+    <version>${snamp.connector.rshell.version}</version>
     <packaging>bundle</packaging>
     <description>RShell resource connector that uses remote shells (ssh, rsh, rexec, local process execution) to obtain management information</description>
     <build>
