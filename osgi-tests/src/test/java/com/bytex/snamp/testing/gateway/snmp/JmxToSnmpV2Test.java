@@ -71,7 +71,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
-        syncWithAdapterStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
+        syncWithGatewayStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
                 GatewayActivator.enableGateway(context, ADAPTER_NAME);
                 return null;
         }, Duration.ofSeconds(4));
@@ -121,12 +121,12 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
         GatewayActivator.disableGateway(getTestBundleContext(), ADAPTER_NAME);
         stopResourceConnector(getTestBundleContext());
         //start empty adapter
-        syncWithAdapterStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
+        syncWithGatewayStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
                 GatewayActivator.enableGateway(getTestBundleContext(), ADAPTER_NAME);
                 return null;
         }, TIMEOUT);
         //start connector, this causes attribute registration and SNMP adapter updating
-        syncWithAdapterUpdatedEvent(ADAPTER_NAME, () -> {
+        syncWithGatewayUpdatedEvent(ADAPTER_NAME, () -> {
                 startResourceConnector(getTestBundleContext());
                 return null;
         }, TIMEOUT);

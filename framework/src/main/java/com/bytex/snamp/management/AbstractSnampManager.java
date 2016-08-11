@@ -402,18 +402,4 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
                 .map(bnd -> new InternalSnampComponentDescriptor(bnd.getBundleId()))
                 .collect(Collectors.toCollection(LinkedList::new));
     }
-
-    public final ResourceConnectorDescriptor getResourceConnector(final String connectorName) {
-        return getInstalledResourceConnectors().stream()
-                .filter(connector -> Objects.equals(connectorName, connector.get(SnampComponentDescriptor.CONNECTOR_TYPE_PROPERTY)))
-                .findFirst()
-                .orElseGet(() -> null);
-    }
-
-    public final GatewayDescriptor getResourceAdapter(final String adapterName) {
-        return getInstalledGateways().stream()
-                .filter(adapter -> Objects.equals(adapterName, adapter.get(SnampComponentDescriptor.GATEWAY_TYPE_PROPERTY)))
-                .findFirst()
-                .orElseGet(() -> null);
-    }
 }

@@ -111,10 +111,10 @@ public final class GatewayClient extends ServiceHolder<Gateway> {
     }
 
     private static String getAdapterBundleHeader(final BundleContext context,
-                                                   final String adapterName,
+                                                   final String gatewayType,
                                                    final String header,
                                                    final Locale loc){
-        final List<Bundle> candidates = GatewayActivator.getGatewayBundles(context, adapterName);
+        final List<Bundle> candidates = GatewayActivator.getGatewayBundles(context, gatewayType);
         return candidates.isEmpty() ? null : candidates.get(0).getHeaders(loc != null ? loc.toString() : null).get(header);
     }
 

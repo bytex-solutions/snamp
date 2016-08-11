@@ -115,7 +115,7 @@ public final class NscaAdapterTest extends AbstractJmxConnectorTest<TestOpenMBea
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
-        syncWithAdapterStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
+        syncWithGatewayStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
                 GatewayActivator.enableGateway(context, ADAPTER_NAME);
                 return null;
         }, Duration.ofMinutes(4));

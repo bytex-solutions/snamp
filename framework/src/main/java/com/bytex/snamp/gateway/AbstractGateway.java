@@ -580,21 +580,21 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
     }
 
     /**
-     * Gets name of the logger associated with the specified resource adapter.
-     * @param adapterName The name of the resource adapter.
+     * Gets name of the logger associated with the specified gateway.
+     * @param gatewayType Type of gateway.
      * @return The name of the logger.
      */
-    public static String getLoggerName(final String adapterName){
-        return String.format("com.bytex.snamp.gateway.%s", adapterName);
+    public static String getLoggerName(final String gatewayType){
+        return String.format("com.bytex.snamp.gateway.%s", gatewayType);
     }
 
     /**
-     * Gets logger associated with the specified resource adapter.
-     * @param adapterName The name of the resource adapter.
-     * @return The logger of the adapter.
+     * Gets logger associated with the specified gateway.
+     * @param gatewayType Type of gateway.
+     * @return The logger of the gateway.
      */
-    public static Logger getLogger(final String adapterName){
-        return Logger.getLogger(getLoggerName(adapterName));
+    public static Logger getLogger(final String gatewayType){
+        return Logger.getLogger(getLoggerName(gatewayType));
     }
 
     public static Logger getLogger(final Class<? extends Gateway> gatewayType){

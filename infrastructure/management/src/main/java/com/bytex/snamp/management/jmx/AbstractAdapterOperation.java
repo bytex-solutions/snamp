@@ -16,7 +16,7 @@ abstract class AbstractAdapterOperation extends OpenMBean.OpenOperation<Void, Si
      * The ADAPTER name param.
      */
     private static final TypedParameterInfo<String> ADAPTER_NAME_PARAM = new TypedParameterInfo<>(
-            "adapterName",
+            "gatewayType",
             "The name of the managed resource adapter",
             SimpleType.STRING,
             false

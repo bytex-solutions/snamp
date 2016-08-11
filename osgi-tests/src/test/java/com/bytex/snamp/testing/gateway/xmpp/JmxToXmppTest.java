@@ -197,7 +197,7 @@ public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean>
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
-        syncWithAdapterStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
+        syncWithGatewayStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
                 GatewayActivator.enableGateway(context, ADAPTER_NAME);
                 return null;
         }, Duration.ofMinutes(4));

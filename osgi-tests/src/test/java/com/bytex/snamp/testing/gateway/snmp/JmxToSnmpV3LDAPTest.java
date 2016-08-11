@@ -317,7 +317,7 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
-        syncWithAdapterStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
+        syncWithGatewayStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
                 GatewayActivator.enableGateway(context, ADAPTER_NAME);
                 return null;
         }, Duration.ofSeconds(4));

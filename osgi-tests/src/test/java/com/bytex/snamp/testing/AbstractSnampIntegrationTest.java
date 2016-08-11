@@ -41,7 +41,7 @@ import static com.bytex.snamp.configuration.ConfigurationManager.ConfigurationPr
 @ImportPackages("com.bytex.snamp;version=\"[2.0,3)\"")
 public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTest {
 
-    private static final class AdapterStartedSynchronizationEvent extends CompletableFuture<Gateway> implements GatewayEventListener {
+    private static final class GatewayStartedSynchronizationEvent extends CompletableFuture<Gateway> implements GatewayEventListener {
 
         @Override
         public void handle(final GatewayEvent e) {
@@ -50,7 +50,7 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    private static final class AdapterUpdatedSynchronizationEvent extends CompletableFuture<Gateway> implements GatewayEventListener {
+    private static final class GatewayUpdatedSynchronizationEvent extends CompletableFuture<Gateway> implements GatewayEventListener {
 
         @Override
         public void handle(final GatewayEvent e) {
@@ -135,11 +135,11 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
         afterCleanupTest(getTestBundleContext());
     }
 
-    protected static <V> V syncWithAdapterStartedEvent(final String adapterName,
+    protected static <V> V syncWithGatewayStartedEvent(final String gatewayType,
                                                        final Callable<? extends V> handler,
                                                        final Duration timeout) throws Exception {
-        final AdapterStartedSynchronizationEvent synchronizer = new AdapterStartedSynchronizationEvent();
-        GatewayClient.addEventListener(adapterName, synchronizer);
+        final GatewayStartedSynchronizationEvent synchronizer = new GatewayStartedSynchronizationEvent();
+        GatewayClient.addEventListener(gatewayType, synchronizer);
         try {
             final V result = handler.call();
             assertNotNull(synchronizer.get(timeout.toNanos(), TimeUnit.NANOSECONDS));
@@ -150,15 +150,15 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
             return null;
         }
         finally {
-            GatewayClient.removeEventListener(adapterName, synchronizer);
+            GatewayClient.removeEventListener(gatewayType, synchronizer);
         }
     }
 
-    protected static <V> V syncWithAdapterUpdatedEvent(final String adapterName,
+    protected static <V> V syncWithGatewayUpdatedEvent(final String gatewayType,
                                                        final Callable<? extends V> handler,
                                                        final Duration timeout) throws Exception {
-        final AdapterUpdatedSynchronizationEvent synchronizer = new AdapterUpdatedSynchronizationEvent();
-        GatewayClient.addEventListener(adapterName, synchronizer);
+        final GatewayUpdatedSynchronizationEvent synchronizer = new GatewayUpdatedSynchronizationEvent();
+        GatewayClient.addEventListener(gatewayType, synchronizer);
         try {
             final V result = handler.call();
             assertNotNull(synchronizer.get(timeout.toNanos(), TimeUnit.NANOSECONDS));
@@ -168,7 +168,7 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
             return null;
         }
         finally {
-            GatewayClient.removeEventListener(adapterName, synchronizer);
+            GatewayClient.removeEventListener(gatewayType, synchronizer);
         }
     }
 

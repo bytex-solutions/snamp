@@ -16,14 +16,14 @@ import java.io.ObjectOutput;
 final class SerializableGatewayConfiguration extends AbstractEntityConfiguration implements GatewayConfiguration {
     private static final byte FORMAT_VERSION = 1;
     private static final long serialVersionUID = 7926704115151740217L;
-    private String adapterName;
+    private String gatewayType;
 
     /**
      * Initializes a new empty adapter settings.
      */
     @SpecialUse
     public SerializableGatewayConfiguration(){
-        adapterName = "";
+        gatewayType = "";
     }
 
     /**
@@ -33,18 +33,18 @@ final class SerializableGatewayConfiguration extends AbstractEntityConfiguration
      */
     @Override
     public String getType() {
-        return adapterName;
+        return gatewayType;
     }
 
     /**
-     * Sets the hosting adapter name.
+     * Sets the gateway type.
      *
-     * @param adapterName The adapter name.
+     * @param gatewayType Type of gateway.
      */
     @Override
-    public void setType(final String adapterName) {
+    public void setType(final String gatewayType) {
         markAsModified();
-        this.adapterName = adapterName != null ? adapterName : "";
+        this.gatewayType = gatewayType != null ? gatewayType : "";
     }
 
     private boolean equals(final GatewayConfiguration other){
@@ -59,7 +59,7 @@ final class SerializableGatewayConfiguration extends AbstractEntityConfiguration
 
     @Override
     public int hashCode() {
-        return getParameters().hashCode() ^ adapterName.hashCode();
+        return getParameters().hashCode() ^ gatewayType.hashCode();
     }
 
     /**
@@ -79,7 +79,7 @@ final class SerializableGatewayConfiguration extends AbstractEntityConfiguration
     @Override
     public void writeExternal(final ObjectOutput out) throws IOException {
         out.writeByte(FORMAT_VERSION);
-        out.writeUTF(adapterName != null ? adapterName : "");
+        out.writeUTF(gatewayType != null ? gatewayType : "");
         writeParameters(out);
     }
 
@@ -100,7 +100,7 @@ final class SerializableGatewayConfiguration extends AbstractEntityConfiguration
         final byte version = in.readByte();
         if(version != FORMAT_VERSION)
             throw new IOException(String.format("Adapter configuration has invalid binary format version. Expected %s but actual %s", FORMAT_VERSION, version));
-        adapterName = in.readUTF();
+        gatewayType = in.readUTF();
         readParameters(in);
     }
 }

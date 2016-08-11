@@ -124,7 +124,7 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
         GatewayActivator.disableGateway(getTestBundleContext(), ADAPTER_NAME);
         stopResourceConnector(getTestBundleContext());
         //start empty adapter
-        syncWithAdapterStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
+        syncWithGatewayStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
                 GatewayActivator.enableGateway(getTestBundleContext(), ADAPTER_NAME);
                 return null;
         }, TIMEOUT);
@@ -248,7 +248,7 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
-        syncWithAdapterStartedEvent(ADAPTER_NAME, (BundleExceptionCallable)() -> {
+        syncWithGatewayStartedEvent(ADAPTER_NAME, (BundleExceptionCallable)() -> {
                 GatewayActivator.enableGateway(getTestBundleContext(), ADAPTER_NAME);
                 return null;
         }, Duration.ofSeconds(15));

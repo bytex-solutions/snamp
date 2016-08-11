@@ -39,7 +39,7 @@ final class SshGatewayDescriptionProvider extends ConfigurationEntityDescription
 
     private static final String DEFAULT_HOST = "localhost";
     private static final int DEFAULT_PORT = 22;
-    private static final String DEFAULT_HOST_KEY = "ssh-adapter.ser";
+    private static final String DEFAULT_HOST_KEY = "ssh-gateway.ser";
 
     private static final class AdapterConfigurationInfo extends ResourceBasedConfigurationEntityDescription<GatewayConfiguration> {
         private static final String RESOURCE_NAME = "SshGatewayConfig";

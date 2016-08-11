@@ -269,11 +269,8 @@ final class SnmpGateway extends AbstractGateway {
         return getLoggerImpl();
     }
 
-    private static String getAdapterNameImpl(){
-        return getGatewayType(SnmpGateway.class);
-    }
 
     static Logger getLoggerImpl() {
-        return getLogger(getAdapterNameImpl());
+        return getLogger(SnmpGateway.class);
     }
 }

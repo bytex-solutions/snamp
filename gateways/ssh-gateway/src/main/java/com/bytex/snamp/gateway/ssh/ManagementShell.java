@@ -94,9 +94,9 @@ final class ManagementShell implements Command, SessionAware {
                 final ConsoleReader reader = new ConsoleReader(inStream, outStream);
                 reader.setExpandEvents(false);
                 final PrintWriter output = new PrintWriter(reader.getOutput());
-                reader.setPrompt("ssh-adapter> ");
+                reader.setPrompt("ssh-gateway> ");
                 reader.addCompleter(HelpCommand.createCommandCompleter());
-                output.println("Welcome! You are connected to SNAMP SSH adapter.");
+                output.println("Welcome! You are connected to SNAMP SSH gateway.");
                 output.println("Print 'help' to see all available commands.");
                 output.println();
                 output.flush();

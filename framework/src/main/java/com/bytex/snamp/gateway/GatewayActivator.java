@@ -60,15 +60,15 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
         /**
          * Represents name of the resource adapter.
          */
-        protected final String adapterName;
+        protected final String gatewayType;
 
-        private ResourceAdapterRegistry(final String adapterName,
+        private ResourceAdapterRegistry(final String gatewayType,
                                         final GatewayFactory<G> factory,
                                         final RequiredService<?>... dependencies) {
             super(Gateway.class,
                     ObjectArrays.<RequiredService>concat(dependencies, new SimpleDependency<>(ConfigurationManager.class)));
             this.adapterFactory = Objects.requireNonNull(factory, "factory is null.");
-            this.adapterName = adapterName;
+            this.gatewayType = gatewayType;
         }
 
         private ResourceAdapterRegistry(final GatewayFactory<G> factory,
@@ -87,7 +87,7 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
 
         @Override
         protected String getFactoryPID(final RequiredService<?>[] dependencies) {
-            return getParser(dependencies).getAdapterFactoryPersistentID(adapterName);
+            return getParser(dependencies).getAdapterFactoryPersistentID(gatewayType);
         }
 
         @Override
@@ -105,7 +105,7 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
                                   final RequiredService<?>... dependencies) throws Exception {
             final CMResourceAdapterParser parser = getParser(dependencies);
             final String instanceName = parser.getAdapterInstanceName(configuration);
-            createIdentity(adapterName, instanceName, identity);
+            createIdentity(gatewayType, instanceName, identity);
             final G resourceAdapter = adapterFactory.createInstance(instanceName, dependencies);
             if (resourceAdapter != null)
                 if (resourceAdapter.tryStart(parser.getAdapterParameters(configuration))) {
@@ -129,7 +129,7 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
                                              final Exception e) {
             logger.log(Level.SEVERE,
                     String.format("Unable to update adapter. Name: %s, instance: %s",
-                            adapterName,
+                            gatewayType,
                             servicePID),
                     e);
         }
@@ -138,15 +138,15 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
         protected void failedToCleanupService(final Logger logger,
                                               final String servicePID,
                                               final Exception e) {
-            logger.log(Level.SEVERE, String.format("Unable to release adapter. Name: %s, instance: %s", adapterName, servicePID),
+            logger.log(Level.SEVERE, String.format("Unable to release gateway. Type: %s, instance: %s", gatewayType, servicePID),
                     e);
         }
     }
 
-    private static void createIdentity(final String adapterName,
+    private static void createIdentity(final String gatewayType,
                                        final String instanceName,
                                        final Map<String, Object> identity){
-        identity.put(GATEWAY_TYPE_IDENTITY_PROPERTY, adapterName);
+        identity.put(GATEWAY_TYPE_IDENTITY_PROPERTY, gatewayType);
         identity.put(GATEWAY_INSTANCE_IDENTITY_PROPERTY, instanceName);
     }
 
@@ -322,9 +322,9 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
                 .collect(Collectors.toCollection(LinkedList::new));
     }
 
-    static List<Bundle> getGatewayBundles(final BundleContext context, final String adapterName) {
+    static List<Bundle> getGatewayBundles(final BundleContext context, final String gatewayType) {
         return Arrays.stream(context.getBundles())
-                .filter(bnd -> Gateway.getGatewayType(bnd).equals(adapterName))
+                .filter(bnd -> Gateway.getGatewayType(bnd).equals(gatewayType))
                 .collect(Collectors.toCollection(LinkedList::new));
     }
 
@@ -346,17 +346,17 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
     }
 
     /**
-     * Stops the specified managed resource adapter.
+     * Disables gateway by its type.
      * @param context The context of the calling bundle. Cannot be {@literal null}.
-     * @param adapterName The name of the adapter to stop.
-     * @return {@literal true}, if bundle with the specified adapter exists; otherwise, {@literal false}.
+     * @param gatewayType The type of gateway to disable.
+     * @return {@literal true}, if bundle with the specified gateway exists; otherwise, {@literal false}.
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
      * @throws BundleException Unable to stop gateway.
      */
-    public static boolean disableGateway(final BundleContext context, final String adapterName) throws BundleException {
+    public static boolean disableGateway(final BundleContext context, final String gatewayType) throws BundleException {
         if(context == null) throw new IllegalArgumentException("context is null.");
         boolean success = false;
-        for(final Bundle bnd: getGatewayBundles(context, adapterName)) {
+        for(final Bundle bnd: getGatewayBundles(context, gatewayType)) {
             bnd.stop();
             success = true;
         }
@@ -381,17 +381,17 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
     }
 
     /**
-     * Starts the specified managed resource adapter.
+     * Enables the specified gateway.
      * @param context The context of the calling bundle. Cannot be {@literal null}.
-     * @param adapterName The name of the adapter to start.
-     * @return {@literal true}, if bundle with the specified adapter exists; otherwise, {@literal false}.
+     * @param gatewayType The type of gateway to enable.
+     * @return {@literal true}, if bundle with the specified gateway exists; otherwise, {@literal false}.
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
      * @throws BundleException Unable to start adapter.
      */
-    public static boolean enableGateway(final BundleContext context, final String adapterName) throws BundleException{
+    public static boolean enableGateway(final BundleContext context, final String gatewayType) throws BundleException{
         if(context == null) throw new IllegalArgumentException("context is null.");
         boolean success = false;
-        for(final Bundle bnd: getGatewayBundles(context, adapterName)) {
+        for(final Bundle bnd: getGatewayBundles(context, gatewayType)) {
             bnd.start();
             success = true;
         }
@@ -412,10 +412,10 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
                 .collect(Collectors.toCollection(HashSet::new));
     }
 
-    static String createFilter(final String adapterName, final String filter){
+    static String createFilter(final String gatewayType, final String filter){
         return filter == null || filter.isEmpty() ?
-                String.format("(%s=%s)", GATEWAY_TYPE_IDENTITY_PROPERTY, adapterName):
-                String.format("(&(%s=%s)%s)", GATEWAY_TYPE_IDENTITY_PROPERTY, adapterName, filter);
+                String.format("(%s=%s)", GATEWAY_TYPE_IDENTITY_PROPERTY, gatewayType):
+                String.format("(&(%s=%s)%s)", GATEWAY_TYPE_IDENTITY_PROPERTY, gatewayType, filter);
     }
 
     static String createFilter(final String adapterInstanceName){
