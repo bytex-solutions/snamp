@@ -18,10 +18,10 @@ final class GroovyGatewayConfigurationProvider extends ConfigurationEntityDescri
     private static final String SCRIPT_FILE_PARAM = "scriptFile";
     private static final String SCRIPT_PATH_PARAM = "scriptPath";
 
-    private static final class AdapterConfigurationInfo extends ResourceBasedConfigurationEntityDescription<GatewayConfiguration>{
+    private static final class GatewayConfigurationInfo extends ResourceBasedConfigurationEntityDescription<GatewayConfiguration>{
         private static final String NAME = "GatewayConfig";
 
-        private AdapterConfigurationInfo(){
+        private GatewayConfigurationInfo(){
             super(NAME, GatewayConfiguration.class,
                     SCRIPT_FILE_PARAM,
                     SCRIPT_PATH_PARAM);
@@ -29,7 +29,7 @@ final class GroovyGatewayConfigurationProvider extends ConfigurationEntityDescri
     }
 
     GroovyGatewayConfigurationProvider(){
-        super(new AdapterConfigurationInfo());
+        super(new GatewayConfigurationInfo());
     }
 
     private static String getParameter(final String paramName,

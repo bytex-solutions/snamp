@@ -1,6 +1,7 @@
 package com.bytex.snamp.configuration;
 
 import com.bytex.snamp.Acceptor;
+import com.bytex.snamp.configuration.internal.CMGatewayParser;
 import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.core.ServiceHolder;
 
@@ -11,7 +12,7 @@ import java.util.function.Function;
  * Represents SNAMP configuration manager that is accessible as OSGi service.
  * <p>
  *     This interface must return an instance of {@link com.bytex.snamp.configuration.internal.CMManagedResourceParser} or
- *     {@link com.bytex.snamp.configuration.internal.CMResourceAdapterParser} when {@link com.bytex.snamp.Aggregator#queryObject(Class)} is called
+ *     {@link CMGatewayParser} when {@link com.bytex.snamp.Aggregator#queryObject(Class)} is called
  *     with suitable arguments.
  * @author Roman Sakno
  * @version 2.0

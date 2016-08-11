@@ -25,14 +25,14 @@ final class AggregatorConnectorConfiguration extends ConfigurationEntityDescript
     static final String SECOND_FOREIGN_ATTRIBUTE_PARAM = "secondForeignAttribute";
     static final String COMPARER_PARAM = "comparer";
     static final String VALUE_PARAM = "value";
-    static final String TIME_INTERVAL_PARAM = "timeInterval";
+    private static final String TIME_INTERVAL_PARAM = "timeInterval";
     static final String FIELD_PATH_PARAM = "fieldPath";
     private static final String NOTIFICATION_FREQUENCY_PARAM = "notificationFrequency";
 
-    private static final class AdapterConfigurationDescriptor extends ResourceBasedConfigurationEntityDescription<ManagedResourceConfiguration>{
+    private static final class ResourceConfigurationDescriptor extends ResourceBasedConfigurationEntityDescription<ManagedResourceConfiguration>{
         private static final String RESOURCE_NAME = "ConnectorParameters";
 
-        private AdapterConfigurationDescriptor(){
+        private ResourceConfigurationDescriptor(){
             super(RESOURCE_NAME,
                     ManagedResourceConfiguration.class,
                     NOTIFICATION_FREQUENCY_PARAM);
@@ -69,7 +69,7 @@ final class AggregatorConnectorConfiguration extends ConfigurationEntityDescript
     AggregatorConnectorConfiguration(){
         super(new AttributeConfigurationDescriptor(),
                 new EventConfigurationDescriptor(),
-                new AdapterConfigurationDescriptor());
+                new ResourceConfigurationDescriptor());
     }
 
     private static String getAttributeParameter(final AttributeDescriptor descriptor,

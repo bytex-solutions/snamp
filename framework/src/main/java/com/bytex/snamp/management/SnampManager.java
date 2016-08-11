@@ -19,8 +19,8 @@ public interface SnampManager extends SupportService {
     Collection<? extends SnampComponentDescriptor> getInstalledResourceConnectors();
 
     /**
-     * Returns a read-only collection of installed resource gateway.
-     * @return A read-only collection of installed resource gateway.
+     * Returns a read-only collection of installed gateways.
+     * @return A read-only collection of installed gateways.
      */
     Collection<? extends SnampComponentDescriptor> getInstalledGateways();
 

@@ -39,8 +39,8 @@ final class ListOfAttributesCommand extends AbstractManagementShellCommand {
                                  final boolean withNames,
                                  final boolean details,
                                  final PrintWriter output) throws IOException {
-        for (final String attributeName : getAdapterController().getAttributes(resourceName))
-            getAdapterController().processAttribute(resourceName, attributeName, attr -> {
+        for (final String attributeName : getGatewayController().getAttributes(resourceName))
+            getGatewayController().processAttribute(resourceName, attributeName, attr -> {
                 output.println(withNames ? String.format("ID: %s NAME: %s CAN_READ: %s CAN_WRITE %s", attributeName, attr.getOriginalName(), attr.canRead(), attr.canWrite()) : attributeName);
                 if(details) {
                     attr.printOptions(output);
@@ -56,7 +56,7 @@ final class ListOfAttributesCommand extends AbstractManagementShellCommand {
         final String resourceName = input.getOptionValue(RESOURCE_OPTION.getOpt(), "");
         try {
             if (resourceName.isEmpty())
-                for (final String r : getAdapterController().getConnectedResources())
+                for (final String r : getGatewayController().getConnectedResources())
                     printAttributes(r, withNames, details, output);
             else printAttributes(resourceName, withNames, details, output);
         }

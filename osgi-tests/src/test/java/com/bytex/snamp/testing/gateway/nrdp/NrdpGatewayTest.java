@@ -1,9 +1,11 @@
 package com.bytex.snamp.testing.gateway.nrdp;
 
+import com.bytex.snamp.configuration.ConfigurationEntityDescription;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.GatewayConfiguration;
+import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.gateway.GatewayClient;
-import com.bytex.snamp.configuration.ConfigurationEntityDescription;
-import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.testing.BundleExceptionCallable;
@@ -31,11 +33,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import com.bytex.snamp.configuration.EntityMap;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
-
-import com.bytex.snamp.configuration.GatewayConfiguration;
 import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
 
 /**
@@ -44,13 +43,13 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
  * @since 1.0
  */
 @SnampDependencies(SnampFeature.NRDP_GATEWAY)
-public final class NrdpAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean> {
-    private static final String ADAPTER_NAME = "nrdp";
+public final class NrdpGatewayTest extends AbstractJmxConnectorTest<TestOpenMBean> {
+    private static final String GATEWAY_NAME = "nrdp";
     private static final String INSTANCE_NAME = "test-nrdp";
     private static final int PORT = 9652;
     private HttpServer server;
 
-    public NrdpAdapterTest() throws MalformedObjectNameException, IOException {
+    public NrdpGatewayTest() throws MalformedObjectNameException, IOException {
         super(new TestOpenMBean(), new ObjectName(BEAN_NAME));
     }
 
@@ -95,11 +94,11 @@ public final class NrdpAdapterTest extends AbstractJmxConnectorTest<TestOpenMBea
 
     @Test
     public void configurationDescriptorTest() throws BundleException {
-        ConfigurationEntityDescription desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, GatewayConfiguration.class);
+        ConfigurationEntityDescription desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), GATEWAY_NAME, GatewayConfiguration.class);
         testConfigurationDescriptor(desc, "serverURL", "connectionTimeout", "token", "passiveCheckSendPeriod");
-        desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, AttributeConfiguration.class);
+        desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), GATEWAY_NAME, AttributeConfiguration.class);
         testConfigurationDescriptor(desc, "serviceName", "maxValue", "minValue", "units");
-        desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, EventConfiguration.class);
+        desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), GATEWAY_NAME, EventConfiguration.class);
         testConfigurationDescriptor(desc, "serviceName");
     }
 
@@ -114,12 +113,12 @@ public final class NrdpAdapterTest extends AbstractJmxConnectorTest<TestOpenMBea
     }
 
     @Override
-    protected void fillAdapters(final EntityMap<? extends GatewayConfiguration> adapters) {
-        final GatewayConfiguration nrdpAdapter = adapters.getOrAdd(INSTANCE_NAME);
-        nrdpAdapter.setType(ADAPTER_NAME);
-        nrdpAdapter.getParameters().put("serverURL", "http://localhost:" + PORT + "/context");
-        nrdpAdapter.getParameters().put("token", "ri2yu2tfkfkhewfh");
-        nrdpAdapter.getParameters().put("passiveCheckSendPeriod", "1000");
+    protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
+        final GatewayConfiguration nrdpGateway = gateways.getOrAdd(INSTANCE_NAME);
+        nrdpGateway.setType(GATEWAY_NAME);
+        nrdpGateway.getParameters().put("serverURL", "http://localhost:" + PORT + "/context");
+        nrdpGateway.getParameters().put("token", "ri2yu2tfkfkhewfh");
+        nrdpGateway.getParameters().put("passiveCheckSendPeriod", "1000");
     }
 
     @Override
@@ -133,15 +132,15 @@ public final class NrdpAdapterTest extends AbstractJmxConnectorTest<TestOpenMBea
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
-        syncWithGatewayStartedEvent(ADAPTER_NAME, (BundleExceptionCallable)() -> {
-                GatewayActivator.enableGateway(context, ADAPTER_NAME);
+        syncWithGatewayStartedEvent(GATEWAY_NAME, (BundleExceptionCallable)() -> {
+                GatewayActivator.enableGateway(context, GATEWAY_NAME);
                 return null;
         }, Duration.ofMinutes(4));
     }
 
     @Override
     protected void beforeCleanupTest(final BundleContext context) throws Exception {
-        GatewayActivator.disableGateway(context, ADAPTER_NAME);
+        GatewayActivator.disableGateway(context, GATEWAY_NAME);
         stopResourceConnector(context);
     }
 

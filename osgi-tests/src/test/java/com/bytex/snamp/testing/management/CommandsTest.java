@@ -84,7 +84,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
     }
 
     @Test
-    public void installedAdaptersTest() throws Exception {
+    public void installedGatewaysTest() throws Exception {
         assertTrue(runCommand("snamp:installed-gateways").toString().startsWith("Groovy Resource Adapter"));
     }
 
@@ -100,12 +100,12 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
     }
 
     @Test
-    public void adapterInstancesTest() throws Exception{
+    public void gatewayInstancesTest() throws Exception{
         assertTrue(runCommand("snamp:gateway-instances").toString().startsWith("Instance: adapterInst"));
     }
 
     @Test
-    public void adapterConfigurationTest() throws Exception {
+    public void gatewayConfigurationTest() throws Exception {
         runCommand("snamp:configure-gateway -p k=v -p key=value instance2 dummy");
         //saving configuration is asynchronous process therefore it is necessary to wait
         Thread.sleep(500);
@@ -131,7 +131,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
     }
 
     @Test
-    public void startStopAdapterTest() throws Exception {
+    public void startStopGatewayTest() throws Exception {
         runCommand("snamp:disable-gateway groovy");
         runCommand("snamp:enable-gateway groovy");
     }
@@ -272,7 +272,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
     }
 
     @Test
-    public void adapterInstanceInfoTest() throws Exception {
+    public void gatewayInstanceInfoTest() throws Exception {
         final String result = runCommand("snamp:gateway-instance gatewayInst").toString();
         assertTrue(result.contains("System Name: dummyGateway"));
     }

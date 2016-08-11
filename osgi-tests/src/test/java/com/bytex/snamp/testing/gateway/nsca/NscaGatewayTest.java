@@ -1,9 +1,11 @@
 package com.bytex.snamp.testing.gateway.nsca;
 
+import com.bytex.snamp.configuration.ConfigurationEntityDescription;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.GatewayConfiguration;
+import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.gateway.GatewayClient;
-import com.bytex.snamp.configuration.ConfigurationEntityDescription;
-import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.testing.BundleExceptionCallable;
@@ -26,11 +28,8 @@ import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
-import com.bytex.snamp.configuration.EntityMap;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
-
-import com.bytex.snamp.configuration.GatewayConfiguration;
 import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
 
 /**
@@ -39,14 +38,14 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
  * @since 1.0
  */
 @SnampDependencies({SnampFeature.NSCA_GATEWAY})
-public final class NscaAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean> {
-    private static final String ADAPTER_NAME = "nsca";
+public final class NscaGatewayTest extends AbstractJmxConnectorTest<TestOpenMBean> {
+    private static final String GATEWAY_NAME = "nsca";
     private static final String INSTANCE_NAME = "test-nsca";
     private ServerSocket server;
     private static final int PORT = 9652;
     private Random rnd;
 
-    public NscaAdapterTest() throws MalformedObjectNameException, IOException {
+    public NscaGatewayTest() throws MalformedObjectNameException, IOException {
         super(new TestOpenMBean(), new ObjectName(BEAN_NAME));
         rnd = new Random(42L);
     }
@@ -79,11 +78,11 @@ public final class NscaAdapterTest extends AbstractJmxConnectorTest<TestOpenMBea
 
     @Test
     public void configurationDescriptorTest() throws BundleException {
-        ConfigurationEntityDescription desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, GatewayConfiguration.class);
+        ConfigurationEntityDescription desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), GATEWAY_NAME, GatewayConfiguration.class);
         testConfigurationDescriptor(desc, "nagiosHost", "nagiosPort", "connectionTimeout", "password", "encryption", "passiveCheckSendPeriod");
-        desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, AttributeConfiguration.class);
+        desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), GATEWAY_NAME, AttributeConfiguration.class);
         testConfigurationDescriptor(desc, "serviceName", "maxValue", "minValue", "units");
-        desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, EventConfiguration.class);
+        desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), GATEWAY_NAME, EventConfiguration.class);
         testConfigurationDescriptor(desc, "serviceName");
     }
 
@@ -98,11 +97,12 @@ public final class NscaAdapterTest extends AbstractJmxConnectorTest<TestOpenMBea
     }
 
     @Override
-    protected void fillAdapters(final EntityMap<? extends GatewayConfiguration> adapters) {
-        final GatewayConfiguration nscaAdapter = adapters.getOrAdd(INSTANCE_NAME);
-        nscaAdapter.setType(ADAPTER_NAME);
-        nscaAdapter.getParameters().put("nagiosPort", Integer.toString(PORT));
-        nscaAdapter.getParameters().put("nagiosHost", "localhost");
+    protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
+        gateways.consumeOrAdd(INSTANCE_NAME, nscaGateway -> {
+            nscaGateway.setType(GATEWAY_NAME);
+            nscaGateway.getParameters().put("nagiosPort", Integer.toString(PORT));
+            nscaGateway.getParameters().put("nagiosHost", "localhost");
+        });
     }
 
     @Override
@@ -115,15 +115,15 @@ public final class NscaAdapterTest extends AbstractJmxConnectorTest<TestOpenMBea
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
-        syncWithGatewayStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
-                GatewayActivator.enableGateway(context, ADAPTER_NAME);
+        syncWithGatewayStartedEvent(GATEWAY_NAME, (BundleExceptionCallable) () -> {
+                GatewayActivator.enableGateway(context, GATEWAY_NAME);
                 return null;
         }, Duration.ofMinutes(4));
     }
 
     @Override
     protected void beforeCleanupTest(final BundleContext context) throws Exception {
-        GatewayActivator.disableGateway(context, ADAPTER_NAME);
+        GatewayActivator.disableGateway(context, GATEWAY_NAME);
         stopResourceConnector(context);
     }
 

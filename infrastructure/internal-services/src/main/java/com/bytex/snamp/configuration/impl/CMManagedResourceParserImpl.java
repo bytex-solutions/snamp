@@ -58,7 +58,7 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
      * @return The persistent identifier.
      */
     @Override
-    public String getConnectorFactoryPersistentID(final String connectorType){
+    public String getFactoryPersistentID(final String connectorType){
         return String.format(CONNECTOR_PID_TEMPLATE, connectorType);
     }
 
@@ -104,7 +104,7 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
     }
 
     @Override
-    public Map<String, String> getResourceConnectorParameters(final Dictionary<String, ?> resourceConfig) {
+    public Map<String, String> getParameters(final Dictionary<String, ?> resourceConfig) {
         final Map<String, String> result = Maps.newHashMapWithExpectedSize(resourceConfig.size());
         fillConnectionOptions(resourceConfig, result);
         return result;
@@ -238,7 +238,7 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
             });
             //no existing configuration, creates a new configuration
             if(!updated.get())
-                serialize(resourceName, resource, admin.createFactoryConfiguration(getConnectorFactoryPersistentID(resource.getType()), null));
+                serialize(resourceName, resource, admin.createFactoryConfiguration(getFactoryPersistentID(resource.getType()), null));
         } catch (final IOException | InvalidSyntaxException e) {
             throw new ManagedResourceConfigurationException(resourceName, e);
         }

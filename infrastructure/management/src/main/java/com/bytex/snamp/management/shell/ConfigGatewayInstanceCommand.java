@@ -39,16 +39,16 @@ public final class ConfigGatewayInstanceCommand extends ConfigurationCommand<Gat
     @Override
     boolean doExecute(final EntityMap<? extends GatewayConfiguration> configuration, final StringBuilder output) {
         if (isNullOrEmpty(instanceName)) return false;
-        final GatewayConfiguration adapter = configuration.getOrAdd(instanceName);
+        final GatewayConfiguration gatewayInstanceConfig = configuration.getOrAdd(instanceName);
         //setup system name
         if (!isNullOrEmpty(gatewayType))
-            adapter.setType(gatewayType);
+            gatewayInstanceConfig.setType(gatewayType);
         //setup parameters
         if (!ArrayUtils.isNullOrEmpty(parameters))
             for (final String pair : parameters) {
                 final StringKeyValue keyValue = StringKeyValue.parse(pair);
                 if (keyValue != null)
-                    adapter.getParameters().put(keyValue.getKey(), keyValue.getValue());
+                    gatewayInstanceConfig.getParameters().put(keyValue.getKey(), keyValue.getValue());
             }
         output.append("Updated");
         return true;

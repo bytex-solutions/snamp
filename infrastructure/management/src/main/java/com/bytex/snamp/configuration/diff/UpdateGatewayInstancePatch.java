@@ -5,5 +5,5 @@ package com.bytex.snamp.configuration.diff;
  * @version 2.0
  * @since 1.0
  */
-public interface AddResourceAdapterPatch extends ResourceAdapterInstancePatch {
+public interface UpdateGatewayInstancePatch extends GatewayInstancePatch {
 }

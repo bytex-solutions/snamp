@@ -47,7 +47,7 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
     private static final int PORT = 22000;
     private static final String FINGERPRINT = "e8:0d:af:84:bb:ec:05:03:b9:7c:f3:75:19:5a:2a:63";
     private static final String CERTIFICATE_FILE = "hostkey.ser";
-    private static final String ADAPTER_NAME = "jmx";
+    private static final String GATEWAY_NAME = "jmx";
 
     public RShellToJmxTest() {
         super(USER_NAME,
@@ -78,25 +78,25 @@ public final class RShellToJmxTest extends AbstractRShellConnectorTest {
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
-        syncWithGatewayStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
-                GatewayActivator.enableGateway(context, ADAPTER_NAME);
+        syncWithGatewayStartedEvent(GATEWAY_NAME, (BundleExceptionCallable) () -> {
+                GatewayActivator.enableGateway(context, GATEWAY_NAME);
                 return null;
         }, Duration.ofSeconds(20));
     }
 
     @Override
     protected void beforeCleanupTest(final BundleContext context) throws Exception {
-        GatewayActivator.disableGateway(context, ADAPTER_NAME);
+        GatewayActivator.disableGateway(context, GATEWAY_NAME);
         stopResourceConnector(context);
     }
 
     @Override
-    protected void fillAdapters(final EntityMap<? extends GatewayConfiguration> adapters) {
-        final GatewayConfiguration restAdapter = adapters.getOrAdd("test-jmx");
-        restAdapter.setType(ADAPTER_NAME);
-        restAdapter.getParameters().put("objectName", ROOT_OBJECT_NAME);
-        restAdapter.getParameters().put("usePlatformMBean", Boolean.toString(isInTestContainer()));
-        restAdapter.getParameters().put("dbgUsePureSerialization", "true");
+    protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
+        final GatewayConfiguration httpGateway = gateways.getOrAdd("test-jmx");
+        httpGateway.setType(GATEWAY_NAME);
+        httpGateway.getParameters().put("objectName", ROOT_OBJECT_NAME);
+        httpGateway.getParameters().put("usePlatformMBean", Boolean.toString(isInTestContainer()));
+        httpGateway.getParameters().put("dbgUsePureSerialization", "true");
     }
 
     @Override

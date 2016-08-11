@@ -55,12 +55,12 @@ public final class SnampManagerImpl extends AbstractSnampManager {
     /**
      * Creates a new instance of the resource adapter descriptor.
      *
-     * @param systemName The system name of the adapter.
+     * @param gatewayType The system name of the adapter.
      * @return A new instance of the resource adapter descriptor.
      */
     @Override
-    protected GatewayDescriptorImpl createResourceAdapterDescriptor(final String systemName) {
-        return new GatewayDescriptorImpl(systemName);
+    protected GatewayDescriptorImpl createGatewayDescriptor(final String gatewayType) {
+        return new GatewayDescriptorImpl(gatewayType);
     }
 
     /**

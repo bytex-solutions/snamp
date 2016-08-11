@@ -32,7 +32,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     @Aggregation(cached = true)
     private final CMManagedResourceParserImpl resourceParser;
     @Aggregation(cached = true)
-    private final CMResourceAdapterParserImpl adapterParser;
+    private final CMGatewayParserImpl gatewayInstanceParser;
     private final CMThreadPoolParser threadPoolParser;
 
     /**
@@ -44,17 +44,17 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         logger = Logger.getLogger(getClass().getName());
         configurationLock = new ReentrantReadWriteLock();
         resourceParser = new CMManagedResourceParserImpl();
-        adapterParser = new CMResourceAdapterParserImpl();
+        gatewayInstanceParser = new CMGatewayParserImpl();
         threadPoolParser = new CMThreadPoolParser();
     }
 
     private void save(final SerializableAgentConfiguration config) throws IOException {
         if (config.isEmpty()) {
             resourceParser.removeAll(admin);
-            adapterParser.removeAll(admin);
+            gatewayInstanceParser.removeAll(admin);
             threadPoolParser.removeAll(admin);
         } else {
-            adapterParser.saveChanges(config, admin);
+            gatewayInstanceParser.saveChanges(config, admin);
             resourceParser.saveChanges(config, admin);
             threadPoolParser.saveChanges(config, admin);
         }
@@ -70,7 +70,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         //Process configuration protected by lock.
         try {
             final SerializableAgentConfiguration config = new SerializableAgentConfiguration();
-            adapterParser.fill(admin, config.getResourceAdapters());
+            gatewayInstanceParser.fill(admin, config.getGatewayInstances());
             resourceParser.fill(admin, config.getManagedResources());
             threadPoolParser.fill(admin, config.getThreadPools());
             if(handler.process(config))

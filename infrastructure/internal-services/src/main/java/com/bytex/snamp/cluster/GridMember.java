@@ -60,7 +60,7 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
      * Determines whether this node is active.
      * <p/>
      * Passive SNAMP node ignores any notifications received by resource connector.
-     * As a result, all resource gateway will not route notifications to the connected
+     * As a result, all gateways will not route notifications to the connected
      * monitoring tools. But you can still read any attributes.
      *
      * @return {@literal true}, if this node is active; otherwise, {@literal false}.

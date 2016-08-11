@@ -55,7 +55,7 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
 @SnampDependencies({SnampFeature.HTTP_GATEWAY, SnampFeature.WRAPPED_LIBS})
 @ImportPackages({"com.bytex.snamp.jmx.json;version=\"[1.0,2)\"",
         "org.atmosphere.wasync;version=\"[2.0.0,3)\""})
-public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBean> {
+public final class HttpToJmxGateway extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final class NotificationReceiver extends LinkedBlockingQueue<JsonElement> implements Function<String>{
         private static final long serialVersionUID = 2056675059549300951L;
         private final Gson formatter;
@@ -70,19 +70,19 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
         }
     }
 
-    private static final String ADAPTER_NAME = "http";
+    private static final String GATEWAY_NAME = "http";
     private static final String INSTANCE_NAME = "test-http";
     private final Gson formatter;
 
-    public HttpToJmxAdapter() throws MalformedObjectNameException {
+    public HttpToJmxGateway() throws MalformedObjectNameException {
         super(new TestOpenMBean(), new ObjectName(BEAN_NAME));
         formatter = new Gson();
     }
 
     @Override
-    protected void fillAdapters(final EntityMap<? extends GatewayConfiguration> adapters) {
-        final GatewayConfiguration restAdapter = adapters.getOrAdd(INSTANCE_NAME);
-        restAdapter.setType(ADAPTER_NAME);
+    protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
+        final GatewayConfiguration httpGateway = gateways.getOrAdd(INSTANCE_NAME);
+        httpGateway.setType(GATEWAY_NAME);
     }
 
     private void testAttribute(final String attributeID,
@@ -121,11 +121,11 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
     public void startStopTest() throws Exception {
         final Duration TIMEOUT = Duration.ofSeconds(15);
         //stop adapter and connector
-        GatewayActivator.disableGateway(getTestBundleContext(), ADAPTER_NAME);
+        GatewayActivator.disableGateway(getTestBundleContext(), GATEWAY_NAME);
         stopResourceConnector(getTestBundleContext());
         //start empty adapter
-        syncWithGatewayStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
-                GatewayActivator.enableGateway(getTestBundleContext(), ADAPTER_NAME);
+        syncWithGatewayStartedEvent(GATEWAY_NAME, (BundleExceptionCallable) () -> {
+                GatewayActivator.enableGateway(getTestBundleContext(), GATEWAY_NAME);
                 return null;
         }, TIMEOUT);
         //start connector, this causes attribute registration and SNMP adapter restarting,
@@ -139,7 +139,7 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
         //now stops the connector again
         stopResourceConnector(getTestBundleContext());
         //stop the adapter
-        GatewayActivator.disableGateway(getTestBundleContext(), ADAPTER_NAME);
+        GatewayActivator.disableGateway(getTestBundleContext(), GATEWAY_NAME);
     }
 
     @Test
@@ -230,7 +230,7 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
 
     @Test
     public void configurationDescriptorTest() throws BundleException {
-        final ConfigurationEntityDescription desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, GatewayConfiguration.class);
+        final ConfigurationEntityDescription desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), GATEWAY_NAME, GatewayConfiguration.class);
         testConfigurationDescriptor(desc, "dateFormat");
     }
 
@@ -248,15 +248,15 @@ public final class HttpToJmxAdapter extends AbstractJmxConnectorTest<TestOpenMBe
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
-        syncWithGatewayStartedEvent(ADAPTER_NAME, (BundleExceptionCallable)() -> {
-                GatewayActivator.enableGateway(getTestBundleContext(), ADAPTER_NAME);
+        syncWithGatewayStartedEvent(GATEWAY_NAME, (BundleExceptionCallable)() -> {
+                GatewayActivator.enableGateway(getTestBundleContext(), GATEWAY_NAME);
                 return null;
         }, Duration.ofSeconds(15));
     }
 
     @Override
     protected void beforeCleanupTest(final BundleContext context) throws Exception {
-        GatewayActivator.disableGateway(context, ADAPTER_NAME);
+        GatewayActivator.disableGateway(context, GATEWAY_NAME);
         stopResourceConnector(context);
     }
 

@@ -46,7 +46,7 @@ final class NotificationsCommand extends AbstractManagementShellCommand {
             }
         else filter = null;
         final InputStream consoleInput = getConsoleInputStream();
-        final GatewayController controller = getAdapterController();
+        final GatewayController controller = getGatewayController();
         while (!hasMoreData(consoleInput)) {
             final Notification notif = controller.poll(filter);
             if(notif == null) try {

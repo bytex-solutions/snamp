@@ -51,8 +51,8 @@ final class JmxGateway extends AbstractGateway {
     private boolean usePlatformMBean;
     private ObjectName rootObjectName;
 
-    JmxGateway(final String adapterInstanceName) {
-        super(adapterInstanceName);
+    JmxGateway(final String gatewayInstance) {
+        super(gatewayInstance);
         this.exposedBeans = new MBeanRegistry();
         this.usePlatformMBean = false;
         rootObjectName = null;

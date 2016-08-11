@@ -14,16 +14,16 @@ import java.util.Collection;
  * The type Installed gateway attribute.
  * @author Evgeniy Kirichenko
  */
-final class InstalledAdaptersAttribute extends OpenMBean.OpenAttribute<String[], ArrayType<String[]>>  {
+final class InstalledGatewaysAttribute extends OpenMBean.OpenAttribute<String[], ArrayType<String[]>>  {
 
-    private static final String NAME = "InstalledAdapters";
+    private static final String NAME = "InstalledGateways";
 
     /**
-     * Instantiates a new Installed gateway attribute.
+     * Instantiates a new InstalledGateways attribute.
      *
      * @throws OpenDataException the open data exception
      */
-    InstalledAdaptersAttribute() throws OpenDataException {
+    InstalledGatewaysAttribute() throws OpenDataException {
         super(NAME, ArrayType.getArrayType(SimpleType.STRING));
     }
 

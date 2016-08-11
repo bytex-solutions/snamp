@@ -1,9 +1,11 @@
 package com.bytex.snamp.testing.gateway.syslog;
 
+import com.bytex.snamp.configuration.ConfigurationEntityDescription;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.GatewayConfiguration;
+import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.gateway.GatewayClient;
-import com.bytex.snamp.configuration.ConfigurationEntityDescription;
-import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.testing.BundleExceptionCallable;
 import com.bytex.snamp.testing.SnampDependencies;
@@ -22,11 +24,8 @@ import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
-import com.bytex.snamp.configuration.EntityMap;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
-
-import com.bytex.snamp.configuration.GatewayConfiguration;
 import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
 
 /**
@@ -35,13 +34,13 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
  * @since 1.0
  */
 @SnampDependencies(SnampFeature.SYSLOG_GATEWAY)
-public final class SyslogAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean> {
-    private static final String ADAPTER_NAME = "syslog";
+public final class SyslogGatewayTest extends AbstractJmxConnectorTest<TestOpenMBean> {
+    private static final String GATEWAY_NAME = "syslog";
     private static final String INSTANCE_NAME = "test-syslog";
     private ServerSocket server;
     private static final int PORT = 9652;
 
-    public SyslogAdapterTest() throws MalformedObjectNameException, IOException {
+    public SyslogGatewayTest() throws MalformedObjectNameException, IOException {
         super(new TestOpenMBean(), new ObjectName(BEAN_NAME));
     }
 
@@ -66,16 +65,16 @@ public final class SyslogAdapterTest extends AbstractJmxConnectorTest<TestOpenMB
 
     @Test
     public void configurationDescriptorTest() throws BundleException {
-        ConfigurationEntityDescription desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, EventConfiguration.class);
+        ConfigurationEntityDescription desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), GATEWAY_NAME, EventConfiguration.class);
         testConfigurationDescriptor(desc,
                 "applicationName",
                 "facility",
                 "severity");
-        desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, AttributeConfiguration.class);
+        desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), GATEWAY_NAME, AttributeConfiguration.class);
         testConfigurationDescriptor(desc,
                 "applicationName",
                 "facility");
-        desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, GatewayConfiguration.class);
+        desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), GATEWAY_NAME, GatewayConfiguration.class);
         testConfigurationDescriptor(desc,
                 "port",
                 "address",
@@ -98,12 +97,13 @@ public final class SyslogAdapterTest extends AbstractJmxConnectorTest<TestOpenMB
     }
 
     @Override
-    protected void fillAdapters(final EntityMap<? extends GatewayConfiguration> adapters) {
-        final GatewayConfiguration syslogAdapter = adapters.getOrAdd(INSTANCE_NAME);
-        syslogAdapter.setType(ADAPTER_NAME);
-        syslogAdapter.getParameters().put("port", Integer.toString(PORT));
-        syslogAdapter.getParameters().put("address", "127.0.0.1");
-        syslogAdapter.getParameters().put("protocol", "tcp");
+    protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
+        gateways.consumeOrAdd(INSTANCE_NAME, syslogGateway -> {
+            syslogGateway.setType(GATEWAY_NAME);
+            syslogGateway.getParameters().put("port", Integer.toString(PORT));
+            syslogGateway.getParameters().put("address", "127.0.0.1");
+            syslogGateway.getParameters().put("protocol", "tcp");
+        });
     }
 
     @Override
@@ -131,15 +131,15 @@ public final class SyslogAdapterTest extends AbstractJmxConnectorTest<TestOpenMB
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
-        syncWithGatewayStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
-                GatewayActivator.enableGateway(context, ADAPTER_NAME);
+        syncWithGatewayStartedEvent(GATEWAY_NAME, (BundleExceptionCallable) () -> {
+                GatewayActivator.enableGateway(context, GATEWAY_NAME);
                 return null;
         }, Duration.ofMinutes(4));
     }
 
     @Override
     protected void beforeCleanupTest(final BundleContext context) throws Exception {
-        GatewayActivator.disableGateway(context, ADAPTER_NAME);
+        GatewayActivator.disableGateway(context, GATEWAY_NAME);
         stopResourceConnector(context);
     }
 

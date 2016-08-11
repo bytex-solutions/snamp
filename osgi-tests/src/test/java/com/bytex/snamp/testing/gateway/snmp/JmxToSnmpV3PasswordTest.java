@@ -46,7 +46,7 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
  */
 @SnampDependencies(SnampFeature.SNMP_GATEWAY)
 public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<TestOpenMBean> {
-    private static final String ADAPTER_NAME = "snmp";
+    private static final String GATEWAY_NAME = "snmp";
     private static final String SNMP_PORT = "3222";
     private static final String SNMP_HOST = "127.0.0.1";
     private static final String USER_NAME = "testuser";
@@ -77,15 +77,15 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception  {
         startResourceConnector(context);
-        syncWithGatewayStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
-                GatewayActivator.enableGateway(context, ADAPTER_NAME);
+        syncWithGatewayStartedEvent(GATEWAY_NAME, (BundleExceptionCallable) () -> {
+                GatewayActivator.enableGateway(context, GATEWAY_NAME);
                 return null;
         }, Duration.ofSeconds(4));
     }
 
     @Override
     protected void beforeCleanupTest(final BundleContext context) throws Exception {
-        GatewayActivator.disableGateway(context, ADAPTER_NAME);
+        GatewayActivator.disableGateway(context, GATEWAY_NAME);
         stopResourceConnector(context);
     }
 
@@ -322,31 +322,32 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
     }
 
     @Override
-    protected void fillAdapters(final EntityMap<? extends GatewayConfiguration> adapters) {
-        final GatewayConfiguration snmpAdapter = adapters.getOrAdd("test-snmp");
-        snmpAdapter.setType(ADAPTER_NAME);
-        snmpAdapter.getParameters().put("port", SNMP_PORT);
-        snmpAdapter.getParameters().put("host", SNMP_HOST);
-        snmpAdapter.getParameters().put("socketTimeout", "5000");
-        snmpAdapter.getParameters().put("engineID", ENGINE_ID);
-        snmpAdapter.getParameters().put("context", "1.1");
-        snmpAdapter.getParameters().put("snmpv3-groups", "group1; group2");
-        //group1 setup
-        snmpAdapter.getParameters().put("group1-security-level", "authPriv");
-        snmpAdapter.getParameters().put("group1-access-rights", "read; write; notify");
-        snmpAdapter.getParameters().put("group1-users", USER_NAME);
-        snmpAdapter.getParameters().put(USER_NAME + "-password", PASSWORD);
-        snmpAdapter.getParameters().put(USER_NAME + "-auth-protocol", "sha");
-        snmpAdapter.getParameters().put(USER_NAME + "-privacy-key", PRIVACY_KEY);
-        // Oracle JRE does not support 256 by default, so for test compatibility the key in use has been changed to 128.
-        // FYI: it DOES work with any other JRE, and either works with necessary Oracle JRE modules
-        snmpAdapter.getParameters().put(USER_NAME + "-privacy-protocol", "AES128");
-        //group2 setup
-        snmpAdapter.getParameters().put("group2-security-level", "authNoPriv");
-        snmpAdapter.getParameters().put("group2-access-rights", "read");
-        snmpAdapter.getParameters().put("group2-users", "testuser2");
-        snmpAdapter.getParameters().put("testuser2-password", PASSWORD);
-        snmpAdapter.getParameters().put("testuser2-auth-protocol", "sha");
+    protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
+        gateways.consumeOrAdd("test-snmp", snmpGateway -> {
+            snmpGateway.setType(GATEWAY_NAME);
+            snmpGateway.getParameters().put("port", SNMP_PORT);
+            snmpGateway.getParameters().put("host", SNMP_HOST);
+            snmpGateway.getParameters().put("socketTimeout", "5000");
+            snmpGateway.getParameters().put("engineID", ENGINE_ID);
+            snmpGateway.getParameters().put("context", "1.1");
+            snmpGateway.getParameters().put("snmpv3-groups", "group1; group2");
+            //group1 setup
+            snmpGateway.getParameters().put("group1-security-level", "authPriv");
+            snmpGateway.getParameters().put("group1-access-rights", "read; write; notify");
+            snmpGateway.getParameters().put("group1-users", USER_NAME);
+            snmpGateway.getParameters().put(USER_NAME + "-password", PASSWORD);
+            snmpGateway.getParameters().put(USER_NAME + "-auth-protocol", "sha");
+            snmpGateway.getParameters().put(USER_NAME + "-privacy-key", PRIVACY_KEY);
+            // Oracle JRE does not support 256 by default, so for test compatibility the key in use has been changed to 128.
+            // FYI: it DOES work with any other JRE, and either works with necessary Oracle JRE modules
+            snmpGateway.getParameters().put(USER_NAME + "-privacy-protocol", "AES128");
+            //group2 setup
+            snmpGateway.getParameters().put("group2-security-level", "authNoPriv");
+            snmpGateway.getParameters().put("group2-access-rights", "read");
+            snmpGateway.getParameters().put("group2-users", "testuser2");
+            snmpGateway.getParameters().put("testuser2-password", PASSWORD);
+            snmpGateway.getParameters().put("testuser2-auth-protocol", "sha");
+        });
     }
 
     @Override

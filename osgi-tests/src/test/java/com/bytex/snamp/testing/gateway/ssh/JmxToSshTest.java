@@ -41,7 +41,7 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
     private static final String USER_NAME = "Dummy";
     private static final String PASSWORD = "Password";
     private static final int PORT = 22000;
-    private static final String ADAPTER_NAME = "ssh";
+    private static final String GATEWAY_NAME = "ssh";
     private static final String INSTANCE_NAME = "test-ssh";
 
     public JmxToSshTest() throws MalformedObjectNameException {
@@ -133,27 +133,28 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
-        syncWithGatewayStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
-                GatewayActivator.enableGateway(context, ADAPTER_NAME);
+        syncWithGatewayStartedEvent(GATEWAY_NAME, (BundleExceptionCallable) () -> {
+                GatewayActivator.enableGateway(context, GATEWAY_NAME);
                 return null;
         }, Duration.ofSeconds(60));
     }
 
     @Override
     protected void beforeCleanupTest(final BundleContext context) throws Exception {
-        GatewayActivator.disableGateway(context, ADAPTER_NAME);
+        GatewayActivator.disableGateway(context, GATEWAY_NAME);
         stopResourceConnector(context);
     }
 
     @Override
-    protected void fillAdapters(final EntityMap<? extends GatewayConfiguration> adapters) {
-        final GatewayConfiguration sshAdapter = adapters.getOrAdd(INSTANCE_NAME);
-        sshAdapter.setType(ADAPTER_NAME);
-        sshAdapter.getParameters().put("host", "0.0.0.0");
-        sshAdapter.getParameters().put("port", Integer.toString(PORT));
-        sshAdapter.getParameters().put("userName", USER_NAME);
-        sshAdapter.getParameters().put("password", PASSWORD);
-        sshAdapter.getParameters().put("hostKeyFile", getPathToFileInProjectRoot("hostkey.ser"));
+    protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
+        gateways.consumeOrAdd(INSTANCE_NAME, sshGateway -> {
+            sshGateway.setType(GATEWAY_NAME);
+            sshGateway.getParameters().put("host", "0.0.0.0");
+            sshGateway.getParameters().put("port", Integer.toString(PORT));
+            sshGateway.getParameters().put("userName", USER_NAME);
+            sshGateway.getParameters().put("password", PASSWORD);
+            sshGateway.getParameters().put("hostKeyFile", getPathToFileInProjectRoot("hostkey.ser"));
+        });
     }
 
     @Override

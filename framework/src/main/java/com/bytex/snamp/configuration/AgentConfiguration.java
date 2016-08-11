@@ -4,12 +4,12 @@ package com.bytex.snamp.configuration;
  * Represents in-memory representation of the agent configuration.
  * <p>The agent configuration consists of the following parts:
  * <ul>
- *     <li>Hosting configuration - contains configuration of the adapter.</li>
+ *     <li>Configuration of gateways</li>
  *     <li>Configuration of the managed resources.</li>
  * </ul><br/>
- * Hosting configuration describes configuration of the adapter, that exposes
+ * Gateway configuration describes configuration of the gateway instance, that exposes
  * the management information to the outside world.
- * This configuration part contains adapter name (name of the Adapter Plug-in) and
+ * This configuration part contains gateway type and
  * additional elements, such as port number and host name.<br/>
  * Each managed resource configuration contains information about management information source in the form
  * of the following elements:

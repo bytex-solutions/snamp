@@ -9,27 +9,27 @@ import com.bytex.snamp.configuration.GatewayConfiguration;
  * @version 2.0
  * @since 1.0
  */
-abstract class AbstractResourceAdapterInstancePatch implements ResourceAdapterInstancePatch {
-    private final String adapterInstance;
-    private final GatewayConfiguration adapterConfig;
+abstract class AbstractGatewayInstancePatch implements GatewayInstancePatch {
+    private final String gatewayInstanceName;
+    private final GatewayConfiguration gatewayInstanceConfig;
 
-    AbstractResourceAdapterInstancePatch(final String adapterInstanceName,
-                                         final GatewayConfiguration adapter) {
-        this.adapterInstance = adapterInstanceName;
-        this.adapterConfig = adapter;
+    AbstractGatewayInstancePatch(final String gatewayInstanceName,
+                                 final GatewayConfiguration gatewayInstance) {
+        this.gatewayInstanceName = gatewayInstanceName;
+        this.gatewayInstanceConfig = gatewayInstance;
     }
 
     @Override
     public final GatewayConfiguration getEntity() {
-        return adapterConfig;
+        return gatewayInstanceConfig;
     }
 
     @Override
     public final String getEntityID() {
-        return adapterInstance;
+        return gatewayInstanceName;
     }
 
-    protected abstract void applyTo(final EntityMap<? extends GatewayConfiguration> adapters);
+    protected abstract void applyTo(final EntityMap<? extends GatewayConfiguration> gateways);
 
     /**
      * Applies this patch to the baseline configuration.

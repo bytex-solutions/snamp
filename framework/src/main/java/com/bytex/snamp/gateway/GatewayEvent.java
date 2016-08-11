@@ -14,10 +14,10 @@ public class GatewayEvent extends EventObject {
     /**
      * Initializes a new instance of the event data holder.
      *
-     * @param adapterInstance An instance of the gateway associated with this event.
+     * @param gatewayInstance An instance of the gateway associated with this event.
      */
-    GatewayEvent(final Gateway adapterInstance) {
-        super(adapterInstance);
+    GatewayEvent(final Gateway gatewayInstance) {
+        super(gatewayInstance);
     }
 
     /**

@@ -32,13 +32,13 @@ import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventCo
 public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOpenMBean> {
 
 
-    private static final class TestAdapter extends AbstractGateway {
+    private static final class TestGateway extends AbstractGateway {
 
         private final ArrayList<AttributeAccessor> attributes = new ArrayList<>();
 
         private final ArrayList<NotificationAccessor> notifications = new ArrayList<>();
 
-        private TestAdapter() {
+        private TestGateway() {
             super("TestAdapter");
         }
 
@@ -123,11 +123,11 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
         super(new TestOpenMBean(), new ObjectName(TestOpenMBean.BEAN_NAME));
     }
 
-    private static boolean tryStart(final AbstractGateway adapter,
+    private static boolean tryStart(final AbstractGateway gatewayInstance,
                                     final Map<String, String> parameters) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         final Method tryStartMethod = AbstractGateway.class.getDeclaredMethod("tryStart", Map.class);
         tryStartMethod.setAccessible(true);
-        return (Boolean)tryStartMethod.invoke(adapter, parameters);
+        return (Boolean)tryStartMethod.invoke(gatewayInstance, parameters);
     }
 
     @Override
@@ -137,22 +137,22 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
 
     @Test
     public void simpleTrackingTest() throws Exception {
-        final TestAdapter adapter = new TestAdapter();
-        ManagedResourceConnectorClient.addResourceListener(getTestBundleContext(), adapter);
+        final TestGateway gateway = new TestGateway();
+        ManagedResourceConnectorClient.addResourceListener(getTestBundleContext(), gateway);
         try {
-            tryStart(adapter, Collections.emptyMap());
-            assertEquals(9, adapter.getAttributes().size());
-            assertEquals(2, adapter.getNotifications().size());
+            tryStart(gateway, Collections.emptyMap());
+            assertEquals(9, gateway.getAttributes().size());
+            assertEquals(2, gateway.getNotifications().size());
             //now deactivate the resource connector. This action causes restarting the adapter
             stopResourceConnector(getTestBundleContext());
-            assertTrue(adapter.getAttributes().isEmpty());
-            assertTrue(adapter.getNotifications().isEmpty());
+            assertTrue(gateway.getAttributes().isEmpty());
+            assertTrue(gateway.getNotifications().isEmpty());
             //activate resource connector. This action causes registration of features
             startResourceConnector(getTestBundleContext());
             //...but this process is asynchronous
             Thread.sleep(2000);
-            assertEquals(9, adapter.getAttributes().size());
-            assertEquals(2, adapter.getNotifications().size());
+            assertEquals(9, gateway.getAttributes().size());
+            assertEquals(2, gateway.getNotifications().size());
             //remove some attributes
             processConfiguration(config -> {
                 final ManagedResourceConfiguration testResource =
@@ -166,11 +166,11 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
                 return true;
             });
             Thread.sleep(2000);
-            assertEquals(5, adapter.getAttributes().size());
-            assertEquals(1, adapter.getNotifications().size());
+            assertEquals(5, gateway.getAttributes().size());
+            assertEquals(1, gateway.getNotifications().size());
         } finally {
-            getTestBundleContext().removeServiceListener(adapter);
-            adapter.close();
+            getTestBundleContext().removeServiceListener(gateway);
+            gateway.close();
         }
     }
 

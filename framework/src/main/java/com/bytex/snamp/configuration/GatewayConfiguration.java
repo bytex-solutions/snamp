@@ -9,7 +9,7 @@ package com.bytex.snamp.configuration;
 public interface GatewayConfiguration extends TypedEntityConfiguration {
     /**
      * Represents name of configuration parameter that points to thread pool in {@link com.bytex.snamp.concurrent.ThreadPoolRepository}
-     * service used by adapter.
+     * service used by gateway.
      * @since 1.2
      */
     String THREAD_POOL_KEY = "threadPool";

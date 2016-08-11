@@ -78,8 +78,7 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
             for (final Map.Entry<String, ? extends ManagedResourceConfiguration.AttributeConfiguration> entry : input.entrySet()) {
                 final ManagedResourceConfiguration.AttributeConfiguration inputAttr = entry.getValue();
                 //factory registers a new attribute in the output collection
-                final ManagedResourceConfiguration.AttributeConfiguration outputAttr = output.getOrAdd(entry.getKey());
-                copy(inputAttr, outputAttr);
+                output.consumeOrAdd(inputAttr, entry.getKey(), AbstractAgentConfiguration::copy);
             }
         }
     }
@@ -90,8 +89,7 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
             output.clear();
             for (final Map.Entry<String, ? extends ManagedResourceConfiguration.EventConfiguration> entry : input.entrySet()) {
                 final ManagedResourceConfiguration.EventConfiguration inputEv = entry.getValue();
-                final ManagedResourceConfiguration.EventConfiguration outputEv = output.getOrAdd(entry.getKey());
-                copy(inputEv, outputEv);
+                output.consumeOrAdd(inputEv, entry.getKey(), AbstractAgentConfiguration::copy);
             }
         }
     }
@@ -102,8 +100,7 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
             output.clear();
             for (final Map.Entry<String, ? extends ManagedResourceConfiguration.OperationConfiguration> entry : input.entrySet()) {
                 final ManagedResourceConfiguration.OperationConfiguration inputOp = entry.getValue();
-                final ManagedResourceConfiguration.OperationConfiguration outputOp = output.getOrAdd(entry.getKey());
-                copy(inputOp, outputOp);
+                output.consumeOrAdd(inputOp, entry.getKey(), AbstractAgentConfiguration::copy);
             }
         }
     }
@@ -145,8 +142,7 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         output.clear();
         for (final Map.Entry<String, ? extends T> entry : input.entrySet()) {
             final T source = entry.getValue();
-            final T dest = output.getOrAdd(entry.getKey());
-            copier.copy(source, dest);
+            output.consumeOrAdd(source, entry.getKey(), copier::copy);
         }
     }
 

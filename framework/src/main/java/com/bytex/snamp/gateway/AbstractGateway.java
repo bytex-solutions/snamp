@@ -35,7 +35,7 @@ import java.util.stream.Stream;
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**
- * Represents a base class for constructing custom resource gateway.
+ * Represents a base class for constructing custom gateway.
  * <p>
  *     Resource adapter is not an OSGi service because this is front-end SNAMP component.
  *     Therefore, an instance of the adapter is not accessible through OSGi environment.
@@ -79,7 +79,7 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
             return new InternalState(state, ImmutableMap.copyOf(value));
         }
 
-        private InternalState setAdapterState(final GatewayState value) {
+        private InternalState transition(final GatewayState value) {
             return new InternalState(value, parameters);
         }
 
@@ -394,7 +394,7 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
      * <p>
      *     In the default implementation this method causes restarting
      *     of this gateway instance that affects availability of the gateway.
-     *     You should override this method if custom resource gateway
+     *     You should override this method if custom gateway
      *     supports soft update (without affecting availability).
      * </p>
      * @param current The current configuration parameters.
@@ -434,11 +434,11 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
         }
     }
 
-    private static GatewayUpdatedCallback gatewayUpdatedNotifier(final WeakReference<? extends AbstractGateway> adapterRef){
+    private static GatewayUpdatedCallback gatewayUpdatedNotifier(final WeakReference<? extends AbstractGateway> gatewayInstanceRef){
         return () -> {
-            final AbstractGateway gateway = adapterRef.get();
+            final AbstractGateway gateway = gatewayInstanceRef.get();
             if (gateway != null)
-                GatewayEventBus.notifyAdapterUpdated(gateway.getGatewayType(), gateway);
+                GatewayEventBus.notifyInstanceUpdated(gateway.getGatewayType(), gateway);
         };
     }
 
@@ -454,7 +454,7 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
         else
             callback = GatewayUpdateManager.combineCallbacks(callback, gatewayUpdatedNotifier(new WeakReference<>(this)));
         if (manager.beginUpdate(callback))
-            GatewayEventBus.notifyAdapterUpdating(getGatewayType(), this);
+            GatewayEventBus.notifyInstanceUpdating(getGatewayType(), this);
     }
 
     /**
@@ -510,7 +510,7 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
                 resources.forEach(this::addResource);
                 InternalState newState = currentState.setParameters(params);
                 start(newState.parameters);
-                mutableState = newState.setAdapterState(GatewayState.STARTED);
+                mutableState = newState.transition(GatewayState.STARTED);
                 started();
                 ManagedResourceConnectorClient.addResourceListener(getBundleContext(), this);
                 return true;
@@ -532,7 +532,7 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
                 }
                 finally {
                     getBundleContext().removeServiceListener(this);
-                    mutableState = currentState.setAdapterState(GatewayState.STOPPED);
+                    mutableState = currentState.transition(GatewayState.STOPPED);
                 }
                 stopped();
                 return true;
@@ -620,11 +620,11 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
     }
 
     private void started(){
-        GatewayEventBus.notifyAdapterStarted(getGatewayType(), this);
+        GatewayEventBus.notifyInstanceStarted(getGatewayType(), this);
     }
 
     private void stopped(){
-        GatewayEventBus.notifyAdapterStopped(getGatewayType(), this);
+        GatewayEventBus.notifyInstanceStopped(getGatewayType(), this);
     }
 
     private BundleContext getBundleContext(){
@@ -655,8 +655,8 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
         return getGatewayType(getClass());
     }
 
-    public static String getGatewayType(final Class<? extends Gateway> adapterType) {
-        final BundleContext context = Utils.getBundleContext(adapterType);
+    public static String getGatewayType(final Class<? extends Gateway> gatewayType) {
+        final BundleContext context = Utils.getBundleContext(gatewayType);
         assert context != null;
         return Gateway.getGatewayType(context.getBundle());
     }

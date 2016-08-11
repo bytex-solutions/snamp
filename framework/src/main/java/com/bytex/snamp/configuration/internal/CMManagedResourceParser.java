@@ -1,11 +1,12 @@
 package com.bytex.snamp.configuration.internal;
 
 
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+
 import java.io.IOException;
 import java.util.Dictionary;
 import java.util.Map;
 
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.*;
 
 /**
@@ -23,7 +24,7 @@ public interface CMManagedResourceParser extends CMConfigurationParser<ManagedRe
      * @param connectorType The type of the managed resource connector.
      * @return The persistent identifier.
      */
-    String getConnectorFactoryPersistentID(final String connectorType);
+    String getFactoryPersistentID(final String connectorType);
 
     /**
      * Extracts resource connection string from the managed resource configuration.
@@ -39,7 +40,7 @@ public interface CMManagedResourceParser extends CMConfigurationParser<ManagedRe
      */
     String getResourceName(final Dictionary<String, ?> resourceConfig);
 
-    Map<String, String> getResourceConnectorParameters(final Dictionary<String, ?> resourceConfig);
+    Map<String, String> getParameters(final Dictionary<String, ?> resourceConfig);
 
     Map<String, ? extends AttributeConfiguration> getAttributes(final Dictionary<String, ?> resourceConfig) throws IOException;
 

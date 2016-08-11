@@ -3,7 +3,7 @@ package com.bytex.snamp.gateway;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.configuration.ConfigurationManager;
-import com.bytex.snamp.configuration.internal.CMResourceAdapterParser;
+import com.bytex.snamp.configuration.internal.CMGatewayParser;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.internal.Utils;
@@ -51,75 +51,75 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
      */
     @FunctionalInterface
     protected interface GatewayFactory<G extends Gateway>{
-        G createInstance(final String adapterInstance,
+        G createInstance(final String gatewayInstance,
                          final RequiredService<?>... dependencies) throws Exception;
     }
 
-    private static final class ResourceAdapterRegistry<G extends AbstractGateway> extends ServiceSubRegistryManager<Gateway, G>{
-        private final GatewayFactory<G> adapterFactory;
+    private static final class GatewayInstances<G extends AbstractGateway> extends ServiceSubRegistryManager<Gateway, G>{
+        private final GatewayFactory<G> gatewayInstanceFactory;
         /**
          * Represents name of the resource adapter.
          */
         protected final String gatewayType;
 
-        private ResourceAdapterRegistry(final String gatewayType,
-                                        final GatewayFactory<G> factory,
-                                        final RequiredService<?>... dependencies) {
+        private GatewayInstances(final String gatewayType,
+                                 final GatewayFactory<G> factory,
+                                 final RequiredService<?>... dependencies) {
             super(Gateway.class,
                     ObjectArrays.<RequiredService>concat(dependencies, new SimpleDependency<>(ConfigurationManager.class)));
-            this.adapterFactory = Objects.requireNonNull(factory, "factory is null.");
+            this.gatewayInstanceFactory = Objects.requireNonNull(factory, "factory is null.");
             this.gatewayType = gatewayType;
         }
 
-        private ResourceAdapterRegistry(final GatewayFactory<G> factory,
-                                       final RequiredService<?>... dependencies) {
+        private GatewayInstances(final GatewayFactory<G> factory,
+                                 final RequiredService<?>... dependencies) {
             this(Gateway.getGatewayType(Utils.getBundleContextOfObject(factory).getBundle()), factory, dependencies);
         }
 
         @SuppressWarnings("unchecked")
-        private static CMResourceAdapterParser getParser(final RequiredService<?>... dependencies){
+        private static CMGatewayParser getParser(final RequiredService<?>... dependencies){
             final ConfigurationManager configManager = getDependency(RequiredServiceAccessor.class, ConfigurationManager.class, dependencies);
             assert configManager != null;
-            final CMResourceAdapterParser parser = configManager.queryObject(CMResourceAdapterParser.class);
+            final CMGatewayParser parser = configManager.queryObject(CMGatewayParser.class);
             assert parser != null;
             return parser;
         }
 
         @Override
         protected String getFactoryPID(final RequiredService<?>[] dependencies) {
-            return getParser(dependencies).getAdapterFactoryPersistentID(gatewayType);
+            return getParser(dependencies).getFactoryPersistentID(gatewayType);
         }
 
         @Override
-        protected G update(final G adapter,
+        protected G update(final G gatewayInstance,
                            final Dictionary<String, ?> configuration,
                            final RequiredService<?>... dependencies) throws Exception {
-            final CMResourceAdapterParser parser = getParser(dependencies);
-            adapter.tryUpdate(parser.getAdapterParameters(configuration));
-            return adapter;
+            final CMGatewayParser parser = getParser(dependencies);
+            gatewayInstance.tryUpdate(parser.getParameters(configuration));
+            return gatewayInstance;
         }
 
         @Override
         protected G createService(final Map<String, Object> identity,
                                   final Dictionary<String, ?> configuration,
                                   final RequiredService<?>... dependencies) throws Exception {
-            final CMResourceAdapterParser parser = getParser(dependencies);
-            final String instanceName = parser.getAdapterInstanceName(configuration);
+            final CMGatewayParser parser = getParser(dependencies);
+            final String instanceName = parser.getInstanceName(configuration);
             createIdentity(gatewayType, instanceName, identity);
-            final G resourceAdapter = adapterFactory.createInstance(instanceName, dependencies);
-            if (resourceAdapter != null)
-                if (resourceAdapter.tryStart(parser.getAdapterParameters(configuration))) {
-                    return resourceAdapter;
+            final G gatewayInstance = gatewayInstanceFactory.createInstance(instanceName, dependencies);
+            if (gatewayInstance != null)
+                if (gatewayInstance.tryStart(parser.getParameters(configuration))) {
+                    return gatewayInstance;
                 } else {
-                    resourceAdapter.close();
+                    gatewayInstance.close();
                     throw new IllegalStateException(String.format("Unable to start '%s' instance", instanceName));
                 }
             else throw new InstantiationException(String.format("Unable to instantiate '%s' instance", instanceName));
         }
 
         @Override
-        protected void cleanupService(final G adapter, final Dictionary<String, ?> identity) throws IOException {
-            adapter.close();
+        protected void cleanupService(final G gatewayInstance, final Dictionary<String, ?> identity) throws IOException {
+            gatewayInstance.close();
         }
 
         @Override
@@ -192,7 +192,7 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
         this(factory, emptyArray(RequiredService[].class), optionalServices);
     }
 
-    private GatewayActivator(final ResourceAdapterRegistry<?> registry,
+    private GatewayActivator(final GatewayInstances<?> registry,
                              final SupportGatewayServiceManager<?, ?>[] optionalServices) {
         super(ObjectArrays.concat(new ServiceSubRegistryManager<?, ?>[]{registry}, optionalServices, ProvidedService.class));
     }
@@ -200,13 +200,13 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
     /**
      * Initializes a new instance of the resource adapter activator.
      * @param factory Resource adapter factory. Cannot be {@literal null}.
-     * @param adapterDependencies Adapter-level dependencies.
+     * @param gatewayDependencies Adapter-level dependencies.
      * @param optionalServices Additional services exposed by adapter.
      */
     protected GatewayActivator(final GatewayFactory<G> factory,
-                               final RequiredService<?>[] adapterDependencies,
+                               final RequiredService<?>[] gatewayDependencies,
                                final SupportGatewayServiceManager<?, ?>[] optionalServices) {
-        this(new ResourceAdapterRegistry<>(factory, adapterDependencies), optionalServices);
+        this(new GatewayInstances<>(factory, gatewayDependencies), optionalServices);
     }
 
     protected static <T extends ConfigurationEntityDescriptionProvider> SupportGatewayServiceManager<ConfigurationEntityDescriptionProvider, T> configurationDescriptor(final Supplier<T> factory) {
@@ -267,7 +267,7 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
     protected final void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) throws Exception {
         activationProperties.publish(GATEWAY_TYPE_HOLDER, getGatewayType());
         activationProperties.publish(LOGGER_HOLDER, getLogger());
-        getLogger().info(String.format("Activating resource gateway of type %s", getGatewayType()));
+        getLogger().info(String.format("Activating gateway of type %s", getGatewayType()));
     }
 
     /**
@@ -329,7 +329,7 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
     }
 
     /**
-     * Stops all managed resource gateway loaded into the current OSGi environment.
+     * Disables all gateways loaded into the current OSGi environment.
      * @param context The context of the calling bundle. Cannot be {@literal null}.
      * @return Number of stopped bundles.
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
@@ -364,7 +364,7 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
     }
 
     /**
-     * Starts all managed resource gateway loaded into the current OSGi environment.
+     * Enables all gateways loaded into the current OSGi environment.
      * @param context The context of the calling bundle. Cannot be {@literal null}.
      * @return Number of started bundles with gateway.
      * @throws BundleException Unable to start gateway.
@@ -418,8 +418,8 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
                 String.format("(&(%s=%s)%s)", GATEWAY_TYPE_IDENTITY_PROPERTY, gatewayType, filter);
     }
 
-    static String createFilter(final String adapterInstanceName){
-        return String.format("(%s=%s)", GATEWAY_INSTANCE_IDENTITY_PROPERTY, adapterInstanceName);
+    static String createFilter(final String gatewayInstance){
+        return String.format("(%s=%s)", GATEWAY_INSTANCE_IDENTITY_PROPERTY, gatewayInstance);
     }
 
     private static String getGatewayInstance(final Dictionary<String, ?> identity){

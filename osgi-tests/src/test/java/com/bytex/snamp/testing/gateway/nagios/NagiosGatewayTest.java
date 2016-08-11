@@ -1,10 +1,12 @@
 package com.bytex.snamp.testing.gateway.nagios;
 
+import com.bytex.snamp.configuration.ConfigurationEntityDescription;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.GatewayConfiguration;
+import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.gateway.Gateway;
 import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.gateway.GatewayClient;
-import com.bytex.snamp.configuration.ConfigurationEntityDescription;
-import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.testing.BundleExceptionCallable;
@@ -25,10 +27,7 @@ import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
-import com.bytex.snamp.configuration.EntityMap;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
-
-import com.bytex.snamp.configuration.GatewayConfiguration;
 import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
 
 /**
@@ -37,11 +36,11 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
  * @since 1.0
  */
 @SnampDependencies(SnampFeature.NAGIOS_GATEWAY)
-public final class NagiosAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean> {
-    private static final String ADAPTER_NAME = "nagios";
+public final class NagiosGatewayTest extends AbstractJmxConnectorTest<TestOpenMBean> {
+    private static final String GATEWAY_NAME = "nagios";
     private static final String INSTANCE_NAME = "test-nagios";
 
-    public NagiosAdapterTest() throws MalformedObjectNameException {
+    public NagiosGatewayTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(), new ObjectName(BEAN_NAME));
     }
 
@@ -54,15 +53,15 @@ public final class NagiosAdapterTest extends AbstractJmxConnectorTest<TestOpenMB
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
-        syncWithGatewayStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
-                GatewayActivator.enableGateway(context, ADAPTER_NAME);
+        syncWithGatewayStartedEvent(GATEWAY_NAME, (BundleExceptionCallable) () -> {
+                GatewayActivator.enableGateway(context, GATEWAY_NAME);
                 return null;
         }, Duration.ofMinutes(4));
     }
 
     @Override
     protected void beforeCleanupTest(final BundleContext context) throws Exception {
-        GatewayActivator.disableGateway(context, ADAPTER_NAME);
+        GatewayActivator.disableGateway(context, GATEWAY_NAME);
         stopResourceConnector(context);
     }
 
@@ -130,7 +129,7 @@ public final class NagiosAdapterTest extends AbstractJmxConnectorTest<TestOpenMB
 
     @Test
     public void configurationDescriptorTest() throws BundleException {
-        final ConfigurationEntityDescription desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, AttributeConfiguration.class);
+        final ConfigurationEntityDescription desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), GATEWAY_NAME, AttributeConfiguration.class);
         testConfigurationDescriptor(desc,
                 "serviceName",
                 "label",
@@ -159,9 +158,9 @@ public final class NagiosAdapterTest extends AbstractJmxConnectorTest<TestOpenMB
     }
 
     @Override
-    protected void fillAdapters(final EntityMap<? extends GatewayConfiguration> adapters) {
-        final GatewayConfiguration nagiosAdapter = adapters.getOrAdd(INSTANCE_NAME);
-        nagiosAdapter.setType(ADAPTER_NAME);
+    protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
+        final GatewayConfiguration nagiosGateway = gateways.getOrAdd(INSTANCE_NAME);
+        nagiosGateway.setType(GATEWAY_NAME);
     }
 
     @Override

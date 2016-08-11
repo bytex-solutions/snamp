@@ -13,9 +13,9 @@ public class GatewayStoppedEvent extends GatewayEvent {
     /**
      * Initializes a new instance of the event data holder.
      *
-     * @param adapterInstance An instance of the resource adapter associated with this event.
+     * @param gatewayInstance An instance of the resource adapter associated with this event.
      */
-    public GatewayStoppedEvent(final Gateway adapterInstance) {
-        super(adapterInstance);
+    public GatewayStoppedEvent(final Gateway gatewayInstance) {
+        super(gatewayInstance);
     }
 }

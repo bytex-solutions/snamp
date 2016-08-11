@@ -351,8 +351,8 @@ final class SshGateway extends AbstractGateway implements GatewayController {
     private final SshModelOfAttributes attributes;
     private final SshModelOfNotifications notifications;
 
-    SshGateway(final String adapterInstanceName) {
-        super(adapterInstanceName);
+    SshGateway(final String gatewayInstance) {
+        super(gatewayInstance);
         attributes = new SshModelOfAttributes();
         notifications = new SshModelOfNotifications();
     }
@@ -434,7 +434,7 @@ final class SshGateway extends AbstractGateway implements GatewayController {
      * @return The logger associated with this service.
      */
     public Logger getLogger() {
-        return getLogger(SshHelpers.ADAPTER_NAME);
+        return getLogger(SshHelpers.GATEWAY_TYPE);
     }
 
     @Override

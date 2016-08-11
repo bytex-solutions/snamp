@@ -31,10 +31,10 @@ import static com.bytex.snamp.gateway.snmp.SnmpGatewayDescriptionProvider.isVali
  * @since 1.0
  */
 final class SnmpGateway extends AbstractGateway {
-    private static final class SnmpAdapterUpdateManager extends GatewayUpdateManager {
+    private static final class SnmpGatewayUpdateManager extends GatewayUpdateManager {
         private final SnmpAgent agent;
 
-        private SnmpAdapterUpdateManager(final String adapterInstanceName,
+        private SnmpGatewayUpdateManager(final String adapterInstanceName,
                                          final long restartTimeout,
                                          final Callable<SnmpAgent> agentFactory) throws Exception {
             super(adapterInstanceName, restartTimeout);
@@ -82,13 +82,13 @@ final class SnmpGateway extends AbstractGateway {
         }
     }
 
-    private SnmpAdapterUpdateManager updateManager;
+    private SnmpGatewayUpdateManager updateManager;
     private final DirContextFactory contextFactory;
     private final Multimap<String, SnmpNotificationAcessor> notifications;
     private final Multimap<String, SnmpAttributeAccessor> attributes;
 
-    SnmpGateway(final String adapterInstanceName, final JNDIContextManager contextManager) {
-        super(adapterInstanceName);
+    SnmpGateway(final String gatewayInstance, final JNDIContextManager contextManager) {
+        super(gatewayInstance);
         contextFactory = contextManager::newInitialDirContext;
         updateManager = null;
         notifications = HashMultimap.create();
@@ -115,7 +115,7 @@ final class SnmpGateway extends AbstractGateway {
                 parser.parseSocketTimeout(parameters),
                 parser.getThreadPool(parameters));
         //initialize restart manager and start SNMP agent
-        updateManager = new SnmpAdapterUpdateManager(getInstanceName(), parser.parseRestartTimeout(parameters), agentFactory);
+        updateManager = new SnmpGatewayUpdateManager(getInstanceName(), parser.parseRestartTimeout(parameters), agentFactory);
         updateManager.startAgent(attributes.values(), notifications.values());
     }
 
@@ -141,7 +141,7 @@ final class SnmpGateway extends AbstractGateway {
     @SuppressWarnings("unchecked")
     @Override
     protected synchronized <M extends MBeanFeatureInfo> FeatureAccessor<M> addFeature(final String resourceName, final M feature) throws Exception {
-        final SnmpAdapterUpdateManager updateManager = this.updateManager;
+        final SnmpGatewayUpdateManager updateManager = this.updateManager;
         if(updateManager != null)
             beginUpdate(updateManager, updateManager.getCallback());
         if(feature instanceof MBeanNotificationInfo)
@@ -155,7 +155,7 @@ final class SnmpGateway extends AbstractGateway {
     protected synchronized Stream<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception {
         final Collection<? extends SnmpNotificationAcessor> notifs = notifications.removeAll(resourceName);
         final Collection<? extends SnmpAttributeAccessor> accessors = attributes.removeAll(resourceName);
-        final SnmpAdapterUpdateManager updateManager = this.updateManager;
+        final SnmpGatewayUpdateManager updateManager = this.updateManager;
         if(updateManager != null){
             beginUpdate(updateManager, updateManager.getCallback());
             notifs.forEach(updateManager::unregisterNotificationTarget);
@@ -190,7 +190,7 @@ final class SnmpGateway extends AbstractGateway {
     @SuppressWarnings("unchecked")
     @Override
     protected synchronized <M extends MBeanFeatureInfo> FeatureAccessor<M> removeFeature(final String resourceName, final M feature) throws Exception {
-        final SnmpAdapterUpdateManager updateManager = this.updateManager;
+        final SnmpGatewayUpdateManager updateManager = this.updateManager;
         if(updateManager != null)
             beginUpdate(updateManager, updateManager.agent);
         if(feature instanceof MBeanAttributeInfo)
@@ -249,7 +249,7 @@ final class SnmpGateway extends AbstractGateway {
     @SuppressWarnings("unchecked")
     @Override
     public synchronized <M extends MBeanFeatureInfo> Multimap<String, ? extends FeatureBindingInfo<M>> getBindings(final Class<M> featureType) {
-        final SnmpAdapterUpdateManager updateManager = this.updateManager;
+        final SnmpGatewayUpdateManager updateManager = this.updateManager;
         if(updateManager == null)
             return super.getBindings(featureType);
         else if(featureType.isAssignableFrom(MBeanAttributeInfo.class))

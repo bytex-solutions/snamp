@@ -12,21 +12,21 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * The type Start adapter operation.
  * @author Evgeniy Kirichenko
  */
-final class StartAdapterOperation extends AbstractAdapterOperation {
+final class EnableGatewayOperation extends AbstractGatewayOperation {
 
-    private static final String NAME = "startAdapter";
+    private static final String NAME = "enableGateway";
 
     /**
      * Instantiates a new Start adapter operation.
      *
      * @throws OpenDataException the open data exception
      */
-    StartAdapterOperation() throws OpenDataException {
+    EnableGatewayOperation() throws OpenDataException {
         super(NAME);
     }
 
     @Override
-    void invoke(final String adapterInstance) throws BundleException {
-        GatewayActivator.enableGateway(getBundleContextOfObject(this), adapterInstance);
+    void invoke(final String gatewayType) throws BundleException {
+        GatewayActivator.enableGateway(getBundleContextOfObject(this), gatewayType);
     }
 }

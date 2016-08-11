@@ -17,14 +17,14 @@ import static com.google.common.base.MoreObjects.firstNonNull;
  */
 public class GatewayUpdateManager implements AutoCloseable {
     private final long restartTimeout;
-    private final String adapterInstanceName;
+    private final String gatewayInstance;
 
     private final class ResumeTimer extends Thread {
         private final AtomicLong timeout;
         private final GatewayUpdatedCallback callback;
 
         private ResumeTimer(final GatewayUpdatedCallback callback) {
-            super("ResourceAdapterRestartManager:".concat(adapterInstanceName));
+            super("ResourceAdapterRestartManager:".concat(gatewayInstance));
             setDaemon(true);
             setPriority(3);
             this.timeout = new AtomicLong(restartTimeout);
@@ -58,14 +58,14 @@ public class GatewayUpdateManager implements AutoCloseable {
 
     /**
      * Initializes a new restart manager.
-     * @param adapterInstanceName The name of the resource adapter instance.
+     * @param gatewayInstance The name of the resource adapter instance.
      * @param delay The maximum time (in millis) used to await managed resource events.
      */
-    public GatewayUpdateManager(final String adapterInstanceName,
+    public GatewayUpdateManager(final String gatewayInstance,
                                 final long delay){
         this.restartTimeout = delay;
         this.timer = null;
-        this.adapterInstanceName = adapterInstanceName;
+        this.gatewayInstance = gatewayInstance;
     }
 
     /**

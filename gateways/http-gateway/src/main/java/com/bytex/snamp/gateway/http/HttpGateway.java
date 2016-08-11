@@ -255,7 +255,7 @@ final class HttpGateway extends AbstractGateway {
             this.attributes = Objects.requireNonNull(attributes);
         }
 
-        private static Application createResourceConfig(final AdapterRestService serviceInstance){
+        private static Application createResourceConfig(final GatewayRestService serviceInstance){
             final DefaultResourceConfig result = new DefaultResourceConfig();
             result.getSingletons().add(serviceInstance);
             return result;
@@ -263,7 +263,7 @@ final class HttpGateway extends AbstractGateway {
 
         @Override
         public ServletContainer get() {
-            return new ServletContainer(createResourceConfig(new AdapterRestService(attributes, notifications)));
+            return new ServletContainer(createResourceConfig(new GatewayRestService(attributes, notifications)));
         }
     }
 

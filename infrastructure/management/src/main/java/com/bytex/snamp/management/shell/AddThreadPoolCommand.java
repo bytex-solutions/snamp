@@ -49,15 +49,16 @@ public final class AddThreadPoolCommand extends AbstractThreadPoolCommand {
             output.append("Thread pool with the specified name is already registered");
             return false;
         }
-        final ThreadPoolConfiguration config = configuration.getOrAdd(poolName);
-        config.setMinPoolSize(minPoolSize);
-        config.setMaxPoolSize(maxPoolSize);
-        config.setThreadPriority(threadPriority);
-        if (queueSize < 0)
-            config.setQueueSize(INFINITE_QUEUE_SIZE);
-        else
-            config.setQueueSize(queueSize);
-        config.setKeepAliveTime(Duration.ofMillis(keepAliveTime));
+        configuration.consumeOrAdd(poolName, config -> {
+            config.setMinPoolSize(minPoolSize);
+            config.setMaxPoolSize(maxPoolSize);
+            config.setThreadPriority(threadPriority);
+            if (queueSize < 0)
+                config.setQueueSize(INFINITE_QUEUE_SIZE);
+            else
+                config.setQueueSize(queueSize);
+            config.setKeepAliveTime(Duration.ofMillis(keepAliveTime));
+        });
         output.append("Thread pool is registered successfully");
         return true;
     }

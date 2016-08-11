@@ -110,10 +110,10 @@ public final class GatewayClient extends ServiceHolder<Gateway> {
         return new UnsupportedOperationException(String.format("Gateway %s doesn't expose %s service", connectorType, serviceType));
     }
 
-    private static String getAdapterBundleHeader(final BundleContext context,
-                                                   final String gatewayType,
-                                                   final String header,
-                                                   final Locale loc){
+    private static String getGatewayBundleHeader(final BundleContext context,
+                                                 final String gatewayType,
+                                                 final String header,
+                                                 final Locale loc){
         final List<Bundle> candidates = GatewayActivator.getGatewayBundles(context, gatewayType);
         return candidates.isEmpty() ? null : candidates.get(0).getHeaders(loc != null ? loc.toString() : null).get(header);
     }
@@ -245,7 +245,7 @@ public final class GatewayClient extends ServiceHolder<Gateway> {
      * @return The version of the adapter.
      */
     public static Version getVersion(final BundleContext context, final String gatewayType){
-        return new Version(getAdapterBundleHeader(context, gatewayType, Constants.BUNDLE_VERSION, null));
+        return new Version(getGatewayBundleHeader(context, gatewayType, Constants.BUNDLE_VERSION, null));
     }
 
     /**
@@ -256,7 +256,7 @@ public final class GatewayClient extends ServiceHolder<Gateway> {
      * @return The description of the adapter.
      */
     public static String getDescription(final BundleContext context, final String gatewayType, final Locale loc) {
-        return getAdapterBundleHeader(context, gatewayType, Constants.BUNDLE_DESCRIPTION, loc);
+        return getGatewayBundleHeader(context, gatewayType, Constants.BUNDLE_DESCRIPTION, loc);
     }
 
         /**
@@ -267,7 +267,7 @@ public final class GatewayClient extends ServiceHolder<Gateway> {
          * @return The display name of the adapter.
          */
     public static String getDisplayName(final BundleContext context, final String gatewayType, final Locale loc) {
-        return getAdapterBundleHeader(context, gatewayType, Constants.BUNDLE_NAME, loc);
+        return getGatewayBundleHeader(context, gatewayType, Constants.BUNDLE_NAME, loc);
     }
 
     public static String getInstanceName(final ServiceReference<Gateway> gatewayInstance){

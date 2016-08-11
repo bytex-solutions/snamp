@@ -43,8 +43,8 @@ final class GatewayEventBus {
         }
     }
 
-    private static void fireAdapterListeners(final String gatewayType,
-                                             final GatewayEvent event) {
+    private static void fireEventListeners(final String gatewayType,
+                                           final GatewayEvent event) {
         synchronized (listeners) {
             WeakMultimap.iterate(listeners, (type, listener) -> {
                 if (Objects.equals(gatewayType, type))
@@ -56,23 +56,23 @@ final class GatewayEventBus {
         }
     }
 
-    static void notifyAdapterStopped(final String gatewayType, final Gateway gatewayInstance) {
+    static void notifyInstanceStopped(final String gatewayType, final Gateway gatewayInstance) {
         gatewayInstance.getLogger().info(String.format("Gateway %s/%s is stopped", gatewayType, gatewayInstance.getInstanceName()));
-        fireAdapterListeners(gatewayType, new GatewayStoppedEvent(gatewayInstance));
+        fireEventListeners(gatewayType, new GatewayStoppedEvent(gatewayInstance));
     }
 
-    static void notifyAdapterStarted(final String gatewayType, final Gateway gatewayInstance){
+    static void notifyInstanceStarted(final String gatewayType, final Gateway gatewayInstance){
         gatewayInstance.getLogger().info(String.format("Gateway %s/%s is started", gatewayType, gatewayInstance.getInstanceName()));
-        fireAdapterListeners(gatewayType, new GatewayStartedEvent(gatewayInstance));
+        fireEventListeners(gatewayType, new GatewayStartedEvent(gatewayInstance));
     }
 
-    static void notifyAdapterUpdating(final String gatewayType, final Gateway gatewayInstance){
+    static void notifyInstanceUpdating(final String gatewayType, final Gateway gatewayInstance){
         gatewayInstance.getLogger().info(String.format("Gateway %s/%s is updating", gatewayType, gatewayInstance.getInstanceName()));
-        fireAdapterListeners(gatewayType, new GatewayUpdatingEvent(gatewayInstance));
+        fireEventListeners(gatewayType, new GatewayUpdatingEvent(gatewayInstance));
     }
 
-    static void notifyAdapterUpdated(final String gatewayType, final Gateway gatewayInstance) {
+    static void notifyInstanceUpdated(final String gatewayType, final Gateway gatewayInstance) {
         gatewayInstance.getLogger().info(String.format("Gateway %s/%s is updated", gatewayType, gatewayInstance.getInstanceName()));
-        fireAdapterListeners(gatewayType, new GatewayUpdatedEvent(gatewayInstance));
+        fireEventListeners(gatewayType, new GatewayUpdatedEvent(gatewayInstance));
     }
 }

@@ -347,7 +347,7 @@ final class SecurityConfiguration {
         this.contextFactory = contextFactory != null ? contextFactory : new DefaultDirContextFactory();
     }
 
-    private static void fillGroups(final Map<String, String> adapterSettings, final Iterable<String> groups, final Map<String, UserGroup> output){
+    private static void fillGroups(final Map<String, String> gatewayInstanceConfig, final Iterable<String> groups, final Map<String, UserGroup> output){
         final String SECURITY_LEVEL_TEMPLATE = "%s-security-level";
         final String ACCESS_RIGHTS_TEMPLATE = "%s-access-rights";
         final String USERS_TEMPLATE = "%s-users";
@@ -355,14 +355,14 @@ final class SecurityConfiguration {
             final UserGroup groupInfo = new UserGroup();
             output.put(groupName, groupInfo);
             //process group's security level
-            groupInfo.setSecurityLevel(adapterSettings.get(String.format(SECURITY_LEVEL_TEMPLATE, groupName)));
+            groupInfo.setSecurityLevel(gatewayInstanceConfig.get(String.format(SECURITY_LEVEL_TEMPLATE, groupName)));
             //process group's access rights
-            groupInfo.setAccessRights(adapterSettings.get(String.format(ACCESS_RIGHTS_TEMPLATE, groupName)));
-            fillUsers(adapterSettings, groupInfo, SEMICOLON_SPLITTER.splitToList(adapterSettings.get(String.format(USERS_TEMPLATE, groupName))));
+            groupInfo.setAccessRights(gatewayInstanceConfig.get(String.format(ACCESS_RIGHTS_TEMPLATE, groupName)));
+            fillUsers(gatewayInstanceConfig, groupInfo, SEMICOLON_SPLITTER.splitToList(gatewayInstanceConfig.get(String.format(USERS_TEMPLATE, groupName))));
         }
     }
 
-    private static void fillUsers(final Map<String,String> adapterSettings, final UserGroup groupInfo, final Collection<String> userNames) {
+    private static void fillUsers(final Map<String,String> gatewayInstanceConfig, final UserGroup groupInfo, final Collection<String> userNames) {
         final String PASSWORD_TEMPLATE = "%s-password";
         final String AUTH_PROTOCOL_TEMPLATE = "%s-auth-protocol";
         final String PRIVACY_KEY_TEMPLATE = "%s-privacy-key";
@@ -370,33 +370,33 @@ final class SecurityConfiguration {
         for(final String name: userNames){
             final User userInfo = new User();
             groupInfo.put(name, userInfo);
-            userInfo.setPassword(adapterSettings.get(String.format(PASSWORD_TEMPLATE, name)));
-            userInfo.setPrivacyProtocol(adapterSettings.get(String.format(PRIVACY_PROTOCOL_TEMPLATE, name)));
-            userInfo.setPrivacyKey(adapterSettings.get(String.format(PRIVACY_KEY_TEMPLATE, name)));
-            userInfo.setAuthenticationProtocol(adapterSettings.get(String.format(AUTH_PROTOCOL_TEMPLATE, name)));
+            userInfo.setPassword(gatewayInstanceConfig.get(String.format(PASSWORD_TEMPLATE, name)));
+            userInfo.setPrivacyProtocol(gatewayInstanceConfig.get(String.format(PRIVACY_PROTOCOL_TEMPLATE, name)));
+            userInfo.setPrivacyKey(gatewayInstanceConfig.get(String.format(PRIVACY_KEY_TEMPLATE, name)));
+            userInfo.setAuthenticationProtocol(gatewayInstanceConfig.get(String.format(AUTH_PROTOCOL_TEMPLATE, name)));
         }
     }
 
-    boolean read(final Map<String, String> adapterSettings) throws NamingException{
-        if(adapterSettings.containsKey(LDAP_URI_PARAM)) //import groups and users from LDAP
-            return fillGroupsFromLdap(contextFactory, adapterSettings, adapterSettings.get(LDAP_URI_PARAM), groups);
-        else if(adapterSettings.containsKey(SNMPv3_GROUPS_PARAM)){ //import groups and users from local configuration file
-            fillGroups(adapterSettings, SEMICOLON_SPLITTER.splitToList(adapterSettings.get(SNMPv3_GROUPS_PARAM)), groups);
+    boolean read(final Map<String, String> gatewayInstanceConfig) throws NamingException{
+        if(gatewayInstanceConfig.containsKey(LDAP_URI_PARAM)) //import groups and users from LDAP
+            return fillGroupsFromLdap(contextFactory, gatewayInstanceConfig, gatewayInstanceConfig.get(LDAP_URI_PARAM), groups);
+        else if(gatewayInstanceConfig.containsKey(SNMPv3_GROUPS_PARAM)){ //import groups and users from local configuration file
+            fillGroups(gatewayInstanceConfig, SEMICOLON_SPLITTER.splitToList(gatewayInstanceConfig.get(SNMPv3_GROUPS_PARAM)), groups);
             return true;
         }
         else return false;
     }
 
     private static boolean fillGroupsFromLdap(final DirContextFactory contextFactory,
-                                              final Map<String, String> adapterSettings,
+                                              final Map<String, String> gatewayInstanceConfig,
                                               final String ldapUri,
                                               final Map<String, UserGroup> groups) throws NamingException {
-        final String ldapUserName = adapterSettings.get(LDAP_ADMINDN_PARAM);
-        final String ldapUserPassword = adapterSettings.get(LDAP_ADMIN_PASSWORD_PARAM);
-        String jndiLdapFactory = adapterSettings.get(JNDI_LDAP_FACTORY_PARAM);
+        final String ldapUserName = gatewayInstanceConfig.get(LDAP_ADMINDN_PARAM);
+        final String ldapUserPassword = gatewayInstanceConfig.get(LDAP_ADMIN_PASSWORD_PARAM);
+        String jndiLdapFactory = gatewayInstanceConfig.get(JNDI_LDAP_FACTORY_PARAM);
         if (jndiLdapFactory == null || jndiLdapFactory.isEmpty())
             jndiLdapFactory = "com.sun.jndi.ldap.LdapCtxFactory";
-        final LdapAuthenticationType authenticationType = LdapAuthenticationType.parse(adapterSettings.get(LDAP_ADMIN_AUTH_TYPE_PARAM));
+        final LdapAuthenticationType authenticationType = LdapAuthenticationType.parse(gatewayInstanceConfig.get(LDAP_ADMIN_AUTH_TYPE_PARAM));
         final Hashtable<String, Object> env = new Hashtable<>(7);
         authenticationType.setupEnvironment(env);
         env.put(Context.SECURITY_PRINCIPAL, ldapUserName);
@@ -413,10 +413,10 @@ final class SecurityConfiguration {
         // the following is helpful in debugging errors
         //env.put("com.sun.jndi.ldap.trace.ber", System.err);
         final DirContext ctx = contextFactory.create(env);
-        final String ldapGroups = adapterSettings.get(LDAP_GROUPS_PARAM);
-        final String userSearchFilter = adapterSettings.get(LDAP_USER_SEARCH_FILTER_PARAM);
-        final String baseDn = adapterSettings.get(LDAP_BASE_DN_PARAM);
-        final String userPasswordHolder = adapterSettings.get(LDAP_PASSWORD_HOLDER_PARAM);
+        final String ldapGroups = gatewayInstanceConfig.get(LDAP_GROUPS_PARAM);
+        final String userSearchFilter = gatewayInstanceConfig.get(LDAP_USER_SEARCH_FILTER_PARAM);
+        final String baseDn = gatewayInstanceConfig.get(LDAP_BASE_DN_PARAM);
+        final String userPasswordHolder = gatewayInstanceConfig.get(LDAP_PASSWORD_HOLDER_PARAM);
         fillGroupsFromLdap(ctx, SEMICOLON_SPLITTER.splitToList(ldapGroups), baseDn, userSearchFilter, groups, userPasswordHolder);
         ctx.close();
         return true;

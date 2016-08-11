@@ -190,16 +190,16 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
      * @throws IOException the iO exception
      */
     @Test
-    public void adapterManagementTest() throws IOException, MalformedObjectNameException, MBeanException, InstanceNotFoundException, ReflectionException, AttributeNotFoundException {
+    public void gatewayManagementTest() throws IOException, MalformedObjectNameException, MBeanException, InstanceNotFoundException, ReflectionException, AttributeNotFoundException {
         try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
             final ObjectName commonsObj = new ObjectName(SNAMP_MBEAN);
 
             // checking if the we have SNMP adapter installed
-            Object installedAdapters = connection.getAttribute(commonsObj, "InstalledAdapters");
-            assertNotNull(installedAdapters);
-            assertTrue(installedAdapters instanceof String[]);
-            assertTrue(new ArrayList<>(Arrays.asList((String[]) installedAdapters)).contains("snmp"));
+            Object installedGateways = connection.getAttribute(commonsObj, "InstalledGateways");
+            assertNotNull(installedGateways);
+            assertTrue(installedGateways instanceof String[]);
+            assertTrue(new ArrayList<>(Arrays.asList((String[]) installedGateways)).contains("snmp"));
 
             // check if adapter is alive
             adapterSnmpRunned();
@@ -301,8 +301,8 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
     }
 
     @Override
-    protected void fillAdapters(final EntityMap<? extends GatewayConfiguration> adapters) {
-        final GatewayConfiguration snmpAdapter = adapters.getOrAdd(ADAPTER_INSTANCE_NAME);
+    protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
+        final GatewayConfiguration snmpAdapter = gateways.getOrAdd(ADAPTER_INSTANCE_NAME);
         snmpAdapter.setType(ADAPTER_NAME);
         snmpAdapter.getParameters().put("port", SNMP_PORT);
         snmpAdapter.getParameters().put("host", SNMP_HOST);

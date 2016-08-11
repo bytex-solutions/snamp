@@ -43,7 +43,7 @@ final class GetAttributeCommand extends AbstractAttributeCommand {
                     AttributeValueFormat.TEXT;
             final String resourceName = input.getOptionValue(RESOURCE_OPTION.getOpt());
             final String attributeName = input.getOptionValue(NAME_OPTION.getOpt());
-            if(!getAdapterController().processAttribute(resourceName, attributeName, attribute -> {
+            if(!getGatewayController().processAttribute(resourceName, attributeName, attribute -> {
                 try(final LogicalOperation ignored = SshHelpers.readAttributeLogicalOperation(attribute.getOriginalName(), attributeName)) {
                     attribute.printValue(output, format);
                 }

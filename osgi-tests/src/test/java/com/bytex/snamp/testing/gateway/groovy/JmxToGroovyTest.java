@@ -38,7 +38,7 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
 @SnampDependencies(SnampFeature.GROOVY_GATEWAY)
 public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final String INSTANCE_NAME = "groovy-gateway";
-    private static final String ADAPTER_NAME = "groovy";
+    private static final String GATEWAY_NAME = "groovy";
     private static final String COMMUNICATION_CHANNEL = "test-communication-channel";
     private static final Predicate<Object> NON_NOTIF = responseMessage -> !(responseMessage instanceof Notification);
 
@@ -100,7 +100,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     @Test
     public void configurationTest(){
         final ConfigurationEntityDescription<?> descr =
-                GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, GatewayConfiguration.class);
+                GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), GATEWAY_NAME, GatewayConfiguration.class);
         testConfigurationDescriptor(descr, "scriptFile",  "scriptPath");
     }
 
@@ -125,13 +125,13 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     }
 
     @Override
-    protected void fillAdapters(final EntityMap<? extends GatewayConfiguration> adapters) {
-        final GatewayConfiguration groovyAdapter = adapters.getOrAdd(INSTANCE_NAME);
-        groovyAdapter.setType(ADAPTER_NAME);
-        groovyAdapter.getParameters().put("scriptPath", getGroovyScriptPath());
-        groovyAdapter.getParameters().put("scriptFile", "Adapter.groovy");
-        groovyAdapter.getParameters().put("communicationChannel", COMMUNICATION_CHANNEL);
-        groovyAdapter.getParameters().put("resourceName", TEST_RESOURCE_NAME);
+    protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
+        final GatewayConfiguration groovyGateway = gateways.getOrAdd(INSTANCE_NAME);
+        groovyGateway.setType(GATEWAY_NAME);
+        groovyGateway.getParameters().put("scriptPath", getGroovyScriptPath());
+        groovyGateway.getParameters().put("scriptFile", "Adapter.groovy");
+        groovyGateway.getParameters().put("communicationChannel", COMMUNICATION_CHANNEL);
+        groovyGateway.getParameters().put("resourceName", TEST_RESOURCE_NAME);
     }
 
     @Override
@@ -190,15 +190,15 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
-        syncWithGatewayStartedEvent(ADAPTER_NAME, (BundleExceptionCallable)() -> {
-                GatewayActivator.enableGateway(getTestBundleContext(), ADAPTER_NAME);
+        syncWithGatewayStartedEvent(GATEWAY_NAME, (BundleExceptionCallable)() -> {
+                GatewayActivator.enableGateway(getTestBundleContext(), GATEWAY_NAME);
                 return null;
         }, Duration.ofSeconds(15));
     }
 
     @Override
     protected void beforeCleanupTest(final BundleContext context) throws Exception {
-        GatewayActivator.disableGateway(context, ADAPTER_NAME);
+        GatewayActivator.disableGateway(context, GATEWAY_NAME);
         stopResourceConnector(context);
     }
 }

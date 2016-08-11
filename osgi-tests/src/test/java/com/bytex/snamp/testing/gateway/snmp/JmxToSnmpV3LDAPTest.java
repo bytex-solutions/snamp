@@ -46,7 +46,7 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
  */
 @SnampDependencies({SnampFeature.SNMP_GATEWAY, SnampFeature.WRAPPED_LIBS})
 public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpenMBean> {
-    private static final String ADAPTER_NAME = "snmp";
+    private static final String GATEWAY_NAME = "snmp";
     private static final String SNMP_PORT = "3222";
     private static final String SNMP_HOST = "127.0.0.1";
     private static final String LDAP_ADMIN_USER = "uid=admin,ou=system";
@@ -317,15 +317,15 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
-        syncWithGatewayStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
-                GatewayActivator.enableGateway(context, ADAPTER_NAME);
+        syncWithGatewayStartedEvent(GATEWAY_NAME, (BundleExceptionCallable) () -> {
+                GatewayActivator.enableGateway(context, GATEWAY_NAME);
                 return null;
         }, Duration.ofSeconds(4));
     }
 
     @Override
     protected void beforeCleanupTest(final BundleContext context) throws Exception {
-        GatewayActivator.disableGateway(context, ADAPTER_NAME);
+        GatewayActivator.disableGateway(context, GATEWAY_NAME);
         stopResourceConnector(context);
     }
 
@@ -339,21 +339,22 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
     }
 
     @Override
-    protected void fillAdapters(final EntityMap<? extends GatewayConfiguration> adapters) {
-        final GatewayConfiguration snmpAdapter = adapters.getOrAdd("test-snmp");
-        snmpAdapter.setType(ADAPTER_NAME);
-        snmpAdapter.getParameters().put("port", SNMP_PORT);
-        snmpAdapter.getParameters().put("host", SNMP_HOST);
-        snmpAdapter.getParameters().put("socketTimeout", "5000");
-        snmpAdapter.getParameters().put("engineID", ENGINE_ID);
-        snmpAdapter.getParameters().put("context", "1.1");
-        snmpAdapter.getParameters().put("ldap-uri", "ldap://127.0.0.1:" + EmbeddedADSVerTrunk.SERVER_PORT);
-        snmpAdapter.getParameters().put("ldap-user", LDAP_ADMIN_USER);
-        snmpAdapter.getParameters().put("ldap-password", LDAP_ADMIN_PASSWORD);
-        snmpAdapter.getParameters().put("ldap-auth-protocol", "simple");
-        snmpAdapter.getParameters().put("ldap-base-dn", "dc=ad,dc=microsoft,dc=com");
-        snmpAdapter.getParameters().put("ldap-user-search-filter", String.format("(%s)", LDAP_USER));
-        snmpAdapter.getParameters().put("ldap-groups", "(&(objectclass=domain)(objectclass=top))");
+    protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
+        gateways.consumeOrAdd("test-snmp", snmpGateway -> {
+            snmpGateway.setType(GATEWAY_NAME);
+            snmpGateway.getParameters().put("port", SNMP_PORT);
+            snmpGateway.getParameters().put("host", SNMP_HOST);
+            snmpGateway.getParameters().put("socketTimeout", "5000");
+            snmpGateway.getParameters().put("engineID", ENGINE_ID);
+            snmpGateway.getParameters().put("context", "1.1");
+            snmpGateway.getParameters().put("ldap-uri", "ldap://127.0.0.1:" + EmbeddedADSVerTrunk.SERVER_PORT);
+            snmpGateway.getParameters().put("ldap-user", LDAP_ADMIN_USER);
+            snmpGateway.getParameters().put("ldap-password", LDAP_ADMIN_PASSWORD);
+            snmpGateway.getParameters().put("ldap-auth-protocol", "simple");
+            snmpGateway.getParameters().put("ldap-base-dn", "dc=ad,dc=microsoft,dc=com");
+            snmpGateway.getParameters().put("ldap-user-search-filter", String.format("(%s)", LDAP_USER));
+            snmpGateway.getParameters().put("ldap-groups", "(&(objectclass=domain)(objectclass=top))");
+        });
     }
 
     @Override

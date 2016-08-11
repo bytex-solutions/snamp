@@ -359,20 +359,20 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
 
     /**
      * Creates a new instance of the resource adapter descriptor.
-     * @param systemName The system name of the adapter.
+     * @param gatewayType The system name of the adapter.
      * @return A new instance of the resource adapter descriptor.
      */
-    protected abstract GatewayDescriptor createResourceAdapterDescriptor(final String systemName);
+    protected abstract GatewayDescriptor createGatewayDescriptor(final String gatewayType);
 
     /**
-     * Returns a read-only collection of installed resource gateway.
+     * Returns a read-only collection of installed gateways.
      *
-     * @return A read-only collection of installed resource gateway.
+     * @return A read-only collection of installed gateways.
      */
     @Override
     public final Collection<? extends GatewayDescriptor> getInstalledGateways() {
         final Collection<String> systemNames = GatewayActivator.getInstalledGateways(getBundleContextOfObject(this));
-        return systemNames.stream().map(this::createResourceAdapterDescriptor).collect(Collectors.toCollection(LinkedList::new));
+        return systemNames.stream().map(this::createGatewayDescriptor).collect(Collectors.toCollection(LinkedList::new));
     }
 
     /**

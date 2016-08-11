@@ -48,13 +48,13 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
  * @since 1.0
  */
 @SnampDependencies(SnampFeature.JMX_GATEWAY)
-public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean> {
-    private static final String ADAPTER_NAME = "jmx";
+public final class JmxGatewayTest extends AbstractJmxConnectorTest<TestOpenMBean> {
+    private static final String GATEWAY_NAME = "jmx";
     private static final String INSTANCE_NAME = "test-jmx";
 
     private static final String ROOT_OBJECT_NAME = "com.bytex.snamp.testing:type=TestOpenMBean";
 
-    public JmxAdapterTest() throws MalformedObjectNameException {
+    public JmxGatewayTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(), new ObjectName(BEAN_NAME));
     }
 
@@ -179,9 +179,9 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
 
     @Test
     public void configurationDescriptorTest() throws BundleException {
-        ConfigurationEntityDescription desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, GatewayConfiguration.class);
+        ConfigurationEntityDescription desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), GATEWAY_NAME, GatewayConfiguration.class);
         testConfigurationDescriptor(desc, "objectName", "usePlatformMBean");
-        desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, EventConfiguration.class);
+        desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), GATEWAY_NAME, EventConfiguration.class);
         testConfigurationDescriptor(desc, "severity");
     }
 
@@ -217,12 +217,12 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
     }
 
     @Override
-    protected void fillAdapters(final EntityMap<? extends GatewayConfiguration> adapters) {
-        final GatewayConfiguration restAdapter = adapters.getOrAdd(INSTANCE_NAME);
-        restAdapter.setType(ADAPTER_NAME);
-        restAdapter.getParameters().put("objectName", ROOT_OBJECT_NAME);
-        restAdapter.getParameters().put("usePlatformMBean", Boolean.toString(isInTestContainer()));
-        restAdapter.getParameters().put("dbgUsePureSerialization", "true");
+    protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
+        final GatewayConfiguration httpGateway = gateways.getOrAdd(INSTANCE_NAME);
+        httpGateway.setType(GATEWAY_NAME);
+        httpGateway.getParameters().put("objectName", ROOT_OBJECT_NAME);
+        httpGateway.getParameters().put("usePlatformMBean", Boolean.toString(isInTestContainer()));
+        httpGateway.getParameters().put("dbgUsePureSerialization", "true");
     }
 
     @Override
@@ -234,15 +234,15 @@ public final class JmxAdapterTest extends AbstractJmxConnectorTest<TestOpenMBean
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
-        syncWithGatewayStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
-                GatewayActivator.enableGateway(context, ADAPTER_NAME);
+        syncWithGatewayStartedEvent(GATEWAY_NAME, (BundleExceptionCallable) () -> {
+                GatewayActivator.enableGateway(context, GATEWAY_NAME);
                 return null;
         }, Duration.ofMinutes(4));
     }
 
     @Override
     protected void beforeCleanupTest(final BundleContext context) throws Exception {
-        GatewayActivator.disableGateway(context, ADAPTER_NAME);
+        GatewayActivator.disableGateway(context, GATEWAY_NAME);
         stopResourceConnector(context);
     }
 

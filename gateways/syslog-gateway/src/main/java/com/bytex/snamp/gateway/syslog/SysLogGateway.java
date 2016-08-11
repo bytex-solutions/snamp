@@ -138,8 +138,8 @@ final class SysLogGateway extends AbstractGateway {
     private SysLogAttributeSender attributeSender;
     private final SysLogModelOfNotifications notifications;
 
-    SysLogGateway(final String adapterInstanceName){
-        super(adapterInstanceName);
+    SysLogGateway(final String gatewayInstance){
+        super(gatewayInstance);
         attributes = new SysLogModelOfAttributes();
         notifications = new SysLogModelOfNotifications();
         attributeSender = null;

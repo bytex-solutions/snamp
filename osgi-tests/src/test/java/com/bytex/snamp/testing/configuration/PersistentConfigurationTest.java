@@ -28,11 +28,11 @@ public class PersistentConfigurationTest extends AbstractSnampIntegrationTest {
             });
             //save adapter
             admin.get().processConfiguration(currentConfig -> {
-                final GatewayConfiguration adapter =
+                final GatewayConfiguration gatewayInstanceConfig =
                         currentConfig.getEntities(GatewayConfiguration.class).getOrAdd("adapter1");
-                assertNotNull(adapter);
-                adapter.setType("snmp");
-                adapter.getParameters().put("param1", "value");
+                assertNotNull(gatewayInstanceConfig);
+                gatewayInstanceConfig.setType("snmp");
+                gatewayInstanceConfig.getParameters().put("param1", "value");
                 return true;
             });
             //save connector

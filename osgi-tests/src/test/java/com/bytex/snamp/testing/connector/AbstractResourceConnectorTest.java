@@ -176,7 +176,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         startResourceConnector(context);
     }
 
-    protected void fillAdapters(final EntityMap<? extends GatewayConfiguration> adapters){
+    protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways){
 
     }
 
@@ -190,7 +190,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         final ManagedResourceConfiguration targetConfig =
                 config.getEntities(ManagedResourceConfiguration.class).getOrAdd(TEST_RESOURCE_NAME);
         targetConfig.getParameters().putAll(connectorParameters);
-        fillAdapters(config.getEntities(GatewayConfiguration.class));
+        fillGateways(config.getEntities(GatewayConfiguration.class));
         targetConfig.setConnectionString(connectionString);
         targetConfig.setType(connectorType);
         fillAttributes(targetConfig.getFeatures(AttributeConfiguration.class));

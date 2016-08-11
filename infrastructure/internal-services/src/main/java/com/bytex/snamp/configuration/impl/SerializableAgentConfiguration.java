@@ -20,7 +20,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
 
 
     private final ConfigurationEntityRegistry<SerializableManagedResourceConfiguration> resources;
-    private final ConfigurationEntityRegistry<SerializableGatewayConfiguration> adapters;
+    private final ConfigurationEntityRegistry<SerializableGatewayConfiguration> gateways;
     private final ConfigurationEntityRegistry<SerializableThreadPoolConfiguration> threadPools;
 
     /**
@@ -28,7 +28,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
      */
     @SpecialUse
     public SerializableAgentConfiguration(){
-        adapters = new AdapterRegistry();
+        gateways = new GatewayRegistry();
         resources = new ResourceRegistry();
         threadPools = new ThreadPoolRegistry();
     }
@@ -48,7 +48,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
     }
 
     private void reset(){
-        adapters.reset();
+        gateways.reset();
         resources.reset();
         threadPools.reset();
     }
@@ -71,7 +71,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
     public void writeExternal(final ObjectOutput out) throws IOException {
         out.writeByte(FORMAT_VERSION);
         //write gateway
-        adapters.writeExternal(out);
+        gateways.writeExternal(out);
         //write connector
         resources.writeExternal(out);
         //write thread pools
@@ -97,7 +97,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
         if(version != FORMAT_VERSION)
             throw new IOException(String.format("Unknown version of configuration format. Expected %s but actual %s", FORMAT_VERSION, version));
         //read gateway
-        adapters.readExternal(in);
+        gateways.readExternal(in);
         //read connector
         resources.readExternal(in);
         //read thread pools
@@ -109,7 +109,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
      * @return {@literal true}, if this configuration is empty; otherwise, {@literal false}.
      */
     boolean isEmpty(){
-        return adapters.isEmpty() && resources.isEmpty() && threadPools.isEmpty();
+        return gateways.isEmpty() && resources.isEmpty() && threadPools.isEmpty();
     }
 
     @SuppressWarnings("unchecked")
@@ -119,7 +119,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
         if (entityType.isAssignableFrom(SerializableManagedResourceConfiguration.class))
             result = resources;
         else if (entityType.isAssignableFrom(SerializableGatewayConfiguration.class))
-            result = adapters;
+            result = gateways;
         else if(entityType.isAssignableFrom(SerializableThreadPoolConfiguration.class))
             result = threadPools;
         else
@@ -131,8 +131,8 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
         return threadPools;
     }
 
-    ConfigurationEntityRegistry<SerializableGatewayConfiguration> getResourceAdapters() {
-        return adapters;
+    ConfigurationEntityRegistry<SerializableGatewayConfiguration> getGatewayInstances() {
+        return gateways;
     }
 
 
@@ -176,7 +176,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
     }
 
     private boolean equals(final AgentConfiguration other) {
-        return adapters.equals(other.getEntities(GatewayConfiguration.class)) &&
+        return gateways.equals(other.getEntities(GatewayConfiguration.class)) &&
                 resources.equals(other.getEntities(ManagedResourceConfiguration.class)) &&
                 threadPools.equals(other.getEntities(ThreadPoolConfiguration.class));
     }
@@ -188,6 +188,6 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
 
     @Override
     public int hashCode() {
-        return adapters.hashCode() ^ (resources.hashCode() << 1) ^ (threadPools.hashCode() << 2);
+        return gateways.hashCode() ^ (resources.hashCode() << 1) ^ (threadPools.hashCode() << 2);
     }
 }

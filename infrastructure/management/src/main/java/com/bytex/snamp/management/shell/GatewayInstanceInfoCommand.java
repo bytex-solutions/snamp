@@ -31,11 +31,11 @@ public final class GatewayInstanceInfoCommand extends ConfigurationCommand<Gatew
     @Override
     boolean doExecute(final EntityMap<? extends GatewayConfiguration> configuration, final StringBuilder output) {
         if (configuration.containsKey(instanceName)) {
-            final GatewayConfiguration adapter = configuration.get(instanceName);
+            final GatewayConfiguration gatewayInstanceConfig = configuration.get(instanceName);
             appendln(output, "Instance Name: %s", instanceName);
-            appendln(output, "System Name: %s", adapter.getType());
+            appendln(output, "System Name: %s", gatewayInstanceConfig.getType());
             appendln(output, "Configuration parameters:");
-            for (final Map.Entry<String, String> pair : adapter.getParameters().entrySet())
+            for (final Map.Entry<String, String> pair : gatewayInstanceConfig.getParameters().entrySet())
                 appendln(output, "%s = %s", pair.getKey(), pair.getValue());
         } else
             output.append("Gateway instance doesn't exist");

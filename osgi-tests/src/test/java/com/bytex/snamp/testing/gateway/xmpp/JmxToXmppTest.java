@@ -1,9 +1,11 @@
 package com.bytex.snamp.testing.gateway.xmpp;
 
+import com.bytex.snamp.configuration.ConfigurationEntityDescription;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.gateway.GatewayClient;
 import com.bytex.snamp.gateway.xmpp.client.XMPPClient;
-import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.testing.BundleExceptionCallable;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
@@ -37,11 +39,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import com.bytex.snamp.configuration.EntityMap;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
-
-import com.bytex.snamp.configuration.GatewayConfiguration;
 import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
 
 /**
@@ -51,7 +50,7 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
  */
 @SnampDependencies({SnampFeature.XMPP_GATEWAY, SnampFeature.WRAPPED_LIBS})
 public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean> {
-    private static final String ADAPTER_NAME = "xmpp";
+    private static final String GATEWAY_NAME = "xmpp";
     private static final String INSTANCE_NAME = "test-xmpp";
     private static final int PORT = 9898;
     private static final String USER_NAME = "agent";
@@ -63,10 +62,11 @@ public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean>
     }
 
     @Override
-    protected void fillAdapters(final EntityMap<? extends GatewayConfiguration> adapters) {
-        final GatewayConfiguration xmppAdapter = adapters.getOrAdd(INSTANCE_NAME);
-        xmppAdapter.setType(ADAPTER_NAME);
-        fillParameters(xmppAdapter.getParameters());
+    protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
+        gateways.consumeOrAdd(INSTANCE_NAME, xmppGateway -> {
+            xmppGateway.setType(GATEWAY_NAME);
+            fillParameters(xmppGateway.getParameters());
+        });
     }
 
     private static void fillParameters(final Map<String, String> serverParameters){
@@ -150,7 +150,7 @@ public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean>
 
     @Test
     public void configurationDescriptorTest(){
-        final ConfigurationEntityDescription<?> descr = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, GatewayConfiguration.class);
+        final ConfigurationEntityDescription<?> descr = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), GATEWAY_NAME, GatewayConfiguration.class);
         testConfigurationDescriptor(descr,
                 "host",
                 "port",
@@ -197,15 +197,15 @@ public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean>
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
-        syncWithGatewayStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
-                GatewayActivator.enableGateway(context, ADAPTER_NAME);
+        syncWithGatewayStartedEvent(GATEWAY_NAME, (BundleExceptionCallable) () -> {
+                GatewayActivator.enableGateway(context, GATEWAY_NAME);
                 return null;
         }, Duration.ofMinutes(4));
     }
 
     @Override
     protected void beforeCleanupTest(final BundleContext context) throws Exception {
-        GatewayActivator.disableGateway(context, ADAPTER_NAME);
+        GatewayActivator.disableGateway(context, GATEWAY_NAME);
         stopResourceConnector(context);
     }
 

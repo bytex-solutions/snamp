@@ -40,6 +40,6 @@ final class ListOfResourcesCommand extends AbstractManagementShellCommand {
      */
     @Override
     protected void doCommand(final CommandLine input, final PrintWriter output) {
-        getAdapterController().getConnectedResources().forEach(output::println);
+        getGatewayController().getConnectedResources().forEach(output::println);
     }
 }

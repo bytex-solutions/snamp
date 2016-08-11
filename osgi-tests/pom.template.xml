@@ -10,7 +10,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <name>SNAMP Integration Tests</name>
-    <description>Tests for connectors/adapters</description>
+    <description>Tests for connectors/gateways</description>
     <artifactId>osgi-tests</artifactId>
     <version>${project.parent.version}</version>
     <properties>

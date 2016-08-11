@@ -41,7 +41,7 @@ final class SshGatewayDescriptionProvider extends ConfigurationEntityDescription
     private static final int DEFAULT_PORT = 22;
     private static final String DEFAULT_HOST_KEY = "ssh-gateway.ser";
 
-    private static final class AdapterConfigurationInfo extends ResourceBasedConfigurationEntityDescription<GatewayConfiguration> {
+    private static final class GatewayConfigurationInfo extends ResourceBasedConfigurationEntityDescription<GatewayConfiguration> {
         private static final String RESOURCE_NAME = "SshGatewayConfig";
 
         private final class HostParameter extends ParameterDescriptionImpl implements SelectableGatewayParameterDescriptor {
@@ -61,7 +61,7 @@ final class SshGatewayDescriptionProvider extends ConfigurationEntityDescription
             }
         }
 
-        private AdapterConfigurationInfo() {
+        private GatewayConfigurationInfo() {
             super(RESOURCE_NAME,
                     GatewayConfiguration.class,
                     HOST_PARAM,
@@ -87,7 +87,7 @@ final class SshGatewayDescriptionProvider extends ConfigurationEntityDescription
     private static final LazyValue<SshGatewayDescriptionProvider> INSTANCE = LazyValueFactory.THREAD_SAFE.of(SshGatewayDescriptionProvider::new);
 
     private SshGatewayDescriptionProvider() {
-        super(new AdapterConfigurationInfo());
+        super(new GatewayConfigurationInfo());
     }
 
     static SshGatewayDescriptionProvider getInstance(){

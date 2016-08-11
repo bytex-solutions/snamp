@@ -3,7 +3,7 @@ package com.bytex.snamp.gateway;
 import java.util.EventListener;
 
 /**
- * Represents listener for events related to resource gateway.
+ * Represents listener for events related to gateway instance.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0

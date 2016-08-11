@@ -42,7 +42,7 @@ final class SetAttributeCommand extends AbstractAttributeCommand {
             final String resourceName = input.getOptionValue(RESOURCE_OPTION.getOpt());
             final String attributeName = input.getOptionValue(NAME_OPTION.getOpt());
             final String attributeValue = input.getOptionValue(VALUE_OPTION.getOpt());
-            if(!getAdapterController().processAttribute(resourceName, attributeName, attribute -> {
+            if(!getGatewayController().processAttribute(resourceName, attributeName, attribute -> {
                 try (final LogicalOperation ignored = SshHelpers.writeAttributeLogicalOperation(attribute.getOriginalName(), attributeName);
                      final StringReader reader = new StringReader(attributeValue)) {
                     attribute.setValue(reader);

@@ -55,7 +55,7 @@ abstract class AbstractManagementShellCommand extends BasicParser implements Man
         return context.queryObject(serviceType);
     }
 
-    protected final GatewayController getAdapterController(){
+    protected final GatewayController getGatewayController(){
         return getService(CommandExecutionContext.CONTROLLER);
     }
 

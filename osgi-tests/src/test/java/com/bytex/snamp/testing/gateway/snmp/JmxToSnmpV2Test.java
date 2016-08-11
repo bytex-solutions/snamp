@@ -52,7 +52,7 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
 @SnampDependencies(SnampFeature.SNMP_GATEWAY)
 public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final String INSTANCE_NAME = "test-snmp";
-    private static final String ADAPTER_NAME = "snmp";
+    private static final String GATEWAY_NAME = "snmp";
     private static final String SNMP_PORT = "3222";
     private static final String SNMP_HOST = "127.0.0.1";
     private final SnmpClient client;
@@ -71,15 +71,15 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
     @Override
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
-        syncWithGatewayStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
-                GatewayActivator.enableGateway(context, ADAPTER_NAME);
+        syncWithGatewayStartedEvent(GATEWAY_NAME, (BundleExceptionCallable) () -> {
+                GatewayActivator.enableGateway(context, GATEWAY_NAME);
                 return null;
         }, Duration.ofSeconds(4));
     }
 
     @Override
     protected void beforeCleanupTest(final BundleContext context) throws Exception {
-        GatewayActivator.disableGateway(context, ADAPTER_NAME);
+        GatewayActivator.disableGateway(context, GATEWAY_NAME);
         stopResourceConnector(context);
     }
 
@@ -118,15 +118,15 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
     public void startStopTest() throws Exception {
         final Duration TIMEOUT = Duration.ofSeconds(14);
         //stop adapter and connector
-        GatewayActivator.disableGateway(getTestBundleContext(), ADAPTER_NAME);
+        GatewayActivator.disableGateway(getTestBundleContext(), GATEWAY_NAME);
         stopResourceConnector(getTestBundleContext());
         //start empty adapter
-        syncWithGatewayStartedEvent(ADAPTER_NAME, (BundleExceptionCallable) () -> {
-                GatewayActivator.enableGateway(getTestBundleContext(), ADAPTER_NAME);
+        syncWithGatewayStartedEvent(GATEWAY_NAME, (BundleExceptionCallable) () -> {
+                GatewayActivator.enableGateway(getTestBundleContext(), GATEWAY_NAME);
                 return null;
         }, TIMEOUT);
         //start connector, this causes attribute registration and SNMP adapter updating
-        syncWithGatewayUpdatedEvent(ADAPTER_NAME, () -> {
+        syncWithGatewayUpdatedEvent(GATEWAY_NAME, () -> {
                 startResourceConnector(getTestBundleContext());
                 return null;
         }, TIMEOUT);
@@ -135,7 +135,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
         //now stops the connector again
         stopResourceConnector(getTestBundleContext());
         //stop the adapter
-        GatewayActivator.disableGateway(getTestBundleContext(), ADAPTER_NAME);
+        GatewayActivator.disableGateway(getTestBundleContext(), GATEWAY_NAME);
     }
 
     @Test
@@ -208,9 +208,9 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
     }
 
     @Override
-    protected void fillAdapters(final EntityMap<? extends GatewayConfiguration> adapters) {
-        final GatewayConfiguration snmpAdapter = adapters.getOrAdd(INSTANCE_NAME);
-        snmpAdapter.setType(ADAPTER_NAME);
+    protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
+        final GatewayConfiguration snmpAdapter = gateways.getOrAdd(INSTANCE_NAME);
+        snmpAdapter.setType(GATEWAY_NAME);
         snmpAdapter.getParameters().put("port", SNMP_PORT);
         snmpAdapter.getParameters().put("hostName", SNMP_HOST);
         snmpAdapter.getParameters().put("socketTimeout", "5000");
@@ -383,7 +383,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
 
     @Test
     public void configurationDescriptorTest() throws BundleException {
-        ConfigurationEntityDescription desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, GatewayConfiguration.class);
+        ConfigurationEntityDescription desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), GATEWAY_NAME, GatewayConfiguration.class);
         testConfigurationDescriptor(desc,
                 "context",
                 "engineID",
@@ -399,11 +399,11 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
                 "ldap-auth-protocol",
                 "ldap-base-dn",
                 "ldap-user-search-filter");
-        desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, AttributeConfiguration.class);
+        desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), GATEWAY_NAME, AttributeConfiguration.class);
         testConfigurationDescriptor(desc,
                 "oid",
                 "displayFormat");
-        desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), ADAPTER_NAME, EventConfiguration.class);
+        desc = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), GATEWAY_NAME, EventConfiguration.class);
         testConfigurationDescriptor(desc,
                 "oid",
                 "displayFormat",

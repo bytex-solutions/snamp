@@ -20,10 +20,10 @@ final class HttpGatewayConfigurationDescriptor extends ConfigurationEntityDescri
 
     private static final String DATE_FORMAT_PARAM = "dateFormat";
 
-    private static final class AdapterConfigurationInfo extends ResourceBasedConfigurationEntityDescription<GatewayConfiguration> {
+    private static final class GatewayConfigurationInfo extends ResourceBasedConfigurationEntityDescription<GatewayConfiguration> {
         private static final String RESOURCE_NAME = "HttpGatewayConfig";
 
-        private AdapterConfigurationInfo(){
+        private GatewayConfigurationInfo(){
             super(RESOURCE_NAME,
                     GatewayConfiguration.class,
                     DATE_FORMAT_PARAM);
@@ -31,7 +31,7 @@ final class HttpGatewayConfigurationDescriptor extends ConfigurationEntityDescri
     }
 
     HttpGatewayConfigurationDescriptor(){
-        super(new AdapterConfigurationInfo());
+        super(new GatewayConfigurationInfo());
     }
 
     static String parseDateFormatParam(final Descriptor descr){

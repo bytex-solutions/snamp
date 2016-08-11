@@ -3,13 +3,13 @@ package com.bytex.snamp.configuration.impl;
 import com.bytex.snamp.SpecialUse;
 
 /**
- * Represents collection of resource gateway.
+ * Represents collection of gateways.
  */
-final class AdapterRegistry extends ConfigurationEntityRegistry<SerializableGatewayConfiguration> {
+final class GatewayRegistry extends ConfigurationEntityRegistry<SerializableGatewayConfiguration> {
     private static final long serialVersionUID = 8142154170844526063L;
 
     @SpecialUse
-    public AdapterRegistry() {
+    public GatewayRegistry() {
     }
 
     @Override

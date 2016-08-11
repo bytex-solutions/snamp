@@ -26,7 +26,7 @@ import java.util.stream.Stream;
  * @since 1.0
  */
 final class GroovyGateway extends AbstractGateway {
-    private static final String ADAPTER_INSTANCE_NAME = "adapterInstanceName";
+    private static final String GATEWAY_INSTANCE_NAME = "gatewayInstanceName";
     private final ScriptHolder holder;
     private final ManagementInformationRepository repository;
 
@@ -97,7 +97,7 @@ final class GroovyGateway extends AbstractGateway {
         final GatewayScriptEngine engine = new GatewayScriptEngine(getClass().getClassLoader(),
                 Utils.toProperties(parameters),
                 GroovyGatewayConfigurationProvider.getScriptPath(parameters));
-        engine.setGlobalVariable(ADAPTER_INSTANCE_NAME, getInstanceName());
+        engine.setGlobalVariable(GATEWAY_INSTANCE_NAME, getInstanceName());
         engine.setGlobalVariable(GatewayScript.MODEL_GLOBAL_VAR, repository);
         final GatewayScript script = engine.createScript(GroovyGatewayConfigurationProvider.getScriptFile(parameters),
                 parameters);

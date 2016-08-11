@@ -18,8 +18,8 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
  * @since 1.0
  */
 final class SshHelpers {
-    static final String ADAPTER_NAME = "ssh";
-    private static final String LOGGER_NAME = AbstractGateway.getLoggerName(ADAPTER_NAME);
+    static final String GATEWAY_TYPE = "ssh";
+    private static final String LOGGER_NAME = AbstractGateway.getLoggerName(GATEWAY_TYPE);
     static final Gson FORMATTER = JsonUtils.registerTypeAdapters(new GsonBuilder())
             .serializeSpecialFloatingPointValues()
             .serializeNulls()

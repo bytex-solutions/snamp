@@ -36,12 +36,12 @@ public final class SnampCoreMBean extends OpenMBean implements LogListener, Fram
                 new LogEventCountAttribute("InformationMessagesCount", counter, LogService.LOG_INFO),
                 new LogEventNotification(),
                 new InstalledComponents(manager),
-                new InstalledAdaptersAttribute(),
+                new InstalledGatewaysAttribute(),
                 new InstalledConnectorsAttribute(),
                 new StartConnectorOperation(),
-                new StartAdapterOperation(),
+                new EnableGatewayOperation(),
                 new StopConnectorOperation(),
-                new StopAdapterOperation());
+                new DisableGatewayOperation());
         this.counter = counter;
     }
 

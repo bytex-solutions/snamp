@@ -17,12 +17,12 @@ import java.util.Set;
 @Path("/")
 @Singleton
 @org.atmosphere.config.service.Singleton
-public final class AdapterRestService {
+public final class GatewayRestService {
     private final AttributeSupport attributes;
     private final Gson formatter;
     private final NotificationSupport notifications;
 
-    AdapterRestService(final AttributeSupport registeredAttributes,
+    GatewayRestService(final AttributeSupport registeredAttributes,
                        final NotificationSupport notifications){
         this.attributes = Objects.requireNonNull(registeredAttributes);
         this.formatter = new Gson();

@@ -10,21 +10,21 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * The type Stop adapter operation.
  * @author Evgeniy Kirichenko
  */
-final class StopAdapterOperation extends AbstractAdapterOperation {
+final class DisableGatewayOperation extends AbstractGatewayOperation {
 
-    private static final String NAME = "stopAdapter";
+    private static final String NAME = "disableGateway";
 
     /**
      * Instantiates a new Stop adapter operation.
      *
      * @throws OpenDataException the open data exception
      */
-    StopAdapterOperation() throws OpenDataException {
+    DisableGatewayOperation() throws OpenDataException {
         super(NAME);
     }
 
     @Override
-    void invoke(final String adapterInstance) throws Exception {
-        GatewayActivator.disableGateway(getBundleContextOfObject(this), adapterInstance);
+    void invoke(final String gatewayType) throws Exception {
+        GatewayActivator.disableGateway(getBundleContextOfObject(this), gatewayType);
     }
 }

@@ -22,7 +22,7 @@ public final class ConfiguredGatewaysCommand extends ConfigurationCommand<Gatewa
 
     @Override
     boolean doExecute(final EntityMap<? extends GatewayConfiguration> configuration, final StringBuilder output) {
-        configuration.entrySet().forEach(adapter -> appendln(output, "Instance: %s. Gateway: %s", adapter.getKey(), adapter.getValue().getType()));
+        configuration.entrySet().forEach(gatewayInstance -> appendln(output, "Instance: %s. Gateway: %s", gatewayInstance.getKey(), gatewayInstance.getValue().getType()));
         return false;
     }
 }

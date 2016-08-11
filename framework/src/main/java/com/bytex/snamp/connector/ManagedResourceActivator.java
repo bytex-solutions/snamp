@@ -349,7 +349,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
         @Override
         protected String getFactoryPID(final RequiredService<?>[] dependencies) {
-            return getParser(dependencies).getConnectorFactoryPersistentID(connectorType);
+            return getParser(dependencies).getFactoryPersistentID(connectorType);
         }
 
         private void updateFeatures(final TConnector connector,
@@ -388,7 +388,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
             final String resourceName = parser.getResourceName(configuration);
             final BigInteger oldHash = configurationHashes.get(resourceName);
             final String connectionString = parser.getConnectionString(configuration);
-            final Map<String, String> connectorParameters = parser.getResourceConnectorParameters(configuration);
+            final Map<String, String> connectorParameters = parser.getParameters(configuration);
             //we should not update resource connector if connection parameters was not changed
             final BigInteger newHash = computeConnectionParamsHashCode(connectionString, connectorParameters);
             if(!newHash.equals(oldHash)){
@@ -449,7 +449,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                                            final RequiredService<?>... dependencies) throws Exception {
             final CMManagedResourceParser parser = getParser(dependencies);
             final String resourceName = parser.getResourceName(configuration);
-            final Map<String, String> options = parser.getResourceConnectorParameters(configuration);
+            final Map<String, String> options = parser.getParameters(configuration);
             final String connectionString = parser.getConnectionString(configuration);
             configurationHashes.put(resourceName, computeConnectionParamsHashCode(connectionString, options));
             createIdentity(resourceName,
