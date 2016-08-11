@@ -16,7 +16,7 @@ import org.osgi.framework.BundleException;
 @Command(scope = SnampShellCommand.SCOPE,
     name = "disable-connector",
     description = "Disables bundle with resource connector")
-public final class StopConnectorCommand extends OsgiCommandSupport implements SnampShellCommand {
+public final class DisableConnectorCommand extends OsgiCommandSupport implements SnampShellCommand {
     @Argument(name = "connectorType", index = 0, required = true, description = "Type of resource connector")
     @SpecialUse
     private String connectorType = "";

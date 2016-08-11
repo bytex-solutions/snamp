@@ -58,7 +58,7 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
     private static final class GatewayInstances<G extends AbstractGateway> extends ServiceSubRegistryManager<Gateway, G>{
         private final GatewayFactory<G> gatewayInstanceFactory;
         /**
-         * Represents name of the resource adapter.
+         * Represents type of gateway.
          */
         protected final String gatewayType;
 
@@ -128,7 +128,7 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
                                              final Dictionary<String, ?> configuration,
                                              final Exception e) {
             logger.log(Level.SEVERE,
-                    String.format("Unable to update adapter. Name: %s, instance: %s",
+                    String.format("Unable to update gateway. Type: %s, instance: %s",
                             gatewayType,
                             servicePID),
                     e);
@@ -174,8 +174,8 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
         }
 
         /**
-         * Gets name of the adapter.
-         * @return The name of the adapter.
+         * Gets type of the gateway.
+         * @return Type of the gateway.
          */
         private String getGatewayType(){
             return getActivationPropertyValue(GATEWAY_TYPE_HOLDER);
@@ -183,9 +183,9 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
     }
 
     /**
-     * Initializes a new instance of the resource adapter activator.
+     * Initializes a new instance of the gateway activator.
      * @param factory Gateway factory. Cannot be {@literal null}.
-     * @param optionalServices Additional services exposed by adapter.
+     * @param optionalServices Additional services exposed by gateway.
      */
     protected GatewayActivator(final GatewayFactory<G> factory,
                                final SupportGatewayServiceManager<?, ?>... optionalServices){
@@ -198,10 +198,10 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
     }
 
     /**
-     * Initializes a new instance of the resource adapter activator.
-     * @param factory Resource adapter factory. Cannot be {@literal null}.
-     * @param gatewayDependencies Adapter-level dependencies.
-     * @param optionalServices Additional services exposed by adapter.
+     * Initializes a new instance of the gateway activator.
+     * @param factory Gateway factory. Cannot be {@literal null}.
+     * @param gatewayDependencies Gateway-level dependencies.
+     * @param optionalServices Additional services exposed by gateway.
      */
     protected GatewayActivator(final GatewayFactory<G> factory,
                                final RequiredService<?>[] gatewayDependencies,
@@ -223,7 +223,7 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
     }
 
     /**
-     * Exposes additional adapter dependencies.
+     * Exposes additional gateway dependencies.
      * <p>
      *     In the default implementation this method does nothing.
      * </p>
@@ -298,7 +298,7 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
      */
     @Override
     protected void activationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
-        getLogger().log(Level.SEVERE, String.format("Unable to activate %s resource adapter instance",
+        getLogger().log(Level.SEVERE, String.format("Unable to activate %s gateway instance",
                         getGatewayType()),
                 e);
     }
@@ -311,7 +311,7 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
      */
     @Override
     protected void deactivationFailure(final Exception e, final ActivationPropertyReader activationProperties) {
-        getLogger().log(Level.SEVERE, String.format("Unable to deactivate %s resource adapter instance",
+        getLogger().log(Level.SEVERE, String.format("Unable to deactivate %s gateway instance",
                         getGatewayType()),
                 e);
     }
@@ -386,7 +386,7 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
      * @param gatewayType The type of gateway to enable.
      * @return {@literal true}, if bundle with the specified gateway exists; otherwise, {@literal false}.
      * @throws java.lang.IllegalArgumentException context is {@literal null}.
-     * @throws BundleException Unable to start adapter.
+     * @throws BundleException Unable to start bundle with gateway.
      */
     public static boolean enableGateway(final BundleContext context, final String gatewayType) throws BundleException{
         if(context == null) throw new IllegalArgumentException("context is null.");
@@ -400,9 +400,9 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
 
 
     /**
-     * Gets a collection of installed gateway (types).
+     * Gets a collection of installed gateways (types).
      * @param context The context of the caller bundle. Cannot be {@literal null}.
-     * @return A collection of installed adapter (system names).
+     * @return A collection of installed gateways.
      */
     public static Collection<String> getInstalledGateways(final BundleContext context) {
         final Collection<Bundle> candidates = getGatewayBundles(context);

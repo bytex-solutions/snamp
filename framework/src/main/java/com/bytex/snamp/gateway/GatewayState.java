@@ -1,29 +1,29 @@
 package com.bytex.snamp.gateway;
 
 /**
- * Represents state of the resource adapter.
+ * Represents state of the gateway instance.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0
  */
 public enum GatewayState {
     /**
-     * Adapter is created but not started.
+     * Gateway instance is created but not started.
      */
     CREATED,
 
     /**
-     * Adapter is started.
+     * Gateway instance is started.
      */
     STARTED,
 
     /**
-     * Adapter is stopped.
+     * Gateway instance is stopped but can be started again.
      */
     STOPPED,
 
     /**
-     * Adapter is closed.
+     * Gateway is closed and cannot be started again.
      */
     CLOSED
 }

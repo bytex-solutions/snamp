@@ -36,10 +36,6 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**
  * Represents a base class for constructing custom gateway.
- * <p>
- *     Resource adapter is not an OSGi service because this is front-end SNAMP component.
- *     Therefore, an instance of the adapter is not accessible through OSGi environment.
- * </p>
  * @author Roman Sakno
  * @since 1.0
  * @version 2.0
@@ -334,7 +330,7 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
      * Invokes automatically by SNAMP infrastructure when the specified resource
      * was removed from SNAMP.
      * @param resourceName The name of the resource.
-     * @return Read-only collection of features tracked by this resource adapter. Cannot be {@literal null}.
+     * @return Read-only collection of features tracked by this gateway. Cannot be {@literal null}.
      */
     protected abstract Stream<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception;
 
@@ -358,7 +354,7 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
      * @param resourceName The name of the managed resource.
      * @param feature The resource feature that was removed.
      * @param <M> The type of the resource feature.
-     * @return An instance of the feature accessor used by this resource adapter. May be {@literal null}.
+     * @return An instance of the feature accessor used by this gateway. May be {@literal null}.
      */
     protected abstract <M extends MBeanFeatureInfo> FeatureAccessor<M> removeFeature(final String resourceName,
                                                                                         final M feature) throws Exception;
@@ -443,7 +439,7 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
     }
 
     /**
-     * Begin or prolong updating the internal structure of this adapter.
+     * Begin or prolong updating the internal structure of this gateway.
      * @param manager The update manager.
      * @param callback The callback used to notify about ending of the updating process.
      */
@@ -458,7 +454,7 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
     }
 
     /**
-     * Begin or prolong updating the internal structure of this adapter.
+     * Begin or prolong updating the internal structure of this gateway.
      * @param manager The updating manager.
      */
     protected final void beginUpdate(final GatewayUpdateManager manager){
@@ -471,7 +467,7 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
         final ManagedResourceConnector connector = context.getService(resourceRef);
         if (connector != null)
             try {
-                //add adapter as a listener
+                //add gateway as a listener
                 connector.addResourceEventListener(this);
                 //expose all features
                 final AttributeSupport attributeSupport = connector.queryObject(AttributeSupport.class);
@@ -542,11 +538,11 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
     }
 
     /**
-     * Stops the adapter.
+     * Stops the gateway instance.
      * <p>
      *     This method will be called by SNAMP infrastructure automatically.
      * </p>
-     * @throws java.lang.Exception Unable to stop adapter.
+     * @throws java.lang.Exception Unable to stop gateway instance.
      */
     protected abstract void stop() throws Exception;
 
@@ -571,7 +567,7 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
                         addResource(connectorRef);
                         return;
                     default:
-                        logger.info(String.format("Unexpected event %s captured by adapter %s for resource %s",
+                        logger.info(String.format("Unexpected event %s captured by gateway %s for resource %s",
                                 event.getType(),
                                 instanceName,
                                         resourceName));
@@ -643,8 +639,8 @@ public abstract class AbstractGateway extends AbstractAggregator implements Gate
     }
 
     /**
-     * Returns a string representation of this adapter.
-     * @return A string representation of this adapter.
+     * Returns a string representation of this gateway instance.
+     * @return A string representation of this gateway instance.
      */
     @Override
     public String toString() {

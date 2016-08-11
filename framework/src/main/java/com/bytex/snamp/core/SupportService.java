@@ -2,7 +2,7 @@ package com.bytex.snamp.core;
 
 /**
  * Represents support service that implements additional infrastructure
- * for main SNAMP services, such as managed resource connector or managed resource adapter.
+ * for main SNAMP services, such as managed resource connector or gateway.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0

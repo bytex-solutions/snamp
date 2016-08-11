@@ -1,8 +1,7 @@
 package com.bytex.snamp.gateway;
 
 /**
- * Represents an event indicating that the managed resource adapter instance
- * is stopped.
+ * Represents an event indicating that the gateway instance is stopped.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0
@@ -13,7 +12,7 @@ public class GatewayStoppedEvent extends GatewayEvent {
     /**
      * Initializes a new instance of the event data holder.
      *
-     * @param gatewayInstance An instance of the resource adapter associated with this event.
+     * @param gatewayInstance An instance of the gateway associated with this event.
      */
     public GatewayStoppedEvent(final Gateway gatewayInstance) {
         super(gatewayInstance);

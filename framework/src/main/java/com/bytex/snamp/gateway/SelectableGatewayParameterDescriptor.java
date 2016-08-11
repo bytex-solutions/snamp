@@ -16,7 +16,7 @@ import java.util.Map;
 public interface SelectableGatewayParameterDescriptor extends ParameterDescription {
     /**
      * Suggests the values of the configuration parameter.
-     * @param connectionOptions Configuration parameters associated with the adapter (see {@link GatewayConfiguration#getParameters()}).
+     * @param connectionOptions Configuration parameters associated with the gateway (see {@link GatewayConfiguration#getParameters()}).
      * @param loc Target localization of the suggested values.
      * @return An array of parameter suggested values.
      * @throws java.lang.Exception Unable to suggest values.

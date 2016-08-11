@@ -12,8 +12,8 @@ import java.util.EventListener;
  */
 public interface GatewayEventListener extends EventListener {
     /**
-     * Invokes after resource adapter started.
-     * @param e An event object that describes the started resource adapter.
+     * Invokes after gateway instance started.
+     * @param e An event object that describes the started gateway instance.
      */
     void handle(final GatewayEvent e);
 }

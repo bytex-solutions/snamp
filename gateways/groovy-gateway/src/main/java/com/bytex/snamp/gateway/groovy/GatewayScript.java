@@ -16,7 +16,7 @@ import java.util.EventListener;
 import java.util.concurrent.ExecutionException;
 
 /**
- * Represents an abstract class for adapter automation script.
+ * Represents an abstract class for gateway automation script.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0

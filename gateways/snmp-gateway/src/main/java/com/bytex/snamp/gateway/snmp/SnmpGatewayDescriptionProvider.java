@@ -83,9 +83,9 @@ final class SnmpGatewayDescriptionProvider extends ConfigurationEntityDescriptio
     private static final String TARGET_NAME_PARAM = "receiverName";
     private static final String TARGET_ADDRESS_PARAM = "receiverAddress";
 
-    private static final class ResourceAdapterConfigurationInfo extends ResourceBasedConfigurationEntityDescription<GatewayConfiguration> {
+    private static final class GatewayConfigurationInfo extends ResourceBasedConfigurationEntityDescription<GatewayConfiguration> {
         private static final String RESOURCE_NAME = "SnmpGatewayConfig";
-        private ResourceAdapterConfigurationInfo(){
+        private GatewayConfigurationInfo(){
             super(RESOURCE_NAME,
                     GatewayConfiguration.class,
                     CONTEXT_PARAM_NAME,
@@ -134,7 +134,7 @@ final class SnmpGatewayDescriptionProvider extends ConfigurationEntityDescriptio
     private static final LazyValue<SnmpGatewayDescriptionProvider> INSTANCE = LazyValueFactory.THREAD_SAFE.of(SnmpGatewayDescriptionProvider::new);
 
     private SnmpGatewayDescriptionProvider(){
-        super(new ResourceAdapterConfigurationInfo(), new AttributeConfigurationInfo(), new EventConfigurationInfo());
+        super(new GatewayConfigurationInfo(), new AttributeConfigurationInfo(), new EventConfigurationInfo());
     }
 
     static SnmpGatewayDescriptionProvider getInstance(){

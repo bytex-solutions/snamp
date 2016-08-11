@@ -17,7 +17,7 @@ import static com.bytex.snamp.gateway.snmp.OctetStringHelper.SNMP_ENCODING;
 import static com.bytex.snamp.gateway.snmp.OctetStringHelper.toOctetString;
 
 /**
- * Represents security configuration of the SNMP adapter that is used
+ * Represents security configuration of the SNMP gateway that is used
  * to setup SNMPv3 settings. This class cannot be inherited.
  * @author Roman Sakno
  * @version 2.0

@@ -30,9 +30,9 @@ public interface CMGatewayParser extends CMConfigurationParser<GatewayConfigurat
     String getInstanceName(final Dictionary<String, ?> gatewayInstanceConfig);
 
     /**
-     * Extracts configuration parameters of resource adapter.
+     * Extracts configuration parameters of gateway instance.
      * @param gatewayInstanceConfig A collection of configuration parameters supplied by {@link org.osgi.service.cm.Configuration} object.
-     * @return Configuration parameters of resource adapter.
+     * @return Configuration parameters of gateway instance.
      */
     Map<String, String> getParameters(final Dictionary<String, ?> gatewayInstanceConfig);
 }

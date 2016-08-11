@@ -34,10 +34,10 @@ final class SnmpGateway extends AbstractGateway {
     private static final class SnmpGatewayUpdateManager extends GatewayUpdateManager {
         private final SnmpAgent agent;
 
-        private SnmpGatewayUpdateManager(final String adapterInstanceName,
+        private SnmpGatewayUpdateManager(final String gatewayInstance,
                                          final long restartTimeout,
                                          final Callable<SnmpAgent> agentFactory) throws Exception {
-            super(adapterInstanceName, restartTimeout);
+            super(gatewayInstance, restartTimeout);
             agent = agentFactory.call();
         }
 
@@ -96,13 +96,13 @@ final class SnmpGateway extends AbstractGateway {
     }
 
     /**
-     * Starts the adapter.
+     * Starts the gateway.
      * <p>
      * This method will be called by SNAMP infrastructure automatically.
      * </p>
      *
-     * @param parameters Adapter startup parameters.
-     * @throws Exception Unable to start adapter.
+     * @param parameters Gateway startup parameters.
+     * @throws Exception Unable to start gateway.
      */
     @Override
     protected void start(final Map<String, String> parameters) throws Exception {
@@ -201,10 +201,7 @@ final class SnmpGateway extends AbstractGateway {
     }
 
     /**
-     * Stops the adapter.
-     * <p>
-     * This method will be called by SNAMP infrastructure automatically.
-     * </p>
+     * Stops the gateway.
      */
     @Override
     protected synchronized void stop() throws Exception {

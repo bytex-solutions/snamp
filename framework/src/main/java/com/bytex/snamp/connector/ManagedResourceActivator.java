@@ -476,8 +476,8 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     /**
      * Represents superclass for all-optional resource connector service providers.
      * You cannot derive from this class directly.
-     * @param <S> Type of the adapter-related service contract.
-     * @param <T> Type of the adapter-related service implementation.
+     * @param <S> Type of the gateway-related service contract.
+     * @param <T> Type of the gateway-related service implementation.
      * @author Roman Sakno
      * @since 1.0
      * @version 2.0

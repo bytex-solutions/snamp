@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 /**
  * Represents an abstract object that helps you to organize storage
- * of all attributes inside of your resource adapter.
+ * of all attributes inside of gateway instance.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0

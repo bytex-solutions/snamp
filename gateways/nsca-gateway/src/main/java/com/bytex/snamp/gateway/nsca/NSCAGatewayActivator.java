@@ -4,7 +4,7 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.gateway.GatewayActivator;
 
 /**
- * Represents activator of Nagios adapter.
+ * Represents activator of Nagios gateway.
  * @author Roman Sakno
  * @since 1.0
  * @version 2.0

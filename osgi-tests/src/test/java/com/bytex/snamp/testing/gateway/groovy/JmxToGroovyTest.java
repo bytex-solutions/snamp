@@ -129,7 +129,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
         final GatewayConfiguration groovyGateway = gateways.getOrAdd(INSTANCE_NAME);
         groovyGateway.setType(GATEWAY_NAME);
         groovyGateway.getParameters().put("scriptPath", getGroovyScriptPath());
-        groovyGateway.getParameters().put("scriptFile", "Adapter.groovy");
+        groovyGateway.getParameters().put("scriptFile", "Gateway.groovy");
         groovyGateway.getParameters().put("communicationChannel", COMMUNICATION_CHANNEL);
         groovyGateway.getParameters().put("resourceName", TEST_RESOURCE_NAME);
     }

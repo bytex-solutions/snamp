@@ -3,7 +3,7 @@ package com.bytex.snamp.gateway.modeling;
 import com.bytex.snamp.EntryReader;
 
 /**
- * Represents reader for a set of events stored inside of the resource adapter.
+ * Represents reader for a set of events stored inside of the gateway instance.
  * @param <TAccessor> Type of the notification accessor.
  * @author Roman Sakno
  * @version 2.0

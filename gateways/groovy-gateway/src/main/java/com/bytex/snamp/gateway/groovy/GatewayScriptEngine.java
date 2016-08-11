@@ -1,7 +1,6 @@
 package com.bytex.snamp.gateway.groovy;
 
 import com.google.common.base.StandardSystemProperty;
-import static com.google.common.base.Strings.isNullOrEmpty;
 import groovy.lang.Binding;
 import groovy.util.GroovyScriptEngine;
 import groovy.util.ResourceException;
@@ -15,8 +14,10 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 /**
- * Represents script engine for Resource Adapter scripts.
+ * Represents script engine for Gateway scripts.
  * This class cannot be inherited.
  * @author Roman Sakno
  * @version 2.0

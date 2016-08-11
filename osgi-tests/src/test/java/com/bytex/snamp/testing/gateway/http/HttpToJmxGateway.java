@@ -120,25 +120,25 @@ public final class HttpToJmxGateway extends AbstractJmxConnectorTest<TestOpenMBe
     @Test
     public void startStopTest() throws Exception {
         final Duration TIMEOUT = Duration.ofSeconds(15);
-        //stop adapter and connector
+        //stop gateway and connector
         GatewayActivator.disableGateway(getTestBundleContext(), GATEWAY_NAME);
         stopResourceConnector(getTestBundleContext());
-        //start empty adapter
+        //start empty gateway
         syncWithGatewayStartedEvent(GATEWAY_NAME, (BundleExceptionCallable) () -> {
                 GatewayActivator.enableGateway(getTestBundleContext(), GATEWAY_NAME);
                 return null;
         }, TIMEOUT);
-        //start connector, this causes attribute registration and SNMP adapter restarting,
-        //waiting is not required because HTTP adapter supports hot reconfiguring
+        //start connector, this causes attribute registration and SNMP gateway restarting,
+        //waiting is not required because HTTP gateway supports hot reconfiguring
         startResourceConnector(getTestBundleContext());
-        //Reconfiguration of HTTP Adapter is asynchronous event so we
+        //Reconfiguration of HTTP gateway is asynchronous event so we
         //should give a chance to catch a connector starting event
         Thread.sleep(2000);
         //check whether the attribute is accessible
         testStringAttribute();
         //now stops the connector again
         stopResourceConnector(getTestBundleContext());
-        //stop the adapter
+        //stop the gateway
         GatewayActivator.disableGateway(getTestBundleContext(), GATEWAY_NAME);
     }
 

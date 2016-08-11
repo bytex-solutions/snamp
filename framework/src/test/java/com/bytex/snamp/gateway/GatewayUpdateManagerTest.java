@@ -11,7 +11,7 @@ import org.junit.Test;
 public class GatewayUpdateManagerTest extends Assert {
     @Test
     public void stateTest() throws Exception {
-        try(final GatewayUpdateManager manager = new GatewayUpdateManager("dummAdapterInstance", 2000)){
+        try(final GatewayUpdateManager manager = new GatewayUpdateManager("dummyGatewayInstance", 2000)){
             //changes the state of the manager
             manager.beginUpdate(null);
             Thread.sleep(1500);

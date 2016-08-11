@@ -7,7 +7,7 @@ import org.apache.karaf.shell.commands.Command;
 import static com.bytex.snamp.management.shell.Utils.appendln;
 
 /**
- * Prints list of configured adapter instances.
+ * Prints list of configured gateway instances.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0

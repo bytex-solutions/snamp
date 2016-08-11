@@ -85,7 +85,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
 
     @Test
     public void installedGatewaysTest() throws Exception {
-        assertTrue(runCommand("snamp:installed-gateways").toString().startsWith("Groovy Resource Adapter"));
+        assertTrue(runCommand("snamp:installed-gateways").toString().startsWith("Groovy Gateway"));
     }
 
     @Test
@@ -101,7 +101,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
 
     @Test
     public void gatewayInstancesTest() throws Exception{
-        assertTrue(runCommand("snamp:gateway-instances").toString().startsWith("Instance: adapterInst"));
+        assertTrue(runCommand("snamp:gateway-instances").toString().startsWith("Instance: gatewayInst"));
     }
 
     @Test
@@ -138,8 +138,8 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
 
     @Test
     public void startStopConnectorTest() throws Exception{
-        runCommand("snamp:stop-connector jmx");
-        runCommand("snamp:start-connector jmx");
+        runCommand("snamp:disable-connector jmx");
+        runCommand("snamp:enable-connector jmx");
     }
 
     @Test

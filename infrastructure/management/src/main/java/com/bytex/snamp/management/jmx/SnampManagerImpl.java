@@ -32,7 +32,7 @@ public final class SnampManagerImpl extends AbstractSnampManager {
         private static final long serialVersionUID = 6911837979438477985L;
 
         /**
-         * Instantiates a new Resource adapter descriptor impl.
+         * Instantiates a new gateway descriptor impl.
          *
          * @param systemName the system name
          */
@@ -53,10 +53,10 @@ public final class SnampManagerImpl extends AbstractSnampManager {
     }
 
     /**
-     * Creates a new instance of the resource adapter descriptor.
+     * Creates a new instance of the gateway descriptor.
      *
-     * @param gatewayType The system name of the adapter.
-     * @return A new instance of the resource adapter descriptor.
+     * @param gatewayType Type of gateway.
+     * @return A new instance of the gateway descriptor.
      */
     @Override
     protected GatewayDescriptorImpl createGatewayDescriptor(final String gatewayType) {

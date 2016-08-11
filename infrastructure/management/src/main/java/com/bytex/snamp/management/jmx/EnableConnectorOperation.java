@@ -9,24 +9,24 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 
 /**
- * The type Stop connector operation.
+ * The type Start connector operation.
  * @author Evgeniy Kirichenko
  */
-final class StopConnectorOperation extends AbstractConnectorOperation{
+final class EnableConnectorOperation extends AbstractConnectorOperation {
 
-    private static final String NAME = "stopConnector";
+    private static final String NAME = "enableConnector";
 
     /**
-     * Instantiates a new Stop connector operation.
+     * Instantiates a new Start connector operation.
      *
      * @throws OpenDataException the open data exception
      */
-    StopConnectorOperation() throws OpenDataException {
+    EnableConnectorOperation() throws OpenDataException {
         super(NAME);
     }
 
     @Override
     void invoke(final String resourceName) throws BundleException {
-        ManagedResourceActivator.disableConnector(getBundleContextOfObject(this), resourceName);
+        ManagedResourceActivator.enableConnector(getBundleContextOfObject(this), resourceName);
     }
 }

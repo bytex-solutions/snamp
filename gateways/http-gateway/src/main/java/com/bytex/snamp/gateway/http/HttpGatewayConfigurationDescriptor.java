@@ -10,7 +10,7 @@ import static com.bytex.snamp.jmx.DescriptorUtils.getField;
 import static com.bytex.snamp.jmx.DescriptorUtils.hasField;
 
 /**
- * Represents descriptor of REST adapter configuration scheme.
+ * Represents descriptor of HTTP gateway configuration scheme.
  * This class cannot be inherited.
  * @author Roman Sakno
  * @version 2.0

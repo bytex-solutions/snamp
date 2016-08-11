@@ -39,7 +39,7 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
         private final ArrayList<NotificationAccessor> notifications = new ArrayList<>();
 
         private TestGateway() {
-            super("TestAdapter");
+            super("TestGateway");
         }
 
         private List<AttributeAccessor> getAttributes(){
@@ -115,7 +115,7 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
 
         @Override
         public Logger getLogger() {
-            return Logger.getLogger("TestAdapter");
+            return Logger.getLogger(getInstanceName());
         }
     }
 
@@ -143,7 +143,7 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
             tryStart(gateway, Collections.emptyMap());
             assertEquals(9, gateway.getAttributes().size());
             assertEquals(2, gateway.getNotifications().size());
-            //now deactivate the resource connector. This action causes restarting the adapter
+            //now deactivate the resource connector. This action causes restarting of gateway instance
             stopResourceConnector(getTestBundleContext());
             assertTrue(gateway.getAttributes().isEmpty());
             assertTrue(gateway.getNotifications().isEmpty());

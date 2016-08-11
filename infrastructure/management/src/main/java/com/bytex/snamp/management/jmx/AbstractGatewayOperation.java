@@ -12,12 +12,9 @@ import java.util.Map;
  * @version 2.0
  */
 abstract class AbstractGatewayOperation extends OpenMBean.OpenOperation<Void, SimpleType<Void>> {
-    /**
-     * The ADAPTER name param.
-     */
     private static final TypedParameterInfo<String> GATEWAY_TYPE_PARAM = new TypedParameterInfo<>(
             "gatewayType",
-            "The name of the managed resource adapter",
+            "Type of gateway",
             SimpleType.STRING,
             false
     );

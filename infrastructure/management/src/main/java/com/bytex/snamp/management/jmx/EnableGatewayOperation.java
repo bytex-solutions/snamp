@@ -9,18 +9,13 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 
 /**
- * The type Start adapter operation.
+ * Implementation of JMX operation called {@code disableGateway}.
  * @author Evgeniy Kirichenko
  */
 final class EnableGatewayOperation extends AbstractGatewayOperation {
 
     private static final String NAME = "enableGateway";
 
-    /**
-     * Instantiates a new Start adapter operation.
-     *
-     * @throws OpenDataException the open data exception
-     */
     EnableGatewayOperation() throws OpenDataException {
         super(NAME);
     }

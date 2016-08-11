@@ -298,7 +298,7 @@ final class SerializableManagedResourceConfiguration extends AbstractEntityConfi
         }
     }
 
-    private static final byte FORMAT_VERSION = 1;
+    private static final byte FORMAT_VERSION = 3;
     private String connectionString;
     private final ConfigurationEntityRegistry<SerializableAttributeConfiguration> attributes;
     private String connectionType;

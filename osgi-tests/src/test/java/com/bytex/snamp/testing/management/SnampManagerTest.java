@@ -134,43 +134,33 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
         return false;
     }
 
-    /**
-     * Adapter snmp runned.
-     *
-     * @throws IOException the iO exception
-     */
     @Test
     public void adapterSnmpRunned() throws IOException, MalformedObjectNameException, AttributeNotFoundException, MBeanException, ReflectionException, InstanceNotFoundException {
         try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
             final ObjectName commonsObj = new ObjectName(SNAMP_MBEAN);
 
-            // checking if the we have SNMP adapter installed
-            Object installedAdapters = connection.getAttribute(commonsObj, "InstalledAdapters");
+            // checking if the we have SNMP gateway installed
+            Object installedAdapters = connection.getAttribute(commonsObj, "InstalledGateways");
             assertNotNull(installedAdapters);
             assertTrue(installedAdapters instanceof String[]);
             assertTrue(new ArrayList<>(Arrays.asList((String[]) installedAdapters)).contains("snmp"));
         }
     }
 
-    /**
-     * Connector jmx runned.
-     *
-     * @throws IOException the iO exception
-     */
     @Test
     public void connectorJmxRunned() throws IOException, MalformedObjectNameException, AttributeNotFoundException, MBeanException, ReflectionException, InstanceNotFoundException {
         try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
             final ObjectName commonsObj = new ObjectName(SNAMP_MBEAN);
 
-            // checking if the we have SNMP adapter installed
+            // checking if the we have SNMP gateway installed
             Object installedConnectors = connection.getAttribute(commonsObj, "InstalledConnectors");
             assertNotNull(installedConnectors);
             assertTrue(installedConnectors instanceof String[]);
             assertTrue(new ArrayList<>(Arrays.asList((String[]) installedConnectors)).contains("jmx"));
 
-            // getting the adapter info
+            // getting the gateway info
             Object snmpConnectorInfo = connection.invoke(commonsObj,
                     "getConnectorInfo",
                     new Object[]{"jmx", ""},
@@ -184,39 +174,34 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
         }
     }
 
-    /**
-     * Adapter management start stop test.
-     *
-     * @throws IOException the iO exception
-     */
     @Test
     public void gatewayManagementTest() throws IOException, MalformedObjectNameException, MBeanException, InstanceNotFoundException, ReflectionException, AttributeNotFoundException {
         try (final JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(JMX_RMI_CONNECTION_STRING), ImmutableMap.of(JMXConnector.CREDENTIALS, new String[]{JMX_LOGIN, JMX_PASSWORD}))) {
             final MBeanServerConnection connection = connector.getMBeanServerConnection();
             final ObjectName commonsObj = new ObjectName(SNAMP_MBEAN);
 
-            // checking if the we have SNMP adapter installed
+            // checking if the we have SNMP gateway installed
             Object installedGateways = connection.getAttribute(commonsObj, "InstalledGateways");
             assertNotNull(installedGateways);
             assertTrue(installedGateways instanceof String[]);
             assertTrue(new ArrayList<>(Arrays.asList((String[]) installedGateways)).contains("snmp"));
 
-            // check if adapter is alive
+            // check if gateway is alive
             adapterSnmpRunned();
 
-            // stopping the adapter
+            // stopping the gateway
             connection.invoke(commonsObj,
-                    "stopAdapter",
+                    "disableGateway",
                     new Object[]{"snmp"},
                     new String[]{String.class.getName()});
 
-            // starting the adapter
+            // starting the gateway
             connection.invoke(commonsObj,
-                    "startAdapter",
+                    "enableGateway",
                     new Object[]{"snmp"},
                     new String[]{String.class.getName()});
 
-            // check if adapter is ok after start
+            // check if gateway is ok after start
             adapterSnmpRunned();
         }
     }
@@ -246,15 +231,15 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             // check if connector is alive
             connectorJmxRunned();
 
-            // stopping the adapter
+            // stopping the gateway
             connection.invoke(commonsObj,
-                    "stopConnector",
+                    "disableConnector",
                     new Object[]{"jmx"},
                     new String[]{String.class.getName()});
 
             // starting the connector
             connection.invoke(commonsObj,
-                    "startConnector",
+                    "enableConnector",
                     new Object[]{"jmx"},
                     new String[]{String.class.getName()});
 

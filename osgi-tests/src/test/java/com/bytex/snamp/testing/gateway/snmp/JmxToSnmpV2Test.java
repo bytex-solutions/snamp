@@ -44,7 +44,7 @@ import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventCo
 import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
 
 /**
- * Represents integration tests for JMX resource connector and SNMP resource adapter.
+ * Represents integration tests for JMX resource connector and SNMP gateway.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0
@@ -117,15 +117,15 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
     @Test
     public void startStopTest() throws Exception {
         final Duration TIMEOUT = Duration.ofSeconds(14);
-        //stop adapter and connector
+        //stop gateway and connector
         GatewayActivator.disableGateway(getTestBundleContext(), GATEWAY_NAME);
         stopResourceConnector(getTestBundleContext());
-        //start empty adapter
+        //start empty gateway
         syncWithGatewayStartedEvent(GATEWAY_NAME, (BundleExceptionCallable) () -> {
                 GatewayActivator.enableGateway(getTestBundleContext(), GATEWAY_NAME);
                 return null;
         }, TIMEOUT);
-        //start connector, this causes attribute registration and SNMP adapter updating
+        //start connector, this causes attribute registration and SNMP gateway updating
         syncWithGatewayUpdatedEvent(GATEWAY_NAME, () -> {
                 startResourceConnector(getTestBundleContext());
                 return null;
@@ -134,7 +134,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
         testForStringProperty();
         //now stops the connector again
         stopResourceConnector(getTestBundleContext());
-        //stop the adapter
+        //stop the gateway
         GatewayActivator.disableGateway(getTestBundleContext(), GATEWAY_NAME);
     }
 

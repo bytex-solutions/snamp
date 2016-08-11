@@ -25,7 +25,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
 
 /**
- * Represents NSCA adapter.
+ * Represents NSCA gateway.
  * This class cannot be inherited.
  * @author Roman Sakno
  * @version 2.0

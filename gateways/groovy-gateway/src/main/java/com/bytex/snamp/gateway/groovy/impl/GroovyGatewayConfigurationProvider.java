@@ -8,7 +8,7 @@ import com.bytex.snamp.io.IOUtils;
 import java.util.Map;
 
 /**
- * Represents configuration descriptor of Groovy Resource Adapter.
+ * Represents configuration descriptor of Groovy Gateway.
  * This class cannot be inherited.
  * @author Roman Sakno
  * @version 2.0

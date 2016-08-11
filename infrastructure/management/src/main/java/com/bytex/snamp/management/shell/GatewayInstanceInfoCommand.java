@@ -11,14 +11,14 @@ import java.util.Map;
 import static com.bytex.snamp.management.shell.Utils.appendln;
 
 /**
- * Displays configuration of adapter instance.
+ * Displays configuration of gateway instance.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
     name = "gateway-instance",
-    description = "Display configuration of adapter instance")
+    description = "Display configuration of gateway instance")
 public final class GatewayInstanceInfoCommand extends ConfigurationCommand<GatewayConfiguration> {
     @Argument(index = 0, name = "instanceName", required = true, description = "Name of gateway instance to display")
     @SpecialUse

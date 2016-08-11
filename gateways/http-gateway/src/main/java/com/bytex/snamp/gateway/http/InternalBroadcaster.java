@@ -5,12 +5,12 @@ import org.atmosphere.cpr.Broadcaster;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * Represents HTTP Adapter-specific broadcaster.
+ * Represents HTTP Gateway-specific broadcaster.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0
  */
-public interface InternalBroadcaster extends Broadcaster {
+interface InternalBroadcaster extends Broadcaster {
 
     /**
      * Initializes broadcaster using the request.

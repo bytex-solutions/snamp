@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 /**
- * Represents JMX adapter. This class cannot be inherited.
+ * Represents JMX gateway. This class cannot be inherited.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0

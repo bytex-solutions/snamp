@@ -4,7 +4,7 @@ import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.SpecialUse;
 
 /**
- * Represents OSGi activator for {@link SshGateway} resource adapter.
+ * Represents OSGi activator for {@link SshGateway} gateway.
  * This class cannot be inherited.
  * @author Roman Sakno
  * @version 2.0

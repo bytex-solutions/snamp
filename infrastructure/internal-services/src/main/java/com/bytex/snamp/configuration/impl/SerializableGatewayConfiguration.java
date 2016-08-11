@@ -8,18 +8,18 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 /**
- * Represents adapter settings. This class cannot be inherited.
+ * Represents gateway instance settings. This class cannot be inherited.
  * @author Roman Sakno
  * @since 1.2
  * @version 2.0
  */
 final class SerializableGatewayConfiguration extends AbstractEntityConfiguration implements GatewayConfiguration {
-    private static final byte FORMAT_VERSION = 1;
+    private static final byte FORMAT_VERSION = 3;
     private static final long serialVersionUID = 7926704115151740217L;
     private String gatewayType;
 
     /**
-     * Initializes a new empty adapter settings.
+     * Initializes a new empty gateway instance settings.
      */
     @SpecialUse
     public SerializableGatewayConfiguration(){
@@ -27,9 +27,9 @@ final class SerializableGatewayConfiguration extends AbstractEntityConfiguration
     }
 
     /**
-     * Gets the hosting adapter name.
+     * Gets the type of gateway
      *
-     * @return The name of the adapter.
+     * @return The type of gateway.
      */
     @Override
     public String getType() {
@@ -99,7 +99,7 @@ final class SerializableGatewayConfiguration extends AbstractEntityConfiguration
     public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
         final byte version = in.readByte();
         if(version != FORMAT_VERSION)
-            throw new IOException(String.format("Adapter configuration has invalid binary format version. Expected %s but actual %s", FORMAT_VERSION, version));
+            throw new IOException(String.format("Gateway configuration has invalid binary format version. Expected %s but actual %s", FORMAT_VERSION, version));
         gatewayType = in.readUTF();
         readParameters(in);
     }

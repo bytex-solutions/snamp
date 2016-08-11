@@ -38,7 +38,7 @@ import java.util.stream.Stream;
 import static org.atmosphere.cpr.FrameworkConfig.ATMOSPHERE_CONFIG;
 
 /**
- * Represents HTTP adapter that exposes management information through HTTP and WebSocket to the outside world.
+ * Represents HTTP gateway that exposes management information through HTTP and WebSocket to the outside world.
  * This class cannot be inherited.
  * @author Roman Sakno
  */
@@ -285,13 +285,13 @@ final class HttpGateway extends AbstractGateway {
     protected void start(final Map<String, String> parameters) throws ServletException, NamespaceException {
         final AtmosphereObjectFactoryBuilder objectFactory = new AtmosphereObjectFactoryBuilder()
                 .add(Servlet.class, servletFactory);
-        //register RestAdapterServlet as a OSGi service
+        //register HttpGatewayServlet as a OSGi service. This service will be captured by Jetty installed in underlying OSGi environment
         publisher.registerServlet(getServletContext(), new HttpGatewayServlet(objectFactory.build()), null, null);
     }
 
     @Override
     protected void stop() {
-        //unregister RestAdapter Servlet as a OSGi service.
+        //unregister HttpGatewayServlet Servlet from OSGi registry
         publisher.unregister(getServletContext());
         servletFactory.attributes.clear();
         servletFactory.notifications.clear();

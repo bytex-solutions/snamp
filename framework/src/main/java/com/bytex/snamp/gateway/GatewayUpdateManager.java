@@ -8,9 +8,9 @@ import java.util.concurrent.atomic.AtomicLong;
 import static com.google.common.base.MoreObjects.firstNonNull;
 
 /**
- * Resource adapter restart manager useful for managed resource adapter
+ * Restart manager useful for gateways
  * which cannot modify its internal structure on-the-fly
- * when managed resource connector raises {@link com.bytex.snamp.connector.ResourceEvent}.
+ * when managed resource connector raises event {@link com.bytex.snamp.connector.ResourceEvent}.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0
@@ -24,7 +24,7 @@ public class GatewayUpdateManager implements AutoCloseable {
         private final GatewayUpdatedCallback callback;
 
         private ResumeTimer(final GatewayUpdatedCallback callback) {
-            super("ResourceAdapterRestartManager:".concat(gatewayInstance));
+            super("GatewayRestartManager:".concat(gatewayInstance));
             setDaemon(true);
             setPriority(3);
             this.timeout = new AtomicLong(restartTimeout);
@@ -41,7 +41,7 @@ public class GatewayUpdateManager implements AutoCloseable {
                     return;
                 }
                 final long timeout = this.timeout.decrementAndGet();
-                //it is time to finalize update of the resource adapter
+                //it is time to finalize update of the gateway
                 if (timeout <= 0) {
                     GatewayUpdateManager.this.endUpdate(callback);
                     return;
@@ -58,7 +58,7 @@ public class GatewayUpdateManager implements AutoCloseable {
 
     /**
      * Initializes a new restart manager.
-     * @param gatewayInstance The name of the resource adapter instance.
+     * @param gatewayInstance The name of the gateway instance.
      * @param delay The maximum time (in millis) used to await managed resource events.
      */
     public GatewayUpdateManager(final String gatewayInstance,
@@ -69,8 +69,8 @@ public class GatewayUpdateManager implements AutoCloseable {
     }
 
     /**
-     * Determines whether the resource adapter is in updating state.
-     * @return {@literal true}, if this adapter is in updating state.
+     * Determines whether the gateway instance is in updating state.
+     * @return {@literal true}, if this gateway is in updating state.
      */
     public final boolean isUpdating(){
         return timer != null;
@@ -94,7 +94,7 @@ public class GatewayUpdateManager implements AutoCloseable {
     }
 
     /**
-     * Begin or prolong updating of the managed resource adapter internal structure.
+     * Begin or prolong updating of the gateway's internal structure.
      * <p>
      *     It is recommended to call this method inside
      *     of {@link AbstractGateway#addFeature(String, javax.management.MBeanFeatureInfo)}
@@ -117,7 +117,7 @@ public class GatewayUpdateManager implements AutoCloseable {
     }
 
     /**
-     * Continues updating of the managed resource adapter.
+     * Continues updating of the gateway.
      * @return {@literal true}, if this managed is in updating state; otherwise, {@literal false}.
      */
     public final synchronized boolean continueUpdating(){

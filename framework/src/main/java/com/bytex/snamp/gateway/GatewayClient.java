@@ -62,10 +62,10 @@ public final class GatewayClient extends ServiceHolder<Gateway> {
     }
 
     /**
-     * Obtains a reference to the instance of resource adapter.
+     * Obtains a reference to the instance of gateway.
      * @param context The context of the caller bundle. Cannot be {@literal null}.
      * @param instanceName The name of the instance.
-     * @return A reference to the instance of resource adapter; or {@literal null} if instance doesn't exist.
+     * @return A reference to the instance of gateway; or {@literal null} if instance doesn't exist.
      */
     @SuppressWarnings("unchecked")
     public static ServiceReference<Gateway> getGatewayInstance(final BundleContext context,
@@ -83,8 +83,8 @@ public final class GatewayClient extends ServiceHolder<Gateway> {
      *     Event listeners are stored as a weak references therefore
      *     you should hold the strong reference to the listener in the calling code.
      * </p>
-     * @param gatewayType The system name of the adapter.
-     * @param listener The listener for events related to resource adapter with the specified name.
+     * @param gatewayType Type of gateway.
+     * @param listener The listener for events related to gateway with the specified gateway type.
      * @return {@literal true}, if listener is added successfully; {@literal false}, if the specified listener
      * was added previously.
      */
@@ -95,7 +95,7 @@ public final class GatewayClient extends ServiceHolder<Gateway> {
 
     /**
      * Removes the listener for events related to gateway lifecycle.
-     * @param gatewayType The system name of the adapter.
+     * @param gatewayType Type of gateway
      * @param listener The listener to remove.
      * @return {@literal true}, if the specified listener is removed successfully; {@literal false},
      * if the specified listener was not added previously using {@link #addEventListener(String, GatewayEventListener)} method.
@@ -121,7 +121,7 @@ public final class GatewayClient extends ServiceHolder<Gateway> {
     /**
      * Gets a reference to the service exposed by gateway.
      * @param context The context of the caller bundle. Cannot be {@literal null}.
-     * @param gatewayType The system name of the adapter.
+     * @param gatewayType Type of gateway.
      * @param filter Additional service selector. May be {@literal null}.
      * @param serviceType Requested service contract.
      * @param <S> Type of the requested service.
@@ -138,9 +138,9 @@ public final class GatewayClient extends ServiceHolder<Gateway> {
     }
 
     /**
-     * Gets configuration descriptor for the specified adapter.
+     * Gets configuration descriptor for the gateway.
      * @param context The context of the caller bundle. Cannot be {@literal null}.
-     * @param gatewayType The name of the adapter.
+     * @param gatewayType Type of gateway.
      * @param configurationEntity Type of the configuration entity.
      * @param <T> Type of the configuration entity.
      * @return Configuration entity descriptor; or {@literal null}, if configuration description is not supported.
@@ -167,12 +167,12 @@ public final class GatewayClient extends ServiceHolder<Gateway> {
     }
 
     /**
-     * Gets a collection of adapter maintenance actions.
+     * Gets a collection of gateway maintenance actions.
      * <p>
-     *     The adapter bundle should expose {@link com.bytex.snamp.management.Maintainable} service.
+     *     The gateway bundle should expose {@link com.bytex.snamp.management.Maintainable} service.
      * </p>
      * @param context The context of the caller bundle. Cannot be {@literal null}.
-     * @param gatewayType The system name of the adapter.
+     * @param gatewayType Type of gateway.
      * @param loc The locale of the description. May be {@literal null}.
      * @return A map of supported actions and its description.
      */
@@ -200,10 +200,10 @@ public final class GatewayClient extends ServiceHolder<Gateway> {
     /**
      * Invokes maintenance action.
      * <p>
-     *     The adapter bundle should expose {@link com.bytex.snamp.management.Maintainable} service.
+     *     The gateway bundle should expose {@link com.bytex.snamp.management.Maintainable} service.
      * </p>
      * @param context The context of the caller bundle. Cannot be {@literal null}.
-     * @param gatewayType The system name of the adapter.
+     * @param gatewayType Type of gateway.
      * @param actionName The name of the maintenance action to invoke.
      * @param arguments Invocation arguments.
      * @param resultLocale The locale of the input arguments and result.
@@ -228,9 +228,9 @@ public final class GatewayClient extends ServiceHolder<Gateway> {
     }
 
     /**
-     * Gets bundle state of the specified adapter.
+     * Gets bundle state of the specified gateway.
      * @param context The context of the caller bundle. Cannot be {@literal null}.
-     * @param gatewayType The system name of the adapter.
+     * @param gatewayType Type of gateway.
      * @return The state of the bundle.
      */
     public static int getState(final BundleContext context, final String gatewayType){
@@ -239,32 +239,32 @@ public final class GatewayClient extends ServiceHolder<Gateway> {
     }
 
     /**
-     * Gets version of the specified resource adapter.
+     * Gets version of the specified gateway.
      * @param context The context of the caller bundle. Cannot be {@literal null}.
-     * @param gatewayType The system name of the adapter.
-     * @return The version of the adapter.
+     * @param gatewayType Type of gateway.
+     * @return The version of the gateway.
      */
     public static Version getVersion(final BundleContext context, final String gatewayType){
         return new Version(getGatewayBundleHeader(context, gatewayType, Constants.BUNDLE_VERSION, null));
     }
 
     /**
-     * Gets localized description of the resource adapter.
+     * Gets localized description of the gateway.
      * @param context The context of the caller bundle. Cannot be {@literal null}.
-     * @param gatewayType The system name of the adapter.
+     * @param gatewayType Type of gateway.
      * @param loc The locale of the description. May be {@literal null}.
-     * @return The description of the adapter.
+     * @return The description of the gateway.
      */
     public static String getDescription(final BundleContext context, final String gatewayType, final Locale loc) {
         return getGatewayBundleHeader(context, gatewayType, Constants.BUNDLE_DESCRIPTION, loc);
     }
 
         /**
-         * Gets localized display name of the resource adapter.
+         * Gets localized display name of the gateway.
          * @param context The context of the caller bundle. Cannot be {@literal null}.
-         * @param gatewayType The system name of the adapter.
+         * @param gatewayType Type of gateway.
          * @param loc The locale of the display name. May be {@literal null}.
-         * @return The display name of the adapter.
+         * @return The display name of the gateway.
          */
     public static String getDisplayName(final BundleContext context, final String gatewayType, final Locale loc) {
         return getGatewayBundleHeader(context, gatewayType, Constants.BUNDLE_NAME, loc);
@@ -275,8 +275,8 @@ public final class GatewayClient extends ServiceHolder<Gateway> {
     }
 
     /**
-     * Gets name of the adapter instance.
-     * @return The name of the adapter instance.
+     * Gets name of the gateway instance.
+     * @return The name of the gateway instance.
      */
     public String getInstanceName(){
         return getInstanceName(this);
@@ -293,8 +293,8 @@ public final class GatewayClient extends ServiceHolder<Gateway> {
     }
 
     /**
-     * Returns system name of this adapter.
-     * @return The system name of this adapter.
+     * Returns system name of this gateway.
+     * @return The system name of this gateway.
      */
     @Override
     public String toString() {

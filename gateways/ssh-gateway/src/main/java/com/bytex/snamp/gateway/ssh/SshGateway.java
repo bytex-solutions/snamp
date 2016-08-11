@@ -39,7 +39,7 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 /**
- * Represents SSH resource adapter.
+ * Represents SSH gateway.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0
@@ -411,10 +411,7 @@ final class SshGateway extends AbstractGateway implements GatewayController {
     }
 
     /**
-     * Stops the adapter.
-     * <p>
-     * This method will be called by SNAMP infrastructure automatically.
-     * </p>
+     * Stops the gateway.
      */
     @Override
     protected void stop() throws Exception{

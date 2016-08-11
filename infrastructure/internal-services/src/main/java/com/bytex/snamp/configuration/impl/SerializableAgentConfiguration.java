@@ -15,7 +15,7 @@ import java.io.ObjectOutput;
  * @version 2.0
  */
 public final class SerializableAgentConfiguration extends AbstractAgentConfiguration implements Externalizable {
-    private final static byte FORMAT_VERSION = 1;
+    private final static byte FORMAT_VERSION = 3;
     private static final long serialVersionUID = 8461144056430141155L;
 
 

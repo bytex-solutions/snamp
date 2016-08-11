@@ -56,6 +56,6 @@ final class JmxGatewayConfigurationProvider extends ConfigurationEntityDescripti
     static ObjectName parseRootObjectName(final Map<String, String> parameters) throws MalformedObjectNameException {
         if(parameters.containsKey(OBJECT_NAME_PARAM))
                 return new ObjectName(parameters.get(OBJECT_NAME_PARAM));
-        throw new MalformedObjectNameException("Root object name of MBean is not specified in the resource adapter configuration");
+        throw new MalformedObjectNameException("Root object name of MBean is not specified in the gateway configuration");
     }
 }

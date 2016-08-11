@@ -17,7 +17,7 @@ import org.osgi.framework.BundleException;
     name = "enable-gateway",
     description = "Enables bundle with gateway")
 public final class EnableGatewayCommand extends OsgiCommandSupport implements SnampShellCommand {
-    @Argument(index = 0, name = "gatewayType", required = true, description = "Type of the adapter")
+    @Argument(index = 0, name = "gatewayType", required = true, description = "Type of the gateway")
     @SpecialUse
     private String gatewayType = "";
 

@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 /**
  * Describes a well-known type that should be supported by
- * resource connector and understood by resource adapter.
+ * resource connector and understood by gateway.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0

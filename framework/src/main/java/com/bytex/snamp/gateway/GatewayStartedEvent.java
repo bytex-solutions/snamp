@@ -1,8 +1,7 @@
 package com.bytex.snamp.gateway;
 
 /**
- * Represents an event indicating that the managed resource adapter instance
- * is started.
+ * Represents an event indicating that the gateway instance is started.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0
@@ -13,7 +12,7 @@ public class GatewayStartedEvent extends GatewayEvent {
     /**
      * Initializes a new instance of the event data holder.
      *
-     * @param gatewayInstance An instance of the resource adapter associated with this event.
+     * @param gatewayInstance An instance of gateway associated with this event.
      */
     public GatewayStartedEvent(final Gateway gatewayInstance) {
         super(gatewayInstance);

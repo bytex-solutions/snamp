@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.concurrent.Future;
 
 /**
- * Represents SNMP client for flexible testing of snmp adapter
+ * Represents SNMP client for flexible testing of snmp gateway
  * @author Evgeniy Kirichenko
  */
 public interface SnmpClient extends Closeable {

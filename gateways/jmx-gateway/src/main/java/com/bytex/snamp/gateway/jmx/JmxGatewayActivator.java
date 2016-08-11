@@ -4,7 +4,7 @@ import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.SpecialUse;
 
 /**
- * Represents JMX resource adapter activator.
+ * Represents JMX gateway activator.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0
@@ -12,7 +12,7 @@ import com.bytex.snamp.SpecialUse;
 public final class JmxGatewayActivator extends GatewayActivator<JmxGateway> {
 
     /**
-     * Initializes a new instance of the resource adapter lifetime manager.
+     * Initializes a new instance of the gateway lifetime manager.
      */
     @SpecialUse
     public JmxGatewayActivator() {

@@ -8,7 +8,7 @@ import org.apache.ivy.Ivy;
 import java.util.logging.Logger;
 
 /**
- * Represents information about Groovy-based resource adapter.
+ * Represents information about Groovy-based gateway.
  * This class cannot be inherited.
  * @author Roman Sakno
  * @version 2.0
@@ -16,7 +16,7 @@ import java.util.logging.Logger;
  */
 public final class GatewayInfo {
     /**
-     * The name of the Groovy Resource Adapter.
+     * The name of the Groovy Gateway.
      */
     public static final String NAME = "groovy";
 

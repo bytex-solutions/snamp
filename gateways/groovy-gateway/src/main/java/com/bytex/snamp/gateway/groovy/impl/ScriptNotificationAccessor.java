@@ -60,7 +60,7 @@ final class ScriptNotificationAccessor extends NotificationRouter implements Fea
     /**
      * Overwrite property value.
      * <p/>
-     * This operation may change behavior of the resource adapter.
+     * This operation may change behavior of the gateway.
      *
      * @param propertyName The name of the property to change.
      * @param value        A new property value.

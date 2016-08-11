@@ -5,7 +5,7 @@ import com.bytex.snamp.SpecialUse;
 import org.osgi.service.http.HttpService;
 
 /**
- * Represents bundle activator for REST adapter.
+ * Represents bundle activator for HTTP gateway.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0

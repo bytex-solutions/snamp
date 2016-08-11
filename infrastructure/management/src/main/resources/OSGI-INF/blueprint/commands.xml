@@ -35,7 +35,7 @@
             <action class="com.bytex.snamp.management.shell.EnableConnectorCommand"/>
         </command>
         <command>
-            <action class="com.bytex.snamp.management.shell.StopConnectorCommand"/>
+            <action class="com.bytex.snamp.management.shell.DisableConnectorCommand"/>
         </command>
         <command>
             <action class="com.bytex.snamp.management.shell.ConfiguredResourcesCommand"/>

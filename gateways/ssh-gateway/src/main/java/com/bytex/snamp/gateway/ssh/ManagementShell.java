@@ -85,7 +85,7 @@ final class ManagementShell implements Command, SessionAware {
             this.callback = callback;
             this.executor = Objects.requireNonNull(executor, "executor is null.");
             setDaemon(true);
-            setName("SSH Adapter Shell Interpreter");
+            setName("SSH Gateway Shell Interpreter");
         }
 
         @Override

@@ -26,10 +26,10 @@ public class PersistentConfigurationTest extends AbstractSnampIntegrationTest {
                 assertEquals(0, currentConfig.getEntities(ManagedResourceConfiguration.class).size());
                 return false;
             });
-            //save adapter
+            //save gateway
             admin.get().processConfiguration(currentConfig -> {
                 final GatewayConfiguration gatewayInstanceConfig =
-                        currentConfig.getEntities(GatewayConfiguration.class).getOrAdd("adapter1");
+                        currentConfig.getEntities(GatewayConfiguration.class).getOrAdd("gateway1");
                 assertNotNull(gatewayInstanceConfig);
                 gatewayInstanceConfig.setType("snmp");
                 gatewayInstanceConfig.getParameters().put("param1", "value");
@@ -48,9 +48,9 @@ public class PersistentConfigurationTest extends AbstractSnampIntegrationTest {
             admin.get().processConfiguration(currentConfig -> {
                 assertEquals(1, currentConfig.getEntities(GatewayConfiguration.class).size());
                 assertEquals(1, currentConfig.getEntities(ManagedResourceConfiguration.class).size());
-                assertTrue(currentConfig.getEntities(GatewayConfiguration.class).containsKey("adapter1"));
+                assertTrue(currentConfig.getEntities(GatewayConfiguration.class).containsKey("gateway1"));
                 assertTrue(currentConfig.getEntities(ManagedResourceConfiguration.class).containsKey("resource1"));
-                assertEquals("value", currentConfig.getEntities(GatewayConfiguration.class).get("adapter1").getParameters().get("param1"));
+                assertEquals("value", currentConfig.getEntities(GatewayConfiguration.class).get("gateway1").getParameters().get("param1"));
                 assertEquals("value2", currentConfig.getEntities(ManagedResourceConfiguration.class).get("resource1").getParameters().get("param2"));
                 assertNotNull(currentConfig.getEntities(ManagedResourceConfiguration.class).get("resource1")
                         .getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class).get("attr1"));
@@ -66,8 +66,8 @@ public class PersistentConfigurationTest extends AbstractSnampIntegrationTest {
             admin.get().processConfiguration(currentConfig -> {
                 assertEquals(1, currentConfig.getEntities(GatewayConfiguration.class).size());
                 assertEquals(0, currentConfig.getEntities(ManagedResourceConfiguration.class).size());
-                assertTrue(currentConfig.getEntities(GatewayConfiguration.class).containsKey("adapter1"));
-                assertEquals("value", currentConfig.getEntities(GatewayConfiguration.class).get("adapter1").getParameters().get("param1"));
+                assertTrue(currentConfig.getEntities(GatewayConfiguration.class).containsKey("gateway1"));
+                assertEquals("value", currentConfig.getEntities(GatewayConfiguration.class).get("gateway1").getParameters().get("param1"));
                 return false;
             });
         }

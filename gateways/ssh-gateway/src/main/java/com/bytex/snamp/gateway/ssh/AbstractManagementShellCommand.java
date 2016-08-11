@@ -19,7 +19,7 @@ import java.util.concurrent.Future;
 import java.util.logging.Level;
 
 /**
- * Represents SSH adapter shell command.
+ * Represents SSH gateway shell command.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0

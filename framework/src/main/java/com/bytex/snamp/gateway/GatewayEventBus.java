@@ -18,7 +18,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  */
 final class GatewayEventBus {
     private static final ExecutorService EVENT_EXECUTOR =
-            Executors.newSingleThreadExecutor(new GroupedThreadFactory("ADAPTER_EVENT_BUS"));
+            Executors.newSingleThreadExecutor(new GroupedThreadFactory("GATEWAY_EVENT_BUS"));
 
     private static final Multimap<String, WeakReference<GatewayEventListener>> listeners =
             HashMultimap.create(10, 3);

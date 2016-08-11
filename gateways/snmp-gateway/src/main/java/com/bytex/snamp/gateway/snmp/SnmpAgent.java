@@ -242,7 +242,7 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, Gat
     }
 
     /**
-     * Updating of the resource adapter is completed.
+     * Updating of the gateway is finished.
      */
     @Override
     public synchronized void updated() {

@@ -69,7 +69,7 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
     /**
      * Infers type of the attribute.
      * @param attribute The attribute metadata. Cannot be {@literal null}.
-     * @return The well-known SNAMP type that should be recognized by resource adapter.
+     * @return The well-known SNAMP type that should be recognized by gateway.
      */
     public static WellKnownType getType(final MBeanAttributeInfo attribute) {
         final OpenType<?> ot = getOpenType(attribute);

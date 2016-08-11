@@ -7,7 +7,7 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 
 /**
- * Deletes configuration parameter of the adapter instance.
+ * Deletes configuration parameter of the gateway instance.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0

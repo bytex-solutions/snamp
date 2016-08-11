@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 /**
- * Represents Groovy Resource Adapter.
+ * Represents Groovy Gateway.
  * This class cannot be inherited.
  * @author Roman Sakno
  * @version 2.0
@@ -31,9 +31,9 @@ final class GroovyGateway extends AbstractGateway {
     private final ManagementInformationRepository repository;
 
     /**
-     * Initializes a new resource adapter.
+     * Initializes a new Groovy gateway.
      *
-     * @param instanceName The name of the adapter instance.
+     * @param instanceName The name of the gateway instance.
      */
     GroovyGateway(final String instanceName) {
         super(instanceName);
@@ -67,7 +67,7 @@ final class GroovyGateway extends AbstractGateway {
      * was removed from SNAMP.
      *
      * @param resourceName The name of the resource.
-     * @return Read-only collection of features tracked by this resource adapter. Cannot be {@literal null}.
+     * @return Read-only collection of features tracked by this gateway. Cannot be {@literal null}.
      */
     @Override
     protected Stream<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws Exception {
@@ -80,7 +80,7 @@ final class GroovyGateway extends AbstractGateway {
      *
      * @param resourceName The name of the managed resource.
      * @param feature      The resource feature that was removed.
-     * @return An instance of the feature accessor used by this resource adapter. May be {@literal null}.
+     * @return An instance of the feature accessor used by this gateway. May be {@literal null}.
      */
     @SuppressWarnings("unchecked")
     @Override

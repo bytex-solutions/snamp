@@ -18,7 +18,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  */
 @Command(scope = SnampShellCommand.SCOPE,
     name = "configure-gateway",
-    description = "Configure new or existing adapter instance")
+    description = "Configure new or existing gateway instance")
 public final class ConfigGatewayInstanceCommand extends ConfigurationCommand<GatewayConfiguration> {
     @Argument(name = "instanceName", index = 0, required = true, description = "Name of the gateway instance")
     @SpecialUse

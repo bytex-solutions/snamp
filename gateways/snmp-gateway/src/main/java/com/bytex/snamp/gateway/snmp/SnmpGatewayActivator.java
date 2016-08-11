@@ -17,7 +17,7 @@ public final class SnmpGatewayActivator extends GatewayActivator<SnmpGateway> {
     }
 
     /**
-     * Initializes a new instance of the resource adapter lifetime manager.
+     * Initializes a new instance of the gateway lifetime manager.
      */
     @SpecialUse
     public SnmpGatewayActivator() {

@@ -134,7 +134,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
     }
 
     /**
-     * Represents superclass for resource adapter descriptor.
+     * Represents superclass for gateway descriptor.
      * @author Roman Sakno
      * @since 1.0
      * @version 2.0
@@ -227,8 +227,8 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
         }
 
         /**
-         * Returns system name of the adapter.
-         * @return The system name of the adapter.
+         * Returns type of gateway
+         * @return The type of gateway.
          */
         @Override
         public String toString() {
@@ -358,9 +358,9 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
     }
 
     /**
-     * Creates a new instance of the resource adapter descriptor.
-     * @param gatewayType The system name of the adapter.
-     * @return A new instance of the resource adapter descriptor.
+     * Creates a new instance of the gateway descriptor.
+     * @param gatewayType Type of gateway.
+     * @return A new instance of the gateway descriptor.
      */
     protected abstract GatewayDescriptor createGatewayDescriptor(final String gatewayType);
 

@@ -24,7 +24,7 @@ import java.util.Map;
  */
 final class CMGatewayParserImpl extends AbstractConfigurationParser<SerializableGatewayConfiguration> implements CMGatewayParser {
     private static final String GATEWAY_PID_TEMPLATE = "com.bytex.snamp.gateway.%s";
-    private static final String GATEWAY_INSTANCE_NAME_PROPERTY = "$adapterInstanceName$";
+    private static final String GATEWAY_INSTANCE_NAME_PROPERTY = "$gatewayInstanceName$";
     private static final String ALL_GATEWAYS_QUERY = String.format("(%s=%s)", Constants.SERVICE_PID, String.format(GATEWAY_PID_TEMPLATE, "*"));
 
     private static final class GatewayConfigurationException extends PersistentConfigurationException{
@@ -36,9 +36,9 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
     }
 
     /**
-     * Returns name of the resource adapter instance by its persistent identifier.
-     * @param factoryPID Resource adapter persistent identifier.
-     * @return The name of the resource adapter.
+     * Returns type of the gateway by its persistent identifier.
+     * @param factoryPID Gateway persistent identifier.
+     * @return Type of gateway.
      */
     private static String getGatewayType(final String factoryPID){
         return factoryPID.replaceFirst(String.format(GATEWAY_PID_TEMPLATE, ""), "");

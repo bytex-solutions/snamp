@@ -10,7 +10,7 @@
   <artifactId>osgi-tests</artifactId>
   <version>${project.parent.version}</version>
   <name>SNAMP Integration Tests</name>
-  <description>Tests for connectors/adapters</description>
+  <description>Tests for connectors/gateways</description>
   <properties>
     <exam.version>4.9.1</exam.version>
   </properties>
