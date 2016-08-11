@@ -19,7 +19,7 @@ import static com.bytex.snamp.management.shell.Utils.getStateString;
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
-        name = "installed-connector",
+        name = "installed-connectors",
         description = "List of installed resource connector")
 public final class InstalledConnectorsCommand extends OsgiCommandSupport implements SnampShellCommand {
     private final SnampManager manager = new SnampManagerImpl();
@@ -27,7 +27,7 @@ public final class InstalledConnectorsCommand extends OsgiCommandSupport impleme
     static void writeConnector(final SnampComponentDescriptor component, final StringBuilder output) {
         appendln(output, "%s. Type: %s. Description: %s. Version: %s. State: %s",
                 component.getName(null),
-                component.get(SnampComponentDescriptor.CONNECTOR_SYSTEM_NAME_PROPERTY),
+                component.get(SnampComponentDescriptor.CONNECTOR_TYPE_PROPERTY),
                 component.toString(null),
                 component.getVersion(),
                 getStateString(component));

@@ -11,7 +11,6 @@ import com.google.common.collect.Maps;
 import javax.management.openmbean.*;
 import java.util.Map;
 import java.util.Objects;
-import java.util.logging.Level;
 
 /**
  * The type Installed components.
@@ -79,7 +78,7 @@ final class InstalledComponents extends OpenMBean.OpenAttribute<TabularData, Tab
     @Override
     public TabularData getValue() throws OpenDataException{
         final TabularData result = new TabularDataSupport(openType);
-        for(final SnampComponentDescriptor component: manager.getInstalledResourceAdapters())
+        for(final SnampComponentDescriptor component: manager.getInstalledGateways())
             result.put(createRow(component));
         for(final SnampComponentDescriptor component: manager.getInstalledResourceConnectors())
             result.put(createRow(component));

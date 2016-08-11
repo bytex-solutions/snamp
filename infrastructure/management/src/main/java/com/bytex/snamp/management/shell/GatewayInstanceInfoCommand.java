@@ -10,35 +10,35 @@ import java.util.Map;
 
 import static com.bytex.snamp.management.shell.Utils.appendln;
 
-/*
+/**
  * Displays configuration of adapter instance.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
-    name = "adapter",
+    name = "gateway-instance",
     description = "Display configuration of adapter instance")
-public final class AdapterInstanceInfoCommand extends ConfigurationCommand<GatewayConfiguration> {
-    @Argument(index = 0, name = "adapterInstance", required = true, description = "Name of adapter instance to display")
+public final class GatewayInstanceInfoCommand extends ConfigurationCommand<GatewayConfiguration> {
+    @Argument(index = 0, name = "instanceName", required = true, description = "Name of gateway instance to display")
     @SpecialUse
-    private String adapterInstance = "";
+    private String instanceName = "";
 
-    public AdapterInstanceInfoCommand(){
+    public GatewayInstanceInfoCommand(){
         super(GatewayConfiguration.class);
     }
 
     @Override
     boolean doExecute(final EntityMap<? extends GatewayConfiguration> configuration, final StringBuilder output) {
-        if (configuration.containsKey(adapterInstance)) {
-            final GatewayConfiguration adapter = configuration.get(adapterInstance);
-            appendln(output, "Instance Name: %s", adapterInstance);
+        if (configuration.containsKey(instanceName)) {
+            final GatewayConfiguration adapter = configuration.get(instanceName);
+            appendln(output, "Instance Name: %s", instanceName);
             appendln(output, "System Name: %s", adapter.getType());
             appendln(output, "Configuration parameters:");
             for (final Map.Entry<String, String> pair : adapter.getParameters().entrySet())
                 appendln(output, "%s = %s", pair.getKey(), pair.getValue());
         } else
-            output.append("Adapter instance doesn't exist");
+            output.append("Gateway instance doesn't exist");
         return false;
     }
 }

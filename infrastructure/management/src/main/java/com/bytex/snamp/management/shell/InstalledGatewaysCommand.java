@@ -18,15 +18,15 @@ import static com.bytex.snamp.management.shell.Utils.getStateString;
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
-        name = "installed-gateway",
-        description = "List of installed resource gateway")
-public final class InstalledAdaptersCommand extends OsgiCommandSupport implements SnampShellCommand {
+        name = "installed-gateways",
+        description = "List of installed gateways")
+public final class InstalledGatewaysCommand extends OsgiCommandSupport implements SnampShellCommand {
     private final SnampManager manager = new SnampManagerImpl();
 
-    static void writeAdapter(final SnampComponentDescriptor component, final StringBuilder output) {
+    static void writeGateway(final SnampComponentDescriptor component, final StringBuilder output) {
         appendln(output, "%s. Name: %s. Description: %s. Version: %s. State: %s",
                 component.getName(null),
-                component.get(SnampComponentDescriptor.ADAPTER_SYSTEM_NAME_PROPERTY),
+                component.get(SnampComponentDescriptor.GATEWAY_TYPE_PROPERTY),
                 component.toString(null),
                 component.getVersion(),
                 getStateString(component));
@@ -35,8 +35,8 @@ public final class InstalledAdaptersCommand extends OsgiCommandSupport implement
     @Override
     protected CharSequence doExecute() throws IOException {
         final StringBuilder result = new StringBuilder(42);
-        for(final SnampComponentDescriptor component: manager.getInstalledResourceAdapters())
-            writeAdapter(component, result);
+        for(final SnampComponentDescriptor component: manager.getInstalledGateways())
+            writeGateway(component, result);
         return result;
     }
 }

@@ -22,7 +22,7 @@ public interface SnampManager extends SupportService {
      * Returns a read-only collection of installed resource gateway.
      * @return A read-only collection of installed resource gateway.
      */
-    Collection<? extends SnampComponentDescriptor> getInstalledResourceAdapters();
+    Collection<? extends SnampComponentDescriptor> getInstalledGateways();
 
     /**
      * Returns a read-only collection of installed additional SNAMP components.

@@ -16,13 +16,13 @@ import java.util.Map;
  */
 public interface SnampComponentDescriptor extends Localizable, Map<String, String> {
     /**
-     * Represents name of the property that contains connector name.
+     * Represents name of the property that contains connector type.
      */
-    String CONNECTOR_SYSTEM_NAME_PROPERTY = "connectorType";
+    String CONNECTOR_TYPE_PROPERTY = "connectorType";
     /**
-     * Represents name of the property that contains adapter name.
+     * Represents name of the property that contains gateway type.
      */
-    String ADAPTER_SYSTEM_NAME_PROPERTY = "adapterName";
+    String GATEWAY_TYPE_PROPERTY = "gatewayType";
 
     /**
      * Represents name of the property that contains bundle identifier.

@@ -13,16 +13,16 @@ import static com.bytex.snamp.management.shell.Utils.appendln;
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
-        name = "adapter-instances",
-        description = "List of configured adapter instances")
-public final class ConfiguredAdaptersCommand extends ConfigurationCommand<GatewayConfiguration> {
-    public ConfiguredAdaptersCommand(){
+        name = "gateway-instances",
+        description = "List of configured gateway instances")
+public final class ConfiguredGatewaysCommand extends ConfigurationCommand<GatewayConfiguration> {
+    public ConfiguredGatewaysCommand(){
         super(GatewayConfiguration.class);
     }
 
     @Override
     boolean doExecute(final EntityMap<? extends GatewayConfiguration> configuration, final StringBuilder output) {
-        configuration.entrySet().forEach(adapter -> appendln(output, "Instance: %s. Adapter: %s", adapter.getKey(), adapter.getValue().getType()));
+        configuration.entrySet().forEach(adapter -> appendln(output, "Instance: %s. Gateway: %s", adapter.getKey(), adapter.getValue().getType()));
         return false;
     }
 }

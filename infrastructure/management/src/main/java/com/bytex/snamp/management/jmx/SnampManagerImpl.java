@@ -28,7 +28,7 @@ public final class SnampManagerImpl extends AbstractSnampManager {
         }
     }
 
-    private final static class ResourceAdapterDescriptorImpl extends ResourceAdapterDescriptor{
+    private final static class GatewayDescriptorImpl extends GatewayDescriptor {
         private static final long serialVersionUID = 6911837979438477985L;
 
         /**
@@ -36,7 +36,7 @@ public final class SnampManagerImpl extends AbstractSnampManager {
          *
          * @param systemName the system name
          */
-        private ResourceAdapterDescriptorImpl(final String systemName) {
+        private GatewayDescriptorImpl(final String systemName) {
             super(systemName);
         }
     }
@@ -59,8 +59,8 @@ public final class SnampManagerImpl extends AbstractSnampManager {
      * @return A new instance of the resource adapter descriptor.
      */
     @Override
-    protected ResourceAdapterDescriptorImpl createResourceAdapterDescriptor(final String systemName) {
-        return new ResourceAdapterDescriptorImpl(systemName);
+    protected GatewayDescriptorImpl createResourceAdapterDescriptor(final String systemName) {
+        return new GatewayDescriptorImpl(systemName);
     }
 
     /**

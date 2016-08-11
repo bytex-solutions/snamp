@@ -10,7 +10,7 @@ import java.io.IOException;
 
 import static com.bytex.snamp.management.shell.Utils.appendln;
 import static com.bytex.snamp.management.shell.Utils.getStateString;
-import static com.bytex.snamp.management.shell.InstalledAdaptersCommand.writeAdapter;
+import static com.bytex.snamp.management.shell.InstalledGatewaysCommand.writeGateway;
 import static com.bytex.snamp.management.shell.InstalledConnectorsCommand.writeConnector;
 
 /**
@@ -37,8 +37,8 @@ public final class InstalledComponentsCommand extends OsgiCommandSupport impleme
     @Override
     protected CharSequence doExecute() throws IOException{
         final StringBuilder result = new StringBuilder(42);
-        for(final SnampComponentDescriptor component: manager.getInstalledResourceAdapters())
-            writeAdapter(component, result);
+        for(final SnampComponentDescriptor component: manager.getInstalledGateways())
+            writeGateway(component, result);
         for(final SnampComponentDescriptor component: manager.getInstalledResourceConnectors())
             writeConnector(component, result);
         for(final SnampComponentDescriptor component: manager.getInstalledComponents())

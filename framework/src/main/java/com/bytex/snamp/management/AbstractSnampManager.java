@@ -139,16 +139,16 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
      * @since 1.0
      * @version 2.0
      */
-    protected static abstract class ResourceAdapterDescriptor extends HashMap<String, String> implements SnampComponentDescriptor{
+    protected static abstract class GatewayDescriptor extends HashMap<String, String> implements SnampComponentDescriptor{
         private static final long serialVersionUID = 5641114150847940779L;
 
-        protected ResourceAdapterDescriptor(final String systemName){
+        protected GatewayDescriptor(final String systemName){
             super(1);
-            put(ADAPTER_SYSTEM_NAME_PROPERTY, systemName);
+            put(GATEWAY_TYPE_PROPERTY, systemName);
         }
 
-        protected final String getSystemName(){
-            return get(ADAPTER_SYSTEM_NAME_PROPERTY);
+        protected final String getType(){
+            return get(GATEWAY_TYPE_PROPERTY);
         }
 
         private BundleContext getItselfContext(){
@@ -168,7 +168,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
          */
         @Override
         public int getState() {
-            return GatewayClient.getState(getItselfContext(), getSystemName());
+            return GatewayClient.getState(getItselfContext(), getType());
         }
 
         /**
@@ -179,7 +179,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
          */
         @Override
         public String getName(final Locale loc) {
-            return GatewayClient.getDisplayName(getItselfContext(), getSystemName(), loc);
+            return GatewayClient.getDisplayName(getItselfContext(), getType(), loc);
         }
 
         /**
@@ -189,7 +189,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
          */
         @Override
         public Version getVersion() {
-            return GatewayClient.getVersion(getItselfContext(), getSystemName());
+            return GatewayClient.getVersion(getItselfContext(), getType());
         }
 
         /**
@@ -203,7 +203,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
         public final  <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Acceptor<S, E> serviceInvoker) throws E {
             ServiceReference<S> ref = null;
             try {
-                ref = GatewayClient.getServiceReference(getItselfContext(), getSystemName(), null, serviceType);
+                ref = GatewayClient.getServiceReference(getItselfContext(), getType(), null, serviceType);
                 if (ref == null) return false;
                 serviceInvoker.accept(getItselfContext().getService(ref));
             } catch (final InvalidSyntaxException ignored) {
@@ -223,7 +223,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
          */
         @Override
         public String toString(final Locale locale) {
-            return GatewayClient.getDescription(getItselfContext(), getSystemName(), locale);
+            return GatewayClient.getDescription(getItselfContext(), getType(), locale);
         }
 
         /**
@@ -232,7 +232,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
          */
         @Override
         public String toString() {
-            return getSystemName();
+            return getType();
         }
     }
 
@@ -247,11 +247,11 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
 
         protected ResourceConnectorDescriptor(final String connectorName){
             super(1);
-            put(CONNECTOR_SYSTEM_NAME_PROPERTY, connectorName);
+            put(CONNECTOR_TYPE_PROPERTY, connectorName);
         }
 
-        protected final String getSystemName(){
-            return get(CONNECTOR_SYSTEM_NAME_PROPERTY);
+        protected final String getType(){
+            return get(CONNECTOR_TYPE_PROPERTY);
         }
 
         private BundleContext getItselfContext(){
@@ -271,7 +271,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
          */
         @Override
         public int getState() {
-            return ManagedResourceConnectorClient.getState(getItselfContext(), getSystemName());
+            return ManagedResourceConnectorClient.getState(getItselfContext(), getType());
         }
 
         /**
@@ -282,7 +282,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
          */
         @Override
         public String getName(final Locale loc) {
-            return ManagedResourceConnectorClient.getDisplayName(getItselfContext(), getSystemName(), loc);
+            return ManagedResourceConnectorClient.getDisplayName(getItselfContext(), getType(), loc);
         }
 
         /**
@@ -294,7 +294,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
          */
         @Override
         public String toString(final Locale locale) {
-            return ManagedResourceConnectorClient.getDescription(getItselfContext(), getSystemName(), locale);
+            return ManagedResourceConnectorClient.getDescription(getItselfContext(), getType(), locale);
         }
 
         /**
@@ -304,7 +304,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
          */
         @Override
         public Version getVersion() {
-            return ManagedResourceConnectorClient.getVersion(getItselfContext(), getSystemName());
+            return ManagedResourceConnectorClient.getVersion(getItselfContext(), getType());
         }
 
         /**
@@ -318,7 +318,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
         public final  <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Acceptor<S, E> serviceInvoker) throws E {
             ServiceReference<S> ref = null;
             try {
-                ref = ManagedResourceConnectorClient.getServiceReference(getItselfContext(), getSystemName(), null, serviceType);
+                ref = ManagedResourceConnectorClient.getServiceReference(getItselfContext(), getType(), null, serviceType);
                 if (ref == null) return false;
                 else serviceInvoker.accept(getItselfContext().getService(ref));
             } catch (final InvalidSyntaxException ignored) {
@@ -335,7 +335,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
          */
         @Override
         public String toString() {
-            return getSystemName();
+            return getType();
         }
     }
 
@@ -362,7 +362,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
      * @param systemName The system name of the adapter.
      * @return A new instance of the resource adapter descriptor.
      */
-    protected abstract ResourceAdapterDescriptor createResourceAdapterDescriptor(final String systemName);
+    protected abstract GatewayDescriptor createResourceAdapterDescriptor(final String systemName);
 
     /**
      * Returns a read-only collection of installed resource gateway.
@@ -370,7 +370,7 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
      * @return A read-only collection of installed resource gateway.
      */
     @Override
-    public final Collection<? extends ResourceAdapterDescriptor> getInstalledResourceAdapters() {
+    public final Collection<? extends GatewayDescriptor> getInstalledGateways() {
         final Collection<String> systemNames = GatewayActivator.getInstalledGateways(getBundleContextOfObject(this));
         return systemNames.stream().map(this::createResourceAdapterDescriptor).collect(Collectors.toCollection(LinkedList::new));
     }
@@ -405,14 +405,14 @@ public abstract class AbstractSnampManager extends AbstractFrameworkService impl
 
     public final ResourceConnectorDescriptor getResourceConnector(final String connectorName) {
         return getInstalledResourceConnectors().stream()
-                .filter(connector -> Objects.equals(connectorName, connector.get(SnampComponentDescriptor.CONNECTOR_SYSTEM_NAME_PROPERTY)))
+                .filter(connector -> Objects.equals(connectorName, connector.get(SnampComponentDescriptor.CONNECTOR_TYPE_PROPERTY)))
                 .findFirst()
                 .orElseGet(() -> null);
     }
 
-    public final ResourceAdapterDescriptor getResourceAdapter(final String adapterName) {
-        return getInstalledResourceAdapters().stream()
-                .filter(adapter -> Objects.equals(adapterName, adapter.get(SnampComponentDescriptor.ADAPTER_SYSTEM_NAME_PROPERTY)))
+    public final GatewayDescriptor getResourceAdapter(final String adapterName) {
+        return getInstalledGateways().stream()
+                .filter(adapter -> Objects.equals(adapterName, adapter.get(SnampComponentDescriptor.GATEWAY_TYPE_PROPERTY)))
                 .findFirst()
                 .orElseGet(() -> null);
     }

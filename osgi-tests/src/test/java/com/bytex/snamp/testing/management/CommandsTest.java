@@ -85,12 +85,12 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
 
     @Test
     public void installedAdaptersTest() throws Exception {
-        assertTrue(runCommand("snamp:installed-gateway").toString().startsWith("Groovy Resource Adapter"));
+        assertTrue(runCommand("snamp:installed-gateways").toString().startsWith("Groovy Resource Adapter"));
     }
 
     @Test
     public void installedConnectorsTest() throws Exception {
-        final CharSequence result = (CharSequence) runCommand("snamp:installed-connector");
+        final CharSequence result = (CharSequence) runCommand("snamp:installed-connectors");
         assertTrue(result.toString().startsWith("JMX Connector"));
     }
 
@@ -101,7 +101,7 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
 
     @Test
     public void adapterInstancesTest() throws Exception{
-        assertTrue(runCommand("snamp:adapter-instances").toString().startsWith("Instance: adapterInst"));
+        assertTrue(runCommand("snamp:gateway-instances").toString().startsWith("Instance: adapterInst"));
     }
 
     @Test
@@ -272,9 +272,9 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
     }
 
     @Test
-    public void adapterInstanceInfoTest() throws Exception{
-        final String result = runCommand("snamp:adapter adapterInst").toString();
-        assertTrue(result.contains("System Name: dummyAdapter"));
+    public void adapterInstanceInfoTest() throws Exception {
+        final String result = runCommand("snamp:gateway-instance gatewayInst").toString();
+        assertTrue(result.contains("System Name: dummyGateway"));
     }
 
     @Test
@@ -325,9 +325,9 @@ public final class CommandsTest extends AbstractSnampIntegrationTest {
 
     @Override
     protected void setupTestConfiguration(final AgentConfiguration config) {
-        final GatewayConfiguration adapter =
-                config.getEntities(GatewayConfiguration.class).getOrAdd("adapterInst");
-        adapter.setType("dummyAdapter");
+        final GatewayConfiguration gatewayInstance =
+                config.getEntities(GatewayConfiguration.class).getOrAdd("gatewayInst");
+        gatewayInstance.setType("dummyGateway");
         final ManagedResourceConfiguration resource =
                 config.getEntities(ManagedResourceConfiguration.class).getOrAdd("resource1");
         resource.setType("dummyConnector");
