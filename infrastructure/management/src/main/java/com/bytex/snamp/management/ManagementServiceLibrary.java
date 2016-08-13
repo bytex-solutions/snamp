@@ -2,7 +2,6 @@ package com.bytex.snamp.management;
 
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.core.AbstractServiceLibrary;
-import com.bytex.snamp.core.ExposedServiceHandler;
 import com.bytex.snamp.management.jmx.SnampClusterNodeMBean;
 import com.bytex.snamp.management.jmx.SnampCoreMBean;
 import com.bytex.snamp.management.jmx.SnampManagerImpl;
