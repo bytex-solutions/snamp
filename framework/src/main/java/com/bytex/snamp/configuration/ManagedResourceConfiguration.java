@@ -2,7 +2,6 @@ package com.bytex.snamp.configuration;
 
 import java.time.Duration;
 import java.time.temporal.TemporalUnit;
-import java.util.Map;
 
 /**
  * Represents management target configuration (back-end management information providers).
@@ -127,6 +126,18 @@ public interface ManagedResourceConfiguration extends TypedEntityConfiguration {
          */
         void setInvocationTimeout(final Duration value);
     }
+
+    /**
+     * Sets resource group for this resource.
+     * @param value The name of the resource group. Cannot be {@literal null}.
+     */
+    void setGroupName(final String value);
+
+    /**
+     * Gets name of resource group.
+     * @return Name of resource group; or empty string, if group is not assigned.
+     */
+    String getGroupName();
 
     /**
      * Gets the management target connection string.

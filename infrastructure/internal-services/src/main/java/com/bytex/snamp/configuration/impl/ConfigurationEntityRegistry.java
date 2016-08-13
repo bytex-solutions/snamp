@@ -40,13 +40,13 @@ abstract class ConfigurationEntityRegistry<E extends EntityConfiguration & Modif
     }
 
     @Override
-    protected final void writeValue(final E value, final ObjectOutput out) throws IOException {
+    protected void writeValue(final E value, final ObjectOutput out) throws IOException {
         out.writeObject(value);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    protected final E readValue(final ObjectInput out) throws IOException, ClassNotFoundException {
+    protected E readValue(final ObjectInput out) throws IOException, ClassNotFoundException {
         return (E) out.readObject();
     }
 

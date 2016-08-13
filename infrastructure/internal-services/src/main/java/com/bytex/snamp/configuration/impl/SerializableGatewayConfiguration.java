@@ -6,6 +6,7 @@ import com.bytex.snamp.configuration.GatewayConfiguration;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import static com.google.common.base.MoreObjects.firstNonNull;
 
 /**
  * Represents gateway instance settings. This class cannot be inherited.
@@ -44,7 +45,7 @@ final class SerializableGatewayConfiguration extends AbstractEntityConfiguration
     @Override
     public void setType(final String gatewayType) {
         markAsModified();
-        this.gatewayType = gatewayType != null ? gatewayType : "";
+        this.gatewayType = firstNonNull(gatewayType, "");
     }
 
     private boolean equals(final GatewayConfiguration other){

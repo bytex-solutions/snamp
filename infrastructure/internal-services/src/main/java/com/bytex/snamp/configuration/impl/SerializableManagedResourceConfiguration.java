@@ -10,6 +10,7 @@ import java.io.ObjectOutput;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
+import static com.google.common.base.MoreObjects.firstNonNull;
 
 /**
  * Represents configuration of the management information provider. This class cannot be inherited.
@@ -302,6 +303,7 @@ final class SerializableManagedResourceConfiguration extends AbstractEntityConfi
     private String connectionString;
     private final ConfigurationEntityRegistry<SerializableAttributeConfiguration> attributes;
     private String connectionType;
+    private String resourceGroup;
     private final ConfigurationEntityRegistry<SerializableEventConfiguration> events;
     private final ConfigurationEntityRegistry<SerializableOperationConfiguration> operations;
 
@@ -310,7 +312,7 @@ final class SerializableManagedResourceConfiguration extends AbstractEntityConfi
      */
     @SpecialUse
     public SerializableManagedResourceConfiguration(){
-        connectionString = connectionType = "";
+        connectionString = connectionType = resourceGroup = "";
         this.attributes = new AttributeRegistry();
         this.events = new EventRegistry();
         this.operations = new OperationRegistry();
@@ -333,8 +335,9 @@ final class SerializableManagedResourceConfiguration extends AbstractEntityConfi
     @Override
     public void writeExternal(final ObjectOutput out) throws IOException {
         out.writeByte(FORMAT_VERSION);
-        out.writeUTF(connectionType != null ? connectionType : "");
-        out.writeUTF(connectionString != null ? connectionString : "");
+        out.writeUTF(connectionType);
+        out.writeUTF(connectionString);
+        out.writeUTF(resourceGroup);
         writeParameters(out);
         attributes.writeExternal(out);
         events.writeExternal(out);
@@ -359,6 +362,7 @@ final class SerializableManagedResourceConfiguration extends AbstractEntityConfi
             throw new IOException(String.format("Managed resource configuration has invalid binary version. Expected %s but actual %s", FORMAT_VERSION, version));
         connectionType = in.readUTF();
         connectionString = in.readUTF();
+        resourceGroup = in.readUTF();
         readParameters(in);
         attributes.readExternal(in);
         events.readExternal(in);
@@ -411,12 +415,12 @@ final class SerializableManagedResourceConfiguration extends AbstractEntityConfi
     /**
      * Sets the management target connection string.
      *
-     * @param connectionString The connection string that is used to connect to the management server.
+     * @param value The connection string that is used to connect to the management server.
      */
     @Override
-    public void setConnectionString(final String connectionString) {
+    public void setConnectionString(final String value) {
         markAsModified();
-        this.connectionString = connectionString != null ? connectionString : "";
+        connectionString = firstNonNull(value, "");
     }
 
     /**
@@ -434,12 +438,33 @@ final class SerializableManagedResourceConfiguration extends AbstractEntityConfi
      * Sets the management connector that is used to organize monitoring data exchange between
      * agent and the management provider.
      *
-     * @param connectorType The management connector type.
+     * @param value The management connector type.
      */
     @Override
-    public void setType(final String connectorType) {
+    public void setType(final String value) {
         markAsModified();
-        this.connectionType = connectionType != null ? connectorType : "";
+        connectionType = firstNonNull(value, "");
+    }
+
+    /**
+     * Sets resource group for this resource.
+     *
+     * @param value The name of the resource group. Cannot be {@literal null}.
+     */
+    @Override
+    public void setGroupName(final String value) {
+        markAsModified();
+        resourceGroup = firstNonNull(value, "");
+    }
+
+    /**
+     * Gets name of resource group.
+     *
+     * @return Name of resource group; or empty string, if group is not assigned.
+     */
+    @Override
+    public String getGroupName() {
+        return resourceGroup;
     }
 
     /**
