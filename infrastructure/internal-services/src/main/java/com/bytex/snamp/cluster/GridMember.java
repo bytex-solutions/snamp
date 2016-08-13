@@ -3,11 +3,13 @@ package com.bytex.snamp.cluster;
 import com.bytex.snamp.TypeTokens;
 import com.bytex.snamp.core.AbstractFrameworkService;
 import com.bytex.snamp.core.ClusterMember;
+import com.bytex.snamp.core.LongCounter;
 import com.google.common.reflect.TypeToken;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ILock;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -108,11 +110,21 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
      */
     @Override
     public <S> S getService(final String serviceName, final TypeToken<S> serviceType) {
-        if(STORAGE_SERVICE.equals(serviceType))
-            return TypeTokens.cast(new HazelcastStorage(hazelcast, serviceName), serviceType);
-        else if(IDGEN_SERVICE.equals(serviceType))
-            return TypeTokens.cast(new HazelcastLongCounter(hazelcast, serviceName), serviceType);
+        final Object result;
+        if (STORAGE_SERVICE.equals(serviceType))
+            result = getStorage(serviceName);
+        else if (IDGEN_SERVICE.equals(serviceType))
+            result = getLongCounter(serviceName);
         else return null;
+        return TypeTokens.cast(result, serviceType);
+    }
+
+    private ConcurrentMap<String, Object> getStorage(final String collectionName){
+        return new HazelcastStorage(hazelcast, collectionName);
+    }
+
+    private LongCounter getLongCounter(final String counterName){
+        return hazelcast.getAtomicLong(counterName)::getAndIncrement;
     }
 
     /**
@@ -124,9 +136,17 @@ public final class GridMember extends AbstractFrameworkService implements Cluste
     @Override
     public void releaseService(final String serviceName, final TypeToken<?> serviceType) {
         if(STORAGE_SERVICE.equals(serviceType))
-            HazelcastStorage.release(hazelcast, serviceName);
+            releaseStorage(serviceName);
         else if(IDGEN_SERVICE.equals(serviceType))
-            HazelcastLongCounter.release(hazelcast, serviceName);
+            releaseLongCounter(serviceName);
+    }
+
+    private void releaseStorage(final String collectionName) {
+        hazelcast.getMap(collectionName).destroy();
+    }
+
+    private void releaseLongCounter(final String generatorName) {
+        hazelcast.getIdGenerator(generatorName).destroy();
     }
 
     /**
