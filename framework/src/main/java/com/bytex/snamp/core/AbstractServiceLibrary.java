@@ -562,9 +562,9 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             registration.setProperties(properties);
         }
 
-        private Dictionary<String, ?> dumpProperties(){
+        private Hashtable<String, ?> dumpProperties(){
             final String[] propertyNames = registration.getReference().getPropertyKeys();
-            final Dictionary<String, Object> result = new Hashtable<>(propertyNames.length * 2);
+            final Hashtable<String, Object> result = new Hashtable<>(propertyNames.length * 2);
             for(final String propertyName: propertyNames)
                 result.put(propertyName, registration.getReference().getProperty(propertyName));
             return result;
@@ -675,7 +675,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             }
             else if (oldService != newService) {
                 //save the identity of the service and removes registration of the previous version of service
-                final Dictionary<String, ?> identity = dispose(registration);
+                final Hashtable<String, ?> identity = dispose(registration);
                 registration = new ServiceRegistrationHolder<>(serviceContract, newService, identity, super.getBundleContext());
             }
             return registration;
@@ -724,11 +724,11 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          */
         @ThreadSafe
         protected abstract void cleanupService(final T service,
-                                               final Dictionary<String, ?> identity) throws Exception;
+                                               final Map<String, ?> identity) throws Exception;
 
-        private Dictionary<String, ?> dispose(final ServiceRegistrationHolder<S, T> registration) throws Exception{
+        private Hashtable<String, ?> dispose(final ServiceRegistrationHolder<S, T> registration) throws Exception{
             final T serviceInstance = registration.get();
-            final Dictionary<String, ?> properties = registration.dumpProperties();
+            final Hashtable<String, ?> properties = registration.dumpProperties();
             try {
                 registration.unregister();
             }

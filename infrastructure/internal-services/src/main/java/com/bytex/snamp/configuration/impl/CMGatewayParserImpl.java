@@ -5,7 +5,6 @@ import com.bytex.snamp.Box;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.configuration.internal.CMGatewayParser;
 import com.bytex.snamp.internal.Utils;
-import com.google.common.collect.Maps;
 import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.cm.Configuration;
@@ -70,13 +69,6 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
                 case GATEWAY_INSTANCE_NAME_PROPERTY:
             }
         }
-    }
-
-    @Override
-    public Map<String, String> getParameters(final Dictionary<String, ?> gatewayInstanceConfig) {
-        final Map<String, String> result = Maps.newHashMapWithExpectedSize(gatewayInstanceConfig.size());
-        fillGatewayInstanceParameters(gatewayInstanceConfig, result);
-        return result;
     }
 
     private static <E extends Exception> void forEachGatewayInstance(final ConfigurationAdmin admin,

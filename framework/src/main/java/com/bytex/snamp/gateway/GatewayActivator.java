@@ -3,6 +3,7 @@ package com.bytex.snamp.gateway;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.configuration.ConfigurationManager;
+import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.configuration.internal.CMGatewayParser;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.FrameworkService;
@@ -90,25 +91,37 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
             return getParser(dependencies).getFactoryPersistentID(gatewayType);
         }
 
+        private G update(final G gatewayInstance,
+                         final GatewayConfiguration configuration) throws Exception {
+            gatewayInstance.tryUpdate(configuration.getParameters());
+            return gatewayInstance;
+        }
+
         @Override
         protected G update(final G gatewayInstance,
                            final Dictionary<String, ?> configuration,
                            final RequiredService<?>... dependencies) throws Exception {
             final CMGatewayParser parser = getParser(dependencies);
-            gatewayInstance.tryUpdate(parser.getParameters(configuration));
-            return gatewayInstance;
+            final String instanceName = parser.getInstanceName(configuration);
+            @SuppressWarnings("unchecked")
+            final GatewayConfiguration newConfig = getNewConfiguration(instanceName, getDependency(RequiredServiceAccessor.class, ConfigurationManager.class, dependencies));
+            if (newConfig == null)
+                throw new IllegalStateException(String.format("Gateway %s cannot be updated. Configuration not found.", instanceName));
+            return update(gatewayInstance, newConfig);
         }
 
-        @Override
-        protected G createService(final Map<String, Object> identity,
-                                  final Dictionary<String, ?> configuration,
-                                  final RequiredService<?>... dependencies) throws Exception {
-            final CMGatewayParser parser = getParser(dependencies);
-            final String instanceName = parser.getInstanceName(configuration);
+        private static GatewayConfiguration getNewConfiguration(final String instanceName, final ConfigurationManager manager) throws IOException {
+            return manager.transformConfiguration(config -> config.getEntities(GatewayConfiguration.class).get(instanceName));
+        }
+
+        private G createService(final Map<String, Object> identity,
+                                final String instanceName,
+                                final GatewayConfiguration configuration,
+                                final RequiredService<?>... dependencies) throws Exception{
             createIdentity(gatewayType, instanceName, identity);
             final G gatewayInstance = gatewayInstanceFactory.createInstance(instanceName, dependencies);
             if (gatewayInstance != null)
-                if (gatewayInstance.tryStart(parser.getParameters(configuration))) {
+                if (gatewayInstance.tryStart(configuration.getParameters())) {
                     return gatewayInstance;
                 } else {
                     gatewayInstance.close();
@@ -118,7 +131,20 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
         }
 
         @Override
-        protected void cleanupService(final G gatewayInstance, final Dictionary<String, ?> identity) throws IOException {
+        protected G createService(final Map<String, Object> identity,
+                                  final Dictionary<String, ?> configuration,
+                                  final RequiredService<?>... dependencies) throws Exception {
+            final CMGatewayParser parser = getParser(dependencies);
+            final String instanceName = parser.getInstanceName(configuration);
+            @SuppressWarnings("unchecked")
+            final GatewayConfiguration newConfig = getNewConfiguration(instanceName, getDependency(RequiredServiceAccessor.class, ConfigurationManager.class, dependencies));
+            if(newConfig == null)
+                throw new IllegalStateException(String.format("Gateway %s cannot be created. Configuration not found.", instanceName));
+            return createService(identity, instanceName, newConfig, dependencies);
+        }
+
+        @Override
+        protected void cleanupService(final G gatewayInstance, final Map<String, ?> identity) throws IOException {
             gatewayInstance.close();
         }
 
@@ -229,7 +255,6 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
      * </p>
      * @param dependencies A collection of dependencies to fill.
      */
-    @SuppressWarnings("UnusedParameters")
     @MethodStub
     protected void addDependencies(final Collection<RequiredService<?>> dependencies){
 

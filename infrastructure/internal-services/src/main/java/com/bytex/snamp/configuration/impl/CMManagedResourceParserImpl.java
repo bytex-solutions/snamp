@@ -9,7 +9,6 @@ import com.bytex.snamp.configuration.internal.CMManagedResourceParser;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
 import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
@@ -71,8 +70,8 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
         return factoryPID.replaceFirst(String.format(CONNECTOR_PID_TEMPLATE, ""), "");
     }
 
-    @Override
-    public String getConnectionString(final Dictionary<String, ?> resourceConfig) {
+
+    private String getConnectionString(final Dictionary<String, ?> resourceConfig) {
         return Utils.getProperty(resourceConfig, CONNECTION_STRING_PROPERTY, String.class, "");
     }
 
@@ -103,13 +102,6 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
         }
     }
 
-    @Override
-    public Map<String, String> getParameters(final Dictionary<String, ?> resourceConfig) {
-        final Map<String, String> result = Maps.newHashMapWithExpectedSize(resourceConfig.size());
-        fillConnectionOptions(resourceConfig, result);
-        return result;
-    }
-
     private <F extends FeatureConfiguration> Map<String, F> getFeatures(final Dictionary<String, ?> resourceConfig,
                                                                                final String featureHolder,
                                                                                final TypeToken<SerializableMap<String, F>> featureType) throws IOException{
@@ -122,18 +114,15 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
                 ImmutableMap.of();
     }
 
-    @Override
-    public Map<String, SerializableAttributeConfiguration> getAttributes(final Dictionary<String, ?> resourceConfig) throws IOException {
+    private Map<String, SerializableAttributeConfiguration> getAttributes(final Dictionary<String, ?> resourceConfig) throws IOException {
         return getFeatures(resourceConfig, ATTRIBUTES_PROPERTY, ATTRS_MAP_TYPE);
     }
 
-    @Override
-    public Map<String, SerializableOperationConfiguration> getOperations(final Dictionary<String, ?> resourceConfig) throws IOException {
+    private Map<String, SerializableOperationConfiguration> getOperations(final Dictionary<String, ?> resourceConfig) throws IOException {
         return getFeatures(resourceConfig, OPERATIONS_PROPERTY, OPS_MAP_TYPE);
     }
 
-    @Override
-    public Map<String, SerializableEventConfiguration> getEvents(final Dictionary<String, ?> resourceConfig) throws IOException {
+    private Map<String, SerializableEventConfiguration> getEvents(final Dictionary<String, ?> resourceConfig) throws IOException {
         return getFeatures(resourceConfig, EVENTS_PROPERTY, EVENTS_MAP_TYPE);
     }
 

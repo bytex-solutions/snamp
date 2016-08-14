@@ -196,16 +196,6 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
     }
 
     @Test
-    public void connectionParamsHashCodeTest(){
-        final String connectionString = "aaa";
-        final ImmutableMap<String, String> params1 = ImmutableMap.of("1", "value", "2", "value2");
-        final ImmutableMap<String, String> params2 = ImmutableMap.of("2", "value2", "1", "value");
-        assertEquals(params1, params2);
-        assertEquals(ManagedResourceActivator.computeConnectionParamsHashCode(connectionString, params1),
-                ManagedResourceActivator.computeConnectionParamsHashCode(connectionString, params2));
-    }
-
-    @Test
     public void smartModeTest() throws IntrospectionException, JMException {
         final TestManagementConnectorBean connector = new TestManagementConnectorBean();
         assertTrue(connector.isSmartModeSupported());

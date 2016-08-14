@@ -10,6 +10,7 @@ import java.io.ObjectOutput;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
+
 import static com.google.common.base.MoreObjects.firstNonNull;
 
 /**
@@ -143,6 +144,11 @@ final class SerializableManagedResourceConfiguration extends AbstractEntityConfi
         @Override
         public boolean equals(final Object other) {
             return other instanceof OperationConfiguration && equals((OperationConfiguration)other);
+        }
+
+        @Override
+        public int hashCode() {
+            return timeout != null ? Objects.hash(timeout, getParameters()) : getParameters().hashCode();
         }
     }
 
@@ -296,6 +302,11 @@ final class SerializableManagedResourceConfiguration extends AbstractEntityConfi
         public boolean equals(final Object other) {
             return other instanceof AttributeConfiguration &&
                     equals((AttributeConfiguration)other);
+        }
+
+        @Override
+        public int hashCode() {
+            return readWriteTimeout != null ? Objects.hash(readWriteTimeout, getParameters()) : getParameters().hashCode();
         }
     }
 
@@ -541,9 +552,6 @@ final class SerializableManagedResourceConfiguration extends AbstractEntityConfi
 
     @Override
     public int hashCode() {
-        return connectionString.hashCode() ^
-                connectionType.hashCode() ^
-                attributes.hashCode() ^
-                events.hashCode();
+        return Objects.hash(connectionString, connectionType, attributes, events, operations);
     }
 }

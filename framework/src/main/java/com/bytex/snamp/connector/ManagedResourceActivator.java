@@ -4,12 +4,12 @@ import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.configuration.ConfigParameters;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.configuration.ConfigurationManager;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.internal.CMManagedResourceParser;
 import com.bytex.snamp.connector.discovery.DiscoveryService;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.management.Maintainable;
 import com.google.common.collect.Maps;
 import com.google.common.collect.ObjectArrays;
@@ -21,10 +21,11 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.cm.ConfigurationAdmin;
 
 import javax.management.openmbean.CompositeData;
-import java.math.BigInteger;
+import java.io.IOException;
 import java.time.Duration;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -317,7 +318,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
     private static final class ManagedResourceConnectorRegistry<TConnector extends ManagedResourceConnector> extends ServiceSubRegistryManager<ManagedResourceConnector, TConnector> {
         private final ManagedResourceConnectorLifecycleController<TConnector> controller;
-        private final Map<String, BigInteger> configurationHashes;
+        private final Map<String, Predicate<? super ManagedResourceConfiguration>> loadedConfigurations;
 
         /**
          * Represents name of the managed resource connector.
@@ -330,7 +331,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
             super(ManagedResourceConnector.class, ObjectArrays.<RequiredService>concat(dependencies, new SimpleDependency<>(ConfigurationManager.class)));
             this.controller = Objects.requireNonNull(controller, "controller is null.");
             this.connectorType = connectorType;
-            this.configurationHashes = Maps.newHashMapWithExpectedSize(10);
+            this.loadedConfigurations = Maps.newHashMapWithExpectedSize(10);
         }
 
         private ManagedResourceConnectorRegistry(final ManagedResourceConnectorLifecycleController<TConnector> controller,
@@ -353,23 +354,43 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         }
 
         private void updateFeatures(final TConnector connector,
-                            final Dictionary<String, ?> configuration,
-                                    final CMManagedResourceParser parser) throws Exception {
+                            final ManagedResourceConfiguration configuration) throws Exception {
             controller.updateConnector(connector,
                     AttributeConfiguration.class,
-                    parser.getAttributes(configuration));
+                    configuration.getFeatures(AttributeConfiguration.class));
             controller.updateConnector(connector,
                     EventConfiguration.class,
-                    parser.getEvents(configuration));
+                    configuration.getFeatures(EventConfiguration.class));
             controller.updateConnector(connector,
                     OperationConfiguration.class,
-                    parser.getOperations(configuration));
+                    configuration.getFeatures(OperationConfiguration.class));
             //expansion should be the last instruction in this method because updating procedure
             //may remove all automatically added attributes
             AbstractManagedResourceConnector.expandAll(connector);
         }
 
+        private static ManagedResourceConfiguration getNewConfiguration(final String resourceName, final ConfigurationManager manager) throws IOException {
+            return manager.transformConfiguration(config -> config.getEntities(ManagedResourceConfiguration.class).get(resourceName));
+        }
 
+        private TConnector update(TConnector connector,
+                                  final String resourceName,
+                                  final ManagedResourceConfiguration newConfig,
+                                  final RequiredService<?>... dependencies) throws Exception{
+            final Predicate<? super ManagedResourceConfiguration> oldConfig = loadedConfigurations.get(resourceName);
+            //we should not update resource connector if connection parameters was not changed
+            if(!oldConfig.test(newConfig)){
+                loadedConfigurations.put(resourceName, newConfig::equals);
+                connector = controller.updateConnector(connector,
+                        resourceName,
+                        newConfig.getConnectionString(),
+                        newConfig.getParameters(),
+                        dependencies);
+            }
+            //but we should always update resource features
+            updateFeatures(connector, newConfig);
+            return connector;
+        }
 
         /**
          * Updates the service with a new configuration.
@@ -381,27 +402,16 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          * @throws org.osgi.service.cm.ConfigurationException Invalid service configuration.
          */
         @Override
-        protected TConnector update(TConnector connector,
+        protected TConnector update(final TConnector connector,
                                     final Dictionary<String, ?> configuration,
                                     final RequiredService<?>... dependencies) throws Exception {
             final CMManagedResourceParser parser = getParser(dependencies);
             final String resourceName = parser.getResourceName(configuration);
-            final BigInteger oldHash = configurationHashes.get(resourceName);
-            final String connectionString = parser.getConnectionString(configuration);
-            final Map<String, String> connectorParameters = parser.getParameters(configuration);
-            //we should not update resource connector if connection parameters was not changed
-            final BigInteger newHash = computeConnectionParamsHashCode(connectionString, connectorParameters);
-            if(!newHash.equals(oldHash)){
-                configurationHashes.put(resourceName, newHash);
-                connector = controller.updateConnector(connector,
-                        resourceName,
-                        connectionString,
-                        connectorParameters,
-                        dependencies);
-            }
-            //but we should always update resource features
-            updateFeatures(connector, configuration, parser);
-            return connector;
+            @SuppressWarnings("unchecked")
+            final ManagedResourceConfiguration newConfig = getNewConfiguration(resourceName, getDependency(RequiredServiceAccessor.class, ConfigurationManager.class, dependencies));
+            if(newConfig == null)
+                throw new IllegalStateException(String.format("Managed resource %s cannot be updated. Configuration not found.", resourceName));
+            return update(connector, resourceName, newConfig, dependencies);
         }
 
         /**
@@ -432,6 +442,20 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
             logger.log(Level.SEVERE, String.format("Unable to dispose connector '%s'", servicePID), e);
         }
 
+        private TConnector createService(final Map<String, Object> identity,
+                                         final String resourceName,
+                                         final ManagedResourceConfiguration configuration,
+                                         final RequiredService<?>... dependencies) throws Exception {
+            loadedConfigurations.put(resourceName, configuration::equals);
+            createIdentity(resourceName,
+                    connectorType,
+                    configuration.getConnectionString(),
+                    identity);
+            final TConnector result = controller.createConnector(resourceName, configuration.getConnectionString(), configuration.getParameters(), dependencies);
+            updateFeatures(result, configuration);
+            return result;
+        }
+
         /**
          * Creates a new service.
          *
@@ -442,33 +466,27 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          * @throws Exception                                  Unable to instantiate a new service.
          * @throws org.osgi.service.cm.ConfigurationException Invalid configuration exception.
          */
-        @SuppressWarnings("unchecked")
         @Override
         protected TConnector createService(final Map<String, Object> identity,
                                            final Dictionary<String, ?> configuration,
                                            final RequiredService<?>... dependencies) throws Exception {
             final CMManagedResourceParser parser = getParser(dependencies);
             final String resourceName = parser.getResourceName(configuration);
-            final Map<String, String> options = parser.getParameters(configuration);
-            final String connectionString = parser.getConnectionString(configuration);
-            configurationHashes.put(resourceName, computeConnectionParamsHashCode(connectionString, options));
-            createIdentity(resourceName,
-                    connectorType,
-                    connectionString,
-                    identity);
-            final TConnector result = controller.createConnector(resourceName, connectionString, options, dependencies);
-            updateFeatures(result, configuration, parser);
-            return result;
+            @SuppressWarnings("unchecked")
+            final ManagedResourceConfiguration newConfig = getNewConfiguration(resourceName, getDependency(RequiredServiceAccessor.class, ConfigurationManager.class, dependencies));
+            if(newConfig == null)
+                throw new IllegalStateException(String.format("Managed resource %s cannot be created. Configuration not found.", resourceName));
+            return createService(identity, resourceName, newConfig, dependencies);
         }
 
         @Override
         protected void cleanupService(final TConnector service,
-                                      final Dictionary<String, ?> identity) throws Exception {
+                                      final Map<String, ?> identity) throws Exception {
             try {
                 service.close();
             }
             finally {
-                configurationHashes.remove(getManagedResourceName(identity));
+                loadedConfigurations.remove(getManagedResourceName(identity));
             }
         }
     }
@@ -714,7 +732,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
     static String getManagedResourceName(final ServiceReference<ManagedResourceConnector> connectorRef) {
         return connectorRef != null ?
-                getManagedResourceName(getProperties(connectorRef)) :
+                Objects.toString(connectorRef.getProperty(MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY), "") :
                 "";
     }
 
@@ -722,7 +740,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
         return Utils.getProperty(getProperties(identity), CONNECTOR_STRING_IDENTITY_PROPERTY, String.class, "");
     }
 
-    private static String getManagedResourceName(final Dictionary<String, ?> identity){
+    private static String getManagedResourceName(final Map<String, ?> identity){
         return Utils.getProperty(identity, MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY, String.class, "");
     }
 
@@ -828,27 +846,5 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
 
     static String createFilter(final String resourceName){
         return String.format("(%s=%s)", MANAGED_RESOURCE_NAME_IDENTITY_PROPERTY, resourceName);
-    }
-
-    private static BigInteger toBigInteger(final String value){
-        return value == null || value.isEmpty() ?
-                BigInteger.ZERO :
-                new BigInteger(value.getBytes(IOUtils.DEFAULT_CHARSET));
-    }
-
-    /**
-     * Computes unique hash code for the specified connection parameters.
-     * @param connectionString The managed resource connection string.
-     * @param connectionParameters The managed resource connection parameters.
-     * @return A unique hash code generated from connection string and connection parameters.
-     */
-    static BigInteger computeConnectionParamsHashCode(final String connectionString,
-                                                      final Map<String, String> connectionParameters) {
-        BigInteger result = toBigInteger(connectionString);
-        for(final Map.Entry<String, String> entry: connectionParameters.entrySet()){
-            result = result.xor(toBigInteger(entry.getKey()));
-            result = result.xor(toBigInteger(entry.getValue()));
-        }
-        return result;
     }
 }

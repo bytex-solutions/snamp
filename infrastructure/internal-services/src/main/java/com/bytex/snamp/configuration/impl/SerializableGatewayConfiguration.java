@@ -6,6 +6,8 @@ import com.bytex.snamp.configuration.GatewayConfiguration;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.Objects;
+
 import static com.google.common.base.MoreObjects.firstNonNull;
 
 /**
@@ -60,7 +62,7 @@ final class SerializableGatewayConfiguration extends AbstractEntityConfiguration
 
     @Override
     public int hashCode() {
-        return getParameters().hashCode() ^ gatewayType.hashCode();
+        return Objects.hash(getParameters(), gatewayType);
     }
 
     /**

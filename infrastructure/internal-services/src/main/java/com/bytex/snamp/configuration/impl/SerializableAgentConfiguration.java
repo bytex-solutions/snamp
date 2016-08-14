@@ -7,6 +7,7 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.Objects;
 
 /**
  * Represents in-memory agent configuration that can be stored as serialized Java object.
@@ -204,6 +205,6 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
 
     @Override
     public int hashCode() {
-        return gateways.hashCode() ^ (resources.hashCode() << 1) ^ (threadPools.hashCode() << 2) ^ (groups.hashCode() << 3);
+        return Objects.hash(gateways, resources, threadPools, groups);
     }
 }

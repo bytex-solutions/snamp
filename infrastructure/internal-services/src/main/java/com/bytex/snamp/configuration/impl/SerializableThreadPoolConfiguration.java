@@ -108,7 +108,7 @@ final class SerializableThreadPoolConfiguration extends AbstractEntityConfigurat
 
     @Override
     public int hashCode() {
-        return getParameters().hashCode() ^ (keepAliveTime.hashCode() << 1) ^ (minPoolSize << 2) ^ (maxPoolSize << 3) ^ (threadPriority << 4) ^ (queueSize << 5);
+        return Objects.hash(getParameters(), keepAliveTime, minPoolSize, maxPoolSize, threadPriority, queueSize);
     }
 
     private boolean equals(final ThreadPoolConfiguration other){
