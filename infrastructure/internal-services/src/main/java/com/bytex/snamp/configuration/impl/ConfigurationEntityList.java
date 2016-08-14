@@ -10,11 +10,11 @@ import java.io.ObjectOutput;
 import java.util.HashMap;
 
 
-abstract class ConfigurationEntityRegistry<E extends EntityConfiguration & Modifiable & Resettable> extends ModifiableMap<String, E> implements EntityMap<E> {
+abstract class ConfigurationEntityList<E extends EntityConfiguration & Modifiable & Resettable> extends ModifiableMap<String, E> implements EntityMap<E> {
     private static final long serialVersionUID = -3859844548619883398L;
     private final HashMap<String, E> entities;
 
-    ConfigurationEntityRegistry() {
+    ConfigurationEntityList() {
         entities = new HashMap<>(10);
     }
 
@@ -70,7 +70,7 @@ abstract class ConfigurationEntityRegistry<E extends EntityConfiguration & Modif
     @Override
     public final void reset() {
         super.reset();
-        values().forEach(ConfigurationEntityRegistry::reset);//BANANA: Bug in JDK, can't replace with Resettable::reset
+        values().forEach(ConfigurationEntityList::reset);//BANANA: Bug in JDK, can't replace with Resettable::reset
     }
 
     @Override

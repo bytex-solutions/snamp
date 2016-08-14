@@ -7,10 +7,10 @@ import com.bytex.snamp.SpecialUse;
  * @since 2.0
  * @version 2.0
  */
-final class ThreadPoolRegistry extends ConfigurationEntityRegistry<SerializableThreadPoolConfiguration> {
+final class ThreadPoolList extends ConfigurationEntityList<SerializableThreadPoolConfiguration> {
 
     @SpecialUse
-    public ThreadPoolRegistry(){
+    public ThreadPoolList(){
 
     }
 

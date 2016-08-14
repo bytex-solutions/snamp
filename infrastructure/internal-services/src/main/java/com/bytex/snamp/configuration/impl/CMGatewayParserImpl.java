@@ -171,7 +171,7 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
     @Override
     void saveChanges(final SerializableAgentConfiguration config,
               final ConfigurationAdmin admin) throws IOException {
-        final ConfigurationEntityRegistry<? extends SerializableGatewayConfiguration> instances = config.getEntities(SerializableGatewayConfiguration.class);
+        final ConfigurationEntityList<? extends SerializableGatewayConfiguration> instances = config.getEntities(SerializableGatewayConfiguration.class);
         //remove all unnecessary gateway
         try {
             forEachGatewayInstance(admin, ALL_GATEWAYS_QUERY, output -> {

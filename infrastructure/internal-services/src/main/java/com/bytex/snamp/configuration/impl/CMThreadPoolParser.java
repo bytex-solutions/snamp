@@ -77,7 +77,7 @@ public final class CMThreadPoolParser extends AbstractConfigurationParser<Serial
     }
 
     private static void saveChanges(final SerializableAgentConfiguration source, final Dictionary<String, Object> dest) throws IOException{
-        final ConfigurationEntityRegistry<? extends SerializableThreadPoolConfiguration> threadPools = source.getEntities(SerializableThreadPoolConfiguration.class);
+        final ConfigurationEntityList<? extends SerializableThreadPoolConfiguration> threadPools = source.getEntities(SerializableThreadPoolConfiguration.class);
         //remove deleted thread pools
         Collections.list(dest.keys()).stream()
                 .filter(destThreadPool -> !threadPools.containsKey(destThreadPool))

@@ -5,11 +5,11 @@ import com.bytex.snamp.SpecialUse;
 /**
  * Represents collection of gateways.
  */
-final class GatewayRegistry extends ConfigurationEntityRegistry<SerializableGatewayConfiguration> {
+final class GatewayList extends ConfigurationEntityList<SerializableGatewayConfiguration> {
     private static final long serialVersionUID = 8142154170844526063L;
 
     @SpecialUse
-    public GatewayRegistry() {
+    public GatewayList() {
     }
 
     @Override

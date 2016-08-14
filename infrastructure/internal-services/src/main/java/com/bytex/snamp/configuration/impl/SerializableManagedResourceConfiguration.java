@@ -21,11 +21,11 @@ import static com.google.common.base.MoreObjects.firstNonNull;
 final class SerializableManagedResourceConfiguration extends AbstractEntityConfiguration implements ManagedResourceConfiguration {
     private static final long serialVersionUID = 5044050385424748355L;
 
-    private static final class OperationRegistry extends ConfigurationEntityRegistry<SerializableOperationConfiguration>{
+    private static final class OperationList extends ConfigurationEntityList<SerializableOperationConfiguration> {
         private static final long serialVersionUID = -6621970441951257198L;
 
         @SpecialUse
-        public OperationRegistry(){
+        public OperationList(){
 
         }
 
@@ -37,11 +37,11 @@ final class SerializableManagedResourceConfiguration extends AbstractEntityConfi
         }
     }
 
-    private static final class AttributeRegistry extends ConfigurationEntityRegistry<SerializableAttributeConfiguration>{
+    private static final class AttributeList extends ConfigurationEntityList<SerializableAttributeConfiguration> {
         private static final long serialVersionUID = -9035924377259475433L;
 
         @SpecialUse
-        public AttributeRegistry() {
+        public AttributeList() {
         }
 
         @Override
@@ -52,11 +52,11 @@ final class SerializableManagedResourceConfiguration extends AbstractEntityConfi
         }
     }
 
-    private static final class EventRegistry extends ConfigurationEntityRegistry<SerializableEventConfiguration>{
+    private static final class EventList extends ConfigurationEntityList<SerializableEventConfiguration> {
         private static final long serialVersionUID = -4425614353529830020L;
 
         @SpecialUse
-        public EventRegistry() {
+        public EventList() {
         }
 
         @Override
@@ -301,11 +301,11 @@ final class SerializableManagedResourceConfiguration extends AbstractEntityConfi
 
     private static final byte FORMAT_VERSION = 3;
     private String connectionString;
-    private final ConfigurationEntityRegistry<SerializableAttributeConfiguration> attributes;
+    private final ConfigurationEntityList<SerializableAttributeConfiguration> attributes;
     private String connectionType;
     private String resourceGroup;
-    private final ConfigurationEntityRegistry<SerializableEventConfiguration> events;
-    private final ConfigurationEntityRegistry<SerializableOperationConfiguration> operations;
+    private final ConfigurationEntityList<SerializableEventConfiguration> events;
+    private final ConfigurationEntityList<SerializableOperationConfiguration> operations;
 
     /**
      * Initializes a new empty configuration of the management information source.
@@ -313,9 +313,9 @@ final class SerializableManagedResourceConfiguration extends AbstractEntityConfi
     @SpecialUse
     public SerializableManagedResourceConfiguration(){
         connectionString = connectionType = resourceGroup = "";
-        this.attributes = new AttributeRegistry();
-        this.events = new EventRegistry();
-        this.operations = new OperationRegistry();
+        this.attributes = new AttributeList();
+        this.events = new EventList();
+        this.operations = new OperationList();
     }
 
     /**

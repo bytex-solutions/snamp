@@ -114,6 +114,10 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         output.setThreadPriority(input.getThreadPriority());
     }
 
+    public static void copy(final ManagedResourceGroupConfiguration input, final ManagedResourceGroupConfiguration output){
+        output.setParameters(input.getParameters());
+    }
+
     public static void copy(final ManagedResourceConfiguration input, final ManagedResourceConfiguration output){
         output.setConnectionString(input.getConnectionString());
         output.setType(input.getType());
@@ -175,5 +179,9 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         copy(input.getEntities(ThreadPoolConfiguration.class),
                 output.getEntities(ThreadPoolConfiguration.class),
                 (ConfigurationEntityCopier<ThreadPoolConfiguration>) AbstractAgentConfiguration::copy);
+        //import groups
+        copy(input.getEntities(ManagedResourceGroupConfiguration.class),
+                output.getEntities(ManagedResourceGroupConfiguration.class),
+                (ConfigurationEntityCopier<ManagedResourceGroupConfiguration>)AbstractAgentConfiguration::copy);
     }
 }
