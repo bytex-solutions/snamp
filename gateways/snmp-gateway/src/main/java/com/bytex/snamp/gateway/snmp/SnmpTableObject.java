@@ -1,6 +1,7 @@
 package com.bytex.snamp.gateway.snmp;
 
 import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.MutableInteger;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.gateway.modeling.AttributeAccessor;
 import com.bytex.snamp.jmx.TabularDataUtils;
@@ -30,8 +31,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 
-import static com.bytex.snamp.gateway.snmp.SnmpHelpers.getAccessRestrictions;
 import static com.bytex.snamp.gateway.snmp.SnmpGatewayDescriptionProvider.parseOID;
+import static com.bytex.snamp.gateway.snmp.SnmpHelpers.getAccessRestrictions;
 import static com.bytex.snamp.jmx.DescriptorUtils.getField;
 import static com.bytex.snamp.jmx.DescriptorUtils.hasField;
 

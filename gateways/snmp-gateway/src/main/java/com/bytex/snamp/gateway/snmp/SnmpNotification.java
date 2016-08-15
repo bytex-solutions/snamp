@@ -1,7 +1,8 @@
 package com.bytex.snamp.gateway.snmp;
 
-import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.Acceptor;
+import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.MutableInteger;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.connector.notifications.Severity;
 import com.bytex.snamp.jmx.TabularDataUtils;

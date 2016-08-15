@@ -29,7 +29,7 @@ final class NagiosThreshold implements Predicate<Number> {
     public NagiosThreshold(final String threshold) throws IllegalArgumentException {
         final Matcher result = THRESHOLD_FORMAT.matcher(this.thresholdValue = threshold);
         if (result.matches()) {
-            final boolean inverse = !isNullOrEmpty(result.group("inverse"));
+            final boolean inverse = !isNullOrEmpty(result.group("invert"));
             final String lowerBound = result.group("lower");
             final boolean isNegativeInfinity = Objects.equals("~", lowerBound);
             final String upperBound = result.group("upper");

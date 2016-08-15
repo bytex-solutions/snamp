@@ -1,9 +1,9 @@
 package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.Acceptor;
-import com.bytex.snamp.Box;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.configuration.internal.CMGatewayParser;
+import com.bytex.snamp.MutableBoolean;
 import com.bytex.snamp.internal.Utils;
 import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
@@ -145,10 +145,10 @@ final class CMGatewayParserImpl extends AbstractConfigurationParser<Serializable
                              final ConfigurationAdmin admin) throws GatewayConfigurationException {
         try {
             //find existing configuration of gateway
-            final Box<Boolean> updated = new Box<>(Boolean.FALSE);
+            final MutableBoolean updated = new MutableBoolean();
             forEachGatewayInstance(admin, String.format("(%s=%s)", GATEWAY_INSTANCE_NAME_PROPERTY, gatewayInstanceName), config -> {
                 serialize(gatewayInstanceName, gatewayInstance, config);
-                updated.set(Boolean.TRUE);
+                updated.setTrue();
             });
             //no existing configuration, creates a new configuration
             if (!updated.get())

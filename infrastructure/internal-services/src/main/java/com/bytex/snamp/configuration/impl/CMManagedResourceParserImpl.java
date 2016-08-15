@@ -2,10 +2,10 @@ package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.Box;
 import com.bytex.snamp.SerializableMap;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.internal.CMManagedResourceParser;
+import com.bytex.snamp.MutableBoolean;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
 import com.google.common.collect.ImmutableMap;
@@ -219,14 +219,14 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
                              final SerializableManagedResourceConfiguration resource,
                              final ConfigurationAdmin admin) throws ManagedResourceConfigurationException {
         try {
-            final Box<Boolean> updated = new Box<>(Boolean.FALSE);
+            final MutableBoolean updated = new MutableBoolean();
             //find existing configuration of resources
             forEachResource(admin, String.format("(%s=%s)", RESOURCE_NAME_PROPERTY, resourceName), config -> {
-                    serialize(resourceName, resource, config);
-                    updated.set(Boolean.TRUE);
+                serialize(resourceName, resource, config);
+                updated.setTrue();
             });
             //no existing configuration, creates a new configuration
-            if(!updated.get())
+            if (!updated.get())
                 serialize(resourceName, resource, admin.createFactoryConfiguration(getFactoryPersistentID(resource.getType()), null));
         } catch (final IOException | InvalidSyntaxException e) {
             throw new ManagedResourceConfigurationException(resourceName, e);
