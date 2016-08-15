@@ -19,11 +19,9 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
     private final static byte FORMAT_VERSION = 3;
     private static final long serialVersionUID = 8461144056430141155L;
 
-
-    private final ConfigurationEntityList<SerializableManagedResourceConfiguration> resources;
     private final ConfigurationEntityList<SerializableGatewayConfiguration> gateways;
     private final ConfigurationEntityList<SerializableThreadPoolConfiguration> threadPools;
-    private final ConfigurationEntityList<SerializableManagedResourceGroupConfiguration> groups;
+    private final ResourcesToGroupsBinding resourceWithGroups;
 
     /**
      * Initializes a new empty agent configuration.
@@ -31,9 +29,8 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
     @SpecialUse
     public SerializableAgentConfiguration(){
         gateways = new GatewayList();
-        resources = new ManagedResourceList();
         threadPools = new ThreadPoolList();
-        groups = new ResourceGroupList();
+        resourceWithGroups = new ResourcesToGroupsBinding();
     }
 
     /**
@@ -50,11 +47,10 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
         return clonedConfig;
     }
 
-    private void reset(){
+    private void reset() {
         gateways.reset();
-        resources.reset();
         threadPools.reset();
-        groups.reset();
+        resourceWithGroups.reset();
     }
 
     /**
@@ -76,12 +72,10 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
         out.writeByte(FORMAT_VERSION);
         //write gateway
         gateways.writeExternal(out);
-        //write connector
-        resources.writeExternal(out);
+        //write connectors and groups
+        resourceWithGroups.writeExternal(out);
         //write thread pools
         threadPools.writeExternal(out);
-        //write groups
-        groups.writeExternal(out);
     }
 
     /**
@@ -104,12 +98,10 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
             throw new IOException(String.format("Unknown version of configuration format. Expected %s but actual %s", FORMAT_VERSION, version));
         //read gateway
         gateways.readExternal(in);
-        //read connector
-        resources.readExternal(in);
+        //read connectors and groups
+        resourceWithGroups.readExternal(in);
         //read thread pools
         threadPools.readExternal(in);
-        //read groups
-        groups.readExternal(in);
     }
 
     /**
@@ -117,7 +109,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
      * @return {@literal true}, if this configuration is empty; otherwise, {@literal false}.
      */
     boolean isEmpty(){
-        return gateways.isEmpty() && resources.isEmpty() && threadPools.isEmpty() && groups.isEmpty();
+        return gateways.isEmpty() && resourceWithGroups.isEmpty() && threadPools.isEmpty();
     }
 
     @SuppressWarnings("unchecked")
@@ -125,20 +117,20 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
     public <E extends EntityConfiguration> ConfigurationEntityList<? extends E> getEntities(final Class<E> entityType) {
         final ConfigurationEntityList result;
         if (entityType.isAssignableFrom(SerializableManagedResourceConfiguration.class))
-            result = resources;
+            result = resourceWithGroups.getManagedResources();
         else if (entityType.isAssignableFrom(SerializableGatewayConfiguration.class))
             result = gateways;
         else if(entityType.isAssignableFrom(SerializableThreadPoolConfiguration.class))
             result = threadPools;
         else if(entityType.isAssignableFrom(SerializableManagedResourceGroupConfiguration.class))
-            result = groups;
+            result = resourceWithGroups.getResourceGroups();
         else
             result = null;
         return result;
     }
 
     ConfigurationEntityList<SerializableManagedResourceGroupConfiguration> getManagedResourceGroups(){
-        return groups;
+        return resourceWithGroups.getResourceGroups();
     }
 
     ConfigurationEntityList<SerializableThreadPoolConfiguration> getThreadPools(){
@@ -151,7 +143,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
 
 
     ConfigurationEntityList<SerializableManagedResourceConfiguration> getManagedResources() {
-        return resources;
+        return resourceWithGroups.getManagedResources();
     }
 
     /**
@@ -193,9 +185,9 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
 
     private boolean equals(final AgentConfiguration other) {
         return gateways.equals(other.getEntities(GatewayConfiguration.class)) &&
-                resources.equals(other.getEntities(ManagedResourceConfiguration.class)) &&
+                getManagedResources().equals(other.getEntities(ManagedResourceConfiguration.class)) &&
                 threadPools.equals(other.getEntities(ThreadPoolConfiguration.class)) &&
-                groups.equals(other.getEntities(ManagedResourceGroupConfiguration.class));
+                getManagedResourceGroups().equals(other.getEntities(ManagedResourceGroupConfiguration.class));
     }
 
     @Override
@@ -205,6 +197,6 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
 
     @Override
     public int hashCode() {
-        return Objects.hash(gateways, resources, threadPools, groups);
+        return Objects.hash(gateways, resourceWithGroups, threadPools);
     }
 }

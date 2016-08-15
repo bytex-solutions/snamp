@@ -1,6 +1,7 @@
 package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.WeakEventListenerList;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 
@@ -317,6 +318,7 @@ final class SerializableManagedResourceConfiguration extends AbstractEntityConfi
     private String resourceGroup;
     private final ConfigurationEntityList<SerializableEventConfiguration> events;
     private final ConfigurationEntityList<SerializableOperationConfiguration> operations;
+    private transient final WeakEventListenerList<ResourceGroupChangedEventListener, ResourceGroupChangedEvent> resourceGroupChangedListeners;
 
     /**
      * Initializes a new empty configuration of the management information source.
@@ -327,6 +329,15 @@ final class SerializableManagedResourceConfiguration extends AbstractEntityConfi
         this.attributes = new AttributeList();
         this.events = new EventList();
         this.operations = new OperationList();
+        resourceGroupChangedListeners = WeakEventListenerList.create(SerializableManagedResourceConfiguration::groupNameChanged);
+    }
+
+    private static void groupNameChanged(final ResourceGroupChangedEventListener listener, final ResourceGroupChangedEvent event){
+        listener.groupNameChanged(event);
+    }
+
+    private void groupNameChanged(final String oldGroupName){
+        resourceGroupChangedListeners.fire(new ResourceGroupChangedEvent(this, oldGroupName));
     }
 
     /**
@@ -457,6 +468,10 @@ final class SerializableManagedResourceConfiguration extends AbstractEntityConfi
         connectionType = firstNonNull(value, "");
     }
 
+    void addResourceGroupChangedEventListener(final ResourceGroupChangedEventListener listener){
+        resourceGroupChangedListeners.add(listener);
+    }
+
     /**
      * Sets resource group for this resource.
      *
@@ -465,7 +480,10 @@ final class SerializableManagedResourceConfiguration extends AbstractEntityConfi
     @Override
     public void setGroupName(final String value) {
         markAsModified();
+        final String oldGroupName = resourceGroup;
         resourceGroup = firstNonNull(value, "");
+        if (!oldGroupName.equals(resourceGroup))
+            groupNameChanged(oldGroupName);
     }
 
     /**

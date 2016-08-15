@@ -28,9 +28,6 @@ public final class CMThreadPoolParser extends AbstractConfigurationParser<Serial
         }
     }
 
-    CMThreadPoolParser(){
-    }
-
     public static SerializableThreadPoolConfiguration deserialize(final String poolName,
                                                                   final Dictionary<String, ?> properties,
                                                                   final ClassLoader caller) throws IOException {

@@ -34,6 +34,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     @Aggregation(cached = true)
     private final CMGatewayParserImpl gatewayInstanceParser;
     private final CMThreadPoolParser threadPoolParser;
+    private final CMManagedResourceGroupParser groupParser;
 
     /**
      * Initializes a new configuration manager.
@@ -46,6 +47,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         resourceParser = new CMManagedResourceParserImpl();
         gatewayInstanceParser = new CMGatewayParserImpl();
         threadPoolParser = new CMThreadPoolParser();
+        groupParser = new CMManagedResourceGroupParser();
     }
 
     private void save(final SerializableAgentConfiguration config) throws IOException {
@@ -53,10 +55,12 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
             resourceParser.removeAll(admin);
             gatewayInstanceParser.removeAll(admin);
             threadPoolParser.removeAll(admin);
+            groupParser.removeAll(admin);
         } else {
             gatewayInstanceParser.saveChanges(config, admin);
             resourceParser.saveChanges(config, admin);
             threadPoolParser.saveChanges(config, admin);
+            groupParser.saveChanges(config, admin);
         }
     }
 
@@ -73,6 +77,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
             gatewayInstanceParser.fill(admin, config.getGatewayInstances());
             resourceParser.fill(admin, config.getManagedResources());
             threadPoolParser.fill(admin, config.getThreadPools());
+            groupParser.fill(admin, config.getManagedResourceGroups());
             if(handler.process(config))
                 save(config);
         } finally {
