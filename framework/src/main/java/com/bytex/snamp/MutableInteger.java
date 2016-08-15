@@ -13,7 +13,7 @@ import java.util.function.IntSupplier;
  * @since 2.0
  */
 @ThreadSafe(false)
-public class MutableInteger extends Number implements IntSupplier, IntConsumer, Comparable<IntSupplier> {
+public final class MutableInteger extends Number implements IntSupplier, IntConsumer, Comparable<IntSupplier> {
     private static final long serialVersionUID = 6827831423137642850L;
     private int value;
 
