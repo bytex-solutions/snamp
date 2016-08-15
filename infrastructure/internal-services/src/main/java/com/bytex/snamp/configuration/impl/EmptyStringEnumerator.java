@@ -7,18 +7,19 @@ import java.util.Enumeration;
 import java.util.NoSuchElementException;
 
 /**
+ * Represents empty enumerator over set of strings.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-public final class EmptyStringEnumerator implements Enumeration<String> {
+final class EmptyStringEnumerator implements Enumeration<String> {
     private static final LazyValue<? extends Enumeration<String>> INSTANCE = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(EmptyStringEnumerator::new);
 
     private EmptyStringEnumerator(){
 
     }
 
-    public static Enumeration<String> getInstance(){
+    static Enumeration<String> getInstance(){
         return INSTANCE.get();
     }
 

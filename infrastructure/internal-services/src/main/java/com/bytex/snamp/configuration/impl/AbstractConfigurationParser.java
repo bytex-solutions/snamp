@@ -1,10 +1,16 @@
 package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.configuration.EntityConfiguration;
+import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.io.IOUtils;
+import org.osgi.framework.Constants;
 import org.osgi.service.cm.ConfigurationAdmin;
 
 import java.io.IOException;
+import java.io.Serializable;
+import java.util.Dictionary;
 import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * Abstract configuration parser.
@@ -12,10 +18,22 @@ import java.util.Map;
  * @version 2.0
  * @since 2.0
  */
-abstract class AbstractConfigurationParser<E extends EntityConfiguration> {
+abstract class AbstractConfigurationParser<E extends EntityConfiguration> implements Constants {
     abstract void removeAll(final ConfigurationAdmin admin) throws IOException;
 
     abstract void fill(final ConfigurationAdmin source, final Map<String, E> dest) throws IOException;
 
     abstract void saveChanges(final SerializableAgentConfiguration source, final ConfigurationAdmin dest) throws IOException;
+
+    static <E extends EntityConfiguration & Serializable> E deserialize(final String itemName,
+                                                                        final Class<E> entityType,
+                                                                        final Dictionary<String, ?> properties,
+                                                                        final ClassLoader caller) throws IOException {
+        final byte[] serializedConfig = Utils.getProperty(properties, itemName, byte[].class, (Supplier<byte[]>) () -> new byte[0]);
+        return IOUtils.deserialize(serializedConfig, entityType, caller);
+    }
+
+    static <E extends EntityConfiguration & Serializable> byte[] serialize(final E input) throws IOException {
+        return IOUtils.serialize(input);
+    }
 }
