@@ -50,6 +50,17 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         groupParser = new CMManagedResourceGroupParser();
     }
 
+    private void mergeResourcesWithGroups(final ConfigurationEntityList<SerializableManagedResourceConfiguration> resources,
+                                          final ConfigurationEntityList<SerializableManagedResourceGroupConfiguration> groups) {
+        //migrate properties from modified groups into resources
+        groups.modifiedEntries((groupName, groupConfig) -> {
+            resources.values().parallelStream()                 //attempt to increase performance with many registered resources
+                    .filter(resource -> resource.getGroupName().equals(groupName))
+                    .forEach(resource -> resource.getParameters().putAll(groupConfig.getParameters())); //overwrite all properties in resource but hold user-defined properties
+            return true;
+        });
+    }
+
     private void save(final SerializableAgentConfiguration config) throws IOException {
         if (config.isEmpty()) {
             resourceParser.removeAll(admin);
@@ -57,6 +68,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
             threadPoolParser.removeAll(admin);
             groupParser.removeAll(admin);
         } else {
+            mergeResourcesWithGroups(config.getManagedResources(), config.getManagedResourceGroups());
             gatewayInstanceParser.saveChanges(config, admin);
             resourceParser.saveChanges(config, admin);
             threadPoolParser.saveChanges(config, admin);

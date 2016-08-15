@@ -21,7 +21,8 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
 
     private final ConfigurationEntityList<SerializableGatewayConfiguration> gateways;
     private final ConfigurationEntityList<SerializableThreadPoolConfiguration> threadPools;
-    private final ResourcesToGroupsBinding resourceWithGroups;
+    private final ConfigurationEntityList<SerializableManagedResourceGroupConfiguration> groups;
+    private final ConfigurationEntityList<SerializableManagedResourceConfiguration> resources;
 
     /**
      * Initializes a new empty agent configuration.
@@ -30,7 +31,8 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
     public SerializableAgentConfiguration(){
         gateways = new GatewayList();
         threadPools = new ThreadPoolList();
-        resourceWithGroups = new ResourcesToGroupsBinding();
+        groups = new ResourceGroupList();
+        resources = new ManagedResourceList();
     }
 
     /**
@@ -50,7 +52,8 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
     private void reset() {
         gateways.reset();
         threadPools.reset();
-        resourceWithGroups.reset();
+        groups.reset();
+        resources.reset();
     }
 
     /**
@@ -73,7 +76,8 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
         //write gateway
         gateways.writeExternal(out);
         //write connectors and groups
-        resourceWithGroups.writeExternal(out);
+        resources.writeExternal(out);
+        groups.writeExternal(out);
         //write thread pools
         threadPools.writeExternal(out);
     }
@@ -99,7 +103,8 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
         //read gateway
         gateways.readExternal(in);
         //read connectors and groups
-        resourceWithGroups.readExternal(in);
+        resources.readExternal(in);
+        groups.readExternal(in);
         //read thread pools
         threadPools.readExternal(in);
     }
@@ -109,7 +114,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
      * @return {@literal true}, if this configuration is empty; otherwise, {@literal false}.
      */
     boolean isEmpty(){
-        return gateways.isEmpty() && resourceWithGroups.isEmpty() && threadPools.isEmpty();
+        return gateways.isEmpty() && resources.isEmpty() && groups.isEmpty() && threadPools.isEmpty();
     }
 
     @SuppressWarnings("unchecked")
@@ -117,20 +122,20 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
     public <E extends EntityConfiguration> ConfigurationEntityList<? extends E> getEntities(final Class<E> entityType) {
         final ConfigurationEntityList result;
         if (entityType.isAssignableFrom(SerializableManagedResourceConfiguration.class))
-            result = resourceWithGroups.getManagedResources();
+            result = resources;
         else if (entityType.isAssignableFrom(SerializableGatewayConfiguration.class))
             result = gateways;
         else if(entityType.isAssignableFrom(SerializableThreadPoolConfiguration.class))
             result = threadPools;
         else if(entityType.isAssignableFrom(SerializableManagedResourceGroupConfiguration.class))
-            result = resourceWithGroups.getResourceGroups();
+            result = groups;
         else
             result = null;
         return result;
     }
 
     ConfigurationEntityList<SerializableManagedResourceGroupConfiguration> getManagedResourceGroups(){
-        return resourceWithGroups.getResourceGroups();
+        return groups;
     }
 
     ConfigurationEntityList<SerializableThreadPoolConfiguration> getThreadPools(){
@@ -143,7 +148,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
 
 
     ConfigurationEntityList<SerializableManagedResourceConfiguration> getManagedResources() {
-        return resourceWithGroups.getManagedResources();
+        return resources;
     }
 
     /**
@@ -166,28 +171,31 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
      * @return A new instance of entity configuration; or {@literal null}, if entity is not supported.
      */
     public static  <E extends EntityConfiguration> E newEntityConfiguration(final Class<E> entityType) {
+        final EntityConfiguration result;
         if (entityType.isAssignableFrom(SerializableManagedResourceConfiguration.class))
-            return entityType.cast(new SerializableManagedResourceConfiguration());
+            result = new SerializableManagedResourceConfiguration();
         else if (entityType.isAssignableFrom(SerializableGatewayConfiguration.class))
-            return entityType.cast(new SerializableGatewayConfiguration());
+            result = new SerializableGatewayConfiguration();
         else if (entityType.isAssignableFrom(SerializableManagedResourceConfiguration.SerializableAttributeConfiguration.class))
-            return entityType.cast(new SerializableManagedResourceConfiguration.SerializableAttributeConfiguration());
+            result = new SerializableManagedResourceConfiguration.SerializableAttributeConfiguration();
         else if (entityType.isAssignableFrom(SerializableManagedResourceConfiguration.SerializableEventConfiguration.class))
-            return entityType.cast(new SerializableManagedResourceConfiguration.SerializableEventConfiguration());
+            result = new SerializableManagedResourceConfiguration.SerializableEventConfiguration();
         else if (entityType.isAssignableFrom(SerializableManagedResourceConfiguration.SerializableOperationConfiguration.class))
-            return entityType.cast(new SerializableManagedResourceConfiguration.SerializableOperationConfiguration());
+            result = new SerializableManagedResourceConfiguration.SerializableOperationConfiguration();
         else if (entityType.isAssignableFrom(SerializableThreadPoolConfiguration.class))
-            return entityType.cast(new SerializableThreadPoolConfiguration());
-        else if(entityType.isAssignableFrom(SerializableManagedResourceGroupConfiguration.class))
-            return entityType.cast(new SerializableManagedResourceGroupConfiguration());
-        else return null;
+            result = new SerializableThreadPoolConfiguration();
+        else if (entityType.isAssignableFrom(SerializableManagedResourceGroupConfiguration.class))
+            result = new SerializableManagedResourceGroupConfiguration();
+        else
+            return null;
+        return entityType.cast(result);
     }
 
     private boolean equals(final AgentConfiguration other) {
         return gateways.equals(other.getEntities(GatewayConfiguration.class)) &&
-                getManagedResources().equals(other.getEntities(ManagedResourceConfiguration.class)) &&
+                resources.equals(other.getEntities(ManagedResourceConfiguration.class)) &&
                 threadPools.equals(other.getEntities(ThreadPoolConfiguration.class)) &&
-                getManagedResourceGroups().equals(other.getEntities(ManagedResourceGroupConfiguration.class));
+                groups.equals(other.getEntities(ManagedResourceGroupConfiguration.class));
     }
 
     @Override
@@ -197,6 +205,6 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
 
     @Override
     public int hashCode() {
-        return Objects.hash(gateways, resourceWithGroups, threadPools);
+        return Objects.hash(gateways, groups, resources, threadPools);
     }
 }

@@ -23,25 +23,25 @@ abstract class ModifiableMap<K, V> extends ForwardingMap<K, V> implements Extern
     @Override
     public final V remove(final Object key) {
         modified = containsKey(key);
-        return super.remove(key);
+        return delegate().remove(key);
     }
 
     @Override
     public final void clear() {
         modified = true;
-        super.clear();
+        delegate().clear();
     }
 
     @Override
     public final V put(final K key, final V value) {
         modified = true;
-        return super.put(key, value);
+        return delegate().put(key, value);
     }
 
     @Override
     public final void putAll(final Map<? extends K, ? extends V> map) {
         modified = true;
-        super.putAll(map);
+        delegate().putAll(map);
     }
 
     @Override
