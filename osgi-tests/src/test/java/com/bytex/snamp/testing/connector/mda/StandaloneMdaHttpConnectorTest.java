@@ -1,8 +1,7 @@
 package com.bytex.snamp.testing.connector.mda;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.configuration.EntityMap;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.bytex.snamp.jmx.json.JsonUtils;
@@ -21,9 +20,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.time.Duration;
 import java.util.Date;
-
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
 
 /**
  * @author Roman Sakno

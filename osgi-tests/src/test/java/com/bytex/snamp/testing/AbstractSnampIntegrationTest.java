@@ -1,6 +1,7 @@
 package com.bytex.snamp.testing;
 
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.configuration.FeatureConfiguration;
 import com.bytex.snamp.gateway.*;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
@@ -21,7 +22,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.FeatureConfiguration;
 import static com.bytex.snamp.configuration.ConfigurationManager.ConfigurationProcessor;
 
 /**

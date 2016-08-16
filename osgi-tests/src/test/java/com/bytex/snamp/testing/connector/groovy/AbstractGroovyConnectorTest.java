@@ -1,7 +1,7 @@
 package com.bytex.snamp.testing.connector.groovy;
 
-import com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
+import com.bytex.snamp.configuration.AttributeConfiguration;
+import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.AbstractResourceConnectorTest;

@@ -3,10 +3,9 @@ package com.bytex.snamp.management.shell;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.OperationConfiguration;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
-
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.OperationConfiguration;
 
 /**
  * Deletes operation from managed resource.

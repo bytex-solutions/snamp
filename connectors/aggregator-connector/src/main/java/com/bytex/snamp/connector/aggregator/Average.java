@@ -1,10 +1,9 @@
 package com.bytex.snamp.connector.aggregator;
 
+import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 
 import javax.management.openmbean.SimpleType;
-
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 
 /**
  * @author Roman Sakno

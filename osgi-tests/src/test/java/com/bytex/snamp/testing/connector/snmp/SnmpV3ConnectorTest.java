@@ -2,6 +2,8 @@ package com.bytex.snamp.testing.connector.snmp;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.concurrent.Repeater;
+import com.bytex.snamp.configuration.AttributeConfiguration;
+import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.google.common.reflect.TypeToken;
@@ -33,8 +35,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import com.bytex.snamp.configuration.EntityMap;
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
 
 /**
  * Represents SNMPv3 connector test.

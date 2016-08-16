@@ -52,7 +52,7 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
      * @param source The attribute to copy.
      * @param dest The attribute to fill.
      */
-    public static void copy(final ManagedResourceConfiguration.AttributeConfiguration source, final ManagedResourceConfiguration.AttributeConfiguration dest){
+    public static void copy(final AttributeConfiguration source, final AttributeConfiguration dest){
         dest.setReadWriteTimeout(source.getReadWriteTimeout());
         dest.setParameters(source.getParameters());
     }
@@ -62,44 +62,44 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
      * @param source The event to copy.
      * @param dest The event to fill.
      */
-    public static void copy(final ManagedResourceConfiguration.EventConfiguration source, final ManagedResourceConfiguration.EventConfiguration dest){
+    public static void copy(final EventConfiguration source, final EventConfiguration dest){
         dest.setParameters(source.getParameters());
     }
 
-    public static void copy(final ManagedResourceConfiguration.OperationConfiguration source, final ManagedResourceConfiguration.OperationConfiguration dest){
+    public static void copy(final OperationConfiguration source, final OperationConfiguration dest){
         dest.setInvocationTimeout(source.getInvocationTimeout());
         dest.setParameters(source.getParameters());
     }
 
-    private static void copyAttributes(final Map<String, ? extends ManagedResourceConfiguration.AttributeConfiguration> input,
-                                       final EntityMap<? extends ManagedResourceConfiguration.AttributeConfiguration> output){
+    private static void copyAttributes(final Map<String, ? extends AttributeConfiguration> input,
+                                       final EntityMap<? extends AttributeConfiguration> output){
         if(input != null && output != null) {
             output.clear();
-            for (final Map.Entry<String, ? extends ManagedResourceConfiguration.AttributeConfiguration> entry : input.entrySet()) {
-                final ManagedResourceConfiguration.AttributeConfiguration inputAttr = entry.getValue();
+            for (final Map.Entry<String, ? extends AttributeConfiguration> entry : input.entrySet()) {
+                final AttributeConfiguration inputAttr = entry.getValue();
                 //factory registers a new attribute in the output collection
                 output.consumeOrAdd(inputAttr, entry.getKey(), AbstractAgentConfiguration::copy);
             }
         }
     }
 
-    private static void copyEvents(final Map<String, ? extends ManagedResourceConfiguration.EventConfiguration> input,
-                                   final EntityMap<? extends ManagedResourceConfiguration.EventConfiguration> output) {
+    private static void copyEvents(final Map<String, ? extends EventConfiguration> input,
+                                   final EntityMap<? extends EventConfiguration> output) {
         if (input != null && output != null) {
             output.clear();
-            for (final Map.Entry<String, ? extends ManagedResourceConfiguration.EventConfiguration> entry : input.entrySet()) {
-                final ManagedResourceConfiguration.EventConfiguration inputEv = entry.getValue();
+            for (final Map.Entry<String, ? extends EventConfiguration> entry : input.entrySet()) {
+                final EventConfiguration inputEv = entry.getValue();
                 output.consumeOrAdd(inputEv, entry.getKey(), AbstractAgentConfiguration::copy);
             }
         }
     }
 
-    private static void copyOperations(final Map<String, ? extends ManagedResourceConfiguration.OperationConfiguration> input,
-                                   final EntityMap<? extends ManagedResourceConfiguration.OperationConfiguration> output) {
+    private static void copyOperations(final Map<String, ? extends OperationConfiguration> input,
+                                   final EntityMap<? extends OperationConfiguration> output) {
         if (input != null && output != null) {
             output.clear();
-            for (final Map.Entry<String, ? extends ManagedResourceConfiguration.OperationConfiguration> entry : input.entrySet()) {
-                final ManagedResourceConfiguration.OperationConfiguration inputOp = entry.getValue();
+            for (final Map.Entry<String, ? extends OperationConfiguration> entry : input.entrySet()) {
+                final OperationConfiguration inputOp = entry.getValue();
                 output.consumeOrAdd(inputOp, entry.getKey(), AbstractAgentConfiguration::copy);
             }
         }
@@ -124,14 +124,14 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         //import additional elements
         output.setParameters(input.getParameters());
         //import managementAttributes
-        copyAttributes(input.getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class),
-                output.getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class)
+        copyAttributes(input.getFeatures(AttributeConfiguration.class),
+                output.getFeatures(AttributeConfiguration.class)
         );
-        copyEvents(input.getFeatures(ManagedResourceConfiguration.EventConfiguration.class),
-                output.getFeatures(ManagedResourceConfiguration.EventConfiguration.class)
+        copyEvents(input.getFeatures(EventConfiguration.class),
+                output.getFeatures(EventConfiguration.class)
         );
-        copyOperations(input.getFeatures(ManagedResourceConfiguration.OperationConfiguration.class),
-                output.getFeatures(ManagedResourceConfiguration.OperationConfiguration.class)
+        copyOperations(input.getFeatures(OperationConfiguration.class),
+                output.getFeatures(OperationConfiguration.class)
         );
     }
 

@@ -1,12 +1,12 @@
 package com.bytex.snamp.gateway.nagios;
 
+import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 
 import javax.management.Descriptor;
 import java.util.Objects;
 
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.jmx.DescriptorUtils.*;
 
 /**

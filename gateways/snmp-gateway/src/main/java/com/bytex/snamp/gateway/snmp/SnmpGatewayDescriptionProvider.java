@@ -1,12 +1,10 @@
 package com.bytex.snamp.gateway.snmp;
 
 
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.gateway.GatewayDescriptionProvider;
 import com.bytex.snamp.concurrent.LazyValueFactory;
 import com.bytex.snamp.concurrent.LazyValue;
-import com.bytex.snamp.configuration.GatewayConfiguration;
-import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
-import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import org.snmp4j.SNMP4JSettings;
 import org.snmp4j.mp.MPv3;
 import org.snmp4j.smi.OID;
@@ -18,8 +16,6 @@ import java.text.ParseException;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
 import static com.bytex.snamp.configuration.GatewayConfiguration.THREAD_POOL_KEY;
 import static com.bytex.snamp.jmx.DescriptorUtils.getField;
 import static com.bytex.snamp.jmx.DescriptorUtils.hasField;

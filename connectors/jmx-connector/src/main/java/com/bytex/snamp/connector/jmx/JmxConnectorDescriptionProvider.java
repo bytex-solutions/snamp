@@ -2,9 +2,7 @@ package com.bytex.snamp.connector.jmx;
 
 import com.bytex.snamp.concurrent.LazyValue;
 import com.bytex.snamp.concurrent.LazyValueFactory;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
-import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
-import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceDescriptionProvider;
 import com.bytex.snamp.connector.SelectableConnectorParameterDescriptor;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
@@ -26,7 +24,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.*;
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.FeatureConfiguration.AUTOMATICALLY_ADDED_KEY;
+import static com.bytex.snamp.configuration.FeatureConfiguration.AUTOMATICALLY_ADDED_KEY;
 
 /**
  * Represents JMX connector configuration descriptor.

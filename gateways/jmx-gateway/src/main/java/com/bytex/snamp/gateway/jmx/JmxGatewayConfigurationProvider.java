@@ -1,9 +1,6 @@
 package com.bytex.snamp.gateway.jmx;
 
-import com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
-import com.bytex.snamp.configuration.GatewayConfiguration;
-import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
-import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
+import com.bytex.snamp.configuration.*;
 
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;

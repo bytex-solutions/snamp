@@ -1,9 +1,7 @@
 package com.bytex.snamp.testing.connector.mq;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -19,8 +17,6 @@ import java.io.File;
 import java.math.BigInteger;
 import java.time.Duration;
 import java.util.Date;
-
-import com.bytex.snamp.configuration.EntityMap;
 
 
 /**

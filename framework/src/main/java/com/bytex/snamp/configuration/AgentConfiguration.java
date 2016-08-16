@@ -46,7 +46,7 @@ public interface AgentConfiguration extends Cloneable {
     /**
      * Creates a new instance of entity configuration.
      * @param entityType Type of entity. Can be {@link ManagedResourceConfiguration},
-     *                  {@link GatewayConfiguration}. {@link ManagedResourceConfiguration.AttributeConfiguration}, {@link ManagedResourceConfiguration.EventConfiguration}, {@link ManagedResourceConfiguration.OperationConfiguration}.
+     *                  {@link GatewayConfiguration}. {@link AttributeConfiguration}, {@link EventConfiguration}, {@link OperationConfiguration}.
      * @param <E> Type of requested entity.
      * @return A new instance of entity configuration; or {@literal null}, if entity is not supported.
      */

@@ -1,6 +1,7 @@
 package com.bytex.snamp.connector.groovy.impl;
 
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.configuration.FeatureConfiguration;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 import com.bytex.snamp.connector.discovery.AbstractDiscoveryService;
@@ -17,8 +18,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
-
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.FeatureConfiguration;
 
 
 /**

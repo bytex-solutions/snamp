@@ -1,11 +1,8 @@
 package com.bytex.snamp.connector.discovery;
 
+import com.bytex.snamp.configuration.*;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration.FeatureConfiguration;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration.OperationConfiguration;
 
 import java.util.Collection;
 import java.util.Map;
@@ -54,7 +51,7 @@ public final class DiscoveryResultBuilder implements Supplier<DiscoveryResult> {
     }
 
     public <T extends FeatureConfiguration> DiscoveryResultBuilder addFeature(final Class<T> featureType,
-                                                            final T configuration){
+                                                                              final T configuration){
         features.put(featureType, configuration);
         return this;
     }

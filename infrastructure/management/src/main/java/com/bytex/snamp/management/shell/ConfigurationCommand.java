@@ -10,8 +10,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.FeatureConfiguration;
-
 /**
  * @author Roman Sakno
  * @version 2.0
@@ -41,14 +39,14 @@ abstract class ConfigurationCommand<E extends EntityConfiguration> extends OsgiC
     }
 
     static <T extends FeatureConfiguration> Set<? extends Map.Entry<String, ? extends T>> getFeatures(final ManagedResourceConfiguration resource,
-                                                                                            final Class<T> featureType) {
+                                                                                                      final Class<T> featureType) {
         final Map<String, ? extends T> features = resource.getFeatures(featureType);
         return features != null ? features.entrySet() : Collections.emptySet();
     }
 
     static <T extends FeatureConfiguration> Set<? extends Map.Entry<String, ? extends T>> getFeatures(final AgentConfiguration config,
-                                                                                             final String resourceName,
-                                                                                            final Class<T> featureType) {
+                                                                                                      final String resourceName,
+                                                                                                      final Class<T> featureType) {
         return getFeatures(config.getEntities(ManagedResourceConfiguration.class).get(resourceName), featureType);
     }
 }

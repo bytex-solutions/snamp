@@ -1,9 +1,7 @@
 package com.bytex.snamp.testing.gateway.http;
 
 import com.bytex.snamp.concurrent.SpinWait;
-import com.bytex.snamp.configuration.ConfigurationEntityDescription;
-import com.bytex.snamp.configuration.EntityMap;
-import com.bytex.snamp.configuration.GatewayConfiguration;
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.gateway.GatewayClient;
 import com.bytex.snamp.io.IOUtils;
@@ -41,8 +39,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeoutException;
 
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
 import static com.bytex.snamp.gateway.Gateway.FeatureBindingInfo;
 import static com.bytex.snamp.jmx.json.JsonUtils.toJsonArray;
 import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;

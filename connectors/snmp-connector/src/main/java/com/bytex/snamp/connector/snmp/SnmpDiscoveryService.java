@@ -1,8 +1,8 @@
 package com.bytex.snamp.connector.snmp;
 
+import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration.FeatureConfiguration;
+import com.bytex.snamp.configuration.FeatureConfiguration;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.discovery.AbstractDiscoveryService;
 import org.snmp4j.smi.GenericAddress;

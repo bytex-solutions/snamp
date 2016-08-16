@@ -1,11 +1,10 @@
 package com.bytex.snamp.connector.aggregator;
 
+import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 
 import javax.management.openmbean.SimpleType;
 import java.util.Objects;
-
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 
 /**
  * Represents proxy attribute that exposes value of the foreign attribute as a string.

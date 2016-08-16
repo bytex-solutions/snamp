@@ -1,10 +1,7 @@
 package com.bytex.snamp.connector.modbus;
 
+import com.bytex.snamp.configuration.*;
 import com.ghgande.j2mod.modbus.Modbus;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
-import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
-import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 
 import javax.management.Descriptor;
 import java.util.Map;

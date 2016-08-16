@@ -1,8 +1,7 @@
 package com.bytex.snamp.testing.connector.jmx;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.configuration.EntityMap;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
@@ -31,8 +30,6 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.*;
-
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.*;
 
 /**
  * @author Roman Sakno

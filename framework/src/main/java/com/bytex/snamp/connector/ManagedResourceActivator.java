@@ -1,10 +1,7 @@
 package com.bytex.snamp.connector;
 
 import com.bytex.snamp.MethodStub;
-import com.bytex.snamp.configuration.ConfigParameters;
-import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
-import com.bytex.snamp.configuration.ConfigurationManager;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.configuration.internal.CMManagedResourceParser;
 import com.bytex.snamp.connector.discovery.DiscoveryService;
 import com.bytex.snamp.core.AbstractServiceLibrary;
@@ -32,7 +29,6 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.*;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**

@@ -6,5 +6,6 @@ package com.bytex.snamp.configuration;
  * @version 2.0
  * @since 2.0
  */
-public interface ManagedResourceGroupConfiguration extends EntityConfiguration {
+public interface ManagedResourceGroupConfiguration extends ManagedResourceTemplate {
+
 }

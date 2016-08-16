@@ -1,16 +1,13 @@
 package com.bytex.snamp.connector.groovy;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.ConfigurationManager;
+import com.bytex.snamp.configuration.*;
 import com.google.common.collect.ImmutableList;
 import groovy.lang.Binding;
 
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Map;
-
-import com.bytex.snamp.configuration.EntityConfiguration;
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.*;
 
 /**
  * Represents an abstract class for initialization script.

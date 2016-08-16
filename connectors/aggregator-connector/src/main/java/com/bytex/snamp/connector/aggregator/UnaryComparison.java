@@ -1,11 +1,10 @@
 package com.bytex.snamp.connector.aggregator;
 
+import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 
 import javax.management.openmbean.SimpleType;
 import java.math.BigDecimal;
-
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 
 /**
  * Represents an attribute which compares the foreign attribute with user defined value.

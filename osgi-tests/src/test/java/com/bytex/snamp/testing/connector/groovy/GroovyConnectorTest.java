@@ -1,7 +1,7 @@
 package com.bytex.snamp.testing.connector.groovy;
 
+import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.notifications.Mailbox;

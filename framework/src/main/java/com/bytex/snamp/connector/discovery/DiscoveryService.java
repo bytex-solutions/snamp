@@ -1,8 +1,7 @@
 package com.bytex.snamp.connector.discovery;
 
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.*;
 import com.google.common.collect.ImmutableSet;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration.FeatureConfiguration;
 import com.bytex.snamp.core.SupportService;
 
 import java.util.Collection;
@@ -77,8 +76,8 @@ public interface DiscoveryService extends SupportService {
      *     result set, use the following algorithm:
      *     <ul>
      *         <li>Create a new managed entity with {@link ManagedResourceConfiguration#getFeatures(Class)} method.</li>
-     *         <li>Use {@link com.bytex.snamp.configuration.AbstractAgentConfiguration#copy(ManagedResourceConfiguration.AttributeConfiguration, ManagedResourceConfiguration.AttributeConfiguration)}
-     *         or {@link com.bytex.snamp.configuration.AbstractAgentConfiguration#copy(ManagedResourceConfiguration.EventConfiguration, ManagedResourceConfiguration.EventConfiguration)} method
+     *         <li>Use {@link com.bytex.snamp.configuration.AbstractAgentConfiguration#copy(AttributeConfiguration, AttributeConfiguration)}
+     *         or {@link com.bytex.snamp.configuration.AbstractAgentConfiguration#copy(EventConfiguration, EventConfiguration)} method
      *         to copy managed entity returned by this method into the newly created entity.</li>
      *     </ul>
      * @param connectionString Managed resource connection string.
@@ -87,12 +86,12 @@ public interface DiscoveryService extends SupportService {
      * @param <T> Type of the managed entity.
      * @return A collection of discovered entities; or empty collection if no entities
      * was detected.
-     * @see ManagedResourceConfiguration.AttributeConfiguration
-     * @see ManagedResourceConfiguration.EventConfiguration
+     * @see AttributeConfiguration
+     * @see EventConfiguration
      */
     <T extends FeatureConfiguration> Collection<T> discover(final String connectionString,
-                  final Map<String, String> connectionOptions,
-                  final Class<T> entityType);
+                                                            final Map<String, String> connectionOptions,
+                                                            final Class<T> entityType);
 
     /**
      * Attempts to discover collection of managed entities in batch manner.

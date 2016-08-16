@@ -11,8 +11,8 @@ import java.util.Locale;
  *     This interface provides description of additional configuration properties that can be obtained
  *     via {@link GatewayConfiguration#getParameters()},
  *     {@link ManagedResourceConfiguration#getParameters()},
- *     {@link ManagedResourceConfiguration.AttributeConfiguration#getParameters()}
- *     or {@link ManagedResourceConfiguration.EventConfiguration#getParameters()}.
+ *     {@link AttributeConfiguration#getParameters()}
+ *     or {@link EventConfiguration#getParameters()}.
  *     Each element of the collection represents parameter name and this collection is read-only.
  * </p>
  * @author Roman Sakno
@@ -96,8 +96,8 @@ public interface ConfigurationEntityDescription<T extends EntityConfiguration> e
      * @return A type of the configuration entity.
      * @see GatewayConfiguration
      * @see ManagedResourceConfiguration
-     * @see ManagedResourceConfiguration.EventConfiguration
-     * @see ManagedResourceConfiguration.AttributeConfiguration
+     * @see EventConfiguration
+     * @see AttributeConfiguration
      */
     Class<T> getEntityType();
 

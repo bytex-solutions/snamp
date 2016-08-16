@@ -1,11 +1,7 @@
 package com.bytex.snamp.connector;
 
 import com.bytex.snamp.Aggregator;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration.FeatureConfiguration;
-import com.bytex.snamp.configuration.ConfigurationEntityDescription;
-import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
-import com.bytex.snamp.configuration.ConfigurationManager;
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.discovery.DiscoveryService;
 import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.core.ServiceHolder;
@@ -26,7 +22,6 @@ import java.util.stream.Collectors;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
 
-import com.bytex.snamp.configuration.EntityConfiguration;
 import static com.bytex.snamp.concurrent.SpinWait.spinUntilNull;
 
 /**
@@ -185,10 +180,10 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
      * @throws java.lang.UnsupportedOperationException Managed resource doesn't support metadata discovery.
      */
     public static <T extends FeatureConfiguration> Collection<T> discoverEntities(final BundleContext context,
-                                                                                          final String connectorType,
-                                                                                          final String connectionString,
-                                                                                          final Map<String, String> connectionOptions,
-                                                                                          final Class<T> entityType) throws UnsupportedOperationException{
+                                                                                  final String connectorType,
+                                                                                  final String connectionString,
+                                                                                  final Map<String, String> connectionOptions,
+                                                                                  final Class<T> entityType) throws UnsupportedOperationException{
         if(context == null || entityType == null) return Collections.emptyList();
         ServiceReference<DiscoveryService> ref = null;
         try {

@@ -1,12 +1,11 @@
 package com.bytex.snamp.connector;
 
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.EntityConfiguration;
+import com.bytex.snamp.configuration.FeatureConfiguration;
 import com.bytex.snamp.jmx.CopyOnWriteDescriptor;
 
 import javax.management.Descriptor;
 import java.util.Map;
-
-import com.bytex.snamp.configuration.EntityConfiguration;
 
 /**
  * Represents configuration entity descriptor.
@@ -49,14 +48,14 @@ public interface ConfigurationEntityRuntimeMetadata<E extends EntityConfiguratio
     /**
      * Gets alternative name of the feature.
      * @return Alternative name of the feature.
-     * @see ManagedResourceConfiguration.FeatureConfiguration#NAME_KEY
+     * @see FeatureConfiguration#NAME_KEY
      */
     String getAlternativeName();
 
     /**
      * Determines whether this descriptor is automatically generated.
      * @return {@literal true}, if this descriptor is automatically generated; otherwise, {@literal false}.
-     * @see ManagedResourceConfiguration.FeatureConfiguration#AUTOMATICALLY_ADDED_KEY
+     * @see FeatureConfiguration#AUTOMATICALLY_ADDED_KEY
      */
     boolean isAutomaticallyAdded();
 }

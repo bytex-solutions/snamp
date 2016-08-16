@@ -1,9 +1,10 @@
 package com.bytex.snamp.connector.notifications;
 
+
+import com.bytex.snamp.configuration.EventConfiguration;
+
 import javax.management.MBeanNotificationInfo;
 import javax.management.NotificationBroadcaster;
-
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
 
 /**
  * Provides notification support for management connector.

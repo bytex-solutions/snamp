@@ -3,7 +3,8 @@ package com.bytex.snamp.connector.jmx;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.GroupedThreadFactory;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.AttributeConfiguration;
+import com.bytex.snamp.configuration.OperationConfiguration;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
 import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
@@ -215,7 +216,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
                                                 final Collection<JmxOperationInfo> output) throws JMException, IOException {
                         for (final MBeanOperationInfo operationInfo : connection.getMBeanInfo(objectName).getOperations()) {
                             final JmxOperationInfo op = enableOperation(operationInfo.getName(),
-                                    ManagedResourceConfiguration.OperationConfiguration.TIMEOUT_FOR_SMART_MODE,
+                                    OperationConfiguration.TIMEOUT_FOR_SMART_MODE,
                                     toConfigurationParameters(globalObjectName));
                             if (op != null) output.add(op);
                         }
@@ -381,7 +382,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
                                                 final Collection<JmxAttributeInfo> output) throws JMException, IOException{
                         for(final MBeanAttributeInfo attributeInfo: connection.getMBeanInfo(objectName).getAttributes()){
                             final JmxAttributeInfo attr = addAttribute(attributeInfo.getName(),
-                                    ManagedResourceConfiguration.AttributeConfiguration.TIMEOUT_FOR_SMART_MODE,
+                                    AttributeConfiguration.TIMEOUT_FOR_SMART_MODE,
                                     toConfigurationParameters(globalObjectName));
                             if(attr != null) output.add(attr);
                         }

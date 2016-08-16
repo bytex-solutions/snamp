@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Map;
-import java.util.function.*;
 
 /**
  * Represents abstract class for all serializable configuration entities.
@@ -30,47 +29,15 @@ abstract class AbstractEntityConfiguration implements Resettable, SerializableEn
     }
 
     @Override
-    public final void reset() {
+    public void reset() {
         modified = false;
         parameters.reset();
-        resetAdditionally();
-    }
-
-    final long getLongParameter(final String key, final ToLongFunction<? super String> converter, final long defaultValue){
-        return parameters.containsKey(key)? converter.applyAsLong(parameters.get(key)) : defaultValue;
-    }
-
-    final void setLongParameter(final String key, final long value, final LongFunction<String> converter){
-        parameters.put(key, converter.apply(value));
-        markAsModified();
-    }
-
-    final int getIntParameter(final String key, final ToIntFunction<? super String> converter, final int defaultValue){
-        return parameters.containsKey(key)? converter.applyAsInt(parameters.get(key)) : defaultValue;
-    }
-
-    final void setIntParameter(final String key, final int value, final IntFunction<String> converter){
-        parameters.put(key, converter.apply(value));
-        markAsModified();
-    }
-
-    final <P> P getParameter(final String key, final Function<? super String, ? extends P> converter, final P defaultValue){
-        return parameters.containsKey(key)? converter.apply(parameters.get(key)) : defaultValue;
-    }
-
-    final <P> void setParameter(final String key, final P value, final Function<? super P, String> converter){
-        parameters.put(key, converter.apply(value));
-        markAsModified();
     }
 
     @Override
     public final void setParameters(final Map<String, String> value) {
         parameters.clear();
         parameters.putAll(value);
-    }
-
-    void resetAdditionally() {
-
     }
 
     final void markAsModified() {

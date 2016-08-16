@@ -1,8 +1,6 @@
 package com.bytex.snamp.connector.attributes;
 
-import com.bytex.snamp.configuration.ConfigParameters;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
-import com.bytex.snamp.configuration.GatewayConfiguration;
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ConfigurationEntityRuntimeMetadata;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.WellKnownType;
@@ -19,7 +17,6 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 import static com.bytex.snamp.connector.attributes.AttributeSupport.*;
 import static com.bytex.snamp.jmx.CompositeDataUtils.fillMap;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -95,8 +92,8 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
      * @return A type of the configuration entity.
      * @see GatewayConfiguration
      * @see ManagedResourceConfiguration
-     * @see ManagedResourceConfiguration.EventConfiguration
-     * @see ManagedResourceConfiguration.AttributeConfiguration
+     * @see EventConfiguration
+     * @see AttributeConfiguration
      */
     @Override
     public final Class<AttributeConfiguration> getEntityType() {
@@ -207,7 +204,7 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
      */
     @Override
     public final boolean isAutomaticallyAdded(){
-        return hasField(ManagedResourceConfiguration.FeatureConfiguration.AUTOMATICALLY_ADDED_KEY);
+        return hasField(AttributeConfiguration.AUTOMATICALLY_ADDED_KEY);
     }
 
     public final String getName(final String defName){

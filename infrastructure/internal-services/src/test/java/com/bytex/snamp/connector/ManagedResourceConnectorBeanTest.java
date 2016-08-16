@@ -2,11 +2,8 @@ package com.bytex.snamp.connector;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.gateway.modeling.AttributeValue;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration.OperationConfiguration;
-import com.bytex.snamp.configuration.ConfigParameters;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.CustomAttributeInfo;
 import com.bytex.snamp.connector.discovery.DiscoveryService;
@@ -126,7 +123,7 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
             emitPropertyChanged("property3");
         }
 
-        protected void emitPropertyChanged(final String propertyName) {
+        private void emitPropertyChanged(final String propertyName) {
             emitNotification(TestNotificationType.PROPERTY_CHANGED, String.format("Property %s is changed", propertyName), "Attachment string");
         }
 
@@ -151,18 +148,21 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
 
     private static ConfigParameters makeAttributeConfig(final String name){
         final AttributeConfiguration result = newEntityConfiguration(AttributeConfiguration.class);
+        assertNotNull(result);
         result.setAlternativeName(name);
         return new ConfigParameters(result);
     }
 
     private static ConfigParameters makeEventConfig(final String name){
         final EventConfiguration result = newEntityConfiguration(EventConfiguration.class);
+        assertNotNull(result);
         result.setAlternativeName(name);
         return new ConfigParameters(result);
     }
 
     private static ConfigParameters makeOperationConfig(final String name){
         final OperationConfiguration result = newEntityConfiguration(OperationConfiguration.class);
+        assertNotNull(result);
         result.setAlternativeName(name);
         return new ConfigParameters(result);
     }

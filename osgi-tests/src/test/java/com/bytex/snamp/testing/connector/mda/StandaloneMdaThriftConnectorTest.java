@@ -1,6 +1,8 @@
 package com.bytex.snamp.testing.connector.mda;
 
 import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.configuration.AttributeConfiguration;
+import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.connector.notifications.Mailbox;
 import com.bytex.snamp.connector.notifications.MailboxFactory;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
@@ -22,8 +24,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import com.bytex.snamp.configuration.EntityMap;
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
+
 import static com.bytex.snamp.testing.connector.mda.MonitoringDataAcceptor.Client;
 
 /**

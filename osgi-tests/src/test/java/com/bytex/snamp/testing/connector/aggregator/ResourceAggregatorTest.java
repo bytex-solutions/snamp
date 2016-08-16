@@ -1,8 +1,6 @@
 package com.bytex.snamp.testing.connector.aggregator;
 
-import com.bytex.snamp.configuration.AgentConfiguration;
-import com.bytex.snamp.configuration.ConfigurationEntityDescription;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.jmx.CompositeDataUtils;
@@ -20,7 +18,6 @@ import javax.management.*;
 import javax.management.openmbean.CompositeData;
 import java.math.BigInteger;
 
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.*;
 import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
 
 /**

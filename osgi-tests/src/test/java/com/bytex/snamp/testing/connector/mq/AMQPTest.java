@@ -1,5 +1,7 @@
 package com.bytex.snamp.testing.connector.mq;
 
+import com.bytex.snamp.configuration.AttributeConfiguration;
+import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
@@ -12,8 +14,6 @@ import javax.management.openmbean.CompositeData;
 import java.time.Duration;
 
 import com.bytex.snamp.configuration.EntityMap;
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
 
 /**
  * Before running this test you need to install RabbitMQ locally. On Debian use the following steps:

@@ -52,11 +52,20 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
 
     private void mergeResourcesWithGroups(final ConfigurationEntityList<SerializableManagedResourceConfiguration> resources,
                                           final ConfigurationEntityList<SerializableManagedResourceGroupConfiguration> groups) {
-        //migrate properties from modified groups into resources
+        //migrate attributes, events, operations and properties from modified groups into resources
         groups.modifiedEntries((groupName, groupConfig) -> {
             resources.values().parallelStream()                 //attempt to increase performance with many registered resources
                     .filter(resource -> resource.getGroupName().equals(groupName))
-                    .forEach(resource -> resource.getParameters().putAll(groupConfig.getParameters())); //overwrite all properties in resource but hold user-defined properties
+                    .forEach(resource -> {
+                        //overwrite all properties in resource but hold user-defined properties
+                        resource.getParameters().putAll(groupConfig.getParameters());
+                        //overwrite all attributes
+                        resource.getAttributes().putAll(groupConfig.getAttributes());
+                        //overwrite all events
+                        resource.getEvents().putAll(groupConfig.getEvents());
+                        //overwrite all operations
+                        resource.getOperations().putAll(groupConfig.getOperations());
+                    });
             return true;
         });
     }

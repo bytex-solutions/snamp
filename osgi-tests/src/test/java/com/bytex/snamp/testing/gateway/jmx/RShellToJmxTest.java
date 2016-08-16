@@ -1,8 +1,8 @@
 package com.bytex.snamp.testing.gateway.jmx;
 
+import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.configuration.EntityMap;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.internal.OperatingSystem;
 import com.bytex.snamp.jmx.CompositeDataUtils;

@@ -63,8 +63,8 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
      * @return A type of the configuration entity.
      * @see GatewayConfiguration
      * @see ManagedResourceConfiguration
-     * @see ManagedResourceConfiguration.EventConfiguration
-     * @see ManagedResourceConfiguration.AttributeConfiguration
+     * @see EventConfiguration
+     * @see AttributeConfiguration
      */
     @Override
     public final Class<T> getEntityType() {

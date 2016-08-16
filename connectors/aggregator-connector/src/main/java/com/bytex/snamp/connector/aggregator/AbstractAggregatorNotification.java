@@ -1,6 +1,7 @@
 package com.bytex.snamp.connector.aggregator;
 
 import com.bytex.snamp.configuration.ConfigurationManager;
+import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.notifications.CustomNotificationInfo;
@@ -17,7 +18,6 @@ import java.util.logging.Logger;
 
 import static com.bytex.snamp.connector.aggregator.AggregatorConnectorConfiguration.getForeignAttributeName;
 import static com.bytex.snamp.connector.aggregator.AggregatorConnectorConfiguration.getSourceManagedResource;
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
 
 /**
  * @author Roman Sakno

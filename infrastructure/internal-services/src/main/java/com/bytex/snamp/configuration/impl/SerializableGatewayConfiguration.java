@@ -17,7 +17,6 @@ import static com.google.common.base.MoreObjects.firstNonNull;
  * @version 2.0
  */
 final class SerializableGatewayConfiguration extends AbstractEntityConfiguration implements GatewayConfiguration {
-    private static final byte FORMAT_VERSION = 3;
     private static final long serialVersionUID = 7926704115151740217L;
     private String gatewayType;
 
@@ -81,7 +80,6 @@ final class SerializableGatewayConfiguration extends AbstractEntityConfiguration
      */
     @Override
     public void writeExternal(final ObjectOutput out) throws IOException {
-        out.writeByte(FORMAT_VERSION);
         out.writeUTF(gatewayType != null ? gatewayType : "");
         writeParameters(out);
     }
@@ -100,9 +98,6 @@ final class SerializableGatewayConfiguration extends AbstractEntityConfiguration
      */
     @Override
     public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
-        final byte version = in.readByte();
-        if(version != FORMAT_VERSION)
-            throw new IOException(String.format("Gateway configuration has invalid binary format version. Expected %s but actual %s", FORMAT_VERSION, version));
         gatewayType = in.readUTF();
         readParameters(in);
     }

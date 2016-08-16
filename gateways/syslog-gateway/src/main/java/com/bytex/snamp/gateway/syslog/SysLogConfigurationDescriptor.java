@@ -1,19 +1,15 @@
 package com.bytex.snamp.gateway.syslog;
 
+import com.bytex.snamp.configuration.*;
 import com.cloudbees.syslog.Facility;
 import com.cloudbees.syslog.MessageFormat;
 import com.cloudbees.syslog.sender.SyslogMessageSender;
-import com.bytex.snamp.configuration.GatewayConfiguration;
-import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
-import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 
 import javax.management.Descriptor;
 import java.time.Duration;
 import java.util.Map;
 
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
 import static com.bytex.snamp.jmx.DescriptorUtils.getField;
 
 /**

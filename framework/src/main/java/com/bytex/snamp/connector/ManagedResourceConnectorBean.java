@@ -2,8 +2,7 @@ package com.bytex.snamp.connector;
 
 import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.Localizable;
-import com.bytex.snamp.configuration.ConfigParameters;
-import com.bytex.snamp.configuration.ConfigurationManager;
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.attributes.*;
 import com.bytex.snamp.connector.discovery.DiscoveryResultBuilder;
 import com.bytex.snamp.connector.discovery.DiscoveryService;
@@ -38,8 +37,6 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.*;
 
 
 /**

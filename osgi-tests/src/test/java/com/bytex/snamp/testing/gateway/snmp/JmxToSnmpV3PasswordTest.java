@@ -1,8 +1,7 @@
 package com.bytex.snamp.testing.gateway.snmp;
 
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.gateway.GatewayActivator;
-import com.bytex.snamp.configuration.EntityMap;
-import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.connector.notifications.Severity;
 import com.bytex.snamp.testing.BundleExceptionCallable;
 import com.bytex.snamp.testing.SnampDependencies;
@@ -35,8 +34,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
 import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
 
 /**

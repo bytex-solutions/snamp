@@ -1,14 +1,14 @@
 package com.bytex.snamp.connector.attributes;
 
+import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.ConfigParameters;
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
-import static com.bytex.snamp.configuration.impl.SerializableAgentConfiguration.newEntityConfiguration;
-
 import org.junit.Assert;
 import org.junit.Test;
 
 import javax.management.Attribute;
 import javax.management.openmbean.SimpleType;
+
+import static com.bytex.snamp.configuration.impl.SerializableAgentConfiguration.newEntityConfiguration;
 
 /**
  * @author Roman Sakno

@@ -68,7 +68,7 @@ public interface ConfigurationManager extends FrameworkService {
      * Creates a new instance of entity configuration.
      * @param context Class loader of caller code. Cannot be {@literal null}.
      * @param entityType Type of entity. Can be {@link ManagedResourceConfiguration},
-     *                  {@link GatewayConfiguration}. {@link ManagedResourceConfiguration.AttributeConfiguration}, {@link ManagedResourceConfiguration.EventConfiguration}, {@link ManagedResourceConfiguration.OperationConfiguration}.
+     *                  {@link GatewayConfiguration}. {@link AttributeConfiguration}, {@link EventConfiguration}, {@link OperationConfiguration}.
      * @param <E> Type of requested entity.
      * @return A new instance of entity configuration; or {@literal null}, if entity is not supported.
      * @since 1.2

@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Objects;
+import static com.bytex.snamp.configuration.impl.AbstractManagedResourceTemplate.*;
 
 /**
  * Represents in-memory agent configuration that can be stored as serialized Java object.
@@ -155,7 +156,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
      * Creates a new instance of entity configuration.
      *
      * @param entityType Type of entity. Can be {@link ManagedResourceConfiguration},
-     *                   {@link GatewayConfiguration}. {@link ManagedResourceConfiguration.AttributeConfiguration}, {@link ManagedResourceConfiguration.EventConfiguration}, {@link ManagedResourceConfiguration.OperationConfiguration}.
+     *                   {@link GatewayConfiguration}. {@link AttributeConfiguration}, {@link EventConfiguration}, {@link OperationConfiguration}.
      * @return A new instance of entity configuration; or {@literal null}, if entity is not supported.
      */
     @Override
@@ -167,21 +168,21 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
      * Creates a new instance of entity configuration.
      *
      * @param entityType Type of entity. Can be {@link ManagedResourceConfiguration},
-     *                   {@link GatewayConfiguration}. {@link ManagedResourceConfiguration.AttributeConfiguration}, {@link ManagedResourceConfiguration.EventConfiguration}, {@link ManagedResourceConfiguration.OperationConfiguration}.
+     *                   {@link GatewayConfiguration}. {@link AttributeConfiguration}, {@link EventConfiguration}, {@link OperationConfiguration}.
      * @return A new instance of entity configuration; or {@literal null}, if entity is not supported.
      */
-    public static  <E extends EntityConfiguration> E newEntityConfiguration(final Class<E> entityType) {
+    public static <E extends EntityConfiguration> E newEntityConfiguration(final Class<E> entityType) {
         final EntityConfiguration result;
         if (entityType.isAssignableFrom(SerializableManagedResourceConfiguration.class))
             result = new SerializableManagedResourceConfiguration();
         else if (entityType.isAssignableFrom(SerializableGatewayConfiguration.class))
             result = new SerializableGatewayConfiguration();
-        else if (entityType.isAssignableFrom(SerializableManagedResourceConfiguration.SerializableAttributeConfiguration.class))
-            result = new SerializableManagedResourceConfiguration.SerializableAttributeConfiguration();
-        else if (entityType.isAssignableFrom(SerializableManagedResourceConfiguration.SerializableEventConfiguration.class))
-            result = new SerializableManagedResourceConfiguration.SerializableEventConfiguration();
-        else if (entityType.isAssignableFrom(SerializableManagedResourceConfiguration.SerializableOperationConfiguration.class))
-            result = new SerializableManagedResourceConfiguration.SerializableOperationConfiguration();
+        else if (entityType.isAssignableFrom(SerializableAttributeConfiguration.class))
+            result = new SerializableAttributeConfiguration();
+        else if (entityType.isAssignableFrom(SerializableEventConfiguration.class))
+            result = new SerializableEventConfiguration();
+        else if (entityType.isAssignableFrom(SerializableOperationConfiguration.class))
+            result = new SerializableOperationConfiguration();
         else if (entityType.isAssignableFrom(SerializableThreadPoolConfiguration.class))
             result = new SerializableThreadPoolConfiguration();
         else if (entityType.isAssignableFrom(SerializableManagedResourceGroupConfiguration.class))

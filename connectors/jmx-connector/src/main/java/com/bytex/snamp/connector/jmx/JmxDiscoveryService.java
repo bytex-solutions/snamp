@@ -1,6 +1,6 @@
 package com.bytex.snamp.connector.jmx;
 
-import com.bytex.snamp.configuration.ConfigurationManager;
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.discovery.AbstractDiscoveryService;
 
 import javax.management.*;
@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.logging.Logger;
 
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.*;
 import static com.bytex.snamp.connector.jmx.JmxConnectorDescriptionProvider.OBJECT_NAME_PROPERTY;
 
 /**

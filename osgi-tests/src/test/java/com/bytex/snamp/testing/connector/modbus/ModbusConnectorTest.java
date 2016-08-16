@@ -1,8 +1,8 @@
 package com.bytex.snamp.testing.connector.modbus;
 
 import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 import com.bytex.snamp.connector.modbus.transport.ModbusSlave;
 import com.bytex.snamp.connector.modbus.transport.ModbusTransportType;
 import com.google.common.collect.ImmutableSet;

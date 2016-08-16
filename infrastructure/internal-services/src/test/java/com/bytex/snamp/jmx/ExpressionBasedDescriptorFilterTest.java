@@ -1,12 +1,13 @@
 package com.bytex.snamp.jmx;
 
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
-import static com.bytex.snamp.configuration.impl.SerializableAgentConfiguration.newEntityConfiguration;
+import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.connector.notifications.Severity;
 import org.junit.Assert;
 import org.junit.Test;
 import org.osgi.framework.InvalidSyntaxException;
+
+import static com.bytex.snamp.configuration.impl.SerializableAgentConfiguration.newEntityConfiguration;
 
 /**
  * @author Roman Sakno
@@ -14,6 +15,7 @@ import org.osgi.framework.InvalidSyntaxException;
  * @since 1.0
  */
 public final class ExpressionBasedDescriptorFilterTest extends Assert {
+
     @Test
     public void notificationFilter() throws InvalidSyntaxException {
         final EventConfiguration config = newEntityConfiguration(EventConfiguration.class);

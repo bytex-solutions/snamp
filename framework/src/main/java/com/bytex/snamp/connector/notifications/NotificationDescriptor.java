@@ -2,7 +2,7 @@ package com.bytex.snamp.connector.notifications;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.configuration.ConfigParameters;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.connector.ConfigurationEntityRuntimeMetadata;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.google.common.collect.ImmutableMap;
@@ -16,7 +16,6 @@ import javax.management.openmbean.OpenType;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
 import static com.bytex.snamp.connector.notifications.NotificationSupport.*;
 import static com.bytex.snamp.jmx.CompositeDataUtils.fillMap;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -29,7 +28,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  */
 public class NotificationDescriptor extends ImmutableDescriptor implements ConfigurationEntityRuntimeMetadata<EventConfiguration> {
     /**
-     * Gets name of the parameter in {@link ManagedResourceConfiguration.EventConfiguration}
+     * Gets name of the parameter in {@link EventConfiguration}
      * which describes the notification severity.
      */
     public static final String SEVERITY_PARAM = NotificationSupport.SEVERITY_FIELD;
@@ -190,6 +189,6 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
      */
     @Override
     public final boolean isAutomaticallyAdded(){
-        return hasField(ManagedResourceConfiguration.FeatureConfiguration.AUTOMATICALLY_ADDED_KEY);
+        return hasField(EventConfiguration.AUTOMATICALLY_ADDED_KEY);
     }
 }

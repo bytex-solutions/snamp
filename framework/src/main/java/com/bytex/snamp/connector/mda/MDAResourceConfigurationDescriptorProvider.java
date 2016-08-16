@@ -1,8 +1,6 @@
 package com.bytex.snamp.connector.mda;
 
-import com.bytex.snamp.configuration.ConfigurationEntityDescription;
-import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
-import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceDescriptionProvider;
 import com.bytex.snamp.jmx.CompositeTypeBuilder;
 import com.bytex.snamp.jmx.DescriptorUtils;
@@ -18,10 +16,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
-import com.bytex.snamp.configuration.EntityConfiguration;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.EventConfiguration;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**

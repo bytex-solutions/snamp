@@ -1,16 +1,11 @@
 package com.bytex.snamp.configuration.diff;
 
-import com.bytex.snamp.configuration.AbstractAgentConfiguration;
-import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.configuration.impl.SerializableAgentConfiguration;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.time.temporal.ChronoUnit;
-
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
-
-import com.bytex.snamp.configuration.GatewayConfiguration;
 
 /**
  * @author Roman Sakno
@@ -22,8 +17,8 @@ public final class ConfigurationDiffEngineTest extends Assert {
     public void renameResourceTest(){
         final AgentConfiguration baseline = new SerializableAgentConfiguration();
         final ManagedResourceConfiguration resource = baseline.getEntities(ManagedResourceConfiguration.class).getOrAdd("resource1");
-        final ManagedResourceConfiguration.AttributeConfiguration attr = resource
-                .getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class)
+        final AttributeConfiguration attr = resource
+                .getFeatures(AttributeConfiguration.class)
                 .getOrAdd("attr");
         attr.setReadWriteTimeout(1, ChronoUnit.SECONDS);
         resource.setConnectionString("connection-string");
@@ -47,8 +42,8 @@ public final class ConfigurationDiffEngineTest extends Assert {
     public void attributeAddRemoveTest(){
         final AgentConfiguration baseline = new SerializableAgentConfiguration();
         ManagedResourceConfiguration resource = baseline.getEntities(ManagedResourceConfiguration.class).getOrAdd("resource1");
-        ManagedResourceConfiguration.AttributeConfiguration attr = resource
-                .getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class)
+        AttributeConfiguration attr = resource
+                .getFeatures(AttributeConfiguration.class)
                 .getOrAdd("attr");
         attr.setReadWriteTimeout(1, ChronoUnit.SECONDS);
         resource.setConnectionString("connection-string");
@@ -59,7 +54,7 @@ public final class ConfigurationDiffEngineTest extends Assert {
         AgentConfiguration target = baseline.clone();
         resource = target.getEntities(ManagedResourceConfiguration.class).get("resource1");
         attr = resource
-                .getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class)
+                .getFeatures(AttributeConfiguration.class)
                 .getOrAdd("attr2");
         attr.getParameters().put("param2", "value2");
 
@@ -67,7 +62,7 @@ public final class ConfigurationDiffEngineTest extends Assert {
 
         assertEquals("value2", baseline.getEntities(ManagedResourceConfiguration.class)
                 .get("resource1")
-                .getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class)
+                .getFeatures(AttributeConfiguration.class)
                 .get("attr2")
                 .getParameters()
                 .get("param2"));
@@ -76,14 +71,14 @@ public final class ConfigurationDiffEngineTest extends Assert {
         target = baseline.clone();
         assertNotNull(target.getEntities(ManagedResourceConfiguration.class)
                 .get("resource1")
-                .getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class)
+                .getFeatures(AttributeConfiguration.class)
                 .remove("attr2"));
 
         ConfigurationDiffEngine.merge(target, baseline);
 
         assertNull(baseline.getEntities(ManagedResourceConfiguration.class)
                 .get("resource1")
-                .getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class)
+                .getFeatures(AttributeConfiguration.class)
                 .get("attr2"));
     }
 
@@ -91,8 +86,8 @@ public final class ConfigurationDiffEngineTest extends Assert {
     public void diffTest(){
         final AgentConfiguration baseline = new SerializableAgentConfiguration();
         final ManagedResourceConfiguration resource = baseline.getEntities(ManagedResourceConfiguration.class).getOrAdd("resource1");
-        final ManagedResourceConfiguration.AttributeConfiguration attr = resource
-                .getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class)
+        final AttributeConfiguration attr = resource
+                .getFeatures(AttributeConfiguration.class)
                 .getOrAdd("attr");
         attr.setReadWriteTimeout(1, ChronoUnit.SECONDS);
         resource.setConnectionString("connection-string");

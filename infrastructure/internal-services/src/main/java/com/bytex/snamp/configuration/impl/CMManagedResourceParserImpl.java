@@ -3,7 +3,7 @@ package com.bytex.snamp.configuration.impl;
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SerializableMap;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.configuration.internal.CMManagedResourceParser;
 import com.bytex.snamp.MutableBoolean;
 import com.bytex.snamp.internal.Utils;
@@ -103,8 +103,8 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
     }
 
     private <F extends FeatureConfiguration> Map<String, F> getFeatures(final Dictionary<String, ?> resourceConfig,
-                                                                               final String featureHolder,
-                                                                               final TypeToken<SerializableMap<String, F>> featureType) throws IOException{
+                                                                        final String featureHolder,
+                                                                        final TypeToken<SerializableMap<String, F>> featureType) throws IOException{
         byte[] serializedForm = Utils.getProperty(resourceConfig,
                 featureHolder,
                 byte[].class,

@@ -1,7 +1,7 @@
 package com.bytex.snamp.testing.connector.jmx;
 
-import com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration.OperationConfiguration;
+import com.bytex.snamp.configuration.AttributeConfiguration;
+import com.bytex.snamp.configuration.OperationConfiguration;
 import com.bytex.snamp.connector.operations.OperationSupport;
 import com.google.common.reflect.TypeToken;
 import org.junit.Test;

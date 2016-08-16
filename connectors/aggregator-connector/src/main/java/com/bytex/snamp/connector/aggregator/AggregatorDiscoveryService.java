@@ -1,16 +1,13 @@
 package com.bytex.snamp.connector.aggregator;
 
 import com.bytex.snamp.AbstractAggregator;
-import com.bytex.snamp.configuration.AbstractAgentConfiguration;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.discovery.DiscoveryResultBuilder;
 import com.bytex.snamp.connector.discovery.DiscoveryService;
 import com.google.common.collect.ImmutableList;
 
 import java.util.*;
 import java.util.logging.Logger;
-
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.*;
 
 /**
  * @author Roman Sakno

@@ -1,12 +1,11 @@
 package com.bytex.snamp.connector.aggregator;
 
+import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 
 import javax.management.openmbean.SimpleType;
 import java.util.Objects;
 import java.util.regex.Pattern;
-
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.AttributeConfiguration;
 
 /**
  * Represents regular expression computation.

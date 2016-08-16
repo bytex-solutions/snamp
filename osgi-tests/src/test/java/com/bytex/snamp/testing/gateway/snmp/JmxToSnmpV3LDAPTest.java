@@ -1,9 +1,7 @@
 package com.bytex.snamp.testing.gateway.snmp;
 
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.gateway.GatewayActivator;
-import com.bytex.snamp.configuration.EntityMap;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
-import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.connector.notifications.Severity;
 import com.bytex.snamp.testing.BundleExceptionCallable;
 import com.bytex.snamp.testing.SnampDependencies;
@@ -358,8 +356,8 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
     }
 
     @Override
-    protected void fillEvents(final EntityMap<? extends ManagedResourceConfiguration.EventConfiguration> events) {
-        ManagedResourceConfiguration.EventConfiguration event = events.getOrAdd("19.1");
+    protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
+        EventConfiguration event = events.getOrAdd("19.1");
         setFeatureName(event, AttributeChangeNotification.ATTRIBUTE_CHANGE);
         event.getParameters().put("severity", "notice");
         event.getParameters().put("objectName", BEAN_NAME);
@@ -377,8 +375,8 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
     }
 
     @Override
-    protected void fillAttributes(final EntityMap<? extends ManagedResourceConfiguration.AttributeConfiguration> attributes) {
-        ManagedResourceConfiguration.AttributeConfiguration attribute = attributes.getOrAdd("1.0");
+    protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
+        AttributeConfiguration attribute = attributes.getOrAdd("1.0");
         setFeatureName(attribute, "string");
         attribute.getParameters().put("objectName", BEAN_NAME);
         attribute.getParameters().put("oid", "1.1.1.0");

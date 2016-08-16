@@ -1,19 +1,57 @@
 package com.bytex.snamp.testing.configuration;
 
-import com.bytex.snamp.configuration.AgentConfiguration;
-import com.bytex.snamp.configuration.ConfigurationManager;
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
 import org.junit.Test;
-import com.bytex.snamp.configuration.GatewayConfiguration;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
+import org.ops4j.pax.exam.spi.reactors.PerMethod;
 
 /**
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0
  */
+@ExamReactorStrategy(PerMethod.class)
 public class PersistentConfigurationTest extends AbstractSnampIntegrationTest {
+    @Test
+    public void groupConfigurationTest() throws Exception {
+        final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(getTestBundleContext(), ConfigurationManager.class);
+        assertNotNull(admin);
+        try {
+            admin.get().processConfiguration(currentConfig -> {
+                //resource without group
+                ManagedResourceConfiguration resource = currentConfig.getEntities(ManagedResourceConfiguration.class).getOrAdd("resource1");
+                resource.getParameters().put("key1", "value1");
+                //resource with group
+                resource = currentConfig.getEntities(ManagedResourceConfiguration.class).getOrAdd("resource2");
+                resource.getParameters().put("key1", "value1");
+                resource.setGroupName("group1");
+                return true;
+            });
+            admin.get().processConfiguration(currentConfig -> {
+                //group
+                ManagedResourceGroupConfiguration group = currentConfig.getEntities(ManagedResourceGroupConfiguration.class).getOrAdd("group1");
+                group.getParameters().put("key1", "valueFromGroup");
+                group.getParameters().put("key2", "value2");
+                return true;
+            });
+            //verify first and second resources
+            admin.get().readConfiguration(currentConfig -> {
+                //resource without group
+                ManagedResourceConfiguration resource = currentConfig.getEntities(ManagedResourceConfiguration.class).get("resource1");
+                assertNotNull(resource);
+                assertEquals("value1", resource.getParameters().get("key1"));
+                //resource with group
+                resource = currentConfig.getEntities(ManagedResourceConfiguration.class).get("resource2");
+                assertNotNull(resource);
+                assertEquals("valueFromGroup", resource.getParameters().get("key1"));
+                assertEquals("value2", resource.getParameters().get("key2"));
+            });
+        } finally {
+            admin.release(getTestBundleContext());
+        }
+    }
 
     @Test
     public void configurationTest() throws Exception {
@@ -41,7 +79,7 @@ public class PersistentConfigurationTest extends AbstractSnampIntegrationTest {
                 resource.setConnectionString("connection string");
                 resource.setType("jmx");
                 resource.getParameters().put("param2", "value2");
-                resource.getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class).getOrAdd("attr1");
+                resource.getFeatures(AttributeConfiguration.class).getOrAdd("attr1");
                 return true;
             });
             //verify configuration
@@ -53,7 +91,7 @@ public class PersistentConfigurationTest extends AbstractSnampIntegrationTest {
                 assertEquals("value", currentConfig.getEntities(GatewayConfiguration.class).get("gateway1").getParameters().get("param1"));
                 assertEquals("value2", currentConfig.getEntities(ManagedResourceConfiguration.class).get("resource1").getParameters().get("param2"));
                 assertNotNull(currentConfig.getEntities(ManagedResourceConfiguration.class).get("resource1")
-                        .getFeatures(ManagedResourceConfiguration.AttributeConfiguration.class).get("attr1"));
+                        .getFeatures(AttributeConfiguration.class).get("attr1"));
 
                 return false;
             });

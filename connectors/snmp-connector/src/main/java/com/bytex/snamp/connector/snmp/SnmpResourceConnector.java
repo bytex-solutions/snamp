@@ -4,7 +4,6 @@ import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor;
 import com.bytex.snamp.concurrent.ConcurrentResourceAccessor;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
 import com.bytex.snamp.connector.attributes.*;
@@ -37,7 +36,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.bytex.snamp.configuration.ManagedResourceConfiguration.FeatureConfiguration.AUTOMATICALLY_ADDED_KEY;
+import static com.bytex.snamp.configuration.AttributeConfiguration.*;
 import static com.bytex.snamp.connector.snmp.SnmpConnectorDescriptionProvider.*;
 
 /**
@@ -691,7 +690,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
                 if (binding.getVariable() instanceof OctetString)
                     parameters.put(SNMP_CONVERSION_FORMAT_PARAM, OctetStringConversionFormat.adviceFormat((OctetString) binding.getVariable()));
                 final SnmpAttributeInfo attr = addAttribute(binding.getOid().toDottedString(),
-                        ManagedResourceConfiguration.AttributeConfiguration.TIMEOUT_FOR_SMART_MODE,
+                        TIMEOUT_FOR_SMART_MODE,
                         CompositeDataUtils.create(parameters, SimpleType.STRING));
                 if (attr != null) result.add(attr);
             }

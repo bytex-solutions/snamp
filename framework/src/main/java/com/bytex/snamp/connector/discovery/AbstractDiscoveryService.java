@@ -1,8 +1,7 @@
 package com.bytex.snamp.connector.discovery;
 
 import com.bytex.snamp.AbstractAggregator;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration.FeatureConfiguration;
+import com.bytex.snamp.configuration.*;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -31,8 +30,8 @@ public abstract class AbstractDiscoveryService<TProvider extends AutoCloseable> 
      * result set, use the following algorithm:
      * <ul>
      * <li>Create a new managed entity with {@link ManagedResourceConfiguration#getFeatures(Class)} method.</li>
-     * <li>Use {@link com.bytex.snamp.configuration.AbstractAgentConfiguration#copy(ManagedResourceConfiguration.AttributeConfiguration, ManagedResourceConfiguration.AttributeConfiguration)}
-     * or {@link com.bytex.snamp.configuration.AbstractAgentConfiguration#copy(ManagedResourceConfiguration.EventConfiguration, ManagedResourceConfiguration.EventConfiguration)} method
+     * <li>Use {@link com.bytex.snamp.configuration.AbstractAgentConfiguration#copy(AttributeConfiguration, AttributeConfiguration)}
+     * or {@link com.bytex.snamp.configuration.AbstractAgentConfiguration#copy(EventConfiguration, EventConfiguration)} method
      * to copy managed entity returned by this method into the newly created entity.</li>
      * </ul>
      *
@@ -41,8 +40,8 @@ public abstract class AbstractDiscoveryService<TProvider extends AutoCloseable> 
      * @param entityType        Type of the managed entity (see {@link ManagedResourceConfiguration#getParameters()}).
      * @return A collection of discovered entities; or empty collection if no entities
      * was detected.
-     * @see ManagedResourceConfiguration.AttributeConfiguration
-     * @see ManagedResourceConfiguration.EventConfiguration
+     * @see AttributeConfiguration
+     * @see EventConfiguration
      */
     @Override
     public final <T extends FeatureConfiguration> Collection<T> discover(final String connectionString, final Map<String, String> connectionOptions, final Class<T> entityType) {

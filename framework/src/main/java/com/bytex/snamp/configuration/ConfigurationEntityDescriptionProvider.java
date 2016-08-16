@@ -15,7 +15,7 @@ public interface ConfigurationEntityDescriptionProvider extends SupportService {
 
     /**
      * Retrieves configuration description for the specified configuration element type.
-     * @param <T> Type of the configuration entity, such as {@link ManagedResourceConfiguration.AttributeConfiguration}.
+     * @param <T> Type of the configuration entity, such as {@link AttributeConfiguration}.
      * @param configurationEntity Type of the configuration element.
      * @return The description of the configuration element; or {@literal null}, if description is not available.
      */
