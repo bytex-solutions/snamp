@@ -78,7 +78,7 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
             for (final Map.Entry<String, ? extends AttributeConfiguration> entry : input.entrySet()) {
                 final AttributeConfiguration inputAttr = entry.getValue();
                 //factory registers a new attribute in the output collection
-                output.consumeOrAdd(inputAttr, entry.getKey(), AbstractAgentConfiguration::copy);
+                output.addAndConsume(inputAttr, entry.getKey(), AbstractAgentConfiguration::copy);
             }
         }
     }
@@ -89,7 +89,7 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
             output.clear();
             for (final Map.Entry<String, ? extends EventConfiguration> entry : input.entrySet()) {
                 final EventConfiguration inputEv = entry.getValue();
-                output.consumeOrAdd(inputEv, entry.getKey(), AbstractAgentConfiguration::copy);
+                output.addAndConsume(inputEv, entry.getKey(), AbstractAgentConfiguration::copy);
             }
         }
     }
@@ -100,7 +100,7 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
             output.clear();
             for (final Map.Entry<String, ? extends OperationConfiguration> entry : input.entrySet()) {
                 final OperationConfiguration inputOp = entry.getValue();
-                output.consumeOrAdd(inputOp, entry.getKey(), AbstractAgentConfiguration::copy);
+                output.addAndConsume(inputOp, entry.getKey(), AbstractAgentConfiguration::copy);
             }
         }
     }
@@ -146,7 +146,7 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
         output.clear();
         for (final Map.Entry<String, ? extends T> entry : input.entrySet()) {
             final T source = entry.getValue();
-            output.consumeOrAdd(source, entry.getKey(), copier::copy);
+            output.addAndConsume(source, entry.getKey(), copier::copy);
         }
     }
 

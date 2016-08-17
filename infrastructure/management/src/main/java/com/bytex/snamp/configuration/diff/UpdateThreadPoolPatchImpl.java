@@ -16,6 +16,6 @@ final class UpdateThreadPoolPatchImpl extends AbstractThreadPoolPatch implements
 
     @Override
     protected void applyTo(final EntityMap<? extends ThreadPoolConfiguration> baseline) {
-        baseline.consumeOrAdd(getEntity(), getEntityID(), AbstractAgentConfiguration::copy);
+        baseline.addAndConsume(getEntity(), getEntityID(), AbstractAgentConfiguration::copy);
     }
 }

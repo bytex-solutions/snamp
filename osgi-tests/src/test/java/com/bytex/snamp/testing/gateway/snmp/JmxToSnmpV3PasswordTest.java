@@ -320,7 +320,7 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
 
     @Override
     protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
-        gateways.consumeOrAdd("test-snmp", snmpGateway -> {
+        gateways.addAndConsume("test-snmp", snmpGateway -> {
             snmpGateway.setType(GATEWAY_NAME);
             snmpGateway.getParameters().put("port", SNMP_PORT);
             snmpGateway.getParameters().put("host", SNMP_HOST);

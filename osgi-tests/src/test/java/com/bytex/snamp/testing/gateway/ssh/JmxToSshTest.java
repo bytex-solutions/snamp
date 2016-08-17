@@ -144,7 +144,7 @@ public final class JmxToSshTest extends AbstractJmxConnectorTest<TestOpenMBean> 
 
     @Override
     protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
-        gateways.consumeOrAdd(INSTANCE_NAME, sshGateway -> {
+        gateways.addAndConsume(INSTANCE_NAME, sshGateway -> {
             sshGateway.setType(GATEWAY_NAME);
             sshGateway.getParameters().put("host", "0.0.0.0");
             sshGateway.getParameters().put("port", Integer.toString(PORT));

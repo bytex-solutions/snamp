@@ -14,6 +14,12 @@ import org.ops4j.pax.exam.spi.reactors.PerMethod;
  */
 @ExamReactorStrategy(PerMethod.class)
 public class PersistentConfigurationTest extends AbstractSnampIntegrationTest {
+
+    @Override
+    protected boolean enableRemoteDebugging() {
+        return false;
+    }
+
     @Test
     public void groupConfigurationTest() throws Exception {
         final ServiceHolder<ConfigurationManager> admin = ServiceHolder.tryCreate(getTestBundleContext(), ConfigurationManager.class);
@@ -27,26 +33,34 @@ public class PersistentConfigurationTest extends AbstractSnampIntegrationTest {
                 resource = currentConfig.getEntities(ManagedResourceConfiguration.class).getOrAdd("resource2");
                 resource.getParameters().put("key1", "value1");
                 resource.setGroupName("group1");
-                return true;
-            });
-            admin.get().processConfiguration(currentConfig -> {
                 //group
                 ManagedResourceGroupConfiguration group = currentConfig.getEntities(ManagedResourceGroupConfiguration.class).getOrAdd("group1");
                 group.getParameters().put("key1", "valueFromGroup");
                 group.getParameters().put("key2", "value2");
+                //attribute in group
+                assertTrue(group.getFeatures(AttributeConfiguration.class).addAndConsume("attribute1", attr -> {
+                    attr.setAlternativeName("altName");
+                    attr.getParameters().put("param1", "value1");
+                }));
                 return true;
             });
             //verify first and second resources
             admin.get().readConfiguration(currentConfig -> {
-                //resource without group
+                //verify resource without group
                 ManagedResourceConfiguration resource = currentConfig.getEntities(ManagedResourceConfiguration.class).get("resource1");
                 assertNotNull(resource);
                 assertEquals("value1", resource.getParameters().get("key1"));
-                //resource with group
+                assertEquals(0, resource.getFeatures(AttributeConfiguration.class).size());
+                //verify resource with group
                 resource = currentConfig.getEntities(ManagedResourceConfiguration.class).get("resource2");
                 assertNotNull(resource);
                 assertEquals("valueFromGroup", resource.getParameters().get("key1"));
                 assertEquals("value2", resource.getParameters().get("key2"));
+                //verify attribute in resources
+                assertFalse(resource.getFeatures(AttributeConfiguration.class).addAndConsume("attribute1", attr -> {
+                    assertEquals("altName", attr.getAlternativeName());
+                    assertEquals("value1", attr.getParameters().get("param1"));
+                }));
             });
         } finally {
             admin.release(getTestBundleContext());

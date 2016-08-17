@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.HashMap;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 
 abstract class ConfigurationEntityList<E extends EntityConfiguration & Modifiable & Resettable> extends ModifiableMap<String, E> implements EntityMap<E> {
@@ -25,6 +27,24 @@ abstract class ConfigurationEntityList<E extends EntityConfiguration & Modifiabl
             if (entity.isModified())
                 if (!reader.read(name, entity)) break;
         }
+    }
+
+    @Override
+    public final boolean addAndConsume(final String entityID, final Consumer<? super E> handler) {
+        if (entities.containsKey(entityID)) {
+            handler.accept(entities.get(entityID));
+            return false;
+        } else {
+            final E entity = createEntity();
+            entities.put(entityID, entity);
+            handler.accept(entity);
+            return true;
+        }
+    }
+
+    @Override
+    public final <I> boolean addAndConsume(final I input, final String entityID, final BiConsumer<? super I, ? super E> handler) {
+        return addAndConsume(entityID, entity -> handler.accept(input, entity));
     }
 
     @Override

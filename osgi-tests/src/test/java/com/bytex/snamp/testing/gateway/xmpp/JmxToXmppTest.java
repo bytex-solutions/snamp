@@ -59,7 +59,7 @@ public final class JmxToXmppTest extends AbstractJmxConnectorTest<TestOpenMBean>
 
     @Override
     protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
-        gateways.consumeOrAdd(INSTANCE_NAME, xmppGateway -> {
+        gateways.addAndConsume(INSTANCE_NAME, xmppGateway -> {
             xmppGateway.setType(GATEWAY_NAME);
             fillParameters(xmppGateway.getParameters());
         });

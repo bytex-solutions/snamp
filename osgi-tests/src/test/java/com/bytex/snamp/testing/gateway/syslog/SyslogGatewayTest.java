@@ -94,7 +94,7 @@ public final class SyslogGatewayTest extends AbstractJmxConnectorTest<TestOpenMB
 
     @Override
     protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
-        gateways.consumeOrAdd(INSTANCE_NAME, syslogGateway -> {
+        gateways.addAndConsume(INSTANCE_NAME, syslogGateway -> {
             syslogGateway.setType(GATEWAY_NAME);
             syslogGateway.getParameters().put("port", Integer.toString(PORT));
             syslogGateway.getParameters().put("address", "127.0.0.1");

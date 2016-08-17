@@ -49,7 +49,7 @@ public final class AddThreadPoolCommand extends AbstractThreadPoolCommand {
             output.append("Thread pool with the specified name is already registered");
             return false;
         }
-        configuration.consumeOrAdd(poolName, config -> {
+        configuration.addAndConsume(poolName, config -> {
             config.setMinPoolSize(minPoolSize);
             config.setMaxPoolSize(maxPoolSize);
             config.setThreadPriority(threadPriority);

@@ -366,7 +366,7 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
      */
     @Override
     public final boolean isModified() {
-        return super.isModified() & attributes.isModified() & events.isModified() & operations.isModified();
+        return super.isModified() || attributes.isModified() || events.isModified() || operations.isModified();
     }
 
     @Override

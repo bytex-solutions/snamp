@@ -94,7 +94,7 @@ public final class NscaGatewayTest extends AbstractJmxConnectorTest<TestOpenMBea
 
     @Override
     protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
-        gateways.consumeOrAdd(INSTANCE_NAME, nscaGateway -> {
+        gateways.addAndConsume(INSTANCE_NAME, nscaGateway -> {
             nscaGateway.setType(GATEWAY_NAME);
             nscaGateway.getParameters().put("nagiosPort", Integer.toString(PORT));
             nscaGateway.getParameters().put("nagiosHost", "localhost");

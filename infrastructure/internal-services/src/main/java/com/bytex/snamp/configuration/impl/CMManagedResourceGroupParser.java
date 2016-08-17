@@ -6,7 +6,7 @@ package com.bytex.snamp.configuration.impl;
  * @since 1.0
  */
 final class CMManagedResourceGroupParser extends SerializableConfigurationParser<SerializableManagedResourceGroupConfiguration> {
-    private static final String PID = "com.bytex.snamp.connector.groups";
+    private static final String PID = "com.bytex.snamp.resourceGroups";
 
     CMManagedResourceGroupParser() {
         super(PID, SerializableManagedResourceGroupConfiguration.class);

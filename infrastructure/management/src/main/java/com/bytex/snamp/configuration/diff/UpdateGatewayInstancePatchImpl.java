@@ -17,6 +17,6 @@ final class UpdateGatewayInstancePatchImpl extends AbstractGatewayInstancePatch 
 
     @Override
     protected void applyTo(final EntityMap<? extends GatewayConfiguration> gateways) {
-        gateways.consumeOrAdd(getEntity(), getEntityID(), AbstractAgentConfiguration::copy);
+        gateways.addAndConsume(getEntity(), getEntityID(), AbstractAgentConfiguration::copy);
     }
 }
