@@ -20,7 +20,7 @@
                 <configuration>
                     <instructions>
                         <Bundle-SymbolicName>com.bytex.snamp.connector.jmx</Bundle-SymbolicName>
-                        <Bundle-Activator>com.bytex.snamp.connector.jmx.JmxConnectorBundleActivator</Bundle-Activator>
+                        <Bundle-Activator>com.bytex.snamp.connector.jmx.JmxConnectorActivator</Bundle-Activator>
                         <Export-Package/>
                         <!--SNAMP specific header-->
                         <Provide-Capability>com.bytex.snamp.connector; type=jmx</Provide-Capability>

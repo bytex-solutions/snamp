@@ -129,21 +129,6 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
             return FALLBACK.get();
     }
 
-    @SuppressWarnings("unchecked")
-    static <F extends MBeanFeatureInfo> Collection<? extends F> expand(final ManagedResourceConnector connector,
-                                                                       final Class<F> featureType) {
-        final Collection result;
-        if (featureType.equals(MBeanAttributeInfo.class))
-            result = Aggregator.queryAndApply(connector, AttributeSupport.class, AttributeSupport::expandAttributes, Collections::emptyList);
-        else if (featureType.equals(MBeanNotificationInfo.class))
-            result = Aggregator.queryAndApply(connector, NotificationSupport.class, NotificationSupport::expandNotifications, Collections::emptyList);
-        else if (featureType.equals(MBeanOperationInfo.class))
-            result = Aggregator.queryAndApply(connector, OperationSupport.class, OperationSupport::expandOperations, Collections::emptyList);
-        else
-            result = Collections.emptyList();
-        return result;
-    }
-
     /**
      * Determines whether the Smart-mode is supported by the specified connector.
      * @param connector An instance of the connector. Cannot be {@literal null}.
@@ -157,9 +142,18 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
 
     static Collection<? extends MBeanFeatureInfo> expandAll(final ManagedResourceConnector connector) {
         final List<MBeanFeatureInfo> result = new LinkedList<>();
-        result.addAll(Aggregator.queryAndApply(connector, AttributeSupport.class, AttributeSupport::expandAttributes, Collections::emptyList));
-        result.addAll(Aggregator.queryAndApply(connector, NotificationSupport.class, NotificationSupport::expandNotifications, Collections::emptyList));
-        result.addAll(Aggregator.queryAndApply(connector, OperationSupport.class, OperationSupport::expandOperations, Collections::emptyList));
+        result.addAll(Aggregator.queryAndApply(connector,
+                AttributeSupport.class,
+                attributeSupport -> attributeSupport.canExpandAttributes() ? attributeSupport.expandAttributes() : Collections.emptyList(),
+                Collections::emptyList));
+        result.addAll(Aggregator.queryAndApply(connector,
+                NotificationSupport.class,
+                notificationSupport -> notificationSupport.canExpandNotifications() ? notificationSupport.expandNotifications() : Collections.emptyList(),
+                Collections::emptyList));
+        result.addAll(Aggregator.queryAndApply(connector,
+                OperationSupport.class,
+                operationSupport -> operationSupport.canExpandOperations() ? operationSupport.expandOperations() : Collections.emptyList(),
+                Collections::emptyList));
         return result;
     }
 }

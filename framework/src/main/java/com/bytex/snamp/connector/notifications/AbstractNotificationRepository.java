@@ -250,11 +250,11 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     protected abstract M enableNotifications(final String notifType,
                                             final NotificationDescriptor metadata) throws Exception;
 
-    private NotificationHolder<M> enableNotificationsImpl(final String category, final CompositeData options) throws Exception {
+    private M enableNotificationsImpl(final String category, final CompositeData options) throws Exception {
         NotificationHolder<M> holder = notifications.get(category);
         if (holder != null) {
             if (holder.equals(category, options))
-                return holder;
+                return holder.getMetadata();
             else {
                 //remove notification
                 notificationRemoved(holder.getMetadata());
@@ -272,9 +272,10 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
             if (metadata != null) {
                 notifications.put(holder = new NotificationHolder<>(metadata, category, options));
                 notificationAdded(holder.getMetadata());
-            } else holder = null;
+            } else
+                holder = null;
         }
-        return holder;
+        return holder != null ? holder.getMetadata() : null;
     }
 
     /**
@@ -282,26 +283,25 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      *
      * @param category The name of the event category to listen.
      * @param options  Event discovery options.
-     * @return The metadata of the event to listen; or {@literal null}, if the specified category is not supported.
+     * @return Metadata of created notification.
      */
+    @Override
     public final M enableNotifications(final String category, final CompositeData options) {
-        NotificationHolder<M> holder;
-        try{
-            holder = writeCallInterruptibly(() -> enableNotificationsImpl(category, options));
-        } catch (final Exception e){
+        try {
+            return writeCallInterruptibly(() -> enableNotificationsImpl(category, options));
+        } catch (final Exception e) {
             failedToEnableNotifications(category, e);
-            holder = null;
+            return null;
         }
-        return holder != null ? holder.getMetadata() : null;
     }
 
-    private NotificationHolder<M> removeImpl(final String category){
+    private M removeImpl(final String category) {
         final NotificationHolder<M> holder = notifications.get(category);
         if (holder != null) {
             notificationRemoved(holder.getMetadata());
-            notifications.remove(category);
-        }
-        return holder;
+            return notifications.remove(category).getMetadata();
+        } else
+            return null;
     }
 
     /**
@@ -312,11 +312,21 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     @Override
     public final M remove(final String category) {
-        final NotificationHolder<M> holder = writeApply(this, category, AbstractNotificationRepository::removeImpl);
-        if (holder != null) {
-            disableNotifications(holder.getMetadata());
-            return holder.getMetadata();
-        } else return null;
+        final M metadata = writeApply(this, category, AbstractNotificationRepository::removeImpl);
+        if (metadata != null)
+            disableNotifications(metadata);
+        return metadata;
+    }
+
+    /**
+     * Disables all notifications except specified in the collection.
+     *
+     * @param events A set of subscription lists which should not be disabled.
+     * @since 2.0
+     */
+    @Override
+    public final void retainNotifications(final Set<String> events) {
+        retainAll(events);
     }
 
     /**

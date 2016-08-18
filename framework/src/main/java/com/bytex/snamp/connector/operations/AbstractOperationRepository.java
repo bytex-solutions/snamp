@@ -257,13 +257,13 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
     protected void disableOperation(final M metadata){
     }
 
-    private OperationHolder<M> removeImpl(final String operationID){
+    private M removeImpl(final String operationID) {
         final OperationHolder<M> holder = operations.get(operationID);
-        if(holder != null){
+        if (holder != null) {
             operationRemoved(holder.getMetadata());
-            operations.remove(operationID);
-        }
-        return holder;
+            return operations.remove(operationID).getMetadata();
+        } else
+            return null;
     }
 
     /**
@@ -273,24 +273,33 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      */
     @Override
     public final M remove(final String operationID) {
-        final OperationHolder<M> holder = writeApply(operationID, this::removeImpl);
-        if(holder != null){
-            disableOperation(holder.getMetadata());
-            return holder.getMetadata();
-        }
-        else return null;
+        final M metadata = writeApply(operationID, this::removeImpl);
+        if (metadata != null)
+            disableOperation(metadata);
+        return metadata;
+    }
+
+    /**
+     * Disables all operations except specified in the collection.
+     *
+     * @param operations A set of operations which should not be disabled.
+     * @since 2.0
+     */
+    @Override
+    public final void retainOperations(final Set<String> operations) {
+        retainAll(operations);
     }
 
     protected abstract M enableOperation(final String userDefinedName,
                                          final OperationDescriptor descriptor) throws Exception;
 
-    private OperationHolder<M> enableOperationImpl(final String operationName,
+    private M enableOperationImpl(final String operationName,
                                                    final Duration invocationTimeout,
                                                    final CompositeData options) throws Exception {
         OperationHolder<M> holder = operations.get(operationName);
         if (holder != null)
             if (holder.equals(operationName, options))
-                return holder;
+                return holder.getMetadata();
             else { //remove operation
                 operationRemoved(holder.getMetadata());
                 holder = operations.remove(operationName);
@@ -307,9 +316,10 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
             if (metadata != null) {
                 operations.put(holder = new OperationHolder<>(metadata, operationName, options));
                 operationAdded(holder.getMetadata());
-            } else holder = null;
+            } else
+                holder = null;
         }
-        return holder;
+        return holder != null ? holder.getMetadata() : null;
     }
 
     /**
@@ -317,19 +327,18 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      * @param operationName The name of the operation as it is declared in the resource.
      * @param invocationTimeout Max duration operation invocation.
      * @param options Operation execution options.
-     * @return The metadata of enabled operation; or {@literal null}, if operation is not available.
+     * @return Metadata of created operation.
      */
+    @Override
     public final M enableOperation(final String operationName,
                                    final Duration invocationTimeout,
                                    final CompositeData options) {
-        OperationHolder<M> holder;
         try{
-            holder = writeCallInterruptibly(() -> enableOperationImpl(operationName, invocationTimeout, options));
+            return writeCallInterruptibly(() -> enableOperationImpl(operationName, invocationTimeout, options));
         } catch (final Exception e) {
             failedToEnableOperation(operationName, e);
-            holder = null;
+            return null;
         }
-        return holder != null ? holder.getMetadata() : null;
     }
 
     /**

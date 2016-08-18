@@ -20,11 +20,13 @@ import com.bytex.snamp.internal.Utils;
 import org.osgi.framework.BundleContext;
 
 import javax.management.*;
-import javax.management.openmbean.*;
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.OpenMBeanAttributeInfo;
+import javax.management.openmbean.OpenMBeanAttributeInfoSupport;
+import javax.management.openmbean.OpenType;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.MalformedURLException;
-import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -139,8 +141,9 @@ final class JmxConnector extends AbstractManagedResourceConnector {
 
         private JmxOperationRepository(final String resourceName,
                                        final ObjectName globalName,
-                                       final JmxConnectionManager connectionManager){
-            super(resourceName, JmxOperationInfo.class, true);
+                                       final JmxConnectionManager connectionManager,
+                                       final boolean expandable){
+            super(resourceName, JmxOperationInfo.class, expandable);
             this.globalObjectName = globalName;
             this.connectionManager = connectionManager;
         }
@@ -268,8 +271,9 @@ final class JmxConnector extends AbstractManagedResourceConnector {
 
         private JmxAttributeRepository(final String resourceName,
                                        final ObjectName globalName,
-                                       final JmxConnectionManager connectionManager){
-            super(resourceName, JmxAttributeInfo.class, true);
+                                       final JmxConnectionManager connectionManager,
+                                       final boolean expandable){
+            super(resourceName, JmxAttributeInfo.class, expandable);
             this.globalObjectName = globalName;
             this.connectionManager = connectionManager;
         }
@@ -427,8 +431,9 @@ final class JmxConnector extends AbstractManagedResourceConnector {
         private JmxNotificationRepository(final String resourceName,
                                           final ObjectName globalName,
                                           final BundleContext context,
-                                          final JmxConnectionManager connectionManager) {
-            super(resourceName, JmxNotificationInfo.class, DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName)), true);
+                                          final JmxConnectionManager connectionManager,
+                                          final boolean expandable) {
+            super(resourceName, JmxNotificationInfo.class, DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName)), expandable);
             this.connectionManager = connectionManager;
             this.globalObjectName = globalName;
             this.connectionManager.addReconnectionHandler(this);
@@ -713,7 +718,6 @@ final class JmxConnector extends AbstractManagedResourceConnector {
     private final JmxConnectionManager connectionManager;
     @Aggregation(cached = true)
     private final JmxOperationRepository operations;
-    private final boolean smartMode;
 
     JmxConnector(final String resourceName,
                  final JmxConnectionOptions connectionOptions) {
@@ -721,6 +725,7 @@ final class JmxConnector extends AbstractManagedResourceConnector {
         //attempts to establish connection immediately
         connectionManager.connect();
         //SmartMode can be enabled if
+        final boolean smartMode;
         if(connectionOptions.isSmartModeEnabled()){
             smartMode = connectionOptions.getGlobalObjectName() != null;
             if(!smartMode)
@@ -732,9 +737,10 @@ final class JmxConnector extends AbstractManagedResourceConnector {
         this.notifications = new JmxNotificationRepository(resourceName,
                 connectionOptions.getGlobalObjectName(),
                 Utils.getBundleContextOfObject(this),
-                connectionManager);
-        this.attributes = new JmxAttributeRepository(resourceName, connectionOptions.getGlobalObjectName(), connectionManager);
-        this.operations = new JmxOperationRepository(resourceName, connectionOptions.getGlobalObjectName(), connectionManager);
+                connectionManager,
+                smartMode);
+        this.attributes = new JmxAttributeRepository(resourceName, connectionOptions.getGlobalObjectName(), connectionManager, smartMode);
+        this.operations = new JmxOperationRepository(resourceName, connectionOptions.getGlobalObjectName(), connectionManager, smartMode);
     }
 
     JmxConnector(final String resourceName,
@@ -746,26 +752,6 @@ final class JmxConnector extends AbstractManagedResourceConnector {
     @Override
     protected MetricsReader createMetricsReader(){
         return assembleMetricsReader(attributes, notifications, operations);
-    }
-
-    boolean addAttribute(final String attributeName,
-                                    final Duration readWriteTimeout,
-                                    final CompositeData options) {
-        verifyClosedState();
-        return attributes.addAttribute(attributeName, readWriteTimeout, options) != null;
-    }
-
-    boolean enableNotifications(final String category,
-                                              final CompositeData options) {
-        verifyClosedState();
-        return notifications.enableNotifications(category, options) != null;
-    }
-
-    boolean enableOperation(final String operationName,
-                                       final Duration invocationTimeout,
-                                       final CompositeData options){
-        verifyClosedState();
-        return operations.enableOperation(operationName, invocationTimeout, options) != null;
     }
 
     /**
@@ -788,18 +774,6 @@ final class JmxConnector extends AbstractManagedResourceConnector {
     @Override
     public void removeResourceEventListener(final ResourceEventListener listener) {
         removeResourceEventListener(listener, attributes, notifications, operations);
-    }
-
-    void removeAttributesExcept(final Set<String> attributes) {
-        this.attributes.retainAll(attributes);
-    }
-
-    void disableNotificationsExcept(final Set<String> events) {
-        this.notifications.retainAll(events);
-    }
-
-    void disableOperationsExcept(final Set<String> operations) {
-        this.operations.retainAll(operations);
     }
 
     /**

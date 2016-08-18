@@ -20,13 +20,10 @@ import org.osgi.framework.BundleContext;
 
 import javax.management.InvalidAttributeValueException;
 import javax.management.ReflectionException;
-import javax.management.openmbean.CompositeData;
 import java.io.IOException;
-import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -328,25 +325,6 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
     @Override
     public void removeResourceEventListener(final ResourceEventListener listener) {
         removeResourceEventListener(listener, attributes);
-    }
-
-    boolean addAttribute(final String attributeName, final Duration readWriteTimeout, final CompositeData options) {
-        verifyClosedState();
-        return attributes.addAttribute(attributeName, readWriteTimeout, options) != null;
-    }
-
-    boolean enableNotifications(final String category,
-                             final CompositeData options){
-        verifyClosedState();
-        return events.enableNotifications(category, options) != null;
-    }
-
-    void removeAttributesExcept(final Set<String> attributes) {
-        this.attributes.retainAll(attributes);
-    }
-
-    void disableNotificationsExcept(final Set<String> events) {
-        this.events.retainAll(events);
     }
 
     /**

@@ -1,13 +1,9 @@
 package com.bytex.snamp.connector.rshell;
 
-import com.bytex.snamp.connector.ManagedResourceActivator;
-import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.connector.ManagedResourceActivator;
 
-import javax.management.openmbean.CompositeData;
-import java.time.Duration;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Represents an activator of the rshell resource connector.
@@ -17,56 +13,20 @@ import java.util.Set;
  * @since 1.0
  */
 public final class RShellResourceConnectorActivator extends ManagedResourceActivator<RShellResourceConnector> {
-    private static final class RShellConnectorFactory extends ManagedResourceConnectorModeler<RShellResourceConnector> {
-
-        @Override
-        public RShellResourceConnector createConnector(final String resourceName,
-                                                       final String connectionString,
-                                                       final Map<String, String> connectionOptions,
-                                                       final RequiredService<?>... dependencies) throws Exception {
-            return new RShellResourceConnector(resourceName,
-                    connectionString,
-                    connectionOptions);
-        }
-
-        @Override
-        protected boolean addAttribute(final RShellResourceConnector connector, final String attributeName, final Duration readWriteTimeout, final CompositeData options) {
-            return connector.addAttribute(attributeName, readWriteTimeout, options);
-        }
-        @Override
-        protected void retainAttributes(final RShellResourceConnector connector, final Set<String> attributes) {
-            connector.removeAttributesExcept(attributes);
-        }
-
-        @MethodStub
-        @Override
-        protected boolean enableNotifications(final RShellResourceConnector connector, final String category, final CompositeData options) {
-            //not supported
-            return false;
-        }
-
-        @Override
-        protected void retainNotifications(final RShellResourceConnector connector, final Set<String> events) {
-            //not supported
-        }
-
-        @Override
-        protected boolean enableOperation(final RShellResourceConnector connector, final String operationName, final Duration timeout, final CompositeData options) {
-            //not supported
-            return false;
-        }
-
-        @Override
-        protected void retainOperations(final RShellResourceConnector connector, final Set<String> operations) {
-            //not supported
-        }
-    }
-
     /**
      * Initializes a new instance of the connector activator.
      */
     @SpecialUse
     public RShellResourceConnectorActivator() {
-        super(new RShellConnectorFactory());
+        super(RShellResourceConnectorActivator::createConnector);
+    }
+
+    private static RShellResourceConnector createConnector(final String resourceName,
+                                                   final String connectionString,
+                                                   final Map<String, String> connectionOptions,
+                                                   final RequiredService<?>... dependencies) throws Exception {
+        return new RShellResourceConnector(resourceName,
+                connectionString,
+                connectionOptions);
     }
 }

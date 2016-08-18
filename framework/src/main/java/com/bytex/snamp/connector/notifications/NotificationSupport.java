@@ -5,7 +5,9 @@ import com.bytex.snamp.configuration.EventConfiguration;
 
 import javax.management.MBeanNotificationInfo;
 import javax.management.NotificationBroadcaster;
+import javax.management.openmbean.CompositeData;
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * Provides notification support for management connector.
@@ -38,6 +40,29 @@ public interface NotificationSupport extends NotificationBroadcaster {
      * which contains type descriptor of {@link javax.management.Notification#getUserData()}.
      */
     String USER_DATA_TYPE = "openType";
+
+    /**
+     * Enables managed resource notification.
+     * <p>
+     *     When implementing this method you must take into
+     *     account already existed notifications in the managed resource connector.
+     *     If notification is enabled in the managed resource connector then
+     *     it should re-enable the notification (disable and then enable again).
+     * @param category The notification category.
+     * @param options The notification configuration options.
+     * @return Metadata of created notification.
+     * @since 2.0
+     */
+    MBeanNotificationInfo enableNotifications(final String category,
+                                final CompositeData options);
+
+
+    /**
+     * Disables all notifications except specified in the collection.
+     * @param events A set of subscription lists which should not be disabled.
+     * @since 2.0
+     */
+    void retainNotifications(final Set<String> events);
 
     /**
      * Gets notification metadata.

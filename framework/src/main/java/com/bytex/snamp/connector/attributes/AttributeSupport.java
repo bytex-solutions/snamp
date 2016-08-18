@@ -3,7 +3,10 @@ package com.bytex.snamp.connector.attributes;
 import com.bytex.snamp.configuration.EntityConfiguration;
 
 import javax.management.*;
+import javax.management.openmbean.CompositeData;
+import java.time.Duration;
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * Represents support for management attributes.
@@ -48,6 +51,24 @@ public interface AttributeSupport {
      * which describes the attribute type.
      */
     String OPEN_TYPE = JMX.OPEN_TYPE_FIELD;
+
+    /**
+     * Registers a new attribute in the managed resource connector.
+     * @param attributeName The name of the attribute in the managed resource.
+     * @param readWriteTimeout The attribute read/write timeout.
+     * @param options The attribute configuration options.
+     * @return Metadata of created attribute.
+     * @since 2.0
+     */
+    MBeanAttributeInfo addAttribute(final String attributeName,
+                          final Duration readWriteTimeout,
+                          final CompositeData options);
+    /**
+     * Removes all attributes except specified in the collection.
+     * @param attributes A set of attributes which should not be deleted.
+     * @since 2.0
+     */
+    void retainAttributes(final Set<String> attributes);
 
     /**
      * Obtain the value of a specific attribute of the managed resource.

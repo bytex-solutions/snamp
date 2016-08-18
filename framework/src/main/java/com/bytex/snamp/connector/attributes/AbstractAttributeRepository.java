@@ -273,7 +273,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     protected abstract M connectAttribute(final String attributeName,
                                           final AttributeDescriptor descriptor) throws Exception;
 
-    private AttributeHolder<M> addAttributeImpl(final String attributeName,
+    private M addAttributeImpl(final String attributeName,
                             final Duration readWriteTimeout,
                             final CompositeData options) throws Exception {
         AttributeHolder<M> holder = attributes.get(attributeName);
@@ -281,7 +281,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
         //are equal to the existing attribute options
         if (holder != null) {
             if (holder.equals(attributeName, readWriteTimeout, options))
-                return holder;
+                return holder.getMetadata();
             else {
                 //remove attribute
                 attributeRemoved(holder.getMetadata());
@@ -303,7 +303,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
                 attributeAdded(holder.getMetadata());
             } else throw JMExceptionUtils.attributeNotFound(attributeName);
         }
-        return holder;
+        return holder.getMetadata();
     }
 
     /**
@@ -312,19 +312,18 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      * @param attributeName    The name of the attribute.
      * @param readWriteTimeout A read/write timeout using for attribute read/write operation.
      * @param options          The attribute discovery options.
-     * @return The description of the attribute.
+     * @return Metadata of created attribute.
      */
+    @Override
     public final M addAttribute(final String attributeName,
                                 final Duration readWriteTimeout,
                                 final CompositeData options) {
-        AttributeHolder<M> holder;
         try {
-            holder = writeCallInterruptibly(() -> addAttributeImpl(attributeName, readWriteTimeout, options));
+            return writeCallInterruptibly(() -> addAttributeImpl(attributeName, readWriteTimeout, options));
         } catch (final Exception e) {
             failedToConnectAttribute(attributeName, e);
-            holder = null;
+            return null;
         }
-        return holder != null ? holder.getMetadata() : null;
     }
 
     /**
@@ -502,13 +501,13 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     protected void disconnectAttribute(final M attributeInfo) {
     }
 
-    private AttributeHolder<M> removeImpl(final String attributeID) {
-        AttributeHolder<M> holder = attributes.get(attributeID);
+    private M removeImpl(final String attributeID) {
+        final AttributeHolder<M> holder = attributes.get(attributeID);
         if (holder != null) {
             attributeRemoved(holder.getMetadata());
-            holder = attributes.remove(attributeID);
-        }
-        return holder;
+            return attributes.remove(attributeID).getMetadata();
+        } else
+            return null;
     }
 
     /**
@@ -519,11 +518,21 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     @Override
     public final M remove(final String attributeID) {
-        final AttributeHolder<M> holder = writeApply(this, attributeID, AbstractAttributeRepository::removeImpl);
-        if (holder != null) {
-            disconnectAttribute(holder.getMetadata());
-            return holder.getMetadata();
-        } else return null;
+        final M metadata = writeApply(this, attributeID, AbstractAttributeRepository::removeImpl);
+        if (metadata != null)
+            disconnectAttribute(metadata);
+        return metadata;
+    }
+
+    /**
+     * Removes all attributes except specified in the collection.
+     *
+     * @param attributes A set of attributes which should not be deleted.
+     * @since 2.0
+     */
+    @Override
+    public final void retainAttributes(final Set<String> attributes) {
+        retainAll(attributes);
     }
 
     private void removeAllImpl(final KeyedObjects<String, AttributeHolder<M>> attributes){

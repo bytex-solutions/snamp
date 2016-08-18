@@ -513,8 +513,9 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
 
         private SnmpAttributeRepository(final String resourceName,
                                         final AbstractConcurrentResourceAccessor<SnmpClient> client,
-                                        final Logger logger){
-            super(resourceName, SnmpAttributeInfo.class, true);
+                                        final Logger logger,
+                                        final boolean expandable){
+            super(resourceName, SnmpAttributeInfo.class, expandable);
             this.client = client;
             this.logger = Objects.requireNonNull(logger);
             this.executor = client.read(cl -> cl.queryObject(ExecutorService.class));
@@ -718,19 +719,19 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
     @Aggregation(cached = true)
     private final SnmpNotificationRepository notifications;
     private final AbstractConcurrentResourceAccessor<SnmpClient> client;
-    private final boolean smartMode;
 
 
     SnmpResourceConnector(final String resourceName,
                           final String connectionString,
                           final Map<String, String> parameters) throws IOException {
+        final boolean smartMode = SnmpConnectorDescriptionProvider.getInstance().isSmartModeEnabled(parameters);
         client = new ConcurrentResourceAccessor<>(SnmpConnectorDescriptionProvider.getInstance().createSnmpClient(GenericAddress.parse(connectionString), parameters));
-        attributes = new SnmpAttributeRepository(resourceName, client, getLogger());
+        attributes = new SnmpAttributeRepository(resourceName, client, getLogger(), smartMode);
         notifications = new SnmpNotificationRepository(resourceName,
                 client,
                 Utils.getBundleContextOfObject(this),
                 getLogger());
-        smartMode = SnmpConnectorDescriptionProvider.getInstance().isSmartModeEnabled(parameters);
+
     }
 
     @Override
@@ -743,16 +744,6 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
             client.listen();
             return null;
         });
-    }
-
-    boolean addAttribute(final String attributeName, final Duration readWriteTimeout, final CompositeData options) {
-        verifyClosedState();
-        return attributes.addAttribute(attributeName, readWriteTimeout, options) != null;
-    }
-
-    boolean enableNotifications(final String category, final CompositeData options) {
-        verifyClosedState();
-        return notifications.enableNotifications(category, options) != null;
     }
 
     /**
@@ -775,14 +766,6 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
     @Override
     public void removeResourceEventListener(final ResourceEventListener listener) {
         removeResourceEventListener(listener, attributes, notifications);
-    }
-
-    void removeAttributesExcept(final Set<String> attributes) {
-        this.attributes.retainAll(attributes);
-    }
-
-    void disableNotificationsExcept(final Set<String> events) {
-        this.notifications.retainAll(events);
     }
 
     /**

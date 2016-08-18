@@ -7,12 +7,12 @@ import com.bytex.snamp.WeakEventListenerList;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.connector.metrics.Metrics;
 import com.bytex.snamp.io.IOUtils;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import javax.management.MBeanFeatureInfo;
 import java.math.BigInteger;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Represents repository of resource features such as attributes, notification, operations and etc.
@@ -199,15 +199,11 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
      * @param featureIDs A set of features which cannot be deleted.
      * @return Collection of removes features.
      */
-    public Collection<F> retainAll(final Set<String> featureIDs) {
-        final Set<String> featuresToRemove = Sets.difference(getIDs(), featureIDs);
-        final List<F> result = Lists.newArrayListWithCapacity(featuresToRemove.size());
-        for (final String removingFeatureID : featuresToRemove) {
-            final F removedFeature = remove(removingFeatureID);
-            if (removedFeature != null)
-                result.add(removedFeature);
-        }
-        return result;
+    protected final Collection<F> retainAll(final Set<String> featureIDs) {
+        return Sets.difference(getIDs(), featureIDs).stream()
+                .map(this::remove)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     /**

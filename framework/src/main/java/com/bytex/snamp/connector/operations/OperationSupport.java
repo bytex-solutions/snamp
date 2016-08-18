@@ -3,7 +3,10 @@ package com.bytex.snamp.connector.operations;
 import javax.management.MBeanException;
 import javax.management.MBeanOperationInfo;
 import javax.management.ReflectionException;
+import javax.management.openmbean.CompositeData;
+import java.time.Duration;
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * Provides support of management operations.
@@ -30,6 +33,25 @@ public interface OperationSupport {
      * contains {@link java.time.Duration} value.
      */
     String INVOCATION_TIMEOUT_FIELD = "invocationTimeout";
+
+    /**
+     * Enables management operation.
+     * @param operationName The name of operation to be executed on managed resource.
+     * @param invocationTimeout Operation invocation timeout. {@literal null} for infinite timeout.
+     * @param options Operation invocation options. Cannot be {@literal null}.
+     * @return Metadata of created operation.
+     * @since 2.0
+     */
+    MBeanOperationInfo enableOperation(final String operationName,
+                            final Duration invocationTimeout,
+                            final CompositeData options);
+
+    /**
+     * Disables all operations except specified in the collection.
+     * @param operations A set of operations which should not be disabled.
+     * @since 2.0
+     */
+    void retainOperations(final Set<String> operations);
 
     /**
      * Allows an operation to be invoked on the managed resource.

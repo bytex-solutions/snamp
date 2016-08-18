@@ -10,14 +10,11 @@ import com.bytex.snamp.connector.modbus.transport.ModbusTransportType;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 
 import javax.management.AttributeNotFoundException;
-import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.OpenDataException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.time.Duration;
 import java.util.Objects;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -84,15 +81,15 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
     @Aggregation
     private final ModbusAttributeRepository attributes;
 
-    ModbusResourceConnector(final String resourceName,
-                            final ModbusTransportType transportType,
-                            final String address,
-                            final int port) throws IOException {
+    private ModbusResourceConnector(final String resourceName,
+                                    final ModbusTransportType transportType,
+                                    final String address,
+                                    final int port) throws IOException {
         client = transportType.createMaster(address, port);
         attributes = new ModbusAttributeRepository(resourceName, client, getLogger());
     }
 
-    static ModbusTransportType getTransportType(final URI connectionString) throws MalformedURLException{
+    private static ModbusTransportType getTransportType(final URI connectionString) throws MalformedURLException{
         switch (connectionString.getScheme()){
             case "tcp": return ModbusTransportType.TCP;
             case "udp": return ModbusTransportType.UDP;
@@ -109,14 +106,6 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
     @Override
     protected MetricsReader createMetricsReader() {
         return assembleMetricsReader(attributes);
-    }
-
-    boolean addAttribute(final String attributeName, final Duration readWriteTimeout, final CompositeData options){
-        return attributes.addAttribute(attributeName, readWriteTimeout, options) != null;
-    }
-
-    void removeAttributesExcept(final Set<String> attributes) {
-        this.attributes.retainAll(attributes);
     }
 
     void connect(final int socketTimeout, final int retryCount) throws IOException {

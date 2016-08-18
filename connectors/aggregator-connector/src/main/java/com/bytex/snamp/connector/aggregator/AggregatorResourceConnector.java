@@ -17,9 +17,7 @@ import org.osgi.framework.BundleContext;
 import javax.management.InstanceNotFoundException;
 import javax.management.JMException;
 import javax.management.MBeanNotificationInfo;
-import javax.management.openmbean.CompositeData;
 import java.time.Duration;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -30,7 +28,7 @@ import java.util.logging.Logger;
  * @version 2.0
  * @since 1.0
  */
-public final class AggregatorResourceConnector extends AbstractManagedResourceConnector {
+final class AggregatorResourceConnector extends AbstractManagedResourceConnector {
     private static final class AttributeAggregationRepository extends OpenAttributeRepository<AbstractAttributeAggregation> {
         private AttributeAggregationRepository(final String resourceName){
             super(resourceName, AbstractAttributeAggregation.class, false);
@@ -195,22 +193,6 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
     @Override
     public void removeResourceEventListener(final ResourceEventListener listener) {
         removeResourceEventListener(listener, attributes, notifications);
-    }
-
-    boolean addAttribute(final String attributeName, final Duration readWriteTimeout, final CompositeData options) {
-        return attributes.addAttribute(attributeName, readWriteTimeout, options) != null;
-    }
-
-    boolean enableNotifications(final String category, final CompositeData options){
-        return notifications.enableNotifications(category, options) != null;
-    }
-
-    void removeAttributesExcept(final Set<String> attributes) {
-        this.attributes.retainAll(attributes);
-    }
-
-    void disableNotificationsExcept(final Set<String> events) {
-        this.notifications.retainAll(events);
     }
 
     static Logger getLoggerImpl(){

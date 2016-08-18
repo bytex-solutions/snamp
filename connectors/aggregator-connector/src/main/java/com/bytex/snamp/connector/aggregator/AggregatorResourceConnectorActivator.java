@@ -1,12 +1,9 @@
 package com.bytex.snamp.connector.aggregator;
 
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 
-import javax.management.openmbean.CompositeData;
-import java.beans.IntrospectionException;
-import java.time.Duration;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Represents activator of {@link AggregatorResourceConnector} resource connector.
@@ -16,61 +13,20 @@ import java.util.Set;
  * @since 1.0
  */
 public final class AggregatorResourceConnectorActivator extends ManagedResourceActivator<AggregatorResourceConnector> {
-    private static final class ConnectorController extends ManagedResourceConnectorModeler<AggregatorResourceConnector>{
 
-        @Override
-        protected boolean addAttribute(final AggregatorResourceConnector connector,
-                                    final String attributeName,
-                                    final Duration readWriteTimeout,
-                                    final CompositeData options) {
-            return connector.addAttribute(attributeName, readWriteTimeout, options);
-        }
-
-        @Override
-        protected boolean enableNotifications(final AggregatorResourceConnector connector,
-                                           final String category,
-                                           final CompositeData options) {
-            return connector.enableNotifications(category, options);
-        }
-
-        @Override
-        protected boolean enableOperation(final AggregatorResourceConnector connector, final String operationName, final Duration timeout, final CompositeData options) {
-            //not supported
-            return false;
-        }
-
-        @Override
-        protected void retainAttributes(final AggregatorResourceConnector connector,
-                                        final Set<String> attributes) {
-            connector.removeAttributesExcept(attributes);
-        }
-
-        @Override
-        protected void retainNotifications(final AggregatorResourceConnector connector,
-                                           final Set<String> events) {
-            connector.disableNotificationsExcept(events);
-        }
-
-        @Override
-        protected void retainOperations(final AggregatorResourceConnector connector,
-                                        final Set<String> operations) {
-            //not supported
-        }
-
-        @Override
-        public AggregatorResourceConnector createConnector(final String resourceName,
-                                                           final String connectionString,
-                                                           final Map<String, String> connectionParameters,
-                                                           final RequiredService<?>... dependencies) throws IntrospectionException {
-            return new AggregatorResourceConnector(resourceName,
-                    AggregatorConnectorConfiguration.getNotificationFrequency(connectionParameters));
-        }
-    }
-
+    @SpecialUse
     public AggregatorResourceConnectorActivator() {
-        super(new ConnectorController(),
+        super(AggregatorResourceConnectorActivator::newResourceConnector,
                 discoveryService(AggregatorResourceConnectorActivator::newDiscoveryService),
                 configurationDescriptor(AggregatorConnectorConfiguration::new));
+    }
+
+    private static AggregatorResourceConnector newResourceConnector(final String resourceName,
+                                                                    final String connectionString,
+                                                                    final Map<String, String> connectionParameters,
+                                                                    final RequiredService<?>... dependencies) {
+        return new AggregatorResourceConnector(resourceName,
+                AggregatorConnectorConfiguration.getNotificationFrequency(connectionParameters));
     }
 
     private static AggregatorDiscoveryService newDiscoveryService(final RequiredService<?>... dependencies){

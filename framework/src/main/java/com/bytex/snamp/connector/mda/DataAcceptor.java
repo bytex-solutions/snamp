@@ -4,10 +4,8 @@ import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
 import com.bytex.snamp.connector.metrics.MetricsReader;
 
-import javax.management.openmbean.CompositeData;
 import java.time.Duration;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * Represents Monitoring Data Acceptor.
@@ -49,24 +47,6 @@ public abstract class DataAcceptor extends AbstractManagedResourceConnector {
     @Override
     protected final MetricsReader createMetricsReader(){
         return assembleMetricsReader(getAttributes(), getNotifications());
-    }
-
-    final boolean addAttribute(final String attributeName,
-                         final Duration readWriteTimeout,
-                         final CompositeData options){
-        return getAttributes().addAttribute(attributeName, readWriteTimeout, options) != null;
-    }
-
-    final void removeAttributesExcept(final Set<String> attributes){
-        getAttributes().retainAll(attributes);
-    }
-
-    final boolean enableNotifications(final String category, final CompositeData options){
-        return getNotifications().enableNotifications(category, options) != null;
-    }
-
-    final void disableNotificationsExcept(final Set<String> notifications){
-        getNotifications().retainAll(notifications);
     }
 
     final void beginListening(final Duration expirationTime, final Object... dependencies) throws Exception {

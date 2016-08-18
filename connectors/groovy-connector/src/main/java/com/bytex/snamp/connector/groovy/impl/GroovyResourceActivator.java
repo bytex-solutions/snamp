@@ -11,12 +11,9 @@ import com.bytex.snamp.io.IOUtils;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
 
-import javax.management.openmbean.CompositeData;
 import java.io.IOException;
-import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Logger;
 
 
@@ -26,56 +23,18 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 public final class GroovyResourceActivator extends ManagedResourceActivator<GroovyResourceConnector> {
-    private static final class GroovyResourceConnectorFactory extends ManagedResourceConnectorModeler<GroovyResourceConnector>{
-
-        @Override
-        protected boolean addAttribute(final GroovyResourceConnector connector,
-                                    final String attributeName,
-                                    final Duration readWriteTimeout,
-                                    final CompositeData options) {
-            return connector.addAttribute(attributeName, readWriteTimeout, options);
-        }
-
-        @Override
-        protected boolean enableNotifications(final GroovyResourceConnector connector, final String category, final CompositeData options) {
-            return connector.enableNotifications(category, options);
-        }
-
-        @Override
-        protected boolean enableOperation(final GroovyResourceConnector connector, final String operationName, final Duration timeout, final CompositeData options) {
-            //not supported
-            return false;
-        }
-
-        @Override
-        protected void retainAttributes(final GroovyResourceConnector connector, final Set<String> attributes) {
-            connector.removeAttributesExcept(attributes);
-        }
-
-        @Override
-        protected void retainNotifications(final GroovyResourceConnector connector, final Set<String> events) {
-            connector.disableNotificationsExcept(events);
-        }
-
-        @Override
-        protected void retainOperations(final GroovyResourceConnector connector, final Set<String> operations) {
-            //not supported
-        }
-
-        @Override
-        public GroovyResourceConnector createConnector(final String resourceName,
-                                                       final String connectionString,
-                                                       final Map<String, String> connectionParameters,
-                                                       final RequiredService<?>... dependencies) throws IOException, ResourceException, ScriptException {
-            return new GroovyResourceConnector(resourceName, connectionString, connectionParameters);
-        }
-    }
-
     @SpecialUse
     public GroovyResourceActivator(){
-        super( new GroovyResourceConnectorFactory(),
+        super(GroovyResourceActivator::createConnector,
                 configurationDescriptor(GroovyResourceConfigurationDescriptor::new),
                 discoveryService(GroovyResourceActivator::newDiscoveryService));
+    }
+
+    private static GroovyResourceConnector createConnector(final String resourceName,
+                                                   final String connectionString,
+                                                   final Map<String, String> connectionParameters,
+                                                   final RequiredService<?>... dependencies) throws IOException, ResourceException, ScriptException {
+        return new GroovyResourceConnector(resourceName, connectionString, connectionParameters);
     }
 
     private static AbstractDiscoveryService<ManagedResourceInfo> newDiscoveryService(final RequiredService<?>... dependencies){

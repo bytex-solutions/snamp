@@ -3,6 +3,7 @@ package com.bytex.snamp;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -81,5 +82,14 @@ public interface Aggregator {
     static <I, O> O queryAndApply(final Aggregator a, final Class<I> type, final Function<? super I, ? extends O> processing, final Supplier<? extends O> fallback) {
         final Optional<O> result = queryAndApply(a, type, processing);
         return result.isPresent() ? result.get() : fallback.get();
+    }
+
+    static <I> boolean queryAndAccept(final Aggregator a, final Class<I> type, final Consumer<? super I> processing){
+        final I obj = a.queryObject(type);
+        if(obj != null){
+            processing.accept(obj);
+            return true;
+        } else
+            return false;
     }
 }

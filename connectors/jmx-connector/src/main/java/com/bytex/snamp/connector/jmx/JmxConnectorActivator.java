@@ -12,10 +12,8 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
 import javax.management.MalformedObjectNameException;
-import javax.management.openmbean.CompositeData;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.time.Duration;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -33,7 +31,7 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * @version 2.0
  * @since 1.0
  */
-public final class JmxConnectorBundleActivator extends ManagedResourceActivator<JmxConnector> {
+public final class JmxConnectorActivator extends ManagedResourceActivator<JmxConnector> {
 
     private static final class JmxMaintenanceService extends AbstractAggregator implements Maintainable{
 
@@ -115,64 +113,22 @@ public final class JmxConnectorBundleActivator extends ManagedResourceActivator<
         }
     }
 
-    private static final class JmxConnectorFactory extends ManagedResourceConnectorModeler<JmxConnector> {
-
-        @Override
-        public JmxConnector createConnector(final String resourceName,
-                                            final String connectionString,
-                                            final Map<String, String> connectionOptions,
-                                            final RequiredService<?>... dependencies) throws MalformedURLException, MalformedObjectNameException {
-            return new JmxConnector(resourceName, connectionString, connectionOptions);
-        }
-
-        @Override
-        protected boolean addAttribute(final JmxConnector connector,
-                                    final String attributeName,
-                                    final Duration readWriteTimeout,
-                                    final CompositeData options) {
-            return connector.addAttribute(attributeName, readWriteTimeout, options);
-        }
-
-        @Override
-        protected boolean enableNotifications(final JmxConnector connector,
-                                              final String category,
-                                              final CompositeData options) {
-            return connector.enableNotifications(category, options);
-        }
-
-        @Override
-        protected boolean enableOperation(final JmxConnector connector,
-                                       final String operationName,
-                                       final Duration invocationTimeout,
-                                       final CompositeData options) {
-            return connector.enableOperation(operationName, invocationTimeout, options);
-        }
-
-        @Override
-        protected void retainAttributes(final JmxConnector connector, final Set<String> attributes) {
-            connector.removeAttributesExcept(attributes);
-        }
-
-        @Override
-        protected void retainNotifications(final JmxConnector connector, final Set<String> events) {
-            connector.disableNotificationsExcept(events);
-        }
-
-        @Override
-        protected void retainOperations(final JmxConnector connector, final Set<String> operations) {
-            connector.disableOperationsExcept(operations);
-        }
-    }
-
     /**
      * Initializes a new instance of the JMX connector bundle activator.
      */
     @SpecialUse
-    public JmxConnectorBundleActivator() {
-        super(new JmxConnectorFactory(),
+    public JmxConnectorActivator() {
+        super(JmxConnectorActivator::createConnector,
                 configurationDescriptor(JmxConnectorDescriptionProvider::getInstance),
                 maintenanceService(JmxMaintenanceService::new),
-                discoveryService(JmxConnectorBundleActivator::newDiscoveryService));
+                discoveryService(JmxConnectorActivator::newDiscoveryService));
+    }
+
+    private static JmxConnector createConnector(final String resourceName,
+                                        final String connectionString,
+                                        final Map<String, String> connectionOptions,
+                                        final RequiredService<?>... dependencies) throws MalformedURLException, MalformedObjectNameException {
+        return new JmxConnector(resourceName, connectionString, connectionOptions);
     }
 
     private static JmxDiscoveryService newDiscoveryService(final RequiredService<?>... dependencies){
