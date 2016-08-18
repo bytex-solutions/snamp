@@ -71,7 +71,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     }
 
     private void save(final SerializableAgentConfiguration config) throws IOException {
-        if (config.isEmpty()) {
+        if (config.hasNoInnerItems()) {
             resourceParser.removeAll(admin);
             gatewayInstanceParser.removeAll(admin);
             threadPoolParser.removeAll(admin);
@@ -83,6 +83,8 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
             threadPoolParser.saveChanges(config, admin);
             groupParser.saveChanges(config, admin);
         }
+        //save SNAMP config
+        CMAgentParserImpl.saveParameters(admin, config);
     }
 
     private <E extends Throwable> void processConfiguration(final ConfigurationProcessor<E> handler, final Lock synchronizer) throws E, IOException {
@@ -99,6 +101,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
             resourceParser.fill(admin, config.getManagedResources());
             threadPoolParser.fill(admin, config.getThreadPools());
             groupParser.fill(admin, config.getManagedResourceGroups());
+            CMAgentParserImpl.loadParameters(admin, config);
             if(handler.process(config))
                 save(config);
         } finally {

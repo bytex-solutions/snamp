@@ -27,6 +27,8 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
     public void clear() {
         getEntities(ManagedResourceConfiguration.class).clear();
         getEntities(GatewayConfiguration.class).clear();
+        getEntities(ManagedResourceGroupConfiguration.class).clear();
+        getParameters().clear();
     }
 
     /**
@@ -36,14 +38,14 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
     @SuppressWarnings({"CloneDoesntDeclareCloneNotSupportedException",
             "CloneDoesntCallSuperClone"})
     @Override
-    public AbstractAgentConfiguration clone(){
+    public AbstractAgentConfiguration clone() throws CloneNotSupportedException{
         try {
             final AbstractAgentConfiguration newInstance = getClass().newInstance();
             newInstance.load(this);
             return newInstance;
         }
         catch (final ReflectiveOperationException e){
-            return this;
+            throw new CloneNotSupportedException(e.getMessage());
         }
     }
 
@@ -167,6 +169,8 @@ public abstract class AbstractAgentConfiguration implements AgentConfiguration {
      */
     public static void copy(final AgentConfiguration input, final AgentConfiguration output) {
         if (input == null || output == null) return;
+        //import parameters
+        output.setParameters(input.getParameters());
         //import hosting configuration
         copy(input.getEntities(GatewayConfiguration.class),
                 output.getEntities(GatewayConfiguration.class),

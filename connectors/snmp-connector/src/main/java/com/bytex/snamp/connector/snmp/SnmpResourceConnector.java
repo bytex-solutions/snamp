@@ -510,14 +510,17 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
         private final AbstractConcurrentResourceAccessor<SnmpClient> client;
         private final ExecutorService executor;
         private final Logger logger;
+        private final Duration discoveryTimeout;
 
         private SnmpAttributeRepository(final String resourceName,
                                         final AbstractConcurrentResourceAccessor<SnmpClient> client,
                                         final Logger logger,
-                                        final boolean expandable){
+                                        final boolean expandable,
+                                        final Duration discoveryTimeout){
             super(resourceName, SnmpAttributeInfo.class, expandable);
             this.client = client;
             this.logger = Objects.requireNonNull(logger);
+            this.discoveryTimeout = Objects.requireNonNull(discoveryTimeout);
             this.executor = client.read(cl -> cl.queryObject(ExecutorService.class));
         }
 
@@ -681,7 +684,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
 
         private List<SnmpAttributeInfo> expandImpl(final SnmpClient client) throws InterruptedException, ExecutionException, TimeoutException, OpenDataException {
             final LinkedList<SnmpAttributeInfo> result = new LinkedList<>();
-            for (final VariableBinding binding : client.walk(SnmpConnectorHelpers.getDiscoveryTimeout())) {
+            for (final VariableBinding binding : client.walk(discoveryTimeout)) {
                 final Map<String, String> parameters = new HashMap<>(5);
                 parameters.put(AUTOMATICALLY_ADDED_KEY, Boolean.TRUE.toString());
                 if (binding.getVariable() instanceof OctetString)
@@ -723,10 +726,11 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
 
     SnmpResourceConnector(final String resourceName,
                           final String connectionString,
-                          final Map<String, String> parameters) throws IOException {
+                          final Map<String, String> parameters,
+                          final Duration discoveryTimeout) throws IOException {
         final boolean smartMode = SnmpConnectorDescriptionProvider.getInstance().isSmartModeEnabled(parameters);
         client = new ConcurrentResourceAccessor<>(SnmpConnectorDescriptionProvider.getInstance().createSnmpClient(GenericAddress.parse(connectionString), parameters));
-        attributes = new SnmpAttributeRepository(resourceName, client, getLogger(), smartMode);
+        attributes = new SnmpAttributeRepository(resourceName, client, getLogger(), smartMode, discoveryTimeout);
         notifications = new SnmpNotificationRepository(resourceName,
                 client,
                 Utils.getBundleContextOfObject(this),

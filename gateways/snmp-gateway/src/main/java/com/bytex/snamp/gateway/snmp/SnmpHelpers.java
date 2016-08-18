@@ -1,8 +1,11 @@
 package com.bytex.snamp.gateway.snmp;
 
 import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.configuration.ConfigurationManager;
+import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.io.IOUtils;
 import com.google.common.primitives.Shorts;
+import org.osgi.framework.BundleContext;
 import org.snmp4j.agent.MOAccess;
 import org.snmp4j.agent.mo.MOAccessImpl;
 import org.snmp4j.agent.mo.MOColumn;
@@ -26,12 +29,16 @@ import java.util.regex.Pattern;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
 import static com.bytex.snamp.gateway.snmp.OctetStringHelper.SNMP_ENCODING;
+import static com.google.common.base.MoreObjects.firstNonNull;
 
 /**
  * @author Roman Sakno
  */
 final class SnmpHelpers {
-    private static final String AUTO_PREFIX_PROPERTY = "com.bytex.snamp.gateway.snmp.oidPrefix";
+    /**
+     * A global property in SNAMP configuration used as OID prefix for all automatically generated OIDs.
+     */
+    private static final String AUTO_PREFIX_PROPERTY = "oidPrefix";
 
     private static final TimeZone ZERO_TIME_ZONE = new SimpleTimeZone(0, "UTC");
     private static final AtomicInteger POSTFIX_COUNTER = new AtomicInteger(1);
@@ -363,8 +370,19 @@ final class SnmpHelpers {
         return new OID(prefix).append(POSTFIX_COUNTER.getAndIncrement()).append(0);
     }
 
-    static final Supplier<OID> OID_GENERATOR = () -> {
-        final OID prefix = new OID(new OID(System.getProperty(AUTO_PREFIX_PROPERTY, "1.1")));
-        return generateOID(prefix);
-    };
+    static Supplier<OID> getOidGenerator(final BundleContext context){
+        final ServiceHolder<ConfigurationManager> manager = ServiceHolder.tryCreate(context, ConfigurationManager.class);
+        String prefix = "1.1";
+        if(manager != null)
+            try{
+                prefix = manager.get().transformConfiguration(config -> config.getParameters().get(AUTO_PREFIX_PROPERTY));
+            } catch (final IOException e){
+                log(Level.SEVERE, "Unable to get SNAMP configuration manager", e);
+            }finally {
+                manager.release(context);
+            }
+
+        final OID oidPrefix = new OID(firstNonNull(prefix, "1.1"));
+        return () -> generateOID(oidPrefix);
+    }
 }

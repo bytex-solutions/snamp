@@ -4,6 +4,7 @@ import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.MutableInteger;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.gateway.modeling.AttributeAccessor;
+import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.TabularDataUtils;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
@@ -29,6 +30,7 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 
 import static com.bytex.snamp.gateway.snmp.SnmpGatewayDescriptionProvider.parseOID;
@@ -634,10 +636,14 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
         else return false;
     }
 
+    private Supplier<OID> getOidGenerator(){
+        return SnmpHelpers.getOidGenerator(Utils.getBundleContextOfObject(this));
+    }
+
     @Override
     public boolean equals(final MBeanAttributeInfo metadata) {
         try {
-            return Objects.equals(getID(), new OID(parseOID(metadata, SnmpHelpers.OID_GENERATOR)));
+            return Objects.equals(getID(), new OID(parseOID(metadata, getOidGenerator())));
         } catch (final ParseException ignored) {
             return false;
         }

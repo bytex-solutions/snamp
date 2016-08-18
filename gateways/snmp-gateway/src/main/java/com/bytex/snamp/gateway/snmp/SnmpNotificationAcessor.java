@@ -2,6 +2,7 @@ package com.bytex.snamp.gateway.snmp;
 
 import com.bytex.snamp.gateway.modeling.NotificationAccessor;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
+import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.WellKnownType;
 import org.snmp4j.agent.NotificationOriginator;
 import org.snmp4j.agent.mo.snmp.TransportDomains;
@@ -15,6 +16,7 @@ import javax.management.Notification;
 import java.lang.ref.WeakReference;
 import java.text.ParseException;
 import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 import static com.bytex.snamp.gateway.snmp.SnmpGatewayDescriptionProvider.*;
@@ -35,7 +37,8 @@ final class SnmpNotificationAcessor extends NotificationAccessor implements Snmp
         super(metadata);
         this.notificationOriginator = null;
         this.resourceName = resourceName;
-        notificationID = parseOID(metadata, SnmpHelpers.OID_GENERATOR);
+        final Supplier<OID> oidgen = SnmpHelpers.getOidGenerator(Utils.getBundleContextOfObject(this));
+        notificationID = parseOID(metadata, oidgen);
     }
 
     @Override

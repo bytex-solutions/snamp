@@ -10,7 +10,7 @@ import com.bytex.snamp.connector.discovery.DiscoveryService;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.core.AbstractServiceLibrary;
-import com.bytex.snamp.core.FrameworkService;
+import com.bytex.snamp.core.SupportService;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.management.Maintainable;
 import com.google.common.collect.Maps;
@@ -337,6 +337,15 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
     }
 
     /**
+     * Represents activator for support service.
+     * @param <T> Type of support service.
+     * @since 2.0
+     */
+    protected interface SupportServiceActivator<T extends SupportService>{
+        T activateService(final RequiredService<?>... dependencies) throws Exception;
+    }
+
+    /**
      * Represents superclass for all-optional resource connector service providers.
      * You cannot derive from this class directly.
      * @param <S> Type of the gateway-related service contract.
@@ -344,22 +353,24 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
      * @author Roman Sakno
      * @since 1.0
      * @version 2.0
-     * @see #maintenanceService(Supplier)
-     * @see #discoveryService(Function, RequiredService[])
-     * @see #configurationDescriptor(Supplier)
+     * @see #maintenanceService(SupportServiceActivator, RequiredService[])
+     * @see #discoveryService(SupportServiceActivator, RequiredService[])
+     * @see #configurationDescriptor(SupportServiceActivator, RequiredService[])
      */
-    protected static abstract class SupportConnectorServiceManager<S extends FrameworkService, T extends S> extends ProvidedService<S, T> {
+    protected static final class SupportConnectorServiceManager<S extends SupportService, T extends S> extends ProvidedService<S, T> {
+        private final SupportServiceActivator<T> activator;
 
-        private SupportConnectorServiceManager(final Class<S> contract, final RequiredService<?>... dependencies) {
+        private SupportConnectorServiceManager(final Class<S> contract,
+                                               final SupportServiceActivator<T> activator,
+                                               final RequiredService<?>... dependencies) {
             super(contract, dependencies);
+            this.activator = Objects.requireNonNull(activator);
         }
 
-        abstract T activateService(final RequiredService<?>... dependencies) throws Exception;
-
         @Override
-        protected final T activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception {
+        protected T activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception {
             identity.put(CONNECTION_TYPE_IDENTITY_PROPERTY, getConnectorName());
-            return activateService(dependencies);
+            return activator.activateService(dependencies);
         }
 
         /**
@@ -373,19 +384,6 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
          */
         private String getConnectorName() {
             return getActivationPropertyValue(CONNECTOR_TYPE_HOLDER);
-        }
-
-        /**
-         * Gets logger associated with the managed resource connector.
-         * <p>
-         *     This property is available when this manager is in {@link com.bytex.snamp.core.AbstractBundleActivator.ActivationState#ACTIVATED}
-         *     state only.
-         * </p>
-         * @return A logger associated with the managed resource connector.
-         * @see #getState()
-         */
-        protected final Logger getLogger() {
-            return getActivationPropertyValue(LOGGER_HOLDER);
         }
     }
 
@@ -401,31 +399,27 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                 optionalServices);
     }
 
+    protected static <T extends ConfigurationEntityDescriptionProvider> SupportConnectorServiceManager<ConfigurationEntityDescriptionProvider, T> configurationDescriptor(final SupportServiceActivator<T> factory,
+                                                                                                                                                                          final RequiredService<?>... dependencies) {
+        return new SupportConnectorServiceManager<>(ConfigurationEntityDescriptionProvider.class, factory, dependencies);
+    }
+
     protected static <T extends ConfigurationEntityDescriptionProvider> SupportConnectorServiceManager<ConfigurationEntityDescriptionProvider, T> configurationDescriptor(final Supplier<T> factory){
-        return new SupportConnectorServiceManager<ConfigurationEntityDescriptionProvider, T>(ConfigurationEntityDescriptionProvider.class) {
-            @Override
-            T activateService(final RequiredService<?>... dependencies) {
-                return factory.get();
-            }
-        };
+        return configurationDescriptor(dependencies -> factory.get());
     }
 
-    protected static <T extends Maintainable> SupportConnectorServiceManager<Maintainable,T> maintenanceService(final Supplier<T> factory) {
-        return new SupportConnectorServiceManager<Maintainable, T>(Maintainable.class) {
-            @Override
-            T activateService(RequiredService<?>... dependencies) {
-                return factory.get();
-            }
-        };
+    protected static <T extends Maintainable> SupportConnectorServiceManager<Maintainable,T> maintenanceService(final SupportServiceActivator<T> factory,
+                                                                                                                final RequiredService<?>... dependencies) {
+        return new SupportConnectorServiceManager<>(Maintainable.class, factory, dependencies);
     }
 
-    protected static <T extends DiscoveryService> SupportConnectorServiceManager<DiscoveryService, T> discoveryService(final Function<RequiredService<?>[], T> factory, final RequiredService<?>... dependencies) {
-        return new SupportConnectorServiceManager<DiscoveryService, T>(DiscoveryService.class, dependencies) {
-            @Override
-            T activateService(final RequiredService<?>... dependencies) {
-                return factory.apply(dependencies);
-            }
-        };
+    protected static <T extends Maintainable> SupportConnectorServiceManager<Maintainable,T> maintenanceService(final Supplier<T> factory){
+        return maintenanceService(dependencies -> factory.get());
+    }
+
+    protected static <T extends DiscoveryService> SupportConnectorServiceManager<DiscoveryService, T> discoveryService(final SupportServiceActivator<T> factory,
+                                                                                                                       final RequiredService<?>... dependencies) {
+        return new SupportConnectorServiceManager<>(DiscoveryService.class, factory, dependencies);
     }
 
     /**

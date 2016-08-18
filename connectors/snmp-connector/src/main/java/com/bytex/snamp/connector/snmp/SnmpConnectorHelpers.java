@@ -5,8 +5,8 @@ import org.snmp4j.smi.OID;
 import javax.management.openmbean.ArrayType;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.SimpleType;
-import java.time.Duration;
 import java.util.Arrays;
+
 import static com.bytex.snamp.ArrayUtils.emptyArray;
 
 /**
@@ -15,7 +15,6 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
  * @since 1.0
  */
 final class SnmpConnectorHelpers {
-    private static final String DISCOVERY_TIMEOUT_PROPERTY = "com.bytex.snamp.connector.snmp.discoveryTimeout";
 
     private SnmpConnectorHelpers(){
 
@@ -38,9 +37,5 @@ final class SnmpConnectorHelpers {
         } catch (final OpenDataException e) {
             throw new ExceptionInInitializerError(e);
         }
-    }
-
-    static Duration getDiscoveryTimeout(){
-        return Duration.ofMillis(Long.parseLong(System.getProperty(DISCOVERY_TIMEOUT_PROPERTY, "5000")));
     }
 }

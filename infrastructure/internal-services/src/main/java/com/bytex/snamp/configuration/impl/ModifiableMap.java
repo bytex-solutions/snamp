@@ -26,6 +26,12 @@ abstract class ModifiableMap<K, V> extends ForwardingMap<K, V> implements Extern
         return delegate().remove(key);
     }
 
+    final void importFrom(final Map<? extends K, ? extends V> values){
+        delegate().clear();
+        delegate().putAll(values);
+        modified = true;
+    }
+
     @Override
     public final void clear() {
         modified = true;

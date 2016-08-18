@@ -36,8 +36,7 @@ abstract class AbstractEntityConfiguration implements Resettable, SerializableEn
 
     @Override
     public final void setParameters(final Map<String, String> value) {
-        parameters.clear();
-        parameters.putAll(value);
+        parameters.importFrom(value);
     }
 
     final void markAsModified() {

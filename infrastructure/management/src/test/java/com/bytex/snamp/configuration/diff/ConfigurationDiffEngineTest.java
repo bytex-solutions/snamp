@@ -14,7 +14,7 @@ import java.time.temporal.ChronoUnit;
  */
 public final class ConfigurationDiffEngineTest extends Assert {
     @Test
-    public void renameResourceTest(){
+    public void renameResourceTest() throws CloneNotSupportedException {
         final AgentConfiguration baseline = new SerializableAgentConfiguration();
         final ManagedResourceConfiguration resource = baseline.getEntities(ManagedResourceConfiguration.class).getOrAdd("resource1");
         final AttributeConfiguration attr = resource
@@ -39,7 +39,7 @@ public final class ConfigurationDiffEngineTest extends Assert {
     }
 
     @Test
-    public void attributeAddRemoveTest(){
+    public void attributeAddRemoveTest() throws CloneNotSupportedException {
         final AgentConfiguration baseline = new SerializableAgentConfiguration();
         ManagedResourceConfiguration resource = baseline.getEntities(ManagedResourceConfiguration.class).getOrAdd("resource1");
         AttributeConfiguration attr = resource
@@ -83,7 +83,7 @@ public final class ConfigurationDiffEngineTest extends Assert {
     }
 
     @Test
-    public void diffTest(){
+    public void diffTest() throws CloneNotSupportedException {
         final AgentConfiguration baseline = new SerializableAgentConfiguration();
         final ManagedResourceConfiguration resource = baseline.getEntities(ManagedResourceConfiguration.class).getOrAdd("resource1");
         final AttributeConfiguration attr = resource

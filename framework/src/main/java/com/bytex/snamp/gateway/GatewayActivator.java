@@ -6,7 +6,7 @@ import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.configuration.internal.CMGatewayParser;
 import com.bytex.snamp.core.AbstractServiceLibrary;
-import com.bytex.snamp.core.FrameworkService;
+import com.bytex.snamp.core.SupportService;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.ObjectArrays;
 import org.osgi.framework.Bundle;
@@ -177,6 +177,15 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
     }
 
     /**
+     * Represents activator for support service.
+     * @param <T> Type of support service.
+     * @since 2.0
+     */
+    protected interface SupportServiceActivator<T extends SupportService>{
+        T activateService(final RequiredService<?>... dependencies) throws Exception;
+    }
+
+    /**
      * Represents superclass for all optional gateway-related service factories.
      * You cannot derive from this class directly.
      * @param <S> Type of the gateway-related service contract.
@@ -186,17 +195,20 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
      * @version 2.0
      * @see #configurationDescriptor(Supplier)
      */
-    protected abstract static class SupportGatewayServiceManager<S extends FrameworkService, T extends S> extends ProvidedService<S, T>{
-        private SupportGatewayServiceManager(final Class<S> contract, final RequiredService<?>... dependencies) {
+    protected final static class SupportGatewayServiceManager<S extends SupportService, T extends S> extends ProvidedService<S, T>{
+        private final SupportServiceActivator<T> activator;
+
+        private SupportGatewayServiceManager(final Class<S> contract,
+                                             final SupportServiceActivator<T> activator,
+                                             final RequiredService<?>... dependencies) {
             super(contract, dependencies);
+            this.activator = Objects.requireNonNull(activator);
         }
 
-        abstract T activateService(final RequiredService<?>... dependencies);
-
         @Override
-        protected final T activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) {
+        protected T activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws Exception {
             identity.put(GATEWAY_TYPE_IDENTITY_PROPERTY, getGatewayType());
-            return activateService(dependencies);
+            return activator.activateService(dependencies);
         }
 
         /**
@@ -235,13 +247,13 @@ public class GatewayActivator<G extends AbstractGateway> extends AbstractService
         this(new GatewayInstances<>(factory, gatewayDependencies), optionalServices);
     }
 
+    protected static <T extends ConfigurationEntityDescriptionProvider> SupportGatewayServiceManager<ConfigurationEntityDescriptionProvider, T> configurationDescriptor(final SupportServiceActivator<T> factory,
+                                                                                                                                                                        final RequiredService<?>... dependencies) {
+        return new SupportGatewayServiceManager<>(ConfigurationEntityDescriptionProvider.class, factory, dependencies);
+    }
+
     protected static <T extends ConfigurationEntityDescriptionProvider> SupportGatewayServiceManager<ConfigurationEntityDescriptionProvider, T> configurationDescriptor(final Supplier<T> factory) {
-        return new SupportGatewayServiceManager<ConfigurationEntityDescriptionProvider, T>(ConfigurationEntityDescriptionProvider.class) {
-            @Override
-            T activateService(final RequiredService<?>... dependencies) {
-                return factory.get();
-            }
-        };
+        return configurationDescriptor(dependencies -> factory.get());
     }
 
     public final String getGatewayType() {

@@ -116,7 +116,6 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         PUBLISHED
     }
 
-
     /**
      * Represents a holder for the provided service.
      * <p>
@@ -153,6 +152,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             this(() -> new Class[]{contract}, dependencies);
         }
 
+        @SafeVarargs
         protected ProvidedService(final Class<S> mainContract, final RequiredService<?>[] dependencies, final Class<? super S>... subContracts){
             this(() -> ObjectArrays.concat(mainContract, subContracts), dependencies);
         }

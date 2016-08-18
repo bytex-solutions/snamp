@@ -7,6 +7,7 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.Map;
 import java.util.Objects;
 import static com.bytex.snamp.configuration.impl.AbstractManagedResourceTemplate.*;
 
@@ -16,7 +17,7 @@ import static com.bytex.snamp.configuration.impl.AbstractManagedResourceTemplate
  * @since 1.2
  * @version 2.0
  */
-public final class SerializableAgentConfiguration extends AbstractAgentConfiguration implements Externalizable {
+public final class SerializableAgentConfiguration extends AbstractAgentConfiguration implements Externalizable, Modifiable, Resettable {
     private final static byte FORMAT_VERSION = 3;
     private static final long serialVersionUID = 8461144056430141155L;
 
@@ -24,6 +25,7 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
     private final ConfigurationEntityList<SerializableThreadPoolConfiguration> threadPools;
     private final ConfigurationEntityList<SerializableManagedResourceGroupConfiguration> groups;
     private final ConfigurationEntityList<SerializableManagedResourceConfiguration> resources;
+    private final ModifiableParameters parameters;
 
     /**
      * Initializes a new empty agent configuration.
@@ -34,6 +36,22 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
         threadPools = new ThreadPoolList();
         groups = new ResourceGroupList();
         resources = new ManagedResourceList();
+        parameters = new ModifiableParameters();
+    }
+
+    /**
+     * Gets SNAMP configuration parameters.
+     *
+     * @return SNAMP configuration parameters.
+     */
+    @Override
+    public Map<String, String> getParameters() {
+        return parameters;
+    }
+
+    @Override
+    public void setParameters(final Map<String, String> value) {
+        parameters.importFrom(value);
     }
 
     /**
@@ -41,7 +59,6 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
      *
      * @return A new cloned instance of the {@link SerializableAgentConfiguration}.
      */
-    @SuppressWarnings("CloneDoesntCallSuperClone")
     @Override
     public SerializableAgentConfiguration clone() {
         final SerializableAgentConfiguration clonedConfig = new SerializableAgentConfiguration();
@@ -50,11 +67,18 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
         return clonedConfig;
     }
 
-    private void reset() {
+    @Override
+    public boolean isModified() {
+        return gateways.isModified() || threadPools.isModified() || groups.isModified() || resources.isModified() || parameters.isModified();
+    }
+
+    @Override
+    public void reset() {
         gateways.reset();
         threadPools.reset();
         groups.reset();
         resources.reset();
+        parameters.reset();
     }
 
     /**
@@ -114,8 +138,8 @@ public final class SerializableAgentConfiguration extends AbstractAgentConfigura
      * Determines whether this configuration is empty.
      * @return {@literal true}, if this configuration is empty; otherwise, {@literal false}.
      */
-    boolean isEmpty(){
-        return gateways.isEmpty() && resources.isEmpty() && groups.isEmpty() && threadPools.isEmpty();
+    boolean hasNoInnerItems(){
+        return gateways.isEmpty() && resources.isEmpty() && groups.isEmpty() && threadPools.isEmpty() && parameters.isEmpty();
     }
 
     @SuppressWarnings("unchecked")

@@ -10,6 +10,7 @@ import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.Variable;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -25,14 +26,21 @@ import static com.bytex.snamp.connector.snmp.SnmpConnectorDescriptionProvider.SN
  * @since 1.0
  */
 final class SnmpDiscoveryService extends AbstractDiscoveryService<SnmpClient> {
+    private final Duration discoveryTimeout;
+
+    SnmpDiscoveryService(final Duration discoveryTimeout){
+        this.discoveryTimeout = Objects.requireNonNull(discoveryTimeout);
+    }
 
     private static void setupAttributeOptions(final Variable v, final Map<String, String> options){
         if(v instanceof OctetString)
             options.put(SNMP_CONVERSION_FORMAT_PARAM, OctetStringConversionFormat.adviceFormat((OctetString) v));
     }
 
-    private static Collection<AttributeConfiguration> discoverAttributes(final ClassLoader context, final SnmpClient client) throws TimeoutException, InterruptedException, ExecutionException {
-        return client.walk(SnmpConnectorHelpers.getDiscoveryTimeout()).stream()
+    private static Collection<AttributeConfiguration> discoverAttributes(final ClassLoader context,
+                                                                         final SnmpClient client,
+                                                                         final Duration discoveryTimeout) throws TimeoutException, InterruptedException, ExecutionException {
+        return client.walk(discoveryTimeout).stream()
                 .map(input ->{
                     final AttributeConfiguration config = ConfigurationManager.createEntityConfiguration(context, AttributeConfiguration.class);
                     if(config != null) {
@@ -46,9 +54,12 @@ final class SnmpDiscoveryService extends AbstractDiscoveryService<SnmpClient> {
     }
 
     @SuppressWarnings("unchecked")
-    private static  <T extends FeatureConfiguration> Collection<T> discover(final ClassLoader context, final Class<T> entityType, final SnmpClient client) throws TimeoutException, InterruptedException, ExecutionException {
+    private static  <T extends FeatureConfiguration> Collection<T> discover(final ClassLoader context,
+                                                                            final Class<T> entityType,
+                                                                            final SnmpClient client,
+                                                                            final Duration discoveryTimeout) throws TimeoutException, InterruptedException, ExecutionException {
         if (Objects.equals(entityType, AttributeConfiguration.class))
-            return (Collection<T>) discoverAttributes(context, client);
+            return (Collection<T>) discoverAttributes(context, client, discoveryTimeout);
         else return Collections.emptyList();
     }
 
@@ -66,6 +77,6 @@ final class SnmpDiscoveryService extends AbstractDiscoveryService<SnmpClient> {
 
     @Override
     protected <T extends FeatureConfiguration> Collection<T> getEntities(final Class<T> entityType, final SnmpClient client) throws InterruptedException, ExecutionException, TimeoutException {
-        return discover(getClass().getClassLoader(), entityType, client);
+        return discover(getClass().getClassLoader(), entityType, client, discoveryTimeout);
     }
 }

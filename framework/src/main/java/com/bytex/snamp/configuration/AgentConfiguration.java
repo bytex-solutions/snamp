@@ -1,5 +1,7 @@
 package com.bytex.snamp.configuration;
 
+import java.util.Map;
+
 /**
  * Represents in-memory representation of the agent configuration.
  * <p>The agent configuration consists of the following parts:
@@ -25,14 +27,18 @@ package com.bytex.snamp.configuration;
  * @since 1.0
  * @version 2.0
  */
-public interface AgentConfiguration extends Cloneable {
+public interface AgentConfiguration extends Cloneable, EntityConfiguration {
+    /**
+     * Global configuration parameter used to setup timeout for features discovery.
+     */
+    String DISCOVERY_TIMEOUT_PROPERTY = "discoveryTimeout";
 
     /**
      * Creates clone of this configuration.
      * @return The cloned instance of this configuration.
+     * @throws CloneNotSupportedException This configuration cannot be cloned.
      */
-    @SuppressWarnings("CloneDoesntDeclareCloneNotSupportedException")
-    AgentConfiguration clone();
+    AgentConfiguration clone() throws CloneNotSupportedException;
 
     /**
      * Obtains a repository of configuration entities.
@@ -63,4 +69,9 @@ public interface AgentConfiguration extends Cloneable {
      */
     void clear();
 
+    /**
+     * Gets SNAMP configuration parameters.
+     * @return SNAMP configuration parameters.
+     */
+    Map<String, String> getParameters();
 }

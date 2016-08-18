@@ -4,6 +4,7 @@ import com.bytex.snamp.gateway.modeling.AttributeAccessor;
 import com.bytex.snamp.gateway.modeling.ReadAttributeLogicalOperation;
 import com.bytex.snamp.gateway.modeling.WriteAttributeLogicalOperation;
 import com.bytex.snamp.core.LogicalOperation;
+import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.WellKnownType;
 import org.snmp4j.agent.DuplicateRegistrationException;
 import org.snmp4j.agent.MOServer;
@@ -20,6 +21,7 @@ import javax.management.ReflectionException;
 import java.lang.reflect.Type;
 import java.text.ParseException;
 import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 
 import static com.bytex.snamp.gateway.snmp.SnmpHelpers.getAccessRestrictions;
@@ -164,10 +166,14 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
         return accessor;
     }
 
+    private Supplier<OID> getOidGenerator(){
+        return SnmpHelpers.getOidGenerator(Utils.getBundleContextOfObject(this));
+    }
+
     @Override
     public final boolean equals(final MBeanAttributeInfo metadata) {
         try {
-            return Objects.equals(getID(), parseOID(metadata, SnmpHelpers.OID_GENERATOR));
+            return Objects.equals(getID(), parseOID(metadata, getOidGenerator()));
         } catch (final ParseException ignored) {
             return false;
         }
