@@ -4,7 +4,6 @@ import com.bytex.snamp.concurrent.Repeater;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
-import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.attributes.OpenAttributeRepository;
 import com.bytex.snamp.connector.metrics.MetricsReader;
 import com.bytex.snamp.connector.notifications.AbstractNotificationRepository;
@@ -31,10 +30,10 @@ import java.util.logging.Logger;
  * @version 2.0
  * @since 1.0
  */
-public final class AggregatorResourceConnector extends AbstractManagedResourceConnector implements AttributeSupport {
+public final class AggregatorResourceConnector extends AbstractManagedResourceConnector {
     private static final class AttributeAggregationRepository extends OpenAttributeRepository<AbstractAttributeAggregation> {
         private AttributeAggregationRepository(final String resourceName){
-            super(resourceName, AbstractAttributeAggregation.class);
+            super(resourceName, AbstractAttributeAggregation.class, false);
         }
 
         private BundleContext getBundleContext(){
@@ -82,7 +81,8 @@ public final class AggregatorResourceConnector extends AbstractManagedResourceCo
                                                   final BundleContext context) {
             super(resourceName,
                     AbstractAggregatorNotification.class,
-                    DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName)));
+                    DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName)),
+                    false);
             invoker = NotificationListenerInvokerFactory.createSequentialInvoker();
         }
 

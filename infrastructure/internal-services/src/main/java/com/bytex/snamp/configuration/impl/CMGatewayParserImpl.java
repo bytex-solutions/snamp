@@ -15,6 +15,7 @@ import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Map;
+import static com.bytex.snamp.gateway.Gateway.CAPABILITY_NAMESPACE;
 
 /**
  * @author Roman Sakno
@@ -22,7 +23,7 @@ import java.util.Map;
  * @since 1.0
  */
 final class CMGatewayParserImpl extends AbstractConfigurationParser<SerializableGatewayConfiguration> implements CMGatewayParser {
-    private static final String GATEWAY_PID_TEMPLATE = "com.bytex.snamp.gateway.%s";
+    private static final String GATEWAY_PID_TEMPLATE = CAPABILITY_NAMESPACE + ".%s";
     private static final String GATEWAY_INSTANCE_NAME_PROPERTY = "$gatewayInstanceName$";
     private static final String ALL_GATEWAYS_QUERY = String.format("(%s=%s)", Constants.SERVICE_PID, String.format(GATEWAY_PID_TEMPLATE, "*"));
 

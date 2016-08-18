@@ -23,6 +23,7 @@ import java.util.Hashtable;
 import java.util.Map;
 
 import static com.bytex.snamp.configuration.impl.SerializableManagedResourceConfiguration.*;
+import static com.bytex.snamp.connector.ManagedResourceConnector.CAPABILITY_NAMESPACE;
 
 /**
  * @author Roman Sakno
@@ -34,7 +35,7 @@ final class CMManagedResourceParserImpl extends AbstractConfigurationParser<Seri
     private static final TypeToken<SerializableMap<String, SerializableEventConfiguration>> EVENTS_MAP_TYPE = new TypeToken<SerializableMap<String, SerializableEventConfiguration>>() {};
     private static final TypeToken<SerializableMap<String, SerializableOperationConfiguration>> OPS_MAP_TYPE = new TypeToken<SerializableMap<String, SerializableOperationConfiguration>>() {};
 
-    private static final String CONNECTOR_PID_TEMPLATE = "com.bytex.snamp.connector.%s";
+    private static final String CONNECTOR_PID_TEMPLATE = CAPABILITY_NAMESPACE + ".%s";
     private static final String RESOURCE_NAME_PROPERTY = "$resourceName$";
     private static final String CONNECTION_STRING_PROPERTY = "$connectionString$";
     private static final String ATTRIBUTES_PROPERTY = "$attributes$";

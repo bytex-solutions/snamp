@@ -19,10 +19,7 @@ import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
 import java.math.BigInteger;
 import java.time.Duration;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -69,18 +66,22 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
 
     private final KeyedObjects<String, AttributeHolder<M>> attributes;
     private final AttributeMetricsWriter metrics;
+    private final boolean expandable;
 
     /**
      * Initializes a new support of management attributes.
      *
      * @param resourceName          The name of the managed resource.
      * @param attributeMetadataType The type of the attribute metadata.
+     * @param expandable {@literal true}, if repository can be populated automatically; otherwise, {@literal false}.
      */
     protected AbstractAttributeRepository(final String resourceName,
-                                          final Class<M> attributeMetadataType) {
+                                          final Class<M> attributeMetadataType,
+                                          final boolean expandable) {
         super(resourceName, attributeMetadataType);
         attributes = AbstractKeyedObjects.create(holder -> holder.getMetadata().getName());
         metrics = new AttributeMetricsWriter();
+        this.expandable = expandable;
     }
 
     //this method should be called AFTER registering attribute in this manager
@@ -593,6 +594,27 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
                 result.addItem(attributeInfo.getName(), attributeInfo.getDescription(), attributeType);
         }
         return result.build();
+    }
+
+    /**
+     * Populate this repository with attributes.
+     *
+     * @return A collection of registered attributes; or empty collection if nothing tot populate.
+     */
+    @Override
+    public Collection<? extends M> expandAttributes() {
+        return Collections.emptyList();
+    }
+
+    /**
+     * Determines whether this repository can be populated with attributes using call of {@link #expandAttributes()}.
+     *
+     * @return {@literal true}, if this repository can be populated; otherwise, {@literal false}.
+     * @since 2.0
+     */
+    @Override
+    public final boolean canExpandAttributes() {
+        return expandable;
     }
 
     protected final void failedToExpand(final Logger logger, final Level level, final Exception e){

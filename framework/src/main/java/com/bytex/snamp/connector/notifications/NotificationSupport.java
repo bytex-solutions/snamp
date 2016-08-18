@@ -5,6 +5,7 @@ import com.bytex.snamp.configuration.EventConfiguration;
 
 import javax.management.MBeanNotificationInfo;
 import javax.management.NotificationBroadcaster;
+import java.util.Collection;
 
 /**
  * Provides notification support for management connector.
@@ -50,6 +51,21 @@ public interface NotificationSupport extends NotificationBroadcaster {
      * @return {@literal true}, if events are suspended; otherwise {@literal false}.
      */
     boolean isSuspended();
+
+    /**
+     * Determines whether this repository can be populated with notifications using call of {@link #expandNotifications()}.
+     * @return {@literal true}, if this repository can be populated; otherwise, {@literal false}.
+     * @since 2.0
+     */
+    boolean canExpandNotifications();
+
+    /**
+     * Populate this repository with notifications.
+     *
+     * @return A collection of registered notifications; or empty collection if nothing to populate.
+     * @since 2.0
+     */
+    Collection<? extends MBeanNotificationInfo> expandNotifications();
 
     /**
      * Suspends or activate raising of events.

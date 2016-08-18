@@ -362,7 +362,7 @@ public class ManagedResourceActivator<TConnector extends ManagedResourceConnecto
                     configuration.getFeatures(OperationConfiguration.class));
             //expansion should be the last instruction in this method because updating procedure
             //may remove all automatically added attributes
-            AbstractManagedResourceConnector.expandAll(connector);
+            ManagedResourceConnector.expandAll(connector);
         }
 
         private static ManagedResourceConfiguration getNewConfiguration(final String resourceName, final ConfigurationManager manager) throws IOException {

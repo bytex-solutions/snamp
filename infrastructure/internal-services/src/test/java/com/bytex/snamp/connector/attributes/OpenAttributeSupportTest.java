@@ -44,7 +44,7 @@ public final class OpenAttributeSupportTest extends Assert {
     private static final class Attributes extends OpenAttributeRepository {
         @SuppressWarnings("unchecked")
         private Attributes() {
-            super("TEST RESOURCE", OpenMBeanAttributeAccessor.class);
+            super("TEST RESOURCE", OpenMBeanAttributeAccessor.class, false);
         }
 
         @Override

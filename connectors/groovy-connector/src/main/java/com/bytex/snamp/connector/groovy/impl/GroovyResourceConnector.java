@@ -102,7 +102,8 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
                                              final BundleContext context){
             super(resourceName,
                     GroovyNotificationInfo.class,
-                    DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName)));
+                    DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName)),
+                    false);
             this.connector = Objects.requireNonNull(connector);
             final ExecutorService executor = Executors.newSingleThreadExecutor(new GroupedThreadFactory("notifications-".concat(resourceName)));
             this.listenerInvoker = createListenerInvoker(executor);
@@ -182,7 +183,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
 
         private GroovyAttributeRepository(final String resourceName,
                                           final AttributeConnector connector){
-            super(resourceName, GroovyAttributeInfo.class);
+            super(resourceName, GroovyAttributeInfo.class, false);
             this.connector = Objects.requireNonNull(connector);
         }
         @Override

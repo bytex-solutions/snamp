@@ -234,11 +234,6 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
         return attributes != null ? attributes.getAttributeInfo() : emptyArray(MBeanAttributeInfo[].class);
     }
 
-    public MBeanAttributeInfo getAttributeInfo(final String attributeName){
-        final AttributeSupport attributes = queryObject(AttributeSupport.class);
-        return attributes != null ? attributes.getAttributeInfo(attributeName) : null;
-    }
-
     /**
      * Gets an array of supported notifications.
      * @return An array of supported notifications.
@@ -248,11 +243,6 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
         return notifs != null ? notifs.getNotificationInfo() : emptyArray(MBeanNotificationInfo[].class);
     }
 
-    public MBeanNotificationInfo getNotificationInfo(final String notificationType){
-        final NotificationSupport notifs = queryObject(NotificationSupport.class);
-        return notifs != null ? notifs.getNotificationInfo(notificationType) : null;
-    }
-
     /**
      * Gets an array of supported operations.
      * @return An array of supported operations.
@@ -260,11 +250,6 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
     public MBeanOperationInfo[] getOperationInfo(){
         final OperationSupport ops = queryObject(OperationSupport.class);
         return ops != null ? ops.getOperationInfo() : emptyArray(MBeanOperationInfo[].class);
-    }
-
-    public MBeanOperationInfo getOperationInfo(final String operationName){
-        final OperationSupport ops = queryObject(OperationSupport.class);
-        return ops != null ? ops.getOperationInfo(operationName) : null;
     }
 
     /**
@@ -369,71 +354,6 @@ public abstract class AbstractManagedResourceConnector extends AbstractFramework
     public static Logger getLogger(final Class<? extends ManagedResourceConnector> connectorType){
         return getLogger(getConnectorType(connectorType));
     }
-
-    /**
-     * Determines whether the connector may automatically expanded with features without predefined configuration.
-     * @param featureType Type of the feature. Cannot be {@literal null}.
-     * @return {@literal true}, if this connector supports automatic registration of its features; otherwise, {@literal false}.
-     */
-    @Override
-    public boolean canExpandWith(final Class<? extends MBeanFeatureInfo> featureType) {
-        return false;
-    }
-
-    /**
-     * Expands this connector with features of the specified type.
-     * @param featureType The type of the feature that this connector may automatically registers.
-     * @param <F> Type of the feature class.
-     * @return A collection of registered features.
-     */
-    @Override
-    public <F extends MBeanFeatureInfo> Collection<? extends F> expand(final Class<F> featureType){
-        return Collections.emptyList();
-    }
-
-    /**
-     * Fully expands connector with all possible features.
-     * @param connector An instance of the connector to expand.
-     * @return A list of features that automatically discovered and registered by connector itself.
-     */
-    public static Collection<? extends MBeanFeatureInfo> expandAll(final ManagedResourceConnector connector) {
-        final List<MBeanFeatureInfo> result = new LinkedList<>();
-        if (connector.canExpandWith(MBeanAttributeInfo.class))
-            result.addAll(connector.expand(MBeanAttributeInfo.class));
-        if (connector.canExpandWith(MBeanNotificationInfo.class))
-            result.addAll(connector.expand(MBeanNotificationInfo.class));
-        if (connector.canExpandWith(MBeanOperationInfo.class))
-            result.addAll(connector.expand(MBeanOperationInfo.class));
-        return result;
-    }
-
-    /**
-     * Fully expands this connector with all possible features.
-     * @return A list of features that automatically discovered and registered by connector itself.
-     */
-    public final Collection<? extends MBeanFeatureInfo> expandAll(){
-        return expandAll(this);
-    }
-
-    /**
-     * Determines whether the Smart-mode is supported by the specified connector.
-     * @param connector An instance of the connector. Cannot be {@literal null}.
-     * @return {@literal true}, if Smart-mode is supported; otherwise, {@literal false}.
-     */
-    public static boolean isSmartModeSupported(final ManagedResourceConnector connector){
-        return connector.canExpandWith(MBeanAttributeInfo.class) ||
-                connector.canExpandWith(MBeanNotificationInfo.class) ||
-                connector.canExpandWith(MBeanOperationInfo.class);
-    }
-
-    /**
-     * Determines whether the Smart-mode is supported by the this connector.
-     * @return {@literal true}, if Smart-mode is supported; otherwise, {@literal false}.
-     */
-    public final boolean isSmartModeSupported(){
-        return isSmartModeSupported(this);
-    }
-
     /**
      * Returns system name of the connector using its implementation class.
      * @param connectorImpl A class that represents implementation of resource connector.

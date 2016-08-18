@@ -46,7 +46,7 @@ import static com.bytex.snamp.connector.snmp.SnmpConnectorDescriptionProvider.*;
  * @version 2.0
  * @since 1.0
  */
-final class SnmpResourceConnector extends AbstractManagedResourceConnector implements AttributeSupport, NotificationSupport {
+final class SnmpResourceConnector extends AbstractManagedResourceConnector {
     private static final class SnmpNotificationInfo extends CustomNotificationInfo{
         private static final long serialVersionUID = -4792879013459588079L;
 
@@ -77,7 +77,8 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
                                            final Logger logger){
             super(resourceName,
                     SnmpNotificationInfo.class,
-                    DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName)));
+                    DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName)),
+                    false);
             this.logger = Objects.requireNonNull(logger);
             this.client = client;
             final Executor executor = client.read(cl -> cl.queryObject(Executor.class));
@@ -505,7 +506,6 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
     }
 
     private static final class SnmpAttributeRepository extends AbstractAttributeRepository<SnmpAttributeInfo> implements Aggregator {
-        private static final Class<SnmpAttributeInfo> FEATURE_TYPE = SnmpAttributeInfo.class;
         private static final Duration BATCH_READ_WRITE_TIMEOUT = Duration.ofSeconds(30);
         private final AbstractConcurrentResourceAccessor<SnmpClient> client;
         private final ExecutorService executor;
@@ -514,7 +514,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         private SnmpAttributeRepository(final String resourceName,
                                         final AbstractConcurrentResourceAccessor<SnmpClient> client,
                                         final Logger logger){
-            super(resourceName, FEATURE_TYPE);
+            super(resourceName, SnmpAttributeInfo.class, true);
             this.client = client;
             this.logger = Objects.requireNonNull(logger);
             this.executor = client.read(cl -> cl.queryObject(ExecutorService.class));
@@ -678,10 +678,6 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
             }
         }
 
-        private static boolean canExpandWith(final Class<? extends MBeanFeatureInfo> featureType) {
-            return featureType.isAssignableFrom(FEATURE_TYPE);
-        }
-
         private List<SnmpAttributeInfo> expandImpl(final SnmpClient client) throws InterruptedException, ExecutionException, TimeoutException, OpenDataException {
             final LinkedList<SnmpAttributeInfo> result = new LinkedList<>();
             for (final VariableBinding binding : client.walk(SnmpConnectorHelpers.getDiscoveryTimeout())) {
@@ -698,7 +694,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         }
 
         @Override
-        public List<SnmpAttributeInfo> expand() {
+        public List<SnmpAttributeInfo> expandAttributes() {
             try {
                 return client.read(this::expandImpl);
             } catch (final Exception e) {
@@ -781,65 +777,6 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
         removeResourceEventListener(listener, attributes, notifications);
     }
 
-    /**
-     * Determines whether raising of registered events is suspended.
-     *
-     * @return {@literal true}, if events are suspended; otherwise {@literal false}.
-     */
-    @Override
-    public boolean isSuspended() {
-        return notifications.isSuspended();
-    }
-
-    /**
-     * Suspends or activate raising of events.
-     *
-     * @param value {@literal true} to suspend events; {@literal false}, to activate events.
-     */
-    @Override
-    public void setSuspended(final boolean value) {
-        notifications.setSuspended(value);
-    }
-
-    /**
-     * Adds a listener to this MBean.
-     *
-     * @param listener The listener object which will handle the
-     *                 notifications emitted by the broadcaster.
-     * @param filter   The filter object. If filter is null, no
-     *                 filtering will be performed before handling notifications.
-     * @param handback An opaque object to be sent back to the
-     *                 listener when a notification is emitted. This object cannot be
-     *                 used by the Notification broadcaster object. It should be
-     *                 resent unchanged with the notification to the listener.
-     * @throws IllegalArgumentException Listener parameter is null.
-     * @see #removeNotificationListener
-     */
-    @Override
-    public void addNotificationListener(final NotificationListener listener, final NotificationFilter filter, final Object handback) throws IllegalArgumentException {
-        verifyClosedState();
-        notifications.addNotificationListener(listener, filter, handback);
-    }
-
-    /**
-     * Removes a listener from this MBean.  If the listener
-     * has been registered with different handback objects or
-     * notification filters, all entries corresponding to the listener
-     * will be removed.
-     *
-     * @param listener A listener that was previously added to this
-     *                 MBean.
-     * @throws javax.management.ListenerNotFoundException The listener is not
-     *                                                    registered with the MBean.
-     * @see #addNotificationListener
-     * @see javax.management.NotificationEmitter#removeNotificationListener
-     */
-    @Override
-    public void removeNotificationListener(final NotificationListener listener) throws ListenerNotFoundException {
-        verifyClosedState();
-        notifications.removeNotificationListener(listener);
-    }
-
     void removeAttributesExcept(final Set<String> attributes) {
         this.attributes.retainAll(attributes);
     }
@@ -873,20 +810,6 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector imple
     @Override
     public <T> T queryObject(final Class<T> objectType) {
         return queryObject(objectType, attributes);
-    }
-
-    @Override
-    public boolean canExpandWith(final Class<? extends MBeanFeatureInfo> featureType) {
-        return smartMode && SnmpAttributeRepository.canExpandWith(featureType);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <F extends MBeanFeatureInfo> Collection<? extends F> expand(final Class<F> featureType) {
-        if(smartMode)
-            if(SnmpAttributeRepository.canExpandWith(featureType))
-                return (Collection<F>)attributes.expand();
-        return Collections.emptyList();
     }
 
 }

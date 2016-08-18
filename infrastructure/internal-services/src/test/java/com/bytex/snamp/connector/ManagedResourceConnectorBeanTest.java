@@ -3,6 +3,7 @@ package com.bytex.snamp.connector;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.*;
+import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.gateway.modeling.AttributeValue;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.CustomAttributeInfo;
@@ -176,7 +177,7 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         //enables notifications
         assertNotNull(connector.enableNotifications("propertyChanged", makeEventConfig("propertyChanged")));
         final Mailbox listener = MailboxFactory.newMailbox();
-        connector.addNotificationListener(listener, listener, null);
+        connector.queryObject(NotificationSupport.class).addNotificationListener(listener, listener, null);
         assertEquals(connector.getProperty1(), connector.getAttribute("p1"));
         connector.setAttribute(new AttributeValue("p1", "1234567890", SimpleType.STRING));
         final Notification n = listener.poll(10, TimeUnit.SECONDS);
@@ -198,8 +199,8 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
     @Test
     public void smartModeTest() throws IntrospectionException, JMException {
         final TestManagementConnectorBean connector = new TestManagementConnectorBean();
-        assertTrue(connector.isSmartModeSupported());
-        assertFalse(connector.expandAll().isEmpty());
+        assertTrue(ManagedResourceConnector.isSmartModeSupported(connector));
+        assertFalse(ManagedResourceConnector.expandAll(connector).isEmpty());
         connector.setAttribute(new Attribute("property1", "Frank Underwood"));
         assertEquals("Frank Underwood", connector.getProperty1());
         assertEquals("Frank Underwood", connector.getAttribute("property1"));

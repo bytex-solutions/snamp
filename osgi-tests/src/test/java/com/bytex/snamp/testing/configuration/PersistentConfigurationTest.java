@@ -13,7 +13,7 @@ import org.ops4j.pax.exam.spi.reactors.PerMethod;
  * @since 1.0
  */
 @ExamReactorStrategy(PerMethod.class)
-public class PersistentConfigurationTest extends AbstractSnampIntegrationTest {
+public final class PersistentConfigurationTest extends AbstractSnampIntegrationTest {
 
     @Override
     protected boolean enableRemoteDebugging() {

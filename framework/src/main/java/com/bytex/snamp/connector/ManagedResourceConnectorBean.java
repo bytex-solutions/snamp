@@ -74,8 +74,7 @@ import java.util.logging.Logger;
  * @since 1.0
  * @version 2.0
  */
-public abstract class ManagedResourceConnectorBean extends AbstractManagedResourceConnector
-        implements NotificationSupport, AttributeSupport, OperationSupport {
+public abstract class ManagedResourceConnectorBean extends AbstractManagedResourceConnector {
 
     /**
      * Describes management notification type supported by this connector.
@@ -331,13 +330,12 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         private final Logger logger;
         private final WeakReference<? extends ManagedResourceConnector> connectorRef;
         private final ImmutableList<MethodDescriptor> operations;
-        private static final Class<JavaBeanOperationInfo> FEATURE_TYPE = JavaBeanOperationInfo.class;
 
         private <C extends ManagedResourceConnector> JavaBeanOperationRepository(final String resourceName,
                                             final C connectorRef,
                                             final MethodDescriptor[] operations,
                                             final Logger logger){
-            super(resourceName, FEATURE_TYPE);
+            super(resourceName, JavaBeanOperationInfo.class, true);
             this.logger = logger;
             this.connectorRef = new WeakReference<>(connectorRef);
             this.operations = ImmutableList.copyOf(operations);
@@ -359,7 +357,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         }
 
         @Override
-        public Collection<JavaBeanOperationInfo> expand() {
+        public Collection<JavaBeanOperationInfo> expandOperations() {
             final List<JavaBeanOperationInfo> result = new LinkedList<>();
             operations.stream()
                     .filter(method -> method.getMethod().isAnnotationPresent(ManagementOperation.class))
@@ -392,10 +390,6 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             } catch (final Throwable e) {
                 throw new UndeclaredThrowableException(e);
             }
-        }
-
-        private static boolean canExpandWith(final Class<? extends MBeanFeatureInfo> featureType) {
-            return featureType.isAssignableFrom(FEATURE_TYPE);
         }
     }
 
@@ -568,20 +562,15 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         private final Logger logger;
         private final ImmutableList<PropertyDescriptor> properties;
         private final WeakReference<? extends ManagedResourceConnector> connectorRef;
-        private static final Class<JavaBeanAttributeInfo> FEATURE_TYPE = JavaBeanAttributeInfo.class;
 
         private <C extends ManagedResourceConnector> JavaBeanAttributeRepository(final String resourceName,
                                             final C connector,
                                             final PropertyDescriptor[] properties,
                                             final Logger logger){
-            super(resourceName, FEATURE_TYPE);
+            super(resourceName, JavaBeanAttributeInfo.class, true);
             this.logger = Objects.requireNonNull(logger);
             this.properties = ImmutableList.copyOf(properties);
             this.connectorRef = new WeakReference<>(connector);
-        }
-
-        private static boolean canExpandWith(final Class<? extends MBeanFeatureInfo> featureType){
-            return featureType.isAssignableFrom(featureType);
         }
 
         private static JavaBeanAttributeInfo createAttribute(final String attributeName,
@@ -613,7 +602,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         }
 
         @Override
-        public Collection<JavaBeanAttributeInfo> expand() {
+        public Collection<JavaBeanAttributeInfo> expandAttributes() {
             final List<JavaBeanAttributeInfo> result = new LinkedList<>();
             properties.stream()
                     .filter(property -> !isReservedProperty(property))
@@ -661,7 +650,6 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         private final Logger logger;
         private final Set<? extends ManagementNotificationType<?>> notifTypes;
         private final NotificationListenerInvoker listenerInvoker;
-        private static final Class<CustomNotificationInfo> FEATURE_TYPE = CustomNotificationInfo.class;
 
         private JavaBeanNotificationRepository(final String resourceName,
                                                final Set<? extends ManagementNotificationType<?>> notifTypes,
@@ -679,11 +667,13 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                                                final Set<? extends ManagementNotificationType<?>> notifTypes,
                                                final LongCounter numberGenerator,
                                                final Logger logger){
-            super(resourceName, FEATURE_TYPE, numberGenerator);
+            super(resourceName, CustomNotificationInfo.class, numberGenerator, false);
             this.logger = Objects.requireNonNull(logger);
             this.notifTypes = Objects.requireNonNull(notifTypes);
             this.listenerInvoker = NotificationListenerInvokerFactory.createSequentialInvoker();
         }
+
+
 
         @Override
         protected NotificationListenerInvoker getListenerInvoker() {
@@ -870,45 +860,6 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
     }
 
     /**
-     * Removes a listener from this MBean.  If the listener
-     * has been registered with different handback objects or
-     * notification filters, all entries corresponding to the listener
-     * will be removed.
-     *
-     * @param listener A listener that was previously added to this
-     *                 MBean.
-     * @throws javax.management.ListenerNotFoundException The listener is not
-     *                                                    registered with the MBean.
-     * @see #addNotificationListener
-     * @see NotificationEmitter#removeNotificationListener
-     */
-    @Override
-    public final void removeNotificationListener(final NotificationListener listener) throws ListenerNotFoundException {
-        verifyClosedState();
-        notifications.removeNotificationListener(listener);
-    }
-
-    /**
-     * Adds a listener to this MBean.
-     *
-     * @param listener The listener object which will handle the
-     *                 notifications emitted by the broadcaster.
-     * @param filter   The filter object. If filter is null, no
-     *                 filtering will be performed before handling notifications.
-     * @param handback An opaque object to be sent back to the
-     *                 listener when a notification is emitted. This object cannot be
-     *                 used by the Notification broadcaster object. It should be
-     *                 resent unchanged with the notification to the listener.
-     * @throws IllegalArgumentException Listener parameter is null.
-     * @see #removeNotificationListener
-     */
-    @Override
-    public final void addNotificationListener(final NotificationListener listener, final NotificationFilter filter, final Object handback) throws IllegalArgumentException {
-        verifyClosedState();
-        notifications.addNotificationListener(listener, filter, handback);
-    }
-
-    /**
      * Disables event listening for the specified category of events.
      * <p>
      * This method removes all listeners associated with the specified subscription list.
@@ -1014,7 +965,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
     private boolean emitNotificationImpl(final ManagementNotificationType<?> category,
                                       final String message,
                                       final Object userData){
-        if(isSuspended()) return false;
+        if(notifications.isSuspended()) return false;
         else {
             notifications.fire(category, message, userData);
             return true;
@@ -1081,41 +1032,5 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         operations.close();
         notifications.close();
         attributes.close();
-    }
-
-    @Override
-    public boolean canExpandWith(final Class<? extends MBeanFeatureInfo> featureType) {
-        return JavaBeanAttributeRepository.canExpandWith(featureType) ||
-                JavaBeanOperationRepository.canExpandWith(featureType);
-    }
-
-    /**
-     * Determines whether raising of registered events is suspended.
-     *
-     * @return {@literal true}, if events are suspended; otherwise {@literal false}.
-     */
-    @Override
-    public boolean isSuspended() {
-        return notifications.isSuspended();
-    }
-
-    /**
-     * Suspends or activate raising of events.
-     *
-     * @param value {@literal true} to suspend events; {@literal false}, to activate events.
-     */
-    @Override
-    public final void setSuspended(final boolean value) {
-        notifications.setSuspended(value);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <F extends MBeanFeatureInfo> Collection<? extends F> expand(final Class<F> featureType) {
-        if (JavaBeanAttributeRepository.canExpandWith(featureType))
-            return (Collection<F>) attributes.expand();
-        else if(JavaBeanOperationRepository.canExpandWith(featureType))
-            return (Collection<F>) operations.expand();
-        else return Collections.emptyList();
     }
 }

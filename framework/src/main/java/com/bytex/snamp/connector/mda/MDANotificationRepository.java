@@ -36,7 +36,7 @@ public abstract class MDANotificationRepository<M extends MDANotificationInfo> e
                                         final Class<M> featureType,
                                         final ExecutorService threadPool,
                                         final LongCounter sequenceNumberGenerator){
-        super(resourceName, featureType, sequenceNumberGenerator);
+        super(resourceName, featureType, sequenceNumberGenerator, false);
         listenerInvoker = NotificationListenerInvokerFactory.createParallelInvoker(threadPool);
     }
 

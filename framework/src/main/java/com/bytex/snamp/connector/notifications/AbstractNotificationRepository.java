@@ -114,15 +114,18 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     private final LongCounter sequenceNumberGenerator;
     private final NotificationMetricsWriter metrics;
     private volatile boolean suspended;
+    private final boolean expandable;
 
     /**
      * Initializes a new notification manager.
      * @param resourceName The name of the managed resource.
-     * @param notifMetadataType Type of the notification metadata;
+     * @param notifMetadataType Type of the notification metadata.
+     * @param expandable {@literal true}, if repository can be populated automatically; otherwise, {@literal false}.
      */
     protected AbstractNotificationRepository(final String resourceName,
-                                             final Class<M> notifMetadataType) {
-        this(resourceName, notifMetadataType, DistributedServices.getProcessLocalCounterGenerator("notifications-".concat(resourceName)));
+                                             final Class<M> notifMetadataType,
+                                             final boolean expandable) {
+        this(resourceName, notifMetadataType, DistributedServices.getProcessLocalCounterGenerator("notifications-".concat(resourceName)), expandable);
     }
 
     /**
@@ -130,16 +133,19 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      * @param resourceName The name of the managed resource.
      * @param notifMetadataType Type of the notification metadata.
      * @param sequenceNumberGenerator Generator for sequence numbers. Cannot be {@literal null}.
+     * @param expandable {@literal true}, if repository can be populated automatically; otherwise, {@literal false}.
      */
     protected AbstractNotificationRepository(final String resourceName,
                                              final Class<M> notifMetadataType,
-                                             final LongCounter sequenceNumberGenerator) {
+                                             final LongCounter sequenceNumberGenerator,
+                                             final boolean expandable) {
         super(resourceName, notifMetadataType);
         notifications = AbstractKeyedObjects.create(NotificationHolder::getNotifType);
         listeners = new NotificationListenerList();
         this.sequenceNumberGenerator = Objects.requireNonNull(sequenceNumberGenerator);
         metrics = new NotificationMetricsWriter();
         suspended = false;
+        this.expandable = expandable;
     }
 
     /**
@@ -424,6 +430,27 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
             disableNotifications(holder.getMetadata());
         }
         notifications.clear();
+    }
+
+    /**
+     * Populate this repository with notifications.
+     *
+     * @return A collection of registered notifications; or empty collection if nothing tot populate.
+     */
+    @Override
+    public Collection<? extends M> expandNotifications() {
+        return Collections.emptyList();
+    }
+
+    /**
+     * Determines whether this repository can be populated with notifications using call of {@link #expandNotifications()}.
+     *
+     * @return {@literal true}, if this repository can be populated; otherwise, {@literal false}.
+     * @since 2.0
+     */
+    @Override
+    public final boolean canExpandNotifications() {
+        return expandable;
     }
 
     /**

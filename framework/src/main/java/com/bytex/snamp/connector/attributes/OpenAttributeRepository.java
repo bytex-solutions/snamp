@@ -14,10 +14,12 @@ public abstract class OpenAttributeRepository<T extends OpenMBeanAttributeAccess
      *
      * @param resourceName          The name of the managed resource.
      * @param attributeType         Type of the attribute.
+     * @param expandable {@literal true}, if repository can be populated automatically; otherwise, {@literal false}.
      */
     protected OpenAttributeRepository(final String resourceName,
-                                      final Class<T> attributeType) {
-        super(resourceName, attributeType);
+                                      final Class<T> attributeType,
+                                      final boolean expandable) {
+        super(resourceName, attributeType, expandable);
     }
 
     /**

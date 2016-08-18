@@ -3,6 +3,7 @@ package com.bytex.snamp.connector.operations;
 import javax.management.MBeanException;
 import javax.management.MBeanOperationInfo;
 import javax.management.ReflectionException;
+import java.util.Collection;
 
 /**
  * Provides support of management operations.
@@ -62,4 +63,19 @@ public interface OperationSupport {
      * @return The operation metadata; or {@literal null}, if operation doesn't exist.
      */
     MBeanOperationInfo getOperationInfo(final String operationName);
+
+    /**
+     * Determines whether this repository can be populated with operations using call of {@link #expandOperations()}.
+     * @return {@literal true}, if this repository can be populated; otherwise, {@literal false}.
+     * @since 2.0
+     */
+    boolean canExpandOperations();
+
+    /**
+     * Populate this repository with operations.
+     *
+     * @return A collection of registered operations; or empty collection if nothing to populate.
+     * @since 2.0
+     */
+    Collection<? extends MBeanOperationInfo> expandOperations();
 }

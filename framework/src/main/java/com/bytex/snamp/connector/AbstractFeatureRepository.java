@@ -216,15 +216,6 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
      */
     public abstract Metrics getMetrics();
 
-    /**
-     * Expands this repository.
-     * @return A list of expanded features; or empty list if this repository doesn't support expansion.
-     * @see ManagedResourceConnector#expand(Class)
-     */
-    public Collection<F> expand(){
-        return Collections.emptyList();
-    }
-
     protected static  <F extends MBeanFeatureInfo> Iterator<F> iterator(final Collection<? extends FeatureHolder<F>> holders){
         return holders.stream().map(FeatureHolder::getMetadata).iterator();
     }

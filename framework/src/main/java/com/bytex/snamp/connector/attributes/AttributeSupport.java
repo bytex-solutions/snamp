@@ -1,8 +1,9 @@
 package com.bytex.snamp.connector.attributes;
 
-import javax.management.*;
-
 import com.bytex.snamp.configuration.EntityConfiguration;
+
+import javax.management.*;
+import java.util.Collection;
 
 /**
  * Represents support for management attributes.
@@ -115,4 +116,19 @@ public interface AttributeSupport {
      * @return The attribute metadata; or {@literal null}, if attribute doesn't exist.
      */
     MBeanAttributeInfo getAttributeInfo(final String attributeName);
+
+    /**
+     * Determines whether this repository can be populated with attributes using call of {@link #expandAttributes()}.
+     * @return {@literal true}, if this repository can be populated; otherwise, {@literal false}.
+     * @since 2.0
+     */
+    boolean canExpandAttributes();
+
+    /**
+     * Populate this repository with attributes.
+     *
+     * @return A collection of registered attributes; or empty collection if nothing to populate.
+     * @since 2.0
+     */
+    Collection<? extends MBeanAttributeInfo> expandAttributes();
 }

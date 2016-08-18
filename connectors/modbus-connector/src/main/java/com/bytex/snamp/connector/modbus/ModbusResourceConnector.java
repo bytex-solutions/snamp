@@ -30,7 +30,7 @@ final class ModbusResourceConnector extends AbstractManagedResourceConnector {
         private final Logger logger;
 
         private ModbusAttributeRepository(final String resourceName, final ModbusMaster client, final Logger logger) {
-            super(resourceName, ModbusAttributeInfo.class);
+            super(resourceName, ModbusAttributeInfo.class, false);
             this.client = Objects.requireNonNull(client);
             this.logger = logger;
         }

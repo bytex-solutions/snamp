@@ -10,13 +10,11 @@ import com.bytex.snamp.connector.ResourceEventListener;
 import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeDescriptorRead;
-import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.metrics.MetricsReader;
 import com.bytex.snamp.connector.notifications.*;
 import com.bytex.snamp.connector.operations.AbstractOperationRepository;
 import com.bytex.snamp.connector.operations.OperationDescriptor;
 import com.bytex.snamp.connector.operations.OperationDescriptorRead;
-import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
 import org.osgi.framework.BundleContext;
@@ -42,7 +40,7 @@ import static com.google.common.base.MoreObjects.firstNonNull;
  * Represents JMX connector.
  * @author Roman Sakno
  */
-final class JmxConnector extends AbstractManagedResourceConnector implements AttributeSupport, NotificationSupport, OperationSupport {
+final class JmxConnector extends AbstractManagedResourceConnector {
     private interface JmxFeatureMetadata extends Serializable, DescriptorRead {
         ObjectName getOwner();
         String getName();
@@ -138,12 +136,11 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
     private final static class JmxOperationRepository extends AbstractOperationRepository<JmxOperationInfo> {
         private final JmxConnectionManager connectionManager;
         private final ObjectName globalObjectName;
-        private static final Class<JmxOperationInfo> FEATURE_TYPE = JmxOperationInfo.class;
 
         private JmxOperationRepository(final String resourceName,
                                        final ObjectName globalName,
                                        final JmxConnectionManager connectionManager){
-            super(resourceName, FEATURE_TYPE);
+            super(resourceName, JmxOperationInfo.class, true);
             this.globalObjectName = globalName;
             this.connectionManager = connectionManager;
         }
@@ -206,7 +203,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
         }
 
         @Override
-        public Collection<JmxOperationInfo> expand() {
+        public Collection<JmxOperationInfo> expandOperations() {
             if (globalObjectName == null)
                 return Collections.emptyList();
             else try {
@@ -233,10 +230,6 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
                 failedToExpand(getLoggerImpl(), Level.WARNING, e);
                 return Collections.emptyList();
             }
-        }
-
-        private static boolean canExpandWith(final Class<? extends MBeanFeatureInfo> featureType) {
-            return featureType.isAssignableFrom(FEATURE_TYPE);
         }
     }
 
@@ -272,12 +265,11 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
     private static final class JmxAttributeRepository extends AbstractAttributeRepository<JmxAttributeInfo> {
         private final JmxConnectionManager connectionManager;
         private final ObjectName globalObjectName;
-        private static final Class<JmxAttributeInfo> FEATURE_TYPE = JmxAttributeInfo.class;
 
         private JmxAttributeRepository(final String resourceName,
                                        final ObjectName globalName,
                                        final JmxConnectionManager connectionManager){
-            super(resourceName, FEATURE_TYPE);
+            super(resourceName, JmxAttributeInfo.class, true);
             this.globalObjectName = globalName;
             this.connectionManager = connectionManager;
         }
@@ -372,7 +364,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
         }
 
         @Override
-        public List<JmxAttributeInfo> expand() {
+        public List<JmxAttributeInfo> expandAttributes() {
             if(globalObjectName == null)
                 return Collections.emptyList();
             else try {
@@ -425,23 +417,18 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
         protected void setAttribute(final JmxAttributeInfo attribute, final Object value) throws Exception {
             attribute.setValue(connectionManager, value);
         }
-
-        private static boolean canExpandWith(final Class<? extends MBeanFeatureInfo> featureType) {
-            return featureType.isAssignableFrom(FEATURE_TYPE);
-        }
     }
 
     private static final class JmxNotificationRepository extends AbstractNotificationRepository<JmxNotificationInfo> implements NotificationListener, ConnectionEstablishedEventHandler {
         private final JmxConnectionManager connectionManager;
         private final NotificationListenerInvoker listenerInvoker;
         private final ObjectName globalObjectName;
-        private static final Class<JmxNotificationInfo> FEATURE_TYPE = JmxNotificationInfo.class;
 
         private JmxNotificationRepository(final String resourceName,
                                           final ObjectName globalName,
                                           final BundleContext context,
                                           final JmxConnectionManager connectionManager) {
-            super(resourceName, FEATURE_TYPE, DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName)));
+            super(resourceName, JmxNotificationInfo.class, DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName)), true);
             this.connectionManager = connectionManager;
             this.globalObjectName = globalName;
             this.connectionManager.addReconnectionHandler(this);
@@ -556,7 +543,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
         }
 
         @Override
-        public List<JmxNotificationInfo> expand() {
+        public List<JmxNotificationInfo> expandNotifications() {
             if (globalObjectName == null)
                 return Collections.emptyList();
             else try {
@@ -613,10 +600,6 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
         private void unsubscribeAll() throws Exception {
             for (final ObjectName target : getNotificationTargets())
                 disableListening(target);
-        }
-
-        private static boolean canExpandWith(final Class<? extends MBeanFeatureInfo> featureType) {
-            return featureType.isAssignableFrom(FEATURE_TYPE);
         }
 
         @Override
@@ -786,45 +769,6 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
     }
 
     /**
-     * Adds a listener to this MBean.
-     *
-     * @param listener The listener object which will handle the
-     *                 notifications emitted by the broadcaster.
-     * @param filter   The filter object. If filter is null, no
-     *                 filtering will be performed before handling notifications.
-     * @param handback An opaque object to be sent back to the
-     *                 listener when a notification is emitted. This object cannot be
-     *                 used by the Notification broadcaster object. It should be
-     *                 resent unchanged with the notification to the listener.
-     * @throws IllegalArgumentException Listener parameter is null.
-     * @see #removeNotificationListener
-     */
-    @Override
-    public void addNotificationListener(final NotificationListener listener, final NotificationFilter filter, final Object handback) throws IllegalArgumentException {
-        verifyClosedState();
-        notifications.addNotificationListener(listener, filter, handback);
-    }
-
-    /**
-     * Removes a listener from this MBean.  If the listener
-     * has been registered with different handback objects or
-     * notification filters, all entries corresponding to the listener
-     * will be removed.
-     *
-     * @param listener A listener that was previously added to this
-     *                 MBean.
-     * @throws javax.management.ListenerNotFoundException The listener is not
-     *                                                    registered with the MBean.
-     * @see #addNotificationListener
-     * @see javax.management.NotificationEmitter#removeNotificationListener
-     */
-    @Override
-    public void removeNotificationListener(final NotificationListener listener) throws ListenerNotFoundException {
-        verifyClosedState();
-        notifications.removeNotificationListener(listener);
-    }
-
-    /**
      * Adds a new listener for the connector-related events.
      * <p/>
      * The managed resource connector should holds a weak reference to all added event listeners.
@@ -844,46 +788,6 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Att
     @Override
     public void removeResourceEventListener(final ResourceEventListener listener) {
         removeResourceEventListener(listener, attributes, notifications, operations);
-    }
-
-    /**
-     * Determines whether raising of registered events is suspended.
-     *
-     * @return {@literal true}, if events are suspended; otherwise {@literal false}.
-     */
-    @Override
-    public boolean isSuspended() {
-        return notifications.isSuspended();
-    }
-
-    /**
-     * Suspends or activate raising of events.
-     *
-     * @param value {@literal true} to suspend events; {@literal false}, to activate events.
-     */
-    @Override
-    public void setSuspended(final boolean value) {
-        notifications.setSuspended(value);
-    }
-
-    @Override
-    public boolean canExpandWith(final Class<? extends MBeanFeatureInfo> featureType) {
-        return this.smartMode && (JmxAttributeRepository.canExpandWith(featureType) ||
-                JmxNotificationRepository.canExpandWith(featureType) ||
-                JmxOperationRepository.canExpandWith(featureType));
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <F extends MBeanFeatureInfo> Collection<? extends F> expand(final Class<F> featureType) {
-        if(this.smartMode)
-            if(JmxAttributeRepository.canExpandWith(featureType))
-                return (Collection<F>)attributes.expand();
-            else if(JmxNotificationRepository.canExpandWith(featureType))
-                return (Collection<F>)notifications.expand();
-            else if(JmxOperationRepository.canExpandWith(featureType))
-                return (Collection<F>)operations.expand();
-        return Collections.emptyList();
     }
 
     void removeAttributesExcept(final Set<String> attributes) {

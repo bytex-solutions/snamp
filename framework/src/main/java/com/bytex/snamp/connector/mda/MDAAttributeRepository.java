@@ -37,7 +37,7 @@ public abstract class MDAAttributeRepository<M extends MDAAttributeInfo> extends
      */
     protected MDAAttributeRepository(final String resourceName,
                                      final Class<M> attributeMetadataType) {
-        super(resourceName, attributeMetadataType);
+        super(resourceName, attributeMetadataType, false);
         attributeTypes = CacheBuilder.newBuilder().weakValues().build();
     }
 

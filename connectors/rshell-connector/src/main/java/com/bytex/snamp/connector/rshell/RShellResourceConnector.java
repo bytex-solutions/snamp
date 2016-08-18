@@ -35,7 +35,7 @@ import static com.bytex.snamp.TypeTokens.cast;
  * @version 2.0
  * @since 1.0
  */
-final class RShellResourceConnector extends AbstractManagedResourceConnector implements AttributeSupport {
+final class RShellResourceConnector extends AbstractManagedResourceConnector {
     private static abstract class RShellAttributeInfo extends OpenMBeanAttributeInfoImpl {
         private static final long serialVersionUID = -403897890533078455L;
         final XmlCommandLineToolProfile commandProfile;
@@ -191,7 +191,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector imp
                                  final CommandExecutionChannel channel,
                                  final ScriptEngineManager engineManager,
                                  final Logger logger) {
-            super(resourceName, RShellAttributeInfo.class);
+            super(resourceName, RShellAttributeInfo.class, false);
             this.executionChannel = Objects.requireNonNull(channel);
             this.scriptEngineManager = engineManager;
             this.logger = Objects.requireNonNull(logger);

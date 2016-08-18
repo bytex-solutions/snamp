@@ -1,17 +1,19 @@
 package com.bytex.snamp.connector;
 
+import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.ThreadSafe;
+import com.bytex.snamp.connector.attributes.AttributeSupport;
+import com.bytex.snamp.connector.notifications.NotificationSupport;
+import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.internal.Utils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.wiring.BundleRevision;
 
-import javax.management.DynamicMBean;
-import javax.management.MBeanFeatureInfo;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Objects;
+import javax.management.*;
+import java.util.*;
+import java.util.function.Supplier;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -26,6 +28,8 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  *         via resource attributes.</li>
  *         <li>{@link com.bytex.snamp.connector.notifications.NotificationSupport} to receiver
  *         management notifications.</li>
+ *         <li>{@link com.bytex.snamp.connector.operations.OperationSupport} to provide management
+ *         via operations.</li>
  *     </ul>
  * @author Roman Sakno
  * @since 1.0
@@ -93,21 +97,6 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
     @ThreadSafe
     void removeResourceEventListener(final ResourceEventListener listener);
 
-    /**
-     * Determines whether the connector may automatically expanded with features without predefined configuration.
-     * @param featureType Type of the feature. Cannot be {@literal null}.
-     * @return {@literal true}, if this connector supports automatic registration of its features; otherwise, {@literal false}.
-     */
-    boolean canExpandWith(final Class<? extends MBeanFeatureInfo> featureType);
-
-    /**
-     * Expands this connector with features of the specified type.
-     * @param featureType The type of the feature that this connector may automatically registers.
-     * @param <F> Type of the feature class.
-     * @return A collection of registered features; or empty collection if the specified feature type is not supported.
-     */
-    <F extends MBeanFeatureInfo> Collection<? extends F> expand(final Class<F> featureType);
-
     static String getResourceConnectorType(final Bundle bnd){
         final BundleRevision revision = bnd.adapt(BundleRevision.class);
         assert revision != null;
@@ -125,5 +114,52 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
 
     static boolean isResourceConnector(final ServiceReference<?> ref){
         return Utils.isInstanceOf(ref, ManagedResourceConnector.class) && isResourceConnectorBundle(ref.getBundle());
+    }
+
+    static boolean canExpandWith(final ManagedResourceConnector connector,
+                                 final Class<? extends MBeanFeatureInfo> featureType) {
+        final Supplier<Boolean> FALLBACK = () -> false;
+        if (featureType.equals(MBeanAttributeInfo.class))
+            return Aggregator.queryAndApply(connector, AttributeSupport.class, AttributeSupport::canExpandAttributes, FALLBACK);
+        else if (featureType.equals(MBeanNotificationInfo.class))
+            return Aggregator.queryAndApply(connector, NotificationSupport.class, NotificationSupport::canExpandNotifications, FALLBACK);
+        else if (featureType.equals(MBeanOperationInfo.class))
+            return Aggregator.queryAndApply(connector, OperationSupport.class, OperationSupport::canExpandOperations, FALLBACK);
+        else
+            return FALLBACK.get();
+    }
+
+    @SuppressWarnings("unchecked")
+    static <F extends MBeanFeatureInfo> Collection<? extends F> expand(final ManagedResourceConnector connector,
+                                                                       final Class<F> featureType) {
+        final Collection result;
+        if (featureType.equals(MBeanAttributeInfo.class))
+            result = Aggregator.queryAndApply(connector, AttributeSupport.class, AttributeSupport::expandAttributes, Collections::emptyList);
+        else if (featureType.equals(MBeanNotificationInfo.class))
+            result = Aggregator.queryAndApply(connector, NotificationSupport.class, NotificationSupport::expandNotifications, Collections::emptyList);
+        else if (featureType.equals(MBeanOperationInfo.class))
+            result = Aggregator.queryAndApply(connector, OperationSupport.class, OperationSupport::expandOperations, Collections::emptyList);
+        else
+            result = Collections.emptyList();
+        return result;
+    }
+
+    /**
+     * Determines whether the Smart-mode is supported by the specified connector.
+     * @param connector An instance of the connector. Cannot be {@literal null}.
+     * @return {@literal true}, if Smart-mode is supported; otherwise, {@literal false}.
+     */
+    static boolean isSmartModeSupported(final ManagedResourceConnector connector) {
+        return canExpandWith(connector, MBeanAttributeInfo.class) ||
+                canExpandWith(connector, MBeanNotificationInfo.class) ||
+                canExpandWith(connector, MBeanOperationInfo.class);
+    }
+
+    static Collection<? extends MBeanFeatureInfo> expandAll(final ManagedResourceConnector connector) {
+        final List<MBeanFeatureInfo> result = new LinkedList<>();
+        result.addAll(Aggregator.queryAndApply(connector, AttributeSupport.class, AttributeSupport::expandAttributes, Collections::emptyList));
+        result.addAll(Aggregator.queryAndApply(connector, NotificationSupport.class, NotificationSupport::expandNotifications, Collections::emptyList));
+        result.addAll(Aggregator.queryAndApply(connector, OperationSupport.class, OperationSupport::expandOperations, Collections::emptyList));
+        return result;
     }
 }
