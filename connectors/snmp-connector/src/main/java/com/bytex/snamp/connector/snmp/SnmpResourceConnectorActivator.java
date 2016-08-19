@@ -29,7 +29,7 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
                 new RequiredService<?>[]{new SimpleDependency<>(ThreadPoolRepository.class)},
                 new SupportConnectorServiceManager<?, ?>[]{
                         configurationDescriptor(SnmpConnectorDescriptionProvider::getInstance),
-                        discoveryService(SnmpResourceConnectorActivator::newDiscoveryService)
+                        discoveryService(SnmpResourceConnectorActivator::newDiscoveryService, new SimpleDependency<>(ConfigurationManager.class))
                 });
     }
 
