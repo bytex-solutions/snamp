@@ -145,7 +145,7 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
     }
 
     public String getDescription(final Descriptor metadata){
-        return DescriptorUtils.getField(metadata, DESCRIPTION_FIELD, String.class);
+        return DescriptorUtils.getField(metadata, DESCRIPTION_FIELD, Objects::toString, () -> null);
     }
 
     public String getDescription(final MBeanAttributeInfo metadata) {
@@ -153,7 +153,7 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
     }
 
     public static OpenType<?> getOpenType(final Descriptor metadata){
-        return DescriptorUtils.getField(metadata, OPEN_TYPE, OpenType.class);
+        return DescriptorUtils.getField(metadata, OPEN_TYPE, value -> (OpenType<?>)value, () -> null);
     }
 
     public static OpenType<?> getOpenType(final MBeanAttributeInfo metadata) {
@@ -184,10 +184,6 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
         return DescriptorUtils.hasField(this, fieldName);
     }
 
-    public final  <T> T getField(final String fieldName, final Class<T> fieldType){
-        return DescriptorUtils.getField(this, fieldName, fieldType);
-    }
-
     /**
      * Sets unit of measurement for this attribute.
      * @param value UOM
@@ -208,13 +204,13 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
     }
 
     public final String getName(final String defName){
-        return hasField(AttributeConfiguration.NAME_KEY) ? getAlternativeName() : defName;
+        return DescriptorUtils.getField(this, AttributeConfiguration.NAME_KEY, Objects::toString, () -> defName);
     }
 
 
     @Override
-    public final String getAlternativeName(){
-        return getField(AttributeConfiguration.NAME_KEY, String.class);
+    public final String getAlternativeName() {
+        return getName((String) null);
     }
 
     /**
@@ -222,13 +218,13 @@ public class AttributeDescriptor extends ImmutableDescriptor implements Configur
      * @return UOM.
      */
     public final String getUnit(){
-        return getField(DescriptorUtils.UNIT_OF_MEASUREMENT_FIELD, String.class);
+        return DescriptorUtils.getField(this, DescriptorUtils.UNIT_OF_MEASUREMENT_FIELD, Objects::toString, () -> null);
     }
 
     public static String getName(final MBeanAttributeInfo metadata) {
         return DescriptorUtils.getField(metadata.getDescriptor(),
                 AttributeConfiguration.NAME_KEY,
-                String.class,
-                metadata.getName());
+                Objects::toString,
+                metadata::getName);
     }
 }

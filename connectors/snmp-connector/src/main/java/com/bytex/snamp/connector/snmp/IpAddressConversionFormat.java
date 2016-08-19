@@ -8,8 +8,7 @@ import javax.management.openmbean.OpenType;
 import javax.management.openmbean.SimpleType;
 
 import static com.bytex.snamp.connector.snmp.SnmpConnectorDescriptionProvider.SNMP_CONVERSION_FORMAT_PARAM;
-import static com.bytex.snamp.jmx.DescriptorUtils.getField;
-import static com.bytex.snamp.jmx.DescriptorUtils.hasField;
+import static com.bytex.snamp.jmx.DescriptorUtils.parseStringField;
 
 /**
  * Represents {@link org.snmp4j.smi.IpAddress} conversion format.
@@ -53,9 +52,7 @@ enum IpAddressConversionFormat implements SnmpObjectConverter<IpAddress> {
     }
 
     static IpAddressConversionFormat getFormat(final Descriptor options){
-        if(hasField(options, SNMP_CONVERSION_FORMAT_PARAM))
-            return getFormat(getField(options, SNMP_CONVERSION_FORMAT_PARAM, String.class));
-        else return BYTE_ARRAY;
+        return parseStringField(options, SNMP_CONVERSION_FORMAT_PARAM, IpAddressConversionFormat::getFormat, () -> BYTE_ARRAY);
     }
 
     static IpAddressConversionFormat getFormat(final String formatName){

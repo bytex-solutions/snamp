@@ -162,7 +162,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
             if(notificationInfo == null) return;
             String message;
             if(notificationInfo.getDescriptor().hasField(MESSAGE_TEMPLATE_PARAM)){  //format message, no attachments
-                message = notificationInfo.getDescriptor().getField(MESSAGE_TEMPLATE_PARAM, String.class);
+                message = Objects.toString(notificationInfo.getDescriptor().getFieldValue(MESSAGE_TEMPLATE_PARAM));
                 for(final VariableBinding binding: bindings) {
                     final OID postfix = SnmpConnectorHelpers.getPostfix(notificationInfo.getNotificationID(),
                             binding.getOid());
@@ -173,7 +173,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
                 bindings.clear();
             }
             else if(notificationInfo.getDescriptor().hasField(MESSAGE_OID_PARAM)){      //extract message, add attachments
-                final OID messageOID = new OID(message = notificationInfo.getDescriptor().getField(MESSAGE_OID_PARAM, String.class));
+                final OID messageOID = new OID(message = Objects.toString(notificationInfo.getDescriptor().getFieldValue(MESSAGE_OID_PARAM)));
                 final Iterator<VariableBinding> iterator = bindings.iterator();
                 while (iterator.hasNext()){
                     final VariableBinding b = iterator.next();

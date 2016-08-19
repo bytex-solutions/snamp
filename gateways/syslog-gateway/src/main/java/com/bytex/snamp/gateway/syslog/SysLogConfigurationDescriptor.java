@@ -9,6 +9,7 @@ import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import javax.management.Descriptor;
 import java.time.Duration;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 
 import static com.bytex.snamp.jmx.DescriptorUtils.getField;
@@ -77,7 +78,7 @@ final class SysLogConfigurationDescriptor extends ConfigurationEntityDescription
     }
 
     static String getApplicationName(final Descriptor descr, final String defaultValue){
-        return getField(descr, APPLICATION_NAME_PARAM, String.class, defaultValue);
+        return getField(descr, APPLICATION_NAME_PARAM, Objects::toString, () -> defaultValue);
     }
 
     static Facility getFacility(final Descriptor descr, final Facility defaultValue){

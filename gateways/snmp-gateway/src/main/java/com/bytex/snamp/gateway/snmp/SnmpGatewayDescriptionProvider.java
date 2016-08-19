@@ -1,11 +1,10 @@
 package com.bytex.snamp.gateway.snmp;
 
 
+import com.bytex.snamp.concurrent.LazyValue;
+import com.bytex.snamp.concurrent.LazyValueFactory;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.gateway.GatewayDescriptionProvider;
-import com.bytex.snamp.concurrent.LazyValueFactory;
-import com.bytex.snamp.concurrent.LazyValue;
-import org.snmp4j.SNMP4JSettings;
 import org.snmp4j.mp.MPv3;
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
@@ -14,15 +13,15 @@ import javax.management.DescriptorRead;
 import javax.naming.NamingException;
 import java.text.ParseException;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import static com.bytex.snamp.MapUtils.getValue;
-import static com.bytex.snamp.MapUtils.getValueAsInt;
+import static com.bytex.snamp.MapUtils.*;
 import static com.bytex.snamp.configuration.GatewayConfiguration.THREAD_POOL_KEY;
 import static com.bytex.snamp.jmx.DescriptorUtils.getField;
 import static com.bytex.snamp.jmx.DescriptorUtils.hasField;
-import static com.bytex.snamp.MapUtils.getValueAsLong;
+import static com.bytex.snamp.jmx.DescriptorUtils.parseStringField;
 
 /**
  * Represents descriptor of SnmpAgent-specific configuration elements.
@@ -142,19 +141,15 @@ final class SnmpGatewayDescriptionProvider extends ConfigurationEntityDescriptio
     }
 
     OID parseContext(final Map<String, String> parameters) throws SnmpGatewayAbsentParameterException {
-        if(parameters.containsKey(CONTEXT_PARAM_NAME))
-            return new OID(parameters.get(CONTEXT_PARAM_NAME));
-        else throw new SnmpGatewayAbsentParameterException(CONTEXT_PARAM_NAME);
+        return getIfPresent(parameters, CONTEXT_PARAM_NAME, OID::new, SnmpGatewayAbsentParameterException::new);
     }
 
     static OID parseOID(final DescriptorRead info, final Supplier<OID> oidGenerator) throws ParseException {
-        if (hasField(info.getDescriptor(), OID_PARAM_NAME))
-            return new OID(SNMP4JSettings.getOIDTextFormat().parse(getField(info.getDescriptor(), OID_PARAM_NAME, String.class)));
-        else return oidGenerator.get();
+        return parseStringField(info.getDescriptor(), OID_PARAM_NAME, OID::new, oidGenerator);
     }
 
     static String parseDateTimeDisplayFormat(final DescriptorRead info){
-        return getField(info.getDescriptor(), DATE_TIME_DISPLAY_FORMAT_PARAM, String.class);
+        return getField(info.getDescriptor(), DATE_TIME_DISPLAY_FORMAT_PARAM, Objects::toString, () -> null);
     }
 
     OctetString parseEngineID(final Map<String, String> parameters){
@@ -191,23 +186,19 @@ final class SnmpGatewayDescriptionProvider extends ConfigurationEntityDescriptio
     }
 
     static String parseTargetAddress(final DescriptorRead metadata){
-        return getField(metadata.getDescriptor(), TARGET_ADDRESS_PARAM, String.class);
+        return getField(metadata.getDescriptor(), TARGET_ADDRESS_PARAM, Objects::toString, () -> null);
     }
 
     static String parseTargetName(final DescriptorRead metadata){
-        return getField(metadata.getDescriptor(), TARGET_NAME_PARAM, String.class);
+        return getField(metadata.getDescriptor(), TARGET_NAME_PARAM, Objects::toString, () -> null);
     }
 
     static int parseNotificationTimeout(final DescriptorRead metadata){
-        return hasField(metadata.getDescriptor(), TARGET_NOTIF_TIMEOUT_PARAM) ?
-                Integer.parseInt(getField(metadata.getDescriptor(), TARGET_NOTIF_TIMEOUT_PARAM, String.class)) :
-                2000;
+        return parseStringField(metadata.getDescriptor(), TARGET_NOTIF_TIMEOUT_PARAM, Integer::parseInt, () -> 2000);
     }
 
     static int parseRetryCount(final DescriptorRead metadata){
-        return hasField(metadata.getDescriptor(), TARGET_RETRY_COUNT_PARAM) ?
-                Integer.parseInt(getField(metadata.getDescriptor(), TARGET_RETRY_COUNT_PARAM, String.class)) :
-                3;
+        return parseStringField(metadata.getDescriptor(), TARGET_RETRY_COUNT_PARAM, Integer::parseInt, () -> 3);
     }
 
     long parseRestartTimeout(final Map<String, String> parameters){

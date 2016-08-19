@@ -5,6 +5,8 @@ import org.codehaus.groovy.runtime.InvokerHelper;
 
 import javax.management.MBeanFeatureInfo;
 import java.util.Objects;
+import java.util.function.Function;
+
 import static com.bytex.snamp.jmx.DescriptorUtils.*;
 
 /**
@@ -22,9 +24,7 @@ class GroovyFeatureMetadata<F extends MBeanFeatureInfo> extends GroovyObjectSupp
 
     @Override
     public final Object getProperty(final String property) {
-        if (hasField(metadata.getDescriptor(), property))
-            return getField(metadata.getDescriptor(), property, Object.class);
-        else return InvokerHelper.getProperty(metadata, property);
+        return getField(metadata.getDescriptor(), property, Function.identity(), () -> InvokerHelper.getProperty(metadata, property));
     }
 
     @Override

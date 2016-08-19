@@ -15,9 +15,10 @@ import javax.management.openmbean.OpenType;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.bytex.snamp.MapUtils.getValueAsLong;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents basic configuration schema for all MDA connector.
@@ -78,14 +79,14 @@ public abstract class MDAResourceConfigurationDescriptorProvider extends Configu
     }
 
     static OpenType<?> parseType(final Descriptor descriptor) throws OpenDataException {
-        final String displayName = DescriptorUtils.getField(descriptor, TYPE_PARAM, String.class);
+        final String displayName = DescriptorUtils.getField(descriptor, TYPE_PARAM, Objects::toString, () -> "");
         final WellKnownType result = WellKnownType.parse(displayName);
         if(result == null)
             return null;
         else if(result == WellKnownType.DICTIONARY){
-            final String itemNames = DescriptorUtils.getField(descriptor, ITEM_NAMES_PARAM, String.class);
-            final String itemTypes = DescriptorUtils.getField(descriptor, ITEM_TYPES_PARAM, String.class);
-            final String typeName = DescriptorUtils.getField(descriptor, TYPE_NAME_PARAM, String.class);
+            final String itemNames = DescriptorUtils.getField(descriptor, ITEM_NAMES_PARAM, Objects::toString, () -> "");
+            final String itemTypes = DescriptorUtils.getField(descriptor, ITEM_TYPES_PARAM, Objects::toString, () -> "");
+            final String typeName = DescriptorUtils.getField(descriptor, TYPE_NAME_PARAM, Objects::toString, () -> "");
             if(isNullOrEmpty(itemNames) || isNullOrEmpty(itemTypes) || isNullOrEmpty(typeName))
                 return null;
             else return parseCompositeType(typeName, ITEMS_SPLITTER.splitToList(itemNames), ITEMS_SPLITTER.splitToList(itemTypes));

@@ -35,8 +35,7 @@ import java.util.logging.Level;
 
 import static com.bytex.snamp.gateway.snmp.SnmpGatewayDescriptionProvider.parseOID;
 import static com.bytex.snamp.gateway.snmp.SnmpHelpers.getAccessRestrictions;
-import static com.bytex.snamp.jmx.DescriptorUtils.getField;
-import static com.bytex.snamp.jmx.DescriptorUtils.hasField;
+import static com.bytex.snamp.jmx.DescriptorUtils.parseStringField;
 
 /**
  * Represents SNMP table.
@@ -206,10 +205,6 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
             return elapsed > tableCacheTime.toNanos();
         }
 
-        private UpdateManager(){
-            this(Duration.ofSeconds(5));
-        }
-
         private void reset(){
             timer.reset();
         }
@@ -289,8 +284,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
     }
 
     private static boolean shouldUseRowStatus(final Descriptor options){
-        return hasField(options, USE_ROW_STATUS_PARAM) &&
-                Boolean.valueOf(getField(options, USE_ROW_STATUS_PARAM, String.class));
+        return parseStringField(options, USE_ROW_STATUS_PARAM, Boolean::parseBoolean, () -> false);
     }
 
     private SnmpTableObject(final OID oid,
@@ -305,9 +299,8 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
         this.setModel(tableModel);
         //save additional fields
         _connector = connector;
-        cacheManager = hasField(connector.getMetadata().getDescriptor(), TABLE_CACHE_TIME_PARAM) ?
-                new UpdateManager(Duration.ofMillis(Long.parseLong(getField(connector.getMetadata().getDescriptor(), TABLE_CACHE_TIME_PARAM, String.class)))):
-                new UpdateManager();
+        final long tableCacheTime = parseStringField(connector.getMetadata().getDescriptor(), TABLE_CACHE_TIME_PARAM, Long::parseLong, () -> 5000L);
+        cacheManager = new UpdateManager(Duration.ofMillis(tableCacheTime));
     }
 
     @SpecialUse

@@ -42,9 +42,7 @@ final class ModbusResourceConnectorConfigurationDescriptor extends Configuration
     }
 
     static int parseOffset(final Descriptor descriptor) throws ModbusAbsentConfigurationParameterException{
-        if(hasField(descriptor, OFFSET_PARAM))
-            return Integer.parseInt(getField(descriptor, OFFSET_PARAM, String.class));
-        else throw new ModbusAbsentConfigurationParameterException(OFFSET_PARAM);
+        return getFieldIfPresent(descriptor,OFFSET_PARAM, value -> Integer.parseInt(value.toString()), ModbusAbsentConfigurationParameterException::new);
     }
 
     static boolean hasCount(final Descriptor descriptor){
@@ -52,15 +50,11 @@ final class ModbusResourceConnectorConfigurationDescriptor extends Configuration
     }
 
     static int parseCount(final Descriptor descriptor) throws ModbusAbsentConfigurationParameterException{
-        if(hasCount(descriptor))
-            return Integer.parseInt(getField(descriptor, COUNT_PARAM, String.class));
-        else throw new ModbusAbsentConfigurationParameterException(COUNT_PARAM);
+        return getFieldIfPresent(descriptor, COUNT_PARAM, value -> Integer.parseInt(value.toString()), ModbusAbsentConfigurationParameterException::new);
     }
 
     static int parseUnitID(final Descriptor descriptor){
-        if(hasField(descriptor, UNIT_ID_PARAM))
-            return Integer.parseInt(getField(descriptor, UNIT_ID_PARAM, String.class));
-        else return Modbus.DEFAULT_UNIT_ID;
+        return getField(descriptor, UNIT_ID_PARAM, value -> Integer.parseInt(value.toString()), () -> Modbus.DEFAULT_UNIT_ID);
     }
 
     static int parseConnectionTimeout(final Map<String, String> parameters){
@@ -72,8 +66,6 @@ final class ModbusResourceConnectorConfigurationDescriptor extends Configuration
     }
 
     static int parseRecordSize(final Descriptor descriptor) throws ModbusAbsentConfigurationParameterException {
-        if(hasField(descriptor, RECORD_SIZE_PARAM))
-            return Integer.parseInt(getField(descriptor, RECORD_SIZE_PARAM, String.class));
-        else throw new ModbusAbsentConfigurationParameterException(RECORD_SIZE_PARAM);
+        return getFieldIfPresent(descriptor, RECORD_SIZE_PARAM, value -> Integer.parseInt(value.toString()), ModbusAbsentConfigurationParameterException::new);
     }
 }

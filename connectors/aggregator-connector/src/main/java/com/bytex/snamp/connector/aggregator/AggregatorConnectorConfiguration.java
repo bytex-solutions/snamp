@@ -6,7 +6,10 @@ import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 
 import java.time.Duration;
 import java.util.Map;
+import java.util.Objects;
+
 import static com.bytex.snamp.MapUtils.*;
+import static com.bytex.snamp.jmx.DescriptorUtils.*;
 
 /**
  * Provides configuration schema of this resource connector.
@@ -69,60 +72,44 @@ final class AggregatorConnectorConfiguration extends ConfigurationEntityDescript
                 new ResourceConfigurationDescriptor());
     }
 
-    private static String getAttributeParameter(final AttributeDescriptor descriptor,
-                                                final String parameterName) throws AbsentAggregatorAttributeParameterException {
-        if(descriptor.hasField(parameterName))
-            return descriptor.getField(parameterName, String.class);
-        else throw new AbsentAggregatorAttributeParameterException(parameterName);
-    }
-
-    private static String getNotificationParameter(final NotificationDescriptor descriptor,
-                                                final String parameterName) throws AbsentAggregatorNotificationParameterException {
-        if(descriptor.hasField(parameterName))
-            return descriptor.getField(parameterName, String.class);
-        else throw new AbsentAggregatorNotificationParameterException(parameterName);
-    }
-
     static String getSourceManagedResource(final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException {
-        return getAttributeParameter(descriptor, SOURCE_PARAM);
+        return getFieldIfPresent(descriptor, SOURCE_PARAM, Objects::toString, AbsentAggregatorAttributeParameterException::new);
     }
 
     static String getSourceManagedResource(final NotificationDescriptor descriptor) throws AbsentAggregatorNotificationParameterException {
-        return getNotificationParameter(descriptor, SOURCE_PARAM);
+        return getFieldIfPresent(descriptor, SOURCE_PARAM, Objects::toString, AbsentAggregatorNotificationParameterException::new);
     }
 
     static String getForeignAttributeName(final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException {
-        return getAttributeParameter(descriptor, FOREIGN_ATTRIBUTE_PARAM);
+        return getFieldIfPresent(descriptor, FOREIGN_ATTRIBUTE_PARAM, Objects::toString, AbsentAggregatorAttributeParameterException::new);
     }
 
     static String getForeignAttributeName(final NotificationDescriptor descriptor) throws AbsentAggregatorNotificationParameterException {
-        return getNotificationParameter(descriptor, FOREIGN_ATTRIBUTE_PARAM);
+        return getFieldIfPresent(descriptor, FOREIGN_ATTRIBUTE_PARAM, Objects::toString, AbsentAggregatorNotificationParameterException::new);
     }
 
     static String getFirstForeignAttributeName(final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException {
-        return getAttributeParameter(descriptor, FIRST_FOREIGN_ATTRIBUTE_PARAM);
+        return getFieldIfPresent(descriptor, FIRST_FOREIGN_ATTRIBUTE_PARAM, Objects::toString, AbsentAggregatorAttributeParameterException::new);
     }
 
     static String getSecondForeignAttributeName(final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException {
-        return getAttributeParameter(descriptor, SECOND_FOREIGN_ATTRIBUTE_PARAM);
+        return getFieldIfPresent(descriptor, SECOND_FOREIGN_ATTRIBUTE_PARAM, Objects::toString, AbsentAggregatorAttributeParameterException::new);
     }
 
     static Comparison getComparisonType(final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException {
-        return Comparison.parse(getAttributeParameter(descriptor, COMPARER_PARAM));
+        return getFieldIfPresent(descriptor, COMPARER_PARAM, value -> Comparison.parse(value.toString()), AbsentAggregatorAttributeParameterException::new);
     }
 
     static String getUserDefinedValue(final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException {
-        return getAttributeParameter(descriptor, VALUE_PARAM);
+        return getFieldIfPresent(descriptor, VALUE_PARAM, Objects::toString, AbsentAggregatorAttributeParameterException::new);
     }
 
     static long getTimeIntervalInMillis(final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException {
-        return Long.parseLong(getAttributeParameter(descriptor, TIME_INTERVAL_PARAM));
+        return getFieldIfPresent(descriptor, TIME_INTERVAL_PARAM, value -> Long.parseLong(value.toString()), AbsentAggregatorAttributeParameterException::new);
     }
 
     static CompositeDataPath getFieldPath(final AttributeDescriptor descriptor) throws AbsentAggregatorAttributeParameterException {
-        if(descriptor.hasField(FIELD_PATH_PARAM))
-            return new CompositeDataPath(descriptor.getField(FIELD_PATH_PARAM, String.class));
-        else throw new AbsentAggregatorAttributeParameterException(FIELD_PATH_PARAM);
+        return getFieldIfPresent(descriptor, FIELD_PATH_PARAM, value -> new CompositeDataPath(value.toString()), AbsentAggregatorAttributeParameterException::new);
     }
 
     static Duration getNotificationFrequency(final Map<String, String> parameters){

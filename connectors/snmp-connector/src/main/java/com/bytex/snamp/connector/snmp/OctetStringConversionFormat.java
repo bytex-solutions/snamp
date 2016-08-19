@@ -9,8 +9,7 @@ import javax.management.openmbean.SimpleType;
 import java.util.Objects;
 
 import static com.bytex.snamp.connector.snmp.SnmpConnectorDescriptionProvider.SNMP_CONVERSION_FORMAT_PARAM;
-import static com.bytex.snamp.jmx.DescriptorUtils.getField;
-import static com.bytex.snamp.jmx.DescriptorUtils.hasField;
+import static com.bytex.snamp.jmx.DescriptorUtils.parseStringField;
 
 /**
  * Represents {@link org.snmp4j.smi.OctetString} format type.
@@ -72,11 +71,8 @@ enum OctetStringConversionFormat implements SnmpObjectConverter<OctetString> {
         this.openType = type;
     }
 
-    static OctetStringConversionFormat getFormat(final OctetString value, final Descriptor options){
-        if(hasField(options, SNMP_CONVERSION_FORMAT_PARAM))
-            return getFormat(getField(options, SNMP_CONVERSION_FORMAT_PARAM, String.class));
-        else if(value.isPrintable()) return TEXT;
-        else return BYTE_ARRAY;
+    static OctetStringConversionFormat getFormat(final OctetString value, final Descriptor options) {
+        return parseStringField(options, SNMP_CONVERSION_FORMAT_PARAM, OctetStringConversionFormat::getFormat, () -> value.isPrintable() ? TEXT : BYTE_ARRAY);
     }
 
     static OctetStringConversionFormat getFormat(final String formatName){

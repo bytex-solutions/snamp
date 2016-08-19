@@ -117,10 +117,6 @@ public class OperationDescriptor extends ImmutableDescriptor implements Configur
         return DescriptorUtils.hasField(this, fieldName);
     }
 
-    public final  <T> T getField(final String fieldName, final Class<T> fieldType){
-        return DescriptorUtils.getField(this, fieldName, fieldType);
-    }
-
     public static Duration getInvocationTimeout(final Descriptor descriptor){
         final Object fieldValue = descriptor.getFieldValue(INVOCATION_TIMEOUT_FIELD);
         if(fieldValue instanceof Number)
@@ -154,18 +150,15 @@ public class OperationDescriptor extends ImmutableDescriptor implements Configur
      */
     @Override
     public final String getAlternativeName() {
-        return getField(OperationConfiguration.NAME_KEY, String.class);
+        return getName((String) null);
     }
 
     public final String getName(final String defName){
-        return hasField(OperationConfiguration.NAME_KEY) ? getAlternativeName() : defName;
+        return DescriptorUtils.getField(this, OperationConfiguration.NAME_KEY, Objects::toString, () -> defName);
     }
 
     public static String getName(final MBeanOperationInfo metadata){
-        return DescriptorUtils.getField(metadata.getDescriptor(),
-                OperationConfiguration.NAME_KEY,
-                String.class,
-                metadata.getName());
+        return DescriptorUtils.getField(metadata.getDescriptor(), OperationConfiguration.NAME_KEY, Objects::toString, metadata::getName);
     }
 
     public static WellKnownType getReturnType(final MBeanOperationInfo operationInfo) {

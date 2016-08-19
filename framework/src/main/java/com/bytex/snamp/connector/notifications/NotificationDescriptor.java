@@ -18,7 +18,6 @@ import java.util.Objects;
 
 import static com.bytex.snamp.connector.notifications.NotificationSupport.*;
 import static com.bytex.snamp.jmx.CompositeDataUtils.fillMap;
-import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents notification descriptor.
@@ -110,12 +109,11 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
     }
 
     public final String getDescription(final String defval){
-        final String result = getDescription();
-        return isNullOrEmpty(result) ? defval : result;
+        return DescriptorUtils.getField(this, DESCRIPTION_FIELD, Objects::toString, () -> defval);
     }
 
     public static String getDescription(final Descriptor metadata){
-        return DescriptorUtils.getField(metadata, DESCRIPTION_FIELD, String.class);
+        return DescriptorUtils.getField(metadata, DESCRIPTION_FIELD, Objects::toString, () -> null);
     }
 
     public static String getDescription(final MBeanNotificationInfo metadata){
@@ -142,7 +140,7 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
     }
 
     public static OpenType<?> getUserDataType(final Descriptor metadata){
-        return DescriptorUtils.getField(metadata, USER_DATA_TYPE, OpenType.class);
+        return DescriptorUtils.getField(metadata, USER_DATA_TYPE, value -> (OpenType<?>)value, () -> null);
     }
 
     public static OpenType<?> getUserDataType(final MBeanNotificationInfo metadata){
@@ -162,24 +160,20 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Confi
         return DescriptorUtils.hasField(this, fieldName);
     }
 
-    public final  <T> T getField(final String fieldName, final Class<T> fieldType){
-        return DescriptorUtils.getField(this, fieldName, fieldType);
-    }
-
     @Override
     public final String getAlternativeName(){
-        return getField(EventConfiguration.NAME_KEY, String.class);
+        return getName((String) null);
     }
 
     public final String getName(final String defName){
-        return hasField(EventConfiguration.NAME_KEY) ? getAlternativeName() : defName;
+        return DescriptorUtils.getField(this, EventConfiguration.NAME_KEY, Objects::toString, () -> defName);
     }
 
-    public static String getName(final MBeanNotificationInfo metadata){
+    public static String getName(final MBeanNotificationInfo metadata) {
         return DescriptorUtils.getField(metadata.getDescriptor(),
                 EventConfiguration.NAME_KEY,
-                String.class,
-                ArrayUtils.getFirst(metadata.getNotifTypes()));
+                Objects::toString,
+                () -> ArrayUtils.getFirst(metadata.getNotifTypes()));
     }
 
     /**

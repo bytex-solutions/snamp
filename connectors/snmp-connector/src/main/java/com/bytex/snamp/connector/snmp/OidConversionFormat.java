@@ -8,8 +8,7 @@ import javax.management.openmbean.OpenType;
 import javax.management.openmbean.SimpleType;
 
 import static com.bytex.snamp.connector.snmp.SnmpConnectorDescriptionProvider.SNMP_CONVERSION_FORMAT_PARAM;
-import static com.bytex.snamp.jmx.DescriptorUtils.getField;
-import static com.bytex.snamp.jmx.DescriptorUtils.hasField;
+import static com.bytex.snamp.jmx.DescriptorUtils.parseStringField;
 
 /**
  * Represents {@link org.snmp4j.smi.OID} conversion format.
@@ -47,9 +46,7 @@ enum OidConversionFormat implements SnmpObjectConverter<OID> {
     }
 
     static OidConversionFormat getFormat(final Descriptor options){
-        if(hasField(options, SNMP_CONVERSION_FORMAT_PARAM))
-            return getFormat(getField(options, SNMP_CONVERSION_FORMAT_PARAM, String.class));
-        else return INT_ARRAY;
+        return parseStringField(options, SNMP_CONVERSION_FORMAT_PARAM, OidConversionFormat::getFormat, () -> INT_ARRAY);
     }
 
     static OidConversionFormat getFormat(final String formatName){

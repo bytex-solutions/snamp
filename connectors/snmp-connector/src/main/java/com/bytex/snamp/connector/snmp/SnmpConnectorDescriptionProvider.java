@@ -19,6 +19,7 @@ import java.util.concurrent.ExecutorService;
 
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.*;
 import static com.bytex.snamp.MapUtils.*;
+import static com.bytex.snamp.jmx.DescriptorUtils.parseStringField;
 
 /**
  * Represents SNMP connector configuration descriptor.
@@ -41,7 +42,7 @@ final class SnmpConnectorDescriptionProvider extends ConfigurationEntityDescript
     private static final String SOCKET_TIMEOUT_PARAM = "socketTimeout";
     private static final int DEFAULT_SOCKET_TIMEOUT = 3000;
     private static final String RESPONSE_TIMEOUT_PARAM = "responseTimeout";
-    private static final Duration DEFAULT_RESPONSE_TIMEOUT = Duration.ofSeconds(6);
+    private static final long DEFAULT_RESPONSE_TIMEOUT = 6000;
     //attribute related parameters
     static final String SNMP_CONVERSION_FORMAT_PARAM = "snmpConversionFormat";
     //event related parameters
@@ -101,9 +102,8 @@ final class SnmpConnectorDescriptionProvider extends ConfigurationEntityDescript
     }
 
     static Duration getResponseTimeout(final AttributeDescriptor attributeParams){
-        return attributeParams.hasField(RESPONSE_TIMEOUT_PARAM) ?
-                Duration.ofMillis(Long.parseLong(attributeParams.getField(RESPONSE_TIMEOUT_PARAM, String.class))):
-                DEFAULT_RESPONSE_TIMEOUT;
+        final long timeout = parseStringField(attributeParams, RESPONSE_TIMEOUT_PARAM, Long::parseLong, () -> DEFAULT_RESPONSE_TIMEOUT);
+        return Duration.ofMillis(timeout);
     }
 
     private static OctetString parseEngineID(final Map<String, String> parameters) {

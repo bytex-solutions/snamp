@@ -7,7 +7,6 @@ import com.bytex.snamp.connector.ManagedResourceDescriptionProvider;
 import com.bytex.snamp.connector.SelectableConnectorParameterDescriptor;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.jmx.CompositeDataUtils;
-import com.bytex.snamp.jmx.DescriptorUtils;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 
@@ -26,6 +25,7 @@ import java.util.function.Consumer;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.*;
 import static com.bytex.snamp.configuration.FeatureConfiguration.AUTOMATICALLY_ADDED_KEY;
 import static com.bytex.snamp.MapUtils.getValueAsInt;
+import static com.bytex.snamp.jmx.DescriptorUtils.*;
 
 /**
  * Represents JMX connector configuration descriptor.
@@ -134,14 +134,13 @@ final class JmxConnectorDescriptionProvider extends ConfigurationEntityDescripti
     }
 
     static boolean useRegexpOption(final Descriptor options) {
-        return DescriptorUtils.hasField(options, USE_REGEXP_PARAM) &&
-                Objects.equals(Boolean.TRUE.toString(), DescriptorUtils.getField(options, USE_REGEXP_PARAM, String.class));
+        return getField(options, USE_REGEXP_PARAM, value -> Boolean.parseBoolean(value.toString()), () -> false);
     }
 
     static boolean checkSignature(final Descriptor options,
                                   final MBeanParameterInfo[] parameters){
-        if(DescriptorUtils.hasField(options, SIGNATURE_PARAM)){
-            final List<String> expectedSignature = SIGNATURE_SPLITTER.splitToList(DescriptorUtils.getField(options, SIGNATURE_PARAM, String.class));
+        if(hasField(options, SIGNATURE_PARAM)){
+            final List<String> expectedSignature = SIGNATURE_SPLITTER.splitToList(getField(options, SIGNATURE_PARAM, Objects::toString, () -> ""));
             if(parameters.length == expectedSignature.size()){
                 for(int i =0; i < parameters.length; i++)
                     if(!Objects.equals(expectedSignature.get(i), parameters[i].getType()))
@@ -154,9 +153,8 @@ final class JmxConnectorDescriptionProvider extends ConfigurationEntityDescripti
     }
 
     static ObjectName getObjectName(final Descriptor descriptor) throws MalformedObjectNameException, JmxAbsentConfigurationParameterException {
-        if(DescriptorUtils.hasField(descriptor, OBJECT_NAME_PROPERTY))
-            return new ObjectName(DescriptorUtils.getField(descriptor, OBJECT_NAME_PROPERTY, String.class));
-        else throw new JmxAbsentConfigurationParameterException(OBJECT_NAME_PROPERTY);
+        final String objectName = getFieldIfPresent(descriptor, OBJECT_NAME_PROPERTY, Objects::toString, JmxAbsentConfigurationParameterException::new);
+        return new ObjectName(objectName);
     }
 
 

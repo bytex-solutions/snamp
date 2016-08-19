@@ -11,6 +11,7 @@ import com.googlecode.jsendnsca.core.NagiosSettings;
 import javax.management.Descriptor;
 import java.time.Duration;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 
 import static com.bytex.snamp.configuration.GatewayConfiguration.THREAD_POOL_KEY;
@@ -102,9 +103,7 @@ final class NSCAGatewayConfigurationDescriptor extends ConfigurationEntityDescri
     }
 
     static String getServiceName(final Descriptor descriptor, final String defaultService){
-        return hasField(descriptor, SERVICE_NAME_PARAM) ?
-                getField(descriptor, SERVICE_NAME_PARAM, String.class):
-                defaultService;
+        return getField(descriptor, SERVICE_NAME_PARAM, Objects::toString, () -> defaultService);
     }
 
     Duration getPassiveCheckSendPeriod(final Map<String, String> parameters){

@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.lang.reflect.Array;
 import java.util.*;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
@@ -32,38 +34,59 @@ public final class DescriptorUtils {
         throw new InstantiationError();
     }
 
-    public static <T> T getField(final Descriptor descr,
+    private static <T> T getField(final Descriptor descr,
                                  final String fieldName,
-                                 final Class<T> fieldType,
-                                 final Supplier<T> defval) {
-        if(descr == null) return defval.get();
+                                 final Predicate<Object> valueFilter,
+                                 final Function<Object, ? extends T> transform,
+                                 final Supplier<? extends T> defval) {
+        if (descr == null)
+            return defval.get();
         final Object fieldValue = descr.getFieldValue(fieldName);
-        if (fieldValue == null) return defval.get();
-        else if (fieldType.isInstance(fieldValue))
-            return fieldType.cast(fieldValue);
+        if (fieldValue == null)
+            return defval.get();
+        else if (valueFilter.test(fieldValue))
+            return transform.apply(fieldValue);
         else if (fieldValue.getClass().isArray())
             if (Array.getLength(fieldValue) > 0) {
                 final Object item = Array.get(fieldValue, 0);
-                if (fieldType.isInstance(item)) return fieldType.cast(item);
-                else return defval.get();
-            } else return defval.get();
-        else return defval.get();
+                if (valueFilter.test(item))
+                    return transform.apply(item);
+            }
+        return defval.get();
     }
 
     public static <T> T getField(final Descriptor descr,
-                                 final String fieldName,
-                                 final Class<T> fieldType,
-                                 final T defval){
-        return getField(descr, fieldName, fieldType, (Supplier<T>) () -> defval);
+                                  final String fieldName,
+                                  final Function<Object, ? extends T> transform,
+                                  final Supplier<? extends T> defval) {
+        return getField(descr, fieldName, value -> true, transform, defval);
     }
 
-    public static <T> T getField(final Descriptor descr,
-                                 final String fieldName,
-                                 final Class<T> fieldType){
-        return getField(descr, fieldName, fieldType, (Supplier<T>) () -> null);
+    public static <T> T parseStringField(final Descriptor descr,
+                                         final String fieldName,
+                                         final Function<String, ? extends T> transform,
+                                         final Supplier<? extends T> defval) {
+        return getField(descr, fieldName, value -> value instanceof String, value -> transform.apply((String) value), defval);
     }
 
-    public static Properties toProperties(final Descriptor descr) {
+    public static <T, E extends Throwable> T getFieldIfPresent(final Descriptor descr,
+                                 final String fieldName,
+                                 final Function<Object, ? extends T> transform,
+                                 final Function<String, ? extends E> exceptionFactory) throws E {
+        if (descr == null)
+            throw exceptionFactory.apply(fieldName);
+        final Object fieldValue = descr.getFieldValue(fieldName);
+        if (fieldValue == null)
+            throw exceptionFactory.apply(fieldName);
+        else if (fieldValue.getClass().isArray()) {
+            if (Array.getLength(fieldValue) > 0)
+                return transform.apply(Array.get(fieldValue, 0));
+        } else
+            return transform.apply(fieldValue);
+        throw exceptionFactory.apply(fieldName);
+    }
+
+    private static Properties toProperties(final Descriptor descr) {
         final Properties result = new Properties();
         if (descr != null)
             for (final String fieldName : descr.getFieldNames()) {
@@ -105,7 +128,7 @@ public final class DescriptorUtils {
         final String[] fields = descr.getFieldNames();
         final Map<String, V> result = Maps.newHashMapWithExpectedSize(fields.length);
         for (final String fieldName : fields) {
-            final V fieldValue = getField(descr, fieldName, valueType);
+            final V fieldValue = getField(descr, fieldName, valueType::isInstance, valueType::cast, () -> null);
             if (fieldValue == null && ignoreNullValues) continue;
             result.put(fieldName, fieldValue);
         }
@@ -131,56 +154,21 @@ public final class DescriptorUtils {
         return ArrayUtils.containsAny(descr.getFieldNames(), fieldName);
     }
 
-    public static boolean hasDefaultValue(final Descriptor descr){
-        return hasField(descr, DEFAULT_VALUE_FIELD);
-    }
-
-    public static boolean hasLegalValues(final Descriptor descr){
-        return hasField(descr, LEGAL_VALUES_FIELD);
-    }
-
-    public static boolean hasMaxValue(final Descriptor descr){
-        return hasField(descr, MAX_VALUE_FIELD);
-    }
-
-    public static boolean hasMinValue(final Descriptor descr){
-        return hasField(descr, MIN_VALUE_FIELD);
-    }
-
     public static <T> T getDefaultValue(final Descriptor descr, final Class<T> type){
         final Object value = descr.getFieldValue(DEFAULT_VALUE_FIELD);
         return type.isInstance(value) ? type.cast(value) : null;
-    }
-
-    public static Object getRawLegalValues(final Descriptor descr){
-        return descr.getFieldValue(LEGAL_VALUES_FIELD);
-    }
-
-    public static Set<?> getLegalValues(final Descriptor descr){
-        final Object value = getRawLegalValues(descr);
-        return value instanceof Set<?> ? (Set<?>)value : null;
     }
 
     public static Object getRawMaxValue(final Descriptor descr){
         return descr.getFieldValue(MAX_VALUE_FIELD);
     }
 
-    public static Comparable<?> getMaxValue(final Descriptor descr){
-        final Object value = getRawMaxValue(descr);
-        return value instanceof Comparable<?> ? (Comparable<?>)value : null;
-    }
-
     public static Object getRawMinValue(final Descriptor descr){
         return descr.getFieldValue(MIN_VALUE_FIELD);
     }
 
-    public static Comparable<?> getMinValue(final Descriptor descr){
-        final Object value = getRawMinValue(descr);
-        return value instanceof Comparable<?> ? (Comparable<?>)value : null;
-    }
-
     public static String getUOM(final Descriptor descr){
-        return getField(descr, UNIT_OF_MEASUREMENT_FIELD, String.class, "");
+        return getField(descr, UNIT_OF_MEASUREMENT_FIELD, Objects::toString, () -> "");
     }
 
     public static ImmutableDescriptor copyOf(final Descriptor descr){

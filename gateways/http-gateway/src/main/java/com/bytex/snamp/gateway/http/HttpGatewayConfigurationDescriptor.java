@@ -5,9 +5,9 @@ import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 
 import javax.management.Descriptor;
+import java.util.Objects;
 
 import static com.bytex.snamp.jmx.DescriptorUtils.getField;
-import static com.bytex.snamp.jmx.DescriptorUtils.hasField;
 
 /**
  * Represents descriptor of HTTP gateway configuration scheme.
@@ -35,8 +35,6 @@ final class HttpGatewayConfigurationDescriptor extends ConfigurationEntityDescri
     }
 
     static String parseDateFormatParam(final Descriptor descr){
-        if(hasField(descr, DATE_FORMAT_PARAM))
-            return getField(descr, DATE_FORMAT_PARAM, String.class);
-        else return null;
+        return getField(descr, DATE_FORMAT_PARAM, Objects::toString, () -> null);
     }
 }
